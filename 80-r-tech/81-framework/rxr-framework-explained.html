@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR Framework Explained — 주니어를 위한 안내서</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6666FF;
+    --primary-deep: #5353FF;
+    --primary-light: #8A8AFF;
+    --primary-pale: #E1E1FF;
+    --primary-bg: #CDCEFB;
+    --grad: linear-gradient(135deg, #5353FF, #8A8AFF);
+    --black: #000000;
+    --dark-gray: #262626;
+    --body-gray: #424D61;
+    --light-gray: #F6F6F6;
+    --white: #FFFFFF;
+    --accent-red: #C00000;
+    --accent-coral: #FF5050;
+    --accent-blue: #4D93F7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard Variable', system-ui, -apple-system, sans-serif;
+    color: var(--body-gray);
+    background: var(--white);
+    line-height: 1.7;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .tag {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300;
+    letter-spacing: 2.5px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+
+  .metric-number {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    background: var(--white);
+    color: var(--dark-gray);
+    padding: 100px 60px 80px;
+    position: relative;
+    overflow: hidden;
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-bottom: 3px solid transparent;
+    border-image: var(--grad) 1;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(102,102,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .hero .tag { color: var(--primary); margin-bottom: 20px; }
+
+  .hero h1 {
+    font-size: 44px;
+    font-weight: 900;
+    line-height: 1.25;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+    color: var(--black);
+  }
+
+  .hero h1 span { color: var(--primary); }
+
+  .hero .subtitle {
+    font-size: 18px;
+    color: var(--body-gray);
+    font-weight: 400;
+    max-width: 600px;
+    line-height: 1.7;
+  }
+
+  .hero .version {
+    position: absolute;
+    bottom: 20px; right: 60px;
+    font-size: 11px;
+    color: #999;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* ===== SECTIONS ===== */
+  .section {
+    padding: 80px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-dark {
+    background: var(--light-gray);
+    max-width: 100%;
+    padding: 80px 60px;
+  }
+  .section-dark .inner { max-width: 1100px; margin: 0 auto; }
+
+  .section-accent {
+    background: var(--light-gray);
+    color: var(--dark-gray);
+    max-width: 100%;
+    padding: 80px 60px;
+    position: relative;
+    border-top: 2px solid transparent;
+    border-image: var(--grad) 1;
+  }
+  .section-accent .inner { max-width: 1100px; margin: 0 auto; }
+
+  .section-header {
+    margin-bottom: 48px;
+  }
+
+  .section-header .tag { margin-bottom: 12px; display: block; }
+
+  .section-header h2 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--black);
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+
+  .section-accent .section-header h2 { color: var(--black); }
+
+  .section-header .desc {
+    font-size: 16px;
+    color: var(--body-gray);
+    max-width: 700px;
+  }
+
+  .section-accent .section-header .desc { color: var(--body-gray); }
+
+  /* ===== CARDS ===== */
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .card-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--light-gray);
+    border: 1px solid #E8E8E8;
+    border-radius: 12px;
+    padding: 28px 24px;
+  }
+
+  .card-primary {
+    border-top: 3px solid var(--primary);
+    background: var(--white);
+  }
+
+  .card-dark {
+    background: var(--white);
+    border: 1px solid #E8E8E8;
+    color: var(--body-gray);
+  }
+
+  .card-dark h3 { color: var(--dark-gray); }
+
+  .card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark-gray);
+    margin-bottom: 12px;
+  }
+
+  .card .icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .card p {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* ===== COMPARISON TABLE ===== */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 14px;
+  }
+
+  .compare-table th,
+  .compare-table td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid #E8E8E8;
+  }
+
+  .compare-table th {
+    background: var(--primary);
+    color: var(--white);
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .compare-table th:first-child { border-radius: 8px 0 0 0; }
+  .compare-table th:last-child { border-radius: 0 8px 0 0; }
+
+  .compare-table tr:nth-child(even) { background: #FAFAFA; }
+
+  .compare-table .check { color: var(--primary); font-weight: 700; }
+  .compare-table .cross { color: #CCC; }
+  .compare-table .only {
+    color: var(--primary);
+    font-weight: 800;
+    background: var(--primary-pale);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+
+  /* ===== FUNNEL / STAIRS ===== */
+  .stairs {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    margin: 40px 0;
+    padding: 0 20px;
+  }
+
+  .stair {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .stair-bar {
+    width: 100%;
+    background: var(--grad);
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 12px;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    min-height: 40px;
+    position: relative;
+  }
+
+  .stair-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--dark-gray);
+    margin-top: 8px;
+  }
+
+  .stair-cost {
+    font-size: 10px;
+    color: var(--body-gray);
+    margin-top: 4px;
+  }
+
+  /* ===== BEFORE/AFTER ===== */
+  .ba-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin: 32px 0;
+  }
+
+  .ba-card {
+    border-radius: 12px;
+    padding: 32px 28px;
+  }
+
+  .ba-before {
+    background: #F8F8F8;
+    border: 2px dashed #DDD;
+  }
+
+  .ba-after {
+    background: var(--primary-pale);
+    color: var(--dark-gray);
+    border: 2px solid var(--primary);
+    position: relative;
+  }
+
+  .ba-after::before {
+    content: 'RXR';
+    position: absolute;
+    top: -12px; right: 20px;
+    background: var(--grad);
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+
+  .ba-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    opacity: 0.6;
+  }
+
+  .ba-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .ba-card ul li {
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(128,128,128,0.15);
+  }
+
+  .ba-card ul li:last-child { border-bottom: none; }
+
+  .ba-after ul li { color: var(--dark-gray); }
+  .ba-after ul li strong { color: var(--primary); }
+
+  /* ===== FLOW DIAGRAM ===== */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 36px 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-item {
+    background: var(--white);
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+    min-width: 160px;
+  }
+
+  .flow-item .icon { font-size: 28px; margin-bottom: 6px; display: block; }
+  .flow-item .name { font-weight: 700; font-size: 15px; color: var(--dark-gray); }
+  .flow-item .role { font-size: 12px; color: var(--body-gray); margin-top: 4px; }
+
+  .flow-arrow {
+    font-size: 24px;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  /* ===== 2-LAYER DIAGRAM ===== */
+  .layer-diagram {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    align-items: stretch;
+    margin: 36px 0;
+  }
+
+  .layer-box {
+    border-radius: 12px;
+    padding: 28px 24px;
+  }
+
+  .layer-content {
+    background: linear-gradient(135deg, #EEF2FF, #E1E1FF);
+    border: 2px solid var(--primary-pale);
+  }
+
+  .layer-psyche {
+    background: linear-gradient(135deg, #F0F0FF, #E1E1FF);
+    border: 2px solid var(--primary-pale);
+    color: var(--body-gray);
+  }
+
+  .layer-psyche h3 { color: var(--primary); }
+
+  .layer-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: var(--primary);
+  }
+
+  .layer-box h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .layer-box ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .layer-box ul li {
+    padding: 6px 0;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .layer-box ul li .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+    flex-shrink: 0;
+  }
+
+  /* ===== GATE DIAGRAM ===== */
+  .gate-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    margin: 36px 0;
+  }
+
+  .gate {
+    flex: 1;
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+    position: relative;
+  }
+
+  .gate-1 { background: #FFF3E0; border: 2px solid #FFB74D; }
+  .gate-2 { background: #E8F5E9; border: 2px solid #81C784; }
+  .gate-3 { background: var(--primary-pale); border: 2px solid var(--primary); }
+
+  .gate .gate-number {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+
+  .gate-1 .gate-number { color: #E65100; }
+  .gate-2 .gate-number { color: #2E7D32; }
+  .gate-3 .gate-number { color: var(--primary); }
+
+  .gate .gate-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--dark-gray);
+    margin-bottom: 8px;
+  }
+
+  .gate .gate-desc {
+    font-size: 12px;
+    color: var(--body-gray);
+    line-height: 1.6;
+  }
+
+  .gate .gate-data {
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .gate-arrow {
+    display: flex;
+    align-items: center;
+    font-size: 20px;
+    color: var(--body-gray);
+  }
+
+  /* ===== GLOSSARY ===== */
+  .glossary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .glossary-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 16px;
+    background: var(--white);
+    border-radius: 10px;
+    border: 1px solid #E8E8E8;
+  }
+
+  .glossary-item .term {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--primary);
+    white-space: nowrap;
+    min-width: 60px;
+  }
+
+  .glossary-item .def {
+    font-size: 13px;
+    color: var(--body-gray);
+    line-height: 1.6;
+  }
+
+  /* ===== ANALOGY BOX ===== */
+  .analogy {
+    background: var(--primary-pale);
+    border-left: 4px solid var(--primary);
+    border-radius: 0 12px 12px 0;
+    padding: 24px 28px;
+    margin: 28px 0;
+  }
+
+  .analogy .label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+
+  .analogy p {
+    font-size: 15px;
+    color: var(--dark-gray);
+    font-weight: 500;
+    line-height: 1.7;
+  }
+
+  /* ===== INSIGHT BOX ===== */
+  .insight {
+    background: linear-gradient(135deg, #5353FF, #8A8AFF);
+    border-radius: 12px;
+    padding: 28px 32px;
+    color: white;
+    margin: 32px 0;
+  }
+
+  .insight .label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    opacity: 0.7;
+    margin-bottom: 8px;
+  }
+
+  .insight p {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.7;
+  }
+
+  /* ===== TOC ===== */
+  .toc {
+    display: flex;
+    gap: 16px;
+    margin-top: 48px;
+    flex-wrap: wrap;
+  }
+
+  .toc-item {
+    background: var(--light-gray);
+    border: 1px solid #E8E8E8;
+    border-radius: 10px;
+    padding: 16px 20px;
+    flex: 1;
+    min-width: 180px;
+    cursor: default;
+  }
+
+  .toc-item .num {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+
+  .toc-item .title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark-gray);
+  }
+
+  .toc-item .sub {
+    font-size: 11px;
+    color: var(--body-gray);
+    margin-top: 4px;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align: center;
+    padding: 40px 60px;
+    font-size: 12px;
+    color: #999;
+    border-top: 2px solid;
+    border-image: var(--grad) 1;
+  }
+
+  /* ===== MISC ===== */
+  .divider {
+    height: 1px;
+    background: #E8E8E8;
+    margin: 48px 0;
+  }
+
+  .highlight { color: var(--primary); font-weight: 700; }
+
+  .text-sm { font-size: 13px; }
+  .text-muted { color: #999; }
+  .mt-24 { margin-top: 24px; }
+  .mt-16 { margin-top: 16px; }
+  .mb-16 { margin-bottom: 16px; }
+
+  .full-width-diagram {
+    margin: 40px 0;
+    padding: 32px;
+    background: var(--light-gray);
+    border-radius: 16px;
+    border: 1px solid #E8E8E8;
+  }
+
+  @media screen and (max-width: 768px) {
+    .hero { padding: 60px 24px 50px; }
+    .hero h1 { font-size: 28px; }
+    .section, .section-dark, .section-accent { padding: 48px 24px; }
+    .card-grid, .card-grid-3, .ba-grid, .glossary { grid-template-columns: 1fr; }
+    .stairs { flex-wrap: wrap; }
+    .layer-diagram { grid-template-columns: 1fr; }
+    .layer-center { transform: rotate(90deg); padding: 8px; }
+    .gate-flow { flex-direction: column; }
+    .gate-arrow { transform: rotate(90deg); justify-content: center; }
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+    .toc { flex-direction: column; }
+  }
+
+  /* ===== PDF PRINT BUTTON + MENU ===== */
+  .print-fab {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 9999;
+  }
+
+  .print-btn {
+    background: var(--grad);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 28px;
+    font-family: 'Pretendard Variable', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(102,102,255,0.4);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .print-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(102,102,255,0.55);
+  }
+
+  .print-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: white;
+  }
+
+  /* 방향 선택 팝업 */
+  .print-menu {
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    background: var(--white);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 12px;
+    display: none;
+    min-width: 220px;
+    border: 1px solid #E8E8E8;
+  }
+
+  .print-menu.active { display: block; }
+
+  .print-menu-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--body-gray);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 4px 8px 10px;
+    border-bottom: 1px solid #EEE;
+    margin-bottom: 8px;
+  }
+
+  .print-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: 'Pretendard Variable', system-ui, sans-serif;
+    transition: background 0.15s;
+  }
+
+  .print-option:hover { background: var(--light-gray); }
+
+  .print-option .opt-icon {
+    width: 40px;
+    height: 32px;
+    border: 2px solid var(--primary);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .print-option .opt-icon.landscape {
+    width: 40px;
+    height: 28px;
+  }
+
+  .print-option .opt-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: var(--primary);
+  }
+
+  .print-option .opt-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .print-option .opt-text .name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark-gray);
+  }
+
+  .print-option .opt-text .desc {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+  }
+
+  /* 오버레이 */
+  .print-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: none;
+  }
+  .print-overlay.active { display: block; }
+
+  /* ===== PRINT / PDF STYLES ===== */
+  @media print {
+    /* 기본: 세로 (portrait) */
+    @page {
+      size: A4 portrait;
+      margin: 18mm 15mm 20mm 15mm;
+    }
+
+    /* 가로 모드: body.landscape 클래스가 붙으면 적용 */
+    body.landscape-mode { /* marker class */ }
+
+    /* 인쇄 UI 숨김 */
+    .print-btn,
+    .print-fab,
+    .print-menu,
+    .print-overlay { display: none !important; }
+
+    /* 전체 레이아웃 리셋 */
+    body {
+      font-size: 11px;
+      line-height: 1.6;
+      color: #222;
+      background: white;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* 섹션 패딩 축소 */
+    .hero {
+      padding: 32px 0 24px;
+      min-height: auto;
+      page-break-after: auto;
+    }
+
+    .hero h1 { font-size: 32px; }
+    .hero .subtitle { font-size: 14px; }
+    .hero .version { position: static; margin-top: 24px; text-align: right; }
+
+    .section,
+    .section-dark,
+    .section-accent {
+      padding: 32px 0;
+      max-width: 100%;
+    }
+
+    .section-dark { background: #F8F8F8 !important; }
+    .section-accent { background: #F8F8F8 !important; }
+
+    .inner { max-width: 100%; }
+
+    .section-header { margin-bottom: 24px; }
+    .section-header h2 { font-size: 22px; }
+    .section-header .desc { font-size: 12px; }
+
+    /* ===== 가로 배치 강제 유지 (핵심) ===== */
+
+    /* TOC: 5개 가로 한 줄 */
+    .toc {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      gap: 6px !important;
+      margin-top: 20px !important;
+    }
+    .toc-item {
+      flex: 1 !important;
+      min-width: 0 !important;
+      padding: 8px 10px !important;
+    }
+    .toc-item .num { font-size: 16px !important; }
+    .toc-item .title { font-size: 10px !important; }
+    .toc-item .sub { font-size: 8px !important; }
+
+    /* 4-Layer Flow: 가로 한 줄 */
+    .flow {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      align-items: center !important;
+      gap: 6px !important;
+      margin: 20px 0 !important;
+    }
+    .flow-item {
+      flex: 1 !important;
+      min-width: 0 !important;
+      padding: 10px 8px !important;
+    }
+    .flow-item .icon { font-size: 20px !important; }
+    .flow-item .name { font-size: 11px !important; }
+    .flow-item .role { font-size: 9px !important; }
+    .flow-arrow {
+      font-size: 16px !important;
+      transform: none !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* 카드 그리드 2열 유지 */
+    .card-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 10px !important;
+    }
+
+    /* 카드 그리드 3열 유지 */
+    .card-grid-3 {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr 1fr !important;
+      gap: 8px !important;
+    }
+
+    /* 카드 */
+    .card {
+      padding: 14px 12px;
+      border-radius: 6px;
+      font-size: 10px;
+    }
+    .card h3 { font-size: 12px; margin-bottom: 4px; }
+    .card .icon { font-size: 20px; margin-bottom: 4px; }
+
+    /* 2-Layer 다이어그램 3열 유지 */
+    .layer-diagram {
+      display: grid !important;
+      grid-template-columns: 1fr 40px 1fr !important;
+      margin: 20px 0 !important;
+    }
+    .layer-center {
+      transform: none !important;
+      padding: 0 !important;
+      font-size: 22px !important;
+    }
+    .layer-box { padding: 14px 12px; font-size: 10px; }
+    .layer-box h3 { font-size: 12px; }
+    .layer-box ul li { font-size: 10px; padding: 3px 0; }
+
+    /* Gate: 가로 3열 유지 */
+    .gate-flow {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      gap: 6px !important;
+      margin: 20px 0 !important;
+    }
+    .gate-arrow {
+      transform: none !important;
+      flex-shrink: 0 !important;
+      font-size: 16px !important;
+    }
+    .gate { padding: 12px 10px; }
+    .gate .gate-number { font-size: 18px; }
+    .gate .gate-title { font-size: 10px; }
+    .gate .gate-desc { font-size: 9px; }
+    .gate .gate-data { font-size: 10px; }
+
+    /* Before/After 2열 유지 */
+    .ba-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 12px !important;
+    }
+    .ba-card { padding: 16px 14px; }
+    .ba-card ul li { font-size: 10px; padding: 4px 0; }
+    .ba-card h4 { font-size: 11px; margin-bottom: 10px; }
+
+    /* 계단 다이어그램 가로 유지 */
+    .stairs {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      gap: 3px !important;
+      margin: 20px 0 !important;
+    }
+    .stair { flex: 1 !important; }
+    .stair-label { font-size: 8px !important; }
+    .stair-cost { font-size: 7px !important; }
+    .stair-bar { font-size: 11px !important; }
+
+    /* 용어 사전 2열 유지 */
+    .glossary {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 6px !important;
+    }
+    .glossary-item { padding: 8px; }
+    .glossary-item .term { font-size: 10px; min-width: 42px; }
+    .glossary-item .def { font-size: 9px; }
+
+    /* 테이블 */
+    .compare-table { font-size: 9px; }
+    .compare-table th, .compare-table td { padding: 6px 8px; }
+
+    /* 비유 박스 */
+    .analogy { padding: 12px 14px; margin: 14px 0; }
+    .analogy p { font-size: 11px; }
+    .analogy .label { font-size: 9px; }
+
+    /* 인사이트 박스 */
+    .insight { padding: 14px 18px; margin: 14px 0; }
+    .insight p { font-size: 11px; }
+    .insight .label { font-size: 9px; }
+
+    /* 전체 흐름 다이어그램 */
+    .full-width-diagram { padding: 16px; margin: 16px 0; }
+    .full-width-diagram div[style*="flex-wrap"] {
+      flex-wrap: nowrap !important;
+    }
+
+    /* Divider */
+    .divider { margin: 24px 0; }
+
+    /* Footer */
+    .footer { padding: 20px 0; }
+
+    /* ===== 페이지 분리 제어 (핵심) ===== */
+
+    /* 자연 흐름: 강제 page-break 없음, 콘텐츠가 자연스럽게 이어짐 */
+    #part1, #part2, #part3, #part4, #part5 {
+      page-break-before: auto;
+    }
+
+    /* 카드, 테이블 행, 다이어그램 내부에서 절대 잘리지 않게 */
+    .card,
+    .card-primary,
+    .flow-item,
+    .gate,
+    .ba-card,
+    .analogy,
+    .insight,
+    .glossary-item,
+    .layer-box,
+    .full-width-diagram {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    /* 그리드/플로우 컨테이너도 가능하면 잘리지 않게 */
+    .card-grid,
+    .card-grid-3,
+    .ba-grid,
+    .flow,
+    .gate-flow,
+    .layer-diagram,
+    .glossary,
+    .stairs {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    /* 제목 뒤에 바로 페이지 넘김 방지 */
+    .section-header,
+    .section-header h2,
+    h3 {
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    /* 비유 박스 + 인사이트 앞에서 끊기지 않게 */
+    .analogy,
+    .insight {
+      break-before: avoid;
+      page-break-before: avoid;
+    }
+
+    /* 테이블 행 잘림 방지 */
+    .compare-table tr {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    /* 마지막 요약 블록 잘림 방지 */
+    #part5 > .inner > div:last-child {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- HERO -->
+<!-- ============================================ -->
+<section class="hero">
+  <span class="tag">RXR Framework Explained</span>
+  <h1>숫자 뒤에 숨은 <span>"왜"</span>를<br>읽는 프레임워크</h1>
+  <p class="subtitle">
+    방문자 1만명, 전환율 8%. 그래서? RXR은 나머지 92%가 왜 안 샀는지,
+    8%는 왜 샀는지를 알려주는 분석 체계입니다.
+  </p>
+
+  <div class="toc">
+    <div class="toc-item">
+      <div class="num">01</div>
+      <div class="title">목표</div>
+      <div class="sub">왜 이걸 만들었는가?</div>
+    </div>
+    <div class="toc-item">
+      <div class="num">02</div>
+      <div class="title">설계</div>
+      <div class="sub">어떤 구조로 만들었는가?</div>
+    </div>
+    <div class="toc-item">
+      <div class="num">03</div>
+      <div class="title">알고리즘</div>
+      <div class="sub">2-Layer는 어떻게 작동하는가?</div>
+    </div>
+    <div class="toc-item">
+      <div class="num">04</div>
+      <div class="title">차이</div>
+      <div class="sub">기존과 뭐가 다른가?</div>
+    </div>
+    <div class="toc-item">
+      <div class="num">05</div>
+      <div class="title">요약</div>
+      <div class="sub">한눈에 보기</div>
+    </div>
+  </div>
+
+  <div class="version">Project RENT &middot; R-lab &middot; 2026</div>
+</section>
+
+
+<!-- ============================================ -->
+<!-- PART 1: 목표 -->
+<!-- ============================================ -->
+<section class="section" id="part1">
+  <div class="section-header">
+    <span class="tag">Part 01 &mdash; The Problem</span>
+    <h2>기존 리테일 분석은<br>"그래서 뭐?"에 답하지 못한다</h2>
+    <p class="desc">수천만 원짜리 센서를 달아도, 숫자만 나올 뿐 "이유"는 모릅니다.</p>
+  </div>
+
+  <div class="analogy">
+    <div class="label">비유로 이해하기</div>
+    <p><strong>체중계</strong>는 몸무게를 알려주지만, 왜 살이 찌는지는 안 알려줍니다.<br>
+    <strong>건강검진표</strong>는 수치를 보여주지만, 어떤 습관이 문제인지는 안 알려줍니다.<br><br>
+    기존 리테일 분석도 마찬가지입니다. "방문 1만명, 전환율 8%"라는 숫자는 주지만,<br>
+    <strong>"왜 92%가 안 샀는지"</strong>는 아무도 모릅니다.</p>
+  </div>
+
+  <div class="card-grid">
+    <div class="card card-primary">
+      <span class="icon">&#x1F4CA;</span>
+      <h3>기존 솔루션이 알려주는 것</h3>
+      <p>
+        <strong>RetailNext / Sensormatic</strong><br>
+        "오늘 방문자 3,200명, 평균 체류 12분, 전환율 8%"<br><br>
+        <strong>메이아이</strong><br>
+        "A구역에 사람이 많이 모였고, B구역은 한산합니다"<br><br>
+        <strong>McKinsey NPS</strong><br>
+        "추천 의향 72점입니다"
+      </p>
+    </div>
+    <div class="card card-primary">
+      <span class="icon">&#x2753;</span>
+      <h3>하지만 대답 못하는 질문들</h3>
+      <p>
+        <strong style="color:var(--accent-coral)">왜 92%가 안 샀는가?</strong><br>
+        관심이 없어서? 가격 때문에? 공간이 별로여서?<br><br>
+        <strong style="color:var(--accent-coral)">왜 A구역에 모였는가?</strong><br>
+        진짜 관심이 있어서? 그냥 길이 막혀서?<br><br>
+        <strong style="color:var(--accent-coral)">추천 72점이 진심인가?</strong><br>
+        사회적 바람직성? 협찬? 진짜 좋아서?
+      </p>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="label">RXR의 목표</div>
+    <p>숫자만 던져주는 "체중계"가 아니라, 원인과 심리까지 읽어주는 "주치의"가 되는 것.<br>
+    행동 데이터에 <strong>"왜(Why)"</strong>라는 맥락을 부여하는 해석 프레임을 만드는 것.</p>
+  </div>
+</section>
+
+
+<!-- ============================================ -->
+<!-- PART 2: 설계 -->
+<!-- ============================================ -->
+<section class="section-dark" id="part2">
+  <div class="inner">
+    <div class="section-header">
+      <span class="tag">Part 02 &mdash; Architecture</span>
+      <h2>RXR은 4개의 레이어로 만들어져 있다</h2>
+      <p class="desc">데이터를 수집하고 → 해석하고 → 심리를 분석하고 → 온오프를 통합하는 구조입니다.</p>
+    </div>
+
+    <!-- 4-Layer Flow -->
+    <div class="flow">
+      <div class="flow-item">
+        <span class="icon">&#x1F3EA;</span>
+        <div class="name">Bracket</div>
+        <div class="role">데이터 수집 인프라</div>
+      </div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-item">
+        <span class="icon">&#x1F9E0;</span>
+        <div class="name">RXR Engine</div>
+        <div class="role">해석 프레임</div>
+      </div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-item">
+        <span class="icon">&#x1F50D;</span>
+        <div class="name">2-Layer</div>
+        <div class="role">심리 분석 알고리즘</div>
+      </div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-item">
+        <span class="icon">&#x1F310;</span>
+        <div class="name">OMO</div>
+        <div class="role">온오프 데이터 통합</div>
+      </div>
+    </div>
+
+    <div class="card-grid mt-24">
+      <div class="card">
+        <h3>&#x1F3EA; Bracket = 매장이 곧 센서</h3>
+        <p>매장 자체가 데이터 수집 장치입니다. CCTV + POS + 서베이 + DID(디지털 사이니지)로 고객의 행동을 자동 기록합니다. 쿠키가 사라진 시대에, 오프라인 공간이 유일한 1st party 데이터 채널이 됩니다.</p>
+      </div>
+      <div class="card">
+        <h3>&#x1F9E0; RXR Engine = 해석의 틀</h3>
+        <p>수집된 데이터를 "인게이지먼트 레벨"로 변환합니다. 단순 숫자가 아니라, 고객이 브랜드와 얼마나 깊은 관계를 맺고 있는지를 L0~L7 8단계로 분류합니다.</p>
+      </div>
+      <div class="card">
+        <h3>&#x1F50D; 2-Layer = 심리 분석</h3>
+        <p>리뷰나 서베이 텍스트를 분석합니다. "무엇을 말했는가"(Content)뿐 아니라 "어떻게 말했는가"(Psyche)까지 읽어서, 진심인지 과장인지를 판별합니다.</p>
+      </div>
+      <div class="card">
+        <h3>&#x1F310; OMO = 온오프 통합</h3>
+        <p>오프라인에서의 감성적 소비와 온라인에서의 이성적 소비를 하나로 연결합니다. 같은 사람이 채널에 따라 어떻게 다르게 행동하는지를 통합 프로필로 만듭니다.</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 멘탈코스트 계단 -->
+    <div class="section-header">
+      <span class="tag">Mental Cost Engagement</span>
+      <h2>고객은 8단계 계단을 오른다</h2>
+      <p class="desc">매 단계마다 심리적 비용(멘탈코스트)이 높아집니다. 지나가는 것과 추천하는 것은 완전히 다른 관계입니다.</p>
+    </div>
+
+    <div class="analogy">
+      <div class="label">비유로 이해하기</div>
+      <p><strong>소개팅</strong>을 생각해보세요. 눈이 마주치는 것(L0) → 다가가서 말을 거는 것(L2) → 2시간 대화하는 것(L3) → 연락처를 교환하는 것(L4) → 다시 만나는 것(L5) → 연인이 되는 것(L6) → 친구들에게 소개하는 것(L7). 단계마다 심리적 비용이 완전히 다릅니다.</p>
+    </div>
+
+    <div class="stairs">
+      <div class="stair">
+        <div class="stair-bar" style="height:50px;background:#B8B8FF;">L0</div>
+        <div class="stair-label">지나감</div>
+        <div class="stair-cost">극저</div>
+      </div>
+      <div class="stair">
+        <div class="stair-bar" style="height:80px;background:#A0A0FF;">L1</div>
+        <div class="stair-label">시선</div>
+        <div class="stair-cost">저</div>
+      </div>
+      <div class="stair">
+        <div class="stair-bar" style="height:110px;background:#8A8AFF;">L2</div>
+        <div class="stair-label">진입</div>
+        <div class="stair-cost">중</div>
+      </div>
+      <div class="stair">
+        <div class="stair-bar" style="height:145px;background:#7A7AFF;">L3</div>
+        <div class="stair-label">체류</div>
+        <div class="stair-cost">중</div>
+      </div>
+      <div class="stair">
+        <div class="stair-bar" style="height:185px;background:#6B6BFF;">L4</div>
+        <div class="stair-label">구매</div>
+        <div class="stair-cost">고</div>
+      </div>
+      <div class="stair">
+        <div class="stair-bar" style="height:225px;background:#5E5EFF;">L5</div>
+        <div class="stair-label">재방문</div>
+        <div class="stair-cost">고</div>
+      </div>
+      <div class="stair">
+        <div class="stair-bar" style="height:265px;background:#5353FF;">L6</div>
+        <div class="stair-label">회원</div>
+        <div class="stair-cost">고</div>
+      </div>
+      <div class="stair">
+        <div class="stair-bar" style="height:310px;background:var(--grad);">L7</div>
+        <div class="stair-label">후기/추천</div>
+        <div class="stair-cost">극고</div>
+      </div>
+    </div>
+
+    <p class="text-sm text-muted" style="text-align:center;margin-top:8px;">
+      &larr; 무관심 &mdash;&mdash;&mdash; 멘탈코스트 증가 &mdash;&mdash;&mdash; 옹호자 &rarr;<br>
+      &larr; 양적 데이터(행동) &mdash;&mdash;&mdash;&mdash;&mdash;&mdash; 질적 데이터(심리) &rarr;
+    </p>
+
+    <div class="divider"></div>
+
+    <!-- 핵심 개념 3가지 -->
+    <div class="section-header">
+      <span class="tag">Core Concepts</span>
+      <h2>RXR만의 핵심 개념 3가지</h2>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-primary">
+        <span class="icon">&#x23F1;</span>
+        <h3>DQS<br><span style="font-size:12px;font-weight:400;color:var(--body-gray)">Dwell Quality Score</span></h3>
+        <p>
+          같은 <strong>5분</strong>이라도 가치가 다릅니다.<br><br>
+          바쁜 직장인의 5분 = <strong style="color:var(--primary)">강한 관심</strong> (평소 1.5분 대비 3.3배)<br><br>
+          여유로운 주말 방문자의 5분 = 보통 수준 (평소 4분 대비 1.25배)<br><br>
+          <strong>"얼마나"가 아니라 "그 사람 치고 얼마나"가 진짜 지표입니다.</strong>
+        </p>
+      </div>
+      <div class="card card-primary">
+        <span class="icon">&#x270D;</span>
+        <h3>RQL<br><span style="font-size:12px;font-weight:400;color:var(--body-gray)">Review Quality Level</span></h3>
+        <p>
+          같은 "추천합니다"라도 깊이가 다릅니다.<br><br>
+          Q1: "좋아요" <span class="text-muted">(극저)</span><br>
+          Q3: "테린느가 특히 좋았고, 2층이 인상적" <span class="text-muted">(중)</span><br>
+          Q5: "꼭 가보세요. 예약 어렵지만 그만한 가치가..." <span class="text-muted">(극고)</span><br><br>
+          <strong>후기의 "양"이 아니라 "질적 깊이"를 측정합니다.</strong>
+        </p>
+      </div>
+      <div class="card card-primary">
+        <span class="icon">&#x1F4D6;</span>
+        <h3>변환 테이블<br><span style="font-size:12px;font-weight:400;color:var(--body-gray)">Behavior-Psychology Table</span></h3>
+        <p>
+          서베이 + 행동 데이터를 교차해서 만드는 "사전"입니다.<br><br>
+          <span class="text-muted">예)</span> 서베이에서 "추천하겠다"고 답한 사람들의 행동 패턴: 체류 4분+, 3구역 이상 탐색<br><br>
+          이 사전이 쌓이면, <strong>서베이 없이도 행동만 보고 심리를 추론</strong>할 수 있습니다.<br><br>
+          <strong>RXR의 핵심 지적 자산입니다.</strong>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ============================================ -->
+<!-- PART 3: 알고리즘 -->
+<!-- ============================================ -->
+<section class="section" id="part3">
+  <div class="section-header">
+    <span class="tag">Part 03 &mdash; Algorithm</span>
+    <h2>2-Layer: "뭘 말했는가" + "어떻게 말했는가"</h2>
+    <p class="desc">사람의 말에는 의식적으로 선택한 내용과, 무의식적으로 드러나는 심리가 동시에 존재합니다.</p>
+  </div>
+
+  <div class="analogy">
+    <div class="label">비유로 이해하기</div>
+    <p>누군가 <strong>"이 카페 분위기 좋고 맛있었어요"</strong>라고 말했다면,<br>
+    <strong>Content Layer</strong>는 "분위기"와 "맛"이라는 <em>주제</em>를 읽고,<br>
+    <strong>Psyche Layer</strong>는 "나"가 아닌 "이 카페"를 주어로 쓴 것에서 <em>약간의 거리감</em>을 읽습니다.<br><br>
+    반면 <strong>"여기 진짜 내 취향이라 또 가고 싶다"</strong>라면,<br>
+    Content는 같은 긍정이지만, Psyche는 "여기 + 내 + 또"에서 <em>강한 개인적 몰입</em>을 읽습니다.</p>
+  </div>
+
+  <!-- 2-Layer Diagram -->
+  <div class="layer-diagram">
+    <div class="layer-box layer-content">
+      <h3>Content Layer</h3>
+      <p style="font-size:12px;color:var(--body-gray);margin-bottom:16px;">"무엇을 말했는가" &mdash; 의식적 반응</p>
+      <ul>
+        <li><span class="dot"></span> 토픽 추출 (어떤 주제를 언급했는가)</li>
+        <li><span class="dot"></span> 감성 분석 (긍정 / 부정 / 중립)</li>
+        <li><span class="dot"></span> 키워드 빈도 & 연관 분석</li>
+        <li><span class="dot"></span> 구체성 점수 (고유명사 비율)</li>
+        <li><span class="dot"></span> 분석 깊이 (비교/인과 표현)</li>
+      </ul>
+    </div>
+    <div class="layer-center">+</div>
+    <div class="layer-box layer-psyche">
+      <h3>Psyche Layer</h3>
+      <p style="font-size:12px;color:var(--body-gray);margin-bottom:16px;">"어떻게 말했는가" &mdash; 무의식적 심리</p>
+      <ul>
+        <li><span class="dot" style="background:var(--primary-light)"></span> 대명사 패턴 (나/우리/여기 → 관여 방식)</li>
+        <li><span class="dot" style="background:var(--primary-light)"></span> 조사 패턴 ("이/가" 발견형 vs "은/는" 평가형)</li>
+        <li><span class="dot" style="background:var(--primary-light)"></span> <strong>Authenticity</strong> &mdash; 진정성 점수</li>
+        <li><span class="dot" style="background:var(--primary-light)"></span> <strong>Clout</strong> &mdash; 추천 확신도</li>
+        <li><span class="dot" style="background:var(--primary-light)"></span> <strong>Analytical</strong> &mdash; 이성적 vs 감성적</li>
+        <li><span class="dot" style="background:var(--primary-light)"></span> <strong>Tone</strong> &mdash; 감정 깊이</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="label">핵심 포인트</div>
+    <p>같은 "추천합니다"라도 &mdash;<br>
+    Authenticity 78 + Clout 72 = <strong>진짜 옹호자</strong><br>
+    Authenticity 28 + Clout 85 = <strong>의심 필요 (과장/조작 패턴)</strong><br><br>
+    Content Layer만으로는 둘 다 "긍정적 추천"으로 보입니다.<br>
+    Psyche Layer가 있어야 <strong>진심과 거짓을 구분</strong>할 수 있습니다.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Sincerity Gate -->
+  <div class="section-header">
+    <span class="tag">Sincerity Gate</span>
+    <h2>3단계 필터로 "진짜 목소리"만 남긴다</h2>
+    <p class="desc">같은 데이터를 3개 Gate로 통과시키면, 숫자 뒤에 숨은 진짜 의미가 드러납니다.</p>
+  </div>
+
+  <div class="gate-flow">
+    <div class="gate gate-1">
+      <div class="gate-number">G1</div>
+      <div class="gate-title">전체 데이터</div>
+      <div class="gate-desc">노이즈만 제거<br>"시장에 얼마나 노출됐는가?"</div>
+      <div class="gate-data" style="color:#E65100;">90건, 긍정 46%</div>
+    </div>
+    <div class="gate-arrow">&rarr;</div>
+    <div class="gate gate-2">
+      <div class="gate-number">G2</div>
+      <div class="gate-title">협찬 제외</div>
+      <div class="gate-desc">유료 홍보 제거<br>"순수한 반응은 어떤가?"</div>
+      <div class="gate-data" style="color:#2E7D32;">82건, 긍정 41%</div>
+    </div>
+    <div class="gate-arrow">&rarr;</div>
+    <div class="gate gate-3">
+      <div class="gate-number">G3</div>
+      <div class="gate-title">Auth 60+ 필터</div>
+      <div class="gate-desc">진정성 높은 글만<br>"진심으로 좋아한 사람은?"</div>
+      <div class="gate-data" style="color:var(--primary);">64건, Auth 64.4</div>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--white);border:1px solid #E8E8E8;margin-top:24px;">
+    <h3 style="font-size:15px;">이클립스 월드 파일럿 실증 결과</h3>
+    <p class="mt-16">
+      &bull; 협찬 8건이 긍정률을 <strong style="color:var(--accent-coral)">5%p 부풀림</strong> (46% &rarr; 41%)<br>
+      &bull; 협찬의 Authenticity <strong>47.6</strong> vs 자발적 <strong>58.1</strong> (차이 10.5점)<br>
+      &bull; 협찬은 긍정률 88%, 부정 0% &mdash; 비현실적 편향<br>
+      &bull; <strong>Sincerity Gate 적용으로 과장된 긍정 26건이 걸러짐</strong>
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================ -->
+<!-- PART 4: 차이 -->
+<!-- ============================================ -->
+<section class="section-dark" id="part4">
+  <div class="inner">
+    <div class="section-header">
+      <span class="tag">Part 04 &mdash; Difference</span>
+      <h2>기존 솔루션과 뭐가 다른가?</h2>
+      <p class="desc">글로벌 리테일테크 6개사 + 컨설팅 3개사를 비교 분석한 결과,<br>RXR만 커버하는 영역이 2개 있습니다.</p>
+    </div>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>측정 영역</th>
+          <th>RetailNext<br>Sensormatic</th>
+          <th>메이아이<br>V-Count</th>
+          <th>McKinsey<br>Bain NPS</th>
+          <th style="background:var(--primary-deep)">RXR</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>방문 트래픽 / 동선</td>
+          <td class="check">&#x25CF;</td>
+          <td class="check">&#x25CF;</td>
+          <td class="cross">&mdash;</td>
+          <td class="check">&#x25CF;</td>
+        </tr>
+        <tr>
+          <td>구매 전환 / POS</td>
+          <td class="check">&#x25CF;</td>
+          <td class="cross">&#x25B3;</td>
+          <td class="check">&#x25CF;</td>
+          <td class="check">&#x25CF;</td>
+        </tr>
+        <tr>
+          <td>SNS / 리뷰 분석</td>
+          <td class="cross">&mdash;</td>
+          <td class="cross">&mdash;</td>
+          <td class="cross">&#x25B3;</td>
+          <td class="check">&#x25CF;</td>
+        </tr>
+        <tr>
+          <td>감정 / 감성 분석</td>
+          <td class="cross">&mdash;</td>
+          <td class="cross">&mdash;</td>
+          <td class="cross">&mdash;</td>
+          <td class="check">&#x25CF;</td>
+        </tr>
+        <tr style="background:var(--primary-pale);">
+          <td><strong>무의식적 심리 / 진정성</strong></td>
+          <td class="cross">&#x2715;</td>
+          <td class="cross">&#x2715;</td>
+          <td class="cross">&#x2715;</td>
+          <td><span class="only">ONLY</span></td>
+        </tr>
+        <tr style="background:var(--primary-pale);">
+          <td><strong>전체 축 통합 스토리</strong></td>
+          <td class="cross">&#x2715;</td>
+          <td class="cross">&#x2715;</td>
+          <td class="cross">&#x2715;</td>
+          <td><span class="only">ONLY</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <!-- Before / After -->
+    <div class="section-header">
+      <span class="tag">Before vs After</span>
+      <h2>같은 팝업, 완전히 다른 리포트</h2>
+    </div>
+
+    <div class="ba-grid">
+      <div class="ba-card ba-before">
+        <h4>BEFORE &mdash; 기존 리포트</h4>
+        <ul>
+          <li>&#x1F4CC; 총 방문자: 10,000명</li>
+          <li>&#x1F4CC; 전환율: 8.3%</li>
+          <li>&#x1F4CC; 평균 체류: 12분</li>
+          <li>&#x1F4CC; 매출: 34,500,000원</li>
+          <li>&#x1F4CC; SNS 언급: 320건</li>
+          <li style="border-bottom:none;padding-top:16px;color:#999;font-style:italic;">
+            "...그래서 어쩌라고?"
+          </li>
+        </ul>
+      </div>
+      <div class="ba-card ba-after">
+        <h4>AFTER &mdash; RXR 리포트</h4>
+        <ul>
+          <li>&#x1F4CC; 총 방문자: 10,000명, 전환율: 8.3%</li>
+          <li><strong>Brand Advocacy Score: 72</strong> (옹호자 비율 상위)</li>
+          <li><strong>핵심 팬: 34%</strong> / 구경꾼: 66%</li>
+          <li><strong>3주차 Freshness Index 하락 감지</strong> &rarr; 매출 하락 선행 신호</li>
+          <li><strong>20대는 방문 48%이나 구매 기여 31%.</strong> 30대가 진짜 매출원</li>
+          <li><strong>미니멀 세그먼트 객단가 42,000원,</strong> 디저트+굿즈 세트 선호</li>
+          <li style="border-bottom:none;padding-top:12px;color:var(--primary);font-weight:600;">
+            &rarr; 전략 제안: 4주차 콘텐츠 리프레시 + 30대 타겟 프로모션
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="analogy">
+      <div class="label">감정 선행지표</div>
+      <p>RXR은 <strong>매출이 떨어진 후</strong>에 원인을 찾는 게 아닙니다.<br>
+      SNS 리뷰의 Freshness Index(신선함 지표)가 하락하면, 실제 매출 하락보다 <strong>2~3주 먼저 감지</strong>됩니다.<br>
+      감정이 먼저 변하고, 행동이 따라옵니다. RXR은 이 <strong>감정 선행지표</strong>를 읽습니다.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================ -->
+<!-- PART 5: 요약 -->
+<!-- ============================================ -->
+<section class="section-accent" id="part5">
+  <div class="inner">
+    <div class="section-header">
+      <span class="tag">Part 05 &mdash; Summary</span>
+      <h2>한눈에 보기</h2>
+    </div>
+
+    <!-- 전체 흐름 요약 -->
+    <div class="full-width-diagram">
+      <p style="text-align:center;font-size:13px;color:var(--body-gray);margin-bottom:24px;">RXR Master Framework &mdash; 전체 흐름</p>
+      <div style="display:flex;flex-direction:column;gap:20px;align-items:center;">
+
+        <!-- Row 1: Data Collection -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+          <div style="background:var(--primary-pale);border:1px solid var(--primary-light);border-radius:8px;padding:12px 16px;text-align:center;min-width:100px;">
+            <div style="font-size:20px;">&#x1F4F7;</div>
+            <div style="font-size:11px;color:var(--body-gray);margin-top:4px;">CCTV</div>
+          </div>
+          <div style="background:var(--primary-pale);border:1px solid var(--primary-light);border-radius:8px;padding:12px 16px;text-align:center;min-width:100px;">
+            <div style="font-size:20px;">&#x1F4B3;</div>
+            <div style="font-size:11px;color:var(--body-gray);margin-top:4px;">POS</div>
+          </div>
+          <div style="background:var(--primary-pale);border:1px solid var(--primary-light);border-radius:8px;padding:12px 16px;text-align:center;min-width:100px;">
+            <div style="font-size:20px;">&#x1F4DD;</div>
+            <div style="font-size:11px;color:var(--body-gray);margin-top:4px;">서베이</div>
+          </div>
+          <div style="background:var(--primary-pale);border:1px solid var(--primary-light);border-radius:8px;padding:12px 16px;text-align:center;min-width:100px;">
+            <div style="font-size:20px;">&#x1F4F1;</div>
+            <div style="font-size:11px;color:var(--body-gray);margin-top:4px;">SNS 리뷰</div>
+          </div>
+          <div style="background:var(--primary-pale);border:1px solid var(--primary-light);border-radius:8px;padding:12px 16px;text-align:center;min-width:100px;">
+            <div style="font-size:20px;">&#x1F4FA;</div>
+            <div style="font-size:11px;color:var(--body-gray);margin-top:4px;">DID</div>
+          </div>
+        </div>
+
+        <div style="color:var(--primary);font-size:18px;">&darr;</div>
+        <div style="font-size:11px;color:var(--body-gray);letter-spacing:1px;font-family:'Poppins',sans-serif;">BRACKET &mdash; DATA COLLECTION</div>
+
+        <!-- Row 2: RXR Engine -->
+        <div style="background:linear-gradient(135deg,rgba(83,83,255,0.1),rgba(138,138,255,0.08));border:2px solid var(--primary-pale);border-radius:12px;padding:20px 32px;text-align:center;width:100%;max-width:700px;">
+          <div style="font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;color:var(--primary);margin-bottom:8px;">RXR ENGINE</div>
+          <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
+            <span style="background:var(--primary-pale);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;">L0 지나감</span>
+            <span style="background:var(--primary-pale);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;">L1 시선</span>
+            <span style="background:var(--primary-pale);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;">L2 진입</span>
+            <span style="background:var(--primary-pale);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;">L3 체류(DQS)</span>
+            <span style="background:var(--primary-pale);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;">L4 구매</span>
+            <span style="background:var(--primary);color:white;padding:4px 12px;border-radius:20px;font-size:12px;">L5 재방문</span>
+            <span style="background:var(--primary);color:white;padding:4px 12px;border-radius:20px;font-size:12px;">L6 회원</span>
+            <span style="background:var(--primary-deep);color:white;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">L7 후기(RQL)</span>
+          </div>
+        </div>
+
+        <div style="color:var(--primary);font-size:18px;">&darr;</div>
+
+        <!-- Row 3: 2-Layer + Sincerity -->
+        <div style="display:flex;gap:16px;width:100%;max-width:700px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;background:linear-gradient(135deg,#EEF2FF,#E1E1FF);border-radius:10px;padding:16px;text-align:center;">
+            <div style="font-weight:700;font-size:13px;color:var(--dark-gray);">Content Layer</div>
+            <div style="font-size:11px;color:var(--body-gray);margin-top:4px;">뭘 말했는가</div>
+          </div>
+          <div style="flex:1;min-width:200px;background:linear-gradient(135deg,#F0F0FF,#E1E1FF);border-radius:10px;padding:16px;text-align:center;">
+            <div style="font-weight:700;font-size:13px;color:var(--primary);">Psyche Layer</div>
+            <div style="font-size:11px;color:var(--body-gray);margin-top:4px;">어떻게 말했는가</div>
+          </div>
+          <div style="flex:1;min-width:200px;background:linear-gradient(135deg,#FFF8E1,#FFE082);border-radius:10px;padding:16px;text-align:center;">
+            <div style="font-weight:700;font-size:13px;color:#E65100;">Sincerity Gate</div>
+            <div style="font-size:11px;color:#795548;margin-top:4px;">진심 필터 3단계</div>
+          </div>
+        </div>
+
+        <div style="color:var(--primary);font-size:18px;">&darr;</div>
+
+        <!-- Row 4: Output -->
+        <div style="background:var(--grad);border-radius:12px;padding:20px 32px;text-align:center;width:100%;max-width:700px;">
+          <div style="font-family:'Poppins',sans-serif;font-weight:700;font-size:14px;color:white;letter-spacing:1px;">OUTPUT</div>
+          <div style="display:flex;justify-content:center;gap:16px;margin-top:12px;flex-wrap:wrap;">
+            <span style="background:rgba(255,255,255,0.2);color:white;padding:6px 14px;border-radius:8px;font-size:12px;">AI C.C 고객 카테고리</span>
+            <span style="background:rgba(255,255,255,0.2);color:white;padding:6px 14px;border-radius:8px;font-size:12px;">Brand Advocacy Score</span>
+            <span style="background:rgba(255,255,255,0.2);color:white;padding:6px 14px;border-radius:8px;font-size:12px;">Freshness Index</span>
+            <span style="background:rgba(255,255,255,0.2);color:white;padding:6px 14px;border-radius:8px;font-size:12px;">변환 테이블</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 용어 사전 -->
+    <div class="section-header">
+      <span class="tag">Glossary</span>
+      <h2>핵심 용어 사전</h2>
+    </div>
+
+    <div class="glossary">
+      <div class="glossary-item">
+        <span class="term">DQS</span>
+        <span class="def">Dwell Quality Score. 체류시간의 "질"을 측정하는 복합 지표. (실제 체류 / 기대 체류) &times; 밀도 &times; 세그먼트 보정</span>
+      </div>
+      <div class="glossary-item">
+        <span class="term">RQL</span>
+        <span class="def">Review Quality Level. 후기의 질적 깊이 5단계 (Q1 별점만 ~ Q5 추천형 서사)</span>
+      </div>
+      <div class="glossary-item">
+        <span class="term">FWA</span>
+        <span class="def">Function Word Analysis. 기능어(대명사, 조사, 접속사) 패턴으로 무의식적 심리를 읽는 분석 방법</span>
+      </div>
+      <div class="glossary-item">
+        <span class="term">2-Layer</span>
+        <span class="def">Content Layer(뭘 말했는가) + Psyche Layer(어떻게 말했는가)를 결합한 이중 텍스트 분석 알고리즘</span>
+      </div>
+      <div class="glossary-item">
+        <span class="term">Sincerity Gate</span>
+        <span class="def">3단계 데이터 정제 필터. G1(전체) &rarr; G2(협찬 제외) &rarr; G3(Auth 60+). 진심만 남기는 구조</span>
+      </div>
+      <div class="glossary-item">
+        <span class="term">AI C.C</span>
+        <span class="def">AI Customer Category. 시각+행동+거래+텍스트 데이터를 통합한 자동 고객 세그먼테이션</span>
+      </div>
+      <div class="glossary-item">
+        <span class="term">멘탈코스트</span>
+        <span class="def">심리적 비용. 지나가기(극저) &rarr; 진입(중) &rarr; 구매(고) &rarr; 추천(극고). 단계별 관계 깊이의 척도</span>
+      </div>
+      <div class="glossary-item">
+        <span class="term">변환 테이블</span>
+        <span class="def">서베이와 행동 데이터를 교차해서 만드는 "행동 &rarr; 심리" 추론 사전. RXR의 핵심 지적 자산</span>
+      </div>
+      <div class="glossary-item">
+        <span class="term">OMO</span>
+        <span class="def">Online Merges with Offline. 오프라인(감성적 소비)과 온라인(이성적 소비)을 하나로 연결하는 데이터 통합</span>
+      </div>
+      <div class="glossary-item">
+        <span class="term">Bracket</span>
+        <span class="def">매장 자체가 데이터 수집 장치인 리테일 미디어 스토어. RXR의 물리적 인프라 레이어</span>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:56px;padding:32px;border:1px solid #E8E8E8;border-radius:12px;background:var(--white);">
+      <p style="font-size:18px;font-weight:700;color:var(--black);margin-bottom:8px;">
+        기술은 오픈소스일 뿐이다.<br>
+        <span style="color:var(--primary);">분석과 해석의 프레임</span>이 자산이다.
+      </p>
+      <p style="font-size:12px;color:#999;font-family:'Poppins',sans-serif;letter-spacing:1px;margin-top:12px;">
+        Project RENT &middot; R-lab &middot; 2026
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <p>RXR Framework Explained &mdash; 주니어를 위한 안내서 &middot; Project RENT &middot; R-lab &middot; 2026</p>
+</footer>
+
+<!-- 오버레이 (메뉴 외부 클릭 닫기) -->
+<div class="print-overlay" id="printOverlay" onclick="closePrintMenu()"></div>
+
+<!-- PDF 출력 버튼 + 방향 선택 메뉴 -->
+<div class="print-fab">
+  <div class="print-menu" id="printMenu">
+    <div class="print-menu-title">PDF 방향 선택</div>
+    <button class="print-option" onclick="printPDF('portrait')">
+      <div class="opt-icon">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+      </div>
+      <div class="opt-text">
+        <span class="name">세로 (Portrait)</span>
+        <span class="desc">A4 세로 &mdash; 기본 문서용</span>
+      </div>
+    </button>
+    <button class="print-option" onclick="printPDF('landscape')">
+      <div class="opt-icon landscape">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+      </div>
+      <div class="opt-text">
+        <span class="name">가로 (Landscape)</span>
+        <span class="desc">A4 가로 &mdash; 다이어그램 여유</span>
+      </div>
+    </button>
+  </div>
+
+  <button class="print-btn" onclick="togglePrintMenu()" title="PDF로 저장">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+    PDF 저장
+  </button>
+</div>
+
+<script>
+  // 동적 @page 방향 전환을 위한 style 요소
+  const pageStyle = document.createElement('style');
+  document.head.appendChild(pageStyle);
+
+  function togglePrintMenu() {
+    document.getElementById('printMenu').classList.toggle('active');
+    document.getElementById('printOverlay').classList.toggle('active');
+  }
+
+  function closePrintMenu() {
+    document.getElementById('printMenu').classList.remove('active');
+    document.getElementById('printOverlay').classList.remove('active');
+  }
+
+  function printPDF(orientation) {
+    closePrintMenu();
+
+    // 동적으로 @page size 변경
+    if (orientation === 'landscape') {
+      pageStyle.textContent = '@media print { @page { size: A4 landscape !important; margin: 15mm 18mm 15mm 18mm !important; } }';
+      document.body.classList.add('landscape-mode');
+    } else {
+      pageStyle.textContent = '@media print { @page { size: A4 portrait !important; margin: 18mm 15mm 20mm 15mm !important; } }';
+      document.body.classList.remove('landscape-mode');
+    }
+
+    // 약간의 딜레이 후 인쇄 (스타일 적용 대기)
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  }
+</script>
+
+</body>
+</html>

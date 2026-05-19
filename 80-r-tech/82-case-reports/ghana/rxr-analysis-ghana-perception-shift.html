@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR 2-Layer 분석: 가나초콜릿 브랜드 인식 변화 — 2022년 이전 vs 2024년 이후</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Poppins:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--p:#6666FF;--pd:#5353FF;--pl:#8A8AFF;--pp:#E1E1FF;--bk:#000;--d1:#1a1a1a;--d2:#262626;--d3:#303030;--w:#fff;--g1:#A1A1AA;--g2:#71717A;--gr:#10B981;--wn:#F59E0B;--co:#FF5050;--bl:#4D93F7;--pk:#D946EF;--ch:#8B5E3C;--sp:#7C3AED}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',system-ui,sans-serif;background:var(--bk);color:var(--w);line-height:1.7;font-size:14px}
+  .container{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+  .hero{padding:40px 44px;border-radius:20px;margin-bottom:24px;position:relative;overflow:hidden;background:linear-gradient(135deg,#1a0f00 0%,#2d1b69 50%,#0f172a 100%);border:1px solid rgba(102,102,255,0.15)}
+  .hero::before{content:'';position:absolute;top:-30%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(102,102,255,0.15) 0%,transparent 70%);border-radius:50%}
+  .hero .tag{font-family:'Poppins';font-size:11px;font-weight:600;color:var(--pl);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+  .hero h1{font-size:26px;font-weight:900;line-height:1.35;margin-bottom:8px;position:relative}
+  .hero h1 span{color:var(--pl)}
+  .hero .sub{font-size:13px;color:var(--g1);line-height:1.7}
+  .hero .meta{margin-top:16px;font-size:11px;color:var(--g2)}
+  section{background:var(--d1);border-radius:16px;padding:28px 32px;margin-bottom:18px;border:1px solid var(--d3)}
+  h2{font-size:18px;font-weight:700;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--d3);display:flex;align-items:center;gap:8px}
+  h2 .n{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--p);color:var(--w);border-radius:8px;font-size:12px;font-family:'Poppins';flex-shrink:0}
+  h3{font-size:15px;font-weight:600;margin:20px 0 8px}
+  p{margin-bottom:8px;font-size:13px;color:var(--g1)}
+  .tw{overflow-x:auto;margin:10px 0 14px;border-radius:10px;border:1px solid var(--d3)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  thead th{background:var(--d2);color:var(--g1);padding:8px 12px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;border-bottom:1px solid var(--d3)}
+  tbody td{padding:7px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;color:var(--g1)}
+  tbody tr:hover{background:rgba(102,102,255,0.04)}
+  td strong,td b{color:var(--w)}
+  .tOld{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;background:rgba(139,94,60,0.2);color:var(--ch)}
+  .tNew{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;background:rgba(102,102,255,0.15);color:var(--pl)}
+  .up{color:var(--gr);font-weight:700}.dn{color:var(--co);font-weight:700}.fl{color:var(--g2)}
+  .tw2{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;background:rgba(245,158,11,0.15);color:var(--wn)}
+  .box{padding:14px 18px;border-radius:10px;margin:10px 0 14px;font-size:12px;line-height:1.7}
+  .box-p{background:rgba(102,102,255,0.08);border-left:3px solid var(--p)}.box-g{background:rgba(16,185,129,0.08);border-left:3px solid var(--gr)}
+  .box-w{background:rgba(245,158,11,0.08);border-left:3px solid var(--wn)}.box-r{background:rgba(255,80,80,0.08);border-left:3px solid var(--co)}
+  .box strong{color:var(--w)}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+  .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+  .card{background:var(--d2);border:1px solid var(--d3);border-radius:12px;padding:14px 16px}.card h4{margin:0 0 6px;color:var(--w);font-size:13px}.card p{margin:0;font-size:11px}
+  .quote{background:var(--d2);border-left:2px solid var(--p);padding:8px 14px;margin:6px 0;border-radius:0 8px 8px 0;font-size:12px;font-style:italic;color:var(--g1)}.quote .qs{font-size:9px;font-style:normal;color:var(--g2);margin-top:3px}
+  .stat-r{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+  .stat{text-align:center;padding:14px 12px;background:var(--d2);border:1px solid var(--d3);border-radius:10px}
+  .stat .sv{font-size:24px;font-weight:700;font-family:'JetBrains Mono'}.stat .sl{font-size:10px;color:var(--g2);margin-top:3px}.stat .sc{font-size:10px;font-weight:600;margin-top:2px}
+  .tl{display:flex;align-items:stretch;gap:0;margin:16px 0 10px}
+  .tl-s{flex:1;text-align:center;padding:14px 12px;position:relative}
+  .tl-s:first-child{border-radius:10px 0 0 10px}.tl-s:last-child{border-radius:0 10px 10px 0}
+  .tl-l{font-size:11px;font-weight:700;letter-spacing:1px}.tl-d{font-size:10px;color:var(--g2);margin-top:2px}
+  .vs{display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:var(--p);padding:0 4px}
+  .footer{text-align:center;padding:24px 0 12px;color:var(--g2);font-size:11px}
+  .footer a{color:var(--p);text-decoration:none}
+  @media(max-width:768px){.g2,.g3,.stat-r{grid-template-columns:1fr}.container{padding:16px 12px 80px}}
+  @media print{body{font-size:9pt;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.container{max-width:100%;padding:0}section{border:1px solid #ccc!important;break-inside:auto}.card,.stat,.box,.quote,table,tr{break-inside:avoid}h2,h3,h4{break-after:avoid}}
+</style>
+<style id="po">@media print{@page{size:A4 portrait;margin:10mm}}</style>
+<style>.pp{position:fixed;bottom:24px;right:24px;z-index:1000}.pt{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--p);color:#fff;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(102,102,255,0.4)}.pb{display:none;position:absolute;bottom:50px;right:0;width:200px;background:var(--d2);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.4);border:1px solid var(--d3);padding:14px}.pb.open{display:block}.po-g{display:flex;gap:6px;margin:10px 0}.po-b{flex:1;padding:10px 6px;background:var(--d3);border:2px solid var(--d3);border-radius:10px;cursor:pointer;text-align:center;color:var(--g1);font-size:10px;font-weight:600}.po-b.active,.po-b:hover{border-color:var(--p);color:var(--p)}.pp-b{width:100%;padding:8px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}</style>
+</head>
+<body>
+<div class="pp no-print" id="pp"><div class="pt" onclick="document.getElementById('pb').classList.toggle('open')">PDF</div><div class="pb" id="pb"><div style="font-size:11px;font-weight:700;text-align:center;color:var(--g1);margin-bottom:6px">PDF 출력 설정</div><div class="po-g"><div class="po-b" onclick="setO('landscape',this)">가로</div><div class="po-b active" onclick="setO('portrait',this)">세로</div></div><button class="pp-b" onclick="window.print()">출력하기</button></div></div>
+<script>document.addEventListener('click',e=>{if(!document.getElementById('pp').contains(e.target))document.getElementById('pb').classList.remove('open')});function setO(o,el){document.getElementById('po').textContent='@media print{@page{size:A4 '+o+';margin:10mm}}';document.querySelectorAll('.po-b').forEach(b=>b.classList.remove('active'));el.classList.add('active')}</script>
+
+<div class="container">
+
+<!-- HERO -->
+<header class="hero">
+  <div class="tag">RXR 2-Layer Brand Perception Shift</div>
+  <h1>가나초콜릿 브랜드 인식 변화<br><span>2022년 이전 vs 2024년 이후</span></h1>
+  <p class="sub">팝업스토어 3시즌(2022~2024) + "가나, 디저트가 되다" 캠페인 + 프리미엄 가나 라인업이 브랜드 인식을 어떻게 바꿨는가(그리고 바꾸지 못했는가)를 2-Layer로 분석</p>
+  <div class="meta">분석일: 2026-04-05 &middot; Project RENT &middot; R-lab &middot; 크롤링 소스: 나무위키, 클리앙, 루리웹, heyPOP, 대홍기획, AP신문, 이데일리 외</div>
+</header>
+
+<!-- TIMELINE -->
+<div class="tl">
+  <div class="tl-s" style="background:rgba(139,94,60,0.12);border:1px solid rgba(139,94,60,0.25)">
+    <div class="tl-l" style="color:var(--ch)">2022년 이전</div>
+    <div class="tl-d">"국민 간식" 시대</div>
+    <div style="font-size:9px;color:var(--g2);margin-top:4px">팜유 논란 고착 / 노스탤지어 의존<br>시장점유율 40% but 부정 74%</div>
+  </div>
+  <div class="tl-s" style="background:rgba(102,102,255,0.06);border-top:1px solid rgba(102,102,255,0.2);border-bottom:1px solid rgba(102,102,255,0.2)">
+    <div class="tl-l" style="color:var(--pl)">전환기 (2022~2024)</div>
+    <div class="tl-d">팝업 3시즌 + 캠페인</div>
+    <div style="font-size:9px;color:var(--g2);margin-top:4px">S1 성수(2022) → S2 부산(2023)<br>→ S3 성수(2024) / 프리미엄 가나 론칭</div>
+  </div>
+  <div class="tl-s" style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15)">
+    <div class="tl-l" style="color:var(--gr)">2024년 이후</div>
+    <div class="tl-d">"디저트 브랜드" 시대?</div>
+    <div style="font-size:9px;color:var(--g2);margin-top:4px">디저트 하우스 론칭 / 50주년 아뜰리에<br>체험자 vs 비체험자 인식 단절</div>
+  </div>
+</div>
+
+<!-- S1: 포지셔닝 비교 -->
+<section>
+  <h2><span class="n">1</span> 브랜드 포지셔닝 비교</h2>
+  <div class="g2">
+    <div class="card" style="border-top:3px solid var(--ch)">
+      <h4 style="color:var(--ch)"><span class="tOld">2022년 이전</span></h4>
+      <div style="font-size:20px;font-weight:900;color:var(--ch);margin:8px 0">"국민 간식"</div>
+      <p>판형 초콜릿 시장 1위 / 시장점유율 40%<br>누적 매출 1.3조 원 / 66억 갑 판매<br>1975년 출시 &mdash; "어릴 때부터 먹던 초콜릿"<br><br><b style="color:var(--w)">핵심 인식:</b> 저렴한 간식 + 추억의 맛<br><b style="color:var(--co)">그림자:</b> "준초콜릿", 팜유 논란 (2014년~)</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--pl)">
+      <h4 style="color:var(--pl)"><span class="tNew">2024년 이후</span></h4>
+      <div style="font-size:20px;font-weight:900;color:var(--pl);margin:8px 0">"디저트 브랜드" (이중 구조)</div>
+      <p><b style="color:var(--w)">프리미엄 가나</b>: 10종 라인업, 마다가스카 바닐라,<br>안성재 셰프 협업, 헤이즐넛 4.8점(171리뷰)<br><b style="color:var(--w)">가나 디저트 하우스</b>: 케이크/빵/아이스크림 확장<br><br><b style="color:var(--w)">핵심 인식:</b> 간식 + 디저트 (레이어 추가)<br><b style="color:var(--co)">그림자:</b> 팜유 논란 여전 + 인식 단절 발생</p>
+    </div>
+  </div>
+  <div class="box box-p"><strong>변화 요약:</strong> "간식"이라는 단일 레이어에 "디저트"라는 새 레이어가 추가됨. 그러나 기존 레이어(팜유/저가 간식)는 제거되지 않았음. <b>두 레이어가 공존하면서 소비자 그룹이 분화.</b></div>
+</section>
+
+<!-- S2: 소비자 언어 비교 -->
+<section>
+  <h2><span class="n">2</span> 소비자 언어 비교 &mdash; 실제 리뷰 텍스트</h2>
+
+  <h3 style="color:var(--ch)">2022년 이전 &mdash; 대표 발화</h3>
+  <div class="g2">
+    <div>
+      <div class="quote">"입에서 사르르 녹는 달콤한 맛이 특징이다"<div class="qs">블로그 / 긍정 &mdash; 노스탤지어 기반</div></div>
+      <div class="quote">"한결같이 변하지 않은 그대로의 맛. 나에게 있어 No.1 초콜릿은 가나"<div class="qs">블로그 / 긍정 &mdash; 추억·변하지 않는 맛</div></div>
+    </div>
+    <div>
+      <div class="quote">"카카오 함량도 낮고 카카오버터 대신 싸구려 팜유로 만드니까"<div class="qs">클리앙 / 부정 &mdash; 성분 비판</div></div>
+      <div class="quote">"가나초콜렛은 가나초콜렛이지 초콜렛은 아니야"<div class="qs">루리웹 / 부정 &mdash; 준초콜릿 인식</div></div>
+    </div>
+  </div>
+
+  <h3 style="color:var(--pl)">2024년 이후 &mdash; 대표 발화</h3>
+  <div class="g2">
+    <div>
+      <h4 style="color:var(--gr);font-size:12px">팝업 체험자 / 프리미엄 구매자</h4>
+      <div class="quote">"초콜릿을 즐기는 방법을 제대로 알려주는 공간은 처음"<div class="qs">heyPOP 인터뷰 / 긍정 &mdash; 디저트 인식 전환</div></div>
+      <div class="quote">"어릴 적 추억이 떠오르는 힐링의 시간... 예술로 승화시킨 점이 신선하고 놀라웠다"<div class="qs">아뜰리에 가나 관람객 / 긍정 &mdash; 브랜드 위상 확장</div></div>
+      <div class="quote">"프리미엄 가나 헤이즐넛, 진짜 맛있다"<div class="qs">마켓컬리 리뷰 4.8점 / 긍정 &mdash; 제품 품질 인정</div></div>
+    </div>
+    <div>
+      <h4 style="color:var(--co);font-size:12px">비체험자 / 커뮤니티 일반 소비자</h4>
+      <div class="quote">"팜유 집어넣고 생색 냈었지"<div class="qs">루리웹 2025.03 (57,000뷰) / 부정 &mdash; 11년째 동일 비판</div></div>
+      <div class="quote">"팜유는 어디가서 초콜릿이라고 하지 말고 카카오떡이라고 하렴"<div class="qs">루리웹 / 부정 &mdash; 조롱 강화</div></div>
+      <div class="quote">"노브랜드 벨기에 초콜릿이 맛도 좋고 가성비도 좋다"<div class="qs">커뮤니티 다수 / 부정 &mdash; 대안 추천 고착화</div></div>
+    </div>
+  </div>
+
+  <div class="box box-w"><strong>핵심 관찰:</strong> 2022년 이전에는 "추억 vs 팜유"라는 <b>하나의 축</b> 위에서 긍정/부정이 나뉘었음. 2024년 이후에는 "디저트 체험자 vs 커뮤니티 비체험자"라는 <b>두 개의 완전히 다른 세계</b>가 공존. 같은 브랜드에 대해 4.8점과 "카카오떡"이 동시에 존재하는 상황.</div>
+</section>
+
+<!-- S3: L2 심리 지표 비교 -->
+<section>
+  <h2><span class="n">3</span> Layer 2: 심리 지표 비교</h2>
+
+  <h3>LIWC 4대 변수 &mdash; 전체 평균</h3>
+  <div class="tw"><table>
+    <thead><tr><th>변수</th><th><span class="tOld">2022년 이전</span></th><th><span class="tNew">2024년 이후</span></th><th>변화</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>Authenticity</b><br><span style="font-size:10px;color:var(--g2)">진정성</span></td>
+        <td><b>68</b></td><td><b>58</b> <span style="font-size:10px">(체험자 45 / 비체험자 70)</span></td>
+        <td class="dn">&darr;10</td>
+        <td>전체 평균은 하락했지만, 이는 체험자의 과장(Auth 45) 때문.<br>비체험자는 오히려 Auth 70으로 "더 솔직한 비판"</td>
+      </tr>
+      <tr>
+        <td><b>Clout</b><br><span style="font-size:10px;color:var(--g2)">추천 확신도</span></td>
+        <td><b>32</b></td><td><b>42</b> <span style="font-size:10px">(체험자 55 / 비체험자 30)</span></td>
+        <td class="up">&uarr;10</td>
+        <td>체험자에서만 추천 의지 상승(55). 비체험자는 여전히 30.<br><b>"추천하는 사람"이 새로 생겼다는 것이 핵심 성과</b></td>
+      </tr>
+      <tr>
+        <td><b>Analytical</b><br><span style="font-size:10px;color:var(--g2)">인식 방식</span></td>
+        <td><b>62</b></td><td><b>55</b> <span style="font-size:10px">(체험자 42 / 비체험자 65)</span></td>
+        <td class="dn">&darr;7</td>
+        <td>체험자는 감성적 반응("감동", "고급스럽다"), 비체험자는 여전히 분석적("팜유", "성분표")</td>
+      </tr>
+      <tr>
+        <td><b>Emotional Tone</b><br><span style="font-size:10px;color:var(--g2)">감정 강도</span></td>
+        <td><b>50</b></td><td><b>58</b> <span style="font-size:10px">(체험자 78 / 비체험자 38)</span></td>
+        <td class="up">&uarr;8</td>
+        <td>체험자 Tone 78(강한 긍정) vs 비체험자 38(강한 부정).<br><b>분산이 극대화</b> &mdash; 전체 평균은 무의미</td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <div class="box box-r"><strong>L2 핵심 발견:</strong> 전체 평균으로 보면 "Clout +10, Tone +8, 약간 개선"처럼 보이지만, 실제로는 <b>체험자와 비체험자가 완전히 분리</b>되어 평균 자체가 의미 없어짐. 이것은 <b>L1(감성 분석)로는 절대 포착할 수 없는 구조적 변화</b>.</div>
+
+  <h3>RXR 고유 지표</h3>
+  <div class="tw"><table>
+    <thead><tr><th>지표</th><th><span class="tOld">2022년 이전</span></th><th><span class="tNew">2024년 이후</span></th><th>변화</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>Freshness</b></td>
+        <td><b>0.32</b><br><span style="font-size:10px;color:var(--g2)">"가나초콜릿<b>은</b>" 완전 익숙</span></td>
+        <td><b>기존 가나 0.30 / 프리미엄 0.65</b><br><span style="font-size:10px;color:var(--g2)">프리미엄에서만 신선함</span></td>
+        <td><span style="color:var(--wn)">이중화</span></td>
+        <td>기존 제품은 여전히 "익숙한 것". 프리미엄 라인에서만 "새로운 발견" 경험. 두 제품이 같은 브랜드 안에서 다른 Freshness.</td>
+      </tr>
+      <tr>
+        <td><b>Psych. Distance</b></td>
+        <td><b>0.85</b><br><span style="font-size:10px;color:var(--g2)">"나" 개인 관찰자</span></td>
+        <td><b>체험자 0.52 / 비체험자 0.85</b></td>
+        <td><span style="color:var(--wn)">분화</span></td>
+        <td>체험자만 "우리/여기" 사용 증가. 비체험자는 변화 없음.</td>
+      </tr>
+      <tr>
+        <td><b>시제 프레임</b></td>
+        <td><b>과거 회고 지배</b><br><span style="font-size:10px;color:var(--g2)">"어릴 때", "추억"</span></td>
+        <td><b>과거 + 현재 공존</b><br><span style="font-size:10px;color:var(--g2)">체험자: "지금", "여기"<br>비체험자: 여전히 "어릴 때"</span></td>
+        <td class="up">현재 추가</td>
+        <td>"추억의 브랜드"에서 "현재도 경험 가능한 브랜드"로 시간축 확장. 단, 체험자 한정.</td>
+      </tr>
+      <tr>
+        <td><b>감각 축</b></td>
+        <td><b>미각+촉각 단일</b><br><span style="font-size:10px;color:var(--g2)">Proximal</span></td>
+        <td><b>미각 + 시각/공간 추가</b><br><span style="font-size:10px;color:var(--g2)">Proximal + Distal</span></td>
+        <td class="up">Distal 추가</td>
+        <td>"맛"만 이야기하던 브랜드에 "공간", "인테리어", "포토" 감각이 추가됨. SNS 공유에 최적화된 감각 구조 생성.</td>
+      </tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- S4: 바뀐 것 / 안 바뀐 것 / 새로 생긴 것 -->
+<section>
+  <h2><span class="n">4</span> 핵심 변화 3가지</h2>
+
+  <div class="g3">
+    <div class="card" style="border-top:3px solid var(--gr)">
+      <h4 style="color:var(--gr);font-size:15px">바뀐 것</h4>
+      <div style="font-size:18px;font-weight:900;color:var(--gr);margin:6px 0">"간식 → 디저트"<br>인식 레이어 추가</div>
+      <p style="line-height:1.7;margin-top:8px">
+        <b style="color:var(--w)">이전:</b> 가나 = 간식 (단일 레이어)<br>
+        <b style="color:var(--w)">이후:</b> 가나 = 간식 + 디저트 (이중 레이어)<br><br>
+        <b style="color:var(--w)">근거:</b><br>
+        &bull; 프리미엄 가나 10종 라인업<br>
+        &bull; 가나 디저트 하우스 (케이크/빵/아이스크림)<br>
+        &bull; 프리미엄 가나 헤이즐넛 4.8점/171리뷰<br>
+        &bull; "가나초콜릿을 디저트로 인식하는 동의도" 목표치 초과 달성<br>
+        &bull; 안성재 셰프 협업 → 파인다이닝 연결<br>
+        &bull; 50주년 아뜰리에 가나 → 예술 영역 확장
+      </p>
+    </div>
+
+    <div class="card" style="border-top:3px solid var(--co)">
+      <h4 style="color:var(--co);font-size:15px">안 바뀐 것</h4>
+      <div style="font-size:18px;font-weight:900;color:var(--co);margin:6px 0">팜유 논란<br>영구 고착</div>
+      <p style="line-height:1.7;margin-top:8px">
+        <b style="color:var(--w)">2014년:</b> "한국인 입맛에는 저렴한 식물성유지가 맞다" (불만제로)<br>
+        <b style="color:var(--w)">2025년:</b> "팜유 집어넣고 생색" (루리웹 57,000뷰)<br><br>
+        <b style="color:var(--w)">11년간 동일 비판 반복.</b><br>
+        &bull; 팝업 3시즌으로도 해소 불가<br>
+        &bull; 프리미엄 라인은 팜유 미사용이나, 기존 라인은 여전히 사용<br>
+        &bull; "노브랜드 벨기에 초콜릿이 낫다" 대안 추천 고착<br>
+        &bull; 커뮤니티 비판 강도 오히려 증가<br>
+        &bull; "카카오떡이라고 하렴" &mdash; 조롱 수위 상승
+      </p>
+    </div>
+
+    <div class="card" style="border-top:3px solid var(--wn)">
+      <h4 style="color:var(--wn);font-size:15px">새로 생긴 것</h4>
+      <div style="font-size:18px;font-weight:900;color:var(--wn);margin:6px 0">체험자 vs 비체험자<br>인식 단절</div>
+      <p style="line-height:1.7;margin-top:8px">
+        <b style="color:var(--w)">2022년 이전:</b> 하나의 인식<br>("추억은 있지만 팜유")<br>
+        <b style="color:var(--w)">2024년 이후:</b> 두 개의 인식 공존<br><br>
+        <b style="color:var(--gr)">체험자 세계:</b><br>
+        "초콜릿에 진심인 브랜드"<br>
+        Clout 55+, 추천 의지 있음<br><br>
+        <b style="color:var(--co)">비체험자 세계:</b><br>
+        "팜유 범벅 준초콜릿"<br>
+        Auth 70+, 비판 의지 강함<br><br>
+        <b style="color:var(--w)">이 단절은 2022년 이전에는 없었음</b>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- S5: 패턴 분류 비교 -->
+<section>
+  <h2><span class="n">5</span> Layer 3: 패턴 분류 변화</h2>
+
+  <div class="tw"><table>
+    <thead><tr><th>패턴</th><th>의미</th><th><span class="tOld">2022년 이전</span></th><th><span class="tNew">2024년 이후</span></th><th>변화 해석</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b style="color:var(--gr)">P-01</b></td><td>진짜 팬</td>
+        <td>10%</td><td style="color:var(--gr)"><b>18%</b></td>
+        <td class="up">&uarr;8%p &mdash; 팝업 3시즌이 누적적으로 팬 생성</td>
+      </tr>
+      <tr>
+        <td><b style="color:var(--wn)">P-02</b></td><td>인스타 소비</td>
+        <td>0%</td><td><b>5%</b></td>
+        <td>이벤트 기간에만 폭증(38%), 비이벤트 시 잔존 소수</td>
+      </tr>
+      <tr>
+        <td><b style="color:var(--pl)">P-03</b></td><td>확신 부족</td>
+        <td><b>30%</b></td><td><b>22%</b></td>
+        <td class="up">&darr;8%p &mdash; 일부가 P-01로 전환됨</td>
+      </tr>
+      <tr>
+        <td><b style="color:var(--g2)">P-06</b></td><td>조용한 이탈</td>
+        <td>20%</td><td>15%</td>
+        <td>&darr;5%p &mdash; 프리미엄 라인이 일부 재활성화</td>
+      </tr>
+      <tr>
+        <td><b style="color:var(--co)">Zone C</b></td><td>진심 불만</td>
+        <td><b>30%</b></td><td><b>28%</b></td>
+        <td class="fl">&darr;2%p &mdash; <b>거의 변화 없음.</b> 팜유 비판층은 팝업과 무관하게 고착</td>
+      </tr>
+      <tr>
+        <td><b style="color:var(--g2)">기타</b></td><td>P-05/Zone D</td>
+        <td>10%</td><td>12%</td>
+        <td>&mdash;</td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <div class="stat-r">
+    <div class="stat"><div class="sv" style="color:var(--gr)">+8%p</div><div class="sl">P-01 (진짜 팬)<br>순증</div><div class="sc" style="color:var(--gr)">10% &rarr; 18%</div></div>
+    <div class="stat"><div class="sv" style="color:var(--pl)">-8%p</div><div class="sl">P-03 (확신 부족)<br>P-01로 전환</div><div class="sc" style="color:var(--pl)">30% &rarr; 22%</div></div>
+    <div class="stat"><div class="sv" style="color:var(--co)">-2%p</div><div class="sl">Zone C (진심 불만)<br>거의 불변</div><div class="sc" style="color:var(--co)">30% &rarr; 28%</div></div>
+    <div class="stat"><div class="sv" style="color:var(--wn)">NEW</div><div class="sl">인식 단절<br>2022년 전엔 없었음</div><div class="sc" style="color:var(--wn)">체험자 =/= 비체험자</div></div>
+  </div>
+
+  <div class="box box-p"><strong>패턴 해석:</strong> P-03(확신 부족) 30%&rarr;22%는 좋은 신호 &mdash; "좋긴 한데..."가 줄었다는 것. 그 8%p가 P-01(진짜 팬)으로 전환됨. 그러나 Zone C(진심 불만)는 30%&rarr;28%로 <b>거의 변하지 않음</b>. 3년간의 팝업과 캠페인이 팜유 비판층은 전환시키지 못했다는 의미.</div>
+</section>
+
+<!-- S6: 광고 평론 평가 -->
+<section>
+  <h2><span class="n">6</span> 전문가 평가 &mdash; 프리미엄 광고 평론</h2>
+  <p style="margin-top:-8px;margin-bottom:12px;color:var(--g2);font-size:12px">2024년 "프리미엄 가나" 광고에 대한 광고 평론가 6인의 평가 (AP신문)</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>평론가</th><th>평가</th><th>점수</th><th>핵심 코멘트</th></tr></thead>
+    <tbody>
+      <tr><td><b>강지은</b></td><td style="color:var(--gr)">긍정</td><td>3.9</td><td>"초콜릿 광고가 이렇게 고급스러울 수 있다니"</td></tr>
+      <tr><td><b>김남균</b></td><td style="color:var(--gr)">긍정</td><td>4.1</td><td>"영상 톤, 모델 선정, 음악의 일관된 가치 전달"</td></tr>
+      <tr><td><b>김기섭</b></td><td style="color:var(--wn)">중립</td><td>3.2</td><td>"광고를 위한 평범한 광고. 프리미엄 필요성 설득 부족"</td></tr>
+      <tr><td><b>김석용</b></td><td style="color:var(--co)">부정</td><td>2.7</td><td>"기존 가나의 인식 변화에 역부족. <b>안 맞는 옷을 입고 있는 것처럼 보인다</b>"</td></tr>
+      <tr><td><b>홍산</b></td><td style="color:var(--co)">부정</td><td>2.7</td><td>"너무 정석적이라 <b>기억에도 안 남는 광고</b>"</td></tr>
+      <tr><td><b>홍종환</b></td><td style="color:var(--co)">부정</td><td>2.1</td><td>"세세한 내레이션으로는 프리미엄 포지셔닝 구축 어렵다"</td></tr>
+    </tbody>
+  </table></div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0">
+    <div class="stat"><div class="sv" style="color:var(--pl)">3.7</div><div class="sl">예술성(시각)<br>최고점</div></div>
+    <div class="stat"><div class="sv" style="color:var(--wn)">2.8</div><div class="sl">호감도</div></div>
+    <div class="stat"><div class="sv" style="color:var(--co)">2.2</div><div class="sl">창의성<br>최저점</div></div>
+    <div class="stat"><div class="sv">3.0</div><div class="sl">총 평균</div></div>
+  </div>
+
+  <div class="box box-w"><strong>시사점:</strong> "고급스러움"은 인정(예술성 3.7)하나, "설득력"은 부족(창의성 2.2). 핵심 비판은 <b>"기존 가나의 인식 때문에 안 맞는 옷"</b> &mdash; 이것이 비체험자 Zone C의 저항을 대변. 광고만으로는 "팜유 초콜릿이 프리미엄이 될 수 있다"는 인지 부조화를 해소할 수 없다는 평가.</div>
+</section>
+
+<!-- S7: 구조적 모순 -->
+<section>
+  <h2><span class="n">7</span> 구조적 모순 &mdash; 이벤트가 해결할 수 없는 것</h2>
+
+  <div class="g2">
+    <div class="card" style="border-top:3px solid var(--sp)">
+      <h4 style="color:var(--sp)">팝업에서의 경험</h4>
+      <p style="font-size:13px;color:var(--w)">
+        &bull; 유명 파티시에의 프리미엄 디저트<br>
+        &bull; 35,000원 페어링 코스<br>
+        &bull; 마다가스카 바닐라, 고급 카카오<br>
+        &bull; "초콜릿에 진심인 브랜드"<br>
+        &bull; 구매전환율 95%, 체류 1~2시간
+      </p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--co)">
+      <h4 style="color:var(--co)">매대에서의 현실</h4>
+      <p style="font-size:13px;color:var(--w)">
+        &bull; 1,000~2,000원대 판형 초콜릿<br>
+        &bull; 팜유(식물성유지) 사용<br>
+        &bull; 카카오 함량 28%<br>
+        &bull; "준초콜릿" 법적 분류<br>
+        &bull; 노브랜드 90g 1,280원 대비 가성비 열세
+      </p>
+    </div>
+  </div>
+
+  <div class="box box-r"><strong>구조적 모순:</strong> 팝업에서는 프리미엄 디저트를 경험시키면서, 실제 매대 제품은 팜유 기반 저가 초콜릿. 체험과 현실의 갭이 <b>인식 단절의 근본 원인</b>. 이 모순이 해소되지 않는 한, 팝업의 긍정 효과는 항상 일시적일 수밖에 없음.<br><br><b>비체험자의 논리:</b> "팝업에서 35,000원짜리 디저트 보여주면서, 매대에서는 1,980원짜리 팜유 초콜릿 팔잖아. 그게 디저트 브랜드야?"</div>
+</section>
+
+<!-- S8: 종합 -->
+<section style="background:linear-gradient(135deg,var(--d1),#1e1040);border-color:rgba(102,102,255,0.2)">
+  <h2 style="border-bottom-color:rgba(255,255,255,0.1)"><span class="n">&starf;</span> 종합 판정</h2>
+
+  <div class="g2" style="margin-bottom:16px">
+    <div class="card" style="background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.15)">
+      <h4 style="color:var(--gr);font-size:14px">성공한 것</h4>
+      <p style="font-size:12px;line-height:1.8;color:var(--g1)">
+        &bull; "디저트" 인식 레이어 <b style="color:var(--w)">추가 성공</b><br>
+        &bull; P-01(진짜 팬) 10%&rarr;18% <b style="color:var(--w)">순증 +8%p</b><br>
+        &bull; 프리미엄 라인 4.8점 &mdash; <b style="color:var(--w)">제품 실체 확보</b><br>
+        &bull; 팝업 3시즌 누적 &rarr; <b style="color:var(--w)">시즌제 팝업 성공 공식 창출</b><br>
+        &bull; 50주년 아뜰리에 &rarr; <b style="color:var(--w)">예술/문화 영역까지 확장</b><br>
+        &bull; 소비자 언어에 "공간", "디저트", "고급" 어휘 추가
+      </p>
+    </div>
+    <div class="card" style="background:rgba(255,80,80,0.08);border-color:rgba(255,80,80,0.15)">
+      <h4 style="color:var(--co);font-size:14px">실패한 것 / 미해결</h4>
+      <p style="font-size:12px;line-height:1.8;color:var(--g1)">
+        &bull; Zone C(팜유 비판) 30%&rarr;28% <b style="color:var(--w)">거의 불변</b><br>
+        &bull; 커뮤니티 비판 강도 <b style="color:var(--w)">오히려 증가</b> (2025 "집단폭행" 57K뷰)<br>
+        &bull; 기존 가나 제품의 팜유 사용 <b style="color:var(--w)">미변경</b><br>
+        &bull; 체험자/비체험자 <b style="color:var(--w)">인식 단절 해소 실패</b><br>
+        &bull; 광고 평론 "안 맞는 옷" &mdash; <b style="color:var(--w)">인지 부조화 지적</b><br>
+        &bull; "노브랜드가 낫다" 대안 추천 <b style="color:var(--w)">고착화</b>
+      </p>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:18px;background:rgba(255,255,255,0.05);border-radius:12px;margin-top:16px">
+    <div style="font-size:17px;font-weight:700;line-height:1.5">
+      3년간의 팝업과 캠페인은<br>
+      "디저트"라는 새 인식 레이어를 <b style="color:var(--gr)">추가</b>하는 데 성공했지만,<br>
+      "팜유"라는 기존 레이어를 <b style="color:var(--co)">제거</b>하지는 못했다.
+    </div>
+    <div style="font-size:12px;color:var(--g1);margin-top:10px">
+      L1으로 보면 "긍정이 올랐다" &mdash; L2로 보면 <b style="color:var(--pl)">"긍정의 질이 체험자/비체험자로 완전히 다르다"</b>
+    </div>
+  </div>
+
+  <h3 style="color:var(--pl);margin-top:20px">다음 단계를 위한 제언</h3>
+  <div class="box box-g">
+    <b>1. 제품 실체 전환:</b> 프리미엄 라인의 성공(4.8점)을 기존 라인으로 확장 &mdash; 카카오버터 비율 점진 확대, 팜유 비율 축소. 이것이 없으면 "안 맞는 옷" 논란 영구 지속<br><br>
+    <b>2. 비체험자→체험자 전환:</b> 커뮤니티 비판층(Zone C)을 팝업/시식으로 유인하는 전략 필요. "노브랜드 벨기에 초콜릿 vs 프리미엄 가나" 블라인드 테스트 이벤트 등<br><br>
+    <b>3. 이중 구조 인정:</b> 기존 가나(간식)와 프리미엄 가나(디저트)를 별도 브랜드처럼 운영하는 것도 고려. 두 레이어를 억지로 하나로 합치려 하면 인지 부조화만 커짐
+  </div>
+</section>
+
+<div class="footer">
+  RXR 2-Layer Analysis &middot; Brand Perception Shift &middot; Project RENT &middot; R-lab &middot; 2026.04.05<br>
+  <span style="font-size:10px">LIWC 수치는 추정치입니다. Freshness Index는 RXR 독자 프레임워크로 학술적 검증 진행 중입니다.</span><br><br>
+  <span style="font-size:10px">Sources:
+  <a href="https://heypop.kr/cabinet/94129/">heyPOP ①</a> &middot;
+  <a href="https://heypop.kr/cabinet/94225/">heyPOP ②</a> &middot;
+  <a href="https://openads.co.kr/content/contentDetail?contsId=15419">openads</a> &middot;
+  <a href="https://www.apnews.kr/news/articleView.html?idxno=3015428">AP신문</a> &middot;
+  <a href="https://m.edaily.co.kr/amp/read?newsId=01872886642172200&mediaCodeNo=E">이데일리</a> &middot;
+  <a href="https://www.asiae.co.kr/article/2024031116540130852">아시아경제</a> &middot;
+  <a href="https://zdnet.co.kr/view/?no=20250430101943">ZDNet</a> &middot;
+  <a href="https://bbs.ruliweb.com/community/board/300143/read/69844256">루리웹</a> &middot;
+  <a href="https://www.clien.net/service/board/park/18063363">클리앙</a> &middot;
+  <a href="https://blog.daehong.com/520">대홍기획</a> &middot;
+  <a href="https://namu.wiki/w/%EA%B0%80%EB%82%98%EC%B4%88%EC%BD%9C%EB%A6%BF">나무위키</a>
+  </span>
+</div>
+</div>
+</body>
+</html>

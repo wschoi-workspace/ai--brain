@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이클립스 월드 — 버즈 분석 리포트</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+  :root{--primary:#6666FF;--primary-deep:#5353FF;--primary-light:#8A8AFF;--primary-pale:#E1E1FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--black:#000;--dark:#262626;--body:#424D61;--light:#F6F6F6;--white:#FFF;--red:#C00000;--coral:#FF5050;--blue:#4D93F7;--green:#10b981;--orange:#f59e0b;--pink:#d946ef;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:14px;line-height:1.6;max-width:1200px;margin:0 auto;padding:40px 32px;}
+  h1{font-size:28px;font-weight:800;color:var(--black);margin-bottom:4px;}
+  h2{font-size:20px;font-weight:800;color:var(--black);margin:32px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--primary-pale);}
+  h3{font-size:15px;font-weight:700;color:var(--dark);margin:16px 0 8px;}
+  .sub{font-size:13px;color:var(--body);margin-bottom:24px;}
+  .card{background:var(--light);border:1px solid #e8e8e8;border-radius:12px;padding:20px;}
+  .metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0;}
+  .metric{text-align:center;padding:20px 16px;background:var(--light);border-radius:12px;border:1px solid #e8e8e8;}
+  .metric-val{font-family:'DIN Alternate','Poppins',sans-serif;font-size:36px;font-weight:700;color:var(--primary);}
+  .metric-label{font-size:12px;color:var(--body);margin-top:4px;}
+  .bar-chart{margin:16px 0;}
+  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+  .bar-date{width:50px;font-size:11px;color:var(--body);text-align:right;flex-shrink:0;}
+  .bar-track{flex:1;height:22px;background:#f0f0f0;border-radius:4px;overflow:hidden;position:relative;}
+  .bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:600;color:#fff;transition:width 0.6s;}
+  .bar-cnt{width:30px;font-size:11px;font-weight:600;color:var(--body);flex-shrink:0;}
+  .bar-note{width:90px;font-size:10px;flex-shrink:0;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;}
+  th{background:var(--primary);color:#fff;padding:8px 12px;text-align:left;font-size:12px;}
+  td{padding:7px 12px;border-bottom:1px solid #eee;}
+  .tag{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;}
+  .tag-pos{background:#d1fae5;color:#059669;}
+  .tag-neg{background:#fee2e2;color:#dc2626;}
+  .tag-neu{background:#f1f5f9;color:#64748b;}
+  .tag-info{background:#e1e1ff;color:#6666ff;}
+  .insight{padding:16px 20px;background:var(--primary-pale);border-radius:10px;border-left:4px solid var(--primary);margin:12px 0;font-size:13px;line-height:1.7;}
+  .insight strong{color:var(--primary);}
+  .footer{margin-top:40px;padding-top:20px;border-top:2px solid var(--grad);font-size:11px;color:#94a3b8;text-align:center;}
+  @media print{body{max-width:100%;padding:20px;}}
+</style>
+</head>
+<body>
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+  <span style="background:var(--grad);color:#fff;padding:4px 14px;border-radius:6px;font-family:'Poppins';font-size:11px;font-weight:600;letter-spacing:1px;">BUZZ ANALYSIS</span>
+  <span style="font-size:12px;color:var(--body);">네이버 블로그 데이터 · RXR Data Engine v0.1</span>
+</div>
+<h1>이클립스 월드 — Into the Tin Case</h1>
+<div class="sub">팝업스토어 버즈 분석 리포트 | 2026.02.26 ~ 03.31 | Project RENT · R-lab</div>
+
+<!-- 핵심 메트릭 -->
+<div class="metric-row">
+  <div class="metric">
+    <div class="metric-val">299</div>
+    <div class="metric-label">총 수집 포스트</div>
+  </div>
+  <div class="metric">
+    <div class="metric-val" style="color:var(--green);">46</div>
+    <div class="metric-label">팝업 기간 버즈</div>
+  </div>
+  <div class="metric">
+    <div class="metric-val" style="color:var(--orange);">209</div>
+    <div class="metric-label">팝업 전 버즈</div>
+  </div>
+  <div class="metric">
+    <div class="metric-val" style="color:var(--pink);">4.5x</div>
+    <div class="metric-label">사전 버즈 배수</div>
+  </div>
+</div>
+
+<!-- 날짜별 버즈 차트 -->
+<h2>날짜별 버즈 분포</h2>
+
+<div class="bar-chart">
+  <div class="bar-row"><div class="bar-date">02/26</div><div class="bar-track"><div class="bar-fill" style="width:23.5%;background:var(--orange);">12</div></div><div class="bar-cnt">12</div><div class="bar-note" style="color:var(--orange);">팝업 전</div></div>
+  <div class="bar-row"><div class="bar-date">02/27</div><div class="bar-track"><div class="bar-fill" style="width:13.7%;background:var(--orange);">7</div></div><div class="bar-cnt">7</div><div class="bar-note"></div></div>
+  <div class="bar-row"><div class="bar-date">02/28</div><div class="bar-track"><div class="bar-fill" style="width:66.7%;background:var(--orange);">34</div></div><div class="bar-cnt">34</div><div class="bar-note" style="color:var(--coral);font-weight:700;">보도자료 추정</div></div>
+  <div class="bar-row"><div class="bar-date">03/01</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--coral);">51</div></div><div class="bar-cnt">51</div><div class="bar-note" style="color:var(--coral);font-weight:700;">★ 최대 피크</div></div>
+  <div class="bar-row"><div class="bar-date">03/02</div><div class="bar-track"><div class="bar-fill" style="width:86.3%;background:var(--orange);">44</div></div><div class="bar-cnt">44</div><div class="bar-note"></div></div>
+  <div class="bar-row"><div class="bar-date">03/03</div><div class="bar-track"><div class="bar-fill" style="width:52.9%;background:var(--orange);">27</div></div><div class="bar-cnt">27</div><div class="bar-note"></div></div>
+  <div class="bar-row"><div class="bar-date">03/04</div><div class="bar-track"><div class="bar-fill" style="width:66.7%;background:var(--orange);">34</div></div><div class="bar-cnt">34</div><div class="bar-note"></div></div>
+
+  <div style="height:8px;border-bottom:2px dashed #ddd;margin:6px 0;"></div>
+
+  <div class="bar-row"><div class="bar-date">03/05</div><div class="bar-track"><div class="bar-fill" style="width:3.9%;background:#8b5cf6;">2</div></div><div class="bar-cnt">2</div><div class="bar-note" style="color:#8b5cf6;">사전홍보</div></div>
+  <div class="bar-row"><div class="bar-date">03/06</div><div class="bar-track"><div class="bar-fill" style="width:3.9%;background:#8b5cf6;">2</div></div><div class="bar-cnt">2</div><div class="bar-note"></div></div>
+  <div class="bar-row"><div class="bar-date">03/07</div><div class="bar-track"><div class="bar-fill" style="width:21.6%;background:#8b5cf6;">11</div></div><div class="bar-cnt">11</div><div class="bar-note" style="color:#8b5cf6;font-weight:700;">예약 오픈</div></div>
+  <div class="bar-row"><div class="bar-date">03/08</div><div class="bar-track"><div class="bar-fill" style="width:7.8%;background:#8b5cf6;">4</div></div><div class="bar-cnt">4</div><div class="bar-note"></div></div>
+  <div class="bar-row"><div class="bar-date">03/09</div><div class="bar-track"><div class="bar-fill" style="width:9.8%;background:#8b5cf6;">5</div></div><div class="bar-cnt">5</div><div class="bar-note"></div></div>
+  <div class="bar-row"><div class="bar-date">03/10</div><div class="bar-track"><div class="bar-fill" style="width:3.9%;background:#8b5cf6;">2</div></div><div class="bar-cnt">2</div><div class="bar-note"></div></div>
+  <div class="bar-row"><div class="bar-date">03/11</div><div class="bar-track"><div class="bar-fill" style="width:3.9%;background:#8b5cf6;">2</div></div><div class="bar-cnt">2</div><div class="bar-note"></div></div>
+
+  <div style="height:8px;border-bottom:2px solid var(--primary);margin:6px 0;"></div>
+
+  <div class="bar-row"><div class="bar-date">03/12</div><div class="bar-track"><div class="bar-fill" style="width:5.9%;background:var(--primary);">3</div></div><div class="bar-cnt">3</div><div class="bar-note" style="color:var(--primary);font-weight:700;">★ 팝업 시작</div></div>
+  <div class="bar-row"><div class="bar-date">03/13</div><div class="bar-track"><div class="bar-fill" style="width:29.4%;background:var(--primary);">15</div></div><div class="bar-cnt">15</div><div class="bar-note" style="color:var(--primary);font-weight:700;">★ 팝업</div></div>
+  <div class="bar-row"><div class="bar-date">03/14</div><div class="bar-track"><div class="bar-fill" style="width:43.1%;background:var(--primary);">22</div></div><div class="bar-cnt">22</div><div class="bar-note" style="color:var(--primary);font-weight:700;">★ 팝업 피크</div></div>
+  <div class="bar-row"><div class="bar-date">03/15</div><div class="bar-track"><div class="bar-fill" style="width:11.8%;background:var(--primary);">6</div></div><div class="bar-cnt">6</div><div class="bar-note" style="color:var(--primary);font-weight:700;">★ 팝업 종료</div></div>
+
+  <div style="height:8px;border-bottom:2px dashed #ddd;margin:6px 0;"></div>
+
+  <div class="bar-row"><div class="bar-date">03/16</div><div class="bar-track"><div class="bar-fill" style="width:3.9%;background:#94a3b8;">2</div></div><div class="bar-cnt">2</div><div class="bar-note" style="color:#94a3b8;">팝업 후</div></div>
+  <div class="bar-row"><div class="bar-date">03/17~31</div><div class="bar-track"><div class="bar-fill" style="width:27.5%;background:#94a3b8;">14</div></div><div class="bar-cnt">14</div><div class="bar-note" style="color:#94a3b8;">산발적</div></div>
+</div>
+
+<!-- 기간별 비교 -->
+<h2>기간별 비교</h2>
+<div class="grid2">
+  <div>
+    <table>
+      <thead><tr><th>기간</th><th>건수</th><th>일평균</th><th>비율</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--orange);font-weight:700;">팝업 전 (~3/4)</td><td><strong>209</strong></td><td>29.9</td><td>70%</td></tr>
+        <tr><td style="color:#8b5cf6;font-weight:700;">사전홍보 (3/5~11)</td><td><strong>28</strong></td><td>4.0</td><td>9%</td></tr>
+        <tr><td style="color:var(--primary);font-weight:700;">팝업 진행 (3/12~15)</td><td><strong>46</strong></td><td>11.5</td><td>15%</td></tr>
+        <tr><td style="color:#94a3b8;">팝업 후 (3/16~)</td><td><strong>16</strong></td><td>1.0</td><td>5%</td></tr>
+        <tr style="background:var(--primary-pale);"><td style="font-weight:700;">합계</td><td style="font-weight:700;color:var(--primary);">299</td><td>8.8</td><td>100%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <table>
+      <thead><tr><th>감성</th><th>건수</th><th>비율</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-neu">중립</span></td><td><strong>197</strong></td><td>66%</td></tr>
+        <tr><td><span class="tag tag-info">정보성</span></td><td><strong>70</strong></td><td>23%</td></tr>
+        <tr><td><span class="tag tag-pos">긍정</span></td><td><strong>27</strong></td><td>9%</td></tr>
+        <tr><td><span class="tag tag-neg">부정</span></td><td><strong>5</strong></td><td>2%</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:8px;font-size:11px;color:var(--body);">* 제목+요약 키워드 기반 초벌 분류. 본문 2-Layer 분석 시 정밀도 향상 예정.</div>
+  </div>
+</div>
+
+<!-- 포스트 유형 -->
+<h2>포스트 유형 분포</h2>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;">
+  <div class="card" style="flex:1;min-width:150px;text-align:center;border-top:3px solid var(--primary);">
+    <div style="font-size:28px;font-weight:800;color:var(--primary);" class="metric-val">75</div>
+    <div style="font-size:12px;color:var(--body);">방문후기</div>
+  </div>
+  <div class="card" style="flex:1;min-width:150px;text-align:center;border-top:3px solid #8b5cf6;">
+    <div style="font-size:28px;font-weight:800;color:#8b5cf6;" class="metric-val">62</div>
+    <div style="font-size:12px;color:var(--body);">사전안내</div>
+  </div>
+  <div class="card" style="flex:1;min-width:150px;text-align:center;border-top:3px solid var(--orange);">
+    <div style="font-size:28px;font-weight:800;color:var(--orange);" class="metric-val">48</div>
+    <div style="font-size:12px;color:var(--body);">제품소식</div>
+  </div>
+  <div class="card" style="flex:1;min-width:150px;text-align:center;border-top:3px solid var(--blue);">
+    <div style="font-size:28px;font-weight:800;color:var(--blue);" class="metric-val">21</div>
+    <div style="font-size:12px;color:var(--body);">정보정리</div>
+  </div>
+  <div class="card" style="flex:1;min-width:150px;text-align:center;border-top:3px solid #94a3b8;">
+    <div style="font-size:28px;font-weight:800;color:#94a3b8;" class="metric-val">93</div>
+    <div style="font-size:12px;color:var(--body);">기타</div>
+  </div>
+</div>
+
+<!-- 핵심 인사이트 -->
+<h2>핵심 인사이트</h2>
+
+<div class="insight">
+  <strong>1. 사전 버즈가 본 행사보다 4.5배 컸다</strong><br>
+  팝업 전(~3/4) 209건 vs 팝업 기간(3/12~15) 46건. 2/28~3/4에 일평균 38건으로 최대 버즈. 신제품 '포도향' 출시 보도자료 + 인플루언서 사전 시딩 효과로 추정. <strong>팝업 자체보다 신제품 출시 마케팅이 더 큰 버즈를 만든 구조.</strong>
+</div>
+
+<div class="insight">
+  <strong>2. 사전예약 오픈(3/7)에 두 번째 스파이크</strong><br>
+  3/7에 11건으로 사전홍보 기간 최대. 예약 방법/혜택/꿀팁 정리 포스트 집중. <strong>사전예약 시스템이 자체적으로 콘텐츠 생산을 유도하는 구조.</strong>
+</div>
+
+<div class="insight">
+  <strong>3. 팝업 2~3일차에 후기 피크</strong><br>
+  첫날(3/12) 3건 → 2일차(3/13) 15건 → 3일차(3/14) 22건. <strong>방문 후 하루 뒤에 블로그 후기를 작성하는 패턴.</strong> 인스타는 즉시 반응이므로 패턴이 다를 것으로 예상.
+</div>
+
+<div class="insight">
+  <strong>4. 팝업 종료 후 급감 — 버즈 유지력 약함</strong><br>
+  3/16 이후 일평균 1건 수준으로 급감. <strong>오프라인 이벤트의 전형적 특성.</strong> 장기 버즈를 원한다면 팝업 종료 후 콘텐츠 전략이 별도로 필요.
+</div>
+
+<div class="insight" style="background:#fef2f2;border-left-color:var(--coral);">
+  <strong style="color:var(--coral);">5. 팝업 vs 신제품 — 버즈 기여도 분리 필요</strong><br>
+  신제품 '포도향' 출시와 팝업이 동시 진행되어 <strong>팝업 단독 효과를 측정하기 어려운 구조.</strong> 키워드 세부 분류 또는 본문 토픽 분석(2-Layer)으로 분리 필요.
+</div>
+
+<!-- 다음 단계 -->
+<h2>다음 단계</h2>
+<table>
+  <thead><tr><th>#</th><th>작업</th><th>상태</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>네이버 블로그 크롤링 (299건)</td><td><span class="tag tag-pos">완료</span></td><td>7개 키워드, 정밀 필터</td></tr>
+    <tr><td>2</td><td>엑셀 Raw Data 정리 (5시트)</td><td><span class="tag tag-pos">완료</span></td><td>감성/유형/기간별 분류</td></tr>
+    <tr><td>3</td><td>HTML 요약 리포트</td><td><span class="tag tag-pos">완료</span></td><td>현재 문서</td></tr>
+    <tr><td>4</td><td>Brand24 세팅 (인스타/틱톡/유튜브)</td><td><span class="tag tag-info">다음</span></td><td>인스타 데이터 확보</td></tr>
+    <tr><td>5</td><td>본문 크롤링 → 2-Layer 분석</td><td><span class="tag tag-neu">예정</span></td><td>Content + Psyche</td></tr>
+    <tr><td>6</td><td>통합 리포트 (네이버 + 인스타)</td><td><span class="tag tag-neu">예정</span></td><td>채널별 비교 분석</td></tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  Project RENT · R-lab · 2026<br>
+  RXR Data Collection Engine v0.1 · 네이버 블로그 API 기반
+</div>
+
+</body>
+</html>

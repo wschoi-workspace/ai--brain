@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>소비심리학 관점 분석 프레임 — RXR SNS Analysis</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', -apple-system, sans-serif; background: #0a0a0f; color: #e0e0e0; line-height: 1.7; padding: 40px 20px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* Hero */
+  .hero { text-align: center; padding: 60px 20px 40px; margin-bottom: 48px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 24px; border: 1px solid rgba(255,255,255,0.06); }
+  .hero h1 { font-size: 2.4rem; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; letter-spacing: -1px; }
+  .hero .subtitle { font-size: 1.1rem; color: #8892b0; margin-bottom: 8px; }
+  .hero .sub2 { font-size: 0.88rem; color: #6b7280; margin-bottom: 24px; max-width: 700px; margin-left: auto; margin-right: auto; }
+  .hero-stats { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+  .hero-stat { text-align: center; }
+  .hero-stat .num { font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-stat .label { font-size: 0.85rem; color: #6b7280; margin-top: -4px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid rgba(102,126,234,0.3); display: flex; align-items: center; gap: 10px; }
+  .section-title .icon { font-size: 1.4rem; }
+  .section-desc { font-size: 0.88rem; color: #8892b0; margin-bottom: 20px; }
+
+  /* Flow */
+  .flow-container { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+  .flow-card { flex: 1; min-width: 220px; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.06); position: relative; }
+  .flow-card::after { content: ''; position: absolute; right: -9px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-left: 7px solid #667eea; border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+  .flow-card:last-child::after { display: none; }
+  .flow-card .fl-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: #667eea; margin-bottom: 4px; }
+  .flow-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+  .flow-card .fl-q { font-size: 0.8rem; color: #8892b0; font-style: italic; margin-bottom: 10px; }
+  .flow-card .fl-count { font-size: 1.8rem; font-weight: 900; color: #667eea; }
+  .flow-card .fl-count-label { font-size: 0.75rem; color: #6b7280; }
+  .flow-card .fl-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .flow-card .fl-tag { font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; background: rgba(102,126,234,0.12); color: #818cf8; }
+
+  /* Subsection */
+  .subsection { margin-bottom: 36px; }
+  .subsection-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .subsection-title .badge { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+  .badge-cog { background: rgba(99,102,241,0.2); color: #818cf8; }
+  .badge-be { background: rgba(16,185,129,0.2); color: #34d399; }
+  .badge-cp { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .badge-online { background: rgba(244,63,94,0.2); color: #fb7185; }
+
+  /* Formula Box */
+  .formula-box { background: #0d1117; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.8; }
+  .formula-box .f-title { font-family: 'Pretendard'; font-weight: 700; color: #667eea; margin-bottom: 8px; font-size: 0.85rem; }
+  .f-plus { color: #34d399; }
+  .f-minus { color: #f87171; }
+  .f-note { color: #667eea; font-style: italic; font-family: 'Pretendard'; font-size: 0.78rem; }
+
+  /* Mapping Card */
+  .mapping-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .mapping-card { background: #111827; border-radius: 14px; padding: 18px 20px; border-left: 4px solid #667eea; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .mapping-card.be { border-left-color: #34d399; }
+  .mapping-card.cp { border-left-color: #fbbf24; }
+  .mapping-card.online { border-left-color: #fb7185; }
+  .mc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .mc-theory { font-size: 0.95rem; font-weight: 700; color: #e0e0e0; }
+  .mc-scholar { font-size: 0.75rem; color: #6b7280; }
+  .mc-mech { font-size: 0.82rem; color: #9ca3af; margin-bottom: 10px; line-height: 1.6; }
+  .mc-apply { background: rgba(102,126,234,0.08); border-radius: 8px; padding: 10px 14px; font-size: 0.8rem; color: #a5b4fc; }
+  .mc-apply strong { color: #818cf8; }
+
+  /* Decay Cards */
+  .decay-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .decay-card { background: #111827; border-radius: 14px; padding: 18px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
+  .decay-card .dc-name { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+  .decay-card .dc-pattern { font-size: 0.78rem; font-weight: 700; padding: 2px 10px; border-radius: 10px; display: inline-block; margin-bottom: 10px; }
+  .dc-slow { background: rgba(16,185,129,0.15); color: #34d399; }
+  .dc-rapid { background: rgba(244,63,94,0.15); color: #fb7185; }
+  .dc-inverse { background: rgba(99,102,241,0.15); color: #818cf8; }
+  .dc-sharp { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .decay-card .dc-curve { font-size: 2rem; margin-bottom: 8px; }
+  .decay-card .dc-theory { font-size: 0.78rem; font-weight: 600; color: #667eea; margin-bottom: 6px; }
+  .decay-card .dc-desc { font-size: 0.78rem; color: #9ca3af; line-height: 1.5; text-align: left; }
+
+  /* Weight Bar */
+  .weight-bar-container { margin-bottom: 20px; }
+  .weight-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .weight-label { width: 100px; font-size: 0.82rem; font-weight: 600; text-align: right; }
+  .weight-bar-bg { flex: 1; height: 24px; background: #1a1a2e; border-radius: 12px; overflow: hidden; }
+  .weight-bar { height: 100%; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: #fff; }
+  .weight-pct { width: 50px; font-size: 0.82rem; color: #6b7280; }
+
+  /* Insight Box */
+  .insight-box { background: linear-gradient(135deg, #f8f7ff08, rgba(102,126,234,0.06)); border-left: 4px solid #667eea; border-radius: 0 12px 12px 0; padding: 16px 20px; margin-bottom: 20px; }
+  .insight-box .ib-title { font-size: 0.85rem; font-weight: 700; color: #818cf8; margin-bottom: 6px; }
+  .insight-box p { font-size: 0.82rem; color: #9ca3af; line-height: 1.6; }
+  .insight-box strong { color: #e0e0e0; }
+
+  /* Mapping Table */
+  .table-wrap { overflow-x: auto; margin-bottom: 32px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+  .mapping-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 900px; }
+  .mapping-table th { background: #1a1a2e; padding: 10px 8px; text-align: center; font-weight: 700; color: #d1d5db; border-bottom: 2px solid rgba(102,126,234,0.3); position: sticky; top: 0; }
+  .mapping-table th:first-child { text-align: left; min-width: 180px; position: sticky; left: 0; z-index: 2; background: #1a1a2e; }
+  .mapping-table td { padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .mapping-table td:first-child { text-align: left; font-weight: 600; color: #d1d5db; position: sticky; left: 0; background: #111827; }
+  .mapping-table tr:nth-child(even) td { background: #0d1117; }
+  .mapping-table tr:nth-child(even) td:first-child { background: #0d1117; }
+  .mapping-table .cell-active { background: rgba(102,126,234,0.15) !important; color: #818cf8; font-size: 0.72rem; }
+  .mapping-table .cell-active-be { background: rgba(16,185,129,0.12) !important; color: #34d399; }
+  .mapping-table .cell-active-cp { background: rgba(245,158,11,0.12) !important; color: #fbbf24; }
+
+  /* Ref */
+  .ref-list { list-style: none; padding: 0; }
+  .ref-list li { font-size: 0.82rem; color: #9ca3af; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); line-height: 1.5; }
+  .ref-list .ref-author { color: #d1d5db; font-weight: 600; }
+
+  .footer { text-align: center; padding: 40px 20px; color: #4b5563; font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 48px; }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 1.6rem; }
+    .hero-stats { gap: 24px; }
+    .flow-container { flex-direction: column; }
+    .flow-card::after { display: none; }
+    .mapping-grid { grid-template-columns: 1fr; }
+    .decay-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>소비심리학 관점<br>분석 프레임</h1>
+    <div class="subtitle">RXR SNS Analysis의 심리학적 근거 체계</div>
+    <div class="sub2">이 문서는 RXR SNS 분석 도구가 각 지표를 산출할 때 적용하는 소비자 심리학 이론의 구체적 근거와 메커니즘을 설명합니다.</div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">4</div><div class="label">분석 스킬</div></div>
+      <div class="hero-stat"><div class="num">27</div><div class="label">적용 이론</div></div>
+      <div class="hero-stat"><div class="num">13</div><div class="label">분석 지표</div></div>
+      <div class="hero-stat"><div class="num">62</div><div class="label">이론 체계 기반</div></div>
+    </div>
+  </div>
+
+  <!-- Section 1: Overview Map -->
+  <div class="section">
+    <div class="section-title"><span class="icon">&#x1F5FA;</span> 분석 프레임 전체 구조도</div>
+    <div class="section-desc">4개 스킬이 파이프라인으로 연결됩니다. 각 단계마다 고유한 심리학 이론이 지표 산출의 근거로 작동합니다.</div>
+    <div class="flow-container">
+      <div class="flow-card">
+        <div class="fl-label">SKILL 1 &middot; 원본 분석</div>
+        <h3>rxr-sns-analysis</h3>
+        <div class="fl-q">"진짜 반응은 몇 건이고, 왜 그런가?"</div>
+        <div class="fl-count">10<span class="fl-count-label"> 이론</span></div>
+        <div class="fl-tags">
+          <span class="fl-tag">Auth</span><span class="fl-tag">Clout</span><span class="fl-tag">Freshness</span><span class="fl-tag">RQL</span><span class="fl-tag">Content Class</span><span class="fl-tag">Trust Level</span>
+        </div>
+      </div>
+      <div class="flow-card">
+        <div class="fl-label">SKILL 2 &middot; 추적 분석</div>
+        <h3>rxr-sns-analysis-follow</h3>
+        <div class="fl-q">"캠페인 효과가 얼마나 오래 가는가?"</div>
+        <div class="fl-count">6<span class="fl-count-label"> 이론</span></div>
+        <div class="fl-tags">
+          <span class="fl-tag">BEI 4축</span><span class="fl-tag">Decay Curve</span><span class="fl-tag">가중치</span>
+        </div>
+      </div>
+      <div class="flow-card">
+        <div class="fl-label">SKILL 3 &middot; 비교 분석</div>
+        <h3>rxr-sns-analysis-compare</h3>
+        <div class="fl-q">"왜 A 팝업이 B보다 효과적인가?"</div>
+        <div class="fl-count">6<span class="fl-count-label"> 이론</span></div>
+        <div class="fl-tags">
+          <span class="fl-tag">5축 비교</span><span class="fl-tag">법칙 도출</span><span class="fl-tag">한국 맥락</span>
+        </div>
+      </div>
+      <div class="flow-card">
+        <div class="fl-label">SKILL 4 &middot; 가치 분석</div>
+        <h3>rxr-sns-analysis-value</h3>
+        <div class="fl-q">"이 캠페인이 돈으로 얼마짜리인가?"</div>
+        <div class="fl-count">5<span class="fl-count-label"> 이론</span></div>
+        <div class="fl-tags">
+          <span class="fl-tag">EMV</span><span class="fl-tag">ROI</span><span class="fl-tag">전환 경로</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: rxr-sns-analysis -->
+  <div class="section">
+    <div class="section-title"><span class="icon">&#x1F50D;</span> Skill 1: 원본 분석 &mdash; 진짜 반응을 걸러내는 심리학</div>
+    <div class="section-desc">Sincerity Filter + 2-Layer 분석의 모든 지표가 소비자 심리학 이론에 기반합니다. 10개 이론이 6개 지표에 매핑됩니다.</div>
+
+    <!-- 2-1. Auth -->
+    <div class="subsection">
+      <div class="subsection-title"><span class="badge badge-cog">PSYCHE LAYER</span> Authenticity (Auth) &mdash; 진정성 지표</div>
+      <div class="formula-box">
+        <div class="f-title">Auth 산출 공식 (0~100)</div>
+        기본 60점<br>
+        <span class="f-minus">- 협찬: -15</span> <span class="f-note">&larr; 인지 부조화 보정</span><br>
+        <span class="f-minus">- 과잉긍정어 초과: &times;-3</span><br>
+        <span class="f-minus">- 느낌표 10개 초과: &times;-2</span><br>
+        <span class="f-minus">- 표현 모방 의심: -10</span> <span class="f-note">&larr; 프라이밍 효과 보정</span><br>
+        <span class="f-plus">+ 개인경험 2건+: +10</span><br>
+        <span class="f-plus">+ 구체적 디테일 3건+: +10</span><br>
+        <span class="f-plus">+ 균형 평가(긍+부 공존): +15</span> <span class="f-note">&larr; ELM 중심경로 처리 신호</span>
+      </div>
+      <div class="mapping-grid">
+        <div class="mapping-card">
+          <div class="mc-header"><span class="mc-theory">정교화 가능성 모델 (ELM)</span><span class="mc-scholar">Petty & Cacioppo</span></div>
+          <div class="mc-mech">장단점을 모두 언급하는 것은 <strong>중심 경로 처리</strong>(높은 인지적 노력)의 행동적 증거. 주변 경로(감정적 "좋아요!")보다 진정성이 현저히 높다.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> 균형 평가 가점을 +8에서 <strong>+15로 상향</strong>. 긍정과 부정을 모두 언급한 리뷰는 가장 신뢰할 수 있는 진정성 신호.</div>
+        </div>
+        <div class="mapping-card">
+          <div class="mc-header"><span class="mc-theory">프라이밍 효과</span><span class="mc-scholar">John Bargh</span></div>
+          <div class="mc-mech">블로그 리뷰어가 다른 리뷰를 먼저 읽으면 유사한 표현/감정 톤을 <strong>무의식적으로 모방</strong>. "비슷비슷한 긍정 리뷰"가 쏟아지는 원인.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> 다른 리뷰와 유사 문장 구조 3건+ 감지 시 <strong>-10점</strong>으로 프라이밍된 모방 리뷰를 보정.</div>
+        </div>
+        <div class="mapping-card be">
+          <div class="mc-header"><span class="mc-theory">인지 부조화</span><span class="mc-scholar">Leon Festinger</span></div>
+          <div class="mc-mech">무료 체험·초대 참여자는 "내 시간을 쓸 만큼 좋은 것이었다"고 <strong>합리화</strong>하는 부조화 해소 패턴을 보일 수 있다.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> 협찬 -15점은 이 메커니즘을 부분 보정. 무료 체험(비협찬)에서도 패턴이 나타날 수 있으므로 과잉 긍정 감지와 <strong>병행 해석</strong>.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2-2. Clout -->
+    <div class="subsection">
+      <div class="subsection-title"><span class="badge badge-cog">PSYCHE LAYER</span> Clout &mdash; 추천 강도 지표</div>
+      <div class="formula-box">
+        <div class="f-title">Clout 산출 공식 (0~100)</div>
+        기본 40점<br>
+        <span class="f-plus">+ 추천 표현("추천", "꼭 가", "강추"): 건당 +15</span><br>
+        <span class="f-plus">+ 복수형 > 1인칭: +10</span><br>
+        <span class="f-plus">+ 제3자 경험 인용: +12</span> <span class="f-note">&larr; 사회적 증거</span><br>
+        <span class="f-plus">+ 예방 초점 추천: +8</span> <span class="f-note">&larr; 손실 회피 활용</span><br>
+        <span class="f-plus">+ 조건부 추천: +10</span> <span class="f-note">&larr; 높은 신뢰도</span><br>
+        <span class="f-plus">+ 정체성 선언: +12</span> <span class="f-note">&larr; 사회적 정체성</span>
+      </div>
+      <div class="mapping-grid">
+        <div class="mapping-card cp">
+          <div class="mc-header"><span class="mc-theory">사회적 증거</span><span class="mc-scholar">Robert Cialdini</span></div>
+          <div class="mc-mech">"친구도 좋아했어"라는 <strong>제3자 경험 인용</strong>은 본인의 추천보다 설득력이 높다. 독립적 경험 확인 = 사회적 증거 + 권위의 결합.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> "친구가", "같이 간 사람이", "데려갔는데" 패턴 감지 시 <strong>+12점</strong></div>
+        </div>
+        <div class="mapping-card be">
+          <div class="mc-header"><span class="mc-theory">조절 초점 이론 + 손실 회피</span><span class="mc-scholar">Tory Higgins / Kahneman & Tversky</span></div>
+          <div class="mc-mech">"안 가면 후회해요"(예방 초점)는 <strong>손실 회피</strong>를 활성화하므로 "꼭 가봐요"(촉진 초점)보다 실제 전환율이 더 높을 수 있다.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> "안 가면 후회", "놓치면", "없어지기 전에" 패턴 감지 시 <strong>+8점</strong></div>
+        </div>
+        <div class="mapping-card cp">
+          <div class="mc-header"><span class="mc-theory">사회적 정체성 이론</span><span class="mc-scholar">Henri Tajfel</span></div>
+          <div class="mc-mech">"나는 ___팬/덕후"라는 <strong>정체성 수준의 추천</strong>은 경험 수준("이거 괜찮더라")보다 지속성이 현저히 높다. 자기 정체성은 쉽게 안 바뀐다.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> "~덕후", "~팬", "~러버" 패턴 감지 시 <strong>+12점</strong>. Advocacy Decay 해석 시 정체성 선언 비율도 참조.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2-3. Freshness -->
+    <div class="subsection">
+      <div class="subsection-title"><span class="badge badge-cog">PSYCHE LAYER</span> Freshness &mdash; 신선함 지표</div>
+      <div class="formula-box">
+        <div class="f-title">Freshness Index 공식</div>
+        Freshness = "이/가" / ("이/가" + "은/는") &times; 100<br><br>
+        <span class="f-note">"이/가" = 초점/발견 (새로운 정보) &nbsp;|&nbsp; "은/는" = 주제/설명 (이미 아는 것)</span>
+      </div>
+      <div class="mapping-grid">
+        <div class="mapping-card">
+          <div class="mc-header"><span class="mc-theory">해석 수준 이론 (CLT)</span><span class="mc-scholar">Trope & Liberman</span></div>
+          <div class="mc-mech">"이/가"는 <strong>저수준 해석</strong>(구체적, 심리적으로 가까운 대상)을 반영. "은/는"은 <strong>고수준 해석</strong>(추상적, 이미 스키마에 통합된 정보)을 반영.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> Freshness가 높다 = 대상을 아직 구체적·감각적으로 처리 중. BEI Discovery 축에 직접 연결.</div>
+        </div>
+        <div class="mapping-card">
+          <div class="mc-header"><span class="mc-theory">기억 시스템 이론</span><span class="mc-scholar">Atkinson & Shiffrin</span></div>
+          <div class="mc-mech">시간이 지나면 감각 기억 → 에피소드 기억 → <strong>의미 기억(스키마)으로 전환</strong>. "이/가"(새로운 인상)가 "은/는"(이미 아는 것)으로 자연 전환.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> Freshness 자연 하락은 "나빠진 것"이 아니라 <strong>"감각 기억이 의미 기억으로 통합 완료"</strong>된 정상적 인지 과정.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2-4. 감성분석 -->
+    <div class="subsection">
+      <div class="subsection-title"><span class="badge badge-online">eWOM</span> 감성 분석 &mdash; 부정 리뷰의 숨겨진 가치</div>
+      <div class="mapping-grid">
+        <div class="mapping-card online">
+          <div class="mc-header"><span class="mc-theory">부정성 편향 + 감정적 진단성</span><span class="mc-scholar">Lee et al., 2026</span></div>
+          <div class="mc-mech">부정적 감정이 약간만 증가해도 리뷰 <strong>유용성(helpfulness)</strong>이 크게 증가. 시선 추적 연구에서도 부정 댓글 주시 시간 > 긍정 댓글. 부정 리뷰 1건의 매출 영향 > 긍정 1건 (비대칭 효과).</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> Gate 3 통과 "혼합" 감성이 높은 비율이면, <strong>부정 신호가 아니라 정보 밀도가 높은 양질 리뷰의 증거</strong>. ELM 중심경로 처리의 산물.</div>
+        </div>
+        <div class="mapping-card online">
+          <div class="mc-header"><span class="mc-theory">eWOM 메타분석 (69개 연구)</span><span class="mc-scholar">Ismagilova et al., 2020</span></div>
+          <div class="mc-mech">구매 의도에 가장 강한 영향: <strong>논거 품질 ★★★★★</strong>. 리뷰 양은 ★★☆☆☆ (약함). 리뷰 수를 늘리는 것보다 구체적 리뷰를 유도하는 구조 설계가 전환율에 더 효과적.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> RQL(Review Quality Level) 5단계 가중치의 학술적 근거. <strong>Q5 서사형(×2.0)이 Q1 간단형(×0.2)보다 10배 가치 있는 이유.</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2-5. Content Class -->
+    <div class="subsection">
+      <div class="subsection-title"><span class="badge badge-online">eWOM</span> Content Class &mdash; 리뷰 동기별 심리 분류</div>
+      <div class="insight-box">
+        <div class="ib-title">eWOM 생성 동기 ↔ Content Class 매핑 (King et al., 2014)</div>
+        <p>리뷰 작성에는 4가지 심리적 동기가 작동합니다. Content Class는 이 동기를 텍스트 패턴으로 역추정하는 구조입니다.</p>
+      </div>
+      <div class="mapping-grid">
+        <div class="mapping-card">
+          <div class="mc-header"><span class="mc-theory">이타적 동기 → Class A</span><span class="mc-scholar">타인을 돕고자</span></div>
+          <div class="mc-mech">가장 높은 Auth. 구체적 디테일과 경험 공유가 풍부. "다른 사람도 알면 좋겠다"는 동기에서 출발.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> A등급 = 진성후기. 2-Layer 핵심 분석 대상.</div>
+        </div>
+        <div class="mapping-card">
+          <div class="mc-header"><span class="mc-theory">자아 향상 동기 → Class A~B</span><span class="mc-scholar">전문가로 보이고자</span></div>
+          <div class="mc-mech">분석적 톤, Q4~Q5 비율 높음. Clout도 높을 수 있음. "내가 이 분야를 잘 안다"는 자기 표현.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> 자아 향상 동기의 리뷰는 깊이가 있되 과시적일 수 있음. Auth와 Clout를 함께 확인.</div>
+        </div>
+        <div class="mapping-card cp">
+          <div class="mc-header"><span class="mc-theory">경제적 보상 동기 → Class C</span><span class="mc-scholar">포인트/협찬</span></div>
+          <div class="mc-mech">동기가 외재적이므로 Auth 스펙트럼이 넓음(10~63). 진심 여부를 별도 판단해야 함.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> C등급 = 협찬. <strong>제외하지 않고 진심 스펙트럼으로 분석</strong> — 이것이 RXR의 핵심 차별화.</div>
+        </div>
+        <div class="mapping-card online">
+          <div class="mc-header"><span class="mc-theory">감정 해소 동기 → 부정 리뷰</span><span class="mc-scholar">불만 표출</span></div>
+          <div class="mc-mech">부정 리뷰이지만 <strong>감정적 진단성</strong>이 높아 정보 가치가 큼. 구체적 문제점을 포함할 확률↑.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> 부정/혼합 리뷰를 "실패 신호"로 보지 않고 <strong>"브랜드가 귀 기울여야 할 피드백"</strong>으로 프레이밍.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2-6. Account Trust -->
+    <div class="subsection">
+      <div class="subsection-title"><span class="badge badge-cp">SOCIAL</span> Account Trust &mdash; 파라소셜 관계와 유대 강도</div>
+      <div class="mapping-grid">
+        <div class="mapping-card cp">
+          <div class="mc-header"><span class="mc-theory">파라소셜 관계</span><span class="mc-scholar">Horton & Wohl / SNS 연구</span></div>
+          <div class="mc-mech">팔로워가 인플루언서를 "가까운 지인"처럼 느끼는 일방적 친밀감. <strong>마이크로 인플루언서(T2)</strong>는 심리적 거리가 짧아 추천 설득력↑. 매크로(T3)는 "광고"로 인식될 확률↑.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> T1(×1.0) > T2(×0.8) > T3(×0.6) > T4(×0.3) 가중치가 <strong>심리적 거리 순서</strong>와 일치.</div>
+        </div>
+        <div class="mapping-card online">
+          <div class="mc-header"><span class="mc-theory">행동적 증거 > 태도적 증거</span><span class="mc-scholar">eWOM 연구</span></div>
+          <div class="mc-mech">"많은 사람이 실제로 갔다"(행동)가 "많은 사람이 좋아한다"(태도)보다 <strong>진정성이 높다</strong>고 인식됨. 행동은 위조하기 어렵다고 느끼기 때문.</div>
+          <div class="mc-apply"><strong>RXR 적용:</strong> T1(순수 개인)의 방문 후기는 <strong>행동적 증거</strong>이므로 가중치 최대(×1.0).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: BEI -->
+  <div class="section">
+    <div class="section-title"><span class="icon">&#x1F4C8;</span> Skill 2: 추적 분석 (BEI) &mdash; 기억과 감쇠의 심리학</div>
+    <div class="section-desc">BEI 4축의 감쇠 패턴은 각각 다른 심리학적 메커니즘으로 설명됩니다. "왜 이런 감쇠 패턴인가"를 아는 것이 해석의 핵심입니다.</div>
+
+    <!-- 3-1. Decay -->
+    <div class="subsection">
+      <div class="subsection-title"><span class="badge badge-cog">DECAY</span> 4축별 감쇠 패턴의 심리학적 메커니즘</div>
+      <div class="decay-grid">
+        <div class="decay-card">
+          <div class="dc-name">Depth</div>
+          <div class="dc-pattern dc-slow">Slow Decay</div>
+          <div class="dc-curve">&#x1F4AA;</div>
+          <div class="dc-theory">절정-종결 규칙 (Peak-End Rule)</div>
+          <div class="dc-desc">강렬한 체험의 절정 기억은 에피소드 기억으로 깊이 인코딩되어 천천히 감쇠. 체험이 "절정(peak moment)"을 만들면 장기 기억에 단단히 고정됨.</div>
+        </div>
+        <div class="decay-card">
+          <div class="dc-name">Advocacy</div>
+          <div class="dc-pattern dc-rapid">Rapid Decay</div>
+          <div class="dc-curve">&#x26A1;</div>
+          <div class="dc-theory">FOMO 시간 의존성</div>
+          <div class="dc-desc">추천 의지는 "지금 핫한" 사회적 맥락에 의존. 시간이 지나면 FOMO가 소멸하면서 추천 동기 급감. 단, 정체성 선언("나는 ___팬")은 감쇠가 느림.</div>
+        </div>
+        <div class="decay-card">
+          <div class="dc-name">Sincerity</div>
+          <div class="dc-pattern dc-inverse">Inverse &#x2191;</div>
+          <div class="dc-curve">&#x1F331;</div>
+          <div class="dc-theory">가용성 휴리스틱 역전</div>
+          <div class="dc-desc">의무적·피상적 리뷰어는 더 이상 안 쓰고, "진짜 좋았던 사람"만 기억에서 꺼내 작성. 노이즈가 먼저 소멸하고 진심이 잔존하는 자연 필터링.</div>
+        </div>
+        <div class="decay-card">
+          <div class="dc-name">Discovery</div>
+          <div class="dc-pattern dc-sharp">Sharp Decay</div>
+          <div class="dc-curve">&#x1F4A8;</div>
+          <div class="dc-theory">쾌락 적응 (Hedonic Treadmill)</div>
+          <div class="dc-desc">새로운 자극에 대한 놀라움은 가장 빠르게 적응. 구체적·감각적 기억(저수준)이 추상적·개념적 기억(고수준)으로 전환되면서 Freshness 급락.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3-2. BEI Weight -->
+    <div class="subsection">
+      <div class="subsection-title"><span class="badge badge-be">BEI</span> 가중치의 심리학적 근거</div>
+      <div class="weight-bar-container">
+        <div class="weight-row">
+          <div class="weight-label">Depth</div>
+          <div class="weight-bar-bg"><div class="weight-bar" style="width:35%; background: linear-gradient(90deg, #667eea, #764ba2);">35%</div></div>
+          <div class="weight-pct">TPB</div>
+        </div>
+        <div class="weight-row">
+          <div class="weight-label">Advocacy</div>
+          <div class="weight-bar-bg"><div class="weight-bar" style="width:35%; background: linear-gradient(90deg, #667eea, #764ba2);">35%</div></div>
+          <div class="weight-pct">TPB</div>
+        </div>
+        <div class="weight-row">
+          <div class="weight-label">Sincerity</div>
+          <div class="weight-bar-bg"><div class="weight-bar" style="width:15%; background: #34d399;">15%</div></div>
+          <div class="weight-pct">신뢰</div>
+        </div>
+        <div class="weight-row">
+          <div class="weight-label">Discovery</div>
+          <div class="weight-bar-bg"><div class="weight-bar" style="width:15%; background: #fbbf24;">15%</div></div>
+          <div class="weight-pct">노출</div>
+        </div>
+      </div>
+      <div class="insight-box">
+        <div class="ib-title">계획된 행동 이론 (TPB, Ajzen)</div>
+        <p><strong>Depth·Advocacy 각 35%</strong>: 행동 비용이 높은 실제 행동(깊은 리뷰 작성, 적극적 추천)이 진짜 의도를 가장 강하게 예측. <strong>Discovery 15%</strong>: 단순 노출 효과(Zajonc) — 첫 노출에서만 강하고 빠르게 소멸하므로 장기 지표 가중 낮음. <strong>Sincerity 15%</strong>: 기반 변수이지만, 가산형 유지(N=20+ 사례 축적 후 곱셈형 전환 검토).</p>
+      </div>
+    </div>
+
+    <!-- 3-3. 행동 > 태도 -->
+    <div class="subsection">
+      <div class="subsection-title"><span class="badge badge-online">eWOM</span> BEI의 핵심 철학: 행동적 증거 > 태도적 증거</div>
+      <div class="insight-box">
+        <div class="ib-title">69개 연구 메타분석이 증명한 원칙</div>
+        <p>"좋다고 말했으니까 좋아하는 거다" (X) &rarr; "시간과 노력을 들여 <strong>500자짜리 후기를 쓰고, 구체적 경험을 공유하고, 친구한테 꼭 가보라고 추천</strong>했다 &rarr; 이것은 좋아한다는 <strong>행동적 증거</strong>다" (O). 행동은 과장이 어렵다. 이것이 BEI가 단순 건수/긍정률보다 정확한 이유.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Compare -->
+  <div class="section">
+    <div class="section-title"><span class="icon">&#x2696;</span> Skill 3: 비교 분석 &mdash; 왜 A 팝업이 B보다 효과적인가</div>
+    <div class="section-desc">5축 비교 프레임워크의 각 축에 심리학적 해석 근거가 내장되어 있습니다.</div>
+
+    <div class="mapping-grid">
+      <div class="mapping-card">
+        <div class="mc-header"><span class="mc-theory">동사화 테스트</span><span class="mc-scholar">컨셉 침투율</span></div>
+        <div class="mc-mech"><strong>IKEA 효과</strong>(Norton): 직접 참여→높은 가치 부여. <strong>심리적 소유감</strong>: 능동적 참여→"내 것" 느낌. <strong>Peak-End Rule</strong>: 행동은 절정을 만들고, 개념은 못 만듦.</div>
+        <div class="mc-apply"><strong>"오늘 ___했다"로 완성되는 컨셉</strong>(동사형)이 개념형보다 침투율·Auth·기억 지속성 모두 높은 이유.</div>
+      </div>
+      <div class="mapping-card be">
+        <div class="mc-header"><span class="mc-theory">긍정률 거품 해석</span><span class="mc-scholar">앵커링 + 손실 회피</span></div>
+        <div class="mc-mech"><strong>앵커링 효과</strong>: Gate1 높은 긍정률이 앵커가 되어 Gate3 하락이 실제보다 더 나빠 보임. <strong>손실 회피</strong>: 클라이언트가 +12%p 상승보다 -12%p 하락을 약 2배 강하게 부정적으로 체감.</div>
+        <div class="mc-apply"><strong>리포트에서 하락 제시 시</strong> "왜 하락이 긍정적 신호인지"(과장 긍정 제거 = 더 정확한 현실)를 선제적으로 설명해야 함.</div>
+      </div>
+      <div class="mapping-card">
+        <div class="mc-header"><span class="mc-theory">협찬 신뢰도</span><span class="mc-scholar">인지 부조화 + 사회적 정체성</span></div>
+        <div class="mc-mech"><strong>인지 부조화</strong>: 가치 공감형은 일관성 유지(Auth 유지), 의무적은 부조화 상태(과잉 긍정으로 보상→Auth 급감). <strong>사회적 정체성</strong>: 브랜드를 정체성 일부로 인식하면 격차 축소.</div>
+        <div class="mc-apply"><strong>Auth 격차 10pt 이하</strong> = 가치 공감형 협찬(양호). <strong>20pt 이상</strong> = 의무적 협찬(브랜드 훼손 수준).</div>
+      </div>
+      <div class="mapping-card">
+        <div class="mc-header"><span class="mc-theory">진정성 유지력</span><span class="mc-scholar">기억 미화 + Peak-End Rule</span></div>
+        <div class="mc-mech"><strong>기억 미화(Rosy Retrospection)</strong>: 장기 운영 시 구체적 디테일이 사라지고 "좋았다"라는 추상적 평가만 남으면서 과잉 긍정어로 빈 공간을 채움→Auth 하락.</div>
+        <div class="mc-apply"><strong>"행동적 참여"</strong>가 절정 경험을 만들면 에피소드 기억이 강하게 인코딩→기억 미화 적음→Auth 유지.</div>
+      </div>
+      <div class="mapping-card online">
+        <div class="mc-header"><span class="mc-theory">한국 소비자 맥락 해석</span><span class="mc-scholar">Nisbett / 정체성 시그널</span></div>
+        <div class="mc-mech"><strong>전체적 사고</strong>: 한국 소비자는 제품이 아니라 "그 제품이 놓인 맥락 전체"를 봄. "공간/분위기"가 "제품/맛"보다 높은 비율은 <strong>정상적 인지 패턴</strong>이며 실패가 아님.</div>
+        <div class="mc-apply"><strong>정체성 시그널</strong>: "이걸 공유하면 나를 어떻게 볼까?"가 강한 팝업일수록 Q5 비율과 Advocacy가 높아짐.</div>
+      </div>
+      <div class="mapping-card online">
+        <div class="mc-header"><span class="mc-theory">리뷰 깊이 학술 근거</span><span class="mc-scholar">Ismagilova et al., 2020</span></div>
+        <div class="mc-mech">69개 연구 메타분석: <strong>논거 품질 ★★★★★ > 리뷰 양 ★★</strong>. Q4+Q5 비율이 높다는 것은 논거 품질이 높은 리뷰가 많다는 의미.</div>
+        <div class="mc-apply"><strong>RQL 기반 비교</strong>가 건수 기반 비교보다 정확한 이유. 단순 건수로 팝업을 비교하는 것은 <strong>학술적으로 약한 영향(★★) 기준으로 판단하는 것</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5: EMV -->
+  <div class="section">
+    <div class="section-title"><span class="icon">&#x1F4B0;</span> Skill 4: 가치 분석 (EMV) &mdash; BEI를 돈으로 바꿀 수 없는 이유와 우회 경로</div>
+    <div class="section-desc">BEI → ₩ 직접 전환은 불가능합니다. 3가지 행동경제학 원리가 그 이유를 설명하고, 3단계 전환 체인이 우회 경로를 제공합니다.</div>
+
+    <div class="mapping-grid">
+      <div class="mapping-card be">
+        <div class="mc-header"><span class="mc-theory">심적 회계</span><span class="mc-scholar">Richard Thaler</span></div>
+        <div class="mc-mech">소비자는 "팝업 체험"과 "제품 구매"를 <strong>다른 심리적 계좌</strong>에서 처리. 팝업에서 감동(BEI↑)해도 구매는 별도 의사결정이며, 다른 예산·맥락·동기에서 작동.</div>
+        <div class="mc-apply"><strong>EMV 적용:</strong> BEI→행동 효과 단위→₩의 3단계 전환 체인으로 우회. 심리적 계좌 간 전환 마찰을 반영.</div>
+      </div>
+      <div class="mapping-card be">
+        <div class="mc-header"><span class="mc-theory">현상 유지 편향</span><span class="mc-scholar">Samuelson & Zeckhauser</span></div>
+        <div class="mc-mech">기존 브랜드/제품을 쓰던 <strong>관성</strong>이 새로운 브랜드로의 전환을 막음. BEI가 높아도 전환 장벽(습관, 전환 비용, 접근성)은 별개 변수.</div>
+        <div class="mc-apply"><strong>EMV 적용:</strong> Depth(재구매)와 Advocacy(신규 획득)의 전환 계수에 업종별 전환 마찰을 반영.</div>
+      </div>
+      <div class="mapping-card be">
+        <div class="mc-header"><span class="mc-theory">쌍곡선 할인</span><span class="mc-scholar">George Ainslie</span></div>
+        <div class="mc-mech">팝업 직후의 구매 의도(T+0)와 1주 후 실제 구매(T+1w)는 <strong>시간 할인으로 급격히 차이</strong>남. "꼭 사야지" → "나중에" → "잊음"의 패턴.</div>
+        <div class="mc-apply"><strong>EMV 적용:</strong> Advocacy Rapid Decay와 연동. 축별 감쇠 함수(Decay Factor)로 4주 누적 가치 보정.</div>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <div class="ib-title">Sincerity → 전환율 경로의 학술적 근거</div>
+      <p><strong>리뷰 있는 상품 전환율 +270%</strong> (Spiegel Research Center, 2017). 진성 리뷰의 전환 효과가 협찬/의무 리뷰보다 현저히 큼. Gate 3 통과 비율(Sincerity)이 높은 캠페인일수록 V_sincerity의 실제 정확도 상승. <strong>구매 후 2-3일 리뷰</strong> = 만족감 + 인지 부조화 해소가 동시에 작동하는 골든 타이밍.</p>
+    </div>
+  </div>
+
+  <!-- Section 6: Mapping Table -->
+  <div class="section">
+    <div class="section-title"><span class="icon">&#x1F5C2;</span> 종합 매핑 테이블 &mdash; 이론 &times; 지표</div>
+    <div class="section-desc">27개 심리학 이론이 4개 스킬의 13개 지표에 어떻게 매핑되는지 한눈에 확인합니다.</div>
+    <div class="table-wrap">
+      <table class="mapping-table">
+        <thead>
+          <tr>
+            <th>심리학 이론</th>
+            <th>Auth</th>
+            <th>Clout</th>
+            <th>Fresh</th>
+            <th>감성</th>
+            <th>Class</th>
+            <th>Trust</th>
+            <th>Decay</th>
+            <th>BEI</th>
+            <th>비교</th>
+            <th>EMV</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="badge badge-cog" style="font-size:0.6rem;margin-right:4px;">인지</span>ELM (정교화 가능성)</td><td class="cell-active">+15</td><td></td><td></td><td class="cell-active">중심경로</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-cog" style="font-size:0.6rem;margin-right:4px;">인지</span>프라이밍 효과</td><td class="cell-active">-10</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>인지 부조화</td><td class="cell-active">협찬-15</td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-be">Sincerity↑</td><td></td><td class="cell-active-be">협찬격차</td><td></td></tr>
+          <tr><td><span class="badge badge-cp" style="font-size:0.6rem;margin-right:4px;">소비</span>사회적 증거</td><td></td><td class="cell-active">+12</td><td></td><td></td><td></td><td class="cell-active">행동적</td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>손실 회피</td><td></td><td class="cell-active">+8</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-be">거품해석</td><td></td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>조절 초점 이론</td><td></td><td class="cell-active">예방+8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-cp" style="font-size:0.6rem;margin-right:4px;">소비</span>사회적 정체성</td><td></td><td class="cell-active">+12</td><td></td><td></td><td></td><td></td><td class="cell-active-cp">Adv예외</td><td></td><td class="cell-active-cp">협찬·한국</td><td></td></tr>
+          <tr><td><span class="badge badge-cog" style="font-size:0.6rem;margin-right:4px;">인지</span>해석 수준 이론 (CLT)</td><td></td><td></td><td class="cell-active">공식근거</td><td></td><td></td><td></td><td class="cell-active">Disc Decay</td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-cog" style="font-size:0.6rem;margin-right:4px;">인지</span>기억 시스템 이론</td><td></td><td></td><td class="cell-active">자연하락</td><td></td><td></td><td></td><td></td><td></td><td class="cell-active">기억미화</td><td></td></tr>
+          <tr><td><span class="badge badge-online" style="font-size:0.6rem;margin-right:4px;">온라인</span>부정성 편향</td><td></td><td></td><td></td><td class="cell-active">유용성↑</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-online" style="font-size:0.6rem;margin-right:4px;">온라인</span>eWOM 메타분석</td><td></td><td></td><td></td><td class="cell-active">품질>양</td><td></td><td></td><td></td><td class="cell-active">행동>태도</td><td class="cell-active">깊이근거</td><td class="cell-active">+270%</td></tr>
+          <tr><td><span class="badge badge-online" style="font-size:0.6rem;margin-right:4px;">온라인</span>eWOM 생성 동기</td><td></td><td></td><td></td><td></td><td class="cell-active">4동기</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-online" style="font-size:0.6rem;margin-right:4px;">온라인</span>파라소셜 관계</td><td></td><td></td><td></td><td></td><td></td><td class="cell-active">T1~T5</td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>절정-종결 규칙</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-be">Depth</td><td></td><td class="cell-active-be">동사화·진정성</td><td></td></tr>
+          <tr><td><span class="badge badge-cp" style="font-size:0.6rem;margin-right:4px;">소비</span>FOMO</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-cp">Advocacy</td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>가용성 휴리스틱</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-be">Sincerity</td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>쾌락 적응</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-be">Discovery</td><td></td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-cp" style="font-size:0.6rem;margin-right:4px;">소비</span>계획된 행동 이론 (TPB)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-cp">35%/35%</td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-cog" style="font-size:0.6rem;margin-right:4px;">인지</span>단순 노출 효과</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active">15%</td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-cp" style="font-size:0.6rem;margin-right:4px;">소비</span>신뢰성 휴리스틱</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-cp">Sinc 15%</td><td></td><td></td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>IKEA 효과</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-be">동사화</td><td></td></tr>
+          <tr><td><span class="badge badge-cp" style="font-size:0.6rem;margin-right:4px;">소비</span>심리적 소유감</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-cp">동사화</td><td></td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>앵커링 효과</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-be">거품</td><td></td></tr>
+          <tr><td><span class="badge badge-online" style="font-size:0.6rem;margin-right:4px;">온라인</span>전체적 사고 (Nisbett)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active">한국맥락</td><td></td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>심적 회계</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-be">전환불가</td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>현상 유지 편향</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-be">전환장벽</td></tr>
+          <tr><td><span class="badge badge-be" style="font-size:0.6rem;margin-right:4px;">행동</span>쌍곡선 할인</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="cell-active-be">의도감쇠</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 7: References -->
+  <div class="section">
+    <div class="section-title"><span class="icon">&#x1F4D6;</span> 핵심 학술 참고 문헌</div>
+    <ul class="ref-list">
+      <li><span class="ref-author">Ismagilova, E. et al.</span> (2020). "The Effect of eWOM on Intention to Buy: A Meta-Analysis." <em>Information Systems Frontiers</em>, 22, 1203-1226. &mdash; RQL 가중치, 감성 분석, 행동적 증거 근거</li>
+      <li><span class="ref-author">King, R. A., Racherla, P., & Bush, V. D.</span> (2014). "What We Know and Don't Know About Online Word-of-Mouth." <em>Journal of Interactive Marketing</em>, 28(3). &mdash; Content Class ↔ eWOM 동기 매핑</li>
+      <li><span class="ref-author">Kahneman, D.</span> (2011). <em>Thinking, Fast and Slow</em>. &mdash; Peak-End Rule, 앵커링, 손실 회피, 가용성 휴리스틱</li>
+      <li><span class="ref-author">Petty, R. E. & Cacioppo, J. T.</span> (1986). <em>Elaboration Likelihood Model</em>. &mdash; Auth 균형 평가 가점 근거</li>
+      <li><span class="ref-author">Cialdini, R. B.</span> (2021). <em>Influence: The Psychology of Persuasion</em>. &mdash; Clout 사회적 증거, 희소성</li>
+      <li><span class="ref-author">Tajfel, H.</span> (1979). Social Identity Theory. &mdash; Clout 정체성 선언, Advocacy Decay 예외</li>
+      <li><span class="ref-author">Festinger, L.</span> (1957). <em>A Theory of Cognitive Dissonance</em>. &mdash; Auth 협찬 보정, Sincerity 역상승</li>
+      <li><span class="ref-author">Trope, Y. & Liberman, N.</span> (2010). Construal Level Theory. &mdash; Freshness Index 이론적 근거</li>
+      <li><span class="ref-author">Thaler, R. H.</span> (1999). Mental Accounting Matters. &mdash; EMV 전환 불가 원칙</li>
+      <li><span class="ref-author">Ajzen, I.</span> (1991). Theory of Planned Behavior. &mdash; BEI 가중치 설계 근거</li>
+      <li><span class="ref-author">Nisbett, R. E.</span> (2003). <em>The Geography of Thought</em>. &mdash; 한국 맥락 해석 (전체적 사고)</li>
+      <li><span class="ref-author">Spiegel Research Center</span> (2017). "How Online Reviews Influence Sales." &mdash; Sincerity→전환율 +270%</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    소비심리학 관점 분석 프레임 &mdash; RXR SNS Analysis &middot; 2026-04-19 &middot; 최원석<br>
+    <span style="font-size:0.75rem;">참조: <a href="34-summary.html" style="color:#667eea;">62개 이론 종합 써머리</a> &nbsp;|&nbsp; <a href="34-design-thinking-psychology-framework.md" style="color:#667eea;">디자인씽킹 프레임워크</a> &nbsp;|&nbsp; <a href="34-online-consumer-psychology.md" style="color:#667eea;">온라인 소비자 심리학</a></span>
+  </div>
+
+</div>
+</body>
+</html>

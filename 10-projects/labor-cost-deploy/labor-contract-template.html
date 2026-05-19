@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>기간제 근로계약서</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.css">
+  <style>
+    @import url('https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.css');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      font-size: 10pt;
+      line-height: 1.8;
+      color: #1a1a1a;
+      background-color: #f0f0f0;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 20px auto;
+      background: #ffffff;
+      padding: 20mm 22mm 20mm 25mm;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    }
+
+    /* 제목 영역 */
+    .doc-title {
+      text-align: center;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 2.5px solid #1a1a1a;
+    }
+
+    .doc-title h1 {
+      font-size: 20pt;
+      font-weight: 800;
+      letter-spacing: 6px;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+
+    .doc-subtitle {
+      font-size: 9pt;
+      color: #555;
+      letter-spacing: 1px;
+    }
+
+    /* 당사자 정보 */
+    .parties {
+      margin-bottom: 22px;
+      padding: 14px 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fafafa;
+    }
+
+    .parties-title {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #555;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .party-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 6px;
+      align-items: baseline;
+    }
+
+    .party-label {
+      font-weight: 700;
+      font-size: 10pt;
+      min-width: 80px;
+      color: #1a1a1a;
+    }
+
+    .party-desc {
+      font-size: 9pt;
+      color: #444;
+      flex: 1;
+    }
+
+    .blank {
+      display: inline-block;
+      border-bottom: 1.5px solid #1a1a1a;
+      min-width: 120px;
+      margin: 0 2px;
+    }
+
+    .blank-lg {
+      min-width: 180px;
+    }
+
+    .blank-sm {
+      min-width: 80px;
+    }
+
+    /* 전문 */
+    .preamble {
+      margin-bottom: 24px;
+      padding: 12px 14px;
+      background: #f7f7f7;
+      border-left: 3px solid #1a1a1a;
+      font-size: 9.5pt;
+      line-height: 1.9;
+    }
+
+    /* 조문 */
+    .article {
+      margin-bottom: 18px;
+    }
+
+    .article-title {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+      padding: 5px 10px;
+      background: #f2f2f2;
+      border-left: 3px solid #1a1a1a;
+    }
+
+    .article-body {
+      padding-left: 14px;
+    }
+
+    .clause {
+      margin-bottom: 6px;
+      padding-left: 0;
+      font-size: 10pt;
+    }
+
+    .clause-num {
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    /* 임금 표 */
+    .wage-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 12px 0;
+      font-size: 9.5pt;
+    }
+
+    .wage-table th {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 7px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .wage-table td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #ddd;
+      vertical-align: middle;
+    }
+
+    .wage-table tr:nth-child(even) td {
+      background: #f9f9f9;
+    }
+
+    .wage-table .amount-col {
+      text-align: right;
+      font-family: 'Pretendard', monospace;
+    }
+
+    .wage-table .total-row td {
+      font-weight: 700;
+      border-top: 2px solid #1a1a1a;
+      background: #f2f2f2;
+    }
+
+    .wage-note {
+      font-size: 8.5pt;
+      color: #c0392b;
+      font-weight: 600;
+      margin-top: 6px;
+      padding: 6px 10px;
+      background: #fff5f5;
+      border: 1px solid #f5c6c6;
+      border-radius: 3px;
+    }
+
+    /* 소목록 */
+    ul.sub-list {
+      margin: 6px 0 6px 16px;
+      padding: 0;
+    }
+
+    ul.sub-list li {
+      margin-bottom: 4px;
+      font-size: 9.5pt;
+      list-style: disc;
+    }
+
+    /* 참고 박스 */
+    .note-box {
+      margin: 8px 0;
+      padding: 8px 12px;
+      background: #fffbf0;
+      border: 1px solid #f0d080;
+      border-radius: 3px;
+      font-size: 9pt;
+      color: #7a5c00;
+    }
+
+    /* 서명란 */
+    .signature-section {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1.5px solid #ccc;
+    }
+
+    .signature-date {
+      text-align: center;
+      font-size: 11pt;
+      margin-bottom: 28px;
+      letter-spacing: 2px;
+    }
+
+    .signature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    .signer-box {
+      border: 1px solid #ccc;
+      padding: 14px 16px;
+      border-radius: 4px;
+    }
+
+    .signer-role {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    .signer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      font-size: 9.5pt;
+    }
+
+    .signer-row span:first-child {
+      color: #555;
+      min-width: 60px;
+    }
+
+    .sign-line {
+      border-bottom: 1px solid #aaa;
+      flex: 1;
+      margin-left: 8px;
+    }
+
+    .seal-area {
+      text-align: right;
+      font-size: 8.5pt;
+      color: #888;
+      margin-top: 8px;
+    }
+
+    /* 법적 안내 */
+    .legal-notice {
+      margin-top: 24px;
+      padding: 10px 14px;
+      background: #f8f8f8;
+      border: 1px dashed #bbb;
+      border-radius: 3px;
+      font-size: 8.5pt;
+      color: #666;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .legal-notice strong {
+      color: #c0392b;
+    }
+
+    /* 구분선 */
+    hr.section-divider {
+      border: none;
+      border-top: 1px dashed #ddd;
+      margin: 16px 0;
+    }
+
+    /* 페이지 번호 */
+    .page-footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 8pt;
+      color: #aaa;
+    }
+
+    /* ======= 인쇄 스타일 ======= */
+    @media print {
+      body {
+        background-color: #fff;
+        font-size: 9.5pt;
+      }
+
+      .page {
+        width: 100%;
+        margin: 0;
+        padding: 15mm 20mm 15mm 22mm;
+        box-shadow: none;
+      }
+
+      .article {
+        page-break-inside: avoid;
+      }
+
+      .signature-section {
+        page-break-inside: avoid;
+      }
+
+      .wage-table {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- 제목 -->
+  <div class="doc-title">
+    <h1>기간제 근로계약서</h1>
+    <div class="doc-subtitle">Fixed-Term Employment Contract</div>
+  </div>
+
+  <!-- 당사자 정보 -->
+  <div class="parties">
+    <div class="parties-title">계약 당사자</div>
+    <div class="party-row">
+      <span class="party-label">"갑" (사용자)</span>
+      <span class="party-desc">
+        회사명: <span class="blank blank-lg">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;
+        대표이사: <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      </span>
+    </div>
+    <div class="party-row">
+      <span class="party-label">"을" (근로자)</span>
+      <span class="party-desc">
+        성명: <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;
+        생년월일: <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;
+        주소: <span class="blank blank-lg">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- 전문 -->
+  <div class="preamble">
+    "갑"과 "을"은 근로기준법 및 기간제 및 단시간근로자 보호 등에 관한 법률(이하 "기간제법")을 준수하여 아래와 같이 근로계약을 체결한다.
+  </div>
+
+  <!-- 제1조 -->
+  <div class="article">
+    <div class="article-title">제1조 (계약기간 및 단계별 고용 구조)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        <strong>[3단계 고용 구조]</strong> 본 계약의 고용은 다음 3단계로 운영된다.
+        <table style="width:100%; border-collapse:collapse; margin:10px 0 6px; font-size:9.5pt;">
+          <tr style="background:#f5f5f5; font-weight:600;">
+            <td style="border:1px solid #ccc; padding:6px 10px; width:22%;">단계</td>
+            <td style="border:1px solid #ccc; padding:6px 10px; width:28%;">기간</td>
+            <td style="border:1px solid #ccc; padding:6px 10px;">설명</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ccc; padding:6px 10px; font-weight:600;">1단계: 인턴(수습)</td>
+            <td style="border:1px solid #ccc; padding:6px 10px;">입사일로부터 3개월</td>
+            <td style="border:1px solid #ccc; padding:6px 10px;">업무 적격성 평가 기간. 기본급의 90% 적용.</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ccc; padding:6px 10px; font-weight:600;">2단계: 기간제 계약</td>
+            <td style="border:1px solid #ccc; padding:6px 10px;">수습 종료일 익일~입사일로부터 1년</td>
+            <td style="border:1px solid #ccc; padding:6px 10px;">기간의 정함이 있는 근로계약. 제4조에서 정한 임금 100% 적용.</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ccc; padding:6px 10px; font-weight:600;">3단계: 정규직 전환</td>
+            <td style="border:1px solid #ccc; padding:6px 10px;">기간제 계약 만료 후</td>
+            <td style="border:1px solid #ccc; padding:6px 10px;">별도의 정규직 근로계약 체결. 기간의 정함이 없는 근로계약으로 전환.</td>
+          </tr>
+        </table>
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        <strong>[계약기간]</strong> 본 계약의 근로계약 기간은
+        <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>년&nbsp;
+        <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>월&nbsp;
+        <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>일부터&nbsp;
+        <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>년&nbsp;
+        <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>월&nbsp;
+        <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>일까지(1년)로 한다. 이 중 최초 3개월은 1단계 인턴(수습)기간에 해당한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        <strong>[자동 종료]</strong> 계약기간 만료 시 별도의 정규직 전환 계약이 체결되지 않는 한, 근로관계는 기간 만료와 동시에 자동으로 종료된다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">④</span>
+        <strong>[인턴(수습) 평가]</strong> 수습기간 중 업무 적격성 평가는 사전에 "을"에게 고지된 객관적이고 합리적인 기준에 따르며, 평가 결과를 서면으로 통보한다. 수습기간 만료 전 근로계약을 해지하는 경우에도 근로기준법이 정한 해고 제한 규정을 준수한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">⑤</span>
+        <strong>[정규직 전환]</strong> 1년 기간제 계약 만근 후, "갑"과 "을"이 상호 합의하는 경우 기간의 정함이 없는 정규직 근로계약을 별도로 체결한다. 정규직 전환 시 근로조건(임금, 직무 등)은 전환 계약서에서 정한다. 본 조항만으로 정규직 전환 의무가 발생하지 아니한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제2조 -->
+  <div class="article">
+    <div class="article-title">제2조 (근무장소 및 담당업무)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        근무장소: <span class="blank blank-lg">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> (단, 업무상 필요 시 "갑"의 지시에 따라 변경될 수 있다)
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        담당업무: <span class="blank blank-lg">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        "갑"은 경영상 필요에 따라 "을"의 담당 업무를 변경할 수 있으며, 이 경우 사전에 "을"과 협의한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제3조 -->
+  <div class="article">
+    <div class="article-title">제3조 (근로시간 및 연장근로)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        소정근로시간은 1일 8시간, 주 40시간으로 하며, 휴게시간은 근무 중 1시간(12:00~13:00)으로 한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        근무시간: <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>시&nbsp;
+        <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>분 ~&nbsp;
+        <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>시&nbsp;
+        <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>분 (근무일: 월요일 ~ 금요일)
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        연장근로는 근로기준법 제53조에 따라 주 12시간을 초과할 수 없으며, "을"의 동의 없이 강요할 수 없다. 법정 한도를 초과하는 연장근로 지시는 효력이 없다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">④</span>
+        포괄임금 약정의 적용 범위는 제4조 제②항에서 정한 고정연장근로수당에 해당하는 시간 이내로 한정한다. 약정 시간을 초과하는 연장·야간·휴일 근로에 대해서는 별도 수당을 지급한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제4조 -->
+  <div class="article">
+    <div class="article-title">제4조 (임금 및 연봉 조정)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        월 임금의 구성항목 및 금액은 다음과 같다.
+      </div>
+
+      <table class="wage-table">
+        <thead>
+          <tr>
+            <th style="width:35%">구성 항목</th>
+            <th style="width:30%">금액</th>
+            <th style="width:35%">비고</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>기본급</td>
+            <td class="amount-col">금 <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> 원</td>
+            <td>과세</td>
+          </tr>
+          <tr>
+            <td>고정연장근로수당</td>
+            <td class="amount-col">금 <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> 원</td>
+            <td>월 <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>시간분, 통상시급의 150%</td>
+          </tr>
+          <tr>
+            <td>식대</td>
+            <td class="amount-col">금 200,000원</td>
+            <td>비과세</td>
+          </tr>
+          <tr class="total-row">
+            <td><strong>월 합계</strong></td>
+            <td class="amount-col">금 <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> 원</td>
+            <td>세전 기준</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="wage-note">
+        ※ 위 각 항목(기본급, 고정연장근로수당)의 금액은 반드시 기재하여야 하며, 미기재 시 해당 조항은 효력이 없다.
+      </div>
+
+      <div class="clause" style="margin-top:12px">
+        <span class="clause-num">②</span>
+        임금은 매월 <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>일에 "을"이 지정한 계좌로 지급한다. 지급일이 공휴일인 경우 직전 영업일에 지급한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        연봉 조정은 매년 1회 이상 인사평가 결과를 반영하여 협의하에 결정하며, 조정 내용은 서면으로 확인한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">④</span>
+        "을"은 본인의 연봉 금액을 타인에게 누설하여서는 안 되며, 이를 위반하여 사내 위화감을 조성할 경우 징계 사유가 된다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제5조 -->
+  <div class="article">
+    <div class="article-title">제5조 (휴일 및 휴가)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        주휴일은 매주 일요일로 하며, 법정 공휴일을 유급으로 부여한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        연차유급휴가는 근로기준법 제60조에 따라 부여한다.
+        <ul class="sub-list">
+          <li>계속근로기간 1년 미만: 매월 1일 개근 시 1일 발생 (최대 11일)</li>
+          <li>계속근로기간 1년 이상: 15일 부여, 2년마다 1일 가산 (최대 25일)</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        경조 휴가, 출산전후휴가, 육아휴직 등은 관련 법령 및 취업규칙에 따른다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제6조 -->
+  <div class="article">
+    <div class="article-title">제6조 (지출 및 금전적 책임)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        업무상 발생하는 비용은 "갑"이 정한 지출 기준 및 절차에 따라 청구할 수 있다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        "을"이 고의 또는 중과실로 "갑"에게 손해를 입힌 경우, 제10조에 따른다. 단, 단순 업무상 과실에 대한 손해배상 책임은 지지 않는다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        회사 법인카드 및 업무용 자산은 업무 목적으로만 사용하며, 사적 사용 시 관련 비용을 전액 변상한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제7조 -->
+  <div class="article">
+    <div class="article-title">제7조 (지적재산권 및 보안)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        "을"이 근로기간 중 업무와 관련하여 창작·개발한 모든 결과물(아이디어, 디자인, 코드, 기획서, 영업 정보 등)의 지적재산권은 "갑"에게 귀속된다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        "을"은 재직 중 및 퇴직 후 <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>년간 "갑"의 영업 비밀, 고객 정보, 미공개 사업 계획 등 기밀 정보를 제3자에게 누설하거나 부당하게 사용하여서는 안 된다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        퇴직 시 업무 관련 모든 자료(디지털·물리적)를 반환 또는 삭제하여야 한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제8조 -->
+  <div class="article">
+    <div class="article-title">제8조 (복무 규율)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        "을"은 재직 기간 중 "갑"의 취업규칙 및 사내 규정을 준수하여야 한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        "을"은 직무 이해충돌 방지를 위해 경쟁사 겸업, 부당한 이해관계 등을 사전에 "갑"에게 고지하여야 한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        "을"은 직장 내 괴롭힘, 성희롱, 차별 행위를 하여서는 안 된다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제9조 -->
+  <div class="article">
+    <div class="article-title">제9조 (인사평가 및 징계)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        "갑"은 연 1회 이상 "을"에 대한 인사평가를 실시하며, 평가 결과를 서면으로 통보한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        징계 사유 발생 시 취업규칙에 정한 절차에 따르며, "을"에게 소명 기회를 부여한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        징계의 종류 및 기준은 취업규칙에 따르되, 징계 사유와 처분 간 형평성을 유지하여야 한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제10조 -->
+  <div class="article">
+    <div class="article-title">제10조 (손해배상)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        "을"이 고의 또는 중과실로 "갑"에게 재산상 손해를 입힌 경우, 해당 손해액 범위 내에서 배상 책임을 진다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        손해배상 청구 시 "갑"은 손해의 발생 사실 및 인과관계를 입증하여야 한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        임금을 담보로 손해배상을 공제하는 행위는 근로기준법 제43조의2 위반에 해당할 수 있으며, 이 계약은 해당 규정을 준수한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제11조 -->
+  <div class="article">
+    <div class="article-title">제11조 (퇴직 및 인수인계)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        "을"의 사직 의사표시는 민법 제660조에 따라 통고 후 1개월이 경과하면 효력이 발생한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        "을"은 원활한 업무 인수인계를 위해 퇴직일 30일 전까지 사직 의사를 서면으로 통보하도록 노력한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        "을"은 퇴직 전까지 담당 업무의 인수인계를 성실히 이행하여야 한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">④</span>
+        퇴직금은 근로자퇴직급여보장법에 따라 계속근로기간 1년 이상인 "을"에게 지급한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">⑤</span>
+        "갑"이 계약 만료 외의 사유로 계약을 해지하는 경우 근로기준법이 정한 해고 절차 및 예고 규정을 준수한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 제12조 -->
+  <div class="article">
+    <div class="article-title">제12조 (기타)</div>
+    <div class="article-body">
+      <div class="clause">
+        <span class="clause-num">①</span>
+        본 계약에서 정하지 않은 사항은 근로기준법, 기간제법, 취업규칙 및 관련 노동 법령에 따른다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">②</span>
+        본 계약과 취업규칙이 상충하는 경우, 근로자에게 유리한 규정을 우선 적용한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">③</span>
+        본 계약과 관련한 분쟁은 "갑"의 주소지 관할 법원을 제1심 법원으로 한다.
+      </div>
+      <div class="clause">
+        <span class="clause-num">④</span>
+        본 계약서는 2부 작성하여 "갑"과 "을"이 각 1부씩 보관한다.
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- 근로기준법 제17조 확인란 -->
+  <div class="note-box">
+    <strong>근로기준법 제17조 필수 기재사항 확인</strong><br>
+    본 계약서는 ① 임금의 구성항목·계산방법·지급방법 (제4조) ② 소정근로시간 (제3조) ③ 휴일 (제5조) ④ 연차유급휴가 (제5조) ⑤ 근무장소 및 업무내용 (제2조) ⑥ 취업규칙 관련 사항 (제12조)을 포함합니다.
+  </div>
+
+  <!-- 서명란 -->
+  <div class="signature-section">
+    <div class="signature-date">
+      <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>년&nbsp;
+      <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>월&nbsp;
+      <span class="blank blank-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>일
+    </div>
+
+    <div class="signature-grid">
+      <div class="signer-box">
+        <div class="signer-role">"갑" — 사용자</div>
+        <div class="signer-row">
+          <span>회사명</span>
+          <span class="sign-line">&nbsp;</span>
+        </div>
+        <div class="signer-row">
+          <span>대표이사</span>
+          <span class="sign-line">&nbsp;</span>
+        </div>
+        <div class="signer-row">
+          <span>주소</span>
+          <span class="sign-line">&nbsp;</span>
+        </div>
+        <div class="signer-row">
+          <span>사업자번호</span>
+          <span class="sign-line">&nbsp;</span>
+        </div>
+        <div class="seal-area">(서명 또는 날인)</div>
+      </div>
+
+      <div class="signer-box">
+        <div class="signer-role">"을" — 근로자</div>
+        <div class="signer-row">
+          <span>성명</span>
+          <span class="sign-line">&nbsp;</span>
+        </div>
+        <div class="signer-row">
+          <span>생년월일</span>
+          <span class="sign-line">&nbsp;</span>
+        </div>
+        <div class="signer-row">
+          <span>주소</span>
+          <span class="sign-line">&nbsp;</span>
+        </div>
+        <div class="signer-row">
+          <span>연락처</span>
+          <span class="sign-line">&nbsp;</span>
+        </div>
+        <div class="seal-area">(서명)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 법적 안내 -->
+  <div class="legal-notice">
+    <strong>주의:</strong> 본 계약서는 참고용 템플릿이며, 실제 체결 시 노무사 또는 법률 전문가의 검토를 권장합니다.<br>
+    근로계약서 미작성 또는 미교부 시 근로기준법 제17조에 따라 500만원 이하의 벌금이 부과될 수 있습니다.
+  </div>
+
+  <div class="page-footer">기간제 근로계약서 템플릿 v1.0</div>
+
+</div>
+
+</body>
+</html>

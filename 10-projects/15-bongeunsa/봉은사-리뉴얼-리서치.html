@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봉은사 리뉴얼 계획 리서치</title>
+<style>
+  :root {
+    --primary: #5C4033;
+    --accent: #C9A96E;
+    --bg: #FAF8F5;
+    --card-bg: #FFFFFF;
+    --text: #2D2D2D;
+    --text-light: #6B6B6B;
+    --border: #E8E2D9;
+    --highlight: #FFF8E7;
+    --green: #2D6A4F;
+    --red: #8B1A1A;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; font-size: 15px; }
+  .hero { background: linear-gradient(135deg, var(--primary) 0%, #3A2520 100%); color: white; padding: 80px 40px; text-align: center; }
+  .hero h1 { font-size: 2.8em; font-weight: 800; letter-spacing: -1px; }
+  .hero .subtitle { font-size: 1.2em; opacity: 0.85; margin-top: 12px; }
+  .hero .meta { margin-top: 24px; font-size: 0.85em; opacity: 0.6; }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  .toc { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin: -40px auto 40px; position: relative; z-index: 10; max-width: 960px; }
+  .toc h2 { font-size: 1.1em; color: var(--primary); margin-bottom: 16px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 6px; }
+  .toc a { color: var(--primary); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  section { margin-bottom: 48px; }
+  section h2 { font-size: 1.6em; font-weight: 800; color: var(--primary); border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 24px; }
+  section h3 { font-size: 1.2em; font-weight: 700; margin: 24px 0 12px; }
+  section h4 { font-size: 1em; font-weight: 600; color: var(--text-light); margin: 16px 0 8px; }
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .card.highlight { border-left: 4px solid var(--accent); background: var(--highlight); }
+  .quote { background: var(--highlight); border-left: 4px solid var(--accent); padding: 20px 24px; margin: 16px 0; border-radius: 0 8px 8px 0; font-style: italic; }
+  .quote .speaker { display: block; font-style: normal; font-weight: 700; color: var(--primary); margin-top: 8px; font-size: 0.9em; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th { background: var(--primary); color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  tr:nth-child(even) { background: #FAFAFA; }
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.78em; margin-right: 4px; font-weight: 600; color: white; }
+  .tag.done { background: var(--green); }
+  .tag.progress { background: #E67E22; }
+  .tag.planned { background: #2980B9; }
+  .tag.unknown { background: #95A5A6; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+  .insight { background: linear-gradient(135deg, #F0E6D3 0%, #FFF8E7 100%); border: 1px solid var(--accent); border-radius: 12px; padding: 24px; margin: 20px 0; }
+  .insight h4 { color: var(--primary); margin-top: 0; }
+  .diagram { background: #1a1a2e; color: #e0e0e0; padding: 24px; border-radius: 12px; font-family: 'Menlo', monospace; font-size: 0.85em; line-height: 1.6; overflow-x: auto; white-space: pre; margin: 16px 0; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+  .timeline-item { position: relative; margin-bottom: 24px; }
+  .timeline-item::before { content: ''; position: absolute; left: -26px; top: 8px; width: 12px; height: 12px; border-radius: 50%; border: 3px solid var(--accent); background: white; }
+  .timeline-item.done::before { background: var(--green); border-color: var(--green); }
+  .timeline-item.progress::before { background: #E67E22; border-color: #E67E22; }
+  .timeline-item h4 { margin: 0 0 4px; }
+  .sources { background: #F5F3EF; border-radius: 12px; padding: 24px; margin-top: 48px; }
+  .sources h2 { border-bottom-color: #CCC; }
+  .sources a { color: var(--primary); }
+  .sources li { margin-bottom: 6px; font-size: 0.9em; }
+  .verdict { background: var(--primary); color: white; border-radius: 12px; padding: 32px; margin: 24px 0; }
+  .verdict h3 { color: var(--accent); margin-bottom: 16px; }
+  .verdict ul { padding-left: 20px; }
+  .verdict li { margin-bottom: 8px; }
+
+  /* PDF Controls */
+  .pdf-controls {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    gap: 8px;
+    z-index: 9999;
+  }
+  .pdf-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pdf-btn:hover { background: #3A2520; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+  .pdf-btn svg { width: 16px; height: 16px; fill: currentColor; }
+  .pdf-btn.landscape { background: var(--accent); color: var(--text); }
+  .pdf-btn.landscape:hover { background: #b8954e; }
+
+  @media print {
+    .pdf-controls { display: none !important; }
+    .hero { padding: 40px 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .toc { margin-top: 0; break-inside: avoid; }
+    section { break-inside: avoid; }
+    .card { break-inside: avoid; }
+    .verdict { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .diagram { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 10px; }
+    body { font-size: 12px; background: white; }
+    th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .tag { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pdf-controls">
+  <button class="pdf-btn" onclick="printPDF('portrait')">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+    PDF 세로
+  </button>
+  <button class="pdf-btn landscape" onclick="printPDF('landscape')">
+    <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3V6zm2 2v8h14V8H5z"/></svg>
+    PDF 가로
+  </button>
+</div>
+
+<style id="print-orientation"></style>
+<script>
+function printPDF(orientation) {
+  var styleEl = document.getElementById('print-orientation');
+  if (orientation === 'landscape') {
+    styleEl.textContent = '@page { size: A4 landscape; margin: 15mm; } @media print { .container { max-width: 100%; } .grid-2 { grid-template-columns: 1fr 1fr; } .diagram { font-size: 11px; } }';
+  } else {
+    styleEl.textContent = '@page { size: A4 portrait; margin: 20mm; }';
+  }
+  setTimeout(function() { window.print(); }, 100);
+}
+</script>
+
+<div class="hero">
+  <h1>봉은사 리뉴얼 계획 리서치</h1>
+  <div class="subtitle">중창불사 마스터플랜 분석 — 복합문화공간 관점에서의 리뷰</div>
+  <div class="meta">리서치 일자: 2026-04-07 | 프로젝트: 봉은사 구 웨딩홀(문화회관) 리뉴얼</div>
+</div>
+
+<div class="container">
+<div class="toc">
+  <h2>목차</h2>
+  <ol>
+    <li><a href="#overview">봉은사 기본 프로필</a></li>
+    <li><a href="#masterplan">중창불사 마스터플랜 (3단계)</a></li>
+    <li><a href="#leadership">주지 원명 스님의 비전과 인터뷰</a></li>
+    <li><a href="#content">현재 운영 중인 콘텐츠·서비스</a></li>
+    <li><a href="#weddingall">문화회관(구 웨딩홀) — 핵심 대상 건물</a></li>
+    <li><a href="#strength">잘한 점 — 복합문화공간 관점</a></li>
+    <li><a href="#weakness">결핍 — 복합문화공간 관점</a></li>
+    <li><a href="#comparison">명동1898 vs 봉은사 비교</a></li>
+    <li><a href="#verdict">기획자 관점 종합 의견</a></li>
+  </ol>
+</div>
+
+<!-- ==================== 1. OVERVIEW ==================== -->
+<section id="overview">
+  <h2>1. 봉은사 기본 프로필</h2>
+  <table>
+    <tr><th style="width:25%">항목</th><th>내용</th></tr>
+    <tr><td>정식명칭</td><td><strong>수도산 봉은사</strong> (修道山 奉恩寺)</td></tr>
+    <tr><td>위치</td><td>서울특별시 강남구 봉은사로 531 (삼성동 73)</td></tr>
+    <tr><td>소속</td><td>대한불교조계종 총본산 조계사 소속</td></tr>
+    <tr><td>현 주지</td><td><strong>원명 스님</strong> (2015년 취임, 5회 연임 / 2023 기준)</td></tr>
+    <tr><td>설립</td><td>794년(원성왕 10년) 견성사로 창건 → 1499년 봉은사 개칭</td></tr>
+    <tr><td>규모</td><td>대웅전, 선불당, 영산전, 판전 등 다수 당우 + 23m 미륵대불</td></tr>
+    <tr><td>문화재</td><td>보물 21점 포함 다수 지정문화재</td></tr>
+    <tr><td>방문객</td><td>연간 <strong>약 20만 신도</strong> + 일 평균 <strong>300명+ 외국인 관광객</strong></td></tr>
+    <tr><td>교통</td><td>9호선 봉은사역 (2015 개통), 코엑스 도보 5분</td></tr>
+    <tr><td>주변 환경</td><td>코엑스, 현대백화점 무역센터점, 삼성동 업무지구, 선릉·정릉</td></tr>
+  </table>
+</section>
+
+<!-- ==================== 2. MASTERPLAN ==================== -->
+<section id="masterplan">
+  <h2>2. 중창불사 마스터플랜 (3단계)</h2>
+
+  <h3>2-1. 추진 배경</h3>
+  <div class="card">
+    <ul>
+      <li><strong>1971년 도시공원 지정</strong> → 44년간 건축 규제 (신축/증축 불가)</li>
+      <li><strong>2013년 도시공원조례 개정</strong> → 역사공원으로 전환 가능해짐</li>
+      <li><strong>2015년 7월</strong> 서울시 도시공원위원회 심의 통과</li>
+      <li>주지 원명 스님 부임 후 1년 8개월간 문화재위원 설득</li>
+    </ul>
+    <div class="quote">
+      "경내 설치된 가건물을 볼 때마다 부끄럽고 죄를 짓는 기분이었다. 40여 년간 이루지 못한 숙원사업이다."
+      <span class="speaker">— 원학 스님 (전 주지, 중창불사 최초 발의자)</span>
+    </div>
+  </div>
+
+  <h3>2-2. 3단계 타임라인</h3>
+  <div class="timeline">
+    <div class="timeline-item done">
+      <h4><span class="tag done">완료</span> 1단계 (2015~2016) — 예산 50억</h4>
+      <ul>
+        <li>전통문화체험관 1, 2관 건립 (총 2,252㎡ / 681평)</li>
+        <li>지장전 옆 가건물 7개동 철거</li>
+        <li>지하 주차장 공사 착수</li>
+      </ul>
+    </div>
+    <div class="timeline-item done">
+      <h4><span class="tag done">완료</span> 2단계 (2017~2020)</h4>
+      <ul>
+        <li>영빈관, 기도회랑, 운하당·매화당·서래각 건립 (2019 완공)</li>
+        <li>신종루, 화장실 신축</li>
+        <li>대미륵불 봉안 프로젝트 완료 (2019)</li>
+        <li><strong>문화회관(결혼식장) 반환</strong> → 신도 기도공간 전환 계획</li>
+      </ul>
+    </div>
+    <div class="timeline-item progress">
+      <h4><span class="tag progress">진행중 추정</span> 3단계 (2021~2025)</h4>
+      <ul>
+        <li><strong>불교종합관 건립</strong></li>
+        <li>1920년 사진 기준 전통사찰 복원</li>
+        <li>지상주차장 → 지하화 → 지상 공원화</li>
+        <li><strong>현대사찰 완공</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="insight">
+    <h4>핵심 발견: 문화회관(구 웨딩홀)의 위치</h4>
+    <p>마스터플랜 <strong>2단계</strong>에서 "문화회관(결혼식장) 반환"이 명시되어 있습니다. 원래 계획은 <strong>"신도 기도공간으로 전환"</strong>이었으나, 이것이 우리 프로젝트의 대상 건물입니다.</p>
+    <p style="margin-top:8px;">즉, 봉은사 공식 계획에는 이 건물을 <strong>"기도공간"</strong>으로 활용하려 했으나, 현재 <strong>"복합문화공간"</strong>으로의 전환을 검토 중인 것으로 보입니다. 이는 원래 계획보다 <strong>더 야심찬 방향</strong>이며, 불교 브랜딩 + 수익화까지 고려한다는 점에서 마스터플랜의 업그레이드 버전이라 할 수 있습니다.</p>
+  </div>
+</section>
+
+<!-- ==================== 3. LEADERSHIP ==================== -->
+<section id="leadership">
+  <h2>3. 주지 원명 스님의 비전과 인터뷰</h2>
+
+  <div class="card highlight">
+    <h4>핵심 비전: "세상과 소통하는 수행 도량"</h4>
+    <div class="quote">
+      "수행자는 이 땅 어디에 서든 수행자로 남아야 한다."
+      <span class="speaker">— 원명 스님 (봉은사 주지)</span>
+    </div>
+    <p><strong>취임 후 첫 번째 결정:</strong> 산문(사찰 정문)을 <strong>밤 12시까지</strong> 개방하고 불을 밝혀 "도심 속 쉼터"로 전환.</p>
+  </div>
+
+  <h3>3-1. 원명 스님의 4대 방향</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>1. 수행 중심 유지</h4>
+      <p>"절의 중심축은 반드시 수행과 기도여야 한다. 목어 소리가 약해지면 전법력도 약해진다."</p>
+    </div>
+    <div class="card">
+      <h4>2. 공간 부족 해결</h4>
+      <p>평균 법회 참석 2,500명 vs 수용 가능 1,000명 → <strong>약 1,500명이 밖에서 대기</strong>하는 현실 해소</p>
+    </div>
+    <div class="card">
+      <h4>3. 문화유산 국가 지정</h4>
+      <p>수륙재 → 국가무형문화재 제125호 (2013)<br>생전예수재 → 서울시무형문화재 (2019)</p>
+    </div>
+    <div class="card">
+      <h4>4. 불교 교육 확대</h4>
+      <p>불교전문대학원 설립 (불교학과 + 선학과 신설)<br>기초학당·불교대학·불교아카데미 운영</p>
+    </div>
+  </div>
+
+  <h3>3-2. 사찰음식 대중화 선언</h3>
+  <div class="card">
+    <div class="quote">
+      "사찰음식은 불교 전통문화를 넘어 한국의 대표적인 문화상품이다."
+      <span class="speaker">— 원명 스님</span>
+    </div>
+    <ul>
+      <li>2021년 <strong>봉은 사찰음식문화연구소</strong> 개소</li>
+      <li>소장: 우관 스님 (사찰음식 전문가)</li>
+      <li>가정간편식·밀키트 개발 → CJ오쇼핑 진출 계획</li>
+      <li>할랄 인증 확대 → 글로벌 수출 목표</li>
+    </ul>
+    <div class="quote">
+      "K푸드로서 새로운 문화콘텐츠가 되고 있다. 보다 많은 곳에서 사찰음식을 제공해 누구나 쉽게 맛보고 불교 가르침을 접할 수 있도록 하겠다."
+      <span class="speaker">— 우관 스님 (사찰음식문화연구소 소장)</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 4. CONTENT ==================== -->
+<section id="content">
+  <h2>4. 현재 운영 중인 콘텐츠·서비스</h2>
+
+  <h3>4-1. 프로그램 현황</h3>
+  <table>
+    <tr><th>카테고리</th><th>프로그램</th><th>상태</th><th>특징</th></tr>
+    <tr><td>템플스테이</td><td>당일형 / 1박2일 / 참선정진 2박3일</td><td><span class="tag done">운영중</span></td><td>일 평균 50~120명 외국인 참여</td></tr>
+    <tr><td>참선</td><td>상월선원 참선 프로그램</td><td><span class="tag done">운영중</span></td><td>금~일 2박3일, 하루 한 끼</td></tr>
+    <tr><td>사찰음식</td><td>사찰음식 만들기 체험</td><td><span class="tag done">운영중</span></td><td>전통문화체험관에서 진행</td></tr>
+    <tr><td>다도</td><td>명상 차담 체험</td><td><span class="tag done">운영중</span></td><td>전통차와 명상 결합</td></tr>
+    <tr><td>연등 만들기</td><td>연꽃등 제작 체험</td><td><span class="tag done">운영중</span></td><td>관광객 인기 프로그램</td></tr>
+    <tr><td>인경</td><td>목판 인경 체험</td><td><span class="tag done">운영중</span></td><td>판전 보유 경판 3,479판 활용</td></tr>
+    <tr><td>불교대학</td><td>기초학당 / 불교대학 / 아카데미</td><td><span class="tag done">운영중</span></td><td>지역주민·신도 대상 교양강좌</td></tr>
+    <tr><td>생전예수재</td><td>전통의례 연례 설행</td><td><span class="tag done">운영중</span></td><td>서울시무형문화재</td></tr>
+    <tr><td>사찰음식 연구</td><td>봉은 사찰음식문화연구소</td><td><span class="tag done">운영중</span></td><td>밀키트·간편식 개발, 글로벌 확장</td></tr>
+    <tr><td>사회복지</td><td>사회복지법인 봉은</td><td><span class="tag done">운영중</span></td><td>장학·노인복지·의료비·어린이집</td></tr>
+  </table>
+
+  <h3>4-2. 콘텐츠 기획 수준 평가</h3>
+  <div class="card">
+    <table>
+      <tr><th>항목</th><th>평가</th><th>근거</th></tr>
+      <tr><td>체험 프로그램</td><td><strong>전통 중심, 체계적</strong></td><td>템플스테이 전국 Top 수준. 외국인 참여 활발</td></tr>
+      <tr><td>F&B 전략</td><td><strong>연구소까지 설립, 야심적</strong></td><td>밀키트·홈쇼핑·할랄·수출까지 구상. 실행은 미확인</td></tr>
+      <tr><td>교육 프로그램</td><td><strong>탄탄</strong></td><td>대학원까지 보유. 학당-대학-아카데미 3단계</td></tr>
+      <tr><td>문화유산 활용</td><td><strong>적극적</strong></td><td>수륙재·생전예수재 국가지정 추진 성공</td></tr>
+      <tr><td>디지털·브랜딩</td><td style="color:var(--red);"><strong>약함</strong></td><td>공식 웹사이트 올드한 UI. SNS 전략 부재</td></tr>
+      <tr><td>상업화·수익화</td><td style="color:var(--red);"><strong>거의 없음</strong></td><td>기념품숍, F&B 매장, 에디터리얼 커머스 없음</td></tr>
+      <tr><td>공간 브랜딩</td><td style="color:var(--red);"><strong>미시작</strong></td><td>"1898" 같은 공간 브랜드 부재. 시설 명칭도 기능적</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ==================== 5. WEDDING HALL ==================== -->
+<section id="weddingall">
+  <h2>5. 문화회관(구 웨딩홀) — 핵심 대상 건물</h2>
+
+  <div class="card">
+    <table>
+      <tr><th style="width:25%">항목</th><th>내용</th></tr>
+      <tr><td>현재 명칭</td><td>봉은사 문화회관 (구 결혼식장)</td></tr>
+      <tr><td>규모</td><td>각 층 약 300평 이상 × 5개 층 = <strong>약 1,500평+</strong></td></tr>
+      <tr><td>현재 상태</td><td>미사용 (빈 건물)</td></tr>
+      <tr><td>소유</td><td>봉은사</td></tr>
+      <tr><td>마스터플랜상 위치</td><td>2단계 — "문화회관(결혼식장) 반환 → 신도 기도공간 입주"</td></tr>
+      <tr><td>검토 중인 방향</td><td><strong>불교 복합문화공간으로 리모델링</strong></td></tr>
+    </table>
+  </div>
+
+  <h3>5-1. 건물의 전략적 가치</h3>
+  <div class="card highlight">
+    <ul>
+      <li><strong>규모:</strong> 1,500평 = 명동1898의 약 3~4배. 층별로 다른 컨셉 배치 가능</li>
+      <li><strong>구조:</strong> 웨딩홀 특성상 대형 홀 + 높은 천고 + 파티션 유연성 보유 추정</li>
+      <li><strong>입지:</strong> 봉은사역 + 코엑스 도보권. 강남 핵심 상권 인접</li>
+      <li><strong>부지비용:</strong> 봉은사 소유 → 0원 (명동1898과 동일 구조)</li>
+      <li><strong>독점성:</strong> <strong>강남 유일의 불교문화시설</strong>이 될 수 있는 위치</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 6. STRENGTHS ==================== -->
+<section id="strength">
+  <h2>6. 잘한 점 — 복합문화공간 관점</h2>
+
+  <div class="card" style="border-left: 4px solid var(--green);">
+    <h4>1. 콘텐츠 인프라가 이미 탄탄</h4>
+    <p>템플스테이, 사찰음식, 참선, 다도, 인경, 불교대학 — <strong>다른 곳에서는 10년 걸릴 콘텐츠 라인업</strong>이 이미 검증되어 있음. 이것을 복합문화공간에 "이식"하면 되는 구조.</p>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--green);">
+    <h4>2. 사찰음식 → K-Food 브랜딩 선제 투자</h4>
+    <p>연구소 설립, 밀키트 개발, 글로벌 수출 구상까지 — <strong>F&B를 단순 체험이 아닌 "상품"으로 발전시키려는 의지</strong>가 명확함. 복합문화공간의 시그니처 F&B로 즉시 활용 가능.</p>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--green);">
+    <h4>3. 외국인 유입 이미 검증</h4>
+    <p>일일 300명+ 외국인 방문 (템플스테이 50~120명). <strong>코엑스 인접이라는 입지</strong>와 결합하면 자연적 관광 유입 동선이 형성되어 있음.</p>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--green);">
+    <h4>4. 주지 스님의 개방적 리더십</h4>
+    <p>산문 자정 개방, 불교대학원 설립, 사찰음식 상품화 — <strong>보수적인 사찰 문화에서 "세상과 소통"을 실행에 옮긴 리더</strong>. 복합문화공간 추진에 필요한 리더십 기반이 있음.</p>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--green);">
+    <h4>5. 문화유산의 국가 지정 추진력</h4>
+    <p>수륙재·생전예수재를 국가무형문화재/서울시무형문화재로 끌어올린 실적 → <strong>"봉은사 = 살아있는 무형문화재의 보고"</strong>라는 스토리텔링 자산.</p>
+  </div>
+</section>
+
+<!-- ==================== 7. WEAKNESSES ==================== -->
+<section id="weakness">
+  <h2>7. 결핍 — 복합문화공간 관점</h2>
+
+  <div class="card" style="border-left: 4px solid var(--red);">
+    <h4>1. 공간 브랜딩 전무</h4>
+    <p>명동1898은 "1898"이라는 숫자 하나로 장소 역사를 압축. 봉은사에는 이런 <strong>"사찰을 넘어서는 공간 브랜드"</strong>가 없음. 시설 명칭이 "전통문화체험관 1관, 2관"처럼 기능적임.</p>
+    <p style="color: var(--red); font-weight: 600; margin-top: 8px;">→ 필요: 복합문화공간의 고유 브랜드 네이밍 + VI(Visual Identity) 설계</p>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--red);">
+    <h4>2. 수익화 모델 부재</h4>
+    <p>현재 수익원은 사실상 <strong>불전함 + 템플스테이 참가비</strong>뿐. 기념품숍, 에디터리얼 커머스, F&B 매장, 임대 수익 등 <strong>상업적 수익 구조가 거의 설계되어 있지 않음</strong>.</p>
+    <p style="color: var(--red); font-weight: 600; margin-top: 8px;">→ 필요: 명동1898의 임대+직영+주차 모델을 참고하되, 더 적극적 수익화 설계</p>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--red);">
+    <h4>3. 디지털 마케팅 / SNS 전략 부재</h4>
+    <p>공식 웹사이트가 2000년대 UI 수준. 인스타그램·유튜브 등 <strong>MZ세대 접점이 거의 없음</strong>. 코엑스 관광객이 봉은사까지 들어오는 이유가 "우연히 보여서"에 가까움.</p>
+    <p style="color: var(--red); font-weight: 600; margin-top: 8px;">→ 필요: 인스타그래머블 공간 설계 + 디지털 채널 전략</p>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--red);">
+    <h4>4. MZ세대 / 비신자 접점 약함</h4>
+    <p>템플스테이는 "의도적으로 찾아오는 사람"만 경험. <strong>카페·서점·갤러리 같은 "가벼운 접점"</strong>이 없어서 비신자가 우연히 들르고 불교 문화에 자연스럽게 노출되는 경로가 없음.</p>
+    <p style="color: var(--red); font-weight: 600; margin-top: 8px;">→ 필요: Low-barrier 진입점 (카페, 서점, 명상 라운지 등) 설계</p>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--red);">
+    <h4>5. 서비스 기획 / UX 설계 부재</h4>
+    <p>프로그램은 있지만 <strong>"고객 여정(Customer Journey)"이 설계되어 있지 않음</strong>. 방문객이 어떤 순서로 어떤 경험을 하고, 무엇을 사고, 어떤 기억을 안고 가는지에 대한 서비스 디자인이 없음.</p>
+    <p style="color: var(--red); font-weight: 600; margin-top: 8px;">→ 필요: 서비스 블루프린트 + 고객 여정 맵 설계</p>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--red);">
+    <h4>6. 사찰음식 상품화 실행 속도</h4>
+    <p>2021년 연구소 개소했으나, 밀키트·홈쇼핑·해외수출 등 <strong>구체적 상용화 성과가 아직 공개되지 않음</strong>. 구상은 좋으나 실행이 따라오고 있는지 확인 필요.</p>
+    <p style="color: var(--red); font-weight: 600; margin-top: 8px;">→ 필요: 사찰음식 F&B를 복합문화공간의 앵커 테넌트로 구체화</p>
+  </div>
+</section>
+
+<!-- ==================== 8. COMPARISON ==================== -->
+<section id="comparison">
+  <h2>8. 명동1898 vs 봉은사 비교</h2>
+  <table>
+    <tr><th>항목</th><th>명동1898 (가톨릭)</th><th>봉은사 (불교)</th></tr>
+    <tr><td>종교</td><td>가톨릭</td><td><strong>불교</strong></td></tr>
+    <tr><td>공간 규모</td><td>~400평 (2개층)</td><td><strong>~1,500평 (5개층)</strong></td></tr>
+    <tr><td>입지 특성</td><td>명동 관광지 한복판</td><td><strong>코엑스·강남 업무지구 인접</strong></td></tr>
+    <tr><td>방문객</td><td>관광객 + 시민</td><td><strong>신도 20만 + 외국인 300+/일</strong></td></tr>
+    <tr><td>운영 철학</td><td>사회적 가치 우선</td><td>수행 중심 (브랜딩으로 전환 중)</td></tr>
+    <tr><td>브랜딩</td><td>"1898" 숫자 브랜드 ★</td><td><strong>공간 브랜드 없음</strong></td></tr>
+    <tr><td>F&B</td><td>공정무역 카페, 자선 빵집</td><td>사찰음식 연구소 있으나 <strong>매장 없음</strong></td></tr>
+    <tr><td>리테일</td><td>1898+ 기념품 100종</td><td><strong>기념품숍 없음</strong></td></tr>
+    <tr><td>문화 콘텐츠</td><td>갤러리·서점·공방·공연</td><td>템플스테이·참선·사찰음식 <strong>(전통 중심)</strong></td></tr>
+    <tr><td>디지털</td><td>약함</td><td><strong>더 약함</strong></td></tr>
+    <tr><td>수익화</td><td>임대+기념품+주차</td><td><strong>구조 없음</strong></td></tr>
+    <tr><td>부지비용</td><td>0원 (교구 소유)</td><td><strong>0원 (봉은사 소유)</strong></td></tr>
+  </table>
+
+  <div class="insight">
+    <h4>핵심 차이</h4>
+    <p>명동1898은 <strong>"만들어진 공간에 콘텐츠를 채운 것"</strong>이고, 봉은사는 <strong>"콘텐츠는 풍부한데 공간이 없는 상태"</strong>입니다. 구 웨딩홀 리뉴얼은 이 불균형을 해소하는 프로젝트가 됩니다.</p>
+    <p style="margin-top: 8px;">명동1898이 "0에서 시작"했다면, 봉은사는 <strong>이미 검증된 콘텐츠(템플스테이, 사찰음식, 참선)를 현대적 공간으로 이식</strong>하는 것이므로 콘텐츠 리스크가 훨씬 낮습니다.</p>
+  </div>
+</section>
+
+<!-- ==================== 9. VERDICT ==================== -->
+<section id="verdict">
+  <h2>9. 기획자 관점 종합 의견</h2>
+
+  <div class="verdict">
+    <h3>핵심 판단</h3>
+    <p>봉은사 리뉴얼 계획(중창불사)은 <strong>"건물 인프라"에 집중</strong>되어 있고, <strong>"서비스 기획"과 "브랜딩"은 사실상 부재</strong>합니다.</p>
+    <ul>
+      <li><strong>있는 것:</strong> 마스터플랜(3단계), 콘텐츠 자산(템플스테이·사찰음식·참선), 리더십(원명 스님), 부지(구 웨딩홀 5층), 외국인 유입 동선</li>
+      <li><strong>없는 것:</strong> 공간 브랜드, 수익 모델, 디지털 전략, 서비스 디자인, MZ 접점, 기념품/리테일, 입점 테넌트 큐레이션</li>
+    </ul>
+    <p style="margin-top: 16px;">이것은 <strong>우리 프로젝트의 기회</strong>입니다. "없는 것"을 채우는 것이 곧 마스터플랜의 빈 칸을 완성하는 일이 됩니다.</p>
+  </div>
+
+  <h3>9-1. 기획 관점에서 봉은사가 해야 할 것 (우선순위)</h3>
+
+  <div class="card highlight">
+    <h4>Priority 1 — 공간 브랜드 수립</h4>
+    <p>"봉은사 문화회관"이 아닌, <strong>독립적인 공간 브랜드</strong> 필요. 명동이 "1898"을 만들었듯, 봉은사도 역사·철학에서 끌어낸 <strong>기억에 남는 이름</strong>이 필요합니다.</p>
+    <p style="margin-top: 8px;">예시 후보 방향: 연도(794, 1499), 불교 개념(선禪, 연蓮, 공空), 장소(수도산), 상징(미륵) 등</p>
+  </div>
+
+  <div class="card highlight">
+    <h4>Priority 2 — 층별 BM + 콘텐츠 설계</h4>
+    <p>5개 층 × 300평 = 거대한 캔버스. 층별로 <strong>명확한 역할 분담</strong>이 필요합니다.</p>
+    <div class="diagram">
+  [예시 구상 — 확정이 아닌 방향성 스케치]
+
+  5F ─ 명상·수행: 프리미엄 명상 라운지, 참선 스튜디오
+  4F ─ 교육·포럼: 불교아카데미, 컨퍼런스홀, 웰니스 강좌
+  3F ─ 전시·문화: 불교 현대미술 갤러리, 기획전시, 팝업
+  2F ─ F&B·리테일: 사찰음식 레스토랑, 카페, 기념품 편집숍
+  1F ─ 로비·커뮤니티: 안내, 카페, 서점, 열린 광장
+    </div>
+  </div>
+
+  <div class="card highlight">
+    <h4>Priority 3 — 시그니처 경험 설계</h4>
+    <p>"봉은사에 가면 꼭 OO을 해야 해"</p>
+    <ul>
+      <li><strong>사찰음식 파인다이닝:</strong> 강남에서 유일한 사찰음식 레스토랑 (예약제)</li>
+      <li><strong>도심 명상 프로그램:</strong> 30분 점심시간 명상 (강남 직장인 타깃)</li>
+      <li><strong>MZ 체험형 불교:</strong> 목판 인경 엽서 제작, 연등 DIY, 불교 향 워크숍</li>
+      <li><strong>야간 명상:</strong> 봉은사 야경과 결합한 프리미엄 나이트 명상</li>
+    </ul>
+  </div>
+
+  <div class="card highlight">
+    <h4>Priority 4 — 수익 모델 설계</h4>
+    <table>
+      <tr><th>수익원</th><th>예상 기여도</th><th>참고 모델</th></tr>
+      <tr><td>F&B 직영 (사찰음식 레스토랑·카페)</td><td>★★★★★</td><td>봉은 사찰음식연구소 콘텐츠 활용</td></tr>
+      <tr><td>기념품·리테일 편집숍</td><td>★★★★☆</td><td>1898+ 참고, 불교 감성 생활용품</td></tr>
+      <tr><td>임대 수익 (입점 테넌트)</td><td>★★★☆☆</td><td>3C 원칙 참고, 가치 기반 큐레이션</td></tr>
+      <tr><td>프리미엄 프로그램 (명상·요가·사찰음식 클래스)</td><td>★★★★☆</td><td>강남 웰니스 시장 가격 적용 가능</td></tr>
+      <tr><td>공간 대관 (컨퍼런스·기업 명상 워크숍)</td><td>★★★☆☆</td><td>강남 기업 수요 + 차별화된 장소성</td></tr>
+      <tr><td>온라인 커머스 (밀키트·향·차)</td><td>★★★☆☆</td><td>사찰음식연구소 상품 온라인 판매</td></tr>
+    </table>
+  </div>
+
+  <div class="card highlight">
+    <h4>Priority 5 — 타깃 세분화</h4>
+    <table>
+      <tr><th>타깃</th><th>니즈</th><th>제공 경험</th></tr>
+      <tr><td><strong>강남 직장인 (30~40대)</strong></td><td>점심시간 쉼, 웰니스</td><td>30분 명상, 사찰음식 런치, 카페</td></tr>
+      <tr><td><strong>MZ 문화소비층</strong></td><td>인스타그래머블, 체험</td><td>DIY 공방, 갤러리, 불교 감성 카페</td></tr>
+      <tr><td><strong>외국인 관광객</strong></td><td>한국 불교 체험</td><td>반나절 코스, 기념품, 사찰음식</td></tr>
+      <tr><td><strong>불교 신자</strong></td><td>수행, 기도, 법회</td><td>참선 프로그램, 기도공간, 서적</td></tr>
+      <tr><td><strong>기업·단체</strong></td><td>차별화된 워크숍 장소</td><td>명상 팀빌딩, 사찰음식 디너, 대관</td></tr>
+    </table>
+  </div>
+</section>
+
+<hr>
+
+<div class="sources">
+  <h2>참고 자료</h2>
+  <h4>봉은사 리뉴얼 계획</h4>
+  <ul>
+    <li><a href="http://www.buddhismjournal.com/news/articleView.html?idxno=12223" target="_blank">불교저널 — 봉은사, 도시공원 규제 풀고 역사공원으로 재탄생</a> (중창불사 3단계 마스터플랜)</li>
+    <li><a href="http://www.ibulgyo.com/news/articleView.html?idxno=142367" target="_blank">불교신문 — 봉은사 역사공원 조성…'힐링 전통사찰'로 탈바꿈</a></li>
+    <li><a href="http://www.beopbo.com/news/articleView.html?idxno=304927" target="_blank">법보신문 — 한전부지 봉은사 경내지 반환 가능성</a></li>
+  </ul>
+  <h4>주지 스님 비전 & 인터뷰</h4>
+  <ul>
+    <li><a href="https://www.beopbo.com/news/articleView.html?idxno=207242" target="_blank">법보신문 — 서울 봉은사 주지 원명 스님 인터뷰</a></li>
+    <li><a href="https://www.newsis.com/view/NISX20231023_0002493417" target="_blank">뉴시스 — 봉은사 주지에 원명스님 5회 연임</a></li>
+  </ul>
+  <h4>콘텐츠·서비스</h4>
+  <ul>
+    <li><a href="http://www.hyunbulnews.com/news/articleView.html?idxno=401722" target="_blank">현대불교 — 봉은사, 사찰음식 대중화 사업 전개</a></li>
+    <li><a href="https://www.grandculture.net/gangnam/toc/GC04801205" target="_blank">디지털강남문화대전 — 봉은사 종합 정보</a></li>
+    <li><a href="http://temple.bongeunsa.org/" target="_blank">봉은사 템플스테이 공식 사이트</a></li>
+    <li><a href="http://www.bongeunsa.org/" target="_blank">봉은사 공식 사이트</a></li>
+  </ul>
+</div>
+
+<div style="text-align: center; padding: 40px; color: var(--text-light); font-size: 0.85em;">
+  봉은사 리뉴얼 계획 리서치 | 2026-04-07 | 프로젝트: 15-bongeunsa
+</div>
+
+</div>
+</body>
+</html>

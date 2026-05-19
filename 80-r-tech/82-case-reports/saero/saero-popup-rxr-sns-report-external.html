@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>새로중앙박물관 — RXR SNS 분석</title>
+<style>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+:root{--primary:#6666FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--black:#000;--dark:#262626;--body:#424D61;--light:#F6F6F6;--white:#FFF;--red:#C00000;--coral:#FF5050;--blue:#4D93F7;--green:#10b981;--orange:#f59e0b;--pink:#d946ef;--primary-pale:#E1E1FF;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:14px;line-height:1.6;max-width:1200px;margin:0 auto;padding:40px 32px;}
+h1{font-size:28px;font-weight:800;margin-bottom:4px;} h2{font-size:20px;font-weight:800;margin:32px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--primary-pale);} h3{font-size:15px;font-weight:700;margin:14px 0 8px;}
+.sub{font-size:13px;color:var(--body);margin-bottom:20px;}
+.card{background:var(--light);border:1px solid #e8e8e8;border-radius:12px;padding:16px 18px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;} .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0;}
+th{background:var(--primary);color:#fff;padding:6px 10px;text-align:left;font-size:11px;} td{padding:5px 10px;border-bottom:1px solid #eee;}
+.insight{padding:14px 18px;background:var(--primary-pale);border-radius:10px;border-left:4px solid var(--primary);margin:10px 0;font-size:13px;line-height:1.7;} .insight strong{color:var(--primary);}
+.insight-warn{background:#fef2f2;border-left-color:var(--coral);} .insight-warn strong{color:var(--coral);}
+.ba-container{display:grid;grid-template-columns:1fr 50px 1fr;gap:0;align-items:stretch;margin:16px 0;}
+.ba-box{padding:20px;border-radius:14px;} .ba-before{background:#f1f5f9;border:2px solid #cbd5e1;} .ba-after{background:#eef2ff;border:2px solid var(--primary);}
+.ba-vs{display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#94a3b8;}
+.ba-label{font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:10px;} .ba-title{font-size:16px;font-weight:800;margin-bottom:12px;}
+.gauge-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.gauge-label{width:120px;font-size:12px;font-weight:600;text-align:right;flex-shrink:0;}
+.gauge-track{flex:1;height:24px;background:#f0f0f0;border-radius:5px;overflow:hidden;}
+.gauge-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;}
+.gauge-val{width:45px;font-family:'DIN Alternate','Poppins',sans-serif;font-size:15px;font-weight:700;text-align:center;flex-shrink:0;}
+.footer{margin-top:40px;padding-top:16px;border-top:2px solid var(--primary);font-size:11px;color:#94a3b8;text-align:center;}
+@media print{
+  @page{size:A4 portrait;margin:14mm 12mm;}
+  body{max-width:100%!important;padding:0!important;margin:0!important;}
+  .pdf-panel{display:none!important;}
+  .card,.ba-container,.grid2,.grid3,.insight,.gauge-row,table{break-inside:avoid!important;page-break-inside:avoid!important;}
+  h2,h3{break-after:avoid;page-break-after:avoid;}
+  h1{font-size:22px!important;} h2{font-size:16px!important;margin-top:20px!important;}
+  .card{padding:10px 12px!important;font-size:10px!important;} table{font-size:10px!important;} th,td{padding:4px 6px!important;}
+  .ba-container{gap:0!important;} .ba-box{padding:14px!important;font-size:11px!important;}
+}
+.pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;}
+.pdf-panel-toggle{display:flex;align-items:center;gap:8px;padding:12px 22px;background:var(--grad);color:#fff;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(102,102,255,0.4);border:none;font-family:'Pretendard Variable',sans-serif;}
+.pdf-panel-body{display:none;position:absolute;bottom:56px;right:0;width:220px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:16px;}
+.pdf-panel-body.open{display:block;}
+.pdf-orient-group{display:flex;gap:8px;margin-bottom:14px;}
+.pdf-orient-btn{flex:1;padding:12px 8px;background:#f9fafb;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;font-family:'Pretendard Variable',sans-serif;color:#475569;font-size:11px;font-weight:600;text-align:center;}
+.pdf-orient-btn.active{border-color:var(--primary);background:#eef2ff;color:var(--primary);}
+.pdf-print-btn{width:100%;padding:10px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Pretendard Variable',sans-serif;}</style><style id="pageOrientStyle"></style></head><body>
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+  <span style="background:var(--grad);color:#fff;padding:4px 14px;border-radius:6px;font-family:'Poppins';font-size:11px;font-weight:600;letter-spacing:1px;">RXR SNS ANALYSIS</span>
+</div>
+<h1>새로중앙박물관 — 천년의 비법서 도난 사건</h1>
+<div class="sub">기존 분석 vs RXR 다층 분석 + 진심 필터 | 네이버 블로그 281건 + Brand24 103건 = 총 384건 | Project RENT · R-lab</div>
+
+<!-- 리서치 개요 -->
+<div style="padding:20px;background:var(--light);border-radius:14px;margin-bottom:24px;">
+  <div class="grid2">
+    <div>
+      <div style="font-size:11px;font-family:'Poppins';letter-spacing:2px;color:var(--body);margin-bottom:6px;">ABOUT THIS RESEARCH</div>
+      <h3 style="margin-top:0;">분석 대상</h3>
+      <table style="font-size:12px;"><tr><td style="color:var(--body);width:70px;padding:4px 0;">팝업명</td><td style="padding:4px 0;font-weight:700;">새로중앙박물관 — 천년의 비법서 도난 사건</td></tr><tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">브랜드</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">새로 (롯데칠성음료)</td></tr><tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">기간</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">2026.03.21 ~ 04.05, <strong>16일간</strong></td></tr><tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">장소</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">서울 성수동 더가베</td></tr><tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">컨셉</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">방탈출형 미션 + 소주 시음 + 럭키드로우 + 침착맨 콜라보</td></tr><tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">분석 기간</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">2026.03.07 ~ 04.07</td></tr></table>
+    </div>
+    <div>
+      <div style="font-size:11px;font-family:'Poppins';letter-spacing:2px;color:var(--body);margin-bottom:6px;">RESEARCH PERSPECTIVE</div>
+      <h3 style="margin-top:0;">리서치 관점</h3>
+      <div style="font-size:12px;color:var(--body);line-height:1.7;">
+        <div style="padding:4px 0;"><strong style="color:var(--primary);">핵심 질문:</strong> 기존 도구의 숫자와 RXR 분석의 인사이트가 얼마나 다른가?</div>
+        <div style="padding:4px 0;border-top:1px solid #e8e8e8;"><strong style="color:var(--primary);">데이터:</strong> 네이버 블로그 281건 + Brand24 비블로그 103건 = 총 384건</div>
+        <div style="padding:4px 0;border-top:1px solid #e8e8e8;"><strong style="color:var(--primary);">분석:</strong> 콘텐츠 + 심리 + 진심 필터 3단계</div>
+        <div style="padding:4px 0;border-top:1px solid #e8e8e8;"><strong style="color:var(--primary);">최대 노출:</strong> 약 200만 명 (실 노출 예상 10~30만 명)</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;padding:10px 14px;background:var(--primary-pale);border-radius:8px;font-size:12px;color:var(--body);">
+    📖 <strong>읽는 법:</strong> 각 섹션은 <strong>BEFORE(기존 도구)</strong>와 <strong>AFTER(RXR)</strong>를 나란히 비교합니다. AFTER 파트에는 📊 Raw Data 근거 박스가 포함됩니다.
+  </div>
+</div>
+
+<!-- Executive Summary -->
+<div style="padding:28px;background:linear-gradient(135deg,#f8f7ff,#eef2ff);border-radius:16px;margin-bottom:28px;border:1px solid var(--primary-pale);">
+  <div style="font-size:11px;font-family:'Poppins';letter-spacing:2px;color:var(--primary);margin-bottom:8px;">EXECUTIVE SUMMARY</div>
+  <h2 style="margin:0 0 16px;border:none;padding:0;font-size:18px;">이 리포트가 말하는 것</h2>
+
+  <div style="font-size:13px;color:var(--body);line-height:1.9;">
+    <p style="margin-bottom:14px;">새로중앙박물관 팝업은 16일간 운영되며 네이버 블로그와 SNS를 합쳐 <strong style="color:var(--primary);">총 384건의 멘션</strong>을 만들어냈습니다. 기존 분석 도구로 보면 "긍정 50%, 성공적인 캠페인"이라는 결론이 나옵니다. 하지만 RXR의 다층 분석으로 들여다보면, 이야기는 조금 달라집니다.</p>
+
+    <p style="margin-bottom:14px;">384건 중 진심 필터를 통과한 유효 반응은 <strong style="color:var(--primary);">204건</strong>이었습니다. 나머지 77건은 느낌표를 수십 개씩 쏟아내거나, "대박!!! 최고!!!"처럼 구체적 경험 없이 감탄만 나열한 과장된 긍정이었습니다. 이 과장 긍정을 걸러내자 <strong style="color:var(--coral);">실제 긍정률은 50%에서 38%로 떨어졌습니다.</strong> "절반이 좋아했다"가 아니라, "열 명 중 네 명이 진심으로 좋아했다"가 진실에 가깝습니다.</p>
+
+    <p style="margin-bottom:14px;">더 주목할 점은 <strong style="color:var(--coral);">시간에 따른 진정성의 변화</strong>입니다. 팝업 초반에 방문한 사람들의 후기는 "방탈출이 생각보다 몰입감 있었다", "침착맨 굿즈를 받았는데 퀄리티가 좋다"처럼 구체적이고 솔직했습니다. 하지만 16일이 지나며 후반부 후기는 "너무너무 좋았어요!!!"처럼 기억이 미화되고, 진정성이 눈에 띄게 떨어졌습니다. 이는 장기 운영 팝업이 갖는 구조적 한계를 보여줍니다.</p>
+
+    <p style="margin-bottom:14px;">토픽 분석에서도 흥미로운 발견이 있었습니다. 새로중앙박물관의 핵심 차별화 포인트는 '방탈출형 미션'이었지만, 소비자 후기에서 <strong style="color:var(--primary);">방탈출 관련 언급은 고작 7%</strong>에 그쳤습니다. 나머지 68%는 소주 제품 이야기로 채워졌습니다. 방문자들은 "미션을 풀었다"보다 "새로 소주를 마셨다"를 더 많이 기억하고 공유한 셈입니다. 체험이 콘텐츠로 전환되지 못한 것입니다.</p>
+
+    <p style="margin-bottom:20px;">Instagram에서 59건의 포스트가 올라왔지만, 이는 대부분 사진 한 장에 해시태그를 붙인 표면적 확산이었습니다. 깊이 있는 체험 서사는 네이버 블로그에 집중되어 있었고, 그중에서도 진정성이 높은 Q5 서사형 후기는 72건(26%)이었습니다. <strong style="color:var(--primary);">진짜 브랜드 옹호자가 될 수 있는 사람은 이 72명입니다.</strong></p>
+
+    <div style="padding:16px;background:#fff;border-radius:12px;border-left:4px solid var(--primary);">
+      <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px;">다음 팝업을 위한 제언</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.8;">
+        <strong>1. 체험이 곧 콘텐츠가 되는 설계가 필요합니다.</strong> 방탈출 미션 클리어 후 인증샷을 찍을 수 있는 포토존, 미션 결과를 SNS에 공유하는 장치, 체험 스토리를 자연스럽게 풀어낼 수 있는 굿즈 등 — "말하고 싶게 만드는" 설계가 있어야 제품이 아닌 경험이 화제가 됩니다.<br><br>
+        <strong>2. 장기 운영 시 콘텐츠 리프레시가 필수적입니다.</strong> 1주차와 2주차의 콘텐츠를 다르게 운영하거나, 중간에 서프라이즈 이벤트를 투입하여 후반부 방문자에게도 "새로운 발견"의 감각을 줄 수 있어야 합니다. 진정성 하락은 익숙함에서 옵니다.<br><br>
+        <strong>3. 사진 확산을 서사 확산으로 전환해야 합니다.</strong> Instagram의 59건은 인지도에 기여하지만 브랜드 옹호로 이어지지 않습니다. 블로그 서사형 후기를 유도하는 인센티브, 또는 체험 직후 현장에서 리뷰를 작성하게 하는 QR 이벤트가 효과적일 수 있습니다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 0. 데이터 수집 개요 -->
+<h2>0. 데이터 수집 개요</h2>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;">
+  <div class="card" style="text-align:center;border-top:3px solid var(--primary);padding:14px;"><div style="font-size:32px;font-weight:800;color:var(--primary);">384</div><div style="font-size:11px;color:var(--body);font-weight:600;">총 멘션 (통합)</div></div>
+  <div class="card" style="text-align:center;border-top:3px solid #00b4d8;padding:14px;"><div style="font-size:32px;font-weight:800;color:#00b4d8;">~200만</div><div style="font-size:11px;color:var(--body);font-weight:600;">최대 노출 가능성</div><div style="font-size:9px;color:#94a3b8;margin-top:2px;">실 노출 예상 10~30만 명</div></div>
+  <div class="card" style="text-align:center;border-top:3px solid var(--pink);padding:14px;"><div style="font-size:32px;font-weight:800;color:var(--pink);">204</div><div style="font-size:11px;color:var(--body);font-weight:600;">3차 진심 필터 유효</div></div>
+</div>
+<h3>데이터 소스별 구성</h3>
+<div class="grid2" style="margin:10px 0;">
+  <div class="card" style="border-left:4px solid var(--primary);">
+    <div style="font-size:11px;font-family:'Poppins';letter-spacing:1px;color:var(--body);margin-bottom:6px;">NAVER BLOG (심층 분석)</div>
+    <div style="font-size:28px;font-weight:800;color:var(--primary);">281<span style="font-size:13px;font-weight:600;color:var(--body);"> 건</span></div>
+    <div style="margin-top:8px;">
+      <table style="font-size:11px;margin:0;"><tbody>
+        <tr><td style="color:var(--orange);font-weight:600;border:none;padding:2px 6px;">이벤트 전</td><td style="border:none;padding:2px 6px;"><strong>45</strong> (16%)</td></tr>
+        <tr><td style="color:var(--primary);font-weight:600;border:none;padding:2px 6px;">이벤트 기간</td><td style="border:none;padding:2px 6px;"><strong>224</strong> (80%)</td></tr>
+        <tr><td style="color:#94a3b8;font-weight:600;border:none;padding:2px 6px;">이벤트 후</td><td style="border:none;padding:2px 6px;"><strong>12</strong> (4%)</td></tr>
+      </tbody></table>
+    </div>
+    <div style="margin-top:8px;padding:6px 8px;background:var(--primary-pale);border-radius:6px;font-size:10px;color:var(--primary);">API 직접 크롤링 → 콘텐츠 + 심리 Layer 심층 분석 대상</div>
+  </div>
+  <div class="card" style="border-left:4px solid #00b4d8;">
+    <div style="font-size:11px;font-family:'Poppins';letter-spacing:1px;color:var(--body);margin-bottom:6px;">BRAND24 비블로그 채널</div>
+    <div style="font-size:28px;font-weight:800;color:#00b4d8;">103<span style="font-size:13px;font-weight:600;color:var(--body);"> 건</span></div>
+    <div style="margin-top:8px;">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;"><div style="width:65px;font-size:10px;text-align:right;color:var(--body);">Instagram</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:57%;height:100%;background:linear-gradient(90deg,#833AB4,#E1306C);border-radius:3px;display:flex;align-items:center;padding-left:5px;font-size:8px;font-weight:700;color:#fff;">59</div></div></div>
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;"><div style="width:65px;font-size:10px;text-align:right;color:var(--body);">News</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:24%;height:100%;background:#4D93F7;border-radius:3px;display:flex;align-items:center;padding-left:5px;font-size:8px;font-weight:700;color:#fff;">25</div></div></div>
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;"><div style="width:65px;font-size:10px;text-align:right;color:var(--body);">X</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:16%;height:100%;background:#1DA1F2;border-radius:3px;display:flex;align-items:center;padding-left:5px;font-size:8px;font-weight:700;color:#fff;">16</div></div></div>
+      <div style="display:flex;align-items:center;gap:5px;"><div style="width:65px;font-size:10px;text-align:right;color:var(--body);">TikTok+FB</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:3%;height:100%;background:#94a3b8;border-radius:3px;"></div></div></div>
+    </div>
+    <div style="margin-top:8px;padding:6px 8px;background:#e0f7fa;border-radius:6px;font-size:10px;color:#0077b6;">멀티채널 확산 규모 파악 (Blogs 41건은 네이버와 중복 → 제외)</div>
+  </div>
+</div>
+<div class="insight" style="margin:12px 0;">
+  <strong>통합 데이터 384건 = 네이버 블로그 281건 + Brand24 비블로그 103건.</strong> Brand24 Blogs 41건은 네이버 크롤링과 중복 가능하여 제외. <strong>Instagram(59건, 57%)</strong>이 비블로그 최다 채널 → 시각 중심 확산. 심층 분석(다층 분석 + 진심 필터)은 텍스트 분석이 가능한 네이버 블로그 281건 기준.
+</div>
+
+<h3>날짜별 버즈 분포</h3>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/07</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:5%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">1</div><div style="width:65px;font-size:8px;color:var(--orange);font-weight:700;">이벤트 전</div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/08</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:5%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">1</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/09</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:10%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">2</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/10</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">3</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/11</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:29%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">6</div></div><div style="width:20px;font-size:9px;font-weight:600;">6</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/12</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:19%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">4</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/13</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:10%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">2</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/14</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:19%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">4</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/15</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:29%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">6</div></div><div style="width:20px;font-size:9px;font-weight:600;">6</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/16</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:19%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">4</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/17</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:5%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">1</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/18</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:19%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">4</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/19</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">3</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/20</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:19%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">4</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="height:3px;border-bottom:2px solid var(--primary);margin:2px 0;"></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/21</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:38%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">8</div></div><div style="width:20px;font-size:9px;font-weight:600;">8</div><div style="width:65px;font-size:8px;color:var(--primary);font-weight:700;">★ 시작</div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/22</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:57%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">12</div></div><div style="width:20px;font-size:9px;font-weight:600;">12</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/23</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:71%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">15</div></div><div style="width:20px;font-size:9px;font-weight:600;">15</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/24</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:62%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">13</div></div><div style="width:20px;font-size:9px;font-weight:600;">13</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/25</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:100%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">21</div></div><div style="width:20px;font-size:9px;font-weight:600;">21</div><div style="width:65px;font-size:8px;color:var(--primary);font-weight:700;">★ 피크</div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/26</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:95%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">20</div></div><div style="width:20px;font-size:9px;font-weight:600;">20</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/27</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:62%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">13</div></div><div style="width:20px;font-size:9px;font-weight:600;">13</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/28</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:86%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">18</div></div><div style="width:20px;font-size:9px;font-weight:600;">18</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/29</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:71%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">15</div></div><div style="width:20px;font-size:9px;font-weight:600;">15</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/30</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:48%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">10</div></div><div style="width:20px;font-size:9px;font-weight:600;">10</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">03/31</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:95%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">20</div></div><div style="width:20px;font-size:9px;font-weight:600;">20</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">04/01</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:38%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">8</div></div><div style="width:20px;font-size:9px;font-weight:600;">8</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">04/02</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:71%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">15</div></div><div style="width:20px;font-size:9px;font-weight:600;">15</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">04/03</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:48%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">10</div></div><div style="width:20px;font-size:9px;font-weight:600;">10</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">04/04</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:86%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">18</div></div><div style="width:20px;font-size:9px;font-weight:600;">18</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">04/05</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:38%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">8</div></div><div style="width:20px;font-size:9px;font-weight:600;">8</div><div style="width:65px;font-size:8px;"></div></div>
+<div style="height:3px;border-bottom:2px dashed #ddd;margin:2px 0;"></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">04/06</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:38%;height:100%;background:#94a3b8;border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;">8</div></div><div style="width:20px;font-size:9px;font-weight:600;">8</div><div style="width:65px;font-size:8px;color:#94a3b8;font-weight:700;">이벤트 후</div></div>
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:40px;font-size:9px;color:var(--body);text-align:right;">04/07</div><div style="flex:1;height:15px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:19%;height:100%;background:#94a3b8;border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;font-weight:600;color:#fff;"></div></div><div style="width:20px;font-size:9px;font-weight:600;">4</div><div style="width:65px;font-size:8px;"></div></div>
+
+<div class="grid2" style="margin-top:12px;">
+  <div><h3>기간별 비교</h3><table><thead><tr><th>기간</th><th>건수</th><th>일평균</th><th>비율</th></tr></thead><tbody><tr><td style="color:var(--orange);font-weight:700;">이벤트 전</td><td><strong>45</strong></td><td>3.2</td><td>16%</td></tr><tr><td style="color:var(--primary);font-weight:700;">이벤트 기간</td><td><strong>224</strong></td><td>14.0</td><td>80%</td></tr><tr><td style="color:#94a3b8;">이벤트 후</td><td><strong>12</strong></td><td>6.0</td><td>4%</td></tr><tr style="background:var(--primary-pale);"><td style="font-weight:700;">합계</td><td style="font-weight:700;color:var(--primary);">281</td><td></td><td>100%</td></tr></tbody></table></div>
+  <div><h3>핵심 패턴</h3><div style="font-size:12px;line-height:1.7;"><div style="padding:5px 8px;background:var(--light);border-radius:6px;margin-bottom:4px;border-left:3px solid var(--primary);"><strong style="color:var(--primary);">이벤트 기간 80%</strong> — 실제 체험 후기 대부분이 운영 기간에 집중</div><div style="padding:5px 8px;background:var(--light);border-radius:6px;margin-bottom:4px;border-left:3px solid var(--orange);"><strong style="color:var(--orange);">사전 버즈 16%</strong> — 신제품 출시 없어 사전 화제 적음</div><div style="padding:5px 8px;background:var(--light);border-radius:6px;border-left:3px solid var(--green);"><strong style="color:var(--green);">3/25 피크 21건</strong> — 주말 방문 후기 폭발</div></div></div>
+</div>
+
+<!-- 1. 감성 분석 Before→After -->
+<h2>1. 감성 분석 — "좋았나요?"에서 "진심이었나요?"로</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#94a3b8;">BEFORE — 기존 도구</div>
+    <div class="ba-title" style="color:#475569;">감성 분류: 3단계</div>
+    <div style="display:flex;gap:8px;margin:12px 0;"><div style="flex:1;text-align:center;padding:10px;background:#fff;border-radius:8px;"><div style="font-size:24px;font-weight:800;color:var(--green);">50%</div><div style="font-size:10px;">긍정</div></div><div style="flex:1;text-align:center;padding:10px;background:#fff;border-radius:8px;"><div style="font-size:24px;font-weight:800;color:#94a3b8;">49%</div><div style="font-size:10px;">중립</div></div><div style="flex:1;text-align:center;padding:10px;background:#fff;border-radius:8px;"><div style="font-size:24px;font-weight:800;color:var(--red);">1%</div><div style="font-size:10px;">부정</div></div></div>
+    <div style="padding:8px;background:#e2e8f0;border-radius:6px;font-size:12px;color:#475569;text-align:center;">"긍정 50%니까 절반이 좋아했네요"<br><strong>끝. 더 이상 알 수 없음.</strong></div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR 다층 분석</div>
+    <div class="ba-title" style="color:var(--primary);">감성 4단계 + 진정성 + 추천 확신도</div>
+    <div style="display:flex;gap:6px;margin:10px 0;"><div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:8px;"><div style="font-size:20px;font-weight:800;color:var(--green);">50%</div><div style="font-size:9px;">긍정</div></div><div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:8px;"><div style="font-size:20px;font-weight:800;color:#94a3b8;">36%</div><div style="font-size:9px;">중립</div></div><div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:8px;"><div style="font-size:20px;font-weight:800;color:var(--primary);">12%</div><div style="font-size:9px;">혼합</div></div><div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:8px;"><div style="font-size:20px;font-weight:800;color:var(--red);">1%</div><div style="font-size:9px;">부정</div></div></div>
+    <div style="padding:8px;background:#eef2ff;border-radius:6px;font-size:12px;color:var(--primary);">→ "긍정 50%이나 <strong>진정성 지수 보통</strong> → 과장 기미"<br>→ "<strong>추천 의향 보통</strong> → 적극 추천까지는 안 감"<br>→ <strong>"화제성은 있으나 옹호자 전환은 미달"</strong></div>
+  </div>
+</div>
+<div style="padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+  <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px;">📊 왜 이런 수치? — Raw Data 근거</div>
+  <div class="grid2">
+    <div style="padding:8px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);"><div style="font-size:11px;font-weight:700;color:var(--green);">✅ 진정성 최고 수준</div><div style="font-size:10px;color:var(--body);line-height:1.5;">"침착맨 x 새로 팝업 후기" — Q5 서사형, 구체적 경험 + 균형 평가 = <strong>진정성 높음</strong></div></div>
+    <div style="padding:8px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);"><div style="font-size:11px;font-weight:700;color:var(--coral);">⚠️ 진정성 최저 수준</div><div style="font-size:10px;color:var(--body);line-height:1.5;">"날씨가 좋으면 찾아갈게요 3월간슘삐" — 느낌표 <strong>132개!</strong> 극단 과잉 = <strong>비진정</strong></div></div>
+  </div>
+</div>
+
+<!-- 2. 데이터 분류 Before→After -->
+<h2>2. 데이터 분류 — "몇 건?"에서 "어떤 건?"으로</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#94a3b8;">BEFORE</div>
+    <div class="ba-title" style="color:#475569;">단순 카운팅</div>
+    <div style="text-align:center;margin:16px 0;"><div style="font-size:48px;font-weight:800;color:#475569;">281건</div><div style="font-size:13px;color:#94a3b8;">Total Blog Posts</div></div>
+    <div style="padding:8px;background:#e2e8f0;border-radius:6px;font-size:12px;color:#475569;text-align:center;">"281건 블로그 후기입니다"<br><strong>그 중 광고는? 노이즈는?</strong></div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER</div>
+    <div class="ba-title" style="color:var(--primary);">7단계 분류 + 신뢰도</div>
+    <div style="font-size:12px;line-height:1.8;margin:10px 0;">
+      <div style="color:var(--green);font-weight:600;">✅ A 자발적: 276건 (98%) → 순수 반응</div>
+      <div style="color:var(--orange);font-weight:600;">⚠️ C 협찬: 5건 (2%) → 진심 스펙트럼 분석</div>
+    </div>
+    <div style="padding:10px;background:#eef2ff;border-radius:6px;font-size:12px;color:var(--primary);line-height:1.7;">
+      <strong>"276건 자발적 중 진정성 높음, 협찬 5건은 진정성 낮음 — 차이 20.9점"</strong><br>
+      <span style="font-size:11px;color:var(--body);">→ 협찬 포스트는 자발적 후기 대비 진정성이 <strong style="color:var(--coral);">36% 낮음.</strong> 같은 "긍정"이라도 협찬은 의무적 톤(진정성 낮음), 자발적은 실제 감동(진정성 높음)으로 질적 차이가 크다. 기존 도구는 둘 다 "긍정 1건"으로 동일 취급하지만, <strong style="color:var(--primary);">RXR은 같은 긍정 안에서도 진심의 농도를 구분</strong>한다.</span>
+    </div>
+  </div>
+</div>
+
+<!-- 3. 토픽 분석 Before→After -->
+<h2>3. 토픽 분석 — "워드클라우드"에서 "구조화된 인사이트"로</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#94a3b8;">BEFORE</div>
+    <div class="ba-title" style="color:#475569;">워드클라우드</div>
+    <div style="text-align:center;padding:14px;background:#fff;border-radius:8px;margin:10px 0;"><span style="font-size:22px;font-weight:800;">새로</span> <span style="font-size:16px;">소주</span> <span style="font-size:14px;color:#94a3b8;">성수</span> <span style="font-size:13px;color:#94a3b8;">팝업</span> <span style="font-size:18px;">박물관</span> <span style="font-size:12px;color:#94a3b8;">방탈출</span></div>
+    <div style="font-size:12px;color:#94a3b8;text-align:center;"><strong style="color:#475569;">그래서 뭘 해야 하는데?</strong></div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER</div>
+    <div class="ba-title" style="color:var(--primary);">구조화된 토픽 비중</div>
+    <div style="margin:8px 0;">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:75px;font-size:10px;text-align:right;color:var(--primary);font-weight:700;">제품/소주 68%</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:68%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;color:#fff;font-weight:600;">190건</div></div></div>
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:75px;font-size:10px;text-align:right;">공간 15%</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:15.3%;height:100%;background:var(--green);border-radius:3px;"></div></div><div style="font-size:9px;">43</div></div>
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:75px;font-size:10px;text-align:right;">웨이팅 8%</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.8%;height:100%;background:var(--orange);border-radius:3px;"></div></div><div style="font-size:9px;">22</div></div>
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:75px;font-size:10px;text-align:right;">방탈출 7%</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.5%;height:100%;background:var(--pink);border-radius:3px;"></div></div><div style="font-size:9px;">21</div></div>
+    </div>
+    <div style="padding:10px;background:#eef2ff;border-radius:6px;font-size:12px;color:var(--primary);line-height:1.7;">
+      <strong>"방탈출이 핵심 컨셉인데 7%만 → 체험이 제품에 묻힘. 체험 화제화 전략 필요."</strong><br>
+      <span style="font-size:11px;color:var(--body);">→ 새로중앙박물관의 차별화 포인트는 '방탈출형 미션'이었지만, 소비자 후기에서 <strong style="color:var(--coral);">제품(소주) 이야기가 68%를 차지</strong>하며 체험 콘텐츠를 압도. 방문자는 "새로 소주를 마셨다"는 기억하지만 "미션을 풀었다"는 화제화되지 못함. <strong style="color:var(--primary);">체험 자체가 콘텐츠가 되려면</strong> 미션 클리어 인증샷·스토리 공유 장치·결과물 굿즈 등 <strong style="color:var(--primary);">"말하고 싶게 만드는 설계"</strong>가 필요.</span>
+    </div>
+  </div>
+</div>
+
+<!-- 4. 심리 분석 -->
+<h2>4. 심리 분석 — 기존에 불가능했던 영역</h2>
+<div style="text-align:center;margin:10px 0;padding:8px;background:#fef2f2;border-radius:8px;font-size:13px;font-weight:700;color:var(--coral);">BEFORE: 이 분석 자체가 불가능 — 어떤 기존 도구도 제공하지 않음</div>
+<div class="gauge-row"><div class="gauge-label" style="color:var(--primary);">Authenticity<br><span style="font-size:10px;color:var(--body);">진정성</span></div><div class="gauge-track"><div class="gauge-fill" style="width:58%;background:var(--primary);">보통</div></div><div class="gauge-val" style="color:var(--primary);">보통</div></div>
+<div class="gauge-row"><div class="gauge-label" style="color:var(--green);">추천 확신도<br><span style="font-size:10px;color:var(--body);">추천 확신도</span></div><div class="gauge-track"><div class="gauge-fill" style="width:50%;background:var(--green);">보통</div></div><div class="gauge-val" style="color:var(--green);">보통</div></div>
+<div class="gauge-row"><div class="gauge-label" style="color:var(--orange);">신선함 지수<br><span style="font-size:10px;color:var(--body);">신선함</span></div><div class="gauge-track"><div class="gauge-fill" style="width:43%;background:var(--orange);">보통</div></div><div class="gauge-val" style="color:var(--orange);">보통</div></div>
+
+<h3>기간별 심리 변화</h3>
+<table><thead><tr><th>기간</th><th>N</th><th>진정성 지수</th><th>추천 확신도</th><th>Fresh</th><th>해석</th></tr></thead><tbody>
+  <tr><td style="color:var(--orange);font-weight:700;">이벤트 전</td><td>45</td><td><strong style="color:var(--green);">높음</strong></td><td>49.1</td><td>41.9</td><td style="font-size:11px;">기대감, 솔직</td></tr>
+  <tr style="background:#eef2ff;"><td style="color:var(--primary);font-weight:700;">이벤트 기간</td><td>224</td><td>보통</td><td>49.9</td><td style="color:var(--green);font-weight:700;">보통</td><td style="font-size:11px;">경험, Fresh↑</td></tr>
+  <tr><td style="color:#94a3b8;font-weight:700;">이벤트 후</td><td>12</td><td><strong style="color:var(--coral);">낮음</strong></td><td>보통</td><td>낮음</td><td style="font-size:11px;color:var(--coral);font-weight:700;">진정성 대폭 하락!</td></tr>
+</tbody></table>
+<div class="insight-warn insight" style="line-height:1.7;"><strong>팝업 초반에는 생생한 체험의 기억이 솔직하게 담겼지만, 후반으로 갈수록 진정성이 눈에 띄게 떨어졌습니다.</strong><br><span style="font-size:11px;">→ 16일간의 장기 운영이 만들어낸 구조적 문제입니다. 초반 방문자는 "직접 가보니 이랬다"는 생생한 체험을 솔직하게 풀어냈지만, 후반부 방문자는 시간이 흐르며 <strong>"좋았던 것 같다"</strong> 식의 막연한 회상으로 바뀌었습니다. 체험 직후 리뷰 작성을 유도하는 장치(QR 포인트, 현장 인증 이벤트 등)가 있었다면 이 하락을 줄일 수 있었을 것입니다.</span></div>
+<div style="padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-top:10px;">
+  <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px;">📊 기간별 차이 근거</div>
+  <div class="grid3">
+    <div style="padding:8px;background:#fff7ed;border-radius:8px;border-top:3px solid var(--orange);"><div style="font-size:11px;font-weight:700;color:var(--orange);">이벤트 전 (진정성 높음)</div><div style="font-size:10px;color:var(--body);line-height:1.5;">진정성 매우 높음 "안 가면 후회하는 새로..." 솔직한 기대 + 구체적 정보</div></div>
+    <div style="padding:8px;background:#eef2ff;border-radius:8px;border-top:3px solid var(--primary);"><div style="font-size:11px;font-weight:700;color:var(--primary);">이벤트 기간 (진정성 보통)</div><div style="font-size:10px;color:var(--body);line-height:1.5;">진정성 매우 높음 "침착맨 후기" + 진정성 매우 낮음 과장글 혼재</div></div>
+    <div style="padding:8px;background:#f1f5f9;border-radius:8px;border-top:3px solid #94a3b8;"><div style="font-size:11px;font-weight:700;color:#94a3b8;">이벤트 후 (진정성 낮음)</div><div style="font-size:10px;color:var(--body);line-height:1.5;">느낌표 132개 포스트 등 과잉 회상 집중</div></div>
+  </div>
+</div>
+
+<!-- 5. 협찬 분석 -->
+<h2>5. 협찬 분석 — "있다/없다"에서 "진심의 스펙트럼"으로</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#94a3b8;">BEFORE</div>
+    <div class="ba-title" style="color:#475569;">협찬 표기 유무 확인</div>
+    <div style="text-align:center;padding:16px;"><div style="font-size:14px;color:var(--body);">"#광고" 표기?</div><div style="display:flex;justify-content:center;gap:16px;margin:10px 0;"><div style="padding:10px 20px;background:#fff;border-radius:8px;">✅ 협찬</div><div style="padding:10px 20px;background:#fff;border-radius:8px;">❌ 자발적</div></div></div>
+    <div style="padding:8px;background:#e2e8f0;border-radius:6px;font-size:12px;color:#475569;text-align:center;"><strong>협찬이면 제외? → 유의미한 데이터 손실</strong></div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER</div>
+    <div class="ba-title" style="color:var(--primary);">진심 스펙트럼</div>
+    <div style="margin:8px 0;">
+      <div class="gauge-row" style="margin-bottom:6px;"><div style="width:80px;font-size:11px;">자발적 (276건)</div><div class="gauge-track" style="height:20px;"><div class="gauge-fill" style="width:59%;background:var(--green);height:100%;">진정성 높음</div></div><div style="width:40px;font-size:13px;font-weight:700;color:var(--green);text-align:center;">높음</div></div>
+      <div class="gauge-row" style="margin-bottom:6px;"><div style="width:80px;font-size:11px;">협찬 (5건)</div><div class="gauge-track" style="height:20px;"><div class="gauge-fill" style="width:38%;background:var(--orange);height:100%;">진정성 낮음</div></div><div style="width:40px;font-size:13px;font-weight:700;color:var(--orange);text-align:center;">낮음</div></div>
+    </div>
+    <div style="padding:10px;background:#eef2ff;border-radius:6px;font-size:12px;color:var(--primary);line-height:1.7;">
+      <strong>진정성 격차 뚜렷</strong> — 협찬 vs 자발적 진정성 격차 뚜렷<br>
+      <span style="font-size:11px;color:var(--body);">→ 협찬 5건은 전체의 2%에 불과하지만, 진정성 낮음로 <strong style="color:var(--coral);">의무적·보도자료형 톤</strong>이 뚜렷. 자발적 276건(진정성 높음)과 <strong style="color:var(--primary);">같은 "긍정"이라도 진심의 농도가 다름.</strong> 기존 도구는 협찬을 제외하거나 포함하는 이분법이지만, RXR은 협찬 안에서도 "진짜 좋아서 쓴 협찬" vs "의무적으로 쓴 협찬"을 Auth로 구분.</span>
+    </div>
+  </div>
+</div>
+<div style="padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+  <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px;">📊 협찬 5건 상세</div>
+  <div style="padding:5px 8px;background:#ecfdf5;border-radius:6px;margin-bottom:3px;font-size:11px;"><strong style="color:#059669;">진정성 보통</strong> — "얼레벌레 지나가는 일상" (04/04) · 느낌표 18개 · 추천 확신도 40</div>
+<div style="padding:5px 8px;background:#ecfdf5;border-radius:6px;margin-bottom:3px;font-size:11px;"><strong style="color:#059669;">진정성 보통</strong> — "2026년 1~3월 일상 이야기 올리려다 만 사진들이 아까워서" (04/01) · 느낌표 12개 · 추천 확신도 55</div>
+<div style="padding:5px 8px;background:#ecfdf5;border-radius:6px;margin-bottom:3px;font-size:11px;"><strong style="color:#059669;">진정성 보통</strong> — "성수3월팝업 방탈출st 새로팝업 중앙박물관" (03/25) · 느낌표 5개 · 추천 확신도 70</div>
+<div style="padding:5px 8px;background:#fee2e2;border-radius:6px;margin-bottom:3px;font-size:11px;"><strong style="color:#dc2626;">진정성 매우 낮음</strong> — "성수 이색 팝업스토어 방탈출형 새로중앙박물관 천년의 비법서... " (03/29) · 느낌표 58개 · 추천 확신도 55</div>
+<div style="padding:5px 8px;background:#fee2e2;border-radius:6px;margin-bottom:3px;font-size:11px;"><strong style="color:#dc2626;">진정성 매우 낮음</strong> — "인턴log 첫주일기_적응기간이라 쓰고 월급루팡이라고 읽는다" (04/04) · 느낌표 80개 · 추천 확신도 50</div>
+
+</div>
+
+<!-- 6. 후기 품질 Before→After -->
+<h2>6. 후기 품질 — "몇 건?"에서 "얼마나 깊은 건?"으로</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#94a3b8;">BEFORE</div>
+    <div class="ba-title" style="color:#475569;">단순 건수</div>
+    <div style="text-align:center;padding:18px;"><div style="font-size:44px;font-weight:800;color:#475569;">281건</div><div style="font-size:12px;color:#94a3b8;">"⭐ 좋아요" 1건 = "500자 서사" 1건<br><strong style="color:#475569;">같은 1건으로 취급</strong></div></div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER</div>
+    <div class="ba-title" style="color:var(--primary);">후기 깊이 5단계 가중</div>
+    <div style="margin:8px 0;">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:80px;font-size:10px;text-align:right;color:var(--primary);font-weight:700;">Q5 서사형</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:25.6%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;color:#fff;font-weight:600;">72건</div></div></div>
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:80px;font-size:10px;text-align:right;">Q4 분석형</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:29.5%;height:100%;background:var(--blue);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;color:#fff;font-weight:600;">83건</div></div></div>
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:80px;font-size:10px;text-align:right;">Q3 경험형</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:15.7%;height:100%;background:var(--green);border-radius:3px;"></div></div><div style="font-size:9px;">44</div></div>
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:80px;font-size:10px;text-align:right;color:#94a3b8;">Q2 감상형 (분석 가중치 낮음)</div><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.8%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:8px;color:#fff;font-weight:600;">81건</div></div></div>
+    </div>
+    <div style="padding:10px;background:#eef2ff;border-radius:6px;font-size:12px;color:var(--primary);line-height:1.7;">
+      <strong>"Q4+Q5 깊은 후기 55% (155건) — 방탈출 체험이 긴 서사를 유도"</strong><br>
+      <span style="font-size:11px;color:var(--body);">→ 281건 중 절반 이상이 분석·서사형 깊은 후기. 방탈출 미션 + 침착맨 콜라보 + 럭키드로우 등 <strong style="color:var(--primary);">체험 요소가 단순 방문 인증을 넘어 스토리텔링을 유발</strong>한 결과. 반면 Q2 감상형 81건(29%)은 사진만 올리고 텍스트가 거의 없어 <strong style="color:var(--coral);">분석 가치가 낮음(분석 가중치 낮음 가중).</strong> 기존 도구는 이 155건과 81건을 같은 "1건"으로 취급하지만, 후기 깊이 가중 적용 시 실제 인사이트 밀도는 <strong style="color:var(--primary);">3.4배 차이.</strong></span>
+    </div>
+  </div>
+</div>
+<div style="padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+  <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px;">📊 후기 깊이 등급별 실제 포스트</div>
+  <div style="font-size:11px;line-height:1.7;">
+    <div style="padding:5px 8px;background:#eef2ff;border-radius:6px;margin-bottom:4px;"><strong style="color:var(--primary);">Q5 서사형</strong> — "새로 중앙박물관 팝업 새로 소주 천년의 비법서 도난 사건..." 진정성 매우 높음, 694자 → <strong>긴 서사+개인경험+디테일</strong></div>
+    <div style="padding:5px 8px;background:#f1f5f9;border-radius:6px;"><strong style="color:#94a3b8;">Q2 감상형</strong> — 짧은 한줄 감상 또는 사진 위주 포스트 → <strong>분석 가치 낮음 (분석 가중치 낮음)</strong></div>
+  </div>
+</div>
+
+<!-- 7. 진심 필터 -->
+<h2>7. 진심 필터 — "281건"의 진짜 숫자</h2>
+<div style="margin:14px 0;">
+  <div style="padding:12px 18px;background:var(--light);border-radius:10px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;border:2px solid #e8e8e8;"><div><strong>1차 진심 필터</strong> <span style="font-size:12px;">전체</span></div><div style="font-size:18px;font-weight:800;">281건 <span style="font-size:12px;color:var(--body);">긍정 50%</span></div></div>
+  <div style="text-align:center;font-size:10px;color:var(--coral);padding:2px;">▼ 협찬 5건 제거</div>
+  <div style="padding:12px 18px;background:#eef2ff;border-radius:10px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;border:2px solid var(--primary);"><div><strong style="color:var(--primary);">2차 진심 필터</strong> <span style="font-size:12px;">자발적</span></div><div style="font-size:18px;font-weight:800;color:var(--primary);">276건 <span style="font-size:12px;">긍정 49% (-1%p)</span></div></div>
+  <div style="text-align:center;font-size:10px;color:var(--coral);padding:2px;">▼ 진정성 기준 미만 72건 탈락</div>
+  <div style="padding:12px 18px;background:var(--primary);border-radius:10px;display:flex;justify-content:space-between;align-items:center;color:#fff;"><div><strong>3차 진심 필터</strong> <span style="font-size:12px;color:rgba(255,255,255,0.7);">진심</span></div><div style="font-size:18px;font-weight:800;">204건 <span style="font-size:12px;color:rgba(255,255,255,0.7);">긍정 38% (-12%p)</span></div></div>
+</div>
+<div class="insight"><strong>3차 진심 필터 적용 시 긍정률 50%→38% (-12%p).</strong> 과장 긍정 77건 탈락 → <strong>팝업 버즈의 ~25%가 과장 긍정.</strong> 진심 필터 없이는 실제 반응을 왜곡.</div>
+
+<!-- 8. 핵심 수치 요약 -->
+<h2>8. 핵심 수치 요약</h2>
+<table><thead><tr><th>지표</th><th>수치</th><th>의미</th></tr></thead><tbody>
+  <tr><td>총 멘션 (통합)</td><td><strong style="color:var(--primary);">384건</strong></td><td>네이버 281 + Brand24 비블로그 103</td></tr>
+  <tr><td>운영 기간</td><td><strong>16일</strong></td><td>2026.03.21 ~ 04.05</td></tr>
+  <tr><td>3차 진심 필터 유효</td><td><strong style="color:var(--pink);">204건</strong></td><td>281건 중 진심 필터 통과 (73%)</td></tr>
+  <tr><td>긍정률 1차 진심 필터→3</td><td>50%→<strong>38%</strong> (-12%p)</td><td>과장 긍정 77건 탈락</td></tr>
+  <tr><td>진정성 평균</td><td><strong>보통</strong></td><td>중간 수준 — 과장 기미 존재</td></tr>
+  <tr><td>신선함 지수</td><td><strong style="color:var(--green);">보통</strong></td><td>"이/가" 발견형 비율</td></tr>
+  <tr><td style="color:var(--coral);">협찬 Auth</td><td style="color:var(--coral);"><strong>낮음</strong></td><td>자발적(58.7) 대비 20.9점 낮음</td></tr>
+  <tr><td style="color:var(--coral);">진정성 시간 하락</td><td style="color:var(--coral);"><strong>-20점</strong></td><td>이벤트전 66.4 → 이벤트후 46.2</td></tr>
+  <tr><td>Q5 서사형</td><td><strong>72건 (26%)</strong></td><td>깊이 있는 체험 서사 비율</td></tr>
+  <tr><td>최대 노출</td><td><strong style="color:#00b4d8;">~200만 명</strong></td><td>실 노출 예상 10~30만 명 (5~15%)</td></tr>
+</tbody></table>
+
+<!-- 종합 Before→After 비교표 -->
+<h2>종합: Before → After 비교표</h2>
+<table style="font-size:13px;">
+  <thead><tr><th style="width:120px;">분석 영역</th><th style="background:#64748b;">BEFORE (기존)</th><th>AFTER (RXR)</th><th style="width:80px;">차별화</th></tr></thead>
+  <tbody>
+    <tr><td style="font-weight:700;">버즈 규모</td><td>총 281건</td><td><strong style="color:var(--primary);">3차 진심 필터 유효 204건 (과장 77건 탈락)</strong></td><td style="color:var(--coral);font-weight:700;">진실</td></tr>
+    <tr><td style="font-weight:700;">감성</td><td>긍/중/부 3단계</td><td><strong style="color:var(--primary);">4단계 + 진정성 지수 보통 + 추천 의향 보통</strong></td><td style="color:var(--primary);font-weight:700;">깊이 ×3</td></tr>
+    <tr><td style="font-weight:700;">데이터 분류</td><td>건수만</td><td><strong style="color:var(--primary);">다단계 콘텐츠 분류 + 신뢰도 평가</strong></td><td style="color:var(--primary);font-weight:700;">정확도</td></tr>
+    <tr><td style="font-weight:700;">협찬</td><td>있다/없다</td><td><strong style="color:var(--primary);">진심 스펙트럼 (진정성 매우 낮음~57)</strong></td><td style="color:var(--primary);font-weight:700;">유일</td></tr>
+    <tr><td style="font-weight:700;">리그램</td><td style="color:var(--coral);">구분 불가</td><td><strong style="color:var(--primary);">자동 분류 태깅</strong></td><td style="color:var(--primary);font-weight:700;">유일</td></tr>
+    <tr><td style="font-weight:700;">토픽</td><td>워드클라우드</td><td><strong style="color:var(--primary);">구조화 비중 + 시사점</strong></td><td style="color:var(--primary);font-weight:700;">액셔너블</td></tr>
+    <tr><td style="font-weight:700;">심리</td><td style="color:var(--coral);">불가능</td><td><strong style="color:var(--primary);">진정성/추천/신선함 시계열</strong></td><td style="color:var(--coral);font-weight:700;">유일</td></tr>
+    <tr><td style="font-weight:700;">후기 품질</td><td>1건=1건</td><td><strong style="color:var(--primary);">후기 깊이 5단계 가중 분석</strong></td><td style="color:var(--primary);font-weight:700;">유일</td></tr>
+    <tr><td style="font-weight:700;">시계열</td><td>버즈량만</td><td><strong style="color:var(--primary);">진정성 대폭 하락 급락 감지</strong></td><td style="color:var(--primary);font-weight:700;">유일</td></tr>
+  </tbody>
+</table>
+
+<!-- BOTTOM LINE -->
+<div style="margin:28px 0;padding:24px;background:var(--primary-pale);border-radius:14px;">
+  <div style="font-size:12px;color:var(--body);margin-bottom:8px;font-family:'Poppins';letter-spacing:2px;text-align:center;">BOTTOM LINE</div>
+  <div style="font-size:17px;font-weight:800;color:var(--primary);line-height:1.6;text-align:center;margin-bottom:16px;">
+    기존: "281건, 긍정 50%"<br>
+    RXR: "유효 204건, 진심 긍정 38%, 진정성 대폭 하락 급락,<br>방탈출(7%)이 소주(68%)에 묻힘 — 체험 화제화 전략 필요"
+  </div>
+
+  <div style="border-top:2px solid var(--primary);padding-top:16px;">
+    <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px;">왜 이런 결과가 나왔는가?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div style="padding:12px;background:#fff;border-radius:10px;border-left:3px solid var(--coral);">
+        <div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:4px;">긍정률 50%→38% (-12%p)</div>
+        <div style="font-size:11px;color:var(--body);line-height:1.6;">3차 진심 필터에서 <strong>77건의 과장 긍정이 탈락.</strong> 진정성 기준 미만의 느낌표 과다·극단 감탄형 포스트가 실제 긍정을 부풀리고 있었음. 이는 기존 감성 분석 도구가 "좋아요!"와 "진심으로 좋았다"를 구분하지 못하기 때문.</div>
+      </div>
+      <div style="padding:12px;background:#fff;border-radius:10px;border-left:3px solid var(--orange);">
+        <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:4px;">진정성 대폭 하락 급락 (66.4→46.2)</div>
+        <div style="font-size:11px;color:var(--body);line-height:1.6;">16일 장기 운영의 부작용. <strong>후반부 방문자의 후기가 기억 미화·과장으로 진정성이 떨어짐.</strong> 초반 체험의 생생함(진정성 66+)이 후반에는 "좋았던 것 같다" 식의 막연한 회상(진정성 46)으로 전환.</div>
+      </div>
+      <div style="padding:12px;background:#fff;border-radius:10px;border-left:3px solid var(--primary);">
+        <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:4px;">방탈출 7% — 핵심 체험이 묻힘</div>
+        <div style="font-size:11px;color:var(--body);line-height:1.6;">새로중앙박물관의 차별화 포인트(방탈출형 미션)가 전체 토픽의 7%에 불과. <strong>소주/제품 언급(68%)에 압도</strong>되어 체험 자체보다 브랜드 인지가 주 화제. 팝업의 '경험'이 아닌 '제품'으로만 기억됨.</div>
+      </div>
+      <div style="padding:12px;background:#fff;border-radius:10px;border-left:3px solid #00b4d8;">
+        <div style="font-size:12px;font-weight:700;color:#00b4d8;margin-bottom:4px;">Instagram 57% — 시각만 소비</div>
+        <div style="font-size:11px;color:var(--body);line-height:1.6;">Brand24 비블로그 103건 중 Instagram이 57%로 압도. <strong>사진 중심의 표면적 확산</strong>은 활발하나, 깊이 있는 체험 서사(Q5)는 네이버 블로그에 집중. 시각 콘텐츠 ≠ 브랜드 옹호.</div>
+      </div>
+    </div>
+
+    <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px;">제언: 다음 팝업에서 무엇을 바꿀 것인가?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div style="padding:12px;background:#fff;border-radius:10px;">
+        <div style="font-size:18px;text-align:center;margin-bottom:6px;">🎯</div>
+        <div style="font-size:11px;font-weight:700;color:var(--dark);margin-bottom:4px;">체험 콘텐츠 비중 확대</div>
+        <div style="font-size:10px;color:var(--body);line-height:1.5;">방탈출·미션·침착맨 콜라보 등 체험 요소를 후기 작성 유도 포인트로 설계. 제품 시음 외에 <strong>"이야기할 거리"</strong>를 만들어야 Q5 서사형 비율 상승.</div>
+      </div>
+      <div style="padding:12px;background:#fff;border-radius:10px;">
+        <div style="font-size:18px;text-align:center;margin-bottom:6px;">⏱️</div>
+        <div style="font-size:11px;font-weight:700;color:var(--dark);margin-bottom:4px;">운영 기간별 콘텐츠 전환</div>
+        <div style="font-size:10px;color:var(--body);line-height:1.5;">진정성 급락은 장기 운영의 구조적 문제. <strong>1주차·2주차 콘텐츠를 다르게 운영</strong>하거나, 중간 이벤트 투입으로 후반부 신선함(신선함 지수) 유지 필요.</div>
+      </div>
+      <div style="padding:12px;background:#fff;border-radius:10px;">
+        <div style="font-size:18px;text-align:center;margin-bottom:6px;">📸</div>
+        <div style="font-size:11px;font-weight:700;color:var(--dark);margin-bottom:4px;">시각→서사 전환 유도</div>
+        <div style="font-size:10px;color:var(--body);line-height:1.5;">Instagram 확산(59건)은 인지도에 기여하나 옹호자 전환은 미달. <strong>블로그 서사형 후기 인센티브</strong> 또는 체험 스토리 공유 장치를 통해 깊이 있는 콘텐츠 유도.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 부록 -->
+<h2>부록: 진심 필터 통과 — 하이라이트 20건</h2>
+<p style="font-size:12px;color:var(--body);margin-bottom:12px;line-height:1.7;">384건의 멘션 중 진심 필터를 통과한 204건에서, 진정성이 가장 높은 후기 10건과 가장 낮은 후기 10건을 선별했습니다. 같은 "긍정"이라도 얼마나 다른 깊이를 담고 있는지 직접 확인해보세요.</p>
+
+<h3 style="color:var(--green);">진정성이 빛나는 후기 TOP 10</h3>
+<div style="margin-bottom:16px;">
+  <div style="padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">진정성 매우 높음</div><div style="font-size:11px;color:var(--body);">"새로 중앙박물관 팝업 새로 소주 천년의 비법서 도난 사건..." (04/05) · 긍정 · Q5 서사형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">구체적인 동선 묘사와 솔직한 감상이 담긴 깊이 있는 체험 서사</div></div>
+  <div style="padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">진정성 매우 높음</div><div style="font-size:11px;color:var(--body);">"안 가면 후회하는 새로... 날짜ㅣ운영시간ㅣ주말 웨이팅ㅣ새로술상" (04/02) · 긍정 · Q4 분석형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">정보와 체험을 균형 있게 담은 실용적 후기</div></div>
+  <div style="padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">진정성 매우 높음</div><div style="font-size:11px;color:var(--body);">"침착맨 x 새로 팝업스토어 후기" (03/30) · 긍정 · Q4 분석형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">콜라보 체험에 대한 구체적 평가와 개인적 감상</div></div>
+  <div style="padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">진정성 매우 높음</div><div style="font-size:11px;color:var(--body);">"[성수팝업] 새로중앙박물관 팝업 I 새로 소주 천년의 비법서..." (03/29) · 긍정 · Q5 서사형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">방탈출 미션 경험을 생생하게 풀어낸 장편 체험기</div></div>
+  <div style="padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">진정성 매우 높음</div><div style="font-size:11px;color:var(--body);">"새로 팝업 중앙박물관 관람 후기 + 침착맨 굿즈 얻는 법" (03/28) · 혼합 · Q4 분석형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">좋은 점과 아쉬운 점을 균형 있게 서술한 솔직한 후기</div></div>
+  <div style="padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">진정성 매우 높음</div><div style="font-size:11px;color:var(--body);">"공유 (평냉에 감겨버림, 새로중앙박물관, 아임도넛성수)" (03/24) · 긍정 · Q5 서사형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">성수 일정 전체를 진솔하게 풀어낸 일상 체험기</div></div>
+  <div style="padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">진정성 매우 높음</div><div style="font-size:11px;color:var(--body);">"[성수] 새로중앙박물관 팝업(with 침착맨)" (03/22) · 긍정 · Q3 경험형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">침착맨 콜라보에 대한 팬 시점의 생생한 현장감</div></div>
+  <div style="padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">진정성 매우 높음</div><div style="font-size:11px;color:var(--body);">"성수동 팝업부터 서서울미술관까지, 놓치지 말아야 할..." (03/14) · 긍정 · Q5 서사형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">이벤트 전부터 기대감을 구체적으로 서술한 사전 후기</div></div>
+  <div style="padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">진정성 매우 높음</div><div style="font-size:11px;color:var(--body);">"새로구미 성수 팝업 후기 (개청자 ver.)" (03/22) · 부정 · Q4 분석형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">아쉬운 점을 솔직하게 기록 — 부정이지만 진정성은 가장 높음</div></div>
+  <div style="padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">진정성 높음</div><div style="font-size:11px;color:var(--body);">"요즘 성수 팝업은 엠지하네(미피, AGF Blendy, 새로)" (03/30) · 긍정 · Q5 서사형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">여러 팝업을 비교하며 새로만의 차별점을 자연스럽게 서술</div></div>
+</div>
+
+<h3 style="color:var(--coral);">과장이 눈에 띄는 후기 10건</h3>
+<div style="margin-bottom:16px;">
+  <div style="padding:10px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:2px;">진정성 매우 낮음</div><div style="font-size:11px;color:var(--body);">"날씨가 좋으면 찾아갈게요 3월간슘삐" (03/25) · 긍정 · Q2 감상형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">느낌표 132개 — 과도한 감탄이 진정성을 떨어뜨린 사례</div></div>
+  <div style="padding:10px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:2px;">진정성 매우 낮음</div><div style="font-size:11px;color:var(--body);">"성수 이색 팝업스토어 방탈출형 새로중앙박물관 천년의 비법서..." (03/29) · 긍정 · Q2 감상형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">느낌표 58개 — 구체적 경험 없이 감탄사만 나열</div></div>
+  <div style="padding:10px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:2px;">진정성 매우 낮음</div><div style="font-size:11px;color:var(--body);">"인턴log 첫주일기_적응기간이라 쓰고 월급루팡이라고 읽는다" (04/04) · 긍정 · Q2 감상형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">느낌표 80개 — 팝업 관련 내용보다 일상 위주</div></div>
+  <div style="padding:10px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:2px;">진정성 낮음</div><div style="font-size:11px;color:var(--body);">"2026년 1~3월 일상 이야기 올리려다 만 사진들이 아까워서" (04/01) · 긍정 · Q2 감상형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">팝업 방문이 일상 나열 속에 짧게 언급</div></div>
+  <div style="padding:10px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:2px;">진정성 낮음</div><div style="font-size:11px;color:var(--body);">"성수3월팝업 방탈출st 새로팝업 중앙박물관" (03/25) · 긍정 · Q2 감상형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">제목만으로 체험 내용이 전달되지 않는 짧은 후기</div></div>
+  <div style="padding:10px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:2px;">진정성 낮음</div><div style="font-size:11px;color:var(--body);">"새로 생긴 비비앙 성수 외관 내부 모습" (04/06) · 중립 · Q2 감상형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">새로중앙박물관이 아닌 다른 매장에 대한 글 — 키워드만 일치</div></div>
+  <div style="padding:10px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:2px;">진정성 낮음</div><div style="font-size:11px;color:var(--body);">"성수에 새로 생긴 CU Review." (03/21) · 중립 · Q2 감상형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">"새로"가 브랜드가 아닌 "새로 생긴"의 의미로 사용된 노이즈</div></div>
+  <div style="padding:10px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:2px;">진정성 낮음</div><div style="font-size:11px;color:var(--body);">"팝업스토어: 소비와 경험이... 전략을 재편하는 새로운 공간 혁신" (03/23) · 중립 · Q2 감상형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">산업 분석 기사 — 개인 체험이 전혀 없는 정보성 콘텐츠</div></div>
+  <div style="padding:10px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:2px;">진정성 낮음</div><div style="font-size:11px;color:var(--body);">"성수 새로 생긴 숯불고기 맛집 : 참나무집(회식추천)" (04/05) · 긍정 · Q3 경험형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">음식점 후기 — "새로"가 브랜드와 무관한 다의어 노이즈</div></div>
+  <div style="padding:10px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);margin-bottom:6px;"><div style="font-size:12px;font-weight:700;color:var(--coral);margin-bottom:2px;">진정성 낮음</div><div style="font-size:11px;color:var(--body);">"20260331" (03/31) · 중립 · Q2 감상형</div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">날짜만 제목인 극히 짧은 포스트 — 분석 가치 최소</div></div>
+</div>
+
+<div class="insight" style="font-size:12px;line-height:1.7;">
+  <strong>같은 "긍정"이지만 전혀 다른 깊이.</strong> 진정성이 높은 후기는 구체적인 경험과 솔직한 감상이 담겨 있고, 낮은 후기는 느낌표와 감탄사가 내용을 대신합니다. RXR의 진심 필터는 이 차이를 수치로 포착하여, 브랜드가 정말로 귀 기울여야 할 목소리를 찾아냅니다.
+</div>
+</div>
+
+<div class="footer">Project RENT · R-lab · 2026 | RXR 다층 분석 + 진심 필터 | 새로중앙박물관</div>
+
+<!-- PDF Panel -->
+<div class="pdf-panel" id="pdfPanel"><button class="pdf-panel-toggle" onclick="document.getElementById('pdfBody').classList.toggle('open')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF</button><div class="pdf-panel-body" id="pdfBody"><div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:12px;text-align:center;">PDF 출력</div><div class="pdf-orient-group"><button class="pdf-orient-btn" id="btnL" onclick="setOrient('landscape')">가로</button><button class="pdf-orient-btn active" id="btnP" onclick="setOrient('portrait')">세로</button></div><button class="pdf-print-btn" onclick="window.print()">출력하기</button></div></div>
+<script>document.addEventListener('click',function(e){var p=document.getElementById('pdfPanel');if(p&&!p.contains(e.target))document.getElementById('pdfBody').classList.remove('open');});function setOrient(o){var s=document.getElementById('pageOrientStyle'),bL=document.getElementById('btnL'),bP=document.getElementById('btnP');if(o==='landscape'){s.textContent='@media print{@page{size:A4 landscape;margin:8mm;}}';bL.classList.add('active');bP.classList.remove('active');}else{s.textContent='';bP.classList.add('active');bL.classList.remove('active');}}</script>
+</body></html>

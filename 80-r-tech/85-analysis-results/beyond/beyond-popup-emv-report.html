@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMV Report — 비욘드 팝업스토어</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+:root{--primary:#6666FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--black:#000;--dark:#262626;--body:#424D61;--light:#F6F6F6;--white:#FFF;--red:#C00000;--coral:#FF5050;--blue:#4D93F7;--green:#10b981;--orange:#f59e0b;--pink:#d946ef;--primary-pale:#E1E1FF;--depth:#6366f1;--advocacy:#10b981;--sincerity:#f59e0b;--discovery:#ec4899;--emv:#059669;--emv-pale:#d1fae5;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:14px;line-height:1.6;max-width:1200px;margin:0 auto;padding:40px 32px;}
+h1{font-size:28px;font-weight:800;margin-bottom:4px;}
+h2{font-size:20px;font-weight:800;margin:36px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--primary-pale);}
+h3{font-size:15px;font-weight:700;margin:14px 0 8px;}
+.sub{font-size:13px;color:var(--body);margin-bottom:24px;}
+.card{background:var(--light);border:1px solid #e8e8e8;border-radius:12px;padding:16px 18px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0;}
+th{background:var(--primary);color:#fff;padding:6px 10px;text-align:left;font-size:11px;}
+td{padding:5px 10px;border-bottom:1px solid #eee;}
+.insight{padding:14px 18px;background:var(--primary-pale);border-radius:10px;border-left:4px solid var(--primary);margin:10px 0;font-size:13px;line-height:1.7;}
+.insight strong{color:var(--primary);}
+.emv-insight{padding:14px 18px;background:var(--emv-pale);border-radius:10px;border-left:4px solid var(--emv);margin:10px 0;font-size:13px;line-height:1.7;}
+.emv-insight strong{color:var(--emv);}
+.gauge-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.gauge-label{width:120px;font-size:12px;font-weight:600;text-align:right;flex-shrink:0;}
+.gauge-track{flex:1;height:28px;background:#f0f0f0;border-radius:6px;overflow:hidden;}
+.gauge-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:700;color:#fff;transition:width 0.8s ease;}
+.gauge-val{width:60px;font-family:'DIN Alternate','Poppins',sans-serif;font-size:16px;font-weight:700;text-align:center;flex-shrink:0;}
+.bei-big{font-family:'DIN Alternate','Poppins',sans-serif;font-size:56px;font-weight:800;line-height:1;}
+.bei-label{font-size:14px;font-weight:700;letter-spacing:1px;margin-top:4px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;}
+.emv-badge{background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;padding:4px 12px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1px;}
+.footer{margin-top:40px;padding-top:16px;border-top:2px solid var(--primary);font-size:11px;color:#94a3b8;text-align:center;}
+.axis-card{border-radius:14px;padding:20px;text-align:center;border:2px solid;}
+.axis-score{font-family:'DIN Alternate','Poppins',sans-serif;font-size:36px;font-weight:800;line-height:1;}
+.axis-name{font-size:13px;font-weight:700;margin-bottom:2px;letter-spacing:1px;}
+.axis-sub{font-size:10px;color:var(--body);line-height:1.5;margin-top:8px;}
+.compare-better{color:var(--green);font-weight:700;}
+.compare-worse{color:var(--coral);font-weight:700;}
+.num-big{font-family:'DIN Alternate','Poppins',sans-serif;}
+
+@media print{
+  @page{size:A4 portrait;margin:14mm 12mm;}
+  body{max-width:100%!important;padding:0!important;margin:0!important;}
+  .pdf-panel{display:none!important;}
+  .card,.grid2,.grid3,.grid4,.insight,.emv-insight,.gauge-row,table,.axis-card{break-inside:avoid!important;page-break-inside:avoid!important;}
+  h2,h3{break-after:avoid;page-break-after:avoid;}
+  h1{font-size:22px!important;} h2{font-size:16px!important;margin-top:20px!important;}
+  .card{padding:10px 12px!important;font-size:10px!important;}
+  table{font-size:10px!important;} th,td{padding:4px 6px!important;}
+  canvas{max-height:280px!important;}
+}
+.pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;}
+.pdf-panel-toggle{display:flex;align-items:center;gap:8px;padding:12px 22px;background:var(--grad);color:#fff;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(102,102,255,0.4);border:none;font-family:'Pretendard Variable',sans-serif;}
+.pdf-panel-body{display:none;position:absolute;bottom:56px;right:0;width:220px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:16px;}
+.pdf-panel-body.open{display:block;}
+.pdf-orient-group{display:flex;gap:8px;margin-bottom:14px;}
+.pdf-orient-btn{flex:1;padding:12px 8px;background:#f9fafb;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;font-family:'Pretendard Variable',sans-serif;color:#475569;font-size:11px;font-weight:600;text-align:center;}
+.pdf-orient-btn.active{border-color:var(--primary);background:#eef2ff;color:var(--primary);}
+.pdf-print-btn{width:100%;padding:10px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Pretendard Variable',sans-serif;}
+</style><style id="pageOrientStyle"></style></head><body>
+
+<!-- Header -->
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+  <span style="background:linear-gradient(135deg,#059669,#10b981);color:#fff;padding:4px 14px;border-radius:6px;font-family:'Poppins';font-size:11px;font-weight:600;letter-spacing:1px;">EMV REPORT</span>
+  <span class="emv-badge">VALUE CONVERSION</span>
+</div>
+<h1>BEI Value Conversion — 비욘드 팝업스토어</h1>
+<div class="sub">비욘드(LG생활건강) 성수 친환경 팝업 | 업종: 패션/뷰티 | 규모: 대형(x0.8) | 네이버 블로그 191건 분석 | Gate 3: 154건</div>
+
+<!-- 1. BEI Overview -->
+<h2>1. BEI Overview</h2>
+<div class="grid3" style="margin-bottom:20px;">
+  <div class="card" style="text-align:center;border-top:4px solid var(--primary);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);letter-spacing:1px;">BEI 종합</div>
+    <div class="bei-big" style="color:var(--primary);font-size:48px;">52.3</div>
+    <div class="bei-label" style="color:var(--primary);">Moderate</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid var(--depth);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);letter-spacing:1px;">인게이지먼트</div>
+    <div class="bei-big" style="color:var(--depth);font-size:48px;">52.1</div>
+    <div class="bei-label" style="color:var(--depth);">Moderate</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid var(--advocacy);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);letter-spacing:1px;">이슈성</div>
+    <div class="bei-big" style="color:var(--advocacy);font-size:48px;">54.3</div>
+    <div class="bei-label" style="color:var(--advocacy);">Moderate</div>
+  </div>
+</div>
+
+<!-- 4축 카드 -->
+<div class="grid4" style="margin-bottom:16px;">
+  <div class="axis-card" style="background:#eef2ff;border-color:var(--depth);">
+    <div class="axis-name" style="color:var(--depth);">DEPTH</div>
+    <div style="font-size:10px;color:var(--body);">관여 깊이</div>
+    <div class="axis-score" style="color:var(--depth);">54.6</div>
+    <div class="badge" style="background:var(--primary-pale);color:var(--primary);">Moderate</div>
+    <div class="axis-sub">Auth 66.7 x 0.6<br>+ RQL정규화 36.4 x 0.4</div>
+  </div>
+  <div class="axis-card" style="background:#ecfdf5;border-color:var(--advocacy);">
+    <div class="axis-name" style="color:var(--advocacy);">ADVOCACY</div>
+    <div style="font-size:10px;color:var(--body);">추천 강도</div>
+    <div class="axis-score" style="color:var(--advocacy);">44.1</div>
+    <div class="badge" style="background:#fee2e2;color:#991b1b;">Emerging</div>
+    <div class="axis-sub">Clout 46.4 x 0.6<br>+ P-01비율 40.6 x 0.4</div>
+  </div>
+  <div class="axis-card" style="background:#fefce8;border-color:var(--sincerity);">
+    <div class="axis-name" style="color:var(--sincerity);">SINCERITY</div>
+    <div style="font-size:10px;color:var(--body);">진심 비율</div>
+    <div class="axis-score" style="color:var(--sincerity);">80.6</div>
+    <div class="badge" style="background:#ddd6fe;color:#5b21b6;">Strong</div>
+    <div class="axis-sub">Gate 3 통과율<br>154 / 191 = 80.6%</div>
+  </div>
+  <div class="axis-card" style="background:#fdf2f8;border-color:var(--discovery);">
+    <div class="axis-name" style="color:var(--discovery);">DISCOVERY</div>
+    <div style="font-size:10px;color:var(--body);">발견 신선함</div>
+    <div class="axis-score" style="color:var(--discovery);">37.6</div>
+    <div class="badge" style="background:#fce7f3;color:#9d174d;">Emerging</div>
+    <div class="axis-sub">Freshness Index<br>"이/가" 발견형 비율</div>
+  </div>
+</div>
+
+<!-- 게이지 -->
+<div style="margin:16px 0;">
+  <div class="gauge-row"><div class="gauge-label" style="color:var(--sincerity);">Sincerity</div><div class="gauge-track"><div class="gauge-fill" style="width:80.6%;background:var(--sincerity);">Strong</div></div><div class="gauge-val" style="color:var(--sincerity);">80.6</div></div>
+  <div class="gauge-row"><div class="gauge-label" style="color:var(--depth);">Depth</div><div class="gauge-track"><div class="gauge-fill" style="width:54.6%;background:var(--depth);">Moderate</div></div><div class="gauge-val" style="color:var(--depth);">54.6</div></div>
+  <div class="gauge-row"><div class="gauge-label" style="color:var(--advocacy);">Advocacy</div><div class="gauge-track"><div class="gauge-fill" style="width:44.1%;background:var(--advocacy);">Emerging</div></div><div class="gauge-val" style="color:var(--advocacy);">44.1</div></div>
+  <div class="gauge-row"><div class="gauge-label" style="color:var(--discovery);">Discovery</div><div class="gauge-track"><div class="gauge-fill" style="width:37.6%;background:var(--discovery);">Emerging</div></div><div class="gauge-val" style="color:var(--discovery);">37.6</div></div>
+</div>
+
+<div class="insight">
+  <strong>BEI 진단:</strong> Sincerity(80.6)가 압도적으로 높아 <strong>"진심으로 반응한 사람이 많다"</strong>는 점은 확실. 그러나 Advocacy(44.1)와 Discovery(37.6)가 Emerging 수준 — <strong>"좋았지만 적극 추천이나 새로운 발견까지는 아닌"</strong> 상태. 친환경이라는 가치에는 공감하지만, "꼭 가봐야 해!"라는 추천 행동까지 이어지지 못함.
+</div>
+
+<!-- 2. EMV 전환 -->
+<h2>2. EMV (Estimated Media Value) 전환</h2>
+
+<div style="font-size:13px;font-weight:700;color:var(--body);margin-bottom:12px;">적용 파라미터</div>
+<div class="grid2" style="margin-bottom:16px;">
+  <div class="card">
+    <table>
+      <tr><td style="font-weight:600;">업종</td><td>패션/뷰티</td></tr>
+      <tr><td style="font-weight:600;">브랜드 규모</td><td>대형 (LG생활건강) x0.8</td></tr>
+      <tr><td style="font-weight:600;">CLV</td><td>500,000원</td></tr>
+      <tr><td style="font-weight:600;">CAC</td><td>40,000원</td></tr>
+      <tr><td style="font-weight:600;">CR_base</td><td>1.8%</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <table>
+      <tr><td style="font-weight:600;">AOV</td><td>80,000원</td></tr>
+      <tr><td style="font-weight:600;">CPM</td><td>8,000원</td></tr>
+      <tr><td style="font-weight:600;">도달 모수 (R)</td><td>300,000</td></tr>
+      <tr><td style="font-weight:600;">K_viral</td><td>3.5</td></tr>
+      <tr><td style="font-weight:600;">EarnedPremium</td><td>4.0</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 4축별 EMV 카드 -->
+<div class="grid4" style="margin-bottom:16px;">
+  <div class="axis-card" style="background:#eef2ff;border-color:var(--depth);">
+    <div class="axis-name" style="color:var(--depth);">DEPTH</div>
+    <div style="font-size:10px;color:var(--body);margin-bottom:6px;">재구매/재방문 가치</div>
+    <div class="axis-score" style="color:var(--depth);font-size:28px;">1,089만</div>
+    <div class="axis-sub">RetentionLift +3.7%<br>154명 x CLV 50만</div>
+  </div>
+  <div class="axis-card" style="background:#ecfdf5;border-color:var(--advocacy);">
+    <div class="axis-name" style="color:var(--advocacy);">ADVOCACY</div>
+    <div style="font-size:10px;color:var(--body);margin-bottom:6px;">신규 고객 획득 (바이럴)</div>
+    <div class="axis-score" style="color:var(--advocacy);font-size:28px;">10.9억</div>
+    <div class="axis-sub">Q5 13% x K_viral 3.5<br>CLV 50만 x CR 4.5%</div>
+  </div>
+  <div class="axis-card" style="background:#fefce8;border-color:var(--sincerity);">
+    <div class="axis-name" style="color:var(--sincerity);">SINCERITY</div>
+    <div style="font-size:10px;color:var(--body);margin-bottom:6px;">전환율 프리미엄</div>
+    <div class="axis-score" style="color:var(--sincerity);font-size:28px;">7,939만</div>
+    <div class="axis-sub">진성 80.6% (업종 평균 대비 +30.6%p)<br>전환율 +18.4% 리프트</div>
+  </div>
+  <div class="axis-card" style="background:#fdf2f8;border-color:var(--discovery);">
+    <div class="axis-name" style="color:var(--discovery);">DISCOVERY</div>
+    <div style="font-size:10px;color:var(--body);margin-bottom:6px;">Earned Media 가치</div>
+    <div class="axis-score" style="color:var(--discovery);font-size:28px;">510만</div>
+    <div class="axis-sub">Freshness 37.6<br>CPM earned 32,000</div>
+  </div>
+</div>
+
+<!-- EMV 구성비 차트 -->
+<div class="grid2" style="margin-bottom:16px;">
+  <div>
+    <canvas id="emvPieChart" height="260"></canvas>
+  </div>
+  <div>
+    <canvas id="emvBarChart" height="260"></canvas>
+  </div>
+</div>
+
+<!-- 총 EMV -->
+<div class="grid3" style="margin-bottom:16px;">
+  <div class="card" style="text-align:center;border-top:4px solid var(--dark);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);">T+0 EMV 합계</div>
+    <div class="num-big" style="font-size:36px;font-weight:800;color:var(--dark);">11.9억</div>
+    <div style="font-size:10px;color:var(--body);">4축 합산 (규모 보정 전)</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid var(--primary);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);">규모 보정 (x0.8)</div>
+    <div class="num-big" style="font-size:36px;font-weight:800;color:var(--primary);">9.5억</div>
+    <div style="font-size:10px;color:var(--body);">대형 브랜드 한계 효용 반영</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid var(--emv);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);">4주 누적 EMV</div>
+    <div class="num-big" style="font-size:36px;font-weight:800;color:var(--emv);">7.8억</div>
+    <div style="font-size:10px;color:var(--body);">Decay-adjusted 최종 가치</div>
+  </div>
+</div>
+
+<div class="emv-insight">
+  <strong>EMV 핵심 해석:</strong> 비욘드 팝업스토어의 SNS 인게이지먼트가 만들어낸 추정 미디어 가치는 4주 기준 <strong>약 7.8억 원</strong>. 이 중 <strong>Advocacy(바이럴 획득)가 90%</strong>를 차지 — 뷰티 업종의 높은 CLV(50만 원)와 Q5 추천형 포스트 13%가 결합된 결과. <strong>Sincerity(80.6)가 BEI 최고 축</strong>임에도 EMV에서는 전환율 프리미엄(7,939만 원)으로 2위 — 진성 리뷰 비율이 업종 평균보다 30.6%p 높아 실제 구매 전환에 기여.
+</div>
+
+<!-- 3. Decay 누적 상세 -->
+<h2>3. 4주 Decay-adjusted 가치 분해</h2>
+
+<div class="card" style="margin-bottom:16px;">
+  <table>
+    <thead><tr><th>축</th><th style="text-align:right;">T+0 EMV</th><th style="text-align:center;">감쇠 계수</th><th style="text-align:center;">규모 보정</th><th style="text-align:right;">4주 누적 CV</th><th style="text-align:right;">비중</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:700;color:var(--depth);">Depth</td>
+        <td style="text-align:right;">1,089만</td>
+        <td style="text-align:center;">x0.919 (Slow)</td>
+        <td style="text-align:center;">x0.8</td>
+        <td style="text-align:right;font-weight:700;">801만</td>
+        <td style="text-align:right;">1.0%</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:var(--advocacy);">Advocacy</td>
+        <td style="text-align:right;">10.9억</td>
+        <td style="text-align:center;">x0.803 (Rapid)</td>
+        <td style="text-align:center;">x0.8</td>
+        <td style="text-align:right;font-weight:700;">7.0억</td>
+        <td style="text-align:right;">90.1%</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:var(--sincerity);">Sincerity</td>
+        <td style="text-align:right;">7,939만</td>
+        <td style="text-align:center;">x1.047 (Inverse)</td>
+        <td style="text-align:center;">x0.8</td>
+        <td style="text-align:right;font-weight:700;">6,650만</td>
+        <td style="text-align:right;">8.6%</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:var(--discovery);">Discovery</td>
+        <td style="text-align:right;">510만</td>
+        <td style="text-align:center;">x0.611 (Sharp)</td>
+        <td style="text-align:center;">x0.8</td>
+        <td style="text-align:right;font-weight:700;">249만</td>
+        <td style="text-align:right;">0.3%</td>
+      </tr>
+      <tr style="background:var(--emv-pale);">
+        <td style="font-weight:800;color:var(--emv);">Total</td>
+        <td style="text-align:right;font-weight:800;">11.9억</td>
+        <td></td><td></td>
+        <td style="text-align:right;font-weight:800;color:var(--emv);">7.8억</td>
+        <td style="text-align:right;font-weight:800;">100%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="insight">
+  <strong>Decay 인사이트:</strong> Sincerity는 시간이 지나면 <strong>오히려 가치가 상승</strong>(x1.047) — 협찬/노이즈가 사라지고 진심 리뷰만 남으면서 전환율 프리미엄이 강화. 반면 Discovery(x0.611)는 친환경이라는 컨셉의 신선함이 빠르게 소진되어 Earned Media 가치가 급감.
+</div>
+
+<!-- 4. 새로 vs 비욘드 비교 -->
+<h2>4. 새로중앙박물관 vs 비욘드 비교</h2>
+
+<div class="card" style="margin-bottom:16px;">
+  <table>
+    <thead>
+      <tr><th></th><th style="text-align:center;">새로중앙박물관</th><th style="text-align:center;">비욘드 팝업</th><th style="text-align:center;">차이</th></tr>
+    </thead>
+    <tbody>
+      <tr><td style="font-weight:600;">업종</td><td style="text-align:center;">F&B/주류</td><td style="text-align:center;">패션/뷰티</td><td></td></tr>
+      <tr><td style="font-weight:600;">규모</td><td style="text-align:center;">메가 (x0.6)</td><td style="text-align:center;">대형 (x0.8)</td><td></td></tr>
+      <tr><td style="font-weight:600;">게시물</td><td style="text-align:center;">281건</td><td style="text-align:center;">191건</td><td style="text-align:center;color:var(--coral);">-32%</td></tr>
+      <tr><td style="font-weight:600;">Gate 3</td><td style="text-align:center;">204건</td><td style="text-align:center;">154건</td><td style="text-align:center;color:var(--coral);">-25%</td></tr>
+      <tr style="background:#eef2ff;"><td style="font-weight:700;">BEI 종합</td><td style="text-align:center;font-weight:700;">57.6</td><td style="text-align:center;font-weight:700;">52.3</td><td style="text-align:center;color:var(--coral);font-weight:700;">-5.3</td></tr>
+      <tr><td style="font-weight:600;color:var(--depth);">Depth</td><td style="text-align:center;">60.5</td><td style="text-align:center;">54.6</td><td style="text-align:center;color:var(--coral);">-5.9</td></tr>
+      <tr><td style="font-weight:600;color:var(--advocacy);">Advocacy</td><td style="text-align:center;">54.4</td><td style="text-align:center;">44.1</td><td style="text-align:center;color:var(--coral);font-weight:700;">-10.3</td></tr>
+      <tr><td style="font-weight:600;color:var(--sincerity);">Sincerity</td><td style="text-align:center;">72.6</td><td style="text-align:center;">80.6</td><td style="text-align:center;color:var(--green);font-weight:700;">+8.0</td></tr>
+      <tr><td style="font-weight:600;color:var(--discovery);">Discovery</td><td style="text-align:center;">43.1</td><td style="text-align:center;">37.6</td><td style="text-align:center;color:var(--coral);">-5.5</td></tr>
+      <tr style="background:var(--emv-pale);"><td style="font-weight:800;color:var(--emv);">4주 누적 EMV</td><td style="text-align:center;font-weight:800;">3,067만</td><td style="text-align:center;font-weight:800;">7.8억</td><td style="text-align:center;color:var(--green);font-weight:800;">x25.4</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="emv-insight">
+  <strong>비교 핵심:</strong> 비욘드의 BEI(52.3)는 새로(57.6)보다 <strong>5.3점 낮지만</strong>, EMV는 <strong>25배 높다</strong>. 이유는 순수하게 <strong>업종 차이</strong>:<br><br>
+  <strong>1.</strong> 뷰티 CLV(50만) vs F&B CLV(15만) — 고객 1명의 가치가 3.3배<br>
+  <strong>2.</strong> 뷰티 K_viral(3.5) vs F&B K_viral(2.5) — 바이럴 계수 1.4배<br>
+  <strong>3.</strong> 대형(x0.8) vs 메가(x0.6) — 규모 보정 차이<br><br>
+  <strong>시사점:</strong> EMV 절대값보다 <strong>같은 업종 내 비교</strong>가 의미 있다. 비욘드의 EMV는 다른 뷰티 팝업 캠페인과 비교해야 효율을 판단할 수 있다.
+</div>
+
+<!-- 5. 가치 구조 진단 -->
+<h2>5. 가치 구조 진단 & 개선 방향</h2>
+
+<div class="grid2" style="margin-bottom:16px;">
+  <div class="card" style="border-top:4px solid var(--green);">
+    <div style="font-size:13px;font-weight:800;color:var(--green);margin-bottom:10px;">강점 — 비용 관점에서 잘한 것</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      <strong style="color:var(--sincerity);">Sincerity 80.6 (Strong)</strong><br>
+      &#8594; 진성 리뷰 비율이 업종 평균 대비 <strong>+30.6%p</strong><br>
+      &#8594; 전환율 프리미엄 <strong>+18.4%</strong> 리프트<br>
+      &#8594; EMV 6,650만 원의 전환율 가치 창출<br>
+      &#8594; 시간이 갈수록 가치 상승 (Decay x1.047)<br><br>
+      <strong>해석:</strong> 친환경 캠페인의 진정성이 소비자에게 전달됨. 협찬 9건(4.7%)으로 노이즈 최소화. <strong>"돈으로 살 수 없는 진심"</strong>이 만든 가치.
+    </div>
+  </div>
+  <div class="card" style="border-top:4px solid var(--coral);">
+    <div style="font-size:13px;font-weight:800;color:var(--coral);margin-bottom:10px;">약점 — 비용 관점에서 놓친 것</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      <strong style="color:var(--advocacy);">Advocacy 44.1 (Emerging)</strong><br>
+      &#8594; "좋았다" 까지는 가지만 <strong>"꼭 가봐!"까지는 아님</strong><br>
+      &#8594; Clout 46.4 (추천 확신도 낮음)<br>
+      &#8594; 그럼에도 EMV의 90%를 차지 — <strong>여기가 레버리지 포인트</strong><br><br>
+      <strong style="color:var(--discovery);">Discovery 37.6 (Emerging)</strong><br>
+      &#8594; 친환경/리필이 이미 알려진 컨셉 → 신선함 부족<br>
+      &#8594; "은/는"(기존 인식) 비율이 "이/가"(새 발견)보다 높음<br>
+      &#8594; <strong>"예상 범위 내의 경험"</strong>이라는 반응
+    </div>
+  </div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--primary);margin-bottom:16px;">
+  <div style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:10px;">EMV 극대화를 위한 개선 방향</div>
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <strong>1. Advocacy +10점 (44→54) 시나리오</strong><br>
+    &#8594; Q5 추천형 포스트 유도: "친구에게 추천할 이유" 경험 설계<br>
+    &#8594; 공병 교환 → 친구와 함께 오면 추가 혜택 (바이럴 트리거)<br>
+    &#8594; <strong>예상 EMV 상승: +2.5억 원 (현재 대비 +32%)</strong><br><br>
+    <strong>2. Discovery +15점 (38→53) 시나리오</strong><br>
+    &#8594; 친환경 + "예상 못한 경험" 결합: 업사이클링 워크숍, AR 해양 생태계 체험 등<br>
+    &#8594; "환경 = 불편/의무"에서 "환경 = 신기한 발견"으로 전환<br>
+    &#8594; <strong>예상 EMV 상승: +320만 원 (미미하지만 초기 트래픽 기여)</strong><br><br>
+    <strong>3. 핵심 레버리지: Advocacy가 EMV의 90%</strong><br>
+    &#8594; 같은 예산이라면 <strong>추천 행동 유도에 집중</strong>하는 것이 EMV 효율 최대<br>
+    &#8594; Sincerity는 이미 Strong — 추가 투자 대비 한계 효용 낮음
+  </div>
+</div>
+
+<!-- 6. BOTTOM LINE -->
+<h2>6. BOTTOM LINE</h2>
+
+<div class="card" style="border-top:4px solid var(--emv);margin-bottom:16px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;text-align:center;margin-bottom:16px;">
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--body);">SNS 인게이지먼트 가치</div>
+      <div class="num-big" style="font-size:40px;font-weight:800;color:var(--emv);">7.8억</div>
+      <div style="font-size:10px;color:var(--body);">4주 Decay-adjusted EMV</div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--body);">가치의 90%는</div>
+      <div class="num-big" style="font-size:40px;font-weight:800;color:var(--advocacy);">바이럴</div>
+      <div style="font-size:10px;color:var(--body);">Advocacy 축이 지배적</div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--body);">숨은 자산은</div>
+      <div class="num-big" style="font-size:40px;font-weight:800;color:var(--sincerity);">진심</div>
+      <div style="font-size:10px;color:var(--body);">Sincerity 80.6 (Strong)</div>
+    </div>
+  </div>
+  <div style="font-size:13px;color:var(--body);line-height:1.8;padding:12px;background:#fff;border-radius:8px;">
+    비욘드 친환경 팝업은 <strong>"진심은 얻었지만, 추천까지는 못 이끈"</strong> 캠페인.
+    비용 관점에서 가장 큰 가치 드라이버는 Advocacy(바이럴)이며, 현재 Emerging(44.1)에 머물러 있어
+    <strong>개선 여지가 곧 수억 원의 가치 상승 기회</strong>.
+    다음 캠페인에서는 "친구와 함께" 경험을 설계하면 같은 BEI에서도 EMV를 30% 이상 끌어올릴 수 있다.
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <strong>BEI Value Conversion Report v1.0</strong> | RXR Framework — EMV Model | 비욘드 팝업스토어 (LG생활건강) | 2026-04-12<br>
+  본 리포트의 금액은 추정 미디어 가치(EMV)로, 실제 매출액이 아님을 유의하시기 바랍니다. | 업종: 패션/뷰티 파라미터 적용
+</div>
+
+<!-- PDF Panel -->
+<div class="pdf-panel">
+  <button class="pdf-panel-toggle" onclick="this.nextElementSibling.classList.toggle('open')">&#128424; PDF</button>
+  <div class="pdf-panel-body">
+    <div class="pdf-orient-group">
+      <button class="pdf-orient-btn active" onclick="setOrient('portrait',this)">&#9645; 세로</button>
+      <button class="pdf-orient-btn" onclick="setOrient('landscape',this)">&#9645; 가로</button>
+    </div>
+    <button class="pdf-print-btn" onclick="window.print()">출력하기</button>
+  </div>
+</div>
+
+<script>
+function setOrient(o,btn){
+  document.getElementById('pageOrientStyle').textContent='@page{size:A4 '+o+';}';
+  document.querySelectorAll('.pdf-orient-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// EMV Pie Chart
+new Chart(document.getElementById('emvPieChart').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Advocacy (바이럴)', 'Sincerity (전환율)', 'Depth (재구매)', 'Discovery (Earned)'],
+    datasets: [{
+      data: [70038, 6650, 801, 249],
+      backgroundColor: ['#10b981','#f59e0b','#6366f1','#ec4899'],
+      borderWidth: 2, borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      title: { display: true, text: 'EMV 구성비 (4주 누적)', font: { size: 14, weight: 'bold', family: "'Pretendard Variable'" }},
+      tooltip: { callbacks: { label: function(ctx){ return ctx.label + ': ' + ctx.parsed.toLocaleString('ko-KR') + '\uB9CC\uC6D0 (' + (ctx.parsed/(70038+6650+801+249)*100).toFixed(1) + '%)'; }}}
+    }
+  }
+});
+
+// EMV vs BEI Bar Chart
+new Chart(document.getElementById('emvBarChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: ['Depth', 'Advocacy', 'Sincerity', 'Discovery'],
+    datasets: [
+      { label: 'BEI 점수', data: [54.6, 44.1, 80.6, 37.6], backgroundColor: 'rgba(102,102,255,0.3)', borderColor: '#6666FF', borderWidth: 2, yAxisID: 'y' },
+      { label: 'EMV (만원)', data: [801, 70038, 6650, 249], backgroundColor: ['rgba(99,102,241,0.7)','rgba(16,185,129,0.7)','rgba(245,158,11,0.7)','rgba(236,72,153,0.7)'], yAxisID: 'y1' }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      title: { display: true, text: 'BEI 점수 vs EMV 가치', font: { size: 14, weight: 'bold', family: "'Pretendard Variable'" }}
+    },
+    scales: {
+      y: { position: 'left', title: { display: true, text: 'BEI (0~100)' }, max: 100 },
+      y1: { position: 'right', title: { display: true, text: 'EMV (\uB9CC\uC6D0)' }, grid: { drawOnChartArea: false },
+        ticks: { callback: function(v){ return v >= 10000 ? (v/10000).toFixed(1)+'\uC5B5' : v.toLocaleString('ko-KR'); }}
+      }
+    }
+  }
+});
+</script>
+</body></html>

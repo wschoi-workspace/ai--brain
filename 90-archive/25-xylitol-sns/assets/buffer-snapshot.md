@@ -1,0 +1,84 @@
+- generic [ref=e2]:
+  - generic [ref=e792]:
+    - link "Skip to main content" [ref=e793] [cursor=pointer]:
+      - /url: "#main"
+    - banner
+    - complementary "Main sidebar navigation" [ref=e795]:
+      - generic [ref=e797]:
+        - generic [ref=e799]:
+          - generic [ref=e800]:
+            - link "Go to schedule" [ref=e801] [cursor=pointer]:
+              - /url: /schedule
+            - button "View Streak" [ref=e804] [cursor=pointer]
+          - button "New" [ref=e810] [cursor=pointer]:
+            - img [ref=e811]
+            - text: New
+          - list [ref=e814]:
+            - listitem [ref=e815]
+            - listitem [ref=e821]
+            - listitem [ref=e830]
+        - generic [ref=e839]:
+          - generic [ref=e842]:
+            - generic [ref=e843]: Connect channels
+            - generic [ref=e844]
+          - generic [ref=e859]:
+            - list [ref=e860]
+            - list [ref=e891]
+        - generic [ref=e900]:
+          - generic [ref=e901]:
+            - paragraph [ref=e902]: 0/3 channels connected
+            - button "Dismiss" [ref=e903] [cursor=pointer]
+          - generic [ref=e907]:
+            - progressbar
+            - progressbar
+            - progressbar
+        - generic [ref=e909]:
+          - button "My Organization" [ref=e910] [cursor=pointer]:
+            - generic [ref=e914]
+          - button "Close sidebar" [expanded] [ref=e917] [cursor=pointer]:
+            - img [ref=e918]
+            - generic [ref=e920]: Close sidebar
+        - button "Close sidebar" [expanded] [ref=e921] [cursor=pointer]
+    - main [ref=e922]:
+      - region "Notifications (F8)":
+        - list
+      - generic [ref=e923]:
+        - generic [ref=e924]:
+          - generic [ref=e925]:
+            - heading "All Channels" [active] [level=1] [ref=e926]
+            - generic [ref=e933]
+          - generic [ref=e951]:
+            - tablist [ref=e953]
+            - button "More actions" [ref=e964] [cursor=pointer]
+        - main [ref=e968]:
+          - tabpanel [ref=e969]:
+            - generic [ref=e970]
+      - generic [ref=e1007]:
+        - generic [ref=e1008]:
+          - generic [ref=e1009]:
+            - heading "Complete your setup" [level=2] [ref=e1010]
+            - button "Dismiss Welcome Checklist" [ref=e1011] [cursor=pointer]
+          - generic [ref=e1015]:
+            - generic [ref=e1016]: 1 of 4
+            - progressbar
+        - generic [ref=e1017]:
+          - button "Create your Buffer account" [ref=e1018] [cursor=pointer]:
+            - generic [ref=e1019]
+            - img [ref=e1024]
+          - button "Connect your first channel" [ref=e1026] [cursor=pointer]:
+            - generic [ref=e1029]: Connect your first channel
+            - img [ref=e1030]
+          - button "Save an idea" [ref=e1032] [cursor=pointer]:
+            - generic [ref=e1035]: Save an idea
+            - img [ref=e1036]
+          - button "Publish your first post" [ref=e1038] [cursor=pointer]:
+            - generic [ref=e1041]: Publish your first post
+            - img [ref=e1042]
+        - paragraph [ref=e1045]:
+          - text: Need some help?
+          - link "Read our guide" [ref=e1046] [cursor=pointer]:
+            - /url: https://support.buffer.com/article/600-getting-started-with-buffers-publishing-features
+  - button "Helpcenter" [ref=e1047] [cursor=pointer]:
+    - img [ref=e1048]
+  - region "Notifications (F8)":
+    - list

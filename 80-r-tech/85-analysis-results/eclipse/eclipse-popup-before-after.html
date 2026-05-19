@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR 2-Layer — Before vs After</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+  :root{--primary:#6666FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--black:#000;--dark:#262626;--body:#424D61;--light:#F6F6F6;--white:#FFF;--red:#C00000;--coral:#FF5050;--blue:#4D93F7;--green:#10b981;--orange:#f59e0b;--pink:#d946ef;--gray:#94a3b8;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:14px;line-height:1.6;max-width:1200px;margin:0 auto;padding:40px 32px;}
+  h1{font-size:28px;font-weight:800;color:var(--black);margin-bottom:4px;}
+  h2{font-size:20px;font-weight:800;margin:36px 0 14px;padding-bottom:8px;border-bottom:2px solid #E1E1FF;}
+  h3{font-size:15px;font-weight:700;margin:16px 0 8px;}
+  .sub{font-size:13px;color:var(--body);margin-bottom:24px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .card{background:var(--light);border:1px solid #e8e8e8;border-radius:12px;padding:18px 20px;}
+
+  /* Before/After 비교 박스 */
+  .ba-container{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:stretch;margin:20px 0;}
+  .ba-box{padding:24px;border-radius:14px;}
+  .ba-before{background:#f1f5f9;border:2px solid #cbd5e1;}
+  .ba-after{background:#eef2ff;border:2px solid var(--primary);}
+  .ba-vs{display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:var(--gray);}
+  .ba-label{font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:10px;}
+  .ba-title{font-size:16px;font-weight:800;margin-bottom:12px;}
+  .ba-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;font-size:13px;line-height:1.6;}
+  .ba-icon{flex-shrink:0;width:20px;text-align:center;}
+
+  /* 게이지 차트 */
+  .gauge-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .gauge-label{width:110px;font-size:12px;font-weight:600;text-align:right;flex-shrink:0;}
+  .gauge-track{flex:1;height:28px;background:#f0f0f0;border-radius:6px;overflow:hidden;position:relative;}
+  .gauge-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:700;color:#fff;transition:width 0.8s;}
+  .gauge-val{width:50px;font-family:'DIN Alternate','Poppins',sans-serif;font-size:16px;font-weight:700;text-align:center;flex-shrink:0;}
+
+  /* 바 차트 비교 */
+  .compare-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .compare-label{width:100px;font-size:11px;text-align:right;flex-shrink:0;}
+  .compare-track{flex:1;height:24px;background:#f0f0f0;border-radius:4px;overflow:hidden;display:flex;}
+  .compare-fill-before{height:100%;background:#cbd5e1;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#475569;}
+  .compare-fill-after{height:100%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff;}
+
+  /* 도넛 차트 (CSS) */
+  .donut-container{display:flex;justify-content:center;gap:40px;margin:20px 0;}
+  .donut-wrap{text-align:center;}
+  .donut{width:140px;height:140px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;}
+  .donut-inner{width:90px;height:90px;background:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:1;}
+  .donut-val{font-family:'DIN Alternate','Poppins',sans-serif;font-size:24px;font-weight:700;}
+  .donut-sub{font-size:9px;color:var(--body);}
+  .donut-title{font-size:12px;font-weight:600;margin-top:8px;color:var(--body);}
+
+  .insight{padding:14px 18px;background:#E1E1FF;border-radius:10px;border-left:4px solid var(--primary);margin:12px 0;font-size:13px;line-height:1.7;}
+  .insight strong{color:var(--primary);}
+  .insight-red{background:#fef2f2;border-left-color:var(--coral);}
+  .insight-red strong{color:var(--coral);}
+
+  table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0;}
+  th{background:var(--primary);color:#fff;padding:7px 10px;text-align:left;font-size:11px;}
+  td{padding:6px 10px;border-bottom:1px solid #eee;}
+
+  .arrow-right{display:inline-block;width:40px;text-align:center;font-size:20px;color:var(--primary);}
+  .footer{margin-top:40px;padding-top:20px;border-top:2px solid var(--primary);font-size:11px;color:#94a3b8;text-align:center;}
+  @media print{
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
+    body{max-width:100%;padding:16px;font-size:12px;background:#fff!important;}
+    .pdf-panel{display:none!important;}
+    /* 다크 → 화이트 */
+    div[style*="background:var(--black)"],div[style*="background:#000"]{background:#f8fafc!important;color:var(--dark)!important;}
+    div[style*="background:var(--black)"] *{color:var(--dark)!important;}
+    div[style*="background:var(--black)"] .tag,
+    div[style*="background:var(--black)"] strong[style*="color:var(--primary)"]{color:var(--primary)!important;}
+    div[style*="background:var(--black)"] span[style*="color:var(--gray)"]{color:var(--body)!important;}
+    div[style*="background:var(--black)"] div[style*="color:#cbd5e1"]{color:var(--body)!important;}
+    div[style*="background:var(--black)"] div[style*="color:#94a3b8"]{color:var(--body)!important;}
+    .highlight{-webkit-text-fill-color:var(--primary)!important;color:var(--primary)!important;}
+    /* 블록 잘림 방지 */
+    .ba-container,.ba-box,.card,.grid2,.grid3,
+    table,thead,tbody,tr,
+    .insight,.gauge-row,
+    h2,h3{
+      break-inside:avoid!important;
+      page-break-inside:avoid!important;
+    }
+    h2{break-after:avoid;page-break-after:avoid;margin-top:24px;}
+    /* 각 섹션을 페이지 단위로 */
+    h2{break-before:page;page-break-before:always;}
+    h2:first-of-type{break-before:auto;page-break-before:auto;}
+    /* 폰트 축소 */
+    h1{font-size:22px!important;}
+    h2{font-size:17px!important;}
+    .ba-title{font-size:14px!important;}
+    .ba-container{gap:0!important;}
+    .ba-box{padding:16px!important;font-size:11px!important;}
+    .ba-vs{font-size:20px!important;width:40px!important;}
+    .insight{padding:10px 14px!important;font-size:11px!important;}
+  }
+  .pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;}
+  .pdf-panel-toggle{display:flex;align-items:center;gap:8px;padding:12px 22px;background:var(--grad);color:#fff;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(102,102,255,0.4);transition:all 0.2s;border:none;font-family:'Pretendard Variable',sans-serif;}
+  .pdf-panel-toggle:hover{transform:translateY(-2px);}
+  .pdf-panel-body{display:none;position:absolute;bottom:56px;right:0;width:220px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:16px;animation:panelIn 0.2s ease;}
+  @keyframes panelIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .pdf-panel-body.open{display:block;}
+  .pdf-orient-group{display:flex;gap:8px;margin-bottom:14px;}
+  .pdf-orient-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;background:#f9fafb;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:all 0.15s;font-family:'Pretendard Variable',sans-serif;color:#475569;font-size:11px;font-weight:600;}
+  .pdf-orient-btn:hover{border-color:var(--primary);background:#eef2ff;}
+  .pdf-orient-btn.active{border-color:var(--primary);background:#eef2ff;color:var(--primary);box-shadow:0 0 0 3px rgba(102,102,255,0.15);}
+  .pdf-print-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;font-family:'Pretendard Variable',sans-serif;cursor:pointer;}
+</style>
+<style id="pageOrientStyle">@media print{@page{size:A4 portrait;margin:10mm;}}</style>
+</head>
+<body>
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+  <span style="background:var(--grad);color:#fff;padding:4px 14px;border-radius:6px;font-family:'Poppins';font-size:11px;font-weight:600;letter-spacing:1px;">BEFORE → AFTER</span>
+</div>
+<h1>기존 분석 vs RXR 2-Layer 분석</h1>
+<div class="sub">이클립스 월드 팝업스토어 | 같은 데이터, 완전히 다른 인사이트 | Project RENT · R-lab</div>
+
+<!-- ============================================ -->
+<!-- OVERVIEW: 리서치 개요 -->
+<!-- ============================================ -->
+<div style="padding:24px;background:var(--black);border-radius:14px;color:var(--white);margin-bottom:32px;">
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+    <!-- 좌측: 분석 대상 -->
+    <div>
+      <div style="font-size:11px;font-family:'Poppins';letter-spacing:2px;color:var(--gray);margin-bottom:8px;">ABOUT THIS RESEARCH</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:12px;">분석 대상</div>
+
+      <table style="width:100%;font-size:12px;border-collapse:collapse;">
+        <tr><td style="padding:6px 0;color:var(--gray);width:80px;">팝업명</td><td style="padding:6px 0;font-weight:700;color:var(--white);">이클립스 월드 — Into the Tin Case</td></tr>
+        <tr><td style="padding:6px 0;color:var(--gray);border-top:1px solid rgba(255,255,255,0.08);">브랜드</td><td style="padding:6px 0;color:var(--white);border-top:1px solid rgba(255,255,255,0.08);">이클립스® (롯데웰푸드) · 신제품 '포도향' 출시 기념</td></tr>
+        <tr><td style="padding:6px 0;color:var(--gray);border-top:1px solid rgba(255,255,255,0.08);">기간</td><td style="padding:6px 0;color:var(--white);border-top:1px solid rgba(255,255,255,0.08);">2026.03.12(목) ~ 03.15(일), <strong>4일간</strong></td></tr>
+        <tr><td style="padding:6px 0;color:var(--gray);border-top:1px solid rgba(255,255,255,0.08);">장소</td><td style="padding:6px 0;color:var(--white);border-top:1px solid rgba(255,255,255,0.08);">서울 성동구 성수이로 88</td></tr>
+        <tr><td style="padding:6px 0;color:var(--gray);border-top:1px solid rgba(255,255,255,0.08);">컨셉</td><td style="padding:6px 0;color:var(--white);border-top:1px solid rgba(255,255,255,0.08);">틴케이스 내부 = 레트로 오락실. 3종 미션 게임 + 포토부스 + 가챠 + 키링 커스텀</td></tr>
+        <tr><td style="padding:6px 0;color:var(--gray);border-top:1px solid rgba(255,255,255,0.08);">분석 기간</td><td style="padding:6px 0;color:var(--white);border-top:1px solid rgba(255,255,255,0.08);">2026.02.26 ~ 03.31 (팝업 전 2주 + 팝업 + 팝업 후 2주)</td></tr>
+      </table>
+    </div>
+
+    <!-- 우측: 리서치 관점 -->
+    <div>
+      <div style="font-size:11px;font-family:'Poppins';letter-spacing:2px;color:var(--gray);margin-bottom:8px;">RESEARCH PERSPECTIVE</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:12px;">리서치 관점</div>
+
+      <div style="font-size:13px;color:#cbd5e1;line-height:1.8;margin-bottom:16px;">
+        이 리서치는 <strong style="color:var(--white);">"기존 소셜 리스닝 도구가 보여주는 숫자와 RXR 분석이 보여주는 인사이트가 얼마나 다른가?"</strong>를 실증하기 위해 진행되었습니다.
+      </div>
+
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7;">
+        <div style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.08);">
+          <span style="color:var(--primary-light);font-weight:600;">핵심 질문:</span> 소셜 미디어에서 수집된 데이터 중 "진짜 고객의 진짜 반응"은 몇 %인가?
+        </div>
+        <div style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.08);">
+          <span style="color:var(--primary-light);font-weight:600;">비교 대상:</span> Brand24(글로벌 소셜 리스닝 도구) vs RXR 2-Layer + Sincerity Filter
+        </div>
+        <div style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.08);">
+          <span style="color:var(--primary-light);font-weight:600;">데이터:</span> 네이버 블로그 API 크롤링 299건 + Brand24 멀티채널 362건
+        </div>
+        <div style="padding:6px 0;border-top:1px solid rgba(255,255,255,0.08);">
+          <span style="color:var(--primary-light);font-weight:600;">분석 방법:</span> Content Layer(토픽/감성/RQL) + Psyche Layer(진정성/추천확신/신선함) + Sincerity Gate 3단계 필터링
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 하단: 이 리포트의 읽는 법 -->
+  <div style="margin-top:20px;padding:14px 18px;background:rgba(102,102,255,0.1);border:1px solid rgba(102,102,255,0.2);border-radius:10px;">
+    <div style="font-size:12px;font-weight:700;color:var(--primary-light);margin-bottom:6px;">📖 이 리포트 읽는 법</div>
+    <div style="font-size:12px;color:#cbd5e1;line-height:1.7;">
+      각 섹션은 <strong style="color:var(--white);">BEFORE(기존 도구)</strong>와 <strong style="color:var(--white);">AFTER(RXR)</strong>를 나란히 비교합니다.
+      같은 데이터를 분석했지만 <strong style="color:var(--primary-light);">프레임이 다르면 전혀 다른 결론</strong>이 나온다는 것을 보여줍니다.
+      AFTER 파트에는 <span style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:3px;">📊 Raw Data 근거</span> 박스가 포함되어 있어, 왜 그런 수치가 나왔는지 실제 포스트로 설명합니다.
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 0: 데이터 개요 + 날짜별 버즈 분포 -->
+<!-- ============================================ -->
+<h2>0. 데이터 수집 개요</h2>
+
+<!-- 핵심 메트릭 -->
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0;">
+  <div class="card" style="text-align:center;border-top:3px solid var(--primary);padding:14px;">
+    <div style="font-size:28px;font-weight:800;color:var(--primary);">299</div>
+    <div style="font-size:11px;color:var(--body);">네이버 블로그</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:3px solid var(--blue);padding:14px;">
+    <div style="font-size:28px;font-weight:800;color:var(--blue);">362</div>
+    <div style="font-size:11px;color:var(--body);">Brand24 (필터 후)</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:3px solid var(--green);padding:14px;">
+    <div style="font-size:28px;font-weight:800;color:var(--green);">46</div>
+    <div style="font-size:11px;color:var(--body);">팝업 기간 버즈</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:3px solid var(--orange);padding:14px;">
+    <div style="font-size:28px;font-weight:800;color:var(--orange);">209</div>
+    <div style="font-size:11px;color:var(--body);">팝업 전 버즈</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:3px solid var(--pink);padding:14px;">
+    <div style="font-size:28px;font-weight:800;color:var(--pink);">4.5x</div>
+    <div style="font-size:11px;color:var(--body);">사전 버즈 배수</div>
+  </div>
+</div>
+
+<!-- 날짜별 버즈 분포 -->
+<h3>날짜별 버즈 분포 (네이버 블로그)</h3>
+
+<div style="margin:12px 0;">
+  <!-- 팝업 전 -->
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">02/26</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:23.5%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">12</div></div><div style="width:24px;font-size:10px;font-weight:600;">12</div><div style="width:80px;font-size:9px;color:var(--orange);">팝업 전</div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">02/27</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:13.7%;height:100%;background:var(--orange);border-radius:3px;"></div></div><div style="width:24px;font-size:10px;font-weight:600;">7</div><div style="width:80px;font-size:9px;"></div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">02/28</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:66.7%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">34</div></div><div style="width:24px;font-size:10px;font-weight:600;">34</div><div style="width:80px;font-size:9px;color:var(--coral);font-weight:700;">보도자료 추정</div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/01</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:100%;height:100%;background:var(--coral);border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">51</div></div><div style="width:24px;font-size:10px;font-weight:600;">51</div><div style="width:80px;font-size:9px;color:var(--coral);font-weight:700;">★ 최대 피크</div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/02</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:86.3%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">44</div></div><div style="width:24px;font-size:10px;font-weight:600;">44</div><div style="width:80px;font-size:9px;"></div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/03</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:52.9%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">27</div></div><div style="width:24px;font-size:10px;font-weight:600;">27</div><div style="width:80px;font-size:9px;"></div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/04</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:66.7%;height:100%;background:var(--orange);border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">34</div></div><div style="width:24px;font-size:10px;font-weight:600;">34</div><div style="width:80px;font-size:9px;"></div></div>
+
+  <div style="height:6px;border-bottom:2px dashed #ddd;margin:4px 0;"></div>
+
+  <!-- 사전홍보 -->
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/05</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:3.9%;height:100%;background:#8b5cf6;border-radius:3px;"></div></div><div style="width:24px;font-size:10px;font-weight:600;">2</div><div style="width:80px;font-size:9px;color:#8b5cf6;">사전홍보</div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/06</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:3.9%;height:100%;background:#8b5cf6;border-radius:3px;"></div></div><div style="width:24px;font-size:10px;font-weight:600;">2</div><div style="width:80px;font-size:9px;"></div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/07</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:21.6%;height:100%;background:#8b5cf6;border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">11</div></div><div style="width:24px;font-size:10px;font-weight:600;">11</div><div style="width:80px;font-size:9px;color:#8b5cf6;font-weight:700;">예약 오픈</div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/08~11</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:25.5%;height:100%;background:#8b5cf6;border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">13</div></div><div style="width:24px;font-size:10px;font-weight:600;">13</div><div style="width:80px;font-size:9px;"></div></div>
+
+  <div style="height:6px;border-bottom:2px solid var(--primary);margin:4px 0;"></div>
+
+  <!-- 팝업 기간 -->
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/12</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:5.9%;height:100%;background:var(--primary);border-radius:3px;"></div></div><div style="width:24px;font-size:10px;font-weight:600;">3</div><div style="width:80px;font-size:9px;color:var(--primary);font-weight:700;">★ 팝업 시작</div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/13</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:29.4%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">15</div></div><div style="width:24px;font-size:10px;font-weight:600;">15</div><div style="width:80px;font-size:9px;color:var(--primary);font-weight:700;">★ 팝업</div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/14</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:43.1%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">22</div></div><div style="width:24px;font-size:10px;font-weight:600;">22</div><div style="width:80px;font-size:9px;color:var(--primary);font-weight:700;">★ 팝업 피크</div></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/15</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:11.8%;height:100%;background:var(--primary);border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">6</div></div><div style="width:24px;font-size:10px;font-weight:600;">6</div><div style="width:80px;font-size:9px;color:var(--primary);font-weight:700;">★ 팝업 종료</div></div>
+
+  <div style="height:6px;border-bottom:2px dashed #ddd;margin:4px 0;"></div>
+
+  <!-- 팝업 후 -->
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="width:46px;font-size:10px;color:var(--body);text-align:right;">03/16~31</div><div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:31.4%;height:100%;background:#94a3b8;border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;">16</div></div><div style="width:24px;font-size:10px;font-weight:600;">16</div><div style="width:80px;font-size:9px;color:#94a3b8;">팝업 후</div></div>
+</div>
+
+<!-- 기간별 비교 테이블 -->
+<div class="grid2" style="margin-top:16px;">
+  <div>
+    <h3>기간별 버즈량</h3>
+    <table>
+      <thead><tr><th>기간</th><th>건수</th><th>일평균</th><th>비율</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--orange);font-weight:700;">팝업 전 (~3/4)</td><td><strong>209</strong></td><td>29.9</td><td>70%</td></tr>
+        <tr><td style="color:#8b5cf6;font-weight:700;">사전홍보 (3/5~11)</td><td><strong>28</strong></td><td>4.0</td><td>9%</td></tr>
+        <tr><td style="color:var(--primary);font-weight:700;">팝업 진행 (3/12~15)</td><td><strong>46</strong></td><td>11.5</td><td>15%</td></tr>
+        <tr><td style="color:#94a3b8;">팝업 후 (3/16~)</td><td><strong>16</strong></td><td>1.0</td><td>5%</td></tr>
+        <tr style="background:var(--primary-pale);"><td style="font-weight:700;">합계</td><td style="font-weight:700;color:var(--primary);">299</td><td>8.8</td><td>100%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <h3>핵심 패턴</h3>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      <div style="padding:6px 8px;background:var(--light);border-radius:6px;margin-bottom:6px;border-left:3px solid var(--coral);">
+        <strong style="color:var(--coral);">사전 버즈 > 본 행사</strong><br>
+        팝업 전(209건)이 팝업 기간(46건)보다 4.5배. 신제품 출시 마케팅 효과.
+      </div>
+      <div style="padding:6px 8px;background:var(--light);border-radius:6px;margin-bottom:6px;border-left:3px solid #8b5cf6;">
+        <strong style="color:#8b5cf6;">3/7 사전예약 오픈 스파이크</strong><br>
+        예약 방법/혜택 정리 포스트 집중 (11건).
+      </div>
+      <div style="padding:6px 8px;background:var(--light);border-radius:6px;margin-bottom:6px;border-left:3px solid var(--primary);">
+        <strong style="color:var(--primary);">2~3일차에 후기 피크</strong><br>
+        방문 후 1~2일 뒤 블로그 작성 패턴 (3/14 = 22건).
+      </div>
+      <div style="padding:6px 8px;background:var(--light);border-radius:6px;border-left:3px solid #94a3b8;">
+        <strong style="color:#94a3b8;">종료 후 급감</strong><br>
+        3/16 이후 일평균 1건. 버즈 유지력 약함.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 1: 감성 분석 Before/After -->
+<!-- ============================================ -->
+<h2>1. 감성 분석 — "좋았나요?"에서 "진심이었나요?"로</h2>
+
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:var(--gray);">BEFORE — 기존 도구 (Brand24)</div>
+    <div class="ba-title" style="color:#475569;">감성 분류: 3단계</div>
+    <div style="display:flex;gap:10px;margin:16px 0;">
+      <div style="flex:1;text-align:center;padding:12px;background:#fff;border-radius:8px;">
+        <div style="font-size:28px;font-weight:800;color:var(--green);">35%</div>
+        <div style="font-size:11px;color:var(--body);">긍정</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:12px;background:#fff;border-radius:8px;">
+        <div style="font-size:28px;font-weight:800;color:var(--gray);">57%</div>
+        <div style="font-size:11px;color:var(--body);">중립</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:12px;background:#fff;border-radius:8px;">
+        <div style="font-size:28px;font-weight:800;color:var(--red);">8%</div>
+        <div style="font-size:11px;color:var(--body);">부정</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--gray);text-align:center;padding:8px;background:#e2e8f0;border-radius:6px;">
+      → "긍정이 35%니까 괜찮은 거네요"<br>
+      <strong style="color:#475569;">끝. 더 이상 알 수 없음.</strong>
+    </div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR 2-Layer</div>
+    <div class="ba-title" style="color:var(--primary);">감성 4단계 + 진정성 + 추천 확신도</div>
+    <div style="display:flex;gap:8px;margin:12px 0;">
+      <div style="flex:1;text-align:center;padding:10px;background:#fff;border-radius:8px;">
+        <div style="font-size:22px;font-weight:800;color:var(--green);">46%</div>
+        <div style="font-size:10px;">긍정</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:10px;background:#fff;border-radius:8px;">
+        <div style="font-size:22px;font-weight:800;color:var(--gray);">41%</div>
+        <div style="font-size:10px;">중립</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:10px;background:#fff;border-radius:8px;">
+        <div style="font-size:22px;font-weight:800;color:var(--orange);">11%</div>
+        <div style="font-size:10px;">혼합</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:10px;background:#fff;border-radius:8px;">
+        <div style="font-size:22px;font-weight:800;color:var(--red);">2%</div>
+        <div style="font-size:10px;">부정</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--primary);padding:8px;background:#eef2ff;border-radius:6px;">
+      → "긍정 46%이나 <strong>Authenticity 57.2</strong> → 과장 기미"<br>
+      → "<strong>Clout 48.9</strong> → 적극 추천까지는 안 감"<br>
+      → <strong>"화제성은 있으나 진정한 옹호자 전환은 미달"</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 2: 데이터 분류 Before/After -->
+<!-- ============================================ -->
+<h2>2. 데이터 분류 — "몇 건?"에서 "어떤 건?"으로</h2>
+
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:var(--gray);">BEFORE</div>
+    <div class="ba-title" style="color:#475569;">단순 카운팅</div>
+    <div class="ba-item"><div class="ba-icon">📊</div><div>총 Mentions: <strong>532건</strong></div></div>
+    <div class="ba-item"><div class="ba-icon">📸</div><div>Instagram: 104건</div></div>
+    <div class="ba-item"><div class="ba-icon">📝</div><div>Blogs: 155건</div></div>
+    <div class="ba-item"><div class="ba-icon">🐦</div><div>X: 76건</div></div>
+    <div style="margin-top:12px;padding:8px;background:#e2e8f0;border-radius:6px;font-size:12px;color:var(--gray);text-align:center;">
+      "532건 언급됐습니다"<br>
+      <strong style="color:#475569;">그 중 광고는? 노이즈는? 진짜 반응은?</strong>
+    </div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER</div>
+    <div class="ba-title" style="color:var(--primary);">4단계 분류 + 노이즈 필터</div>
+    <div class="ba-item"><div class="ba-icon" style="color:var(--green);">✅</div><div><strong style="color:var(--green);">A 자발적: 272건 (91%)</strong> → 순수 반응</div></div>
+    <div class="ba-item"><div class="ba-icon" style="color:var(--orange);">⚠️</div><div><strong style="color:var(--orange);">B 협찬: 8건</strong> → 진심 스펙트럼 분석</div></div>
+    <div class="ba-item"><div class="ba-icon" style="color:var(--gray);">📋</div><div>C 정보정리: 23건 → 카운트만</div></div>
+    <div class="ba-item"><div class="ba-icon" style="color:var(--red);">🗑️</div><div><strong style="color:var(--red);">노이즈 170건 제거 (32%)</strong></div></div>
+    <div style="margin-top:8px;padding:8px;background:#eef2ff;border-radius:6px;font-size:12px;color:var(--primary);text-align:center;">
+      <strong>"362건 중 자발적 반응 272건, 협찬 8건 (Auth 차이 10.5점)"</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 3: 토픽 분석 Before/After -->
+<!-- ============================================ -->
+<h2>3. 토픽 분석 — "워드클라우드"에서 "구조화된 인사이트"로</h2>
+
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:var(--gray);">BEFORE</div>
+    <div class="ba-title" style="color:#475569;">워드클라우드 / 키워드 빈도</div>
+    <div style="text-align:center;padding:16px;background:#fff;border-radius:8px;margin:12px 0;">
+      <span style="font-size:24px;font-weight:800;color:var(--dark);">이클립스</span>
+      <span style="font-size:18px;color:var(--body);">팝업</span>
+      <span style="font-size:16px;color:var(--gray);">성수</span>
+      <span style="font-size:14px;color:var(--gray);">포도</span>
+      <span style="font-size:20px;color:var(--body);">껌</span>
+      <span style="font-size:12px;color:var(--gray);">맛있</span>
+      <span style="font-size:13px;color:var(--gray);">예약</span>
+      <span style="font-size:15px;color:var(--body);">이벤트</span>
+    </div>
+    <div style="font-size:12px;color:var(--gray);text-align:center;">
+      "이클립스, 팝업, 성수가 많이 언급됐네요"<br>
+      <strong style="color:#475569;">그래서 뭘 해야 하는데?</strong>
+    </div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER</div>
+    <div class="ba-title" style="color:var(--primary);">구조화된 토픽 비중 + 시사점</div>
+    <div style="margin:12px 0;">
+      <div class="compare-bar"><div class="compare-label" style="color:var(--primary);font-weight:700;">제품/맛 68%</div><div class="compare-track"><div class="compare-fill-after" style="width:68%;background:var(--primary);">61건</div></div></div>
+      <div class="compare-bar"><div class="compare-label">웨이팅/예약</div><div class="compare-track"><div class="compare-fill-after" style="width:15.6%;background:var(--orange);">14건</div></div></div>
+      <div class="compare-bar"><div class="compare-label">게임/미션</div><div class="compare-track"><div class="compare-fill-after" style="width:7.8%;background:var(--green);">7건</div></div></div>
+      <div class="compare-bar"><div class="compare-label">공간/분위기</div><div class="compare-track"><div class="compare-fill-after" style="width:5.6%;background:var(--pink);">5건</div></div></div>
+      <div class="compare-bar"><div class="compare-label">굿즈/가챠</div><div class="compare-track"><div class="compare-fill-after" style="width:2.2%;background:var(--blue);">2건</div></div></div>
+    </div>
+    <div style="font-size:12px;color:var(--primary);padding:8px;background:#eef2ff;border-radius:6px;">
+      <strong>"제품 시식(68%)이 공간 경험(6%)을 압도 → 팝업이 '체험'이 아닌 '시식 이벤트'로 인식됨 → 다음 팝업에서 공간 비중 강화 필요"</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 4: 심리 분석 — 이건 기존에 없던 것 -->
+<!-- ============================================ -->
+<h2>4. 심리 분석 — 기존에 불가능했던 영역</h2>
+
+<div style="text-align:center;margin:12px 0;padding:10px;background:#fef2f2;border-radius:8px;font-size:14px;font-weight:700;color:var(--coral);">
+  BEFORE: 이 분석 자체가 불가능 — 어떤 기존 도구도 제공하지 않음
+</div>
+
+<!-- Psyche 게이지 -->
+<div style="margin:24px 0;">
+  <h3 style="color:var(--primary);">RXR Psyche Layer — AFTER</h3>
+
+  <!-- 로우데이터 근거 박스 -->
+  <div style="margin-bottom:16px;padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+    <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:10px;">📊 왜 이런 수치가 나왔는가? — Raw Data 근거</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="padding:10px;background:#ecfdf5;border-radius:8px;border-left:3px solid var(--green);">
+        <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px;">✅ Auth 최고: 88점 (3/14 방문 후기)</div>
+        <div style="font-size:11px;color:var(--body);line-height:1.6;">
+          "성수 팝업 이클립스 월드 방문 후기"<br>
+          → Q5 서사형, 694자, 긍정+구체적 디테일<br>
+          → <strong>1인칭 경험 서술 + 부정적 의견도 포함 = 진정성 높음</strong>
+        </div>
+      </div>
+      <div style="padding:10px;background:#fef2f2;border-radius:8px;border-left:3px solid var(--coral);">
+        <div style="font-size:11px;font-weight:700;color:var(--coral);margin-bottom:4px;">⚠️ Auth 최저: 10점 (3/18 후기)</div>
+        <div style="font-size:11px;color:var(--body);line-height:1.6;">
+          "지방순이의 이클립스 포도향 팝업스토어 후기"<br>
+          → 느낌표 64개(!), 극단 긍정어 반복<br>
+          → <strong>"완전 대박!!!" 식 과잉 표현 = 비진정 설득 패턴</strong>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:10px;padding:8px;background:#fff;border-radius:6px;font-size:11px;color:var(--body);line-height:1.6;">
+      <strong>판단 로직:</strong> Auth 점수 = 60(기본) - 과잉긍정어 감점 - 느낌표 과다 감점 + 개인경험 가점 + 구체적 디테일 가점 + 균형 평가(긍+부 공존) 가점. 느낌표 64개인 포스트는 자동으로 극저 Auth 판정.
+    </div>
+  </div>
+
+  <div class="gauge-row">
+    <div class="gauge-label" style="color:var(--primary);">Authenticity<br><span style="font-size:10px;color:var(--gray);">진정성</span></div>
+    <div class="gauge-track">
+      <div class="gauge-fill" style="width:57.2%;background:linear-gradient(90deg,var(--coral),var(--primary),var(--green));">57.2 — 중간: 과장 기미</div>
+    </div>
+    <div class="gauge-val" style="color:var(--primary);">57.2</div>
+  </div>
+
+  <div class="gauge-row">
+    <div class="gauge-label" style="color:var(--green);">Clout<br><span style="font-size:10px;color:var(--gray);">추천 확신도</span></div>
+    <div class="gauge-track">
+      <div class="gauge-fill" style="width:48.9%;background:linear-gradient(90deg,var(--gray),var(--green));">48.9 — 평이: 정보 공유 톤</div>
+    </div>
+    <div class="gauge-val" style="color:var(--green);">48.9</div>
+  </div>
+
+  <div class="gauge-row">
+    <div class="gauge-label" style="color:var(--orange);">Freshness<br><span style="font-size:10px;color:var(--gray);">신선함 지수</span></div>
+    <div class="gauge-track">
+      <div class="gauge-fill" style="width:39.8%;background:linear-gradient(90deg,var(--gray),var(--orange));">39.8 — "이/가" 발견형 비율</div>
+    </div>
+    <div class="gauge-val" style="color:var(--orange);">39.8</div>
+  </div>
+</div>
+
+<!-- 기간별 변화 그래프 -->
+<h3>기간별 심리 지표 변화</h3>
+<div style="margin:16px 0;">
+  <table>
+    <thead><tr><th style="width:120px;">기간</th><th>N</th><th>Authenticity</th><th></th><th>Clout</th><th></th><th>Freshness</th><th></th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:700;color:var(--orange);">사전 (~3/11)</td>
+        <td>28건</td>
+        <td style="text-align:center;">
+          <div style="display:inline-block;width:80px;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+            <div style="width:59.5%;height:100%;background:var(--primary);border-radius:3px;"></div>
+          </div>
+        </td>
+        <td style="font-weight:700;color:var(--green);">59.5</td>
+        <td style="text-align:center;">
+          <div style="display:inline-block;width:80px;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+            <div style="width:49.1%;height:100%;background:var(--green);border-radius:3px;"></div>
+          </div>
+        </td>
+        <td>49.1</td>
+        <td style="text-align:center;">
+          <div style="display:inline-block;width:80px;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+            <div style="width:37.5%;height:100%;background:var(--orange);border-radius:3px;"></div>
+          </div>
+        </td>
+        <td>37.5</td>
+      </tr>
+      <tr style="background:#eef2ff;">
+        <td style="font-weight:700;color:var(--primary);">팝업 기간 (3/12~15)</td>
+        <td>46건</td>
+        <td style="text-align:center;">
+          <div style="display:inline-block;width:80px;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+            <div style="width:56.7%;height:100%;background:var(--primary);border-radius:3px;"></div>
+          </div>
+        </td>
+        <td>56.7</td>
+        <td style="text-align:center;">
+          <div style="display:inline-block;width:80px;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+            <div style="width:49%;height:100%;background:var(--green);border-radius:3px;"></div>
+          </div>
+        </td>
+        <td>49.0</td>
+        <td style="text-align:center;">
+          <div style="display:inline-block;width:80px;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+            <div style="width:41%;height:100%;background:var(--green);border-radius:3px;"></div>
+          </div>
+        </td>
+        <td style="font-weight:700;color:var(--green);">41.0 ▲</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:var(--gray);">팝업 후 (3/16~)</td>
+        <td>16건</td>
+        <td style="text-align:center;">
+          <div style="display:inline-block;width:80px;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+            <div style="width:54.6%;height:100%;background:var(--coral);border-radius:3px;"></div>
+          </div>
+        </td>
+        <td style="font-weight:700;color:var(--coral);">54.6 ▼</td>
+        <td style="text-align:center;">
+          <div style="display:inline-block;width:80px;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+            <div style="width:48.4%;height:100%;background:var(--green);border-radius:3px;"></div>
+          </div>
+        </td>
+        <td>48.4</td>
+        <td style="text-align:center;">
+          <div style="display:inline-block;width:80px;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+            <div style="width:40.4%;height:100%;background:var(--orange);border-radius:3px;"></div>
+          </div>
+        </td>
+        <td>40.4</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="insight">
+  <strong>이 그래프가 말하는 것:</strong><br>
+  • Authenticity가 시간 지나면 <strong>하락</strong> (59.5→56.7→54.6) — 기억의 과장/미화<br>
+  • Freshness가 팝업 기간에 <strong>최고</strong> (37.5→41.0) — 직접 경험의 "발견" 효과<br>
+  • Clout는 전 기간 <strong>평이</strong> (49 수준) — 적극 추천까지 안 감<br><br>
+  <strong style="color:var(--coral);">기존 도구로는 이 시계열 심리 변화를 절대 볼 수 없음</strong>
+</div>
+
+<!-- 기간별 변화 로우데이터 근거 -->
+<div style="margin:12px 0;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+  <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:10px;">📊 기간별 차이가 나는 이유 — Raw Data 근거</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+    <div style="padding:10px;background:#fff7ed;border-radius:8px;border-top:3px solid var(--orange);">
+      <div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:4px;">사전 (Auth 59.5 — 가장 높음)</div>
+      <div style="font-size:10px;color:var(--body);line-height:1.6;">
+        "이클립스 포도향 기대된다 사전예약 해야지"<br>
+        → 솔직한 기대감, 과잉 표현 적음<br>
+        → <strong>아직 경험 전이라 꾸밀 이유가 없음</strong>
+      </div>
+    </div>
+    <div style="padding:10px;background:#eef2ff;border-radius:8px;border-top:3px solid var(--primary);">
+      <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:4px;">팝업기간 (Fresh 41.0 — 최고)</div>
+      <div style="font-size:10px;color:var(--body);line-height:1.6;">
+        "분위기<strong>가</strong> 좋았다", "게임<strong>이</strong> 재밌었다"<br>
+        → "이/가" 초점 조사 급증<br>
+        → <strong>직접 체험 → 새로운 발견의 언어</strong>
+      </div>
+    </div>
+    <div style="padding:10px;background:#f1f5f9;border-radius:8px;border-top:3px solid var(--gray);">
+      <div style="font-size:11px;font-weight:700;color:var(--gray);margin-bottom:4px;">팝업후 (Auth 54.6 — 최저)</div>
+      <div style="font-size:10px;color:var(--body);line-height:1.6;">
+        느낌표 64개(!) 포스트가 팝업 후에 집중<br>
+        → "완전 대박!!!" 식 과잉 회상<br>
+        → <strong>시간 지나면 기억이 과장/미화됨</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 5: 협찬 분석 Before/After -->
+<!-- ============================================ -->
+<h2>5. 협찬 분석 — "있다/없다"에서 "진심의 스펙트럼"으로</h2>
+
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:var(--gray);">BEFORE</div>
+    <div class="ba-title" style="color:#475569;">협찬 표기 유무 확인</div>
+    <div style="text-align:center;padding:20px;margin:12px 0;">
+      <div style="font-size:14px;color:var(--body);margin-bottom:8px;">"#광고" 또는 "제공받았습니다" 표기?</div>
+      <div style="display:flex;justify-content:center;gap:20px;">
+        <div style="padding:12px 24px;background:#fff;border-radius:8px;"><span style="font-size:20px;">✅</span><br><span style="font-size:12px;">협찬</span></div>
+        <div style="padding:12px 24px;background:#fff;border-radius:8px;"><span style="font-size:20px;">❌</span><br><span style="font-size:12px;">자발적</span></div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--gray);text-align:center;padding:8px;background:#e2e8f0;border-radius:6px;">
+      <strong style="color:#475569;">협찬이면 제외? → 유의미한 데이터 손실</strong>
+    </div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER</div>
+    <div class="ba-title" style="color:var(--primary);">협찬 내에서도 진정성 스펙트럼 측정</div>
+    <div style="margin:12px 0;">
+      <div class="gauge-row">
+        <div class="gauge-label" style="font-size:11px;">자발적 (82건)</div>
+        <div class="gauge-track">
+          <div class="gauge-fill" style="width:58.1%;background:var(--green);">Auth 58.1</div>
+        </div>
+        <div class="gauge-val" style="color:var(--green);">58.1</div>
+      </div>
+      <div class="gauge-row">
+        <div class="gauge-label" style="font-size:11px;">협찬 (8건)</div>
+        <div class="gauge-track">
+          <div class="gauge-fill" style="width:47.6%;background:var(--orange);">Auth 47.6</div>
+        </div>
+        <div class="gauge-val" style="color:var(--orange);">47.6</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--primary);padding:8px;background:#eef2ff;border-radius:6px;">
+      <strong>"협찬이지만 Auth 60+ = 진짜 좋았던 경험"</strong><br>
+      <strong>"협찬인데 Auth 30 = 의무적으로 쓴 글"</strong><br>
+      → 버리지 않고 <strong>진심의 깊이를 수치화</strong>
+    </div>
+
+    <!-- 로우데이터 근거 -->
+    <div style="margin-top:12px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+      <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:10px;">📊 협찬 8건 실제 데이터 — 진심 스펙트럼</div>
+      <div style="font-size:11px;color:var(--body);line-height:1.8;">
+        <div style="padding:6px 8px;background:#ecfdf5;border-radius:6px;margin-bottom:6px;">
+          <strong style="color:var(--green);">Auth 63</strong> — "포도향 가득 이클립스 월드 팝업 사전 예약 방법 공유" (3/7)<br>
+          느낌표 9개, 극긍정어 2개 → <strong>협찬이지만 과잉 표현 적음, 정보 공유 톤 = 비교적 진심</strong>
+        </div>
+        <div style="padding:6px 8px;background:#fef3c7;border-radius:6px;margin-bottom:6px;">
+          <strong style="color:var(--orange);">Auth 55</strong> — "이클립스 월드: Into the tincase 성수" (3/23)<br>
+          Clout 65, 느낌표 1개 → <strong>추천 어조 강하지만 과잉 표현 없음 = 중간 진심</strong>
+        </div>
+        <div style="padding:6px 8px;background:#fee2e2;border-radius:6px;margin-bottom:6px;">
+          <strong style="color:var(--coral);">Auth 10</strong> — "성수 이클립스 팝업 신제품 포도향 출시" (3/16)<br>
+          느낌표 38개(!!!), 극긍정어 반복 → <strong>전형적 과잉 홍보 패턴 = 의무적 글</strong>
+        </div>
+        <div style="padding:6px 8px;background:#fee2e2;border-radius:6px;">
+          <strong style="color:var(--coral);">Auth 29</strong> — "성수 팝업스토어 3월 이클립스 월드 사전예약 / 혜택 공개!" (3/7)<br>
+          느낌표 18개, Clout 55 → <strong>"혜택 공개!" 식 광고 어조 = 낮은 진심</strong>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--gray);line-height:1.5;">
+        → 같은 "협찬" 안에서도 <strong>Auth 10~63</strong>까지 스펙트럼 존재. 기존 도구는 이 8건을 모두 "협찬"으로 동일 취급하지만, RXR은 각각의 진심 수준을 구분.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 6: 후기 품질 Before/After -->
+<!-- ============================================ -->
+<h2>6. 후기 품질 — "몇 건?"에서 "얼마나 깊은 건?"으로</h2>
+
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:var(--gray);">BEFORE</div>
+    <div class="ba-title" style="color:#475569;">단순 건수</div>
+    <div style="text-align:center;padding:24px;">
+      <div style="font-size:48px;font-weight:800;color:#475569;">90건</div>
+      <div style="font-size:13px;color:var(--gray);">블로그 후기가 90건 있습니다</div>
+    </div>
+    <div style="font-size:12px;color:var(--gray);text-align:center;padding:8px;background:#e2e8f0;border-radius:6px;">
+      "⭐⭐⭐⭐⭐ 좋아요" 1건 = "500자 체험 서사" 1건<br>
+      <strong style="color:#475569;">같은 1건으로 취급</strong>
+    </div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER</div>
+    <div class="ba-title" style="color:var(--primary);">RQL (Review Quality Level) 5단계 가중</div>
+    <div style="margin:12px 0;">
+      <div class="compare-bar"><div class="compare-label" style="color:var(--primary);font-weight:700;">Q5 서사형 ×2.0</div><div class="compare-track"><div class="compare-fill-after" style="width:10%;background:var(--primary);">9건</div></div></div>
+      <div class="compare-bar"><div class="compare-label" style="font-weight:600;">Q4 분석형 ×1.5</div><div class="compare-track"><div class="compare-fill-after" style="width:43.3%;background:var(--blue);">39건</div></div></div>
+      <div class="compare-bar"><div class="compare-label">Q3 경험형 ×1.0</div><div class="compare-track"><div class="compare-fill-after" style="width:21.1%;background:var(--green);">19건</div></div></div>
+      <div class="compare-bar"><div class="compare-label" style="color:var(--gray);">Q2 감상형 ×0.5</div><div class="compare-track"><div class="compare-fill-after" style="width:23.3%;background:var(--orange);">21건</div></div></div>
+      <div class="compare-bar"><div class="compare-label" style="color:var(--gray);">Q1 간단형 ×0.2</div><div class="compare-track"><div class="compare-fill-after" style="width:2.2%;background:var(--gray);">2건</div></div></div>
+    </div>
+    <div style="font-size:12px;color:var(--primary);padding:8px;background:#eef2ff;border-radius:6px;">
+      <strong>"Q4~Q5 깊은 후기 53% — FWA 분석에 적합한 고품질 데이터"</strong>
+    </div>
+
+    <!-- 로우데이터 근거 -->
+    <div style="margin-top:12px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+      <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:10px;">📊 RQL 등급별 실제 포스트 — 왜 이렇게 분류됐는가?</div>
+      <div style="font-size:11px;color:var(--body);line-height:1.8;">
+        <div style="padding:6px 8px;background:#eef2ff;border-radius:6px;margin-bottom:6px;">
+          <strong style="color:var(--primary);">Q5 서사형</strong> — "성수 팝업 이클립스 월드 방문 후기" (3/14, 694자)<br>
+          Auth 88, Clout 65 → <strong>긴 서사 + 개인 경험 + 구체적 디테일 3건+ = 최고 품질</strong><br>
+          <span style="color:var(--gray);">판단 근거: 단어수 500+ & 디테일 3건+ & 개인경험 1건+</span>
+        </div>
+        <div style="padding:6px 8px;background:#dbeafe;border-radius:6px;margin-bottom:6px;">
+          <strong style="color:var(--blue);">Q4 분석형</strong> — "이클립스 팝업 성수 3월 포도향 웨이팅 후기" (3/13, 350자)<br>
+          Auth 78, 감성 혼합(긍정+부정) → <strong>상세 분석 + 비교 표현 포함 = 분석적 후기</strong><br>
+          <span style="color:var(--gray);">판단 근거: 단어수 300+ & 디테일 2건+</span>
+        </div>
+        <div style="padding:6px 8px;background:#f1f5f9;border-radius:6px;margin-bottom:6px;">
+          <strong style="color:var(--gray);">Q1 간단형</strong> — "성수 팝업스토어 3월 이클립스 월드&콜랩코리아" (3/17, 46자)<br>
+          Auth 60 → <strong>제목만 있고 본문 거의 없음 = 최저 품질</strong><br>
+          <span style="color:var(--gray);">판단 근거: 단어수 50 미만</span>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--gray);">
+        → 기존: 이 3건을 모두 "블로그 후기 1건"으로 동일 취급. RXR: Q5(×2.0) vs Q1(×0.2) = <strong>10배 가중치 차이</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SUMMARY TABLE -->
+<!-- ============================================ -->
+<h2>종합: Before → After 비교표</h2>
+
+<table style="font-size:13px;">
+  <thead>
+    <tr>
+      <th style="width:140px;">분석 영역</th>
+      <th style="background:#64748b;">BEFORE (기존)</th>
+      <th>AFTER (RXR 2-Layer)</th>
+      <th style="width:100px;">차별화</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="font-weight:700;">감성</td>
+      <td>긍정/중립/부정 3단계</td>
+      <td>4단계 + <strong style="color:var(--primary);">Authenticity(진정성)</strong> + Clout(확신도)</td>
+      <td style="color:var(--primary);font-weight:700;">깊이 ×3</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">데이터 분류</td>
+      <td>채널별 건수만</td>
+      <td>자발적/협찬/정보정리/보도자료 <strong style="color:var(--primary);">4단계 + 노이즈 32% 제거</strong></td>
+      <td style="color:var(--primary);font-weight:700;">정확도 ×2</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">토픽</td>
+      <td>워드클라우드 (시각적)</td>
+      <td><strong style="color:var(--primary);">구조화된 토픽 비중 + 실무 시사점</strong></td>
+      <td style="color:var(--primary);font-weight:700;">액셔너블</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">심리 분석</td>
+      <td style="color:var(--coral);font-weight:700;">불가능</td>
+      <td>Authenticity + Clout + Freshness <strong style="color:var(--primary);">시계열 추적</strong></td>
+      <td style="color:var(--coral);font-weight:700;">유일</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">협찬 분석</td>
+      <td>유/무 이분법</td>
+      <td><strong style="color:var(--primary);">진정성 스펙트럼</strong> (Auth 점수)</td>
+      <td style="color:var(--primary);font-weight:700;">유일</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">후기 품질</td>
+      <td>건수만 (1건=1건)</td>
+      <td><strong style="color:var(--primary);">RQL 5단계 가중</strong> (Q1 ×0.2 ~ Q5 ×2.0)</td>
+      <td style="color:var(--primary);font-weight:700;">유일</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">시계열 변화</td>
+      <td>버즈량 추이만</td>
+      <td><strong style="color:var(--primary);">심리 지표(Auth/Clout/Fresh) 시계열</strong></td>
+      <td style="color:var(--primary);font-weight:700;">유일</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="insight" style="margin-top:20px;padding:20px;font-size:15px;text-align:center;">
+  <strong style="font-size:17px;">같은 데이터, 완전히 다른 깊이</strong><br><br>
+  기존 도구: <span style="color:var(--gray);">"532건 언급, 긍정 35%, 이클립스·팝업·성수 키워드"</span><br>
+  <span class="arrow-right">→</span><br>
+  RXR 2-Layer: <strong style="color:var(--primary);">"자발적 272건 중 Auth 57.2, Clout 49 — 화제성은 있으나 진정한 옹호자 전환 미달.<br>
+  제품 시식(68%)이 공간 경험(6%)을 압도. 팝업 후 Auth 하락 = 기억의 과장 패턴.<br>
+  다음 팝업에서 공간 체험 비중 강화 + 경험 직후 후기 유도가 필요."</strong>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 7: Sincerity Gate — 가장 큰 차별화 -->
+<!-- ============================================ -->
+<h2>7. Sincerity Gate — "532건"의 진실</h2>
+<p style="font-size:13px;color:var(--body);margin-bottom:16px;">Brand24이 보여주는 "532건 mentions"에 Sincerity Filter를 적용하면 <strong>실체가 드러납니다.</strong></p>
+
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:var(--gray);">BEFORE — Brand24 대시보드</div>
+    <div class="ba-title" style="color:#475569;">532건 Mentions!</div>
+    <div style="text-align:center;margin:16px 0;">
+      <div style="font-size:56px;font-weight:800;color:#475569;">532</div>
+      <div style="font-size:14px;color:var(--gray);">Total Mentions</div>
+    </div>
+    <div style="display:flex;gap:8px;margin:12px 0;">
+      <div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:6px;"><div style="font-size:16px;font-weight:700;">155</div><div style="font-size:10px;">Blogs</div></div>
+      <div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:6px;"><div style="font-size:16px;font-weight:700;">106</div><div style="font-size:10px;">Insta</div></div>
+      <div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:6px;"><div style="font-size:16px;font-weight:700;">76</div><div style="font-size:10px;">X</div></div>
+      <div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:6px;"><div style="font-size:16px;font-weight:700;">73</div><div style="font-size:10px;">News</div></div>
+    </div>
+    <div style="padding:10px;background:#e2e8f0;border-radius:6px;font-size:12px;color:var(--gray);text-align:center;">
+      "532건이나 언급됐으니 대성공이네요!"<br>
+      <strong style="color:#475569;">정말?</strong>
+    </div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR Sincerity Filter</div>
+    <div class="ba-title" style="color:var(--coral);">실제 유효 데이터는?</div>
+    <div style="margin:12px 0;">
+      <!-- 퍼널 시각화 -->
+      <div style="text-align:center;padding:10px 0;">
+        <div style="display:inline-block;width:100%;padding:10px;background:#e2e8f0;border-radius:6px;margin-bottom:4px;">
+          <span style="font-size:14px;font-weight:700;color:#475569;">532건</span> <span style="font-size:11px;color:var(--gray);">Brand24 원본</span>
+        </div>
+        <div style="font-size:12px;color:var(--coral);margin:2px 0;">▼ 노이즈 제거 (-170건, 32%)</div>
+        <div style="display:inline-block;width:80%;padding:10px;background:#dbeafe;border-radius:6px;margin-bottom:4px;">
+          <span style="font-size:14px;font-weight:700;color:var(--blue);">362건</span> <span style="font-size:11px;color:var(--gray);">키워드 노이즈 제거</span>
+        </div>
+        <div style="font-size:12px;color:var(--coral);margin:2px 0;">▼ 리그램+위장+보도자료 제거</div>
+        <div style="display:inline-block;width:50%;padding:10px;background:#ddd6fe;border-radius:6px;margin-bottom:4px;">
+          <span style="font-size:14px;font-weight:700;color:#7c3aed;">~150건*</span> <span style="font-size:11px;color:var(--gray);">추정 유효</span>
+        </div>
+        <div style="font-size:12px;color:var(--coral);margin:2px 0;">▼ 협찬 제외 + Auth 60+</div>
+        <div style="display:inline-block;width:30%;padding:10px;background:var(--primary);border-radius:6px;">
+          <span style="font-size:14px;font-weight:700;color:#fff;">~80건*</span> <span style="font-size:11px;color:rgba(255,255,255,0.7);">진심 반응</span>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--gray);text-align:center;margin-top:4px;">* 전체 데이터 내보내기 시 정확한 수치 확인 가능</div>
+    </div>
+    <div style="padding:10px;background:#eef2ff;border-radius:6px;font-size:12px;color:var(--primary);text-align:center;">
+      <strong>"532건 중 진짜 반응은 약 80건 — 나머지 85%는 노이즈+리그램+협찬"</strong>
+    </div>
+  </div>
+</div>
+
+<!-- 실증 데이터 테이블 -->
+<h3>Brand24 내보내기 51건 — Sincerity Filter 실증 결과</h3>
+<table style="font-size:13px;">
+  <thead><tr><th>분류</th><th>건수</th><th>비율</th><th>내용</th><th>분석 처리</th></tr></thead>
+  <tbody>
+    <tr style="background:#ecfdf5;"><td style="color:var(--green);font-weight:700;">A 진성후기</td><td>1건</td><td>2%</td><td>진짜 경험 서술</td><td>핵심 분석</td></tr>
+    <tr><td style="font-weight:700;">B 일반포스트</td><td>3건</td><td>6%</td><td>팝업 관련 일반 언급</td><td>분석 대상</td></tr>
+    <tr style="background:#fef3c7;"><td style="color:var(--orange);font-weight:700;">E 리그램/단순공유</td><td>13건</td><td>25%</td><td>텍스트 없이 공유만</td><td>카운트만</td></tr>
+    <tr style="background:#fee2e2;"><td style="color:var(--coral);font-weight:700;">G 노이즈(팝업무관)</td><td>34건</td><td><strong>67%</strong></td><td>이클립스 게임/제품/앱 등</td><td><strong>제외</strong></td></tr>
+  </tbody>
+</table>
+
+<div class="insight insight-red" style="margin-top:12px;">
+  <strong>충격적 발견: Brand24이 보여주는 "532건"의 67%가 팝업과 무관한 노이즈</strong><br><br>
+  내보내기 가능한 51건 샘플 기준:<br>
+  • 팝업 무관 노이즈: <strong>34건 (67%)</strong> — "빛의 계승자 이클립스"(게임), 제품 리뷰, 앱스토어 등<br>
+  • 리그램/단순공유: <strong>13건 (25%)</strong> — 텍스트 없이 해시태그만 또는 빈 캡션<br>
+  • <strong>실제 유효 데이터: 4건 (8%)</strong><br><br>
+  인스타그램 5건 중 <strong>5건 전부 리그램/단순공유</strong> — Brand24이 캡션을 가져오지 못한 경우 포함<br><br>
+  <strong style="color:var(--coral);">기존 도구의 "532건"을 그대로 보고하면 성과가 10배 이상 부풀려진다.</strong><br>
+  <strong style="color:var(--primary);">Sincerity Filter가 있어야 진짜 숫자가 보인다 — 이것이 RXR의 존재 이유.</strong>
+</div>
+
+<!-- 8. 종합 Before/After 업데이트 -->
+<h2>종합: Before → After 최종 비교</h2>
+
+<table style="font-size:13px;">
+  <thead>
+    <tr>
+      <th style="width:130px;">분석 영역</th>
+      <th style="background:#64748b;">BEFORE (기존)</th>
+      <th>AFTER (RXR)</th>
+      <th style="width:90px;">차별화</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="font-weight:700;">버즈 규모</td>
+      <td>"532건 mentions!"</td>
+      <td><strong style="color:var(--primary);">유효 ~80건 (85% 노이즈+리그램+협찬)</strong></td>
+      <td style="color:var(--coral);font-weight:700;">진실 폭로</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">감성</td>
+      <td>긍정/중립/부정 3단계</td>
+      <td>4단계 + <strong style="color:var(--primary);">Auth(진정성) + Clout(확신도)</strong></td>
+      <td style="color:var(--primary);font-weight:700;">깊이 ×3</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">데이터 분류</td>
+      <td>채널별 건수만</td>
+      <td><strong style="color:var(--primary);">A~G 7단계 분류 + Trust Score</strong></td>
+      <td style="color:var(--primary);font-weight:700;">정확도 ×10</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">협찬 분석</td>
+      <td>유/무 이분법</td>
+      <td><strong style="color:var(--primary);">Sincerity Gate 3단계 + Auth 스펙트럼</strong></td>
+      <td style="color:var(--primary);font-weight:700;">유일</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">리그램/공유</td>
+      <td style="color:var(--coral);">구분 불가 (1건=1건)</td>
+      <td><strong style="color:var(--primary);">E등급 자동 태깅 + 카운트만</strong></td>
+      <td style="color:var(--primary);font-weight:700;">유일</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">위장 계정</td>
+      <td style="color:var(--coral);">감지 불가</td>
+      <td><strong style="color:var(--primary);">T1~T5 Account Trust + Auth 교차</strong></td>
+      <td style="color:var(--primary);font-weight:700;">유일</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">토픽</td>
+      <td>워드클라우드</td>
+      <td><strong style="color:var(--primary);">구조화 토픽 비중 + 시사점</strong></td>
+      <td style="color:var(--primary);font-weight:700;">액셔너블</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">심리 분석</td>
+      <td style="color:var(--coral);">불가능</td>
+      <td><strong style="color:var(--primary);">Auth/Clout/Freshness 시계열</strong></td>
+      <td style="color:var(--coral);font-weight:700;">유일</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">후기 품질</td>
+      <td>1건=1건</td>
+      <td><strong style="color:var(--primary);">RQL 5단계 가중</strong></td>
+      <td style="color:var(--primary);font-weight:700;">유일</td>
+    </tr>
+  </tbody>
+</table>
+
+<div style="margin-top:24px;padding:24px;background:var(--black);border-radius:14px;text-align:center;">
+  <div style="font-size:12px;color:var(--gray);margin-bottom:8px;font-family:'Poppins';letter-spacing:2px;">BOTTOM LINE</div>
+  <div style="font-size:18px;font-weight:800;color:var(--white);line-height:1.6;">
+    기존 도구: <span style="color:var(--gray);">"532건 언급, 긍정 35%"</span><br>
+    <span style="font-size:14px;color:var(--gray);">↓ RXR Sincerity Filter ↓</span><br>
+    <span style="color:var(--primary);">유효 ~80건, 자발적 Auth 58.1, Clout 49 — 화제성은 있으나 옹호자 전환 미달</span><br>
+    <span style="color:var(--coral);">나머지 85%는 노이즈 + 리그램 + 협찬 + 위장</span><br><br>
+    <span style="font-size:22px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">"같은 데이터, 완전히 다른 진실"</span>
+  </div>
+  <div style="margin-top:16px;font-size:12px;color:#64748b;">Project RENT · R-lab · 2026 | RXR 2-Layer Analysis + Sincerity Gate</div>
+</div>
+
+<!-- ============================================ -->
+<!-- APPENDIX: Gate 3 유효 Raw Data -->
+<!-- ============================================ -->
+<h2>부록: Sincerity Gate 3 통과 — 유효 Raw Data (63건)</h2>
+<p style="font-size:12px;color:var(--body);margin-bottom:12px;">Authenticity 60 이상, 자발적(비협찬) 포스트만 추출. 진정성이 검증된 데이터로, RXR 심층 분석의 핵심 소스입니다.</p>
+
+<div style="font-size:11px;margin-bottom:8px;display:flex;gap:12px;">
+  <span>Auth 색상: <strong style="color:#059669;">■ 75+</strong> <strong style="color:#6666FF;">■ 60~74</strong></span>
+  <span>감성: <strong style="color:#059669;">긍정</strong> <strong style="color:#dc2626;">부정</strong> <strong style="color:#6666FF;">혼합</strong> <strong style="color:#94a3b8;">중립</strong></span>
+</div>
+
+<table style="width:100%;border-collapse:collapse;font-size:10px;">
+<thead>
+<tr style="background:var(--primary);">
+<th style="padding:5px 4px;color:#fff;text-align:center;font-size:9px;width:24px;">#</th>
+<th style="padding:5px 4px;color:#fff;font-size:9px;width:68px;">날짜</th>
+<th style="padding:5px 4px;color:#fff;font-size:9px;width:34px;">감성</th>
+<th style="padding:5px 4px;color:#fff;font-size:9px;width:32px;">Auth</th>
+<th style="padding:5px 4px;color:#fff;font-size:9px;width:32px;">Clout</th>
+<th style="padding:5px 4px;color:#fff;font-size:9px;width:36px;">Fresh</th>
+<th style="padding:5px 4px;color:#fff;font-size:9px;width:62px;">RQL</th>
+<th style="padding:5px 4px;color:#fff;font-size:9px;width:62px;">토픽</th>
+<th style="padding:5px 4px;color:#fff;font-size:9px;width:50px;">기간</th>
+<th style="padding:5px 4px;color:#fff;font-size:9px;">제목 (링크)</th>
+<th style="padding:5px 4px;color:#fff;font-size:9px;width:80px;">블로거</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">1</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#059669;">88</strong></td><td style="padding:4px;text-align:center;">65</td><td style="padding:4px;text-align:center;">40.0</td><td style="padding:4px;">Q5 서사형</td><td style="padding:4px;">게임/미션</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/zealot16/224216621164" target="_blank" style="color:#6666FF;text-decoration:none;">성수 팝업 이클립스 월드 Into the tincase 방문 후기... </a></td><td style="padding:4px;color:#94a3b8;">햄톨이의 여행</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">2</td><td style="padding:4px;">2026-03-15</td><td style="padding:4px;color:#6666FF;font-weight:600;">혼합</td><td style="padding:4px;text-align:center;"><strong style="color:#059669;">78</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">40.0</td><td style="padding:4px;">Q5 서사형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/0392oe/224217058996" target="_blank" style="color:#6666FF;text-decoration:none;">성수 놀거리 팝업 이클립스 성수동 가볼만한 곳</a></td><td style="padding:4px;color:#94a3b8;">움직이는 레코드♪</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">3</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#059669;">78</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">42.6</td><td style="padding:4px;">Q5 서사형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/kjm_2010/224215714841" target="_blank" style="color:#6666FF;text-decoration:none;">성수 초대형 틴케이스 등장 이클립스 월드 팝업스토어 사전예약... </a></td><td style="padding:4px;color:#94a3b8;">잼잼의 팝업 전문 블로그</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">4</td><td style="padding:4px;">2026-03-13</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#059669;">78</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">39.3</td><td style="padding:4px;">Q5 서사형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/lkh9007/224215373867" target="_blank" style="color:#6666FF;text-decoration:none;">이클립스 팝업 성수 3월 포도향 물씬 웨이팅 후기</a></td><td style="padding:4px;color:#94a3b8;">음식에 진심인 Superf</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">5</td><td style="padding:4px;">2026-03-13</td><td style="padding:4px;color:#6666FF;font-weight:600;">혼합</td><td style="padding:4px;text-align:center;"><strong style="color:#059669;">76</strong></td><td style="padding:4px;text-align:center;">70</td><td style="padding:4px;text-align:center;">34.0</td><td style="padding:4px;">Q5 서사형</td><td style="padding:4px;">게임/미션</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/cheeseaksen/224215628402" target="_blank" style="color:#6666FF;text-decoration:none;">서울 성수동 이클립스 월드 팝업스토어 후기 (+체험 , 이벤트 정리)</a></td><td style="padding:4px;color:#94a3b8;">시루코의 블로그</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">6</td><td style="padding:4px;">2026-03-19</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">70</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">37.5</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/gpal1356/224222814463" target="_blank" style="color:#6666FF;text-decoration:none;">#5 일상기록 (성수 나들이)</a></td><td style="padding:4px;color:#94a3b8;">.･ﾟAI로 글안쑴⋆｡⋆˚</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">7</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">70</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">50.0</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/blue77y/224216423412" target="_blank" style="color:#6666FF;text-decoration:none;">성수동 팝업 현장예약 후 가볼곳 &amp;quot;프리카&amp;quot;, 온그리디언츠 팝업... </a></td><td style="padding:4px;color:#94a3b8;">티티아</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">8</td><td style="padding:4px;">2026-03-13</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">70</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">61.5</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/dpffl361/224215428650" target="_blank" style="color:#6666FF;text-decoration:none;">3월 성수 팝업스토어 - 이클립스 월드 : Into the tincase... </a></td><td style="padding:4px;color:#94a3b8;">이것저것 재밌는 것</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">9</td><td style="padding:4px;">2026-03-11</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">70</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">42.1</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/cs_biz/224212346639" target="_blank" style="color:#6666FF;text-decoration:none;">성수 팝업스토어 추천 이클립스 월드 팝업 방문 정보 총정리</a></td><td style="padding:4px;color:#94a3b8;">퇴근 후 힐링 연구소</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">10</td><td style="padding:4px;">2026-03-08</td><td style="padding:4px;color:#dc2626;font-weight:600;">부정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">70</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">52.3</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/infosalejung/224208829228" target="_blank" style="color:#6666FF;text-decoration:none;">해외에서 먼저 난리났던 이클립스 포도향, 드디어 한국 팝업... </a></td><td style="padding:4px;color:#94a3b8;">정보수집중</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">11</td><td style="padding:4px;">2026-03-07</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">70</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">44.6</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/04shake/224208021182" target="_blank" style="color:#6666FF;text-decoration:none;">성수 팝업스토어 추천! 이클립스 월드 사전예약 총정리</a></td><td style="padding:4px;color:#94a3b8;">김베니</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">12</td><td style="padding:4px;">2026-03-13</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">70</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">50.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/popply_official/224215292006" target="_blank" style="color:#6666FF;text-decoration:none;">팝플리 플레이스리스트) 3월 2주차 팝업스토어 추천 5곳</a></td><td style="padding:4px;color:#94a3b8;">팝업스토어추천 - 팝플리 </td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">13</td><td style="padding:4px;">2026-03-12</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">70</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">37.5</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">공간/분위기</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/yjw809-/224213493825" target="_blank" style="color:#6666FF;text-decoration:none;">요즘 성수동에서 제일 핫한 팝업스토어? 이번 주말 데이트 코스... </a></td><td style="padding:4px;color:#94a3b8;">윤슬처럼 반짝이는 날들을 </td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">14</td><td style="padding:4px;">2026-03-21</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">68</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">47.8</td><td style="padding:4px;">Q3 경험형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/duddnr9793/224224761892" target="_blank" style="color:#6666FF;text-decoration:none;">받아들이는 거에요 그냥 들이받을 수는 없으니까</a></td><td style="padding:4px;color:#94a3b8;">영우기 vlog</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">15</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#6666FF;font-weight:600;">혼합</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">68</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">28.9</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/alwayssmile-happy/224216614626" target="_blank" style="color:#6666FF;text-decoration:none;">이클립스 월드 팝업</a></td><td style="padding:4px;color:#94a3b8;">나도 내가 누구인지 모른다</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">16</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#dc2626;font-weight:600;">부정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">68</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">51.9</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/jongjongddy/224216277314" target="_blank" style="color:#6666FF;text-decoration:none;">&amp;lt;3월성수팝업&amp;gt; 이클립스 월드 : Into the tincase</a></td><td style="padding:4px;color:#94a3b8;">종이로그</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">17</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">68</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">30.4</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/thisin1234/224215422914" target="_blank" style="color:#6666FF;text-decoration:none;">성수 3월 팝업 이클립스 월드: into the tincase 다녀온 후기</a></td><td style="padding:4px;color:#94a3b8;">하망이올시다</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">18</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">68</strong></td><td style="padding:4px;text-align:center;">70</td><td style="padding:4px;text-align:center;">22.6</td><td style="padding:4px;">Q3 경험형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/ibbenosa/224215990888" target="_blank" style="color:#6666FF;text-decoration:none;">성수팝업 이클립스 팝업스토어 방문만해도 선물 받은 후기</a></td><td style="padding:4px;color:#94a3b8;">팝업꿀벌</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">19</td><td style="padding:4px;">2026-03-13</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">68</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">50.0</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">게임/미션</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/purity5002/224215672000" target="_blank" style="color:#6666FF;text-decoration:none;">성수핫플가볼만한 곳 이클립스팝업 무신사스토어 미피스토어... </a></td><td style="padding:4px;color:#94a3b8;">뚜벅이 여행</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">20</td><td style="padding:4px;">2026-03-12</td><td style="padding:4px;color:#6666FF;font-weight:600;">혼합</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">68</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">33.3</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/lifetriptip/224214346135" target="_blank" style="color:#6666FF;text-decoration:none;">상륙한 보랏빛 세상! 이클립스 팝업 '이클립스 월드' 정보 총정리</a></td><td style="padding:4px;color:#94a3b8;">lifetriptip님의 </td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">21</td><td style="padding:4px;">2026-03-07</td><td style="padding:4px;color:#6666FF;font-weight:600;">혼합</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">68</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">32.0</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/dbsdmsz/224208244889" target="_blank" style="color:#6666FF;text-decoration:none;">성수 팝업스토어 성수동 놀거리 핫플 이클립스 월드</a></td><td style="padding:4px;color:#94a3b8;">흥해도 청춘 망해도 청춘</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">22</td><td style="padding:4px;">2026-03-07</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">68</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">41.9</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/mok5022/224208035927" target="_blank" style="color:#6666FF;text-decoration:none;">서울 성수동 팝업스토어 핫플 데이트 이클립스 월드</a></td><td style="padding:4px;color:#94a3b8;">웨이팅요정의 여행 Blog</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">23</td><td style="padding:4px;">2026-03-09</td><td style="padding:4px;color:#6666FF;font-weight:600;">혼합</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">68</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">33.3</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/hyun0kr/224209863921" target="_blank" style="color:#6666FF;text-decoration:none;">이클립스 팝업 예약 및 팝업스토어 확인하기</a></td><td style="padding:4px;color:#94a3b8;">SOSO한 재미 즐겁게 살</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">24</td><td style="padding:4px;">2026-03-29</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">66</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">56.1</td><td style="padding:4px;">Q5 서사형</td><td style="padding:4px;">굿즈/가챠</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/h_yes_u1210/224233697500" target="_blank" style="color:#6666FF;text-decoration:none;">봄맞이 일상 &amp;amp; 명예 잠실 주민 졸업 (｡•̀ᴗ-)✧✧킹키부츠... </a></td><td style="padding:4px;color:#94a3b8;">It ain't over </td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">25</td><td style="padding:4px;">2026-03-09</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">66</strong></td><td style="padding:4px;text-align:center;">70</td><td style="padding:4px;text-align:center;">23.8</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/danikang1/224210596535" target="_blank" style="color:#6666FF;text-decoration:none;">이클립스 팝업 일정, 위치, 예약 정보 : 포도향 틴케이스 속... </a></td><td style="padding:4px;color:#94a3b8;">DANIKANG BEAUT</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">26</td><td style="padding:4px;">2026-03-07</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">66</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">34.0</td><td style="padding:4px;">Q5 서사형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/danakim1222/224207966714" target="_blank" style="color:#6666FF;text-decoration:none;">3월 성수 팝업스토어 이클립스 월드 사전예약 및 현장 워크인... </a></td><td style="padding:4px;color:#94a3b8;">danalog : 모든요일</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">27</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">62</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">31.0</td><td style="padding:4px;">Q3 경험형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/lovlog-/224216317329" target="_blank" style="color:#6666FF;text-decoration:none;">성수 이클립스 월드 : Into the tincase 현장 대기 후기</a></td><td style="padding:4px;color:#94a3b8;">째꾸꾸</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">28</td><td style="padding:4px;">2026-03-27</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">65</td><td style="padding:4px;text-align:center;">55.8</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/heeoneey53/224231273478" target="_blank" style="color:#6666FF;text-decoration:none;">[서울/성수] 광동식의 모던 차이니즈 레스토랑에서 A코스... </a></td><td style="padding:4px;color:#94a3b8;">970530__</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">29</td><td style="padding:4px;">2026-03-26</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">66.7</td><td style="padding:4px;">Q3 경험형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/hansori___/224229705297" target="_blank" style="color:#6666FF;text-decoration:none;">성수 나들E</a></td><td style="padding:4px;color:#94a3b8;">ʜᴀɴsᴏʀɪ_ʙʟᴏɢ✨</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">30</td><td style="padding:4px;">2026-03-25</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">42.9</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/jhh4010/224228440295" target="_blank" style="color:#6666FF;text-decoration:none;">성수 스너글×두산베어스 팝업| 사전예매해서 다녀왔어요... </a></td><td style="padding:4px;color:#94a3b8;">화요의 화려하지않고 평범한</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">31</td><td style="padding:4px;">2026-03-22</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">66.7</td><td style="padding:4px;">Q1 간단형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/lowing1018/224225078565" target="_blank" style="color:#6666FF;text-decoration:none;">3월 성수 팝업스토어 코스모폴리탄x아이더 플렉션 하이브리드... </a></td><td style="padding:4px;color:#94a3b8;">여행에 美치다</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">32</td><td style="padding:4px;">2026-03-20</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">0.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">기타</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/kyurimkyu/224223593450" target="_blank" style="color:#6666FF;text-decoration:none;">2~3월 건대 성수 안국 돌아다닌 일상 블로그</a></td><td style="padding:4px;color:#94a3b8;">kyurimkyu</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">33</td><td style="padding:4px;">2026-03-17</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">0.0</td><td style="padding:4px;">Q1 간단형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/lowing1018/224219729427" target="_blank" style="color:#6666FF;text-decoration:none;">성수 팝업스토어 3월 이클립스 월드&amp;amp;콜랩코리아 팝업</a></td><td style="padding:4px;color:#94a3b8;">여행에 美치다</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">34</td><td style="padding:4px;">2026-03-17</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">50</td><td style="padding:4px;text-align:center;">28.9</td><td style="padding:4px;">Q3 경험형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/iscent_official/224219373833" target="_blank" style="color:#6666FF;text-decoration:none;">이클립스 팝업스토어 | 향기로 완성된 브랜드 경험 | 아이센트... </a></td><td style="padding:4px;color:#94a3b8;">(주)아이센트 공식 블로그</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">35</td><td style="padding:4px;">2026-03-16</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">0.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/wldusdhkd00/224218669743" target="_blank" style="color:#6666FF;text-decoration:none;">성수 이클립스 팝업 럭키드로우 1등 뽑은 후기 이클립스 월드</a></td><td style="padding:4px;color:#94a3b8;">맛집 데이트 요미로그 • </td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">36</td><td style="padding:4px;">2026-03-15</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">37.5</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/sarang1002/224217197126" target="_blank" style="color:#6666FF;text-decoration:none;">포도향 이클립스를 테마 ECLIPSE WORLD : Into the Tincase</a></td><td style="padding:4px;color:#94a3b8;">나만의 아지트</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">37</td><td style="padding:4px;">2026-03-15</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">50.0</td><td style="padding:4px;">Q3 경험형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/myojji520/224217103664" target="_blank" style="color:#6666FF;text-decoration:none;">[성수 팝업] 이클립스 팝업 후기 | 각종 아케이드 게임하고 포도... </a></td><td style="padding:4px;color:#94a3b8;">묘찌의 하루하루</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">38</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">35.6</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">게임/미션</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/lovebellaluna/224216371505" target="_blank" style="color:#6666FF;text-decoration:none;">월드 : Into the Tin Case 이클립스 성수 주말 팝업 후기</a></td><td style="padding:4px;color:#94a3b8;">송송이 정원</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">39</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">95</td><td style="padding:4px;text-align:center;">35.3</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">게임/미션</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/rnacl0218/224216285995" target="_blank" style="color:#6666FF;text-decoration:none;">3월 14일 성수 이클립스 팝업 추천 후기</a></td><td style="padding:4px;color:#94a3b8;">끄적끄적 매일매일 일상공유</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">30.8</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/gksk3232/224216231982" target="_blank" style="color:#6666FF;text-decoration:none;">성수동에서 찾은 시간 순삭 실내 핫플 이클립스 월드 팝업스토... </a></td><td style="padding:4px;color:#94a3b8;">팝업 속에 놀거리를 찾다</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">41</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">50.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/minmojjine/224216043726" target="_blank" style="color:#6666FF;text-decoration:none;">[성수 팝업] 이클립스 월드 워크인 방문 후기</a></td><td style="padding:4px;color:#94a3b8;">모찌다 모찌야ꔛꕤ</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">42</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">45.9</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">공간/분위기</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/dhshakalrkdy/224215765580" target="_blank" style="color:#6666FF;text-decoration:none;">2026 : Eclipse World - Into the Tincase 팝업 키비주얼</a></td><td style="padding:4px;color:#94a3b8;">J EIGHT</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">43</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">63.2</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/blue77y/224215729195" target="_blank" style="color:#6666FF;text-decoration:none;">성수 3월 이클립스 월드 팝업, 포도향 출시, 체험형 미션 완료시... </a></td><td style="padding:4px;color:#94a3b8;">티티아</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">44</td><td style="padding:4px;">2026-03-13</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">45.5</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">게임/미션</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/seongsudonggorilla/224215411156" target="_blank" style="color:#6666FF;text-decoration:none;">팝업, 이클립스 팝업, 두산베어스X스너글 베어스랜드 팝업... </a></td><td style="padding:4px;color:#94a3b8;">성수동고릴라 | 로컬 큐레</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">45</td><td style="padding:4px;">2026-03-13</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">66.7</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/apalos_kr/224215319940" target="_blank" style="color:#6666FF;text-decoration:none;">[이클립스] 인투 더 틴케이스 팝업스토어 방문 후기 / 예약링크</a></td><td style="padding:4px;color:#94a3b8;">비늘로 하늘을 헤엄치다</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">46</td><td style="padding:4px;">2026-03-13</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">0.0</td><td style="padding:4px;">Q3 경험형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/gladheung/224215056519" target="_blank" style="color:#6666FF;text-decoration:none;">[성수팝업] 이클립스 월드: lnto the tincase 방문 후기.</a></td><td style="padding:4px;color:#94a3b8;">일상 기록.</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">47</td><td style="padding:4px;">2026-03-09</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">50.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/ppo-gom/224209431359" target="_blank" style="color:#6666FF;text-decoration:none;">이클립스 월드 틴케이스 성수동 팝업 포도 미션 이벤트 일정... </a></td><td style="padding:4px;color:#94a3b8;">뽀곰</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">48</td><td style="padding:4px;">2026-03-07</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">39.4</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/kjm_2010/224207652303" target="_blank" style="color:#6666FF;text-decoration:none;">성수 이 팝업 뜹니다 틴케이스 속 세상 이클립스 포도향 팝업스... </a></td><td style="padding:4px;color:#94a3b8;">잼잼의 팝업 전문 블로그</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">49</td><td style="padding:4px;">2026-03-18</td><td style="padding:4px;color:#059669;font-weight:600;">긍정</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">64.0</td><td style="padding:4px;">Q3 경험형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">팝업후</td><td style="padding:4px;"><a href="https://blog.naver.com/juddy__/224220341810" target="_blank" style="color:#6666FF;text-decoration:none;">3월 2주차 팝업 후기들!</a></td><td style="padding:4px;color:#94a3b8;">▶JUDDY_Q◀</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">50</td><td style="padding:4px;">2026-03-15</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">100.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">굿즈/가챠</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/eomgh94/224216788661" target="_blank" style="color:#6666FF;text-decoration:none;">이클립스 월드 : into the tincase</a></td><td style="padding:4px;color:#94a3b8;">알티의 마음양식</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">51</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">50</td><td style="padding:4px;text-align:center;">50.0</td><td style="padding:4px;">Q3 경험형</td><td style="padding:4px;">웨이팅/예약</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/duck_sosohan/224216189032" target="_blank" style="color:#6666FF;text-decoration:none;">이클립스 팝업-이클립스 월드 (사전예약링크포함)3.12~3.15</a></td><td style="padding:4px;color:#94a3b8;">오리의 소소한 일상</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">52</td><td style="padding:4px;">2026-03-14</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">0.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/cosk911/224215712807" target="_blank" style="color:#6666FF;text-decoration:none;">3월 2주차 주말에 종료되는 성수 팝업스토어 12곳 일정 혜택... </a></td><td style="padding:4px;color:#94a3b8;">소소하지만 확실한 기록</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">53</td><td style="padding:4px;">2026-03-13</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">50</td><td style="padding:4px;text-align:center;">29.4</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">공간/분위기</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/art-ceo/224215308864" target="_blank" style="color:#6666FF;text-decoration:none;">팝업, 이클립스 팝업 - 이클립스 월드 : Into the tincase</a></td><td style="padding:4px;color:#94a3b8;">김쌔오의 예술생활</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">54</td><td style="padding:4px;">2026-03-13</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">57.1</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">팝업기간</td><td style="padding:4px;"><a href="https://blog.naver.com/lifetriptip/224214705655" target="_blank" style="color:#6666FF;text-decoration:none;">성수동 이번 주말 안 가면 손해!3월 13일~15일 팝업 30곳 풀코스</a></td><td style="padding:4px;color:#94a3b8;">lifetriptip님의 </td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;">2026-03-11</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">29.2</td><td style="padding:4px;">Q4 분석형</td><td style="padding:4px;">공간/분위기</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/kohyoon123/224207658457" target="_blank" style="color:#6666FF;text-decoration:none;">틴케이스 속으로 들어간 하루, 성수에서 만난 이클립스 월드</a></td><td style="padding:4px;color:#94a3b8;">쉼터로 자리잡은 그림자</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">56</td><td style="padding:4px;">2026-03-10</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">50.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/thglth2/224211680909" target="_blank" style="color:#6666FF;text-decoration:none;">성수동 가볼만한 곳 데이트코스 | 삐아 이클립스 두산베어스</a></td><td style="padding:4px;color:#94a3b8;">그냥 기록하고 남기는 곳.</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">57</td><td style="padding:4px;">2026-03-10</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">0.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/cosk911/224210551681" target="_blank" style="color:#6666FF;text-decoration:none;">3월 2주차에 종료되는 성수 팝업스토어 11곳 일정 및 혜택</a></td><td style="padding:4px;color:#94a3b8;">소소하지만 확실한 기록</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">58</td><td style="padding:4px;">2026-03-09</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">0.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/cosk911/224209288519" target="_blank" style="color:#6666FF;text-decoration:none;">3월 2주차 신규 오픈하는 성수 팝업스토어 일정 및 혜택, 현장... </a></td><td style="padding:4px;color:#94a3b8;">소소하지만 확실한 기록</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">59</td><td style="padding:4px;">2026-03-07</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">25.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/happypicklog/224204862716" target="_blank" style="color:#6666FF;text-decoration:none;">성수 이클립스 팝업 예약 방법｜이클립스 월드 Into the... </a></td><td style="padding:4px;color:#94a3b8;">혜택줍줍 × 라이프 매거진</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">60</td><td style="padding:4px;">2026-03-07</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">50.0</td><td style="padding:4px;">Q3 경험형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/full_boreum/224205887291" target="_blank" style="color:#6666FF;text-decoration:none;">3월 서울 I 성수 팝업스토어 I 일정 총정리 가볼만한 팝업 BEST</a></td><td style="padding:4px;color:#94a3b8;">오늘 하루도 보름차게 !</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">61</td><td style="padding:4px;">2026-03-06</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">66.7</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/thtlaej/224206906436" target="_blank" style="color:#6666FF;text-decoration:none;">성수팝업 이클립스 사전예약오픈</a></td><td style="padding:4px;color:#94a3b8;">오늘의 기분 맑음</td></tr>
+<tr style="background:#fff;"><td style="padding:4px;text-align:center;">62</td><td style="padding:4px;">2026-03-06</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">55</td><td style="padding:4px;text-align:center;">40.0</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/dapumf/224206903399" target="_blank" style="color:#6666FF;text-decoration:none;">3월 성수 팝업스토어 정리: 빈손으로 갔다 양손 무겁게 오는... </a></td><td style="padding:4px;color:#94a3b8;">하루하루 소중하게</td></tr>
+<tr style="background:#f0fdf4;"><td style="padding:4px;text-align:center;">63</td><td style="padding:4px;">2026-03-05</td><td style="padding:4px;color:#94a3b8;font-weight:600;">중립</td><td style="padding:4px;text-align:center;"><strong style="color:#6666FF;">60</strong></td><td style="padding:4px;text-align:center;">40</td><td style="padding:4px;text-align:center;">66.7</td><td style="padding:4px;">Q2 감상형</td><td style="padding:4px;">제품/맛</td><td style="padding:4px;">사전</td><td style="padding:4px;"><a href="https://blog.naver.com/agarii_eter/224204897959" target="_blank" style="color:#6666FF;text-decoration:none;">[성수] 팝업 사전예약 '이클립스 월드: Into the tincase(3... </a></td><td style="padding:4px;color:#94a3b8;">agarii eter</td></tr>
+</tbody></table>
+<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
+  <div class="card" style="padding:12px;text-align:center;">
+    <div style="font-size:10px;color:var(--body);margin-bottom:4px;">감성 분포</div>
+    <div style="font-size:11px;">긍정 <strong style="color:#059669;">21</strong> · 혼합 <strong style="color:#6666FF;">6</strong> · 중립 <strong>34</strong> · 부정 <strong style="color:#dc2626;">2</strong></div>
+  </div>
+  <div class="card" style="padding:12px;text-align:center;">
+    <div style="font-size:10px;color:var(--body);margin-bottom:4px;">평균 Psyche</div>
+    <div style="font-size:11px;">Auth <strong style="color:var(--primary);">64.4</strong> · Clout <strong>47.9</strong></div>
+  </div>
+  <div class="card" style="padding:12px;text-align:center;">
+    <div style="font-size:10px;color:var(--body);margin-bottom:4px;">기간 분포</div>
+    <div style="font-size:11px;">사전 <strong>19</strong> · 팝업 <strong style="color:var(--primary);">32</strong> · 후 <strong>12</strong></div>
+  </div>
+  <div class="card" style="padding:12px;text-align:center;">
+    <div style="font-size:10px;color:var(--body);margin-bottom:4px;">RQL 분포</div>
+    <div style="font-size:11px;">Q5 <strong>7</strong> · Q4 <strong>23</strong> · Q3 <strong>10</strong> · Q2 <strong>21</strong></div>
+  </div>
+</div>
+
+
+<div class="footer">
+  Project RENT · R-lab · 2026<br>
+  RXR 2-Layer Analysis Engine v0.1 + Sincerity Filter v1.0<br>
+  "같은 데이터, 다르게 읽는 프레임이 자산이다"
+</div>
+
+<!-- PDF Panel -->
+<div class="pdf-panel" id="pdfPanel">
+  <button class="pdf-panel-toggle" onclick="document.getElementById('pdfBody').classList.toggle('open')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    PDF
+  </button>
+  <div class="pdf-panel-body" id="pdfBody">
+    <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:12px;text-align:center;">PDF 출력 설정</div>
+    <div class="pdf-orient-group">
+      <button class="pdf-orient-btn" id="btnL" onclick="setOrient('landscape')">
+        <svg width="28" height="20" viewBox="0 0 28 20"><rect x="1" y="1" width="26" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        가로
+      </button>
+      <button class="pdf-orient-btn active" id="btnP" onclick="setOrient('portrait')">
+        <svg width="18" height="24" viewBox="0 0 18 24"><rect x="1" y="1" width="16" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        세로
+      </button>
+    </div>
+    <button class="pdf-print-btn" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      출력하기
+    </button>
+  </div>
+</div>
+<script>
+document.addEventListener('click',function(e){var p=document.getElementById('pdfPanel');if(p&&!p.contains(e.target))document.getElementById('pdfBody').classList.remove('open');});
+function setOrient(o){var s=document.getElementById('pageOrientStyle'),bL=document.getElementById('btnL'),bP=document.getElementById('btnP');if(o==='landscape'){s.textContent='@media print{@page{size:A4 landscape;margin:8mm;}}';bL.classList.add('active');bP.classList.remove('active');}else{s.textContent='@media print{@page{size:A4 portrait;margin:10mm;}}';bP.classList.add('active');bL.classList.remove('active');}}
+</script>
+</body>
+</html>

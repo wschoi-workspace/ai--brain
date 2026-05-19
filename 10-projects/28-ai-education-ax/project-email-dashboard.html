@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프로젝트 이메일 업무이력 대시보드</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: #0f0f14;
+    color: #e4e4e7;
+    line-height: 1.6;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-bottom: 1px solid #2a2a3e;
+    padding: 32px 48px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .header .sub {
+    font-size: 13px;
+    color: #71717a;
+  }
+
+  .summary-bar {
+    display: flex;
+    gap: 16px;
+    padding: 20px 48px;
+    background: #13131a;
+    border-bottom: 1px solid #1e1e2e;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    background: #1a1a26;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+    padding: 14px 20px;
+    min-width: 140px;
+    flex: 1;
+  }
+
+  .stat-card .label {
+    font-size: 11px;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .stat-card .value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .stat-card .value.urgent { color: #ef4444; }
+  .stat-card .value.active { color: #6C5CE7; }
+  .stat-card .value.money { color: #10b981; }
+
+  .container {
+    padding: 24px 48px 60px;
+  }
+
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+    gap: 20px;
+  }
+
+  .project-card {
+    background: #16161f;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .project-card:hover {
+    border-color: #6C5CE7;
+  }
+
+  .card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #1e1e2e;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .card-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+
+  .status-active { background: #6C5CE722; color: #a78bfa; border: 1px solid #6C5CE744; }
+  .status-done { background: #10b98122; color: #34d399; border: 1px solid #10b98144; }
+  .status-wait { background: #f59e0b22; color: #fbbf24; border: 1px solid #f59e0b44; }
+  .status-fail { background: #ef444422; color: #f87171; border: 1px solid #ef444444; }
+
+  .card-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #71717a;
+    flex-wrap: wrap;
+  }
+
+  .card-meta span { display: flex; align-items: center; gap: 4px; }
+
+  .card-body {
+    padding: 16px 24px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #6C5CE7;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+
+  .section-title:first-child { margin-top: 0; }
+
+  .contact-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+
+  .contact-chip {
+    font-size: 12px;
+    background: #1e1e2e;
+    border: 1px solid #2a2a3e;
+    border-radius: 6px;
+    padding: 4px 10px;
+    color: #a1a1aa;
+  }
+
+  .contact-chip strong { color: #e4e4e7; font-weight: 600; }
+
+  .summary-text {
+    font-size: 13px;
+    color: #a1a1aa;
+    margin-bottom: 8px;
+  }
+
+  .admin-table {
+    width: 100%;
+    font-size: 12px;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+  }
+
+  .admin-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #1e1e2e;
+  }
+
+  .admin-table td:first-child {
+    color: #71717a;
+    width: 90px;
+    font-weight: 500;
+  }
+
+  .admin-table td:last-child {
+    color: #d4d4d8;
+  }
+
+  .unknown { color: #f59e0b; font-size: 11px; }
+
+  .timeline {
+    position: relative;
+    padding-left: 16px;
+    border-left: 2px solid #2a2a3e;
+    margin-top: 8px;
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: 10px;
+    font-size: 12px;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -21px;
+    top: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6C5CE7;
+    border: 2px solid #0f0f14;
+  }
+
+  .timeline-item:last-child::before { background: #10b981; }
+
+  .timeline-date {
+    font-weight: 700;
+    color: #a1a1aa;
+    font-size: 11px;
+  }
+
+  .timeline-text {
+    color: #71717a;
+    margin-top: 2px;
+  }
+
+  .todo-list {
+    list-style: none;
+    margin-top: 8px;
+  }
+
+  .todo-list li {
+    font-size: 12px;
+    padding: 5px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    color: #a1a1aa;
+  }
+
+  .todo-list li::before {
+    content: '☐';
+    color: #ef4444;
+    flex-shrink: 0;
+    margin-top: -1px;
+  }
+
+  .issue-list {
+    list-style: none;
+    margin-top: 4px;
+  }
+
+  .issue-list li {
+    font-size: 12px;
+    padding: 3px 0;
+    color: #fbbf24;
+    display: flex;
+    gap: 6px;
+  }
+
+  .issue-list li::before {
+    content: '⚠';
+    flex-shrink: 0;
+  }
+
+  .card-footer {
+    padding: 12px 24px;
+    background: #13131a;
+    border-top: 1px solid #1e1e2e;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #52525b;
+  }
+
+  .toggle-btn {
+    background: none;
+    border: 1px solid #2a2a3e;
+    color: #71717a;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .toggle-btn:hover { border-color: #6C5CE7; color: #a78bfa; }
+
+  .collapsible { display: none; }
+  .collapsible.open { display: block; }
+
+  @media (max-width: 768px) {
+    .header, .summary-bar, .container { padding-left: 20px; padding-right: 20px; }
+    .project-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>프로젝트 이메일 업무이력 대시보드</h1>
+  <div class="sub">자동 생성: 2026-04-26 | Gmail (ws.choi@project-rent.com) 기반 | 최근 60일 스캔</div>
+</div>
+
+<div class="summary-bar">
+  <div class="stat-card">
+    <div class="label">활성 프로젝트</div>
+    <div class="value active">8</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">긴급 회신 필요</div>
+    <div class="value urgent">3</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">대기 항목</div>
+    <div class="value">16</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">확인된 계약금액 합계</div>
+    <div class="value money">2.3억+</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">관련 메일</div>
+    <div class="value">170+</div>
+  </div>
+</div>
+
+<div class="container">
+<div class="project-grid">
+
+<!-- 1. 리스테린 -->
+<div class="project-card">
+  <div class="card-header">
+    <div>
+      <h2>1. 리스테린 X 엔하이픈 올리브영 홍대타운 팝업</h2>
+      <div class="card-meta">
+        <span>📅 2026-02-05 ~ 04-30</span>
+        <span>📧 ~34건</span>
+        <span>💰 1억5,900만원</span>
+      </div>
+    </div>
+    <span class="status-badge status-urgent" style="background:#ef444422;color:#f87171;border:1px solid #ef444444">4/30 철수</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">담당자</div>
+    <div class="contact-row">
+      <span class="contact-chip"><strong>임성용</strong> 비트리 gon@bitree.ai</span>
+      <span class="contact-chip"><strong>이재형</strong> 비트리 camo@bitree.ai</span>
+      <span class="contact-chip"><strong>정예은</strong> 렌트 010-7114-4463</span>
+      <span class="contact-chip"><strong>전제훈</strong> 렌트 PM</span>
+    </div>
+
+    <div class="section-title">프로젝트 요약</div>
+    <p class="summary-text">리스테린 X 엔하이픈 콜라보 'TO DO LIST' 캠페인. 비트리(구 필라멘트리) 광고대행. 공간 기획→디자인→시공→운영. 계약금액 1억5,900만원. 4/30 철수 예정.</p>
+
+    <div class="section-title">행정 정보</div>
+    <table class="admin-table">
+      <tr><td>계약금액</td><td>159,000,000원 (지류/가챠 MD 제외)</td></tr>
+      <tr><td>정산</td><td>선금 3,920만 → 중도금 50% → 잔금 25% (4월 1주차)</td></tr>
+      <tr><td>계좌</td><td class="unknown">⚠️ 미확인 (통장사본 3/18 전송)</td></tr>
+    </table>
+
+    <div class="section-title">이슈</div>
+    <ul class="issue-list">
+      <li>비트리 합병으로 비용 지급 지연 — 중도금/잔금 비율 변경</li>
+      <li>최초 1.2억 → 최종 1.59억 견적 증액</li>
+    </ul>
+
+    <div class="section-title">주요 이력</div>
+    <button class="toggle-btn" onclick="toggle('tl1')">타임라인 펼치기</button>
+    <div id="tl1" class="collapsible timeline">
+      <div class="timeline-item"><span class="timeline-date">02-05</span><div class="timeline-text">프로젝트 킥오프 — 임성용 기획 요청</div></div>
+      <div class="timeline-item"><span class="timeline-date">02-10</span><div class="timeline-text">공간 기획안 1차 제출</div></div>
+      <div class="timeline-item"><span class="timeline-date">03-06</span><div class="timeline-text">견적서 1차 제출</div></div>
+      <div class="timeline-item"><span class="timeline-date">03-11</span><div class="timeline-text">계약서 초안 교환, 비용 협의</div></div>
+      <div class="timeline-item"><span class="timeline-date">03-17</span><div class="timeline-text">인건비 확정 (32,300,000원)</div></div>
+      <div class="timeline-item"><span class="timeline-date">03-18</span><div class="timeline-text">최종 견적 + 사업자/통장 전달</div></div>
+      <div class="timeline-item"><span class="timeline-date">03-24</span><div class="timeline-text">중도금 8,985만원 청구 → 3/31 입금 합의</div></div>
+      <div class="timeline-item"><span class="timeline-date">03-26</span><div class="timeline-text">비트리 합병으로 지급 조정 요청</div></div>
+      <div class="timeline-item"><span class="timeline-date">04-24</span><div class="timeline-text">🔴 철수 회수 리스트 전달 (확인 필요)</div></div>
+    </div>
+
+    <div class="section-title">미회신/대기</div>
+    <ul class="todo-list">
+      <li>철수 회수 리스트 확인 및 회신 (4/30 임박)</li>
+      <li>비트리 잔금 지급 확인</li>
+    </ul>
+  </div>
+  <div class="card-footer">
+    <span>마지막 스캔: 2026-04-26</span>
+    <span>17-listerine-popup/email-history.md</span>
+  </div>
+</div>
+
+<!-- 2. SKT T팩토리 -->
+<div class="project-card">
+  <div class="card-header">
+    <div>
+      <h2>2. SK텔레콤 T팩토리 성수</h2>
+      <div class="card-meta">
+        <span>📅 2026-03-10 ~</span>
+        <span>📧 ~19건</span>
+        <span>💰 MD 650만원</span>
+      </div>
+    </div>
+    <span class="status-badge status-active">디자인 진행</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">담당자</div>
+    <div class="contact-row">
+      <span class="contact-chip"><strong>이현주</strong> SKT 공간브랜딩 010-2230-8158</span>
+      <span class="contact-chip"><strong>박부영</strong> SKT 공간브랜딩</span>
+      <span class="contact-chip"><strong>곽정아</strong> SKT 구매팀</span>
+    </div>
+
+    <div class="section-title">프로젝트 요약</div>
+    <p class="summary-text">3개 업무 병렬: ① 2층 라운지 디자인 (Urban Archive 톤) + 시공입찰 도서 제출 ② 커피바 MD 컨설팅 650만원 정산 완료 ③ 위탁운영 입찰 → 미선정(4/16)</p>
+
+    <div class="section-title">행정 정보</div>
+    <table class="admin-table">
+      <tr><td>MD컨설팅</td><td>650만원(VAT별도) → PS&M 세금계산서 (tax10200@skpsnm.com)</td></tr>
+      <tr><td>위탁운영</td><td style="color:#f87171">미선정 (4/16 통보)</td></tr>
+    </table>
+
+    <div class="section-title">주요 이력</div>
+    <button class="toggle-btn" onclick="toggle('tl2')">타임라인 펼치기</button>
+    <div id="tl2" class="collapsible timeline">
+      <div class="timeline-item"><span class="timeline-date">03-10</span><div class="timeline-text">라운지 디벨롭 시작, 디자인 긍정 피드백</div></div>
+      <div class="timeline-item"><span class="timeline-date">03-18</span><div class="timeline-text">3D 시안 제출, 실시설계 진행</div></div>
+      <div class="timeline-item"><span class="timeline-date">03-20</span><div class="timeline-text">위탁운영 입찰 안내, 참석 등록</div></div>
+      <div class="timeline-item"><span class="timeline-date">03-27</span><div class="timeline-text">시공입찰 도서 1차 제출</div></div>
+      <div class="timeline-item"><span class="timeline-date">04-03</span><div class="timeline-text">시공입찰 도서 2차 제출 (제작가구/3D)</div></div>
+      <div class="timeline-item"><span class="timeline-date">04-07</span><div class="timeline-text">입찰 발표 + MD 최종 견적서 + 세금계산서</div></div>
+      <div class="timeline-item"><span class="timeline-date">04-16</span><div class="timeline-text">위탁운영 미선정 통보</div></div>
+    </div>
+
+    <div class="section-title">미회신/대기</div>
+    <ul class="todo-list">
+      <li>커피바 원두 추가 3종 확인 회신</li>
+      <li>시공입찰 결과 확인</li>
+    </ul>
+  </div>
+  <div class="card-footer">
+    <span>마지막 스캔: 2026-04-26</span>
+    <span>18-skt-tfactory/email-history.md</span>
+  </div>
+</div>
+
+<!-- 3. 특허출원 -->
+<div class="project-card">
+  <div class="card-header">
+    <div>
+      <h2>3. RXR 분석엔진 특허출원</h2>
+      <div class="card-meta">
+        <span>📅 2026-04-20 ~</span>
+        <span>📧 7건</span>
+      </div>
+    </div>
+    <span class="status-badge status-wait">견적 확인 대기</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">담당자</div>
+    <div class="contact-row">
+      <span class="contact-chip"><strong>송의석</strong> 이성국제특허 essong@tipip.kr</span>
+    </div>
+
+    <div class="section-title">프로젝트 요약</div>
+    <p class="summary-text">SNS/리서치/인터뷰 언어 기반 소비자 심층 분석엔진 특허. 정규출원+우선심사 방식. 입금 후 명세서 착수, 2-3주 소요.</p>
+
+    <div class="section-title">주요 이력</div>
+    <div class="timeline">
+      <div class="timeline-item"><span class="timeline-date">04-20</span><div class="timeline-text">특허출원 검토 요청</div></div>
+      <div class="timeline-item"><span class="timeline-date">04-21</span><div class="timeline-text">"새로운 기술" 판단, 출원 가능 → 출원 모드 진행 요청</div></div>
+      <div class="timeline-item"><span class="timeline-date">04-22</span><div class="timeline-text">정규출원+우선심사 확인</div></div>
+      <div class="timeline-item"><span class="timeline-date">04-23</span><div class="timeline-text">🔴 견적서 전달 — 확인 및 입금 결정 필요</div></div>
+    </div>
+
+    <div class="section-title">미회신/대기</div>
+    <ul class="todo-list">
+      <li>견적 확인 및 입금 결정</li>
+      <li>기술 설명 자료 업데이트</li>
+      <li>정부지원사업 연계 확인</li>
+    </ul>
+  </div>
+  <div class="card-footer">
+    <span>마지막 스캔: 2026-04-26</span>
+    <span>19-patent-rxr/email-history.md</span>
+  </div>
+</div>
+
+<!-- 4. 숭인동 -->
+<div class="project-card">
+  <div class="card-header">
+    <div>
+      <h2>4. 숭인동 202-14 리모델링</h2>
+      <div class="card-meta">
+        <span>📅 2026-01-28 ~</span>
+        <span>📧 ~10건</span>
+        <span>💰 4차 6,200만원</span>
+      </div>
+    </div>
+    <span class="status-badge status-active">4차 지급 청구중</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">담당자</div>
+    <div class="contact-row">
+      <span class="contact-chip"><strong>김우성</strong> 건축주측 대리</span>
+      <span class="contact-chip"><strong>전제훈</strong> 렌트 PM</span>
+    </div>
+
+    <div class="section-title">프로젝트 요약</div>
+    <p class="summary-text">숭인동 건물 리모델링. 에이치에이컴퍼니 시공. 공정별 지급 방식으로 4차까지 진행. 4차 56,000,000원 + 3차 누락분 6,000,000원 청구 중.</p>
+
+    <div class="section-title">이슈</div>
+    <ul class="issue-list">
+      <li>3차 지급금 서류 오기입으로 600만원 누락 → 4차 합산</li>
+      <li>1차 부가세 미입금 상태</li>
+    </ul>
+
+    <div class="section-title">미회신/대기</div>
+    <ul class="todo-list">
+      <li>4차 지급금 승인 및 입금</li>
+      <li>건축주 직인 스캔본 수령</li>
+      <li>현장 실사 일정 확정</li>
+    </ul>
+  </div>
+  <div class="card-footer">
+    <span>마지막 스캔: 2026-04-26</span>
+    <span>20-sungin-remodel/email-history.md</span>
+  </div>
+</div>
+
+<!-- 5. 비에이파트너스 -->
+<div class="project-card">
+  <div class="card-header">
+    <div>
+      <h2>5. 비에이파트너스 투자 검토</h2>
+      <div class="card-meta">
+        <span>📅 2026-03-05 ~</span>
+        <span>📧 6건</span>
+      </div>
+    </div>
+    <span class="status-badge status-wait">투심위 대기</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">담당자</div>
+    <div class="contact-row">
+      <span class="contact-chip"><strong>최민석</strong> BA Partners 심사역 mschoi@bapvc.com</span>
+      <span class="contact-chip"><strong>임지애</strong> BA 관리팀 jalim@bapvc.com</span>
+      <span class="contact-chip"><strong>배성원</strong> 렌트 이사 010-7138-9794</span>
+    </div>
+
+    <div class="section-title">프로젝트 요약</div>
+    <p class="summary-text">BA Partners 투자 검토. Cap table 시나리오, 포괄적교환 구조 논의. NDA 체결 완료(4/23). 투심위 4월 셋째주 예정이었으며 결과 대기 중.</p>
+
+    <div class="section-title">행정 정보</div>
+    <table class="admin-table">
+      <tr><td>NDA</td><td>2026-04-23 체결 완료 (인감 날인본 교환)</td></tr>
+      <tr><td>투자금액</td><td class="unknown">⚠️ 미확정</td></tr>
+    </table>
+
+    <div class="section-title">미회신/대기</div>
+    <ul class="todo-list">
+      <li>투심위 결과 확인</li>
+      <li>분기별 팝업 매출 자료 제출</li>
+    </ul>
+  </div>
+  <div class="card-footer">
+    <span>마지막 스캔: 2026-04-26</span>
+    <span>21-ba-partners-invest/email-history.md</span>
+  </div>
+</div>
+
+<!-- 6. GS타워 -->
+<div class="project-card">
+  <div class="card-header">
+    <div>
+      <h2>6. GS타워 운영 (로우키)</h2>
+      <div class="card-meta">
+        <span>📅 운영 중</span>
+        <span>📧 8건</span>
+        <span>💰 매출 12%</span>
+      </div>
+    </div>
+    <span class="status-badge status-done">정상 운영</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">담당자</div>
+    <div class="contact-row">
+      <span class="contact-chip"><strong>전세정</strong> GS타워PM 010-5622-7990</span>
+      <span class="contact-chip"><strong>유우림</strong> GS타워PM</span>
+      <span class="contact-chip"><strong>홍찬호</strong> 렌트 매니저</span>
+    </div>
+
+    <div class="section-title">행정 정보</div>
+    <table class="admin-table">
+      <tr><td>계좌</td><td>(주)지에스 우리은행 982-018207-01-001</td></tr>
+      <tr><td>정산</td><td>매월 8일 매출의 12% + 임대료/관리비 별도</td></tr>
+    </table>
+
+    <div class="section-title">현황</div>
+    <p class="summary-text">도서 매월 20~24일 업데이트. 3월 매출 제출 완료. 4월 임대료 세금계산서 발행 완료.</p>
+  </div>
+  <div class="card-footer">
+    <span>마지막 스캔: 2026-04-26</span>
+    <span>22-gs-tower-ops/email-history.md</span>
+  </div>
+</div>
+
+<!-- 7. Wynn Palace -->
+<div class="project-card">
+  <div class="card-header">
+    <div>
+      <h2>7. Wynn Palace 미디어 초대</h2>
+      <div class="card-meta">
+        <span>📅 2026-04-22 ~</span>
+        <span>📧 5건</span>
+      </div>
+    </div>
+    <span class="status-badge status-wait">항공편 대기</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">담당자</div>
+    <div class="contact-row">
+      <span class="contact-chip"><strong>Stephanie Sin</strong> Finn Partners</span>
+      <span class="contact-chip"><strong>Molly Ng</strong> Finn Partners</span>
+    </div>
+
+    <div class="section-title">요약</div>
+    <p class="summary-text">마카오 Wynn Palace Six-Hands 다이닝 미디어 초대. 여권 정보 전달 완료. 항공편 스케줄 회신 대기 중.</p>
+
+    <div class="section-title">미회신/대기</div>
+    <ul class="todo-list">
+      <li>항공편 스케줄 확인 (Finn Partners)</li>
+    </ul>
+  </div>
+  <div class="card-footer">
+    <span>마지막 스캔: 2026-04-26</span>
+    <span>23-wynn-palace-media/email-history.md</span>
+  </div>
+</div>
+
+<!-- 8. 어반브레이크 -->
+<div class="project-card">
+  <div class="card-header">
+    <div>
+      <h2>8. 어반브레이크 오브제 프로젝트</h2>
+      <div class="card-meta">
+        <span>📅 2026-04-17 ~</span>
+        <span>📧 2건</span>
+      </div>
+    </div>
+    <span class="status-badge status-wait">미팅 조율중</span>
+  </div>
+  <div class="card-body">
+    <div class="section-title">담당자</div>
+    <div class="contact-row">
+      <span class="contact-chip"><strong>이슬아</strong> 어반브레이크 큐레이터 sia@urbanbreak.com</span>
+    </div>
+
+    <div class="section-title">요약</div>
+    <p class="summary-text">오브제 프로젝트 작가 자료 수령 (Google Drive). 미팅 일정 조율 중 (카톡 병행). 2회 메일 수신.</p>
+
+    <div class="section-title">미회신/대기</div>
+    <ul class="todo-list">
+      <li>미팅 가능 시간 회신 (카톡)</li>
+      <li>작가 자료 검토</li>
+    </ul>
+  </div>
+  <div class="card-footer">
+    <span>마지막 스캔: 2026-04-26</span>
+    <span>24-urbanbreak-objet/email-history.md</span>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+function toggle(id) {
+  const el = document.getElementById(id);
+  const btn = el.previousElementSibling;
+  el.classList.toggle('open');
+  btn.textContent = el.classList.contains('open') ? '타임라인 접기' : '타임라인 펼치기';
+}
+</script>
+
+</body>
+</html>

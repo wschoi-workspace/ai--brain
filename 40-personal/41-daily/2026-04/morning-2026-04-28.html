@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모닝 브리핑 — 2026년 4월 28일</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a2e;
+    --surface2: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --text: #eee;
+    --text-dim: #999;
+    --green: #00c853;
+    --yellow: #ffd600;
+    --red: #ff1744;
+    --blue: #448aff;
+    --border: #2a2a4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  .header {
+    text-align: center;
+    padding: 2rem 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #e94560, #0f3460);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .date {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-top: 0.3rem;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .stat-card .number {
+    font-size: 2rem;
+    font-weight: 800;
+  }
+  .stat-card .label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+  }
+  .stat-card.urgent .number { color: var(--red); }
+  .stat-card.pending .number { color: var(--yellow); }
+  .stat-card.schedule .number { color: var(--blue); }
+  .stat-card.project .number { color: var(--green); }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-title .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+  }
+  .icon-mail { background: rgba(233,69,96,0.2); }
+  .icon-cal { background: rgba(68,138,255,0.2); }
+  .icon-money { background: rgba(255,214,0,0.2); }
+  .icon-project { background: rgba(0,200,83,0.2); }
+  .icon-todo { background: rgba(233,69,96,0.2); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  th {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid rgba(42,42,74,0.5);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  a.mail-link {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--text-dim);
+    transition: all 0.2s;
+  }
+  a.mail-link:hover {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-red { background: rgba(255,23,68,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(255,214,0,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(0,200,83,0.15); color: var(--green); }
+  .badge-blue { background: rgba(68,138,255,0.15); color: var(--blue); }
+  .badge-gray { background: rgba(153,153,153,0.15); color: var(--text-dim); }
+
+  .conflict { color: var(--yellow); font-weight: 600; }
+  .time { color: var(--blue); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  .todo-list {
+    list-style: none;
+    counter-reset: todo;
+  }
+  .todo-list li {
+    counter-increment: todo;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid rgba(42,42,74,0.5);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .todo-list li:last-child { border-bottom: none; }
+  .todo-list li::before {
+    content: counter(todo);
+    background: var(--accent);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .empty-state {
+    color: var(--text-dim);
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>☀️ 모닝 브리핑</h1>
+  <div class="date">2026년 4월 28일 (화)</div>
+</div>
+
+<!-- ── 요약 카드 ── -->
+<div class="stats">
+  <div class="stat-card urgent">
+    <div class="number">3</div>
+    <div class="label">회신 필요</div>
+  </div>
+  <div class="stat-card pending">
+    <div class="number">3</div>
+    <div class="label">발신/대기</div>
+  </div>
+  <div class="stat-card schedule">
+    <div class="number">0</div>
+    <div class="label">오늘 일정</div>
+  </div>
+  <div class="stat-card project">
+    <div class="number">6</div>
+    <div class="label">활성 프로젝트</div>
+  </div>
+</div>
+
+<!-- ── 📬 업무 메일 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-mail">📬</span> 업무 메일 (최근 3일)
+  </div>
+
+  <h4 style="color:var(--red); margin-bottom:0.5rem; font-size:0.85rem;">🔴 회신 필요</h4>
+  <table>
+    <tr><th>발신자</th><th>제목</th><th>요약</th><th>상태</th></tr>
+    <tr>
+      <td>최민석 (비에이파트너스)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19ddc0edb8957671" target="_blank">[비에이파트너스] 투자 검토를 위한 자료 요청의 건</a></td>
+      <td>주식교환 계약서 양식 송부. 1분기 재무제표 실사 후 수정 필요 부분 노란색 하이라이트</td>
+      <td><span class="badge badge-red">미확인</span></td>
+    </tr>
+    <tr>
+      <td>배성원 (프로젝트렌트)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19dd40638e09053f" target="_blank">Fwd: [현대회계법인] 실사 요청자료 송부</a></td>
+      <td>"이거 같이 좀 보셔야 할듯" — 박용주 회계사(현대회계법인) 실사 요청자료 포워딩</td>
+      <td><span class="badge badge-red">검토 필요</span></td>
+    </tr>
+    <tr>
+      <td>이재형 (비트리)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19dd888403d92ef2" target="_blank">[리스테린] 철수 관련 회수 리스트 전달 및 확인 요청</a></td>
+      <td>4/30 철수 회수 리스트 — 녹색(회수), 회색(폐기), 노란색(익일 오전), 빨간색(올리브영 관리)</td>
+      <td><span class="badge badge-red">4/30 철수</span></td>
+    </tr>
+  </table>
+
+  <h4 style="color:var(--yellow); margin:1rem 0 0.5rem; font-size:0.85rem;">📋 발신/회신 대기</h4>
+  <table>
+    <tr><th>수신자</th><th>제목</th><th>상태</th></tr>
+    <tr>
+      <td>Molly Ng (Finn Partners)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19ddc686df31f155" target="_blank">Re: Wynn Palace Media Invite — Six-Hands Collaboration</a></td>
+      <td><span class="badge badge-yellow">항공편/일정 수신 대기</span></td>
+    </tr>
+    <tr>
+      <td>조웅제 (성동구청)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19dd30d88bef56dc" target="_blank">[성동구청] 공개공지 — 매경 뉴스스탠드 요청</a></td>
+      <td><span class="badge badge-yellow">구청 회신 대기</span></td>
+    </tr>
+    <tr>
+      <td>이슬아 (어반브레이크)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19dcd6e7ca037bf2" target="_blank">[어반브레이크] 오브제 프로젝트 브랜드 방향 초안</a></td>
+      <td><span class="badge badge-yellow">미팅 일정 대기</span></td>
+    </tr>
+  </table>
+
+  <h4 style="color:var(--blue); margin:1rem 0 0.5rem; font-size:0.85rem;">📊 모니터링/참고</h4>
+  <table>
+    <tr><th>발신자</th><th>제목</th><th>조치</th></tr>
+    <tr>
+      <td>황효연 (디자인하우스)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19dd2deb29658a8e" target="_blank">[DH] 프로퍼티 디자인 소사이어티 봄 강좌 강연 사전 안내 — 5/11(월)</a></td>
+      <td><span class="badge badge-blue">18:00~19:20 강연 준비</span></td>
+    </tr>
+    <tr>
+      <td>Jaewoo Joo 외 3인</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19dd7d047aa0736d" target="_blank">[특강 계획 및 데이터 공유] Instagram Post data 분석</a></td>
+      <td><span class="badge badge-blue">미팅 완료 · 참고</span></td>
+    </tr>
+    <tr>
+      <td>프로젝트렌트</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19dd25e7bbd06528" target="_blank">[프로젝트렌트] 1~3월 1분기 종이세금계산서 발행요청</a></td>
+      <td><span class="badge badge-blue">발신 완료</span></td>
+    </tr>
+    <tr>
+      <td>성수동 팝업 뉴스레터</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19dd35f2998a0c42" target="_blank">성수동 팝업스토어 및 유동인구 현황 요약</a></td>
+      <td><span class="badge badge-gray">뉴스레터</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── 📅 일정 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-cal">📅</span> 오늘 일정 (4/28 화)
+  </div>
+  <div class="empty-state">오늘 등록된 일정 없음</div>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-cal">📅</span> 내일 일정 (4/29 수)
+  </div>
+  <div class="empty-state">내일 등록된 일정 없음</div>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-cal">📅</span> 이번 주 주요 일정
+  </div>
+  <table>
+    <tr><th>날짜</th><th>일정</th><th>비고</th></tr>
+    <tr>
+      <td class="time">4/30 (목) 종일</td>
+      <td>김예진 off (대체휴가, 연차)</td>
+      <td><span class="badge badge-gray">부재</span></td>
+    </tr>
+    <tr>
+      <td class="time">5/1 (금) 18:00~19:00</td>
+      <td>산수화 x 소요. 티룸</td>
+      <td><span class="badge badge-blue">외부 일정</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── 📂 프로젝트 현황 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-project">📂</span> 프로젝트 현황
+  </div>
+  <table>
+    <tr><th>#</th><th>프로젝트</th><th>상태</th><th>긴급 액션</th></tr>
+    <tr>
+      <td>1</td>
+      <td>리스테린 X 엔하이픈 팝업</td>
+      <td><span class="badge badge-red">4/30 철수</span></td>
+      <td>회수 리스트 확인 · 비트리 중도금/잔금 정산</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>비에이파트너스 투자 검토</td>
+      <td><span class="badge badge-red">실사 대응</span></td>
+      <td>주식교환 계약서 검토 · 현대회계법인 실사자료 확인</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Wynn Palace 미디어 초대</td>
+      <td><span class="badge badge-yellow">항공편 대기</span></td>
+      <td>5/6 출발 — Molly 항공편/일정표 수신 대기</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>어반브레이크 오브제</td>
+      <td><span class="badge badge-yellow">미팅 조율</span></td>
+      <td>브랜드 방향 초안 공유 완료 · 미팅 일정 회신 필요</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>숭인동 리모델링</td>
+      <td><span class="badge badge-yellow">4차 청구</span></td>
+      <td>4차 지급금 6,200만원 청구 · 현장실사 일정 조율</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>RXR 특허출원</td>
+      <td><span class="badge badge-yellow">입금 결정</span></td>
+      <td>정규출원+우선심사 견적 확인 후 입금 결정</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── ✅ 오늘 할 일 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-todo">✅</span> 오늘 할 일 우선순위
+  </div>
+  <ol class="todo-list">
+    <li>비에이파트너스 주식교환 계약서 검토 — 노란색 하이라이트 부분 확인 후 회신</li>
+    <li>현대회계법인 실사 요청자료 확인 — 배성원 이사와 함께 검토</li>
+    <li>리스테린 철수 회수 리스트 최종 확인 — 4/30 철수 전 정예은 매니저와 조율</li>
+    <li>RXR 특허출원 입금 결정 — 견적서 검토 후 진행 여부 확정</li>
+    <li>어반브레이크 미팅 일정 회신 — 카톡으로 가능 시간 전달</li>
+    <li>5/11 디자인하우스 강연 준비 시작 — 수강생 명단 확인, 강의안 기획</li>
+  </ol>
+</div>
+
+<div class="footer">
+  Generated by Claude Code · /morning · 2026-04-28 AM
+</div>
+
+</body>
+</html>

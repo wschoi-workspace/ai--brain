@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bracket - Retail Media Store | PROJECT-RENT</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #4834D4;
+    --primary-light: #A29BFE;
+    --primary-lighter: #D6D3F8;
+    --primary-bg: #F0EEFF;
+    --text: #1A1A2E;
+    --text-sub: #4A4A6A;
+    --text-light: #8888A8;
+    --bg: #FFFFFF;
+    --bg-alt: #F7F7FB;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(108,92,231,0.10);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; scroll-snap-type: y mandatory; overflow-y: scroll; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text);
+    background: #000;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Slide Base ── */
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .slide-inner {
+    width: 100%;
+    max-width: 1100px;
+    padding: 60px 48px;
+  }
+  .slide-label {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 12px;
+  }
+  .slide h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 16px;
+  }
+  .slide-desc {
+    font-size: 1.05rem;
+    color: var(--text-sub);
+    max-width: 640px;
+    margin-bottom: 48px;
+  }
+
+  /* ── Slide Nav ── */
+  .slide-nav {
+    position: fixed;
+    right: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .slide-nav a {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--primary-lighter);
+    display: block;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+  }
+  .slide-nav a.active,
+  .slide-nav a:hover {
+    background: var(--primary);
+    transform: scale(1.3);
+  }
+
+  /* ── Page Counter ── */
+  .page-num {
+    position: absolute;
+    bottom: 28px;
+    right: 48px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-light);
+    letter-spacing: 1px;
+  }
+
+  /* ── Slide 1: Cover ── */
+  .slide-cover {
+    background: linear-gradient(160deg, #fff 50%, var(--primary-bg) 100%);
+  }
+  .slide-cover::after {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(108,92,231,0.07) 0%, transparent 70%);
+    right: -140px; top: -100px;
+  }
+  .slide-cover .slide-inner { position: relative; z-index: 1; }
+  .cover-tag {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 28px;
+  }
+  .slide-cover h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+  .slide-cover h1 span { color: var(--primary); }
+  .slide-cover .lead {
+    font-size: 1.15rem;
+    color: var(--text-sub);
+    max-width: 580px;
+    margin-bottom: 12px;
+  }
+  .slide-cover .sub {
+    font-size: 0.92rem;
+    color: var(--text-light);
+    max-width: 580px;
+  }
+
+  /* ── Slide 2: Problem ── */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+  .problem-card {
+    background: var(--bg-alt);
+    border-radius: var(--radius);
+    padding: 36px 28px;
+    text-align: center;
+    border: 1px solid #eee;
+  }
+  .problem-card .p-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--primary-bg);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 18px;
+  }
+  .problem-card h3 { font-size: 1.05rem; margin-bottom: 8px; font-weight: 700; }
+  .problem-card p { font-size: 0.9rem; color: var(--text-sub); }
+
+  /* ── Slide 3: Consumer Flow ── */
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    position: relative;
+  }
+  .flow-grid::before {
+    content: '';
+    position: absolute;
+    top: 36px;
+    left: 48px;
+    right: 48px;
+    height: 3px;
+    background: linear-gradient(to right, var(--primary), var(--primary-light));
+    border-radius: 2px;
+    z-index: 0;
+  }
+  .flow-card {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+  .flow-num {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px;
+    box-shadow: 0 4px 16px rgba(108,92,231,0.25);
+    position: relative;
+  }
+  .flow-card h3 { font-size: 0.85rem; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+  .flow-detail {
+    background: var(--bg-alt);
+    border-radius: 10px;
+    padding: 12px 10px;
+    text-align: left;
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    line-height: 1.5;
+  }
+  .flow-detail dt { font-weight: 700; color: var(--text); font-size: 0.68rem; letter-spacing: 0.5px; margin-top: 4px; }
+  .flow-detail dt:first-child { margin-top: 0; }
+  .flow-detail dd { margin-left: 0; }
+
+  /* ── Slide 4: Data Map ── */
+  .data-map { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .data-zone {
+    background: var(--bg-alt);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid #eee;
+  }
+  .data-zone-header {
+    padding: 16px 24px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .data-zone:first-child .data-zone-header { background: var(--primary); }
+  .data-zone:last-child .data-zone-header { background: var(--primary-dark); }
+  .data-items { padding: 20px 24px; }
+  .data-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eaeaef;
+  }
+  .data-item:last-child { border-bottom: none; }
+  .data-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--primary-bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .data-item strong { display: block; font-size: 0.88rem; }
+  .data-item span { font-size: 0.78rem; color: var(--text-sub); }
+
+  /* ── Slide 5: Comparison ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background: #fff;
+  }
+  .compare-table thead th {
+    background: var(--primary);
+    color: #fff;
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.88rem;
+  }
+  .compare-table thead th:first-child { background: var(--primary-dark); width: 130px; }
+  .compare-table thead th:last-child { background: var(--primary-dark); }
+  .compare-table tbody td {
+    padding: 12px 18px;
+    border-bottom: 1px solid #f0f0f5;
+    font-size: 0.88rem;
+    vertical-align: top;
+  }
+  .compare-table tbody tr:last-child td { border-bottom: none; }
+  .compare-table tbody td:first-child {
+    font-weight: 700;
+    color: var(--primary);
+    background: var(--primary-bg);
+  }
+  .compare-table tbody td:nth-child(2) { color: var(--text-sub); }
+  .compare-table tbody td:last-child { font-weight: 500; }
+  .badge {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  /* ── Slide 6: Strengths ── */
+  .strength-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .strength-card {
+    background: var(--bg-alt);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    text-align: center;
+    border-top: 4px solid var(--primary);
+  }
+  .strength-card .s-icon { margin-bottom: 14px; }
+  .strength-card h3 { font-size: 1rem; margin-bottom: 8px; font-weight: 700; }
+  .strength-card p { font-size: 0.85rem; color: var(--text-sub); }
+
+  /* ── Slide 7: KPI ── */
+  .slide-dark { background: var(--text); color: #fff; }
+  .slide-dark .slide-label { color: var(--primary-light); }
+  .slide-dark h2 { color: #fff; }
+  .slide-dark .slide-desc { color: rgba(255,255,255,0.6); }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .kpi-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius);
+    padding: 36px 20px;
+    text-align: center;
+  }
+  .kpi-num {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--primary-light);
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .kpi-card h3 { font-size: 0.92rem; margin-bottom: 6px; color: #fff; font-weight: 600; }
+  .kpi-card p { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+  .slide-dark .page-num { color: rgba(255,255,255,0.3); }
+
+  /* ── Slide 8: Patent ── */
+  .patent-box {
+    background: var(--bg-alt);
+    border-radius: var(--radius);
+    padding: 40px 44px;
+    border-left: 6px solid var(--primary);
+    max-width: 800px;
+  }
+  .patent-box h3 { color: var(--primary); margin-bottom: 6px; font-size: 1.1rem; }
+  .patent-box .patent-sub { color: var(--text-sub); font-size: 0.92rem; margin-bottom: 24px; }
+  .patent-list { list-style: none; }
+  .patent-list li {
+    padding: 8px 0 8px 24px;
+    position: relative;
+    font-size: 0.92rem;
+    color: var(--text-sub);
+  }
+  .patent-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 16px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--primary-light);
+  }
+  .patent-footer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e8;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-light);
+  }
+
+  /* ── PDF Button ── */
+  .pdf-btn {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 40px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(108,92,231,0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 300;
+  }
+  .pdf-btn:hover { transform: translateX(-50%) translateY(-2px); box-shadow: 0 12px 32px rgba(108,92,231,0.45); }
+
+  /* ── Keyboard hint ── */
+  .key-hint {
+    position: fixed;
+    bottom: 28px;
+    left: 48px;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    z-index: 200;
+  }
+  .key-hint kbd {
+    display: inline-block;
+    background: var(--bg-alt);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: inherit;
+    font-size: 0.72rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .slide-cover h1 { font-size: 2.2rem; }
+    .slide h2 { font-size: 1.6rem; }
+    .slide-inner { padding: 40px 28px; }
+    .problem-grid { grid-template-columns: 1fr; gap: 16px; }
+    .flow-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .flow-grid::before { display: none; }
+    .data-map { grid-template-columns: 1fr; }
+    .strength-grid { grid-template-columns: repeat(2, 1fr); }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .slide-nav { display: none; }
+    .key-hint { display: none; }
+  }
+  @media (max-width: 600px) {
+    .slide-inner { padding: 32px 20px; }
+    .flow-grid { grid-template-columns: repeat(2, 1fr); }
+    .strength-grid { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Print ── */
+  @media print {
+    html { scroll-snap-type: none; }
+    body { background: #fff; }
+    .slide {
+      height: auto;
+      min-height: 100vh;
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+    .slide:last-child { page-break-after: avoid; }
+    .slide-dark { background: var(--text) !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .slide-cover { background: #fff; }
+    .slide-cover::after { display: none; }
+    .pdf-btn, .slide-nav, .key-hint { display: none !important; }
+    .flow-grid::before { display: none; }
+    .flow-grid { grid-template-columns: repeat(3, 1fr); }
+    .compare-table, .data-zone, .strength-card, .kpi-card, .patent-box { box-shadow: none; }
+    @page { margin: 12mm; size: landscape; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav Dots -->
+<nav class="slide-nav" id="slideNav">
+  <a href="#slide-1" title="Cover"></a>
+  <a href="#slide-2" title="Problem"></a>
+  <a href="#slide-3" title="Consumer Flow"></a>
+  <a href="#slide-4" title="Data Map"></a>
+  <a href="#slide-5" title="Comparison"></a>
+  <a href="#slide-6" title="Strengths"></a>
+  <a href="#slide-7" title="KPI"></a>
+  <a href="#slide-8" title="Patent"></a>
+</nav>
+
+<div class="key-hint"><kbd>&darr;</kbd> / <kbd>&uarr;</kbd> 슬라이드 이동</div>
+
+<!-- ==================== SLIDE 1: COVER ==================== -->
+<section class="slide slide-cover" id="slide-1">
+  <div class="slide-inner">
+    <span class="cover-tag">PROJECT-RENT &middot; 2nd Patent</span>
+    <h1>오프라인 매장이<br><span>데이터 플랫폼</span>이 되다</h1>
+    <p class="lead">Bracket은 매장 외부 파사드부터 내부 모듈까지 통합하여, 고객의 노출→행동→구매→CRM→피드백을 하나의 풀퍼널로 추적하는 리테일 미디어 스토어입니다.</p>
+    <p class="sub">Retail Media Store Bracket &mdash; 마케팅 효과 측정 및 데이터 수집이 가능한 콘텐츠 중심의 리서치 특화 리테일 미디어 스토어</p>
+  </div>
+  <div class="page-num">01 / 08</div>
+</section>
+
+<!-- ==================== SLIDE 2: PROBLEM ==================== -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <span class="slide-label">Problem</span>
+    <h2>오프라인 마케팅, 왜 측정이 안 되는가</h2>
+    <p class="slide-desc">연간 수십조 원이 오프라인 마케팅에 투입되지만, 효과를 정량적으로 증명할 수 없습니다.</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="p-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <h3>효과 측정 불가</h3>
+        <p>옥외 광고·매장 프로모션의 실제 전환율을 수치로 증명할 방법이 없음</p>
+      </div>
+      <div class="problem-card">
+        <div class="p-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </div>
+        <h3>온·오프 데이터 단절</h3>
+        <p>오프라인 고객 행동과 온라인 CRM이 분리되어 통합 추적이 불가능</p>
+      </div>
+      <div class="problem-card">
+        <div class="p-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </div>
+        <h3>단편적 솔루션</h3>
+        <p>동선·매출·CRM 각각 별도 시스템으로 운영, 풀퍼널 인사이트 부재</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-num">02 / 08</div>
+</section>
+
+<!-- ==================== SLIDE 3: CONSUMER FLOW ==================== -->
+<section class="slide" id="slide-3" style="background:var(--bg-alt);">
+  <div class="slide-inner">
+    <span class="slide-label">Solution &mdash; Consumer Flow</span>
+    <h2>6단계 풀퍼널 데이터 추적</h2>
+    <p class="slide-desc">고객이 매장 앞을 지나는 순간부터 재방문까지, 모든 단계를 데이터로 연결합니다.</p>
+    <div class="flow-grid">
+      <div class="flow-card">
+        <div class="flow-num">1</div>
+        <h3>Exposure</h3>
+        <div class="flow-detail">
+          <dt>FLOW</dt><dd>유동인구 → 파사드 노출</dd>
+          <dt>DATA</dt><dd>트래픽, 시선 방향, 시간</dd>
+          <dt>EFFECT</dt><dd>주목도·도달률 정량화</dd>
+        </div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-num">2</div>
+        <h3>Engagement</h3>
+        <div class="flow-detail">
+          <dt>FLOW</dt><dd>DID 콘텐츠 → 반응</dd>
+          <dt>DATA</dt><dd>구간별 체류, 진입 시점</dd>
+          <dt>EFFECT</dt><dd>콘텐츠→진입 전환율</dd>
+        </div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-num">3</div>
+        <h3>Exploration</h3>
+        <div class="flow-detail">
+          <dt>FLOW</dt><dd>매장 내 탐색·체류</dd>
+          <dt>DATA</dt><dd>동선, 체류시간, 관심 구역</dd>
+          <dt>EFFECT</dt><dd>AI 고객 카테고리(C.C)</dd>
+        </div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-num">4</div>
+        <h3>Conversion</h3>
+        <div class="flow-detail">
+          <dt>FLOW</dt><dd>구매 결정 → 결제</dd>
+          <dt>DATA</dt><dd>제품, 금액, 전환율</dd>
+          <dt>EFFECT</dt><dd>세일즈 임팩트 검증</dd>
+        </div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-num">5</div>
+        <h3>Retention</h3>
+        <div class="flow-detail">
+          <dt>FLOW</dt><dd>회원 등록 → 온라인 연결</dd>
+          <dt>DATA</dt><dd>회원 DB, 유입 로그</dd>
+          <dt>EFFECT</dt><dd>OMO 리타겟팅 CRM</dd>
+        </div>
+      </div>
+      <div class="flow-card">
+        <div class="flow-num">6</div>
+        <h3>Feedback</h3>
+        <div class="flow-detail">
+          <dt>FLOW</dt><dd>매장 내 서베이 참여</dd>
+          <dt>DATA</dt><dd>인지도, 만족도, NPS</dd>
+          <dt>EFFECT</dt><dd>정성+정량 리서치</dd>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="page-num">03 / 08</div>
+</section>
+
+<!-- ==================== SLIDE 4: DATA MAP ==================== -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <span class="slide-label">Data Architecture</span>
+    <h2>데이터 수집 전체 맵</h2>
+    <p class="slide-desc">OUTDOOR 파사드와 INDOOR 모듈에서 수집되는 데이터가 하나로 통합됩니다.</p>
+    <div class="data-map">
+      <div class="data-zone">
+        <div class="data-zone-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:-2px;margin-right:6px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          OUTDOOR &mdash; 디지털 파사드
+        </div>
+        <div class="data-items">
+          <div class="data-item">
+            <div class="data-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+            <div><strong>DID 콘텐츠 송출</strong><span>브랜드 영상·프로모션 노출 및 스케줄링</span></div>
+          </div>
+          <div class="data-item">
+            <div class="data-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <div><strong>시선·주목도 Eye Tracking</strong><span>시선 방향, 주시 시간, 관심 영역 분석</span></div>
+          </div>
+          <div class="data-item">
+            <div class="data-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+            <div><strong>소비자 행동·진입 효과</strong><span>DID 시청 → 매장 진입 전환율</span></div>
+          </div>
+          <div class="data-item">
+            <div class="data-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+            <div><strong>지역 유동인구 데이터</strong><span>시간대·요일별 트래픽 패턴</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="data-zone">
+        <div class="data-zone-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:-2px;margin-right:6px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          INDOOR &mdash; 모듈형 매장 내부
+        </div>
+        <div class="data-items">
+          <div class="data-item">
+            <div class="data-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+            <div><strong>매출·세일즈 효과 측정</strong><span>POS 연동, 프로모션별 전환율, 재고</span></div>
+          </div>
+          <div class="data-item">
+            <div class="data-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div><strong>AI 고객 카테고리화 (C.C)</strong><span>행동 패턴 기반 자동 세분화</span></div>
+          </div>
+          <div class="data-item">
+            <div class="data-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <div><strong>CRM 확장 및 온라인 연결</strong><span>멤버십→온라인 리타겟팅 자동 연결</span></div>
+          </div>
+          <div class="data-item">
+            <div class="data-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="4"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></div>
+            <div><strong>유닛 구조 모듈형 설계</strong><span>브랜드별 즉시 교체 가능</span></div>
+          </div>
+          <div class="data-item">
+            <div class="data-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div><strong>서베이 기반 정성 데이터</strong><span>인지도·만족도·재방문 의사 수집</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="page-num">04 / 08</div>
+</section>
+
+<!-- ==================== SLIDE 5: COMPARISON ==================== -->
+<section class="slide" id="slide-5" style="background:var(--bg-alt);">
+  <div class="slide-inner">
+    <span class="slide-label">Differentiation</span>
+    <h2>기존 리테일테크 vs Bracket</h2>
+    <p class="slide-desc">개별 솔루션 조합이 아닌, 하나의 매장에서 풀퍼널 데이터를 통합 수집합니다.</p>
+    <table class="compare-table">
+      <thead>
+        <tr><th>구분</th><th>기존 리테일테크</th><th>Bracket</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>데이터 범위</td>
+          <td>단일 데이터 (동선 OR 매출 OR CRM)</td>
+          <td><span class="badge">통합</span> 노출→행동→구매→CRM→피드백 풀퍼널</td>
+        </tr>
+        <tr>
+          <td>온·오프 연결</td>
+          <td>단절 (별도 시스템 운영)</td>
+          <td><span class="badge">OMO</span> 데이터 풀 프로세싱으로 실시간 연결</td>
+        </tr>
+        <tr>
+          <td>고객 분류</td>
+          <td>수동 또는 기본 인구통계 기반</td>
+          <td><span class="badge">AI</span> C.C 기반 자동 세분화</td>
+        </tr>
+        <tr>
+          <td>광고 효과</td>
+          <td>노출 수만 측정 가능</td>
+          <td><span class="badge">풀퍼널</span> 시선→진입→구매→CRM 전환 추적</td>
+        </tr>
+        <tr>
+          <td>공간 유연성</td>
+          <td>고정 인테리어</td>
+          <td><span class="badge">모듈</span> 유닛 구조 → 브랜드별 즉시 교체</td>
+        </tr>
+        <tr>
+          <td>리서치</td>
+          <td>별도 설문/포커스그룹 필요</td>
+          <td><span class="badge">내장</span> 매장 내 서베이 + 행동 데이터 동시 수집</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="page-num">05 / 08</div>
+</section>
+
+<!-- ==================== SLIDE 6: STRENGTHS ==================== -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <span class="slide-label">Core Strengths</span>
+    <h2>Bracket의 핵심 강점</h2>
+    <p class="slide-desc">기존 리테일 미디어 솔루션과 근본적으로 다른 이유.</p>
+    <div class="strength-grid">
+      <div class="strength-card">
+        <div class="s-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <h3>풀퍼널 데이터 통합</h3>
+        <p>노출부터 구매·CRM·피드백까지 6단계 전환 추적을 하나의 시스템에서</p>
+      </div>
+      <div class="strength-card">
+        <div class="s-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+        <h3>OMO 실시간 연결</h3>
+        <p>오프라인 행동 데이터가 온라인 CRM으로 자동 연결, 리타겟팅까지 일원화</p>
+      </div>
+      <div class="strength-card">
+        <div class="s-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M7 13l3 3 7-7"/></svg></div>
+        <h3>모듈형 공간 설계</h3>
+        <p>유닛 구조로 브랜드별 매장 구성을 신속 교체, 다양한 캠페인 운영 가능</p>
+      </div>
+      <div class="strength-card">
+        <div class="s-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+        <h3>특허 기반 기술 해자</h3>
+        <p>매장 설계·데이터 수집·분석 프로세스 전반이 특허로 보호되는 독점 기술</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-num">06 / 08</div>
+</section>
+
+<!-- ==================== SLIDE 7: KPI ==================== -->
+<section class="slide slide-dark" id="slide-7">
+  <div class="slide-inner">
+    <span class="slide-label">Expected Impact</span>
+    <h2>기대 효과</h2>
+    <p class="slide-desc">Bracket 매장 운영 시 기대할 수 있는 핵심 성과 지표.</p>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-num">6X</div>
+        <h3>데이터 수집 포인트</h3>
+        <p>기존 단일 솔루션 대비 6단계 풀퍼널 데이터 확보</p>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num">100%</div>
+        <h3>광고 효과 가시화</h3>
+        <p>노출→전환까지 전 과정을 정량 지표로 리포팅</p>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num">OMO</div>
+        <h3>온·오프 데이터 통합</h3>
+        <p>오프라인 행동→온라인 CRM 자동 연결</p>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num">AI</div>
+        <h3>자동 고객 세분화</h3>
+        <p>행동 패턴 기반 C.C 실시간 타겟 그룹 생성</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-num">07 / 08</div>
+</section>
+
+<!-- ==================== SLIDE 8: PATENT ==================== -->
+<section class="slide" id="slide-8">
+  <div class="slide-inner">
+    <span class="slide-label">Patent Scope</span>
+    <h2>특허 개요</h2>
+    <p class="slide-desc">Bracket의 특허는 매장 설계·데이터 수집·분석 프로세스 전반을 포괄합니다.</p>
+    <div class="patent-box">
+      <h3>Retail Media Store Bracket</h3>
+      <p class="patent-sub">by PROJECT-RENT &mdash; 마케팅 효과 측정 및 데이터 수집이 가능한 콘텐츠 중심의 리서치 특화 리테일 미디어 스토어 설계 개발</p>
+      <ul class="patent-list">
+        <li>외부 디지털 파사드(DID + 센서) 기반 트래픽·시선 추적 및 진입 전환 측정 시스템</li>
+        <li>내부 모듈형 유닛 구조 설계 — 브랜드별 가변 공간 운영 방법</li>
+        <li>AI 기반 고객 카테고리화(C.C) — 센서·CCTV 행동 패턴 자동 세분화 알고리즘</li>
+        <li>OMO 데이터 풀 프로세싱 — 오프라인→온라인 CRM 실시간 연결 프로세스</li>
+        <li>6단계 Consumer Flow 기반 풀퍼널 데이터 수집·분석 프레임워크</li>
+        <li>매장 내 서베이 시스템 — 정성·정량 리서치 데이터 통합 수집 방법</li>
+      </ul>
+      <div class="patent-footer">&copy; PROJECT-RENT &middot; Bracket Patent Summary &middot; Confidential</div>
+    </div>
+  </div>
+  <div class="page-num">08 / 08</div>
+</section>
+
+<!-- PDF Button -->
+<button class="pdf-btn" onclick="window.print()">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:-2px;margin-right:6px"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+  PDF 저장
+</button>
+
+<script>
+// Slide navigation with keyboard
+document.addEventListener('keydown', (e) => {
+  const slides = document.querySelectorAll('.slide');
+  const vh = window.innerHeight;
+  const current = Math.round(window.scrollY / vh);
+  if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+    e.preventDefault();
+    const next = Math.min(current + 1, slides.length - 1);
+    slides[next].scrollIntoView({ behavior: 'smooth' });
+  }
+  if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+    e.preventDefault();
+    const prev = Math.max(current - 1, 0);
+    slides[prev].scrollIntoView({ behavior: 'smooth' });
+  }
+});
+
+// Update nav dots on scroll
+const navLinks = document.querySelectorAll('.slide-nav a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.slide-nav a[href="#${id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.slide').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

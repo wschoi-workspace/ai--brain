@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code 교육 세션 3주차 — 클로드 내부 구조 이해</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --navy: #1a1a2e;
+      --navy-mid: #16213e;
+      --purple: #6C5CE7;
+      --purple-light: #f0eeff;
+      --purple-muted: #a29bfe;
+      --text: #1e1e2e;
+      --text-secondary: #555577;
+      --border: #e2e2f0;
+      --bg: #ffffff;
+      --bg-soft: #f8f8fc;
+      --code-bg: #f3f3fa;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--text);
+      background: var(--bg-soft);
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: var(--navy);
+      color: #fff;
+      padding: 56px 24px 48px;
+    }
+
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .session-badge {
+      display: inline-block;
+      background: var(--purple);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .site-header h1 {
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .site-header h1 span {
+      color: var(--purple-muted);
+    }
+
+    .header-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      margin-top: 24px;
+    }
+
+    .meta-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .meta-chip strong {
+      color: rgba(255,255,255,0.95);
+      font-weight: 500;
+    }
+
+    /* ── Layout ── */
+    .page-body {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── TOC ── */
+    .toc-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin: 32px 0;
+      box-shadow: 0 2px 12px rgba(108,92,231,0.06);
+    }
+
+    .toc-card h2 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--purple);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toc-card h2::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 16px;
+      background: var(--purple);
+      border-radius: 2px;
+    }
+
+    .toc-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 4px 24px;
+    }
+
+    .toc-list li a {
+      display: block;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 5px 0;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .toc-list li a:hover {
+      color: var(--purple);
+      border-bottom-color: var(--purple-muted);
+    }
+
+    .toc-list li a .toc-num {
+      display: inline-block;
+      width: 22px;
+      font-weight: 600;
+      color: var(--purple-muted);
+      font-size: 12px;
+    }
+
+    /* ── Summary card ── */
+    .summary-card {
+      background: var(--purple-light);
+      border-left: 4px solid var(--purple);
+      border-radius: 0 8px 8px 0;
+      padding: 20px 24px;
+      margin: 24px 0;
+      font-size: 15px;
+      color: #3d3462;
+      line-height: 1.75;
+    }
+
+    /* ── Section divider ── */
+    .part-section {
+      background: var(--bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 36px 40px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    }
+
+    .part-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--purple);
+      margin-bottom: 8px;
+    }
+
+    .part-label::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--purple);
+      border-radius: 1px;
+    }
+
+    h2.section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--navy);
+      margin: 28px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--purple);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 20px 0 8px;
+    }
+
+    p {
+      margin-bottom: 14px;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    /* ── Blockquotes ── */
+    blockquote {
+      background: var(--purple-light);
+      border-left: 4px solid var(--purple);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 20px;
+      margin: 14px 0;
+      color: #3d3462;
+      font-size: 14.5px;
+      font-style: normal;
+      line-height: 1.7;
+      position: relative;
+    }
+
+    blockquote::before {
+      content: '\201C';
+      font-size: 36px;
+      color: var(--purple-muted);
+      line-height: 1;
+      position: absolute;
+      top: 6px;
+      right: 14px;
+      opacity: 0.4;
+    }
+
+    /* ── Tables ── */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead tr {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    thead th {
+      padding: 11px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--purple-light);
+    }
+
+    td {
+      padding: 10px 16px;
+      vertical-align: top;
+      line-height: 1.6;
+    }
+
+    td strong {
+      color: var(--navy);
+      font-weight: 600;
+    }
+
+    td code {
+      background: var(--code-bg);
+      color: var(--purple);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* ── Collapsible (STT table) ── */
+    details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+
+    summary {
+      background: var(--bg-soft);
+      padding: 14px 20px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--navy);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      list-style: none;
+      user-select: none;
+      transition: background 0.15s;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::before {
+      content: '▶';
+      font-size: 10px;
+      color: var(--purple);
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    details[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    details[open] summary {
+      background: var(--purple-light);
+    }
+
+    details .table-wrap {
+      border-radius: 0;
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    /* ── Inline code ── */
+    code {
+      background: var(--code-bg);
+      color: var(--purple);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 13.5px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* ── Lists ── */
+    ul, ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+    }
+
+    li {
+      font-size: 15px;
+      margin-bottom: 5px;
+      line-height: 1.7;
+    }
+
+    ul li::marker {
+      color: var(--purple);
+    }
+
+    /* ── Key quote section ── */
+    .quotes-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .quote-item {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--purple);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+    }
+
+    .quote-item blockquote {
+      background: none;
+      border: none;
+      padding: 0 0 8px;
+      margin: 0;
+      color: var(--text);
+    }
+
+    .quote-item blockquote::before {
+      display: none;
+    }
+
+    .quote-context {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .quote-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--purple);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Concept cards ── */
+    .concept-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .concept-card {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+
+    .concept-card h4 {
+      color: var(--purple);
+      margin-top: 0;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .concept-card h4::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border: 2px solid var(--purple);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .concept-card p {
+      font-size: 14px;
+      margin-bottom: 6px;
+      color: var(--text-secondary);
+    }
+
+    .concept-card p strong {
+      color: var(--text);
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+    }
+
+    .checklist li::before {
+      content: '';
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--purple);
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+
+    /* ── Highlight box ── */
+    .highlight-box {
+      background: linear-gradient(135deg, var(--purple-light), #f8f5ff);
+      border: 1px solid #d0c8ff;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin: 20px 0;
+    }
+
+    .highlight-box strong {
+      color: var(--purple);
+      font-weight: 700;
+    }
+
+    /* ── Footer ── */
+    .site-footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.6);
+      padding: 36px 24px;
+      margin-top: 40px;
+    }
+
+    .footer-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .footer-meta {
+      font-size: 13px;
+      line-height: 1.9;
+    }
+
+    .footer-meta strong {
+      color: rgba(255,255,255,0.9);
+    }
+
+    .footer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(108,92,231,0.25);
+      color: var(--purple-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(108,92,231,0.3);
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { background: #fff; font-size: 13px; }
+      .site-header { background: var(--navy) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .part-section { break-inside: avoid; box-shadow: none; }
+      .site-footer { background: var(--navy) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      blockquote { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .toc-card { break-after: page; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .part-section { padding: 24px 20px; }
+      .toc-card { padding: 20px; }
+      .toc-list { grid-template-columns: 1fr; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ HEADER ══════════ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="session-badge">Session 03 &nbsp;·&nbsp; 2026-04-05</div>
+    <h1>Claude Code 교육 세션 3주차<br><span>클로드 내부 구조 이해 강의록</span></h1>
+    <div class="header-meta">
+      <div class="meta-chip">📅 <strong>2026년 4월 5일 (토)</strong></div>
+      <div class="meta-chip">👤 강사: <strong>최원석</strong></div>
+      <div class="meta-chip">👥 참석: <strong>약 5–6명</strong></div>
+      <div class="meta-chip">⏱ 소요: <strong>1시간 미만</strong></div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════ PAGE BODY ══════════ -->
+<div class="page-body">
+
+  <!-- TOC -->
+  <nav class="toc-card" aria-label="목차">
+    <h2>목차</h2>
+    <ul class="toc-list">
+      <li><a href="#overview"><span class="toc-num">00</span>개요 및 핵심 요약</a></li>
+      <li><a href="#stt"><span class="toc-num">01</span>음성인식 오류 교정 노트</a></li>
+      <li><a href="#part1"><span class="toc-num">02</span>수강생 근황 및 활용 사례</a></li>
+      <li><a href="#part2"><span class="toc-num">03</span>FOMO에 대한 조언</a></li>
+      <li><a href="#part3"><span class="toc-num">04</span>내부 구조 — 본사와 지사</a></li>
+      <li><a href="#part4"><span class="toc-num">05</span>전역 스킬 / 에이전트 / 커맨드</a></li>
+      <li><a href="#part5"><span class="toc-num">06</span>웹소설 프로젝트 — 지역 스킬 사례</a></li>
+      <li><a href="#part6"><span class="toc-num">07</span>CLAUDE.md 실제 사례</a></li>
+      <li><a href="#part7"><span class="toc-num">08</span>Source of Truth</a></li>
+      <li><a href="#attendees"><span class="toc-num">09</span>참석자 사례 및 발언</a></li>
+      <li><a href="#qa"><span class="toc-num">10</span>Q&A</a></li>
+      <li><a href="#quotes"><span class="toc-num">11</span>핵심 인용문 모음</a></li>
+      <li><a href="#concepts"><span class="toc-num">12</span>핵심 개념 정리</a></li>
+      <li><a href="#homework"><span class="toc-num">13</span>과제 및 다음 일정</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── 개요 ── -->
+  <section id="overview" class="part-section">
+    <div class="part-label">Overview</div>
+    <h2 class="section-title">개요 및 핵심 요약</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td><strong>날짜</strong></td><td>2026-04-05 (토)</td></tr>
+          <tr><td><strong>시간</strong></td><td>약 1시간 미만</td></tr>
+          <tr><td><strong>강사</strong></td><td>최원석</td></tr>
+          <tr><td><strong>회차</strong></td><td>3회차</td></tr>
+          <tr><td><strong>참석자</strong></td><td>약 5–6명 (재형, 강현, 미용, 경선, 새롬 등)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>주요 주제</h3>
+    <ol>
+      <li>클로드 코드의 설치 경로 및 내부 폴더 구조 (<code>.claude</code> 폴더)</li>
+      <li>전역(Global) vs 지역(Local) CLAUDE.md의 개념과 활용</li>
+      <li>전역 스킬 / 에이전트 / 커맨드의 개념과 관리</li>
+      <li>CLAUDE.md 작성 베스트 프랙티스 (실제 사례)</li>
+      <li>공식 가이드 문서 활용법 (Source of Truth)</li>
+    </ol>
+
+    <h3>핵심 요약</h3>
+    <div class="summary-card">
+      Claude Code를 단순히 "쓰는 것"에서 "구조를 이해하고 관리하는 것"으로 넘어가는 전환점이 되는 세션이다. <code>.claude</code> 폴더의 본사(전역)–지사(지역) 구조를 이해하고, CLAUDE.md를 체계적으로 작성하는 것이 Claude Code 활용의 핵심임을 실제 사례를 통해 보여주었다.
+    </div>
+
+    <h3>특이사항</h3>
+    <ul>
+      <li>원래 일룸 과정에서는 4주차에 다룬 내용이나, 수강생들의 활용도가 높아 3주차로 앞당김</li>
+      <li>수강생 중 제안서(Proposal) 작성에 Claude Code를 적극 활용하는 사례 공유</li>
+      <li>파인더(Finder)에서 숨김 파일 보기 시연 중 드롭박스 경로 이슈로 잠시 혼란</li>
+      <li>강사 본인의 웹소설 프로젝트를 예시로 지역 스킬 구조 설명</li>
+    </ul>
+  </section>
+
+  <!-- ── STT ── -->
+  <section id="stt" class="part-section">
+    <div class="part-label">STT Corrections</div>
+    <h2 class="section-title">음성인식 오류 교정 노트</h2>
+
+    <div class="summary-card">
+      Whisper STT 변환 파일 기준. 파일 상단에 Whisper 경고 메시지 확인.
+    </div>
+
+    <details>
+      <summary>STT 오인식 교정 테이블 전체 보기 (26개 항목)</summary>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>오인식</th><th>교정</th><th>비고</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>클로드/클로즈 코드</td><td><strong>Claude Code</strong></td><td>전체 반복 — 고유명사</td></tr>
+            <tr><td>클로즈/클로드/클로즈점</td><td><strong>Claude / CLAUDE</strong></td><td>브랜드명 반복 오인식</td></tr>
+            <tr><td>클로즈점 MD / 클로즈.md</td><td><strong>CLAUDE.md</strong></td><td>설정 파일명</td></tr>
+            <tr><td>두 배로 워크스페이스</td><td><strong>Do Better 워크스페이스</strong></td><td>프로젝트명 오인식</td></tr>
+            <tr><td>툰키 파일 / 툰킴 파일 / 툰킴 한목</td><td><strong>숨김 파일 / 숨김 항목</strong></td><td>맥 파인더 용어</td></tr>
+            <tr><td>제한서/제한수용/제한성/제한 요청서</td><td><strong>제안서 / 제안 요청서</strong></td><td>비즈니스 용어 — proposal/RFP</td></tr>
+            <tr><td>진속하고</td><td><strong>진행하고</strong></td><td>음절 대체</td></tr>
+            <tr><td>로션</td><td><strong>버전</strong></td><td>문맥상 "버전을 올리다"</td></tr>
+            <tr><td>디스컷션</td><td><strong>디스커션(Discussion)</strong></td><td>영어 음차 오류</td></tr>
+            <tr><td>포모</td><td><strong>FOMO</strong></td><td>Fear of Missing Out</td></tr>
+            <tr><td>쓰레스</td><td><strong>Threads</strong></td><td>SNS 플랫폼명</td></tr>
+            <tr><td>컨택스 스위칭</td><td><strong>컨텍스트 스위칭(Context Switching)</strong></td><td>영어 음차</td></tr>
+            <tr><td>솔스 오브 추루스</td><td><strong>Source of Truth</strong></td><td>영어 음차 오류</td></tr>
+            <tr><td>PK임</td><td><strong>PKM</strong></td><td>Personal Knowledge Management</td></tr>
+            <tr><td>MD</td><td><strong>md (마크다운)</strong></td><td>파일 확장자</td></tr>
+            <tr><td>제이슨</td><td><strong>JSON</strong></td><td>파일 형식</td></tr>
+            <tr><td>시드라이드</td><td><strong>C드라이브</strong> (추정)</td><td>윈도우 경로</td></tr>
+            <tr><td>서브웨이선</td><td><strong>Sub-agent</strong></td><td>영어 음차 오류</td></tr>
+            <tr><td>면청</td><td><strong>면접</strong> (추정)</td><td>음절 대체</td></tr>
+            <tr><td>일룸</td><td><strong>일룸(교육 과정명)</strong></td><td>이전 교육 회차명</td></tr>
+            <tr><td>GWS CLI</td><td><strong>GWS CLI</strong></td><td>정확 (Google Workspace CLI)</td></tr>
+            <tr><td>웹노벌</td><td><strong>웹노블(Web Novel)</strong></td><td>영어 음차</td></tr>
+            <tr><td>오픈클로 보리</td><td><strong>OpenClaw(오픈클로)</strong> (추정)</td><td>AI 에이전트명</td></tr>
+            <tr><td>랄프루프/시크루프</td><td><strong>Seek Loop</strong> (추정)</td><td>자체 제작 루프 프레임워크</td></tr>
+            <tr><td>메팔 레이어</td><td><strong>메타 레이어</strong> (추정)</td><td>목표 기술 설정 구조</td></tr>
+            <tr><td>부캈겠다</td><td><strong>부끄럽겠다</strong></td><td>음절 탈락</td></tr>
+            <tr><td>스윙 파트너</td><td><strong>싱킹 파트너(Thinking Partner)</strong></td><td>영어 음차 오류</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <!-- ── Part 1 ── -->
+  <section id="part1" class="part-section">
+    <div class="part-label">Part 1</div>
+    <h2 class="section-title">수강생 근황 및 활용 사례 공유</h2>
+
+    <h3>수강생 활용 현황</h3>
+    <p>강의 시작 전 수강생들의 1주일간 활용 사례를 공유하는 시간을 가졌다. 강사는 텔레그램 연동을 통한 아카이브 기능에 대해 높이 평가했다.</p>
+    <blockquote>이야 텔레그램 잘 쓰시니까 너무 좋네요. 이게 정말 일상에 너무 좋은 점이거든요</blockquote>
+    <blockquote>이 아카이브가 된다는 사실이 이제 맥락을 잃기가 어렵거든요</blockquote>
+
+    <h3>제안서 작성 활용 사례</h3>
+    <p>한 수강생이 제안서(Proposal) 작성에 Claude Code를 적극 활용한 사례를 공유했다. 혼자 진행하는 프로젝트뿐 아니라 교수님/박사님과 협업하는 프로젝트에서도 사용 중이었다.</p>
+
+    <h4>핵심 내용</h4>
+    <ul>
+      <li>Claude Code로 리서치 + 제안 요청서 변동 사항 진행 + 디자인까지 완료</li>
+      <li>교수님/박사님들이 "할 일이 없어진" 상황 발생</li>
+      <li>제안서를 쓸 때 리서치와 디스커션 파트너로서의 가치를 실감</li>
+    </ul>
+
+    <blockquote>다 해서 제안 요청서 변동을 다 진행하고 리서치까지 해서 버전을 올리니까 교수님과 박사님들이 할 일이 없어요. 다들 숟가락을 못 얹어. 다 제안서까지 다 디자인까지 다 끝내버리는 거예요</blockquote>
+    <blockquote>리서치 안 할 거야, 도움을 받을 수 있지만 나랑 같이 디스커션을 일주일 정도 수술(논의)을 같이 할 수 있다고?</blockquote>
+    <blockquote>제가 쓴 제안서도 작년에 썼던 것까지 다 분석해서</blockquote>
+
+    <h3>싱킹 파트너(Thinking Partner)로서의 가치</h3>
+    <blockquote>그래서 이게 진짜 뭔가 같이 논의하는 파트너 같긴 했어요. 같이 할 때</blockquote>
+
+    <h3>업무 속도 향상 사례 (미용님)</h3>
+    <p>미용님이 Claude Code를 활용해 업무를 빠르게 처리한 사례를 공유했다.</p>
+
+    <h4>상황</h4>
+    <ul>
+      <li>논의 → 리서치 → 결론 도출까지 매우 빠르게 완료</li>
+      <li>혼자 했으면 반나절 걸렸을 작업이 1시간 이내에 완료</li>
+      <li>결과물이 너무 빨리 나와서 "AI로 한 티가 날까봐" 보내기를 고민</li>
+    </ul>
+
+    <blockquote>저 혼자 했었으면 그래도 한 반나절은 걸렸을 텐데 한 1시간은 안 걸려서 끝나고</blockquote>
+    <blockquote>너무 빨리 보내면 AI로 하는 건 좀 티 나는데, 그거 안 좋아하시거든요 나이 있으신 분들은</blockquote>
+    <blockquote>그거 보자마자 '와 이거 어떻게 이렇게 빨리 잘했냐'</blockquote>
+  </section>
+
+  <!-- ── Part 2 ── -->
+  <section id="part2" class="part-section">
+    <div class="part-label">Part 2</div>
+    <h2 class="section-title">FOMO에 대한 조언</h2>
+
+    <h3>불필요한 FOMO 경계</h3>
+    <p>강사는 Threads 등 SNS에서 Claude Code 관련 정보에 대한 FOMO를 경계할 것을 조언했다.</p>
+    <blockquote>이거를 설치 안 하면 안 될 것 같고, 이거를 세팅 안 하면 안 될 것 같고, 이거 다 다운받아야 되고, 나도 뭐 댓글로 이거 안 하면 안 될 것 같고, 자료를 안 받으면 안 될 것 같고... 나 그거 너무 싫거든요</blockquote>
+    <blockquote>사실 그거 받는다고 해서 뭔가가 있다고 해서 일 되는 거 1도 없거든요. 오히려 잘 세팅된 내 시스템이 하나 있는 게 월등하게 잘 되는 거라서</blockquote>
+
+    <div class="highlight-box">
+      <strong>핵심 메시지</strong><br>
+      다양한 도구와 자료를 무분별하게 수집하는 것보다, 하나의 잘 세팅된 시스템을 갖추는 것이 훨씬 효과적이다.
+    </div>
+  </section>
+
+  <!-- ── Part 3 ── -->
+  <section id="part3" class="part-section">
+    <div class="part-label">Part 3</div>
+    <h2 class="section-title">클로드 코드의 내부 구조 — 본사와 지사</h2>
+
+    <h3>숨김 파일 표시 방법</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>OS</th><th>방법</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Mac</strong></td><td>Finder에서 <code>Cmd + Shift + .</code> (점)</td></tr>
+          <tr><td><strong>Windows</strong></td><td>탐색기 &gt; 보기 &gt; 숨김 항목 체크</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>.claude 폴더 — 본사(전역) 개념</h3>
+    <p>Claude Code를 설치하면 사용자 홈 디렉토리에 <code>.claude</code>라는 숨김 폴더가 생성된다. 이것이 Claude Code의 <strong>"본사"</strong>에 해당한다.</p>
+
+    <h4>경로</h4>
+    <ul>
+      <li>Mac: <code>/Users/[사용자명]/.claude/</code></li>
+      <li>Windows: <code>C:\Users\[사용자명]\.claude\</code></li>
+    </ul>
+
+    <blockquote>여러분들은 클로드 코드를 설치를 했잖아요. 근데 그 클로드 코드가 어디에 설치되어 있는지도 아직 몰랐던 거예요</blockquote>
+    <blockquote>이 사용자 이름 안에 <code>.claude</code>라는 폴더가 설치된 겁니다</blockquote>
+
+    <h3>본사와 지사 구조</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구분</th><th>위치</th><th>역할</th><th>적용 범위</th></tr></thead>
+        <tbody>
+          <tr><td><strong>본사 (전역)</strong></td><td><code>~/.claude/</code></td><td>모든 Claude Code 세션에 적용</td><td>어디서든 적용</td></tr>
+          <tr><td><strong>지사 (지역)</strong></td><td><code>[워크스페이스]/.claude/</code></td><td>해당 워크스페이스에서만 적용</td><td>해당 폴더 내에서만</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <blockquote>큰 클로드 코드에 설치를 했어. 그럼 여기가 내 클로드 코드를 제어하는 모든 클로드 코드를 제어할 때는 본사라고 생각하시면 돼요</blockquote>
+    <blockquote>요번에 제가 세팅해서 클론해드린 Do Better 워크스페이스라는 곳은 지점입니다. 지사</blockquote>
+
+    <h3>CLAUDE.md의 본사/지사 적용</h3>
+    <ul>
+      <li><strong>본사 CLAUDE.md</strong> (<code>~/.claude/CLAUDE.md</code>): 어떤 폴더에서 작업하든 항상 읽힘</li>
+      <li><strong>지사 CLAUDE.md</strong> (<code>[워크스페이스]/CLAUDE.md</code>): 해당 워크스페이스에서만 읽힘</li>
+    </ul>
+
+    <blockquote>근데 만약에 여러분들이 Do Better 워크스페이스라고 하는 곳이 아닌 그 웹 폴더에서 클로드 작업을 할 거면은, 그때는 얘가 이 CLAUDE.md를 읽지 않기 때문에 내가 누군지 몰라</blockquote>
+    <blockquote>그렇기 때문에 더 좋은 거는 본사에 있는 CLAUDE.md를 잘 만드는 게 굉장히 좋다</blockquote>
+
+    <h3>전역 CLAUDE.md 만드는 방법</h3>
+    <p>기존 지사(워크스페이스) CLAUDE.md를 전역으로 변환하는 것도 Claude에게 요청하면 된다.</p>
+    <blockquote>지금 내 Do Better 워크스페이스 안에 있는 CLAUDE.md를 전역, 즉 전 지역에서 사용하는 전역 CLAUDE.md로 바꿔줘 하면은 알아서 바꿔줄 거구요</blockquote>
+  </section>
+
+  <!-- ── Part 4 ── -->
+  <section id="part4" class="part-section">
+    <div class="part-label">Part 4</div>
+    <h2 class="section-title">전역 스킬 / 에이전트 / 커맨드</h2>
+
+    <h3>지역 스킬의 한계</h3>
+    <p>Do Better 워크스페이스 안의 <code>.claude/</code> 폴더에 있는 스킬, 에이전트, 커맨드는 <strong>해당 워크스페이스 안에서만</strong> 사용 가능하다.</p>
+    <blockquote>이거는 이 Do Better 워크스페이스 안에 있을 때에만 사용을 할 수 있는 스킬과 에이전트와 커맨드였던 거예요</blockquote>
+
+    <h3>전역으로 전환하기</h3>
+    <p>모든 곳에서 사용하고 싶다면 전역으로 전환 가능하다.</p>
+    <blockquote>전역 스킬로 바꿔줘, 전역 커맨드로 바꿔줘, 전역 에이전트로 바꿔줘 하면은 얘가 이 내용을 그대로 [전역 폴더로 이동시켜줌]</blockquote>
+
+    <h3>지역 스킬이 유리한 경우</h3>
+    <p>모든 스킬을 전역으로 올리면 컨텍스트를 소비하므로, 특정 프로젝트에서만 필요한 스킬은 지역에 두는 것이 효율적이다.</p>
+    <blockquote>만약에 내가 하는 프로젝트가 굳이 그 전역에는 다 컨텍스트를 먹고, 정말 어떠한 폴더 안에 어떤 프로젝트 안에서만 필요한 스킬이라면 해당 지점에 스킬로 둬도 좋다는 거예요</blockquote>
+
+    <h3>중첩 CLAUDE.md 구조</h3>
+    <p>CLAUDE.md는 중첩(nested)이 가능하다:</p>
+    <ol>
+      <li><strong>전역</strong> (<code>~/.claude/CLAUDE.md</code>) — 전체 적용</li>
+      <li><strong>워크스페이스</strong> (<code>[workspace]/CLAUDE.md</code>) — 워크스페이스 적용</li>
+      <li><strong>하위 폴더</strong> (<code>[workspace]/[project]/CLAUDE.md</code>) — 프로젝트 적용</li>
+    </ol>
+    <blockquote>전역에 있는 CLAUDE.md가 있고, 그 지점 안에 있는 CLAUDE.md가 있고, 그 지점 안에 더 분점으로 CLAUDE.md가 있을 때 있습니다. 그러면 여기는 전체 다 읽고 있고, 없는 내용을 이렇게 추가 추가 하면 되는 거예요</blockquote>
+  </section>
+
+  <!-- ── Part 5 ── -->
+  <section id="part5" class="part-section">
+    <div class="part-label">Part 5</div>
+    <h2 class="section-title">웹소설 프로젝트 — 지역 스킬 활용 사례</h2>
+
+    <h3>프로젝트 배경</h3>
+    <p>강사가 개인 취미로 진행하는 웹소설(Web Novel) 프로젝트를 예시로 지역 스킬의 실제 활용을 보여주었다.</p>
+    <blockquote>제 취미 중에 하나가 웹소설 읽는 거거든요? 스트레스가 너무 받으면은 아예 아무것도 안 하고 유료 결제 딱 한 다음에 계속 그것만 본다</blockquote>
+
+    <h3>웹소설 프로젝트 전용 스킬 구조</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>스킬/에이전트</th><th>역할</th></tr></thead>
+        <tbody>
+          <tr><td><strong>챕터 에디터</strong></td><td>챕터 단위 편집</td></tr>
+          <tr><td><strong>캐릭터 보이스 키퍼</strong></td><td>캐릭터 말투/성격 일관성 유지</td></tr>
+          <tr><td><strong>컨티뉴이티 체커</strong></td><td>스토리 일관성 체크</td></tr>
+          <tr><td><strong>플로 트래커</strong></td><td>이야기 흐름 추적</td></tr>
+          <tr><td><strong>세계관 스킬</strong></td><td>세계관 설정 관리</td></tr>
+          <tr><td><strong>캐릭터 스킬</strong></td><td>캐릭터 프로파일 관리</td></tr>
+          <tr><td><strong>섹션 스킬</strong></td><td>섹션 구조 관리</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <blockquote>근데 이거를 굳이 전역 스킬로 만들어서 다 로드 시켜놓을 위에 올려놓을 필요가 없잖아요</blockquote>
+
+    <h3>멀티 에이전트 활용</h3>
+    <p>에이전트를 3개로 나누어 한쪽에서는 계속 집필을 하면서 동시 작업이 가능하다.</p>
+    <blockquote>이거를 섹션을 3개로, 에이전트를 3개로 나누면 한쪽에서는 계속 집필을 쓰고 있어도 됩니다</blockquote>
+  </section>
+
+  <!-- ── Part 6 ── -->
+  <section id="part6" class="part-section">
+    <div class="part-label">Part 6</div>
+    <h2 class="section-title">CLAUDE.md 실제 사례 (강사의 전역 CLAUDE.md)</h2>
+
+    <h3>전역 CLAUDE.md 구성 요소</h3>
+    <p>강사가 자신의 전역 CLAUDE.md를 공개하며 각 섹션의 의미를 설명했다.</p>
+
+    <h4>1. 시스템 환경 정보</h4>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td>OS 정보</td><td>Mac 사용, Windows 병행</td></tr>
+          <tr><td>폴더 경로</td><td>두 OS의 폴더 이름이 다르지만 연결되어 있음을 명시</td></tr>
+          <tr><td>효과</td><td>git push/pull 시 오류 없이 동작</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <blockquote>이렇게 때문에 얘가 git push를 하고 pull을 할 때 오류가 없이 항상 잘 돌아가는 겁니다</blockquote>
+
+    <h4>2. 사용자 프로필</h4>
+    <ul>
+      <li>1인 비즈니스 컨텍스트</li>
+      <li>"Do better things with Sensei AI"</li>
+      <li>FMP 경력 15–16년</li>
+      <li>핵심 전문성: 오프라인 비즈니스 경험 + AI 실무 활용</li>
+    </ul>
+
+    <h4>3. 비즈니스 현황</h4>
+    <ul>
+      <li>블로그, 뉴스레터 등 채널 정보 포함</li>
+      <li>진행 중인 서비스 및 파이프라인 정보</li>
+    </ul>
+    <blockquote>그러면 얘는 작업할 때 '아 얘가 이런 블로그를 하고 있고 어떤 사이트가 있다'라는 걸 알고 있는 거죠. 그러면 너무 쉬워요. 일이 너무 쉬워진다</blockquote>
+
+    <h4>4. 연동 서비스 명시</h4>
+    <p>GWS CLI를 통한 Google 연결, Notion, Telegram 등 사용 중인 서비스를 명시해야 한다.</p>
+    <blockquote>나 GWS CLI로 구글 다 연결을 하는데, 이 내용 그냥 CLAUDE.md에 업데이트해놔라고만 해보면 한 줄 들어가요. 그거 때문에 '아, 구글 쓸 때 꼭 GWS CLI를 써야겠구나'라는 생각을 얘가 하게 되잖아</blockquote>
+    <blockquote>경선이 같은 경우에는 '나는 지금 Notion, Telegram 이것들을 지금 사용 중이야, 다 API를 연결해서 사용 중이라고 하면' 얘가 딴짓할 수가 없어요. 다 연결이 되어 있다가 사실 알고 있는 거예요. 그 한 줄이 들어가서 중요합니다</blockquote>
+
+    <h4>5. 폴더 구조</h4>
+    <p>PKM 폴더 구조를 명시하면 Claude가 파일 저장 위치를 자동으로 판단한다.</p>
+    <blockquote>아예 안 읽어도 얘가 폴더 구조를 이해하고 있으면 '아 이렇게 해서 그냥 넣으면 되겠네'라는 생각을 하는 거죠</blockquote>
+
+    <h4>6. 파일 명명 규칙</h4>
+    <p><code>YYYY-MM-DD</code> 형식을 명시하지 않으면 Claude가 임의의 형식을 사용할 수 있다.</p>
+
+    <h4>7. 작업 규칙</h4>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>규칙</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>기존 파일 우선</td><td>새 파일 생성 최소화</td></tr>
+          <tr><td>요청 없이 커밋 금지</td><td>명시적 요청 시에만 commit</td></tr>
+          <tr><td><strong>No Emoji</strong></td><td>이모지 사용 금지 명시</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <blockquote>노 이모지. 명시적으로 써가지고. 그리고 제 PKM에도 이모지도 뜨지 않습니다</blockquote>
+
+    <h4>8. 문제 해결 방식</h4>
+    <blockquote>에러나 문제 발생 시 제발 증상만 해결하지 말고 원인을 먼저 파악해줘</blockquote>
+    <blockquote>제발 '왜'라고 물어봐. 표면적 수정 전에 왜 이 문제가 발생인지 분석 좀 해</blockquote>
+    <blockquote>연쇄 문제 감지. 임시 우회보다 근본 해결을 기본으로 선택해줘. 자꾸 '이렇게 해도 넘어가도 될까요'라고 너무 쉬운 길을 택하려고 한단 말이에요</blockquote>
+  </section>
+
+  <!-- ── Part 7 ── -->
+  <section id="part7" class="part-section">
+    <div class="part-label">Part 7</div>
+    <h2 class="section-title">Source of Truth — 공식 가이드 문서 활용</h2>
+
+    <h3>공식 가이드 문서의 중요성</h3>
+    <p>Claude Code의 스킬, 에이전트, CLAUDE.md 등을 만들 때 <strong>공식 가이드 문서(Source of Truth)</strong>를 참조해야 정확하게 만들 수 있다.</p>
+
+    <h3>제공된 가이드 문서 목록</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>파일명</th><th>용도</th></tr></thead>
+        <tbody>
+          <tr><td><code>claude-md-guide.md</code></td><td>CLAUDE.md 작성 가이드</td></tr>
+          <tr><td><code>skills-guide.md</code></td><td>스킬 생성 가이드</td></tr>
+          <tr><td><code>subagents-guide.md</code></td><td>서브 에이전트 생성 가이드</td></tr>
+          <tr><td><code>slash-commands-guide.md</code></td><td>슬래시 커맨드 가이드</td></tr>
+          <tr><td><code>rules-guide.md</code></td><td>룰 설정 가이드</td></tr>
+          <tr><td><code>plugins-guide.md</code></td><td>플러그인 가이드</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>활용 방법</h3>
+    <blockquote>CLAUDE.md를 만든 다음에 이 CLAUDE.md 가이드에 맞춰서 제대로 작성되는지 체크해봐. 만약 미진한 게 있으면은 보완하자. 하면은 같이 CLAUDE.md 가이드로 CLAUDE.md를 만들 수 있는 겁니다</blockquote>
+    <blockquote>에이전트 만들 거면은 서브 에이전트 md를 기준으로 서브 에이전트 만들고 싶어. 스킬 만들 때도 스킬 가이드 md 참고해서 스킬 만들고 싶어. 삐뚤어짐 없이 만들 수 있다</blockquote>
+
+    <h3>저장 위치 안내</h3>
+    <ul>
+      <li>강사 기준: <code>30-knowledge/37-claude-code/37.00-official-docs/</code></li>
+      <li>수강생: 자신의 지식 폴더(30번대) 내 Claude Code 관련 폴더에 저장 권장</li>
+    </ul>
+  </section>
+
+  <!-- ── Attendees ── -->
+  <section id="attendees" class="part-section">
+    <div class="part-label">Attendees</div>
+    <h2 class="section-title">참석자 사례 및 발언</h2>
+
+    <h3>제안서 작성 수강생</h3>
+    <p><strong>배경:</strong> 제안서 작성 업무를 주로 하며, 교수님/박사님과 협업</p>
+    <p><strong>사례:</strong></p>
+    <ul>
+      <li>Claude Code로 제안 요청서 변동, 리서치, 디자인까지 전 과정을 처리</li>
+      <li>작년에 작성한 제안서까지 분석시켜 활용</li>
+      <li>교수님/박사님이 "숟가락을 얹을 수 없을 정도"로 완성도가 높아짐</li>
+    </ul>
+    <blockquote>제가 다 해서 제안 요청서 변동을 다 진행하고 리서치까지 해서 버전을 올리니까 교수님과 박사님들이 할 일이 없어요</blockquote>
+    <blockquote>이러다가 영화 Her처럼 얘랑만 일을 하고</blockquote>
+
+    <h3>미용님</h3>
+    <p><strong>배경:</strong> 업무에 Claude Code를 활용하기 시작</p>
+    <p><strong>사례:</strong></p>
+    <ul>
+      <li>업무 논의 → 리서치 → 결론 도출까지 1시간 미만에 완료</li>
+      <li>결과물 품질이 높아 받는 쪽에서 감탄</li>
+      <li>"AI로 한 티"가 날까봐 보내는 타이밍을 고민</li>
+    </ul>
+    <blockquote>이 일을 되게 빨리 논의를 해서 답안을 도출해내게 딱 리서치 시키면 바로 나오면 좀 고치긴 해야 되거든요</blockquote>
+
+    <h3>재형님</h3>
+    <p><strong>배경:</strong> Claude Code 내부 구조에 관심</p>
+    <p><strong>사례:</strong></p>
+    <ul>
+      <li>오늘 다룰 내용(내부 구조)에 대해 먼저 질문을 제기한 바 있음</li>
+      <li>강사가 이를 반영하여 이번 세션 내용을 구성</li>
+    </ul>
+
+    <h3>폴더 정리 질문 수강생</h3>
+    <p><strong>질문:</strong> 워크스페이스가 지저분해졌는데 폴더를 어떻게 정리하면 좋을지?</p>
+    <p><strong>답변:</strong></p>
+    <ul>
+      <li>먼저 현재 상태를 파악시키고</li>
+      <li>폴더 구조를 어떻게 잡으면 좋을지를 Claude에게 제안받은 후</li>
+      <li>구조를 잡아서 시키는 것이 더 편하다</li>
+    </ul>
+    <blockquote>상태를 먼저 파악하고 어떻게 구조를 잡으면 좋을지를 폴더 구조를 잡아서 아예 시키는 게 더 편합니다</blockquote>
+  </section>
+
+  <!-- ── Q&A ── -->
+  <section id="qa" class="part-section">
+    <div class="part-label">Q&amp;A</div>
+    <h2 class="section-title">Q&amp;A</h2>
+
+    <h3>Q1: 전역 CLAUDE.md는 어떻게 만드나요?</h3>
+    <p>Claude에게 "지금 내 Do Better 워크스페이스 안에 있는 CLAUDE.md를 전역 CLAUDE.md로 바꿔줘"라고 요청하면 자동으로 변환해준다.</p>
+
+    <h3>Q2: 구글 연동이 자꾸 까먹히는 이유는?</h3>
+    <p>CLAUDE.md에 연동 서비스 정보를 명시적으로 기록해두지 않았기 때문이다. "나 GWS CLI로 구글 다 연결을 하는데, 이 내용 CLAUDE.md에 업데이트해놔라"고 한 줄만 추가하면 해결된다.</p>
+
+    <h3>Q3: 숨김 파일이 안 보여요 (파인더 이슈)</h3>
+    <ul>
+      <li><code>Cmd + Shift + .</code>을 <strong>파인더 창에서</strong> 눌러야 한다</li>
+      <li>드롭박스 경로에서 열면 다른 결과가 나올 수 있으므로, 새 파인더 창에서 시도할 것</li>
+    </ul>
+  </section>
+
+  <!-- ── Quotes ── -->
+  <section id="quotes" class="part-section">
+    <div class="part-label">Key Quotes</div>
+    <h2 class="section-title">핵심 인용문 모음</h2>
+
+    <div class="quotes-grid">
+      <div class="quote-item">
+        <div class="quote-num">01</div>
+        <blockquote>잘 세팅된 내 시스템이 하나 있는 게 월등하게 잘 되는 거라서</blockquote>
+        <div class="quote-context">SNS에서의 FOMO에 대한 조언</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">02</div>
+        <blockquote>클로드 코드가 어디에 설치되어 있는지도 아직 몰랐던 거예요</blockquote>
+        <div class="quote-context">.claude 폴더의 존재를 처음 소개할 때</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">03</div>
+        <blockquote>큰 클로드 코드에 설치를 했어. 그럼 여기가 본사라고 생각하시면 돼요. Do Better 워크스페이스는 지점입니다</blockquote>
+        <div class="quote-context">전역/지역 개념을 본사/지사 비유로 설명</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">04</div>
+        <blockquote>이 CLAUDE.md를 읽지 않기 때문에 내가 누군지 몰라</blockquote>
+        <div class="quote-context">전역 CLAUDE.md가 없으면 다른 폴더에서 작업 시 문제가 발생하는 이유</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">05</div>
+        <blockquote>한 줄이 들어가서 중요합니다</blockquote>
+        <div class="quote-context">연동 서비스 정보를 CLAUDE.md에 명시하는 것의 중요성</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">06</div>
+        <blockquote>에러나 문제 발생 시 제발 증상만 해결하지 말고 원인을 먼저 파악해줘</blockquote>
+        <div class="quote-context">CLAUDE.md 작업 규칙 — 문제 해결 방식</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">07</div>
+        <blockquote>자꾸 이렇게 해도 넘어가도 될까요라고 너무 쉬운 길을 택하려고 한단 말이에요</blockquote>
+        <div class="quote-context">Claude가 임시 우회를 선호하는 경향에 대한 경고</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">08</div>
+        <blockquote>삐뚤어짐 없이 만들 수 있다</blockquote>
+        <div class="quote-context">Source of Truth 가이드 문서를 참조하면 정확한 스킬/에이전트를 만들 수 있음</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">09</div>
+        <blockquote>이러다가 영화 Her처럼 얘랑만 일을 하고</blockquote>
+        <div class="quote-context">Claude Code와의 협업이 너무 잘 되어 사람 동료가 필요 없어지는 상황</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">10</div>
+        <blockquote>상태를 먼저 파악하고 어떻게 구조를 잡으면 좋을지를 폴더 구조를 잡아서 아예 시키는 게 더 편합니다</blockquote>
+        <div class="quote-context">워크스페이스 정리 방법에 대한 조언</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">11</div>
+        <blockquote>이 아카이브가 된다는 사실이 이제 맥락을 잃기가 어렵거든요</blockquote>
+        <div class="quote-context">텔레그램 연동의 가치</div>
+      </div>
+      <div class="quote-item">
+        <div class="quote-num">12</div>
+        <blockquote>컨텍스트 스위칭이 없는 게 생각보다 정말 좋은 일입니다</blockquote>
+        <div class="quote-context">한 번에 제안서를 4가지 할 수 있는 이유</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Concepts ── -->
+  <section id="concepts" class="part-section">
+    <div class="part-label">Key Concepts</div>
+    <h2 class="section-title">핵심 개념 정리</h2>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <h4>.claude 폴더 (본사/지사 구조)</h4>
+        <p><strong>정의:</strong> Claude Code의 설정, 스킬, 에이전트, 커맨드가 저장되는 숨김 폴더</p>
+        <p><strong>본사 (전역):</strong> <code>~/.claude/</code> — 모든 세션에 적용</p>
+        <p><strong>지사 (지역):</strong> <code>[workspace]/.claude/</code> — 해당 워크스페이스에서만 적용</p>
+        <p><strong>핵심:</strong> 전역에서 사용할 것과 지역에서만 쓸 것을 구분하여 관리</p>
+      </div>
+      <div class="concept-card">
+        <h4>CLAUDE.md (전역 설정 파일)</h4>
+        <p><strong>정의:</strong> Claude Code에게 "나는 누구이고, 어떻게 작업하는지"를 알려주는 핵심 설정 파일</p>
+        <p><strong>필수 포함 항목:</strong> 사용자 프로필, 시스템 환경, 연동 서비스, 폴더 구조, 작업 규칙, 문제 해결 방식</p>
+        <p><strong>적용:</strong> 항상 살아있는 문서로 지속적으로 업데이트 필요</p>
+      </div>
+      <div class="concept-card">
+        <h4>전역 vs 지역 스킬/에이전트</h4>
+        <p><strong>전역 스킬:</strong> 모든 워크스페이스에서 사용 가능, 항상 컨텍스트 소비</p>
+        <p><strong>지역 스킬:</strong> 특정 프로젝트에서만 로드, 컨텍스트 절약</p>
+        <p><strong>판단 기준:</strong> "이 스킬이 어디서든 필요한가, 아니면 특정 프로젝트에서만 필요한가?"</p>
+      </div>
+      <div class="concept-card">
+        <h4>Source of Truth (공식 가이드 문서)</h4>
+        <p><strong>정의:</strong> Claude Code 공식 문서에서 추출한 가이드 파일들</p>
+        <p><strong>용도:</strong> 스킬, 에이전트, CLAUDE.md 등을 만들 때 기준점으로 참조</p>
+        <p><strong>활용:</strong> "이 가이드를 참고해서 만들어줘"로 정확한 결과물 확보</p>
+      </div>
+      <div class="concept-card">
+        <h4>중첩 CLAUDE.md</h4>
+        <p><strong>정의:</strong> 전역 &gt; 워크스페이스 &gt; 프로젝트 단위로 CLAUDE.md를 중첩 배치</p>
+        <p><strong>동작 방식:</strong> 상위 CLAUDE.md를 모두 읽고, 하위로 갈수록 추가 정보를 적용</p>
+        <p><strong>장점:</strong> 공통 규칙은 상위에, 프로젝트 특화 규칙은 하위에 배치</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Homework ── -->
+  <section id="homework" class="part-section">
+    <div class="part-label">Homework &amp; Next</div>
+    <h2 class="section-title">과제 및 다음 일정</h2>
+
+    <h3>이번 주 과제</h3>
+    <ul class="checklist">
+      <li>자신의 <code>.claude</code> 폴더 확인하기 (숨김 파일 표시)</li>
+      <li>전역 CLAUDE.md 작성 또는 기존 CLAUDE.md를 전역으로 전환</li>
+      <li>공식 가이드 문서 다운로드 및 지식 폴더에 저장</li>
+      <li>CLAUDE.md 가이드를 참조하여 자신의 CLAUDE.md 점검 및 보완</li>
+    </ul>
+
+    <h3>다음 강의 안내</h3>
+    <div class="highlight-box">
+      <strong>4주차 예고</strong><br>
+      "여러분들의 1번 2번 누르는 그 귀찮음을 이제 없애드리겠습니다" — 자동화 관련 내용으로 추정
+    </div>
+
+    <h3>참고 자료</h3>
+    <ul>
+      <li>Claude Code 공식 가이드: <code>30-knowledge/37-claude-code/37.00-official-docs/</code></li>
+      <li>CLAUDE.md 베스트 프랙티스: <code>claude-md-guide.md</code></li>
+      <li>스킬 가이드: <code>skills-guide.md</code></li>
+      <li>서브 에이전트 가이드: <code>subagents-guide.md</code></li>
+    </ul>
+  </section>
+
+</div>
+<!-- /page-body -->
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-meta">
+      <strong>Claude Code 교육 세션 3주차</strong><br>
+      작성일: 2026-05-14 &nbsp;·&nbsp; 강의일: 2026-04-05<br>
+      원본: <code style="color:rgba(255,255,255,0.5); font-size:12px;">/Users/choi_ai/do-better-workspace/성수동1가5-녹취.txt</code><br>
+      직접 인용 21회 &nbsp;·&nbsp; 정리 도구: transcript-organizer Skill
+    </div>
+    <div class="footer-badge">
+      Session 3 / 4
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

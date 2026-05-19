@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자이리톨 SNS 감정분석 리포트 — RXR + Linguistic Layer</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+
+  :root {
+    --primary: #6C5CE7;
+    --primary-light: #A29BFE;
+    --primary-bg: #F8F7FF;
+    --accent: #00B894;
+    --accent2: #E17055;
+    --accent3: #FDCB6E;
+    --dark: #2D3436;
+    --gray: #636E72;
+    --light-gray: #DFE6E9;
+    --white: #FFFFFF;
+    --card-shadow: 0 2px 12px rgba(108,92,231,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard Variable', -apple-system, sans-serif;
+    background: #F5F6FA;
+    color: var(--dark);
+    line-height: 1.6;
+    padding: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--primary) 0%, #8B7CF7 100%);
+    color: white;
+    padding: 40px 48px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+  }
+  .header h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  .header .subtitle { font-size: 15px; opacity: 0.85; }
+  .header .meta { display: flex; gap: 24px; margin-top: 16px; font-size: 13px; opacity: 0.75; }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .kpi-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+  }
+  .kpi-card .label { font-size: 12px; color: var(--gray); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-card .value { font-size: 32px; font-weight: 800; margin: 8px 0 4px; }
+  .kpi-card .change { font-size: 12px; font-weight: 600; }
+  .kpi-card .change.up { color: var(--accent); }
+  .kpi-card .change.down { color: var(--accent2); }
+  .kpi-card .change.new { color: var(--primary); }
+
+  .section {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: var(--card-shadow);
+  }
+  .section h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--primary-bg);
+  }
+  .section h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 20px 0 12px;
+  }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr;
+    gap: 0;
+    align-items: start;
+  }
+  .compare-col { padding: 20px; border-radius: 12px; }
+  .compare-col.before { background: #FFF3E0; }
+  .compare-col.after { background: #E8F5E9; }
+  .compare-col h3 { margin-top: 0; }
+  .compare-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--gray);
+    padding-top: 40px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    background: var(--primary-bg);
+    color: var(--primary);
+    font-weight: 700;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #F0F0F0;
+  }
+  tr:hover td { background: #FAFAFA; }
+
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .bar-label {
+    width: 120px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .bar-container {
+    flex: 1;
+    height: 28px;
+    background: #F0F0F0;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    transition: width 0.5s ease;
+  }
+  .bar-value {
+    width: 60px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .dual-bar {
+    display: flex;
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .dual-bar > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .insight-box {
+    background: var(--primary-bg);
+    border-left: 4px solid var(--primary);
+    padding: 16px 20px;
+    border-radius: 0 12px 12px 0;
+    margin: 16px 0;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .insight-box strong { color: var(--primary); }
+
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .tag.new { background: #E8F5E9; color: #2E7D32; }
+  .tag.changed { background: #FFF3E0; color: #E65100; }
+  .tag.same { background: #F5F5F5; color: #9E9E9E; }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    margin: 12px 0;
+    font-size: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--gray);
+    font-size: 12px;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .metric-mini {
+    text-align: center;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--primary-bg);
+  }
+  .metric-mini .num { font-size: 24px; font-weight: 800; color: var(--primary); }
+  .metric-mini .lbl { font-size: 11px; color: var(--gray); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>자이리톨 SNS 감정분석 리포트</h1>
+  <div class="subtitle">RXR 2-Layer + Linguistic Layer 통합 분석 — 기존 방식 vs 새 방식 비교</div>
+  <div class="meta">
+    <span>분석일: 2026-04-26</span>
+    <span>데이터: 최근 30일 네이버 블로그</span>
+    <span>수집: 8,227건 / 유효: 1,685건</span>
+  </div>
+</div>
+
+<!-- KPI -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="label">유효 분석 건수</div>
+    <div class="value" style="color:var(--primary)">1,685</div>
+    <div class="change same">전체 1,961건 중 86%</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Auth 평균</div>
+    <div class="value" style="color:var(--accent)">74.6</div>
+    <div class="change up">+3.4 (언어학 보정)</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">LAI 평균</div>
+    <div class="value" style="color:var(--primary)">25.1</div>
+    <div class="change new">NEW 언어학적 진정성</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">EDS 평균</div>
+    <div class="value" style="color:var(--primary)">10.0</div>
+    <div class="change new">NEW 인지적 몰입도</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">RQL 승격</div>
+    <div class="value" style="color:var(--accent2)">31</div>
+    <div class="change changed">Q3→Q4 담화 복잡성</div>
+  </div>
+</div>
+
+<!-- SECTION 1: 기존 vs 새 방식 비교 -->
+<div class="section">
+  <h2>1. 기존 RXR vs Linguistic Layer 비교 — 무엇이 달라졌는가</h2>
+
+  <div class="compare-grid">
+    <div class="compare-col before">
+      <h3>기존 RXR 2-Layer</h3>
+      <p style="font-size:13px; color:#E65100; margin-bottom:12px"><strong>키워드 패턴 매칭 기반</strong></p>
+      <table>
+        <tr><td>Auth 평균</td><td><strong>71.3</strong></td></tr>
+        <tr><td>Clout 평균</td><td><strong>53.4</strong></td></tr>
+        <tr><td>Freshness 평균</td><td><strong>54.6</strong></td></tr>
+        <tr><td>감성: 중립</td><td><strong>763건 (45%)</strong></td></tr>
+        <tr><td>Q4 분석형</td><td><strong>529건</strong></td></tr>
+        <tr><td>Q3 경험형</td><td><strong>336건</strong></td></tr>
+      </table>
+      <div class="insight-box" style="margin-top:16px; background:#FFF3E0; border-color:#E65100">
+        <strong>한계:</strong> "좋다/나쁘다" 키워드만으로 감성 판별. 간접표현("나쁘진 않은데") 놓침. 협찬 여부는 "제공받" 같은 단어에만 의존. 리뷰 깊이는 글자수 기준.
+      </div>
+    </div>
+
+    <div class="compare-arrow">→</div>
+
+    <div class="compare-col after">
+      <h3>RXR + Linguistic Layer</h3>
+      <p style="font-size:13px; color:#2E7D32; margin-bottom:12px"><strong>언어학적 구조 분석 기반</strong></p>
+      <table>
+        <tr><td>Auth 평균</td><td><strong>74.6</strong> <span class="tag changed">+3.4</span></td></tr>
+        <tr><td>Clout 평균</td><td><strong>53.4</strong> <span class="tag same">동일</span></td></tr>
+        <tr><td>Freshness 평균</td><td><strong>57.1</strong> <span class="tag changed">+2.5</span></td></tr>
+        <tr><td>LAI (신규)</td><td><strong>25.1</strong> <span class="tag new">NEW</span></td></tr>
+        <tr><td>Q4 분석형</td><td><strong>529 + 31건</strong> <span class="tag changed">승격</span></td></tr>
+        <tr><td>Q3 경험형</td><td><strong>305건</strong> <span class="tag changed">-31</span></td></tr>
+      </table>
+      <div class="insight-box" style="margin-top:16px">
+        <strong>추가:</strong> 6차원 언어학 분석(형태소/기능어/확신도/담화/화용론/레지스터). LAI-Auth 교차검증으로 "잘 만든 협찬" 감지. 담화 복잡성으로 Q3→Q4 자동 승격.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: 핵심 차이 상세 -->
+<div class="section">
+  <h2>2. Linguistic Layer가 발견한 것들</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>Auth 보정 분포 (1,685건)</h3>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <div class="bar-label">상향 보정</div>
+          <div class="bar-container"><div class="bar-fill" style="width:58%; background:var(--accent)">978건</div></div>
+          <div class="bar-value">58.1%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">변동 없음</div>
+          <div class="bar-container"><div class="bar-fill" style="width:41.7%; background:var(--gray)">703건</div></div>
+          <div class="bar-value">41.7%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">하향 보정</div>
+          <div class="bar-container"><div class="bar-fill" style="width:0.3%; background:var(--accent2)"></div></div>
+          <div class="bar-value">4건</div>
+        </div>
+      </div>
+      <div class="insight-box">
+        <strong>해석:</strong> 기존 RXR이 Auth를 과소평가하고 있었음. Linguistic Layer 분석 결과 58%의 리뷰에서 감각어 밀도, 자연스러운 헤징, 레지스터 전환 등 "진짜 경험"의 언어학적 증거가 추가 발견됨. 평균 +3.6점 상향.
+      </div>
+    </div>
+
+    <div>
+      <h3>문체 레지스터 분포 <span class="tag new">NEW</span></h3>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <div class="bar-label">해요체 (표준)</div>
+          <div class="bar-container"><div class="bar-fill" style="width:41.5%; background:var(--accent)">700건</div></div>
+          <div class="bar-value">41.5%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">합쇼체 (격식)</div>
+          <div class="bar-container"><div class="bar-fill" style="width:27.2%; background:var(--accent2)">458건</div></div>
+          <div class="bar-value">27.2%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">해체 (비격식)</div>
+          <div class="bar-container"><div class="bar-fill" style="width:18.8%; background:var(--primary)">316건</div></div>
+          <div class="bar-value">18.8%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">판별불가</div>
+          <div class="bar-container"><div class="bar-fill" style="width:12.5%; background:var(--light-gray); color:var(--gray)">211건</div></div>
+          <div class="bar-value">12.5%</div>
+        </div>
+      </div>
+      <div class="insight-box">
+        <strong>발견:</strong> 합쇼체 27.2%는 예상보다 높음. 껌 리뷰인데 격식체를 쓰는 것은 <strong>구강건강 정보성 포스트</strong>(치과/건강 블로그)가 다수 포함된 것을 시사. 이들은 "리뷰"가 아니라 "정보 전달"이므로 Auth 해석 시 구분 필요.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: 확신도 & 감각어 -->
+<div class="section">
+  <h2>3. 언어학적 신규 지표 상세</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>확신도 스펙트럼 <span class="tag new">NEW</span></h3>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <div class="bar-label" style="font-size:11px">과도 불확실 (0~19)</div>
+          <div class="bar-container"><div class="bar-fill" style="width:78.6%; background:#B0BEC5">1,325건</div></div>
+          <div class="bar-value">78.6%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label" style="font-size:11px">균형 헤징 (20~59)</div>
+          <div class="bar-container"><div class="bar-fill" style="width:13.8%; background:var(--accent)">232건</div></div>
+          <div class="bar-value">13.8%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label" style="font-size:11px">적절한 확신 (60~79)</div>
+          <div class="bar-container"><div class="bar-fill" style="width:1.7%; background:var(--primary)"></div></div>
+          <div class="bar-value">28건</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label" style="font-size:11px">강한 확신 (80+)</div>
+          <div class="bar-container"><div class="bar-fill" style="width:5.9%; background:var(--accent2)">100건</div></div>
+          <div class="bar-value">5.9%</div>
+        </div>
+      </div>
+      <div class="insight-box">
+        <strong>해석:</strong> 78.6%가 확신 마커/헤징 마커 거의 없음 = 중립적 정보 전달 톤. 껌은 감정적 확신을 강하게 표현하는 카테고리가 아님. <strong>강한 확신 100건(5.9%)</strong>이 진짜 열성 팬 또는 과잉 긍정 의심 대상.
+      </div>
+    </div>
+
+    <div>
+      <h3>감각어 밀도 <span class="tag new">NEW</span></h3>
+      <div class="three-col" style="margin:16px 0">
+        <div class="metric-mini">
+          <div class="num">1.28</div>
+          <div class="lbl">평균 밀도 (/100단어)</div>
+        </div>
+        <div class="metric-mini">
+          <div class="num">200</div>
+          <div class="lbl">감각 풍부 (>3) 건수</div>
+        </div>
+        <div class="metric-mini">
+          <div class="num">11.9%</div>
+          <div class="lbl">감각 풍부 비율</div>
+        </div>
+      </div>
+      <div class="insight-box">
+        <strong>해석:</strong> 감각어 밀도 >3/100단어인 200건이 <strong>"실제로 껌을 씹어본" 체험 리뷰</strong>의 핵심 후보. "상쾌", "개운", "민트향", "청량" 등 신체 감각을 직접 서술. 이 200건의 Auth가 기존 RXR 대비 평균 +8점 상향됨.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: 감성 & 토픽 -->
+<div class="section">
+  <h2>4. 감성 분포 & 토픽</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>감성 분포</h3>
+      <div style="margin:16px 0">
+        <div class="dual-bar" style="height:40px; border-radius:8px">
+          <div style="width:33%; background:var(--accent)">긍정 33%</div>
+          <div style="width:19%; background:var(--accent3); color:var(--dark)">혼합 19%</div>
+          <div style="width:45%; background:var(--light-gray); color:var(--gray)">중립 45%</div>
+          <div style="width:3%; background:var(--accent2)"></div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>긍정 551건</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div>혼합 320건</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--light-gray)"></div>중립 763건</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>부정 51건</div>
+        </div>
+      </div>
+      <div class="insight-box">
+        <strong>특이점:</strong> 중립 45%는 팝업 분석(보통 긍정 60%+)과 확연히 다름. 자이리톨은 "감정적 제품"이 아니라 <strong>"기능적 제품"</strong>이므로 리뷰가 정보 전달에 집중. 부정 3%는 극히 낮아 브랜드 건강도 양호.
+      </div>
+    </div>
+
+    <div>
+      <h3>토픽 분포</h3>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <div class="bar-label" style="font-size:11px">구강케어/효과</div>
+          <div class="bar-container"><div class="bar-fill" style="width:61.3%; background:var(--primary)">1,033건</div></div>
+          <div class="bar-value">61.3%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label" style="font-size:11px">기타</div>
+          <div class="bar-container"><div class="bar-fill" style="width:21.2%; background:var(--gray)">358건</div></div>
+          <div class="bar-value">21.2%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label" style="font-size:11px">맛/향</div>
+          <div class="bar-container"><div class="bar-fill" style="width:14.1%; background:var(--accent)">237건</div></div>
+          <div class="bar-value">14.1%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label" style="font-size:11px">습관/일상</div>
+          <div class="bar-container"><div class="bar-fill" style="width:1.5%; background:var(--accent3)"></div></div>
+          <div class="bar-value">26건</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label" style="font-size:11px">비교/추천</div>
+          <div class="bar-container"><div class="bar-fill" style="width:0.8%; background:var(--accent2)"></div></div>
+          <div class="bar-value">14건</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: RQL & Content Class -->
+<div class="section">
+  <h2>5. 리뷰 품질 등급 (RQL) — 담화 복잡성 기반 승격</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>RQL 분포</h3>
+      <table>
+        <thead><tr><th>등급</th><th>기존</th><th>보정 후</th><th>변화</th><th>가중치</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Q5 서사형</strong></td><td>442건</td><td>442건</td><td><span class="tag same">동일</span></td><td>x2.0</td></tr>
+          <tr><td><strong>Q4 분석형</strong></td><td>529건</td><td>529건</td><td><span class="tag same">동일</span></td><td>x1.5</td></tr>
+          <tr style="background:#E8F5E9"><td><strong>Q4 분석형 (승격)</strong></td><td>—</td><td>31건</td><td><span class="tag new">+31</span></td><td>x1.5</td></tr>
+          <tr><td><strong>Q3 경험형</strong></td><td>336건</td><td>305건</td><td><span class="tag changed">-31</span></td><td>x1.0</td></tr>
+          <tr><td><strong>Q2 감상형</strong></td><td>179건</td><td>179건</td><td><span class="tag same">동일</span></td><td>x0.5</td></tr>
+          <tr><td><strong>Q1 간단형</strong></td><td>199건</td><td>199건</td><td><span class="tag same">동일</span></td><td>x0.2</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3>승격 메커니즘</h3>
+      <div class="insight-box">
+        <strong>Q3→Q4 승격 조건:</strong> Discourse Score ≥ 40<br><br>
+        담화 표지(대조 "근데/다만" + 조건 "~라면" + 인과 "그래서")가 풍부한 리뷰는 글자수가 짧아도 <strong>분석적 사고(ELM 중심경로 처리)</strong>의 증거.<br><br>
+        기존 RXR은 "300자+디테일 2건"이라는 양적 기준만 적용 → 짧지만 논리적인 리뷰가 Q3에 묻힘.<br><br>
+        Linguistic Layer는 <strong>담화 구조의 질</strong>을 보고 31건을 Q4로 승격.
+      </div>
+      <div class="three-col" style="margin-top:16px">
+        <div class="metric-mini">
+          <div class="num">2,142.8</div>
+          <div class="lbl">기존 리뷰 자산값</div>
+        </div>
+        <div class="metric-mini">
+          <div class="num">2,158.3</div>
+          <div class="lbl">보정 후 자산값</div>
+        </div>
+        <div class="metric-mini">
+          <div class="num" style="color:var(--accent)">+15.5</div>
+          <div class="lbl">자산값 증가</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6: Content Class -->
+<div class="section">
+  <h2>6. Content Class & Sincerity Filter</h2>
+
+  <div class="bar-chart">
+    <div class="bar-row">
+      <div class="bar-label">A 진성후기</div>
+      <div class="bar-container"><div class="bar-fill" style="width:5.6%; background:var(--accent)">109건</div></div>
+      <div class="bar-value">5.6%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">B 일반포스트</div>
+      <div class="bar-container"><div class="bar-fill" style="width:76.1%; background:var(--primary)">1,491건</div></div>
+      <div class="bar-value">76.1%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">C 협찬</div>
+      <div class="bar-container"><div class="bar-fill" style="width:4.3%; background:var(--accent3); color:var(--dark)">85건</div></div>
+      <div class="bar-value">4.3%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">D 나열형정보</div>
+      <div class="bar-container"><div class="bar-fill" style="width:3.7%; background:var(--light-gray); color:var(--gray)">72건</div></div>
+      <div class="bar-value">3.7%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">G 노이즈</div>
+      <div class="bar-container"><div class="bar-fill" style="width:10.2%; background:var(--accent2)">200건</div></div>
+      <div class="bar-value">10.2%</div>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:20px">
+    <div>
+      <h3>협찬 vs 자발적 Auth 비교</h3>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <div class="bar-label">자발적 (1,600건)</div>
+          <div class="bar-container"><div class="bar-fill" style="width:71.9%; background:var(--accent)"></div></div>
+          <div class="bar-value">Auth 71.9</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">협찬 (85건)</div>
+          <div class="bar-container"><div class="bar-fill" style="width:59.5%; background:var(--accent2)"></div></div>
+          <div class="bar-value">Auth 59.5</div>
+        </div>
+      </div>
+      <p style="font-size:13px; color:var(--gray); margin-top:8px">Auth 격차: <strong>12.4점</strong> — 협찬 리뷰의 진정성이 유의미하게 낮음</p>
+    </div>
+    <div>
+      <h3>Psyche Layer 평균</h3>
+      <table>
+        <thead><tr><th>지표</th><th>기존</th><th>보정 후</th><th>변화</th></tr></thead>
+        <tbody>
+          <tr><td>Authenticity</td><td>71.3</td><td><strong>74.6</strong></td><td style="color:var(--accent)">+3.4</td></tr>
+          <tr><td>Clout</td><td>53.4</td><td><strong>53.4</strong></td><td style="color:var(--gray)">0.0</td></tr>
+          <tr><td>Freshness</td><td>54.6</td><td><strong>57.1</strong></td><td style="color:var(--accent)">+2.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7: 방법론 비교 -->
+<div class="section">
+  <h2>7. 기존 RXR vs Linguistic Layer — 방법론 차이 요약</h2>
+
+  <table>
+    <thead>
+      <tr><th style="width:20%">분석 차원</th><th style="width:38%">기존 RXR 2-Layer</th><th style="width:38%">+ Linguistic Layer</th><th style="width:4%"></th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>감성 판별</strong></td>
+        <td>"좋다/나쁘다" 키워드 매칭 → 4-way 분류</td>
+        <td>+ 간접부정("나쁘진 않은데") 화용론 감지 → 중립→혼합 재분류</td>
+        <td><span class="tag changed">보강</span></td>
+      </tr>
+      <tr>
+        <td><strong>진정성 (Auth)</strong></td>
+        <td>협찬마커, 과잉긍정어, 경험신호 카운팅</td>
+        <td>+ 감각어 밀도, 1인칭 자연도, 확신도 스펙트럼, 레지스터 전환</td>
+        <td><span class="tag changed">보강</span></td>
+      </tr>
+      <tr>
+        <td><strong>리뷰 깊이 (RQL)</strong></td>
+        <td>글자수 + 디테일/경험 키워드 수 (양적 기준)</td>
+        <td>+ 담화 복잡성(대조/조건/인과 표지) → 질적 기준 추가, Q3→Q4 자동 승격</td>
+        <td><span class="tag changed">보강</span></td>
+      </tr>
+      <tr>
+        <td><strong>템플릿/PR 탐지</strong></td>
+        <td>보도자료 문구 매칭, 협찬 키워드</td>
+        <td>+ 합쇼체 일관성 탐지 → 문체가 부자연스러우면 Trust -10</td>
+        <td><span class="tag new">신규</span></td>
+      </tr>
+      <tr>
+        <td><strong>교차 검증</strong></td>
+        <td>없음 (Auth 단일 지표)</td>
+        <td>LAI (언어학적 진정성) vs Auth 교차검증 → 괴리 시 플래그</td>
+        <td><span class="tag new">신규</span></td>
+      </tr>
+      <tr>
+        <td><strong>인지적 깊이</strong></td>
+        <td>없음</td>
+        <td>EDS (은유/담화/한정표지/디테일) → 리뷰어의 인지적 몰입 수준</td>
+        <td><span class="tag new">신규</span></td>
+      </tr>
+      <tr>
+        <td><strong>문체 분석</strong></td>
+        <td>없음</td>
+        <td>레지스터 분류(해요체/해체/합쇼체) + 일관성 점수</td>
+        <td><span class="tag new">신규</span></td>
+      </tr>
+      <tr>
+        <td><strong>확신도</strong></td>
+        <td>없음</td>
+        <td>확신어 vs 완화어 비율 → 인식론적 확실성 스펙트럼</td>
+        <td><span class="tag new">신규</span></td>
+      </tr>
+      <tr>
+        <td><strong>이론적 기반</strong></td>
+        <td>eWOM, ELM, CLT, Social Proof (심리학)</td>
+        <td>+ Pennebaker 기능어분석, LIWC, 화용론, 사회언어학</td>
+        <td><span class="tag changed">확장</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 8: LAI 캘리브레이션 노트 -->
+<div class="section">
+  <h2>8. LAI 캘리브레이션 노트 (v1.0 한계)</h2>
+
+  <div class="insight-box">
+    <strong>LAI 평균 25.1 vs Auth 평균 74.6 — 왜 이렇게 차이가 나는가?</strong><br><br>
+    LAI v1.0은 <strong>"팝업스토어 리뷰"</strong> 기준으로 설계됨. 팝업은 감각어가 풍부하고, 시간근접 표지("오늘 갔는데")가 많고, 1인칭 서술이 활발. 반면 <strong>자이리톨(껌)</strong>은:<br><br>
+    - 감각어 밀도 평균 1.28 (팝업은 3~5 예상) → 일상적 제품이라 감각 서술이 적음<br>
+    - 시간근접 표지가 거의 없음 → "오늘 껌 씹었는데"라고 쓰는 사람이 적음<br>
+    - 확신 마커 빈도가 낮음 → 껌에 대해 "확실히 좋다"라고 쓸 동기가 약함<br><br>
+    <strong>v1.1 개선 방향:</strong> 카테고리별 LAI 가중치 캘리브레이션 필요. FMCG(일용소비재)는 감각어/시간표지 가중치를 낮추고, 담화 복잡성/레지스터 자연도 가중치를 높여야 함.
+  </div>
+</div>
+
+<!-- SECTION 9: 핵심 인사이트 -->
+<div class="section">
+  <h2>9. 핵심 마케팅 인사이트</h2>
+
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <div class="insight-box">
+      <strong>1. 자이리톨은 "감정적 브랜드"가 아니라 "기능적 브랜드"</strong><br>
+      중립 45%, 구강케어/효과 토픽 61% — 소비자는 자이리톨을 감성적으로 소비하지 않고, 충치예방이라는 기능적 가치로 인식. 마케팅 전략도 감성 소구보다 <strong>과학적 신뢰/습관화</strong>에 집중해야 함.
+    </div>
+    <div class="insight-box">
+      <strong>2. "습관/일상" 토픽이 1.5%에 불과 — 습관화 마케팅의 기회</strong><br>
+      자이리톨의 핵심 사용 시나리오인 "식후 루틴"이 리뷰에 거의 등장하지 않음. 소비자가 습관으로 인식하지만 <strong>굳이 언급하지 않는</strong> "공기 같은 존재". 이 습관을 <strong>의식화시키는 캠페인</strong>(#식후자이리톨 챌린지)이 인게이지먼트를 끌어올릴 수 있음.
+    </div>
+    <div class="insight-box">
+      <strong>3. 합쇼체 27% — "정보 전달형 포스트"가 브랜드 인식을 형성</strong><br>
+      치과/건강 블로그의 격식체 포스트가 4분의 1 이상. 이들은 직접 체험 리뷰가 아니라 성분/효과 설명글. <strong>전문가 콘텐츠가 자이리톨 브랜드 인식의 상당 부분을 구성</strong>하고 있으므로, 치과/건강 전문가 파트너십이 효과적.
+    </div>
+    <div class="insight-box">
+      <strong>4. 감각 풍부 리뷰 200건이 "진짜 팬"</strong><br>
+      감각어 밀도 >3인 200건(11.9%)이 실제로 "상쾌한 느낌", "민트향", "개운한 입안"을 생생하게 서술한 핵심 체험 리뷰. 이들의 Auth는 평균 대비 +8점 높음. <strong>이 200건의 언어를 광고 카피에 활용</strong>하면 소비자 공감도를 높일 수 있음.
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Generated by <strong>RXR SNS Analysis + Linguistic Layer v1.0</strong></p>
+  <p>분석 엔진: Sincerity Filter + 2-Layer(Content/Psyche) + Linguistic Layer(6차원) | 이론 기반: Pennebaker LIWC, ELM, CLT, eWOM</p>
+  <p style="margin-top:8px">2026-04-26 | 자이리톨 SNS 감정분석 프로젝트</p>
+</div>
+
+</body>
+</html>

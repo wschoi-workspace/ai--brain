@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR Survey Analysis: 가나초콜릿하우스 시즌3 — Pseudo-EDI 검증 리포트</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Poppins:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--p:#6666FF;--pd:#5353FF;--pl:#8A8AFF;--pp:#E1E1FF;--bk:#000;--d1:#1a1a1a;--d2:#262626;--d3:#303030;--w:#fff;--g1:#A1A1AA;--g2:#71717A;--gr:#10B981;--wn:#F59E0B;--co:#FF5050;--bl:#4D93F7;--pk:#D946EF;--mint:#2ED8A3;--sp:#7C3AED;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',system-ui,sans-serif;background:var(--bk);color:var(--w);line-height:1.7;font-size:14px}
+  .container{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+  .hero{padding:40px 44px;border-radius:20px;margin-bottom:24px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--d1) 0%,#1e1040 50%,#2d1b69 100%);border:1px solid rgba(102,102,255,0.15)}
+  .hero::before{content:'';position:absolute;top:-30%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(102,102,255,0.15) 0%,transparent 70%);border-radius:50%}
+  .hero .tag{font-family:'Poppins';font-size:11px;font-weight:600;color:var(--pl);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+  .hero h1{font-size:26px;font-weight:900;line-height:1.35;margin-bottom:8px;position:relative}
+  .hero h1 span{color:var(--pl)}
+  .hero .sub{font-size:13px;color:var(--g1);line-height:1.7}
+  .hero .meta{margin-top:16px;font-size:11px;color:var(--g2)}
+  section{background:var(--d1);border-radius:16px;padding:28px 32px;margin-bottom:18px;border:1px solid var(--d3)}
+  h2{font-size:18px;font-weight:700;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--d3);display:flex;align-items:center;gap:8px}
+  h2 .n{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--p);color:var(--w);border-radius:8px;font-size:12px;font-family:'Poppins';flex-shrink:0}
+  h3{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--w)}
+  p{margin-bottom:8px;font-size:13px;color:var(--g1)}
+  .tw{overflow-x:auto;margin:10px 0 14px;border-radius:10px;border:1px solid var(--d3)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  thead th{background:var(--d2);color:var(--g1);padding:8px 12px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;border-bottom:1px solid var(--d3)}
+  tbody td{padding:7px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;color:var(--g1)}
+  tbody tr:hover{background:rgba(102,102,255,0.04)}
+  td strong,td b{color:var(--w)}
+  .up{color:var(--gr);font-weight:700}.dn{color:var(--co);font-weight:700}
+  .box{padding:14px 18px;border-radius:10px;margin:10px 0 14px;font-size:12px;line-height:1.7}
+  .box-p{background:rgba(102,102,255,0.08);border-left:3px solid var(--p)}
+  .box-g{background:rgba(16,185,129,0.08);border-left:3px solid var(--gr)}
+  .box-w{background:rgba(245,158,11,0.08);border-left:3px solid var(--wn)}
+  .box-r{background:rgba(255,80,80,0.08);border-left:3px solid var(--co)}
+  .box strong{color:var(--w)}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+  .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+  .g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin:12px 0}
+  .card{background:var(--d2);border:1px solid var(--d3);border-radius:12px;padding:14px 16px}
+  .card h4{margin:0 0 6px;color:var(--w);font-size:13px}.card p{margin:0;font-size:11px}
+  .stat-r{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+  .stat{text-align:center;padding:16px;background:var(--d2);border:1px solid var(--d3);border-radius:10px}
+  .stat .sv{font-size:28px;font-weight:700;font-family:'JetBrains Mono'}.stat .sl{font-size:10px;color:var(--g2);margin-top:3px}.stat .sc{font-size:10px;font-weight:600;margin-top:2px}
+  .gauge{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .gauge-l{width:120px;font-size:11px;font-weight:600;text-align:right;flex-shrink:0;color:var(--g1)}
+  .gauge-t{flex:1;height:22px;background:var(--d3);border-radius:6px;overflow:hidden;position:relative}
+  .gauge-b{height:100%;border-radius:6px;transition:width 0.5s ease}
+  .gauge-v{width:50px;font-size:13px;font-weight:700;text-align:center;flex-shrink:0}
+  .quote{background:var(--d2);border-left:2px solid var(--p);padding:8px 14px;margin:6px 0;border-radius:0 8px 8px 0;font-size:12px;font-style:italic;color:var(--g1)}
+  .gap-visual{display:flex;align-items:center;gap:16px;padding:24px;background:var(--d2);border-radius:14px;margin:16px 0;border:1px solid var(--d3)}
+  .gap-bar{flex:1}
+  .gap-bar-label{font-size:11px;color:var(--g2);margin-bottom:6px}
+  .gap-bar-track{height:36px;background:var(--d3);border-radius:8px;overflow:hidden;position:relative}
+  .gap-bar-fill{height:100%;border-radius:8px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:13px;font-weight:700;color:var(--w)}
+  .gap-arrow{font-size:24px;color:var(--co);font-weight:900;text-align:center;min-width:80px}
+  .gap-arrow .gap-num{font-size:20px;font-family:'JetBrains Mono';display:block}
+  .pyramid{display:flex;flex-direction:column;align-items:center;gap:4px;margin:16px 0}
+  .pyramid-row{display:flex;align-items:center;gap:8px;width:100%}
+  .pyramid-label{width:130px;text-align:right;font-size:11px;font-weight:600;flex-shrink:0}
+  .pyramid-bar{height:32px;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:700;color:var(--w);transition:width 0.5s ease}
+  .pyramid-pct{width:60px;font-size:13px;font-weight:700;font-family:'JetBrains Mono';flex-shrink:0}
+  .chart-box{max-width:400px;margin:16px auto}
+  .matrix-container{position:relative;width:100%;max-width:600px;margin:16px auto;aspect-ratio:1.2}
+  .footer{text-align:center;padding:24px 0 12px;color:var(--g2);font-size:11px}
+  @media(max-width:768px){.g2,.g3,.g4,.stat-r{grid-template-columns:1fr}.container{padding:16px 12px 80px}}
+  @media print{body{font-size:9pt;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.container{max-width:100%;padding:0}section{border:1px solid #ccc!important;break-inside:auto;page-break-inside:auto}.card,.stat,.box,.quote,table,tr,.gap-visual,.pyramid{break-inside:avoid}h2,h3,h4{break-after:avoid}.hero{background:#f0f0ff!important;color:#1a1a1a!important}.hero h1,.hero h1 span,.hero .tag{color:#6666FF!important}.hero .sub,.hero .meta{color:#555!important}}
+  @media print{@page{size:A4 portrait;margin:10mm}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HERO -->
+<header class="hero">
+  <div class="tag">RXR Survey Analysis — Validation Report (Pseudo-EDI)</div>
+  <h1>가나초콜릿하우스 시즌3 <span>EDI 검증 리포트</span></h1>
+  <p class="sub">기존 설문 데이터(660명)를 EDI 프레임워크에 매핑하여, <strong>표면 만족도와 실질 인게이지먼트의 격차</strong>를 시각화합니다. 이 리포트는 새로운 EDI 설문 설계의 필요성을 실증적으로 보여주는 검증 자료입니다.</p>
+  <div class="meta">분석일: 2026-04-09 &middot; 원본 데이터: 가나초콜릿하우스 시즌3 방문객 설문 (2024.03.12) &middot; 응답자: 660명 &middot; 분석 방식: Pseudo-EDI (기존 7점 척도 → 4점 재코딩)</div>
+</header>
+
+<!-- Section 0: How to Read -->
+<section>
+  <h2><span class="n">0</span> 이 리포트는 이렇게 읽으세요</h2>
+  <div class="g3">
+    <div class="card" style="border-top:3px solid var(--p)">
+      <h4>1단계: 격차를 확인하세요</h4>
+      <p>"추천하겠다"고 답한 비율과, 실제로 움직일 가능성이 있는 비율의 <b>차이</b>가 핵심입니다.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--mint)">
+      <h4>2단계: 어디서 깊이가 생기는지</h4>
+      <p>어떤 매력 포인트가 <b>진짜 행동 전환</b>을 만드는지, 매트릭스에서 확인하세요.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--wn)">
+      <h4>3단계: 한계를 인식하세요</h4>
+      <p>이 리포트의 EDI는 <b>Pseudo-EDI</b>입니다. 기존 설문에 기억 선명도·행동 완료 문항이 없어, 실제 EDI보다 과대 추정됩니다.</p>
+    </div>
+  </div>
+  <div class="box box-w"><strong>Pseudo-EDI란?</strong> 기존 설문의 "추천하시겠어요?" 같은 의향 질문(7점)을 4점으로 재코딩하여 EDI를 시뮬레이션한 것입니다. 실제 EDI는 "이미 SNS에 올렸는가?", "누구에게 카톡을 보냈는가?" 같은 <b>행동 기반 질문</b>으로 측정하므로, 이 수치보다 낮게 나올 가능성이 높습니다. 즉, 이 리포트에서 보이는 격차조차도 <b>실제보다 보수적</b>입니다.</div>
+</section>
+
+<!-- Section 1: Executive Summary — Gap -->
+<section>
+  <h2><span class="n">1</span> Executive Summary — 격차 시각화</h2>
+
+  <div class="stat-r">
+    <div class="stat">
+      <div class="sv" style="color:var(--p)">660</div>
+      <div class="sl">총 응답자</div>
+    </div>
+    <div class="stat">
+      <div class="sv" style="color:var(--mint)">65.6</div>
+      <div class="sl">VRI (Viral Readiness Index)</div>
+      <div class="sc" style="color:var(--mint)">Strong</div>
+    </div>
+    <div class="stat">
+      <div class="sv" style="color:var(--wn)">28.0%</div>
+      <div class="sl">L5 Evangelist 비율</div>
+    </div>
+  </div>
+
+  <h3>표면 만족도 vs 실질 인게이지먼트</h3>
+
+  <div class="gap-visual">
+    <div class="gap-bar" style="flex:2">
+      <div class="gap-bar-label">"좋다고 말한 사람" — 추천 의향 5점 이상 (7점 만점)</div>
+      <div class="gap-bar-track">
+        <div class="gap-bar-fill" style="width:81.2%;background:linear-gradient(90deg,var(--p),var(--pl))">81.2%</div>
+      </div>
+    </div>
+    <div class="gap-arrow">
+      <span style="font-size:12px;color:var(--g2)">격차</span>
+      <span class="gap-num" style="color:var(--co)">29.1%p</span>
+    </div>
+    <div class="gap-bar" style="flex:2">
+      <div class="gap-bar-label">"진짜 움직일 사람" — Pseudo-EDI L4+L5</div>
+      <div class="gap-bar-track">
+        <div class="gap-bar-fill" style="width:52.1%;background:linear-gradient(90deg,var(--mint),var(--gr))">52.1%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="box box-p"><strong>브랜드 이미지 긍정: 91.4%</strong><br>방문 후 브랜드가 "호감 있어졌다"고 답한 비율. 전통적 KPI로는 대성공입니다.</div>
+    <div class="box box-r"><strong>그런데 진짜 질문은:</strong><br>"호감 있어졌다"고 말한 91% 중, 실제로 SNS에 올리고 지인에게 카톡 보내고 다시 데려올 사람은 <b>몇 %</b>인가?</div>
+  </div>
+
+  <div class="box box-w"><strong>이 격차가 뭔가요?</strong> 설문에서 "추천하겠다"에 5점 이상을 준 사람이 81.2%입니다. 하지만 "매우 동의(7점)"를 3개 항목 모두에 선택한 사람, 즉 <b>정말 적극적으로 움직일 가능성이 높은 사람</b>은 52.1%로 줄어듭니다. 이 <b>29.1%p 격차</b>가 "표면 만족"과 "진짜 행동 전환" 사이의 간극입니다.<br><br><em>쉽게 말하면: 10명 중 8명이 "좋았다"고 했지만, 실제로 움직일 사람은 5명입니다. 나머지 3명은 "좋았다"고 말하고 잊어버릴 사람들입니다.</em></div>
+</section>
+
+<!-- Section 2: EDI Distribution Pyramid -->
+<section>
+  <h2><span class="n">2</span> Pseudo-EDI 분포</h2>
+
+  <div class="pyramid">
+    <div class="pyramid-row">
+      <div class="pyramid-label" style="color:var(--sp)">L5 Evangelist</div>
+      <div class="pyramid-bar" style="width:56%;background:linear-gradient(90deg,var(--sp),#9D6AFF)">185명</div>
+      <div class="pyramid-pct" style="color:var(--sp)">28.0%</div>
+    </div>
+    <div class="pyramid-row">
+      <div class="pyramid-label" style="color:var(--p)">L4 Advocate</div>
+      <div class="pyramid-bar" style="width:48%;background:linear-gradient(90deg,var(--p),var(--pl))">159명</div>
+      <div class="pyramid-pct" style="color:var(--p)">24.1%</div>
+    </div>
+    <div class="pyramid-row">
+      <div class="pyramid-label" style="color:var(--bl)">L3 Satisfied</div>
+      <div class="pyramid-bar" style="width:60%;background:linear-gradient(90deg,var(--bl),#6DB3F7)">200명</div>
+      <div class="pyramid-pct" style="color:var(--bl)">30.3%</div>
+    </div>
+    <div class="pyramid-row">
+      <div class="pyramid-label" style="color:var(--wn)">L2 Casual</div>
+      <div class="pyramid-bar" style="width:35%;background:linear-gradient(90deg,var(--wn),#FFB84D)">116명</div>
+      <div class="pyramid-pct" style="color:var(--wn)">17.6%</div>
+    </div>
+    <div class="pyramid-row">
+      <div class="pyramid-label" style="color:var(--g2)">L1 Indifferent</div>
+      <div class="pyramid-bar" style="width:2%;background:var(--d3);min-width:40px">0명</div>
+      <div class="pyramid-pct" style="color:var(--g2)">0.0%</div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="stat">
+      <div class="sv" style="color:var(--pl)">9.87</div>
+      <div class="sl">EDI 평균 (15점 만점)</div>
+    </div>
+    <div class="stat">
+      <div class="sv" style="color:var(--pl)">10</div>
+      <div class="sl">EDI 중앙값</div>
+    </div>
+    <div class="stat">
+      <div class="sv" style="color:var(--mint)">65.6</div>
+      <div class="sl">VRI (100점 만점)</div>
+      <div class="sc" style="color:var(--mint)">Strong</div>
+    </div>
+  </div>
+
+  <div class="box box-w"><strong>L1이 0%인 이유:</strong> 기존 설문에는 기억 선명도(Stage 2) 문항이 없어 고정값 2점을 부여했습니다. 따라서 최저 EDI = 2+1+1+1 = 5점이 되어 L1(3점) 구간이 발생하지 않습니다. 이것이 <b>Pseudo-EDI의 핵심 한계</b>입니다 — 실제 EDI 설문에서는 "좋았던 것 같은데 기억 안 남"(Stage 2 = 1점) 응답자가 상당수 나타나, L1~L2 구간이 더 두꺼워질 것으로 예상됩니다.</div>
+
+  <div class="box box-p"><strong>각 레벨은 어떤 사람인가?</strong><br>
+  <b>L5 Evangelist (28.0%)</b>: "이미 카톡 보냈고, SNS 올렸고, 다음 주에 엄마 데려갈 거야" — 세 가지를 다 한 사람<br>
+  <b>L4 Advocate (24.1%)</b>: "친구한테 꼭 가보라고 할 거야, SNS에도 올릴 예정" — 두 가지 이상 적극적<br>
+  <b>L3 Satisfied (30.3%)</b>: "좋았어, 누가 물어보면 추천은 하겠지만 내가 먼저 나서지는 않을 듯" — 수동적 만족<br>
+  <b>L2 Casual (17.6%)</b>: "괜찮았는데... 뭐가 좋았냐고? 음..." — 표면적 호감, 행동 전환 없음</div>
+</section>
+
+<!-- Section 3: Attraction × EDI Matrix -->
+<section>
+  <h2><span class="n">3</span> 매력 포인트 × Engagement 깊이 매트릭스</h2>
+
+  <p>기존 설문의 만족 요소별 최고점 항목을 매력 포인트로 변환하고, 해당 항목 선택자의 Pseudo-EDI 평균을 교차했습니다.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>매력 포인트</th><th>선택 비율</th><th>EDI 평균</th><th>위치</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr><td><b>공간 디자인</b></td><td><b>72.7%</b> (480명)</td><td style="color:var(--gr)"><b>10.3</b></td><td style="color:var(--gr)"><b>Core Driver</b></td><td>압도적 1위 + EDI 최고 — 핵심 성공 요소</td></tr>
+      <tr><td><b>직원 응대</b></td><td>13.9% (92명)</td><td>8.5</td><td style="color:var(--wn)">Low Priority</td><td>만족도 높지만 핵심 동인은 아님</td></tr>
+      <tr><td><b>체험공간</b></td><td>5.9% (39명)</td><td>8.7</td><td style="color:var(--g2)">Low Priority</td><td>소규모, EDI도 보통</td></tr>
+      <tr><td><b>컨셉 기획</b></td><td>3.5% (23명)</td><td>9.1</td><td style="color:var(--bl)">Hidden Gem?</td><td>소수 선택, EDI 양호 — 모니터링 필요</td></tr>
+      <tr><td><b>브랜드 스토리/전시</b></td><td>2.0% (13명)</td><td>9.4</td><td style="color:var(--bl)">Hidden Gem?</td><td>극소수지만 EDI 높음 — 소표본 주의</td></tr>
+      <tr><td><b>F&B</b></td><td>2.0% (13명)</td><td style="color:var(--co)"><b>7.3</b></td><td style="color:var(--co)">Volume Trap</td><td>EDI 최저 — 먹고 즐기지만 공유 안 함</td></tr>
+    </tbody>
+  </table></div>
+
+  <div style="position:relative;padding:20px;background:var(--d2);border-radius:14px;margin:16px 0;border:1px solid var(--d3)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;min-height:280px">
+      <!-- Top Left: Volume Trap -->
+      <div style="background:rgba(245,158,11,0.06);border-radius:12px 0 0 0;padding:16px;border:1px solid rgba(245,158,11,0.15)">
+        <div style="font-size:11px;font-weight:700;color:var(--wn);margin-bottom:8px">Volume Trap</div>
+        <div style="font-size:10px;color:var(--g2)">많이 골랐지만 깊이 없음</div>
+        <div style="margin-top:12px;font-size:12px;color:var(--g1)"><em>해당 없음</em> (이번 데이터에서는 고빈도+저EDI 조합이 없음)</div>
+      </div>
+      <!-- Top Right: Core Driver -->
+      <div style="background:rgba(16,185,129,0.06);border-radius:0 12px 0 0;padding:16px;border:1px solid rgba(16,185,129,0.15)">
+        <div style="font-size:11px;font-weight:700;color:var(--gr);margin-bottom:8px">Core Driver</div>
+        <div style="font-size:10px;color:var(--g2)">핵심 성공 요소</div>
+        <div style="margin-top:12px">
+          <div style="display:inline-block;padding:6px 12px;background:rgba(16,185,129,0.15);border-radius:8px;margin:3px">
+            <span style="font-size:14px;font-weight:700;color:var(--gr)">공간 디자인</span>
+            <span style="font-size:10px;color:var(--g1);margin-left:4px">72.7% / EDI 10.3</span>
+          </div>
+        </div>
+      </div>
+      <!-- Bottom Left: Low Priority -->
+      <div style="background:rgba(255,255,255,0.02);border-radius:0 0 0 12px;padding:16px;border:1px solid var(--d3)">
+        <div style="font-size:11px;font-weight:700;color:var(--g2);margin-bottom:8px">Low Priority</div>
+        <div style="font-size:10px;color:var(--g2)">관심 낮고 깊이도 보통</div>
+        <div style="margin-top:12px">
+          <div style="display:inline-block;padding:4px 8px;background:var(--d3);border-radius:6px;margin:2px;font-size:11px;color:var(--g1)">직원 응대 <span style="color:var(--g2)">13.9%/8.5</span></div>
+          <div style="display:inline-block;padding:4px 8px;background:var(--d3);border-radius:6px;margin:2px;font-size:11px;color:var(--g1)">체험공간 <span style="color:var(--g2)">5.9%/8.7</span></div>
+          <div style="display:inline-block;padding:4px 8px;background:rgba(255,80,80,0.1);border-radius:6px;margin:2px;font-size:11px;color:var(--co)">F&B <span style="color:var(--g2)">2.0%/7.3</span></div>
+        </div>
+      </div>
+      <!-- Bottom Right: Hidden Gem -->
+      <div style="background:rgba(102,102,255,0.04);border-radius:0 0 12px 0;padding:16px;border:1px solid rgba(102,102,255,0.1)">
+        <div style="font-size:11px;font-weight:700;color:var(--pl);margin-bottom:8px">Hidden Gem</div>
+        <div style="font-size:10px;color:var(--g2)">소수지만 진심</div>
+        <div style="margin-top:12px">
+          <div style="display:inline-block;padding:4px 8px;background:rgba(102,102,255,0.1);border-radius:6px;margin:2px;font-size:11px;color:var(--pl)">컨셉 기획 <span style="color:var(--g2)">3.5%/9.1</span></div>
+          <div style="display:inline-block;padding:4px 8px;background:rgba(102,102,255,0.1);border-radius:6px;margin:2px;font-size:11px;color:var(--pl)">브랜드 스토리 <span style="color:var(--g2)">2.0%/9.4</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;top:50%;left:0;right:0;text-align:center;transform:translateY(-50%);pointer-events:none">
+      <span style="font-size:10px;color:var(--g2);background:var(--d2);padding:2px 8px;border-radius:4px">선택 빈도 ▲</span>
+    </div>
+    <div style="text-align:center;margin-top:8px;font-size:10px;color:var(--g2)">EDI 평균 ► Low ─────────────────── High</div>
+  </div>
+
+  <div class="box box-p"><strong>이 매트릭스가 뭔가요?</strong> 가로축은 "그 요소를 경험한 뒤 실제로 행동할 가능성(EDI)", 세로축은 "얼마나 많은 사람이 그 요소를 인상적이라 꼽았는가"입니다.<br><br><em>쉽게 말하면: <b>공간 디자인</b>은 많은 사람이 좋아했고(72.7%), 좋아한 사람들이 실제로 퍼뜨릴 가능성도 높습니다(EDI 10.3). 반면 <b>F&B</b>는 맛은 즐겼지만 "SNS에 올리고 친구 데려오겠다"까지는 가지 않습니다(EDI 7.3).</em></div>
+</section>
+
+<!-- Section 4: Segment Insights -->
+<section>
+  <h2><span class="n">4</span> 세그먼트 인사이트</h2>
+
+  <h3>연령대별 Pseudo-EDI</h3>
+  <div style="margin:12px 0">
+    <div class="gauge">
+      <div class="gauge-l">20세 이하</div>
+      <div class="gauge-t"><div class="gauge-b" style="width:70.7%;background:var(--sp)"></div></div>
+      <div class="gauge-v" style="color:var(--sp)">10.6</div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-l">21-25세</div>
+      <div class="gauge-t"><div class="gauge-b" style="width:66%;background:var(--p)"></div></div>
+      <div class="gauge-v" style="color:var(--p)">9.9</div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-l">26-30세</div>
+      <div class="gauge-t"><div class="gauge-b" style="width:63.3%;background:var(--bl)"></div></div>
+      <div class="gauge-v" style="color:var(--bl)">9.5</div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-l">31-35세</div>
+      <div class="gauge-t"><div class="gauge-b" style="width:64%;background:var(--bl)"></div></div>
+      <div class="gauge-v" style="color:var(--bl)">9.6</div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-l">36-40세</div>
+      <div class="gauge-t"><div class="gauge-b" style="width:66.7%;background:var(--p)"></div></div>
+      <div class="gauge-v" style="color:var(--p)">10.0</div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-l">41세+</div>
+      <div class="gauge-t"><div class="gauge-b" style="width:71.3%;background:var(--sp)"></div></div>
+      <div class="gauge-v" style="color:var(--sp)">10.7</div>
+    </div>
+  </div>
+
+  <div class="box box-g"><strong>발견:</strong> 41세 이상(EDI 10.7)과 20세 이하(EDI 10.6)가 가장 높습니다. 26-35세 핵심 타겟(EDI 9.5~9.6)이 오히려 낮습니다. 이유 추정: 팝업 경험이 풍부한 세대(연 3-5회)일수록 "비교 기준"이 높아 쉽게 감동하지 않을 수 있습니다.</div>
+
+  <h3>방문 경로별 Pseudo-EDI</h3>
+  <div class="tw"><table>
+    <thead><tr><th>방문 경로</th><th>응답자</th><th>비율</th><th>EDI 평균</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr><td><b>SNS 인플루언서</b></td><td>98명</td><td>14.8%</td><td style="color:var(--gr)"><b>10.4</b></td><td>인플루언서 노출 → 높은 기대 → 기대 충족 시 강한 전파</td></tr>
+      <tr><td><b>우연히 방문</b></td><td>153명</td><td>23.2%</td><td>9.9</td><td>기대 없이 왔다가 감동 → 의외의 전파력</td></tr>
+      <tr><td><b>인터넷 후기</b></td><td>193명</td><td>29.2%</td><td>9.8</td><td>사전 정보 충분 → 기대치 관리됨</td></tr>
+      <tr><td><b>지인 추천</b></td><td>175명</td><td>26.5%</td><td>9.7</td><td>높은 기대 → 충족되지만 "이미 알고 온" 느낌</td></tr>
+      <tr><td><b>롯데 SNS</b></td><td>30명</td><td>4.6%</td><td style="color:var(--co)"><b>8.9</b></td><td>브랜드 공식 채널 → 충성도 낮은 casual 팔로워?</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="box box-p"><strong>인사이트:</strong> SNS 인플루언서를 통해 온 방문객이 가장 깊은 인게이지먼트를 보입니다(EDI 10.4). 반면 브랜드 공식 SNS를 통한 방문객은 EDI 8.9로 가장 낮습니다. <b>인플루언서 채널이 "양"뿐 아니라 "질" 면에서도 우수</b>하다는 것을 보여줍니다.</div>
+</section>
+
+<!-- Section 5: Stage 3 Detail -->
+<section>
+  <h2><span class="n">5</span> Stage 3 행동 전환 상세 분석</h2>
+
+  <p>기존 설문의 WOM 문항(7점)을 4점으로 재코딩한 결과입니다.</p>
+
+  <h3>Q3-1 대용: SNS 공유 의향 (ewom2)</h3>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--sp)">4점 (이미 올림)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:31.8%;background:var(--sp)"></div></div>
+    <div class="gauge-v">31.8%</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--p)">3점 (올릴 예정)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:21.4%;background:var(--p)"></div></div>
+    <div class="gauge-v">21.4%</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--bl)">2점 (불확실)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:23.2%;background:var(--bl)"></div></div>
+    <div class="gauge-v">23.2%</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--g2)">1점 (안 올림)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:23.6%;background:var(--d3)"></div></div>
+    <div class="gauge-v">23.6%</div>
+  </div>
+
+  <h3>Q3-2 대용: 지인 추천 (pwom1)</h3>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--sp)">4점 (적극 추천)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:34.8%;background:var(--sp)"></div></div>
+    <div class="gauge-v">34.8%</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--p)">3점 (추천 의향)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:23.3%;background:var(--p)"></div></div>
+    <div class="gauge-v">23.3%</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--bl)">2점 (약한 의향)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:23.0%;background:var(--bl)"></div></div>
+    <div class="gauge-v">23.0%</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--g2)">1점 (비추천)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:18.8%;background:var(--d3)"></div></div>
+    <div class="gauge-v">18.8%</div>
+  </div>
+
+  <h3>Q3-3 대용: 온라인 글 작성 (ewom1)</h3>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--sp)">4점 (작성함/예정)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:30.8%;background:var(--sp)"></div></div>
+    <div class="gauge-v">30.8%</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--p)">3점 (작성 의향)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:17.1%;background:var(--p)"></div></div>
+    <div class="gauge-v">17.1%</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--bl)">2점 (불확실)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:25.3%;background:var(--bl)"></div></div>
+    <div class="gauge-v">25.3%</div>
+  </div>
+  <div class="gauge">
+    <div class="gauge-l" style="color:var(--g2)">1점 (안 함)</div>
+    <div class="gauge-t"><div class="gauge-b" style="width:26.8%;background:var(--d3)"></div></div>
+    <div class="gauge-v">26.8%</div>
+  </div>
+
+  <div class="box box-r"><strong>핵심 격차 포인트:</strong> 세 항목 모두에서 <b>4점(최적극)과 1점(비참여) 비율이 거의 비슷합니다</b> (약 30% vs 23%). 기존 7점 척도에서는 81%가 "긍정"으로 보였지만, 4점으로 재코딩하면 <b>실제로 적극적인 사람(4점)은 31~35%에 불과</b>합니다. 나머지 46~50%는 "그냥 좋다고 말한 사람"입니다.</div>
+
+  <div class="box box-w"><strong>이 분석이 보여주는 것:</strong> 기존 7점 척도의 5점(약간 동의)과 7점(매우 동의)은 전혀 다른 행동을 예측합니다. "약간 동의"한 사람은 거의 움직이지 않습니다. 하지만 기존 보고서에서는 둘 다 "긍정"으로 묶여서 81.2%가 됩니다. <b>EDI 설문은 이 구분을 처음부터 설계에 내장합니다.</b></div>
+</section>
+
+<!-- Section 6: Action Items -->
+<section>
+  <h2><span class="n">6</span> Action Items & 다음 단계</h2>
+
+  <h3>Core Drivers — 유지/강화</h3>
+  <div class="g3">
+    <div class="card" style="border-top:3px solid var(--gr)">
+      <h4>공간 디자인 = 바이럴 엔진</h4>
+      <p>72.7%가 선택, EDI 10.3 — 경험의 핵심이자 공유의 핵심. 다음 시즌에서도 공간 디자인에 최우선 투자 유지.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--gr)">
+      <h4>인플루언서 채널 강화</h4>
+      <p>인플루언서를 통한 방문자의 EDI가 10.4로 최고. "양질의 방문자"를 유입하는 최적 채널.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--gr)">
+      <h4>41세+ 세그먼트 주목</h4>
+      <p>EDI 10.7 — 예상외의 고인게이지먼트. 추억(가나초콜릿 헤리티지) + 공간 경험의 시너지 가능성.</p>
+    </div>
+  </div>
+
+  <h3>Opportunities — 개선/확대</h3>
+  <div class="g3">
+    <div class="card" style="border-top:3px solid var(--wn)">
+      <h4>F&B → 공유 가능한 경험으로</h4>
+      <p>EDI 7.3(최저) — 맛은 즐기지만 퍼뜨리지 않음. "먹는 경험"을 "찍는 경험"으로 전환 필요. (플레이팅, 언박싱 순간 등)</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--wn)">
+      <h4>브랜드 스토리 확대</h4>
+      <p>선택자 2%지만 EDI 9.4 — Hidden Gem. 브랜드 헤리티지를 공간에 더 강하게 녹이면 인게이지먼트 깊이가 높아질 가능성.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--wn)">
+      <h4>공식 SNS 채널 재점검</h4>
+      <p>롯데 SNS 경유 방문자의 EDI 8.9(최저) — 캐주얼 팔로워가 대다수. 콘텐츠 톤을 "홍보"에서 "경험 예고"로 전환 검토.</p>
+    </div>
+  </div>
+
+  <h3>다음 단계: 실제 EDI 설문 도입</h3>
+  <div class="box box-p" style="border-left-color:var(--sp)">
+    <strong>이 리포트가 증명한 것:</strong><br>
+    1. 기존 설문(7점 의향 질문)으로도 격차가 보임 — 81% "좋다" vs 52% "움직일 사람" (29%p 격차)<br>
+    2. 하지만 이 격차조차 <b>과소추정</b>임 — 기존 문항은 "~할 것이다"(의향)만 묻지, "이미 ~했다"(행동)를 묻지 않음<br>
+    3. Stage 2(기억 선명도)가 없어 L1~L2 구간이 사라짐 — 실제 EDI에서는 더 많은 격차 예상<br><br>
+    <strong>다음 프로젝트에서:</strong><br>
+    - <code>/rxr-survey-analysis</code> Mode 1으로 실제 EDI 설문 설계<br>
+    - Stage 2(기억 선명도) + Stage 3(행동 기반 질문) 포함<br>
+    - 수집 후 <code>/rxr-survey-analysis</code> Mode 2로 분석 → 실제 EDI 산출<br>
+    - <code>/rxr-sns-analysis</code>와 교차 검증 → "EDI L5가 정말 SNS P-01과 일치하는가?" 실증
+  </div>
+</section>
+
+<!-- Section 7: Methodology -->
+<section>
+  <h2><span class="n">7</span> 분석 방법론 & 한계</h2>
+
+  <h3>Pseudo-EDI 산출 방식</h3>
+  <div class="tw"><table>
+    <thead><tr><th>EDI 구성</th><th>실제 EDI 문항</th><th>이 리포트의 대용 문항</th><th>매핑 방식</th><th>한계</th></tr></thead>
+    <tbody>
+      <tr><td><b>Stage 2: 기억 선명도</b></td><td>"기억에 남는 구체적 순간?"</td><td><em>해당 없음</em></td><td>고정값 2점 부여</td><td style="color:var(--co)"><b>핵심 한계</b> — 실제 변별력 상실</td></tr>
+      <tr><td><b>Stage 3-1: SNS 공유</b></td><td>"이미 올렸나? 올릴 계획?"</td><td>ewom2: "SNS에서 긍정적 경험 공유할 것이다"</td><td>7→4점 재코딩</td><td>의향 vs 행동 차이</td></tr>
+      <tr><td><b>Stage 3-2: 지인 전달</b></td><td>"카톡 보냈나? 만나서 말할?"</td><td>pwom1: "지인에게 추천하고 싶다"</td><td>7→4점 재코딩</td><td>의향 vs 행동 차이</td></tr>
+      <tr><td><b>Stage 3-3: 재방문</b></td><td>"누구 데리고 다시 올?"</td><td>ewom1: "온라인에 긍정적 글 쓸 것이다"</td><td>7→4점 재코딩</td><td>재방문과 다른 질문</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>7점 → 4점 재코딩 규칙</h3>
+  <div class="tw"><table>
+    <thead><tr><th>원본 (7점)</th><th>재코딩 (4점)</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr><td>7 (매우 동의)</td><td><b>4</b></td><td>이미 행동 / 확실한 계획</td></tr>
+      <tr><td>6 (동의)</td><td><b>3</b></td><td>적극 의향</td></tr>
+      <tr><td>5 (약간 동의)</td><td><b>2</b></td><td>불확실한 의향</td></tr>
+      <tr><td>1~4 (보통 이하)</td><td><b>1</b></td><td>의향 없음</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="box box-r"><strong>이 리포트의 Pseudo-EDI는 실제 EDI와 다릅니다.</strong> 기존 설문의 "~할 것이다" 질문은 사회적 바람직성 편향(social desirability bias)에 취약합니다. 실제 EDI 설문의 "이미 카톡을 보냈다" 같은 행동 완료 질문은 이 편향을 최소화합니다. 따라서 <b>실제 EDI L4+L5 비율은 52.1%보다 낮을 것</b>으로 예상됩니다.</div>
+</section>
+
+<!-- Footer -->
+<div class="footer">
+  RXR Survey Analysis v1.0 &middot; Powered by RXR Framework &middot; Project Rent R-Lab<br>
+  이 리포트의 EDI는 검증용 Pseudo-EDI이며, 실제 EDI 산출에는 전용 설문이 필요합니다.
+</div>
+
+</div>
+</body>
+</html>

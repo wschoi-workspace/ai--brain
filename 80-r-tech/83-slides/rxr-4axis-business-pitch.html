@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR 4축 프레임워크 — 비즈니스 가능성</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap');
+  :root {
+    --bg:#0a0a14; --card:#13131f; --card2:#1a1a2e; --accent:#6366f1; --accent2:#8b5cf6;
+    --blue:#3b82f6; --indigo:#6366f1; --green:#10b981; --pink:#d946ef; --rose:#ec4899;
+    --orange:#f59e0b; --red:#ef4444; --cyan:#0ea5e9;
+    --t1:#f1f5f9; --t2:#94a3b8; --t3:#64748b; --border:rgba(255,255,255,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--t1);line-height:1.7;font-size:16px;overflow-x:hidden;}
+
+  /* ── Print: 화면 그대로 출력 ── */
+  @media print {
+    /* 배경색/색상 그대로 유지 */
+    * { -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; color-adjust:exact!important; }
+    body { background:var(--bg)!important; color:var(--t1)!important; font-size:16px; line-height:1.7; }
+    .no-print { display:none!important; }
+
+    /* 각 슬라이드 = 1페이지 */
+    .slide {
+      min-height:auto!important;
+      padding:40px 60px!important;
+      break-after:page;
+      page-break-after:always;
+      break-inside:avoid;
+      page-break-inside:avoid;
+    }
+    .slide:last-child { break-after:auto; page-break-after:auto; }
+
+    /* 내부 블록 잘림 방지 */
+    .p2-grid, .p3-funnel-wrap, .p4-compare, .p4-grid,
+    .p5-bars, .p5-liwc, .p6-grid, .p7-stats, .p7-pos,
+    .coverage-wrap, .close-compare { break-inside:avoid; page-break-inside:avoid; }
+    h2, h3 { break-after:avoid; page-break-after:avoid; }
+  }
+  /* 동적 페이지 방향 (JS에서 제어) */
+  #pageOrientStyle { }
+
+  /* ── Slides ── */
+  .slide { min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:60px 80px; position:relative; }
+  .slide-inner { max-width:1100px; width:100%; margin:0 auto; }
+
+  /* ── Typo ── */
+  h2 { font-size:36px; font-weight:900; line-height:1.3; margin-bottom:16px; }
+  h3 { font-size:20px; font-weight:700; margin-bottom:10px; }
+  .sub { font-size:16px; color:var(--t2); line-height:1.7; max-width:700px; }
+  .label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:12px; }
+
+  /* ── Cards ── */
+  .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; }
+  .card:hover { border-color:rgba(255,255,255,0.15); }
+
+  /* ── Tags ── */
+  .tag { display:inline-block; padding:3px 10px; border-radius:8px; font-size:11px; font-weight:600; }
+
+  /* ── PDF Panel (재사용) ── */
+  .pdf-panel { position:fixed; bottom:24px; right:24px; z-index:1000; font-family:'Noto Sans KR',sans-serif; }
+  .pdf-panel-toggle { display:flex; align-items:center; gap:8px; padding:12px 22px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 4px 20px rgba(99,102,241,0.4); transition:all 0.2s; }
+  .pdf-panel-toggle:hover { transform:translateY(-2px); }
+  .pdf-panel-body { display:none; position:absolute; bottom:56px; right:0; width:220px; background:#fff; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.3); padding:16px; animation:panelIn 0.2s ease; }
+  @keyframes panelIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+  .pdf-panel-body.open { display:block; }
+  .pdf-panel-title { font-size:12px; font-weight:700; color:#1e293b; margin-bottom:12px; text-align:center; }
+  .pdf-orient-group { display:flex; gap:8px; margin-bottom:14px; }
+  .pdf-orient-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 8px; background:#f9fafb; border:2px solid #e2e8f0; border-radius:12px; cursor:pointer; transition:all 0.15s; font-family:'Noto Sans KR',sans-serif; color:#475569; }
+  .pdf-orient-btn span { font-size:11px; font-weight:600; }
+  .pdf-orient-btn svg { stroke:#475569; }
+  .pdf-orient-btn:hover { border-color:var(--accent); background:#eef2ff; }
+  .pdf-orient-btn.active { border-color:var(--accent); background:#eef2ff; color:var(--accent); box-shadow:0 0 0 3px rgba(99,102,241,0.15); }
+  .pdf-orient-btn.active svg { stroke:var(--accent); }
+  .pdf-print-btn { width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:600; font-family:'Noto Sans KR',sans-serif; cursor:pointer; }
+
+  /* ══════════════════════════════ */
+  /* SLIDE 1: HERO                 */
+  /* ══════════════════════════════ */
+  .slide-hero { background:linear-gradient(160deg,#0a0a14 0%,#1e1b4b 60%,#312e81 100%); min-height:100vh; text-align:center; }
+  .slide-hero h1 { font-size:44px; font-weight:900; line-height:1.35; margin-bottom:16px; }
+  .slide-hero h1 em { font-style:normal; background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+  .slide-hero .hero-sub { font-size:18px; color:var(--t2); max-width:650px; margin:0 auto 32px; }
+  .hero-badge { display:inline-block; background:rgba(99,102,241,0.2); color:#a5b4fc; padding:6px 20px; border-radius:24px; font-size:12px; font-weight:600; letter-spacing:2px; margin-bottom:24px; }
+  .hero-tagline { display:inline-block; margin-top:24px; padding:12px 32px; border:1px solid rgba(255,255,255,0.15); border-radius:12px; font-size:14px; color:var(--t2); }
+
+  /* ══════════════════════════════ */
+  /* SLIDE 2: PROBLEM               */
+  /* ══════════════════════════════ */
+  .p2-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:24px; }
+  .p2-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:32px 28px; text-align:center; transition:transform 0.2s; }
+  .p2-card:hover { transform:translateY(-4px); }
+  .p2-icon { width:64px; height:64px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:28px; }
+  .p2-card h3 { font-size:18px; margin-bottom:8px; }
+  .p2-card p { font-size:14px; color:var(--t2); line-height:1.6; }
+  .p2-card .p2-blind { margin-top:14px; padding:8px 14px; background:rgba(239,68,68,0.1); border-radius:8px; font-size:13px; color:#fca5a5; font-weight:600; }
+
+  /* ══════════════════════════════ */
+  /* SLIDE 3: SOLUTION (4축)        */
+  /* ══════════════════════════════ */
+  .p3-funnel-wrap { margin:28px 0 24px; }
+  .p3-funnel { display:flex; align-items:stretch; gap:6px; }
+  .p3-step { flex:1; border-radius:14px; padding:24px 16px; text-align:center; position:relative; transition:transform 0.2s; }
+  .p3-step:hover { transform:translateY(-4px); }
+  .p3-step-icon { font-size:32px; margin-bottom:8px; }
+  .p3-step-num { font-size:11px; font-weight:700; letter-spacing:1px; opacity:0.7; }
+  .p3-step-title { font-size:16px; font-weight:700; margin:4px 0; }
+  .p3-step-q { font-size:12px; opacity:0.7; font-style:italic; margin-bottom:8px; }
+  .p3-step-kpi { font-size:11px; opacity:0.6; line-height:1.5; }
+  .p3-arrow { display:flex; align-items:center; color:rgba(255,255,255,0.2); font-size:20px; flex-shrink:0; }
+  .p3-step-fwa { border:2px dashed rgba(236,72,153,0.4); }
+
+  /* Coverage bars */
+  .coverage-wrap { margin-top:24px; padding:24px; background:var(--card); border-radius:14px; border:1px solid var(--border); }
+  .cov-title { font-size:13px; font-weight:700; color:var(--t2); margin-bottom:14px; text-align:center; }
+  .cov-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .cov-label { width:80px; font-size:12px; font-weight:600; text-align:right; flex-shrink:0; }
+  .cov-track { flex:1; height:24px; background:rgba(255,255,255,0.05); border-radius:12px; position:relative; overflow:hidden; }
+  .cov-bar { position:absolute; top:0; height:100%; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; }
+  .cov-bar-full { box-shadow:0 0 16px rgba(99,102,241,0.4); }
+
+  /* ══════════════════════════════ */
+  /* SLIDE 4: SECRET WEAPON (FWA)   */
+  /* ══════════════════════════════ */
+  .p4-compare { display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:center; margin:24px 0; }
+  .p4-box { padding:28px; border-radius:14px; }
+  .p4-box-before { background:rgba(100,116,139,0.15); border:1px solid rgba(100,116,139,0.3); }
+  .p4-box-after { background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.3); }
+  .p4-vs { font-size:28px; font-weight:900; color:var(--t3); text-align:center; }
+  .p4-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:20px; }
+  .p4-metric { text-align:center; padding:20px 12px; background:var(--card); border:1px solid var(--border); border-radius:14px; }
+  .p4-metric-icon { font-size:28px; margin-bottom:6px; }
+  .p4-metric-name { font-size:14px; font-weight:700; color:var(--pink); margin-bottom:4px; }
+  .p4-metric-desc { font-size:12px; color:var(--t2); line-height:1.5; }
+
+  /* ══════════════════════════════ */
+  /* SLIDE 5: CASE STUDY (가나)     */
+  /* ══════════════════════════════ */
+  .p5-bars { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin:20px 0; }
+  .p5-col { padding:24px; border-radius:14px; }
+  .p5-col h4 { font-size:14px; font-weight:700; margin-bottom:14px; }
+  .p5-bar-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .p5-bar-label { width:50px; font-size:11px; font-weight:600; text-align:right; flex-shrink:0; }
+  .p5-bar-track { flex:1; height:18px; background:rgba(255,255,255,0.06); border-radius:9px; overflow:hidden; }
+  .p5-bar-fill { height:100%; border-radius:9px; transition:width 0.6s; }
+  .p5-bar-pct { width:35px; font-size:11px; font-weight:600; flex-shrink:0; }
+  .p5-liwc { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:20px; }
+  .p5-liwc-card { text-align:center; padding:16px 8px; background:var(--card); border-radius:12px; border:1px solid var(--border); }
+  .p5-liwc-label { font-size:10px; color:var(--t3); margin-bottom:4px; }
+  .p5-liwc-vals { display:flex; justify-content:center; gap:6px; align-items:baseline; }
+  .p5-liwc-v { font-size:22px; font-weight:700; }
+
+  /* ══════════════════════════════ */
+  /* SLIDE 6: BIZ MODEL             */
+  /* ══════════════════════════════ */
+  .p6-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:24px; }
+  .p6-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; text-align:center; transition:transform 0.2s; }
+  .p6-card:hover { transform:translateY(-4px); }
+  .p6-icon { font-size:36px; margin-bottom:12px; }
+  .p6-card h3 { font-size:17px; margin-bottom:8px; }
+  .p6-card p { font-size:13px; color:var(--t2); line-height:1.6; }
+
+  /* ══════════════════════════════ */
+  /* SLIDE 7: MARKET                */
+  /* ══════════════════════════════ */
+  .p7-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:24px 0; }
+  .p7-stat { text-align:center; padding:24px 12px; background:var(--card); border-radius:14px; border:1px solid var(--border); }
+  .p7-val { font-size:32px; font-weight:900; background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+  .p7-label { font-size:12px; color:var(--t3); margin-top:6px; }
+  .p7-pos { margin-top:24px; padding:24px; background:var(--card); border-radius:14px; border:1px solid var(--border); }
+  .p7-pos-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+  .p7-pos-label { width:100px; font-size:12px; font-weight:600; text-align:right; flex-shrink:0; }
+  .p7-pos-bar { flex:1; height:10px; border-radius:5px; }
+
+  /* ══════════════════════════════ */
+  /* SLIDE 8: CLOSING               */
+  /* ══════════════════════════════ */
+  .slide-close { text-align:center; background:linear-gradient(160deg,#0a0a14 0%,#1e1b4b 60%,#312e81 100%); }
+  .close-compare { display:grid; grid-template-columns:1fr auto 1fr; gap:24px; align-items:center; margin:32px 0; }
+  .close-box { padding:32px; border-radius:16px; text-align:center; }
+  .close-vs { font-size:40px; font-weight:900; color:var(--t3); }
+  .close-cta { margin-top:32px; padding:20px 48px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:14px; display:inline-block; font-size:18px; font-weight:700; }
+
+  /* ── Responsive ── */
+  @media (max-width:768px) {
+    .slide { padding:32px 20px; min-height:auto; }
+    .slide-hero h1 { font-size:28px; }
+    .p2-grid,.p3-funnel,.p4-compare,.p4-grid,.p5-bars,.p5-liwc,.p6-grid,.p7-stats,.close-compare { grid-template-columns:1fr; display:flex; flex-direction:column; }
+    .p3-arrow { transform:rotate(90deg); justify-content:center; }
+    h2 { font-size:24px; }
+  }
+</style>
+<style id="pageOrientStyle">
+  @media print { @page { size:A4 landscape; margin:8mm; } }
+</style>
+</head>
+<body>
+
+<!-- PDF Panel -->
+<div class="pdf-panel no-print" id="pdfPanel">
+  <div class="pdf-panel-toggle" onclick="document.getElementById('pdfBody').classList.toggle('open')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    PDF
+  </div>
+  <div class="pdf-panel-body" id="pdfBody">
+    <div class="pdf-panel-title">PDF 출력 설정</div>
+    <div class="pdf-orient-group">
+      <button class="pdf-orient-btn active" id="btnL" onclick="setOrient('landscape')">
+        <svg width="28" height="20" viewBox="0 0 28 20"><rect x="1" y="1" width="26" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span>가로</span>
+      </button>
+      <button class="pdf-orient-btn" id="btnP" onclick="setOrient('portrait')">
+        <svg width="18" height="24" viewBox="0 0 18 24"><rect x="1" y="1" width="16" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span>세로</span>
+      </button>
+    </div>
+    <button class="pdf-print-btn" onclick="window.print()">출력하기</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 1: HERO                -->
+<!-- ════════════════════════════ -->
+<div class="slide slide-hero">
+  <div class="slide-inner" style="display:flex;flex-direction:column;align-items:center;">
+    <div class="hero-badge">RXR 4-AXIS DATA FRAMEWORK</div>
+    <h1 style="font-size:44px;">오프라인 매장의 모든 것을 숫자로 바꾸고<br><em>고객의 진심까지 읽는다</em></h1>
+    <p class="hero-sub">기존 솔루션은 퍼즐의 한 조각만 봅니다.<br>RXR은 <strong style="color:#a78bfa;">전체 그림을 완성</strong>하고, 그 안에 숨겨진 <strong style="color:#f472b6;">고객의 무의식</strong>까지 데이터화합니다.</p>
+    <div class="hero-tagline">Retail Experience Intelligence &mdash; "봤다 → 들어왔다 → 머물렀다 → 샀다 → 공유했다 → 진짜 느꼈다"</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 2: PROBLEM              -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:var(--bg);">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--red);">PROBLEM</div>
+    <h2>지금 시장의 <span style="color:#fca5a5;">블라인드 스팟</span></h2>
+    <p class="sub">오프라인 리테일 데이터는 아직도 조각나 있습니다. 각 솔루션은 전체의 일부만 봅니다.</p>
+
+    <div class="p2-grid">
+      <div class="p2-card">
+        <div class="p2-icon" style="background:rgba(100,116,139,0.15);">&#x1F4B0;</div>
+        <h3>POS만 보는 세상</h3>
+        <p>"얼마 팔렸는지"만 안다.<br>1,000명이 왔는데 10명만 샀다면,<br><strong>990명은 왜 안 샀는지</strong> 모른다.</p>
+        <div class="p2-blind">Blind: 유입, 행동, 인식 전부 사각지대</div>
+      </div>
+      <div class="p2-card">
+        <div class="p2-icon" style="background:rgba(14,165,233,0.15);">&#x1F4F7;</div>
+        <h3>카메라만 보는 세상</h3>
+        <p>"어디서 멈췄는지"까지.<br>메이아이는 동선과 체류를 잡지만<br><strong>그게 매출이 됐는지는</strong> 모른다.</p>
+        <div class="p2-blind">Blind: 매출 연결, 고객 심리 사각지대</div>
+      </div>
+      <div class="p2-card">
+        <div class="p2-icon" style="background:rgba(245,158,11,0.15);">&#x1F4DD;</div>
+        <h3>설문만 보는 세상</h3>
+        <p>"좋았다고 말했다."<br>NPS 점수는 높은데<br><strong>그게 진심인지</strong> 모른다.</p>
+        <div class="p2-blind">Blind: 응답 편향, 무의식 심리 사각지대</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 3: SOLUTION (4축)       -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:linear-gradient(180deg,var(--bg),#0f0f1e);">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--accent);">SOLUTION</div>
+    <h2>RXR <span style="color:#a78bfa;">4축 프레임워크</span></h2>
+    <p class="sub">고객 여정의 처음부터 끝까지, 그리고 그 너머의 진심까지 — 하나의 프레임워크로 통합합니다.</p>
+
+    <div class="p3-funnel-wrap">
+      <div class="p3-funnel">
+        <div class="p3-step" style="background:rgba(59,130,246,0.12);color:#93c5fd;">
+          <div class="p3-step-icon">&#x1F441;</div>
+          <div class="p3-step-num">AXIS 1</div>
+          <div class="p3-step-title">유입 Traffic</div>
+          <div class="p3-step-q">"몇 명이 봤고, 들어왔는가?"</div>
+          <div class="p3-step-kpi">방문자 수 / 시선 인식률<br>입장 전환률</div>
+        </div>
+        <div class="p3-arrow">&#x276F;</div>
+        <div class="p3-step" style="background:rgba(99,102,241,0.12);color:#a5b4fc;">
+          <div class="p3-step-icon">&#x1F463;</div>
+          <div class="p3-step-num">AXIS 2</div>
+          <div class="p3-step-title">행동 Behavior</div>
+          <div class="p3-step-q">"어디서 머물고, 뭘 봤는가?"</div>
+          <div class="p3-step-kpi">동선 히트맵 / 체류 시간<br>성별 · 연령 분포</div>
+        </div>
+        <div class="p3-arrow">&#x276F;</div>
+        <div class="p3-step" style="background:rgba(16,185,129,0.12);color:#6ee7b7;">
+          <div class="p3-step-icon">&#x1F4B3;</div>
+          <div class="p3-step-num">AXIS 3</div>
+          <div class="p3-step-title">매출 Conversion</div>
+          <div class="p3-step-q">"누가, 얼마나 샀는가?"</div>
+          <div class="p3-step-kpi">구매 전환률 / 객단가<br>타겟별 구매 비율</div>
+        </div>
+        <div class="p3-arrow">&#x276F;</div>
+        <div class="p3-step" style="background:rgba(217,70,239,0.12);color:#e9d5ff;">
+          <div class="p3-step-icon">&#x1F4E3;</div>
+          <div class="p3-step-num">AXIS 4</div>
+          <div class="p3-step-title">인식 Feedback</div>
+          <div class="p3-step-q">"어떻게 느끼고, 퍼뜨렸는가?"</div>
+          <div class="p3-step-kpi">SNS 언급 / 감성 분석<br>NPS / 재방문 의향</div>
+        </div>
+        <div class="p3-arrow">&#x276F;</div>
+        <div class="p3-step p3-step-fwa" style="background:rgba(236,72,153,0.08);color:#fda4af;">
+          <div class="p3-step-icon">&#x1F9E0;</div>
+          <div class="p3-step-num" style="color:#f472b6;">+ FWA LAYER</div>
+          <div class="p3-step-title" style="color:#f472b6;">진심 읽기</div>
+          <div class="p3-step-q">"정말 진심으로 좋았는가?"</div>
+          <div class="p3-step-kpi">진정성 / 추천 확신도<br>심리적 거리 / 신선함</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coverage -->
+    <div class="coverage-wrap">
+      <div class="cov-title">솔루션별 커버리지 비교</div>
+      <div class="cov-row">
+        <div class="cov-label" style="color:var(--t3);">POS</div>
+        <div class="cov-track"><div class="cov-bar" style="left:48%;width:17%;background:var(--t3);">매출만</div></div>
+      </div>
+      <div class="cov-row">
+        <div class="cov-label" style="color:var(--cyan);">메이아이</div>
+        <div class="cov-track"><div class="cov-bar" style="left:2%;width:38%;background:var(--cyan);">유입+행동</div></div>
+      </div>
+      <div class="cov-row">
+        <div class="cov-label" style="color:var(--orange);">설문/NPS</div>
+        <div class="cov-track"><div class="cov-bar" style="left:65%;width:15%;background:var(--orange);">의식적 응답</div></div>
+      </div>
+      <div class="cov-row">
+        <div class="cov-label" style="color:var(--accent);font-weight:800;">RXR</div>
+        <div class="cov-track"><div class="cov-bar cov-bar-full" style="left:0%;width:100%;background:linear-gradient(90deg,var(--blue),var(--indigo),var(--green),var(--pink),var(--rose));">전체 커버</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 4: SECRET WEAPON (FWA)  -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:var(--bg);">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--pink);">SECRET WEAPON</div>
+    <h2>같은 별점 5점이라도<br><span style="color:#f472b6;">진심의 깊이가 다르다</span></h2>
+    <p class="sub">기능어분석(FWA)은 리뷰와 설문 텍스트에서 "대명사, 조사, 접속사" 같은 무의식적 언어 패턴을 읽어 고객의 진짜 감정을 수치화합니다.</p>
+
+    <div class="p4-compare">
+      <div class="p4-box p4-box-before">
+        <div class="label" style="color:var(--t3);">BEFORE &mdash; 기존 분석</div>
+        <div style="font-size:48px;font-weight:900;color:var(--t3);">81%</div>
+        <div style="font-size:14px;color:var(--t3);margin-top:4px;">긍정 리뷰 비율</div>
+        <div style="margin-top:16px;padding:12px;background:rgba(100,116,139,0.15);border-radius:8px;font-size:14px;color:var(--t3);">
+          "긍정이 81%니까 좋은 거네요"<br>
+          <strong style="color:#fca5a5;">→ 끝. 더 이상 알 수 없음.</strong>
+        </div>
+      </div>
+      <div class="p4-vs">VS</div>
+      <div class="p4-box p4-box-after">
+        <div class="label" style="color:var(--accent);">AFTER &mdash; RXR + FWA</div>
+        <div style="font-size:48px;font-weight:900;color:var(--accent);">81%</div>
+        <div style="font-size:14px;color:var(--t2);margin-top:4px;">긍정 리뷰 비율</div>
+        <div style="margin-top:16px;padding:12px;background:rgba(99,102,241,0.1);border-radius:8px;font-size:14px;color:var(--t2);">
+          <strong style="color:#a78bfa;">Authenticity 42</strong> → 과장/편향 의심<br>
+          <strong style="color:#a78bfa;">Clout 38</strong> → 단순 감상, 추천 확신 약함<br>
+          <span style="color:#6ee7b7;">→ "화제성은 있으나 진정한 브랜드 옹호는 아직"</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p4-grid">
+      <div class="p4-metric">
+        <div class="p4-metric-icon">&#x1F50D;</div>
+        <div class="p4-metric-name">Authenticity</div>
+        <div class="p4-metric-desc">진심도 측정기<br>"진짜인가, 과장인가"</div>
+      </div>
+      <div class="p4-metric">
+        <div class="p4-metric-icon">&#x1F4E2;</div>
+        <div class="p4-metric-name">Clout</div>
+        <div class="p4-metric-desc">추천 확신도<br>"자신 있게 권하는가"</div>
+      </div>
+      <div class="p4-metric">
+        <div class="p4-metric-icon">&#x1F9EA;</div>
+        <div class="p4-metric-name">Analytical</div>
+        <div class="p4-metric-desc">인식 방식<br>"이성적 vs 감성적"</div>
+      </div>
+      <div class="p4-metric">
+        <div class="p4-metric-icon">&#x2764;&#xFE0F;</div>
+        <div class="p4-metric-name">Emotional Tone</div>
+        <div class="p4-metric-desc">감정 심층 구조<br>"표면 너머 진짜 감정"</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 5: CASE STUDY (가나)    -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:linear-gradient(180deg,#0f0f1e,var(--bg));">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--orange);">PROVEN CASE</div>
+    <h2>가나초콜릿이 <span style="color:#fbbf24;">증명한 것</span></h2>
+    <p class="sub">같은 브랜드가 제품(초콜릿 바)에서 공간(초콜릿하우스)으로 확장됐을 때, 소비자의 언어 구조가 완전히 달라졌습니다.</p>
+
+    <div class="p5-bars">
+      <div class="p5-col" style="background:rgba(146,64,14,0.12);border:1px solid rgba(146,64,14,0.3);border-radius:14px;">
+        <h4 style="color:#fbbf24;">가나초콜릿 (제품)</h4>
+        <div class="p5-bar-row"><div class="p5-bar-label" style="color:#fbbf24;">미각</div><div class="p5-bar-track"><div class="p5-bar-fill" style="width:90%;background:#b45309;"></div></div><div class="p5-bar-pct" style="color:#fbbf24;">90%</div></div>
+        <div class="p5-bar-row"><div class="p5-bar-label" style="color:#fbbf24;">촉각</div><div class="p5-bar-track"><div class="p5-bar-fill" style="width:60%;background:#b45309;"></div></div><div class="p5-bar-pct" style="color:#fbbf24;">60%</div></div>
+        <div class="p5-bar-row"><div class="p5-bar-label" style="color:#fbbf24;">시각</div><div class="p5-bar-track"><div class="p5-bar-fill" style="width:15%;background:#d97706;"></div></div><div class="p5-bar-pct" style="color:#fbbf24;">15%</div></div>
+        <div class="p5-bar-row"><div class="p5-bar-label" style="color:#fbbf24;">공간</div><div class="p5-bar-track"><div class="p5-bar-fill" style="width:5%;background:#f59e0b;"></div></div><div class="p5-bar-pct" style="color:#fbbf24;">5%</div></div>
+        <div class="p5-bar-row"><div class="p5-bar-label" style="color:#fbbf24;">사회</div><div class="p5-bar-track"><div class="p5-bar-fill" style="width:10%;background:#fbbf24;"></div></div><div class="p5-bar-pct" style="color:#fbbf24;">10%</div></div>
+      </div>
+      <div class="p5-col" style="background:rgba(5,150,105,0.12);border:1px solid rgba(5,150,105,0.3);border-radius:14px;">
+        <h4 style="color:#6ee7b7;">가나초콜릿하우스 (공간)</h4>
+        <div class="p5-bar-row"><div class="p5-bar-label" style="color:#6ee7b7;">미각</div><div class="p5-bar-track"><div class="p5-bar-fill" style="width:35%;background:#059669;"></div></div><div class="p5-bar-pct" style="color:#6ee7b7;">35%</div></div>
+        <div class="p5-bar-row"><div class="p5-bar-label" style="color:#6ee7b7;">촉각</div><div class="p5-bar-track"><div class="p5-bar-fill" style="width:15%;background:#10b981;"></div></div><div class="p5-bar-pct" style="color:#6ee7b7;">15%</div></div>
+        <div class="p5-bar-row"><div class="p5-bar-label" style="color:#6ee7b7;">시각</div><div class="p5-bar-track"><div class="p5-bar-fill" style="width:85%;background:#34d399;"></div></div><div class="p5-bar-pct" style="color:#6ee7b7;">85%</div></div>
+        <div class="p5-bar-row"><div class="p5-bar-label" style="color:#6ee7b7;">공간</div><div class="p5-bar-track"><div class="p5-bar-fill" style="width:75%;background:#6ee7b7;"></div></div><div class="p5-bar-pct" style="color:#6ee7b7;">75%</div></div>
+        <div class="p5-bar-row"><div class="p5-bar-label" style="color:#6ee7b7;">사회</div><div class="p5-bar-track"><div class="p5-bar-fill" style="width:70%;background:#a7f3d0;"></div></div><div class="p5-bar-pct" style="color:#6ee7b7;">70%</div></div>
+      </div>
+    </div>
+
+    <div class="p5-liwc">
+      <div class="p5-liwc-card">
+        <div class="p5-liwc-label">Analytical</div>
+        <div class="p5-liwc-vals">
+          <span class="p5-liwc-v" style="color:#fbbf24;">65</span>
+          <span style="font-size:14px;color:var(--t3);">→</span>
+          <span class="p5-liwc-v" style="color:#6ee7b7;">45</span>
+        </div>
+        <div style="font-size:10px;color:var(--t3);margin-top:2px;">이성적 → 감성적</div>
+      </div>
+      <div class="p5-liwc-card">
+        <div class="p5-liwc-label">Clout</div>
+        <div class="p5-liwc-vals">
+          <span class="p5-liwc-v" style="color:#fbbf24;">35</span>
+          <span style="font-size:14px;color:var(--t3);">→</span>
+          <span class="p5-liwc-v" style="color:#6ee7b7;">65</span>
+        </div>
+        <div style="font-size:10px;color:var(--t3);margin-top:2px;">소극적 → 적극 추천</div>
+      </div>
+      <div class="p5-liwc-card">
+        <div class="p5-liwc-label">Authenticity</div>
+        <div class="p5-liwc-vals">
+          <span class="p5-liwc-v" style="color:#fbbf24;">65</span>
+          <span style="font-size:14px;color:var(--t3);">→</span>
+          <span class="p5-liwc-v" style="color:#6ee7b7;">45</span>
+        </div>
+        <div style="font-size:10px;color:var(--t3);margin-top:2px;">솔직한 평가 → 인스타 감성</div>
+      </div>
+      <div class="p5-liwc-card">
+        <div class="p5-liwc-label">Tone</div>
+        <div class="p5-liwc-vals">
+          <span class="p5-liwc-v" style="color:#fbbf24;">55</span>
+          <span style="font-size:14px;color:var(--t3);">→</span>
+          <span class="p5-liwc-v" style="color:#6ee7b7;">80</span>
+        </div>
+        <div style="font-size:10px;color:var(--t3);margin-top:2px;">중립 → 압도적 긍정</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;padding:14px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:10px;">
+      <span style="font-size:15px;color:#fbbf24;font-weight:700;">같은 브랜드인데 소비자의 언어 구조가 완전히 달라졌다 &mdash; 이것을 수치로 증명할 수 있는 건 RXR뿐</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 5B: WHY EMOTION MATTERS  -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:var(--bg);">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--rose);">WHY IT MATTERS</div>
+    <h2>소비자의 감정을 읽는 것이<br>왜 <span style="color:#fda4af;">비즈니스의 핵심</span>인가</h2>
+    <p class="sub" style="max-width:800px;">오프라인 리테일에서 "매출 숫자"만 보면 이미 늦습니다. 감정은 구매보다 먼저 움직이고, 이탈보다 먼저 신호를 보냅니다.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:32px;">
+      <!-- Card 1 -->
+      <div class="card" style="border-top:3px solid var(--rose);text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;">&#x1F6A8;</div>
+        <h3 style="color:#fda4af;font-size:18px;">매출은 후행지표다</h3>
+        <p style="font-size:14px;color:var(--t2);line-height:1.7;">
+          매출이 떨어졌을 때 원인을 찾으면 <strong style="color:var(--t1);">이미 3~4주 전</strong>에 고객 감정이 변한 뒤입니다.<br><br>
+          감정 데이터는 <strong style="color:#fda4af;">선행지표</strong>입니다.<br>
+          Clout 점수가 하락하기 시작하면<br>
+          <strong style="color:var(--t1);">2~3주 뒤 재방문율이 떨어집니다.</strong>
+        </p>
+        <div style="margin-top:16px;padding:10px;background:rgba(236,72,153,0.08);border-radius:8px;">
+          <span style="font-size:12px;color:#f472b6;font-weight:600;">감정 하락 → 2~3주 후 매출 하락</span>
+        </div>
+      </div>
+      <!-- Card 2 -->
+      <div class="card" style="border-top:3px solid var(--accent);text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;">&#x1F3AD;</div>
+        <h3 style="color:#a5b4fc;font-size:18px;">설문은 거짓말한다</h3>
+        <p style="font-size:14px;color:var(--t2);line-height:1.7;">
+          NPS에서 "추천하겠다"고 답한 고객 중<br>
+          <strong style="color:var(--t1);">실제로 추천하는 비율은 20% 미만</strong>입니다.<br><br>
+          사람들은 설문에서 <strong style="color:#a5b4fc;">사회적으로 바람직한 답</strong>을 합니다.<br>
+          기능어분석은 <strong style="color:var(--t1);">무의식적 언어 패턴</strong>을 읽어<br>
+          이 편향을 뚫고 진심을 포착합니다.
+        </p>
+        <div style="margin-top:16px;padding:10px;background:rgba(99,102,241,0.08);border-radius:8px;">
+          <span style="font-size:12px;color:#a5b4fc;font-weight:600;">설문 응답 ≠ 실제 행동, FWA = 진짜 의도</span>
+        </div>
+      </div>
+      <!-- Card 3 -->
+      <div class="card" style="border-top:3px solid var(--green);text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;">&#x1F4A1;</div>
+        <h3 style="color:#6ee7b7;font-size:18px;">진짜 팬 vs 구경꾼을 구분한다</h3>
+        <p style="font-size:14px;color:var(--t2);line-height:1.7;">
+          방문자 1만 명 중<br>
+          <strong style="color:var(--t1);">진짜 브랜드를 사랑하는 사람은 몇 명</strong>인가?<br><br>
+          Clout 점수가 높은 리뷰어 =<br>
+          <strong style="color:#6ee7b7;">자발적으로 주변에 추천하는 핵심 팬</strong><br><br>
+          이들을 식별하면<br>
+          <strong style="color:var(--t1);">마케팅 비용 대비 ROI가 극대화</strong>됩니다.
+        </p>
+        <div style="margin-top:16px;padding:10px;background:rgba(16,185,129,0.08);border-radius:8px;">
+          <span style="font-size:12px;color:#6ee7b7;font-weight:600;">핵심 팬 식별 → 타겟 집중 → ROI 극대화</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 5C: HOW IT WORKS        -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:linear-gradient(180deg,#0f0f1e,var(--bg));">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--accent);">HOW IT WORKS</div>
+    <h2>어떻게 <span style="color:#a78bfa;">감정을 분석</span>하는가</h2>
+    <p class="sub" style="max-width:800px;">고객이 남긴 텍스트(리뷰, SNS, 설문 답변)에서 "내용어"가 아닌 "기능어" 패턴을 읽어 무의식적 심리를 수치화합니다.</p>
+
+    <!-- 분석 프로세스 -->
+    <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center;margin:32px 0 24px;">
+      <div class="card" style="text-align:center;padding:20px;">
+        <div style="font-size:28px;margin-bottom:8px;">&#x1F4DD;</div>
+        <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px;">STEP 1. 수집</div>
+        <div style="font-size:12px;color:var(--t2);">SNS 리뷰, 설문 개방형 응답,<br>블로그 후기 등 텍스트 수집</div>
+      </div>
+      <div style="font-size:20px;color:var(--t3);">&#x276F;</div>
+      <div class="card" style="text-align:center;padding:20px;border-color:rgba(99,102,241,0.3);">
+        <div style="font-size:28px;margin-bottom:8px;">&#x1F9EC;</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:4px;">STEP 2. 기능어 추출</div>
+        <div style="font-size:12px;color:var(--t2);">대명사(나/우리/여기),<br>조사(은/는 vs 이/가),<br>감정어, 시제 패턴 분리</div>
+      </div>
+      <div style="font-size:20px;color:var(--t3);">&#x276F;</div>
+      <div class="card" style="text-align:center;padding:20px;border-color:rgba(217,70,239,0.3);">
+        <div style="font-size:28px;margin-bottom:8px;">&#x1F4CA;</div>
+        <div style="font-size:13px;font-weight:700;color:var(--pink);margin-bottom:4px;">STEP 3. 심리 수치화</div>
+        <div style="font-size:12px;color:var(--t2);">LIWC 알고리즘으로<br>Authenticity, Clout 등<br>4대 지표를 0~100 점수화</div>
+      </div>
+    </div>
+
+    <!-- 실제 텍스트 분석 예시 -->
+    <div style="margin-top:8px;">
+      <div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:14px;text-align:center;">실제 리뷰 분석 예시</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <!-- 예시 A -->
+        <div class="card" style="padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span class="tag" style="background:rgba(239,68,68,0.15);color:#fca5a5;">리뷰 A — 과장/조작 의심</span>
+            <span style="font-size:11px;color:var(--t3);">Authenticity: <strong style="color:#fca5a5;">28</strong></span>
+          </div>
+          <div style="font-size:14px;color:var(--t2);line-height:1.8;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;">
+            "<mark style="background:rgba(239,68,68,0.2);color:#fca5a5;padding:1px 4px;border-radius:3px;">나는</mark> 정말 <mark style="background:rgba(239,68,68,0.2);color:#fca5a5;padding:1px 4px;border-radius:3px;">너무너무</mark> 좋았고 <mark style="background:rgba(239,68,68,0.2);color:#fca5a5;padding:1px 4px;border-radius:3px;">진짜</mark> 최고의 경험이었어요!! 분위기도 <mark style="background:rgba(239,68,68,0.2);color:#fca5a5;padding:1px 4px;border-radius:3px;">완전</mark> 대박이고 모든 게 <mark style="background:rgba(239,68,68,0.2);color:#fca5a5;padding:1px 4px;border-radius:3px;">완벽</mark>했습니다!!"
+          </div>
+          <div style="font-size:11px;color:var(--t3);margin-top:8px;line-height:1.6;">
+            &#x26A0; 1인칭 과다 + 극단적 긍정어 반복 + 느낌표 과잉<br>
+            → <strong style="color:#fca5a5;">비진정 설득 전략의 전형적 패턴</strong>
+          </div>
+        </div>
+        <!-- 예시 B -->
+        <div class="card" style="padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span class="tag" style="background:rgba(16,185,129,0.15);color:#6ee7b7;">리뷰 B — 진정한 경험 공유</span>
+            <span style="font-size:11px;color:var(--t3);">Authenticity: <strong style="color:#6ee7b7;">78</strong></span>
+          </div>
+          <div style="font-size:14px;color:var(--t2);line-height:1.8;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;">
+            "처음엔 단순 팝업인 줄 알았는데, <mark style="background:rgba(16,185,129,0.2);color:#6ee7b7;padding:1px 4px;border-radius:3px;">공간이</mark> 생각보다 정성스럽게 구성돼 있었어요. 디저트 중 <mark style="background:rgba(16,185,129,0.2);color:#6ee7b7;padding:1px 4px;border-radius:3px;">테린느가</mark> 괜찮았고, 가격은 좀 있지만 <mark style="background:rgba(16,185,129,0.2);color:#6ee7b7;padding:1px 4px;border-radius:3px;">한번쯤</mark> 가볼 만해요."
+          </div>
+          <div style="font-size:11px;color:var(--t3);margin-top:8px;line-height:1.6;">
+            &#x2713; "이/가" 초점 조사 + 구체적 디테일 + 균형 잡힌 평가<br>
+            → <strong style="color:#6ee7b7;">진정성 높은 경험 기반 리뷰</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 핵심 원리 -->
+    <div style="text-align:center;margin-top:20px;padding:14px 20px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);border-radius:10px;">
+      <span style="font-size:14px;color:var(--t1);">
+        <strong style="color:#a78bfa;">핵심 원리:</strong>
+        기능어(대명사, 조사, 접속사)는 <strong>무의식적으로 산출</strong>되어 의도적 조작이 거의 불가능합니다.<br>
+        내용어("맛있다, 예쁘다")는 꾸밀 수 있지만, 기능어 패턴은 꾸밀 수 없습니다.
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 5D: BUSINESS IMPACT     -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:var(--bg);">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--green);">BUSINESS IMPACT</div>
+    <h2>감정 데이터가 만드는<br><span style="color:#6ee7b7;">5가지 비즈니스 효과</span></h2>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-top:24px;">
+      <!-- Impact 1 -->
+      <div style="display:grid;grid-template-columns:80px 1fr 200px;gap:16px;align-items:center;padding:20px 24px;background:var(--card);border:1px solid var(--border);border-radius:14px;">
+        <div style="text-align:center;">
+          <div style="font-size:32px;">&#x1F6E1;</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:4px;">리스크 조기 감지</div>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--t1);margin-bottom:4px;">브랜드 피로도를 매출 하락 전에 감지</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6;">Freshness Index("이/가" vs "은/는" 비율)가 3주차부터 하락하면 = "신선함이 소진되고 있다"는 신호. 매출이 떨어지기 전에 운영 전략을 바꿀 수 있습니다.</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:rgba(16,185,129,0.08);border-radius:10px;">
+          <div style="font-size:22px;font-weight:900;color:#6ee7b7;">-2~3주</div>
+          <div style="font-size:10px;color:var(--t3);">매출 하락 전 조기 경고</div>
+        </div>
+      </div>
+      <!-- Impact 2 -->
+      <div style="display:grid;grid-template-columns:80px 1fr 200px;gap:16px;align-items:center;padding:20px 24px;background:var(--card);border:1px solid var(--border);border-radius:14px;">
+        <div style="text-align:center;">
+          <div style="font-size:32px;">&#x1F4B0;</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:4px;">마케팅 ROI</div>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--t1);margin-bottom:4px;">가짜 바이럴 vs 진짜 옹호를 구분</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6;">SNS 언급 1,000건 중 Authenticity 70+ 리뷰가 300건 vs 50건이면 마케팅 효과가 완전히 다릅니다. 진짜 옹호자 비율을 기준으로 캠페인 ROI를 정밀 측정할 수 있습니다.</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:rgba(99,102,241,0.08);border-radius:10px;">
+          <div style="font-size:22px;font-weight:900;color:#a5b4fc;">79%</div>
+          <div style="font-size:10px;color:var(--t3);">가짜 리뷰 탐지 정확도</div>
+        </div>
+      </div>
+      <!-- Impact 3 -->
+      <div style="display:grid;grid-template-columns:80px 1fr 200px;gap:16px;align-items:center;padding:20px 24px;background:var(--card);border:1px solid var(--border);border-radius:14px;">
+        <div style="text-align:center;">
+          <div style="font-size:32px;">&#x1F3AF;</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:4px;">전환율 개선</div>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--t1);margin-bottom:4px;">체류는 높은데 구매가 낮은 이유를 찾아냄</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6;">리뷰의 Analytical 점수가 높고 Clout가 낮으면 = "관심은 있지만 확신이 없다"는 의미. 상품 메시지를 강화하면 전환율이 올라갑니다. 가나초콜릿하우스 케이스에서 실증된 패턴입니다.</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:rgba(251,191,36,0.08);border-radius:10px;">
+          <div style="font-size:22px;font-weight:900;color:#fbbf24;">+19%</div>
+          <div style="font-size:10px;color:var(--t3);">대명사 전략만으로<br>CS 만족도 향상 (학술 실증)</div>
+        </div>
+      </div>
+      <!-- Impact 4 -->
+      <div style="display:grid;grid-template-columns:80px 1fr 200px;gap:16px;align-items:center;padding:20px 24px;background:var(--card);border:1px solid var(--border);border-radius:14px;">
+        <div style="text-align:center;">
+          <div style="font-size:32px;">&#x1F504;</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:4px;">프로젝트 재현</div>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--t1);margin-bottom:4px;">다음 프로젝트에서 "무엇을 반복할지" 데이터로 결정</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6;">이번 팝업에서 Clout가 가장 높았던 요소(특정 디저트? 포토존? 클래스?)를 식별하면, 다음 프로젝트에서 그 요소를 반복·강화하는 근거가 됩니다. 감이 아닌 데이터로 기획합니다.</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:rgba(217,70,239,0.08);border-radius:10px;">
+          <div style="font-size:22px;font-weight:900;color:#e9d5ff;">DATA</div>
+          <div style="font-size:10px;color:var(--t3);">감 아닌 데이터 기반<br>다음 기획 의사결정</div>
+        </div>
+      </div>
+      <!-- Impact 5 -->
+      <div style="display:grid;grid-template-columns:80px 1fr 200px;gap:16px;align-items:center;padding:20px 24px;background:var(--card);border:1px solid var(--border);border-radius:14px;">
+        <div style="text-align:center;">
+          <div style="font-size:32px;">&#x1F4BC;</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:4px;">제안서 차별화</div>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--t1);margin-bottom:4px;">IR/제안서에서 "차원이 다른 데이터"로 경쟁</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6;">"방문 1만명, 전환율 8%" 는 누구나 말합니다. "Brand Advocacy Score 72, 핵심 팬 비율 34%, 3주차부터 신선함 하락 감지" 는 RXR만 말할 수 있습니다. 가격이 아닌 가치로 경쟁합니다.</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:rgba(99,102,241,0.08);border-radius:10px;">
+          <div style="font-size:22px;font-weight:900;color:#a5b4fc;">ONLY</div>
+          <div style="font-size:10px;color:var(--t3);">경쟁사 없는<br>독점 지표 영역</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 5E: HOW WE DELIVER      -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:linear-gradient(180deg,var(--bg),#0f0f1e);">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--orange);">HOW WE DELIVER</div>
+    <h2>실제로 <span style="color:#fbbf24;">무엇을 받게 되는가</span></h2>
+    <p class="sub" style="max-width:800px;">RXR 감정 분석은 추상적 이론이 아닙니다. 클라이언트가 받는 구체적 산출물을 보여드립니다.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:28px;">
+      <!-- 일간 -->
+      <div class="card" style="padding:24px;border-top:3px solid var(--accent);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;background:rgba(99,102,241,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">&#x1F4C5;</div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--t1);">Daily AI 인사이트</div>
+            <div style="font-size:11px;color:var(--t3);">매일 자동 생성</div>
+          </div>
+        </div>
+        <div style="padding:16px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid var(--border);margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:700;color:#fca5a5;margin-bottom:6px;">&#x1F534; Alert</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6;">"유입 +26.5% 증가했지만 구매 전환 -1.8%p 하락. 리뷰 Clout 점수도 38로 낮아 체험 중심 방문 비율이 높은 것으로 보입니다."</div>
+        </div>
+        <div style="padding:16px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:12px;font-weight:700;color:#6ee7b7;margin-bottom:6px;">&#x1F7E2; Action</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6;">"피크 시간대(18~20시) 상품 설명형 POP 강화 + 한정 프로모션 테스트 필요"</div>
+        </div>
+      </div>
+      <!-- 월간 -->
+      <div class="card" style="padding:24px;border-top:3px solid var(--pink);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;background:rgba(217,70,239,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">&#x1F4D5;</div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--t1);">Monthly 전략 리포트</div>
+            <div style="font-size:11px;color:var(--t3);">프로젝트 종료 시 납품</div>
+          </div>
+        </div>
+        <div style="padding:16px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid var(--border);margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:700;color:#e9d5ff;margin-bottom:6px;">&#x1F4CA; 감정 추이 그래프</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6;">
+            주차별 Authenticity · Clout · Freshness Index 변화<br>
+            "2주차에 Clout 피크(72) → 4주차에 45로 하락 = 신선함 소진"
+          </div>
+        </div>
+        <div style="padding:16px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:12px;font-weight:700;color:#fbbf24;margin-bottom:6px;">&#x1F3AF; 핵심 인사이트</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6;">
+            "20대 여성은 방문 비중 48%지만 구매 기여 31%.<br>
+            30대 고객이 구매 44% — <strong style="color:var(--t1);">진짜 매출은 여기서 발생.</strong><br>
+            다음 프로젝트에서는 30대 타겟 시간대 운영 강화 필요"
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;padding:14px 20px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);border-radius:10px;">
+      <span style="font-size:14px;color:var(--t1);">
+        <strong style="color:#a78bfa;">핵심:</strong>
+        단순 숫자 나열이 아닌 <strong>"왜 그런 일이 벌어졌고, 다음에 뭘 해야 하는지"</strong>까지 자동 생성
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 6: BIZ MODEL            -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:var(--bg);">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--green);">BUSINESS MODEL</div>
+    <h2>어디서 <span style="color:#6ee7b7;">돈이 되는가</span></h2>
+
+    <div class="p6-grid">
+      <div class="p6-card" style="border-top:3px solid var(--accent);">
+        <div class="p6-icon">&#x1F4CA;</div>
+        <h3>프로젝트 분석 리포트</h3>
+        <p>브랜드 팝업/매장 프로젝트별<br><strong>4축 통합 데이터 프로덕트</strong> 납품<br><br>
+        <span style="color:var(--t3);">가나초콜릿하우스처럼<br>"이 매장이 왜 성공했는가"를<br>숫자로 증명하는 보고서</span></p>
+      </div>
+      <div class="p6-card" style="border-top:3px solid var(--green);">
+        <div class="p6-icon">&#x1F4F1;</div>
+        <h3>SaaS 대시보드</h3>
+        <p>월간 구독형<br><strong>실시간 AI 인사이트 엔진</strong><br><br>
+        <span style="color:var(--t3);">매일 자동 생성되는<br>"오늘 뭘 해야 하는가"<br>운영 의사결정 지원</span></p>
+      </div>
+      <div class="p6-card" style="border-top:3px solid var(--pink);">
+        <div class="p6-icon">&#x1F4BC;</div>
+        <h3>IR / 제안서 데이터</h3>
+        <p>브랜드 클라이언트가<br><strong>투자자/본사에 보고</strong>할 수 있는<br>정량 데이터 패키지<br><br>
+        <span style="color:var(--t3);">메이아이가 못하는<br>"심리적 성과 데이터"</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 6B: GLOBAL COMPARISON    -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:linear-gradient(180deg,#0f0f1e,var(--bg));">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--cyan);">GLOBAL LANDSCAPE</div>
+    <h2>해외 리테일테크와 <span style="color:#67e8f9;">무엇이 다른가</span></h2>
+    <p class="sub" style="max-width:800px;">전 세계 주요 리테일 분석 솔루션 6개와 컨설팅 프레임워크 3개를 비교했습니다. 모든 플레이어에게 공통된 사각지대가 있습니다.</p>
+
+    <!-- 글로벌 솔루션 카드 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px;">
+      <!-- RetailNext -->
+      <div class="card" style="padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--t1);">RetailNext</div>
+            <div style="font-size:10px;color:var(--t3);">미국 · 세계 점유율 1위</div>
+          </div>
+          <span class="tag" style="background:rgba(14,165,233,0.15);color:#67e8f9;">센서+비디오</span>
+        </div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:10px;">히트맵, 동선, 전환율, POS 연동.<br>센서당 월 $200~500+. 경쟁사 대비 3~4배 고가.</div>
+        <div style="padding:6px 10px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:11px;color:#fca5a5;">
+          Blind: 감정 · 인식 · SNS 통합 · 심리 = 전부 불가
+        </div>
+      </div>
+      <!-- Sensormatic -->
+      <div class="card" style="padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--t1);">Sensormatic</div>
+            <div style="font-size:10px;color:var(--t3);">미국 · 연 400억건 데이터</div>
+          </div>
+          <span class="tag" style="background:rgba(14,165,233,0.15);color:#67e8f9;">센서+AI</span>
+        </div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:10px;">글로벌 최대 트래픽 데이터 네트워크.<br>직원 제외, Re-ID, 벤치마킹. 엔터프라이즈 전용.</div>
+        <div style="padding:6px 10px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:11px;color:#fca5a5;">
+          Blind: "왜 샀는가/안 샀는가" 답할 수 없음
+        </div>
+      </div>
+      <!-- Placer.ai -->
+      <div class="card" style="padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--t1);">Placer.ai</div>
+            <div style="font-size:10px;color:var(--t3);">미국 · 모바일 위치 데이터</div>
+          </div>
+          <span class="tag" style="background:rgba(14,165,233,0.15);color:#67e8f9;">모바일GPS</span>
+        </div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:10px;">센서 없이 모바일 데이터로 분석.<br>경쟁 매장 고객 이동 패턴, Trade Area 분석.</div>
+        <div style="padding:6px 10px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:11px;color:#fca5a5;">
+          Blind: 매장 안에서 뭐 했는지 모름. 감정 제로.
+        </div>
+      </div>
+      <!-- Quividi -->
+      <div class="card" style="padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--t1);">Quividi</div>
+            <div style="font-size:10px;color:var(--t3);">프랑스 · DOOH 오디언스</div>
+          </div>
+          <span class="tag" style="background:rgba(251,191,36,0.15);color:#fbbf24;">표정분석</span>
+        </div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:10px;">유일하게 표정 기반 mood 측정 가능.<br>하지만 표면 표정 ≠ 실제 감정. 동아시아 표정 억제.</div>
+        <div style="padding:6px 10px;background:rgba(251,191,36,0.08);border-radius:6px;font-size:11px;color:#fbbf24;">
+          한계: 표정 읽기 ≠ 진심 읽기. 디스플레이 앞만 측정.
+        </div>
+      </div>
+      <!-- V-Count -->
+      <div class="card" style="padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--t1);">V-Count</div>
+            <div style="font-size:10px;color:var(--t3);">터키 · 130국 600+ 고객</div>
+          </div>
+          <span class="tag" style="background:rgba(14,165,233,0.15);color:#67e8f9;">AI센서</span>
+        </div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:10px;">99% 정확도, 200+ KPI, 가성비.<br>히트맵, Zone 분석, 대기열 관리.</div>
+        <div style="padding:6px 10px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:11px;color:#fca5a5;">
+          Blind: 행동 "너머"의 데이터는 없음
+        </div>
+      </div>
+      <!-- 메이아이 -->
+      <div class="card" style="padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--t1);">메이아이 (한국)</div>
+            <div style="font-size:10px;color:var(--t3);">한국 · 기존 CCTV 활용</div>
+          </div>
+          <span class="tag" style="background:rgba(14,165,233,0.15);color:#67e8f9;">CCTV AI</span>
+        </div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:10px;">추가 장비 불필요. Re-ID 92% 정확도.<br>CES 2024 혁신상. 300+ 매장.</div>
+        <div style="padding:6px 10px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:11px;color:#fca5a5;">
+          Blind: POS 미연동. 감정 · 인식 · SNS 불가.
+        </div>
+      </div>
+    </div>
+
+    <!-- 공통 사각지대 -->
+    <div style="margin-top:20px;padding:16px 20px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:12px;text-align:center;">
+      <div style="font-size:16px;font-weight:700;color:#fca5a5;margin-bottom:6px;">6개 솔루션의 공통 사각지대</div>
+      <div style="font-size:14px;color:var(--t2);">
+        모든 솔루션이 <strong style="color:var(--t1);">"어디서 멈췄는가"</strong>까지는 답한다. 하지만<br>
+        <strong style="color:#fca5a5;">"왜 그렇게 느꼈는가", "그 반응이 진심이었는가", "다음에 다시 올 것인가"</strong>는 아무도 답하지 못한다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 6C: CONSULTING COMPARE  -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:var(--bg);">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--accent2);">VS CONSULTING FRAMEWORKS</div>
+    <h2>글로벌 리서치 프레임워크와도 <span style="color:#c4b5fd;">차원이 다르다</span></h2>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:24px;">
+      <!-- McKinsey -->
+      <div class="card" style="padding:24px;border-top:3px solid var(--t3);">
+        <div style="font-size:18px;font-weight:700;color:var(--t1);margin-bottom:4px;">McKinsey</div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:14px;">CMAC · Retail Analytics</div>
+        <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:14px;">
+          SKU 경제성, 가격 탄력성, 고객 세그먼트 CLV, 미디어 믹스 최적화.<br>
+          데이터 기반 의사결정의 교과서.
+        </div>
+        <div style="padding:8px 12px;background:rgba(100,116,139,0.1);border-radius:8px;font-size:12px;color:var(--t3);line-height:1.6;">
+          <strong style="color:#fca5a5;">한계:</strong> 프로젝트당 수억 원. 일회성. 비정형 데이터(리뷰/SNS) 약함. 감정 = 설문 의존.
+        </div>
+      </div>
+      <!-- Bain NPS -->
+      <div class="card" style="padding:24px;border-top:3px solid var(--t3);">
+        <div style="font-size:18px;font-weight:700;color:var(--t1);margin-bottom:4px;">Bain NPS</div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:14px;">Net Promoter Score</div>
+        <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:14px;">
+          "추천하시겠습니까?" 단일 질문으로 고객 충성도 측정.<br>
+          업계 표준 지표. NPS = 성장률의 20~60% 설명.
+        </div>
+        <div style="padding:8px 12px;background:rgba(100,116,139,0.1);border-radius:8px;font-size:12px;color:var(--t3);line-height:1.6;">
+          <strong style="color:#fca5a5;">한계:</strong> "왜" 인지 모름. 동아시아 문화 편향. 조작 가능. 무의식 포착 불가.
+        </div>
+      </div>
+      <!-- Kantar/Ipsos -->
+      <div class="card" style="padding:24px;border-top:3px solid var(--t3);">
+        <div style="font-size:18px;font-weight:700;color:var(--t1);margin-bottom:4px;">Kantar / Ipsos</div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:14px;">Brand Health Tracking</div>
+        <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:14px;">
+          인지도, 선호도, 구매의향, 브랜드 자산 종합 측정.<br>
+          21,000+ 브랜드 DB. 연간 수억~수십억 원.
+        </div>
+        <div style="padding:8px 12px;background:rgba(100,116,139,0.1);border-radius:8px;font-size:12px;color:var(--t3);line-height:1.6;">
+          <strong style="color:#fca5a5;">한계:</strong> 서베이 기반 = 의식적 답변만. 실시간 불가. 오프라인 매장 경험 특화 아님.
+        </div>
+      </div>
+    </div>
+
+    <!-- RXR 차별점 대비표 -->
+    <div style="margin-top:24px;padding:24px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);border-radius:14px;">
+      <div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:16px;text-align:center;">RXR + FWA는 이 모든 것의 교차점에 있다</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
+        <div style="text-align:center;">
+          <div style="font-size:11px;color:var(--t3);margin-bottom:6px;">리테일테크가<br>잘하는 것</div>
+          <div style="font-size:13px;font-weight:600;color:var(--cyan);">행동 데이터<br>(유입·동선·체류)</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:11px;color:var(--t3);margin-bottom:6px;">컨설팅이<br>잘하는 것</div>
+          <div style="font-size:13px;font-weight:600;color:var(--orange);">전략 프레임워크<br>(세그먼트·퍼널)</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:11px;color:var(--t3);margin-bottom:6px;">리서치가<br>잘하는 것</div>
+          <div style="font-size:13px;font-weight:600;color:var(--accent2);">브랜드 인식<br>(인지도·선호도)</div>
+        </div>
+        <div style="text-align:center;padding:10px;background:rgba(99,102,241,0.1);border-radius:10px;">
+          <div style="font-size:11px;color:var(--accent);margin-bottom:6px;font-weight:700;">아무도 못하는 것<br>= RXR의 영역</div>
+          <div style="font-size:13px;font-weight:600;color:var(--pink);">무의식적 심리<br>(진정성·추천확신·신선함)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 핵심 비교 매트릭스 -->
+    <div style="margin-top:20px;overflow-x:auto;border-radius:12px;border:1px solid var(--border);">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:var(--card2);">
+            <th style="padding:10px 12px;text-align:left;color:var(--t2);font-size:11px;">측정 영역</th>
+            <th style="padding:10px 8px;text-align:center;color:var(--cyan);font-size:11px;">RetailNext<br>Sensormatic</th>
+            <th style="padding:10px 8px;text-align:center;color:var(--cyan);font-size:11px;">Placer.ai<br>V-Count</th>
+            <th style="padding:10px 8px;text-align:center;color:var(--orange);font-size:11px;">Quividi</th>
+            <th style="padding:10px 8px;text-align:center;color:var(--t3);font-size:11px;">McKinsey<br>Bain·Kantar</th>
+            <th style="padding:10px 8px;text-align:center;color:var(--accent);font-size:11px;font-weight:700;">RXR<br>+ FWA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 12px;color:var(--t2);">방문 트래픽/동선</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;">●</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;">●</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;">●</td>
+            <td style="padding:8px;text-align:center;color:var(--t3);">—</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;font-weight:700;">●</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 12px;color:var(--t2);">구매 전환 / POS 연동</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;">●</td>
+            <td style="padding:8px;text-align:center;color:#fbbf24;">△</td>
+            <td style="padding:8px;text-align:center;color:var(--t3);">—</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;">●</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;font-weight:700;">●</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 12px;color:var(--t2);">SNS / 리뷰 분석</td>
+            <td style="padding:8px;text-align:center;color:var(--t3);">—</td>
+            <td style="padding:8px;text-align:center;color:var(--t3);">—</td>
+            <td style="padding:8px;text-align:center;color:var(--t3);">—</td>
+            <td style="padding:8px;text-align:center;color:#fbbf24;">△</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;font-weight:700;">●</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 12px;color:var(--t2);">감정 / 표정 분석</td>
+            <td style="padding:8px;text-align:center;color:var(--t3);">—</td>
+            <td style="padding:8px;text-align:center;color:var(--t3);">—</td>
+            <td style="padding:8px;text-align:center;color:#fbbf24;">△ 표정만</td>
+            <td style="padding:8px;text-align:center;color:var(--t3);">—</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;font-weight:700;">●</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:rgba(217,70,239,0.04);">
+            <td style="padding:8px 12px;color:var(--pink);font-weight:600;">무의식적 심리 / 진정성</td>
+            <td style="padding:8px;text-align:center;color:#fca5a5;">✕</td>
+            <td style="padding:8px;text-align:center;color:#fca5a5;">✕</td>
+            <td style="padding:8px;text-align:center;color:#fca5a5;">✕</td>
+            <td style="padding:8px;text-align:center;color:#fca5a5;">✕</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;font-weight:700;font-size:14px;">● ONLY</td>
+          </tr>
+          <tr style="background:rgba(217,70,239,0.04);">
+            <td style="padding:8px 12px;color:var(--pink);font-weight:600;">4축 통합 스토리</td>
+            <td style="padding:8px;text-align:center;color:#fca5a5;">✕</td>
+            <td style="padding:8px;text-align:center;color:#fca5a5;">✕</td>
+            <td style="padding:8px;text-align:center;color:#fca5a5;">✕</td>
+            <td style="padding:8px;text-align:center;color:#fca5a5;">✕</td>
+            <td style="padding:8px;text-align:center;color:#6ee7b7;font-weight:700;font-size:14px;">● ONLY</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 한 줄 메시지 -->
+    <div style="text-align:center;margin-top:20px;">
+      <div style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(217,70,239,0.1));border:1px solid rgba(99,102,241,0.2);border-radius:12px;">
+        <span style="font-size:16px;font-weight:700;color:var(--t1);">
+          리테일테크의 <span style="color:var(--cyan);">행동 데이터</span> +
+          컨설팅의 <span style="color:var(--orange);">전략 프레임</span> +
+          리서치의 <span style="color:var(--accent2);">브랜드 측정</span> +
+          <span style="color:var(--pink);">아무도 못하는 심리 분석</span>
+          = <span style="color:var(--accent);">RXR</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 7: MARKET               -->
+<!-- ════════════════════════════ -->
+<div class="slide" style="background:linear-gradient(180deg,var(--bg),#0f0f1e);">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--cyan);">MARKET OPPORTUNITY</div>
+    <h2>왜 <span style="color:#67e8f9;">지금</span>인가</h2>
+
+    <div class="p7-stats">
+      <div class="p7-stat">
+        <div class="p7-val">1.8조+</div>
+        <div class="p7-label">국내 팝업스토어<br>시장 규모 (2024)</div>
+      </div>
+      <div class="p7-stat">
+        <div class="p7-val">300+</div>
+        <div class="p7-label">메이아이 공급 매장<br>(축①② 수요 검증)</div>
+      </div>
+      <div class="p7-stat">
+        <div class="p7-val">95%</div>
+        <div class="p7-label">가나초콜릿하우스<br>구매전환율</div>
+      </div>
+      <div class="p7-stat">
+        <div class="p7-val">0</div>
+        <div class="p7-label">4축 통합 + FWA<br>경쟁 솔루션 수</div>
+      </div>
+    </div>
+
+    <div class="p7-pos">
+      <div style="font-size:14px;font-weight:700;margin-bottom:16px;color:var(--t1);text-align:center;">메이아이가 못 채우는 공백 = RXR의 기회</div>
+      <div class="p7-pos-row">
+        <div class="p7-pos-label" style="color:var(--cyan);">메이아이</div>
+        <div class="p7-pos-bar" style="width:40%;background:var(--cyan);"></div>
+        <span style="font-size:11px;color:var(--t3);">유입 + 행동</span>
+      </div>
+      <div class="p7-pos-row">
+        <div class="p7-pos-label" style="color:var(--t3);">GAP</div>
+        <div class="p7-pos-bar" style="width:60%;background:repeating-linear-gradient(90deg,rgba(255,255,255,0.06) 0px,rgba(255,255,255,0.06) 4px,transparent 4px,transparent 8px);border:1px dashed rgba(255,255,255,0.15);"></div>
+        <span style="font-size:11px;color:#fca5a5;">매출 + 인식 + 심리 = 비어있음</span>
+      </div>
+      <div class="p7-pos-row">
+        <div class="p7-pos-label" style="color:var(--accent);font-weight:800;">RXR</div>
+        <div class="p7-pos-bar" style="width:100%;background:linear-gradient(90deg,var(--blue),var(--indigo),var(--green),var(--pink));"></div>
+        <span style="font-size:11px;color:var(--accent);">전체 커버</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ -->
+<!-- SLIDE 8: CLOSING              -->
+<!-- ════════════════════════════ -->
+<div class="slide slide-close">
+  <div class="slide-inner">
+    <div class="label" style="color:var(--t3);">SUMMARY</div>
+    <h2>하나의 질문으로 정리하면</h2>
+
+    <div class="close-compare">
+      <div class="close-box" style="background:rgba(100,116,139,0.1);border:1px solid rgba(100,116,139,0.2);">
+        <div style="font-size:14px;font-weight:700;color:var(--t3);margin-bottom:12px;">기존</div>
+        <div style="font-size:20px;color:var(--t3);line-height:1.6;">
+          "몇 명 왔어?"<br>
+          "얼마 팔렸어?"<br>
+          "좋았대?"
+        </div>
+        <div style="margin-top:16px;font-size:13px;color:#fca5a5;">조각난 데이터, 불완전한 답</div>
+      </div>
+      <div class="close-vs">VS</div>
+      <div class="close-box" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);">
+        <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:12px;">RXR</div>
+        <div style="font-size:20px;color:var(--t1);line-height:1.6;">
+          "봤다→들어왔다→머물렀다<br>→샀다→공유했다"<br>
+          <strong style="color:#f472b6;">"그리고 진심이었다"</strong>
+        </div>
+        <div style="margin-top:16px;font-size:13px;color:#6ee7b7;">완성된 스토리 + 심리적 근거</div>
+      </div>
+    </div>
+
+    <div class="close-cta">
+      이것은 "더 좋은 대시보드"가 아닙니다<br>
+      <span style="font-size:22px;">새로운 카테고리의 데이터 프로덕트</span>입니다
+    </div>
+
+    <div style="margin-top:32px;font-size:13px;color:var(--t3);">
+      Project RENT &middot; R-lab &middot; 2026
+    </div>
+  </div>
+</div>
+
+<script>
+// PDF 패널
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('pdfPanel');
+  if (panel && !panel.contains(e.target)) {
+    document.getElementById('pdfBody').classList.remove('open');
+  }
+});
+function setOrient(o) {
+  const s = document.getElementById('pageOrientStyle');
+  const bL = document.getElementById('btnL');
+  const bP = document.getElementById('btnP');
+  if (o === 'landscape') {
+    s.textContent = '@media print { @page { size:A4 landscape; margin:8mm; } }';
+    bL.classList.add('active'); bP.classList.remove('active');
+  } else {
+    s.textContent = '@media print { @page { size:A4 portrait; margin:8mm; } }';
+    bP.classList.add('active'); bL.classList.remove('active');
+  }
+}
+</script>
+</body>
+</html>

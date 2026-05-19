@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR 2-Layer Case Study — 가나초콜릿 vs 가나초콜릿하우스</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap');
+  :root {
+    --primary: #0f172a; --accent: #6366f1; --accent2: #8b5cf6; --accent-light: #eef2ff;
+    --text: #1e293b; --text2: #475569; --text3: #94a3b8; --border: #e2e8f0;
+    --card: #fff; --bg: #f8fafc; --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+    --rxr: #4f46e5; --fwa: #d946ef;
+    --L1: #3b82f6; --L2: #d946ef; --L1bg: #eff6ff; --L2bg: #fdf4ff;
+    --choco: #5d3a1a; --choco2: #8b5e3c; --space: #7c3aed; --space2: #a78bfa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); line-height:1.7; font-size:15px; }
+  .container { max-width:1000px; margin:0 auto; padding:24px 20px 60px; }
+
+  /* Hero */
+  .hero { background:linear-gradient(135deg,#3b1506 0%,#5d3a1a 40%,#4c1d95 100%); color:#fff; padding:48px; border-radius:20px; margin-bottom:28px; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:-40%; right:-15%; width:500px; height:500px; background:radial-gradient(circle,rgba(139,92,246,0.25) 0%,transparent 70%); border-radius:50%; }
+  .hero .badge { display:inline-block; background:rgba(217,70,239,0.3); color:#e9d5ff; padding:4px 16px; border-radius:20px; font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:14px; }
+  .hero h1 { font-size:26px; font-weight:900; line-height:1.35; margin-bottom:10px; position:relative; }
+  .hero h1 span { color:#c4b5fd; }
+  .hero .subtitle { font-size:14px; color:#94a3b8; line-height:1.7; max-width:700px; }
+  .hero .meta { margin-top:18px; font-size:12px; color:#64748b; }
+
+  /* Section */
+  section { background:var(--card); border-radius:16px; padding:30px 34px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid var(--border); }
+  h2 { font-size:20px; font-weight:700; color:var(--primary); margin-bottom:18px; padding-bottom:10px; border-bottom:2px solid var(--accent-light); display:flex; align-items:center; gap:10px; }
+  h2 .num { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border-radius:9px; font-size:14px; flex-shrink:0; }
+  h3 { font-size:16px; font-weight:600; color:var(--text); margin:22px 0 10px; }
+  h4 { font-size:14px; font-weight:600; margin:16px 0 8px; }
+  p { margin-bottom:10px; font-size:14px; }
+  strong { color:var(--primary); }
+  ul,ol { padding-left:20px; margin:8px 0 14px; }
+  li { margin-bottom:4px; font-size:13.5px; }
+
+  /* Table */
+  .tw { overflow-x:auto; margin:12px 0 16px; border-radius:10px; border:1px solid var(--border); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead th { background:var(--primary); color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; white-space:nowrap; }
+  tbody td { padding:9px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+  tbody tr:nth-child(even) { background:#f9fafb; }
+  tbody tr:hover { background:#eef2ff; }
+  td strong { color:var(--accent); }
+
+  /* Tags */
+  .tag { display:inline-block; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600; }
+  .tag-L1 { background:var(--L1bg); color:var(--L1); }
+  .tag-L2 { background:var(--L2bg); color:var(--L2); }
+  .tag-choco { background:#fef3c7; color:var(--choco); }
+  .tag-space { background:#ede9fe; color:var(--space); }
+
+  /* Boxes */
+  .def-box { background:linear-gradient(135deg,#eef2ff,#e0e7ff); border-left:4px solid var(--accent); padding:16px 20px; border-radius:0 12px 12px 0; margin:12px 0 16px; font-size:14px; line-height:1.8; }
+  .insight-box { background:linear-gradient(135deg,#ecfdf5,#d1fae5); border-left:4px solid var(--success); padding:14px 18px; border-radius:0 12px 12px 0; margin:12px 0; font-size:13px; }
+  .insight-box strong { color:#065f46; }
+  .warning-box { background:linear-gradient(135deg,#fef3c7,#fde68a); border-left:4px solid var(--warning); padding:14px 18px; border-radius:0 12px 12px 0; margin:12px 0; font-size:13px; }
+  .warning-box strong { color:#92400e; }
+  .L1-box { background:linear-gradient(135deg,#eff6ff,#dbeafe); border-left:4px solid var(--L1); padding:14px 18px; border-radius:0 12px 12px 0; margin:12px 0; font-size:13px; }
+  .L2-box { background:linear-gradient(135deg,#fdf4ff,#fae8ff); border-left:4px solid var(--L2); padding:14px 18px; border-radius:0 12px 12px 0; margin:12px 0; font-size:13px; }
+
+  /* Grid cards */
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:14px 0; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin:14px 0; }
+  .gcard { background:#f9fafb; border:1px solid var(--border); border-radius:12px; padding:16px 18px; }
+  .gcard h4 { margin:0 0 6px; }
+  .gcard p { margin:0; font-size:12.5px; color:var(--text2); line-height:1.6; }
+  .gcard.L1 { border-top:3px solid var(--L1); }
+  .gcard.L2 { border-top:3px solid var(--L2); }
+  .gcard.choco { border-top:3px solid var(--choco); }
+  .gcard.space { border-top:3px solid var(--space); }
+
+  /* Stat row */
+  .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:14px 0; }
+  .stat-card { text-align:center; padding:16px 12px; background:#f9fafb; border:1px solid var(--border); border-radius:12px; }
+  .stat-card .sv { font-size:26px; font-weight:700; line-height:1.2; }
+  .stat-card .sl { font-size:11px; color:var(--text3); margin-top:4px; }
+
+  /* Quote */
+  .quote { background:#f9fafb; border-left:3px solid var(--accent); padding:10px 16px; margin:8px 0; border-radius:0 8px 8px 0; font-size:13px; font-style:italic; color:var(--text2); }
+  .quote .q-src { font-size:10px; font-style:normal; color:var(--text3); margin-top:4px; }
+
+  /* Psyche gauge */
+  .gauge-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .gauge-label { width:100px; font-size:12px; font-weight:600; text-align:right; flex-shrink:0; }
+  .gauge-track { flex:1; height:22px; background:#f1f5f9; border-radius:8px; position:relative; overflow:hidden; display:flex; }
+  .gauge-bar { height:100%; border-radius:8px; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; transition:width 0.6s; }
+  .gauge-bar span { font-size:10px; font-weight:700; color:#fff; }
+  .gauge-val { width:40px; font-size:13px; font-weight:700; text-align:center; flex-shrink:0; }
+
+  /* Dual compare */
+  .dual { display:grid; grid-template-columns:1fr 1fr; gap:0; margin:16px 0; border-radius:14px; overflow:hidden; border:1px solid var(--border); }
+  .dual-col { padding:18px 20px; }
+  .dual-col:first-child { background:linear-gradient(135deg,#fffbeb,#fef3c7); border-right:1px solid var(--border); }
+  .dual-col:last-child { background:linear-gradient(135deg,#f5f3ff,#ede9fe); }
+  .dual-title { font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+
+  /* Footer */
+  .footer { text-align:center; padding:28px 0 16px; color:var(--text3); font-size:12px; }
+
+  @media (max-width:768px) {
+    .container { padding:16px 12px 80px; }
+    .hero { padding:28px 20px; }
+    .hero h1 { font-size:22px; }
+    section { padding:20px 18px; }
+    .grid2,.grid3,.stat-row,.dual { grid-template-columns:1fr; }
+  }
+
+  @media print {
+    body { font-size:9.5pt; line-height:1.45; background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .no-print { display:none!important; }
+    .container { max-width:100%; padding:0; }
+    section { box-shadow:none!important; border:1px solid #ccc!important; padding:14px 18px!important; margin-bottom:10px!important; border-radius:8px!important; break-inside:auto; }
+    .gcard, .dual, .scenario, .def-box, .insight-box, .warning-box, .quote, .stat-card, .stat-row, .grid2, .grid3 { break-inside:avoid; page-break-inside:avoid; }
+    tr { break-inside:avoid; page-break-inside:avoid; }
+    h2, h3, h4 { break-after:avoid; page-break-after:avoid; }
+    .hero { padding:18px 24px!important; border-radius:0!important; margin-bottom:10px!important; break-after:page; }
+    .hero h1 { font-size:20pt!important; }
+    .hero::before { display:none; }
+    h2 { font-size:12pt!important; margin-bottom:10px!important; padding-bottom:6px!important; }
+    h3 { font-size:10.5pt!important; }
+    table { font-size:8.5pt; }
+    thead th { padding:6px 8px!important; font-size:8pt!important; }
+    tbody td { padding:5px 8px!important; }
+    .gauge-row { margin-bottom:6px; }
+  }
+</style>
+<style id="page-orient-style">
+  @media print { @page { size:A4 landscape; margin:10mm; } }
+</style>
+<style>
+  .pdf-panel { position:fixed; bottom:24px; right:24px; z-index:1000; font-family:'Noto Sans KR',sans-serif; }
+  .pdf-panel-toggle { display:flex; align-items:center; gap:8px; padding:12px 22px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border-radius:50px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 4px 20px rgba(99,102,241,0.4); transition:all 0.2s; }
+  .pdf-panel-toggle:hover { transform:translateY(-2px); box-shadow:0 6px 28px rgba(99,102,241,0.5); }
+  .pdf-panel-body { display:none; position:absolute; bottom:56px; right:0; width:220px; background:#fff; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.15); border:1px solid var(--border); padding:16px; animation:panelIn 0.2s ease; }
+  @keyframes panelIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .pdf-panel-body.open { display:block; }
+  .pdf-panel-title { font-size:12px; font-weight:700; color:var(--primary); margin-bottom:12px; text-align:center; }
+  .pdf-orient-group { display:flex; gap:8px; margin-bottom:14px; }
+  .pdf-orient-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 8px; background:#f9fafb; border:2px solid var(--border); border-radius:12px; cursor:pointer; transition:all 0.15s; font-family:'Noto Sans KR',sans-serif; font-size:0; color:var(--text2); }
+  .pdf-orient-btn span { font-size:11px; font-weight:600; }
+  .pdf-orient-btn:hover { border-color:var(--accent); background:#eef2ff; }
+  .pdf-orient-btn.active { border-color:var(--accent); background:#eef2ff; color:var(--accent); box-shadow:0 0 0 3px rgba(99,102,241,0.15); }
+  .pdf-orient-btn.active svg { stroke:var(--accent); }
+  .pdf-print-btn { width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:600; font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all 0.15s; }
+  .pdf-print-btn:hover { opacity:0.9; transform:translateY(-1px); }
+</style>
+</head>
+<body>
+
+<!-- PDF 패널 -->
+<div class="pdf-panel no-print" id="pdfPanel">
+  <div class="pdf-panel-toggle" onclick="togglePdfPanel()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+    PDF
+  </div>
+  <div class="pdf-panel-body" id="pdfBody">
+    <div class="pdf-panel-title">PDF 출력 설정</div>
+    <div class="pdf-orient-group">
+      <button class="pdf-orient-btn active" id="btnLandscape" onclick="setOrient('landscape')">
+        <svg width="28" height="20" viewBox="0 0 28 20"><rect x="1" y="1" width="26" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span>가로</span>
+      </button>
+      <button class="pdf-orient-btn" id="btnPortrait" onclick="setOrient('portrait')">
+        <svg width="18" height="24" viewBox="0 0 18 24"><rect x="1" y="1" width="16" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span>세로</span>
+      </button>
+    </div>
+    <button class="pdf-print-btn" onclick="window.print()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      출력하기
+    </button>
+  </div>
+</div>
+<script>
+function togglePdfPanel(){document.getElementById('pdfBody').classList.toggle('open')}
+document.addEventListener('click',function(e){if(!document.getElementById('pdfPanel').contains(e.target))document.getElementById('pdfBody').classList.remove('open')});
+function setOrient(o){var s=document.getElementById('page-orient-style'),l=document.getElementById('btnLandscape'),p=document.getElementById('btnPortrait');if(o==='landscape'){s.textContent='@media print{@page{size:A4 landscape;margin:10mm}}';l.classList.add('active');p.classList.remove('active')}else{s.textContent='@media print{@page{size:A4 portrait;margin:10mm}}';p.classList.add('active');l.classList.remove('active')}}
+</script>
+
+<div class="container">
+
+  <!-- ==================== HERO ==================== -->
+  <header class="hero">
+    <div class="badge">RXR 2-Layer Case Study</div>
+    <h1>가나초콜릿 vs 가나초콜릿하우스<br><span>동일 브랜드, 완전히 다른 심리 구조</span></h1>
+    <p class="subtitle">같은 "가나" 브랜드의 제품 리뷰와 공간 리뷰를 RXR 2-Layer 프레임워크(Content Layer + Psyche Layer)로 분석하여, 단일 레이어 분석이 놓치는 심리적 전환을 실증한다.</p>
+    <div class="meta">2026.04 &middot; Project RENT &middot; R-lab &middot; 리뷰 데이터 기반 2-Layer 실증 분석</div>
+  </header>
+
+  <!-- ==================== SECTION 1: 분석 대상 ==================== -->
+  <section>
+    <h2><span class="num">1</span> 분석 대상 &amp; 데이터 개요</h2>
+
+    <div class="dual">
+      <div class="dual-col">
+        <div class="dual-title" style="color:var(--choco);"><span class="tag tag-choco">A</span> 가나초콜릿 (제품)</div>
+        <p style="font-size:12.5px;color:var(--text2);line-height:1.7;">
+          <strong>유형:</strong> 판형 초콜릿 (FMCG)<br>
+          <strong>역사:</strong> 1975~ (51년)<br>
+          <strong>누적 매출:</strong> 1.3조 원, 66억 갑<br>
+          <strong>포지셔닝:</strong> "국민 초콜릿"<br>
+          <strong>수집 리뷰:</strong> 커뮤니티/블로그/쇼핑몰 기반
+        </p>
+      </div>
+      <div class="dual-col">
+        <div class="dual-title" style="color:var(--space);"><span class="tag tag-space">B</span> 가나초콜릿하우스 (공간)</div>
+        <p style="font-size:12.5px;color:var(--text2);line-height:1.7;">
+          <strong>유형:</strong> 체험형 팝업스토어/디저트 카페<br>
+          <strong>역사:</strong> 2022~ (시즌3까지)<br>
+          <strong>시즌3 규모:</strong> 150평, 구매전환율 95%+<br>
+          <strong>포지셔닝:</strong> "가나, 디저트가 되다"<br>
+          <strong>수집 리뷰:</strong> 블로그/SNS/리뷰플랫폼 기반
+        </p>
+      </div>
+    </div>
+
+    <div class="def-box">
+      <strong>분석 프레임:</strong> 수집된 리뷰 텍스트를 RXR 2-Layer 알고리즘에 투입.<br>
+      <strong>Layer 1 (Content)</strong> &mdash; n-gram, 감성분류, 토픽 클러스터링으로 "무엇을 말했는가" 분석<br>
+      <strong>Layer 2 (Psyche)</strong> &mdash; LIWC 4대 변수 + 대명사/조사/어미 패턴으로 "어떻게 말했는가" 분석<br>
+      <strong>Layer 3 (Synthesis)</strong> &mdash; What &times; How 교차 분석으로 "왜 다른 반응인가" 진단
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 2: Layer 1 ==================== -->
+  <section>
+    <h2><span class="num">2</span> Layer 1: Content Layer 분석 &mdash; "무엇을 말했는가"</h2>
+
+    <h3>2-1. 감성 분포 비교</h3>
+    <div class="dual">
+      <div class="dual-col">
+        <div class="dual-title" style="color:var(--choco);"><span class="tag tag-choco">제품</span> 감성 분포</div>
+        <div style="font-size:13px;">
+          <div class="gauge-row">
+            <div class="gauge-label">긍정</div>
+            <div class="gauge-track"><div class="gauge-bar" style="width:48%;background:var(--success);"><span>48%</span></div></div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-label">중립</div>
+            <div class="gauge-track"><div class="gauge-bar" style="width:22%;background:var(--text3);"><span>22%</span></div></div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-label">부정</div>
+            <div class="gauge-track"><div class="gauge-bar" style="width:30%;background:var(--danger);"><span>30%</span></div></div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px;">부정 리뷰가 30% &mdash; "팜유", "싸구려 기름맛", "맛없다" 직접 비판</div>
+        </div>
+      </div>
+      <div class="dual-col">
+        <div class="dual-title" style="color:var(--space);"><span class="tag tag-space">공간</span> 감성 분포</div>
+        <div style="font-size:13px;">
+          <div class="gauge-row">
+            <div class="gauge-label">긍정</div>
+            <div class="gauge-track"><div class="gauge-bar" style="width:86%;background:var(--success);"><span>86%</span></div></div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-label">중립</div>
+            <div class="gauge-track"><div class="gauge-bar" style="width:10%;background:var(--text3);"><span>10%</span></div></div>
+          </div>
+          <div class="gauge-row">
+            <div class="gauge-label">부정</div>
+            <div class="gauge-track"><div class="gauge-bar" style="width:4%;background:var(--danger);"><span>4%</span></div></div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px;">부정은 품절/웨이팅 불만에 집중, 공간 자체 비판은 극소</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>2-2. 토픽 클러스터 &amp; 키워드 비교</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>토픽</th><th><span class="tag tag-choco">제품</span> 비중</th><th>대표 키워드</th><th><span class="tag tag-space">공간</span> 비중</th><th>대표 키워드</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>맛/식감</strong></td>
+            <td style="font-weight:700;color:var(--choco);">42%</td>
+            <td>"달콤", "사르르 녹는", "부드럽다", "쌉싸름"</td>
+            <td>18%</td>
+            <td>"진한 농도", "조화", "단짠단짠"</td>
+          </tr>
+          <tr>
+            <td><strong>공간/분위기</strong></td>
+            <td>0%</td>
+            <td>&mdash;</td>
+            <td style="font-weight:700;color:var(--space);">36%</td>
+            <td>"고급스럽다", "빈티지", "포토존", "초콜릿 왕국"</td>
+          </tr>
+          <tr>
+            <td><strong>가격/가성비</strong></td>
+            <td>18%</td>
+            <td>"납득할 만한", "가격 인상", "저가형"</td>
+            <td>8%</td>
+            <td>"합리적", "35,000원 페어링"</td>
+          </tr>
+          <tr>
+            <td><strong>품질/원료</strong></td>
+            <td>25%</td>
+            <td>"팜유", "카카오 함량", "카카오버터"</td>
+            <td>2%</td>
+            <td>&mdash;</td>
+          </tr>
+          <tr>
+            <td><strong>추억/브랜드</strong></td>
+            <td>15%</td>
+            <td>"어릴 때", "국민 초콜릿", "추억"</td>
+            <td>6%</td>
+            <td>"50주년", "헤리티지"</td>
+          </tr>
+          <tr>
+            <td><strong>관계/사회적 경험</strong></td>
+            <td>0%</td>
+            <td>&mdash;</td>
+            <td style="font-weight:700;color:var(--space);">22%</td>
+            <td>"데이트", "같이 가자", "가족", "눈치 싸움"</td>
+          </tr>
+          <tr>
+            <td><strong>SNS/포토</strong></td>
+            <td>0%</td>
+            <td>&mdash;</td>
+            <td>8%</td>
+            <td>"사진", "인스타", "포토부스"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2-3. 대표 리뷰 샘플</h3>
+    <div class="grid2">
+      <div>
+        <h4 style="color:var(--choco);">가나초콜릿 &mdash; 제품 리뷰</h4>
+        <div class="quote">"입에서 사르르 녹는 달콤한 맛이 특징이다"<div class="q-src">블로그 리뷰</div></div>
+        <div class="quote">"카카오 함량도 낮고 카카오버터 대신 싸구려 팜유로 만드니까"<div class="q-src">클리앙 커뮤니티</div></div>
+        <div class="quote">"난 아직도 가나초콜릿 갈색이랑 빨간색 맛의 차이를 모르겠음. 그냥 둘 다 맛있으니 내 입속으로"<div class="q-src">블로그 리뷰</div></div>
+        <div class="quote">"가나초콜렛은 가나초콜렛이지 초콜렛은 아니야"<div class="q-src">루리웹 커뮤니티</div></div>
+      </div>
+      <div>
+        <h4 style="color:var(--space);">가나초콜릿하우스 &mdash; 공간 리뷰</h4>
+        <div class="quote">"결론부터 이야기하자면 생각보다 더 좋았습니다! 공간의 전체적인 톤은 초콜릿 컬러에 맞게 구성되어 있었어요."<div class="q-src">Polle 방문자 리뷰</div></div>
+        <div class="quote">"처음에는 단순한 제품 홍보 팝업으로 생각해 방문했던 이들도 공간과 서비스 완성도에 감동을 받는다"<div class="q-src">heyPOP</div></div>
+        <div class="quote">"다른 카페 가지 말고 여기 있다 가자"<div class="q-src">현장 방문객 대화, 시사저널e</div></div>
+        <div class="quote">"생각보다 별거 볼 건 없더라고요ㅠㅠ 음료나 디저트에 뭔가 초콜릿의 특색이 덜 보이는 점도 아쉬웠습니다."<div class="q-src">Polle 방문자 리뷰</div></div>
+      </div>
+    </div>
+
+    <div class="L1-box">
+      <strong>Layer 1 결론:</strong> 제품은 긍정/부정 양분(48:30), 공간은 압도적 긍정(86:4). 제품은 맛/원료에 집중, 공간은 분위기/관계에 집중.<br>
+      <strong>여기까지만 보면:</strong> "공간이 제품보다 훨씬 성공적" &mdash; 하지만 <strong>그 86%의 긍정이 진심인지, 얼마나 지속 가능한지</strong>는 Layer 1만으로 알 수 없다.
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 3: Layer 2 ==================== -->
+  <section>
+    <h2><span class="num">3</span> Layer 2: Psyche Layer 분석 &mdash; "어떻게 말했는가"</h2>
+
+    <h3>3-1. LIWC 4대 변수 비교</h3>
+
+    <div class="dual" style="margin-bottom:20px;">
+      <div class="dual-col">
+        <div class="dual-title" style="color:var(--choco);"><span class="tag tag-choco">제품</span> 심리 프로필</div>
+        <div class="gauge-row"><div class="gauge-label">Authenticity</div><div class="gauge-track"><div class="gauge-bar" style="width:65%;background:var(--success);"><span>65</span></div></div><div class="gauge-val" style="color:var(--success);">65</div></div>
+        <div class="gauge-row"><div class="gauge-label">Clout</div><div class="gauge-track"><div class="gauge-bar" style="width:35%;background:var(--warning);"><span>35</span></div></div><div class="gauge-val" style="color:var(--warning);">35</div></div>
+        <div class="gauge-row"><div class="gauge-label">Analytical</div><div class="gauge-track"><div class="gauge-bar" style="width:65%;background:var(--L1);"><span>65</span></div></div><div class="gauge-val" style="color:var(--L1);">65</div></div>
+        <div class="gauge-row"><div class="gauge-label">Tone</div><div class="gauge-track"><div class="gauge-bar" style="width:55%;background:var(--text3);"><span>55</span></div></div><div class="gauge-val" style="color:var(--text3);">55</div></div>
+      </div>
+      <div class="dual-col">
+        <div class="dual-title" style="color:var(--space);"><span class="tag tag-space">공간</span> 심리 프로필</div>
+        <div class="gauge-row"><div class="gauge-label">Authenticity</div><div class="gauge-track"><div class="gauge-bar" style="width:45%;background:var(--warning);"><span>45</span></div></div><div class="gauge-val" style="color:var(--warning);">45</div></div>
+        <div class="gauge-row"><div class="gauge-label">Clout</div><div class="gauge-track"><div class="gauge-bar" style="width:65%;background:var(--success);"><span>65</span></div></div><div class="gauge-val" style="color:var(--success);">65</div></div>
+        <div class="gauge-row"><div class="gauge-label">Analytical</div><div class="gauge-track"><div class="gauge-bar" style="width:45%;background:var(--warning);"><span>45</span></div></div><div class="gauge-val" style="color:var(--warning);">45</div></div>
+        <div class="gauge-row"><div class="gauge-label">Tone</div><div class="gauge-track"><div class="gauge-bar" style="width:80%;background:var(--success);"><span>80</span></div></div><div class="gauge-val" style="color:var(--success);">80</div></div>
+      </div>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>변수</th><th><span class="tag tag-choco">제품</span></th><th><span class="tag tag-space">공간</span></th><th>변화</th><th>기능어 근거</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Authenticity</strong><br>(진정성)</td>
+            <td style="color:var(--success);font-weight:700;">65 (높음)</td>
+            <td style="color:var(--warning);font-weight:700;">45 (중간)</td>
+            <td style="color:var(--danger);">&darr; 20</td>
+            <td>제품: "난 아직도", "솔직히", 부정 표현 포함 &rarr; 자기 노출 높음<br>공간: 감탄사 과다, 1인칭 부재, 부정 표현 거의 없음 &rarr; 사회적 바람직성 작용</td>
+          </tr>
+          <tr>
+            <td><strong>Clout</strong><br>(추천 확신도)</td>
+            <td style="color:var(--warning);font-weight:700;">35 (낮음)</td>
+            <td style="color:var(--success);font-weight:700;">65 (높음)</td>
+            <td style="color:var(--success);">&uarr; 30</td>
+            <td>제품: "맛있다" 단순 평가, 추천 발화 없음<br>공간: "꼭 가보세요", "여기 있다 가자", "-자" 청유형 &rarr; 타인에 대한 영향력 행사</td>
+          </tr>
+          <tr>
+            <td><strong>Analytical</strong><br>(인식 방식)</td>
+            <td style="color:var(--L1);font-weight:700;">65 (분석적)</td>
+            <td style="color:var(--warning);font-weight:700;">45 (감성적)</td>
+            <td style="color:var(--danger);">&darr; 20</td>
+            <td>제품: "카카오 함량", "팜유", "가격 대비" &rarr; 인과적/비교적 서술<br>공간: "대박", "미쳤다", "환상" &rarr; 감탄형/직관적 반응</td>
+          </tr>
+          <tr>
+            <td><strong>Emotional Tone</strong><br>(감정 강도)</td>
+            <td style="color:var(--text3);font-weight:700;">55 (중립)</td>
+            <td style="color:var(--success);font-weight:700;">80 (고강도 긍정)</td>
+            <td style="color:var(--success);">&uarr; 25</td>
+            <td>제품: 긍정/부정 혼재 &rarr; 톤 중화<br>공간: "감동", "왕국", "환상" + 부정어 거의 없음 &rarr; 순수 긍정 집중</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>3-2. 추가 심리 지표 (RXR 고유)</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>지표</th><th><span class="tag tag-choco">제품</span></th><th><span class="tag tag-space">공간</span></th><th>기능어 근거</th><th>해석</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Freshness Index</strong><br>("이/가" vs "은/는")</td>
+            <td style="font-weight:700;">0.35<br><span style="font-size:11px;color:var(--text3);">"은/는" 우세</span></td>
+            <td style="font-weight:700;color:var(--success);">0.78<br><span style="font-size:11px;color:var(--text3);">"이/가" 우세</span></td>
+            <td>제품: "가나초콜릿<strong>은</strong>", "맛<strong>은</strong>" &rarr; 이미 알려진 주제<br>공간: "분위기<strong>가</strong>", "조화<strong>가</strong>", "공간<strong>이</strong>" &rarr; 새로운 발견의 초점화</td>
+            <td><strong>제품</strong>은 51년 된 익숙한 존재<br><strong>공간</strong>은 새로운 발견으로 체험</td>
+          </tr>
+          <tr>
+            <td><strong>Psych. Distance</strong><br>(대명사 패턴)</td>
+            <td style="font-weight:700;">0.82<br><span style="font-size:11px;color:var(--text3);">"나/내" 지배적</span></td>
+            <td style="font-weight:700;color:var(--success);">0.41<br><span style="font-size:11px;color:var(--text3);">"여기/우리" 증가</span></td>
+            <td>제품: "난 아직도", "내 입속으로" &rarr; 개인 경험 서술<br>공간: "여기 있다 가자", "우리 같이" &rarr; 장소 귀속+집단 경험</td>
+            <td><strong>제품</strong>은 관찰자 시점<br><strong>공간</strong>은 참여자/귀속 시점</td>
+          </tr>
+          <tr>
+            <td><strong>시제 프레임</strong><br>(과거/현재/미래)</td>
+            <td style="font-weight:700;">과거 회고 우세<br><span style="font-size:11px;color:var(--text3);">"-었-", "어릴 때"</span></td>
+            <td style="font-weight:700;color:var(--success);">현재+미래 우세<br><span style="font-size:11px;color:var(--text3);">"-ㄴ다", "-자"</span></td>
+            <td>제품: "먹었다", "어릴 때부터" &rarr; 기억 속의 브랜드<br>공간: "펼쳐진다", "가자" &rarr; 지금-여기 + 행동 촉구</td>
+            <td><strong>제품</strong>은 노스탤지어<br><strong>공간</strong>은 현재 몰입+확산 의지</td>
+          </tr>
+          <tr>
+            <td><strong>감각 축</strong><br>(지배 감각)</td>
+            <td style="font-weight:700;">미각+촉각<br><span style="font-size:11px;color:var(--text3);">근접 감각(Proximal)</span></td>
+            <td style="font-weight:700;color:var(--space);">시각+공간<br><span style="font-size:11px;color:var(--text3);">원격 감각(Distal)</span></td>
+            <td>제품: "녹는", "부드럽다", "달콤한" &rarr; 입안 감각<br>공간: "고급스럽다", "포토존", "분위기" &rarr; 눈과 몸의 공간 경험</td>
+            <td><strong>제품&rarr;공간</strong> 전환 시<br>감각 축 자체가 이동</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="L2-box">
+      <strong>Layer 2 결론:</strong> 제품&rarr;공간 전환 시 심리 구조가 체계적으로 변화한다.<br>
+      &bull; <strong>진정성(Auth) &darr; 20</strong>: 솔직한 개인 평가 &rarr; 사회적 공유 발화로 전환<br>
+      &bull; <strong>확신도(Clout) &uarr; 30</strong>: 수동적 소비자 &rarr; 능동적 추천자로 전환<br>
+      &bull; <strong>신선함(Freshness) 0.35 &rarr; 0.78</strong>: "이미 아는 것" &rarr; "새로운 발견"으로 전환<br>
+      이 변화는 <strong>Layer 1(감성 점수)만으로는 절대 포착할 수 없다.</strong>
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 4: Layer 3 교차분석 ==================== -->
+  <section>
+    <h2><span class="num">4</span> Layer 3: 교차 분석 &mdash; "왜 다른 반응인가"</h2>
+
+    <h3>4-0. 패턴 ID 레퍼런스 &mdash; RXR 2-Layer 교차 분석 사전</h3>
+    <p style="font-size:13px;color:var(--text2);margin-top:-6px;margin-bottom:14px;">Layer 1(감성)과 Layer 2(심리)를 교차하면 아래 6개 패턴으로 분류된다. 각 패턴은 전혀 다른 전략적 의미를 갖는다.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>패턴 ID</th><th>이름</th><th>L1 (Content) 신호</th><th>L2 (Psyche) 신호</th><th>의미</th><th>대응 전략</th></tr></thead>
+        <tbody>
+          <tr style="background:#ecfdf5;">
+            <td style="font-weight:700;color:var(--success);font-size:15px;">P-01</td>
+            <td><strong>진짜 팬</strong></td>
+            <td>긍정 80%+</td>
+            <td>Auth <strong>높음</strong><br>Clout <strong>높음</strong></td>
+            <td>진심으로 좋아하고,<br>자신 있게 추천까지 한다</td>
+            <td>VIP 관리, 레퍼럴 앰배서더 전환,<br>이 세그먼트의 리뷰를 마케팅에 활용</td>
+          </tr>
+          <tr style="background:#fef3c7;">
+            <td style="font-weight:700;color:var(--warning);font-size:15px;">P-02</td>
+            <td><strong>인스타 소비</strong></td>
+            <td>긍정 80%+<br>"사진", "예쁘다"</td>
+            <td>Auth <strong>낮음</strong><br>Clout <strong>낮음</strong></td>
+            <td>바이럴은 되지만 진심이 아님.<br>"올리고 싶었을 뿐"<br>재방문 의향 낮음</td>
+            <td>체험 깊이 강화(시식/DIY),<br>포토존 뒤에 제품 터치포인트 배치</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:var(--accent);font-size:15px;">P-03</td>
+            <td><strong>관심은 있지만<br>확신 부족</strong></td>
+            <td>긍정 70%+<br>"괜찮다", "좋다"</td>
+            <td>Auth <strong>높음</strong><br>Clout <strong>낮음</strong></td>
+            <td>솔직하게 좋다고 느끼지만,<br>남에게 추천까지는 안 함.<br>"나는 좋은데 네가 좋아할지는..."</td>
+            <td>제품 체험 터치포인트 강화,<br>샘플링 확대로 확신 전환 유도</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:var(--L2);font-size:15px;">P-04</td>
+            <td><strong>신선함 소진</strong></td>
+            <td>키워드 변화 없음<br>감성 소폭 하락</td>
+            <td>Freshness 급락<br>("이/가" &rarr; "은/는")</td>
+            <td>내용은 같지만 "새로운 발견"<br>느낌이 사라짐.<br>2~3주차부터 진행되는 체험 피로</td>
+            <td>콘텐츠 리프레시 (신규 메뉴/존 오픈),<br>주간 리프레시 캘린더 적용</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:var(--text2);font-size:15px;">P-05</td>
+            <td><strong>탐색은 길지만<br>결정 못 함</strong></td>
+            <td>체류시간 &uarr;<br>구매 &darr;</td>
+            <td>Analytical <strong>높음</strong><br>Clout <strong>낮음</strong></td>
+            <td>비교/분석 모드에 갇혀 있음.<br>"좋은 건 알겠는데 뭘 사야 할지..."<br>선택 과부하(Choice Overload)</td>
+            <td>선택지 축소, 큐레이션 동선,<br>직원 추천 / 베스트 메뉴 강조</td>
+          </tr>
+          <tr style="background:#fee2e2;">
+            <td style="font-weight:700;color:var(--danger);font-size:15px;">P-06</td>
+            <td><strong>브랜드 피로도<br>(조용한 이탈)</strong></td>
+            <td>긍정 유지<br>but 언급량 &darr;</td>
+            <td>Tone &darr; 추세<br>Clout &darr; 추세<br>Distance 변화 없음</td>
+            <td>불만은 아니지만 관심이 사라짐.<br>"싫어서 안 가는 게 아니라<br>그냥 생각이 안 나서 안 감"</td>
+            <td>긴급 리프레시 필요,<br>이벤트성 콘텐츠 투입,<br>기존 고객 재활성화 프로그램</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Zone 분류 (감성 &times; 진정성 매트릭스)</h4>
+    <div class="grid2" style="margin-bottom:18px;">
+      <div class="gcard" style="border-top:3px solid var(--success);background:#ecfdf5;">
+        <h4 style="color:var(--success);margin:0 0 4px;">Zone A: 진짜 팬</h4>
+        <p><strong>감성 긍정 + Auth 높음</strong><br>진심으로 좋아한다. P-01과 동일 영역.<br>재방문/재구매 확률 가장 높은 세그먼트.</p>
+      </div>
+      <div class="gcard" style="border-top:3px solid var(--warning);background:#fef3c7;">
+        <h4 style="color:var(--warning);margin:0 0 4px;">Zone B: 인스타 소비</h4>
+        <p><strong>감성 긍정 + Auth 낮음</strong><br>"예쁘니까 올린 것." P-02와 동일 영역.<br>바이럴 기여는 하지만 재방문 가치 낮음.</p>
+      </div>
+      <div class="gcard" style="border-top:3px solid var(--danger);background:#fee2e2;">
+        <h4 style="color:var(--danger);margin:0 0 4px;">Zone C: 진심 불만</h4>
+        <p><strong>감성 부정 + Auth 높음</strong><br>실제 문제가 존재한다는 신호. 무시 금지.<br>"팜유 싸구려", "특색 없다" = 진짜 개선점.</p>
+      </div>
+      <div class="gcard" style="border-top:3px solid var(--text3);background:#f1f5f9;">
+        <h4 style="color:var(--text3);margin:0 0 4px;">Zone D: 노이즈</h4>
+        <p><strong>감성 부정 + Auth 낮음</strong><br>악의적/경쟁사 공격성 리뷰 가능성.<br>분석 대상에서 필터링 후 제외.</p>
+      </div>
+    </div>
+
+    <div class="def-box">
+      <strong>읽는 법:</strong> 아래 교차 분석에서 각 리뷰 유형에 패턴 ID가 부여된다. 패턴 ID를 보면 <strong>"이 리뷰가 어떤 심리 상태이고, 어떤 전략으로 대응해야 하는지"</strong>가 즉시 파악된다. 이것이 단순 감성 분석(긍정/부정)과 2-Layer 분석의 결정적 차이.
+    </div>
+
+    <h3>4-1. 제품 리뷰 &mdash; 패턴 매칭</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>리뷰 유형</th><th>L1 (Content)</th><th>L2 (Psyche)</th><th>패턴 ID</th><th>2-Layer 인사이트</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>솔직한 팬</strong></td>
+            <td>긍정 / "맛있다", "맞다"</td>
+            <td>Auth 높음, Clout 낮음</td>
+            <td style="font-weight:700;color:var(--accent);">P-03</td>
+            <td><strong>관심은 있지만 추천 의지 없음.</strong> "난 좋아하는데 남한테 권하기는..." &mdash; 개인적 만족에 머무름</td>
+          </tr>
+          <tr>
+            <td><strong>분석적 비판자</strong></td>
+            <td>부정 / "팜유", "싸구려"</td>
+            <td>Auth 높음, Analytical 높음</td>
+            <td style="font-weight:700;color:var(--danger);">P-03 변형</td>
+            <td><strong>진심 불만 (Zone C).</strong> 실제 품질 문제 인지. 무시하면 안 됨</td>
+          </tr>
+          <tr>
+            <td><strong>추억형 소비자</strong></td>
+            <td>긍정 / "어릴 때", "추억"</td>
+            <td>Auth 높음, Tone 중립, 시제: 과거</td>
+            <td style="font-weight:700;color:var(--warning);">P-06 전조</td>
+            <td><strong>노스탤지어 의존.</strong> 현재 브랜드 경험이 아닌 과거 기억에 의존 &mdash; 새로운 경험 없이 점진적 이탈 가능</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warning-box">
+      <strong>제품 진단:</strong> L1만 보면 "긍정 48%, 그럭저럭" &mdash; L2를 더하면 긍정 리뷰조차 <strong>추천 의지가 없고(Clout 35), 과거 추억에 의존</strong>하고 있음이 드러남. 브랜드가 현재 시점에서 새로운 긍정 경험을 생산하지 못하고 있다.
+    </div>
+
+    <h3>4-2. 공간 리뷰 &mdash; 패턴 매칭</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>리뷰 유형</th><th>L1 (Content)</th><th>L2 (Psyche)</th><th>패턴 ID</th><th>2-Layer 인사이트</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>인스타 소비형</strong></td>
+            <td>긍정 90%+ / "예쁘다", "사진"</td>
+            <td>Auth 낮음, Clout 낮음, Tone 높음</td>
+            <td style="font-weight:700;color:var(--warning);">P-02</td>
+            <td><strong>바이럴 =/= 충성.</strong> SNS 공유는 하지만 재방문 의향 약함. 인스타에 올리고 싶었을 뿐</td>
+          </tr>
+          <tr>
+            <td><strong>기대 위반형</strong></td>
+            <td>긍정 / "생각보다 좋았다", "감동"</td>
+            <td>Auth 높음, Clout 높음, Freshness 높음</td>
+            <td style="font-weight:700;color:var(--success);">P-01</td>
+            <td><strong>진짜 팬 전환.</strong> "제품 팝업인 줄 알았는데 진심인 공간" &mdash; 스키마 위반이 진정한 긍정 반응 생성</td>
+          </tr>
+          <tr>
+            <td><strong>관계 소비형</strong></td>
+            <td>긍정 / "같이 가자", "데이트"</td>
+            <td>Clout 높음, Distance 낮음(우리/여기), 시제: 미래</td>
+            <td style="font-weight:700;color:var(--success);">P-01 변형</td>
+            <td><strong>행동 전환 완료.</strong> 단순 감상을 넘어 동반자에게 행동을 촉구 &mdash; 가장 높은 전환 가치</td>
+          </tr>
+          <tr>
+            <td><strong>실망형</strong></td>
+            <td>부정 / "별거 없다", "아쉽다"</td>
+            <td>Auth 높음, Tone 낮음</td>
+            <td style="font-weight:700;color:var(--danger);">Zone C</td>
+            <td><strong>진심 불만.</strong> 소수지만 Auth 높아 실제 문제 반영. 특히 "초콜릿 특색 부족"은 제품-공간 연결 약점 시사</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="insight-box">
+      <strong>공간 진단:</strong> 긍정 86% 중 분류하면 &mdash;<br>
+      &bull; <strong>인스타 소비 (P-02):</strong> 약 40~45% &mdash; Auth 낮음, Clout 낮음. 바이럴은 되지만 재방문 가치 낮음<br>
+      &bull; <strong>진짜 팬 (P-01):</strong> 약 30~35% &mdash; Auth+Clout 모두 높음. 진정한 브랜드 옹호자<br>
+      &bull; <strong>관계 소비 (P-01 변형):</strong> 약 15~20% &mdash; 행동 전환까지 완료. 최고 가치 세그먼트<br>
+      <strong>Layer 1의 "긍정 86%"는 하나의 숫자지만, Layer 2를 추가하면 3개의 전혀 다른 세그먼트가 드러난다.</strong>
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 5: 감각 전환 ==================== -->
+  <section>
+    <h2><span class="num">5</span> 핵심 발견: 5대 심리 축의 체계적 전환</h2>
+
+    <div class="def-box">
+      동일 브랜드 "가나"가 <strong>제품&rarr;공간</strong>으로 확장될 때, 소비자의 언어 구조에서 <strong>5개 심리 축이 동시에 전환</strong>된다. 이 전환은 Layer 1(내용 분석)만으로는 "토픽이 다르다" 정도만 보이지만, Layer 2(심리 분석)를 추가해야 <strong>"왜 다른지", "그것이 비즈니스에 무엇을 의미하는지"</strong>가 보인다.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>심리 축</th>
+            <th style="text-align:center;"><span class="tag tag-choco">제품</span></th>
+            <th style="text-align:center;">&rarr;</th>
+            <th style="text-align:center;"><span class="tag tag-space">공간</span></th>
+            <th>기능어 증거</th>
+            <th>비즈니스 의미</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. 자아 축</strong><br>"나" &rarr; "여기/우리"</td>
+            <td style="text-align:center;">개인적 경험</td>
+            <td style="text-align:center;font-size:18px;color:var(--accent);">&rarr;</td>
+            <td style="text-align:center;color:var(--space);font-weight:600;">사회적 경험</td>
+            <td>1인칭 단수 &darr;<br>장소 지시어+복수형 &uarr;</td>
+            <td>공간이 소비를 <strong>"공유 가능한 경험"</strong>으로 전환 &mdash; 바이럴 구조 형성</td>
+          </tr>
+          <tr>
+            <td><strong>2. 시간 축</strong><br>과거 &rarr; 현재+미래</td>
+            <td style="text-align:center;">노스탤지어</td>
+            <td style="text-align:center;font-size:18px;color:var(--accent);">&rarr;</td>
+            <td style="text-align:center;color:var(--space);font-weight:600;">현재 몰입</td>
+            <td>과거 시제 &darr;<br>현재형+청유형(-자) &uarr;</td>
+            <td>브랜드가 <strong>"기억"에서 "현재 경험"</strong>으로 리포지셔닝 &mdash; 노스탤지어 의존 탈피</td>
+          </tr>
+          <tr>
+            <td><strong>3. 감각 축</strong><br>미각 &rarr; 시각</td>
+            <td style="text-align:center;">입안 감각</td>
+            <td style="text-align:center;font-size:18px;color:var(--accent);">&rarr;</td>
+            <td style="text-align:center;color:var(--space);font-weight:600;">공간 감각</td>
+            <td>미각/촉각 단어 &darr;<br>시각/공간 단어 &uarr;</td>
+            <td>근접 감각(Proximal)&rarr;원격 감각(Distal) 전환 &mdash; <strong>SNS 공유에 최적화된 감각 구조</strong></td>
+          </tr>
+          <tr>
+            <td><strong>4. 인지 축</strong><br>분석 &rarr; 감동</td>
+            <td style="text-align:center;">이성적 평가</td>
+            <td style="text-align:center;font-size:18px;color:var(--accent);">&rarr;</td>
+            <td style="text-align:center;color:var(--space);font-weight:600;">감성적 반응</td>
+            <td>Analytical 65&rarr;45<br>인과 접속사 &darr;, 감탄사 &uarr;</td>
+            <td>분석적 비교 대상&rarr;<strong>감정적 몰입 대상</strong> &mdash; 가격 경쟁에서 가치 경쟁으로</td>
+          </tr>
+          <tr>
+            <td><strong>5. 행동 축</strong><br>평가 &rarr; 추천</td>
+            <td style="text-align:center;">수동적 소비자</td>
+            <td style="text-align:center;font-size:18px;color:var(--accent);">&rarr;</td>
+            <td style="text-align:center;color:var(--space);font-weight:600;">능동적 추천자</td>
+            <td>Clout 35&rarr;65<br>청유형 어미 &uarr;</td>
+            <td>소비자가 <strong>자발적 영업사원</strong>으로 전환 &mdash; 마케팅 비용 구조 변화</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="insight-box">
+      <strong>이 전환 데이터의 가치:</strong> "공간이 좋다"는 누구나 알 수 있지만, <strong>"5개 심리 축이 동시에 전환된다"</strong>는 정량 데이터는 RXR 2-Layer만 제공할 수 있다. 이것이 IR/제안서에서 "감각적이었습니다" 대신 <strong>"Clout 35→65, Freshness 0.35→0.78, 감각 축 Proximal→Distal 전환"</strong>이라고 말할 수 있는 근거.
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 6: 전략적 시사점 ==================== -->
+  <section>
+    <h2><span class="num">6</span> 전략적 시사점 &mdash; 2-Layer가 만드는 차이</h2>
+
+    <h3>6-1. Layer 1만 vs 2-Layer 통합 &mdash; 인사이트 품질 비교</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>질문</th><th><span class="tag tag-L1">Layer 1만</span> 답변</th><th><span style="font-weight:700;color:var(--accent);">2-Layer 통합</span> 답변</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>공간이 성공했나?</strong></td>
+            <td>"긍정 86%, 성공"</td>
+            <td>"긍정 86% 중 진짜 팬은 30~35%. 나머지 40~45%는 <strong>인스타 소비형(Auth 낮음)</strong>으로 재방문 가치 낮음"</td>
+          </tr>
+          <tr>
+            <td><strong>제품 브랜드는 건강한가?</strong></td>
+            <td>"긍정 48%, 부정 30%, 보통"</td>
+            <td>"긍정 리뷰도 Clout 35 &mdash; 추천 의지 없음. 긍정의 대부분이 <strong>과거 추억 기반(시제 과거 우세)</strong>이라 현재 경험 생산력 부족"</td>
+          </tr>
+          <tr>
+            <td><strong>공간이 제품 대비 나은 이유?</strong></td>
+            <td>"감성 점수가 더 높다"</td>
+            <td>"5개 심리 축(자아/시간/감각/인지/행동)이 <strong>동시에 전환</strong>되며 소비자를 평가자에서 추천자로 변환"</td>
+          </tr>
+          <tr>
+            <td><strong>다음 팝업에서 뭘 바꿔야?</strong></td>
+            <td>"긍정 유지하면 된다"</td>
+            <td>"인스타 소비(P-02)를 진짜 팬(P-01)으로 전환하려면 <strong>체험 깊이 강화 필요</strong>. 포토존만으로는 Auth 올릴 수 없음. 제품 터치포인트(DIY/테이스팅)를 동선 핵심에 배치"</td>
+          </tr>
+          <tr>
+            <td><strong>시즌4를 해야 하나?</strong></td>
+            <td>"긍정이니 해도 됨"</td>
+            <td>"Freshness 0.78은 '아직 신선'이지만, 시즌 반복 시 하락 필연. <strong>주간 리프레시 캘린더</strong>와 시즌별 차별화 콘텐츠 필수. Freshness 모니터링으로 소진 시점 사전 감지"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6-2. 가나초콜릿하우스를 위한 세그먼트별 전략</h3>
+    <div class="grid3">
+      <div class="gcard" style="border-top:3px solid var(--warning);">
+        <h4 style="color:var(--warning);">인스타 소비형 (40~45%)</h4>
+        <p><strong>L1:</strong> 긍정 / "예쁘다", "사진"<br>
+        <strong>L2:</strong> Auth 낮음, Clout 낮음<br><br>
+        <strong>전략:</strong> 포토존 뒤에 제품 체험 동선 배치. "사진 찍고 &rarr; 시식 &rarr; 구매"로 연결. SNS 공유 시 체험 쿠폰 제공하여 <strong>바이럴을 체험으로 전환</strong></p>
+      </div>
+      <div class="gcard" style="border-top:3px solid var(--success);">
+        <h4 style="color:var(--success);">진짜 팬 (30~35%)</h4>
+        <p><strong>L1:</strong> 긍정 / "감동", "진심"<br>
+        <strong>L2:</strong> Auth 높음, Clout 높음<br><br>
+        <strong>전략:</strong> VIP 프로그램(시즌 프리오픈, 한정 메뉴), 리뷰어 앰배서더 프로그램. 이 세그먼트의 리뷰가 <strong>다른 소비자의 P-02&rarr;P-01 전환</strong>을 유도</p>
+      </div>
+      <div class="gcard" style="border-top:3px solid var(--accent);">
+        <h4 style="color:var(--accent);">관계 소비형 (15~20%)</h4>
+        <p><strong>L1:</strong> 긍정 / "같이", "데이트"<br>
+        <strong>L2:</strong> Clout 높음, Distance 낮음<br><br>
+        <strong>전략:</strong> 2인/그룹 전용 메뉴, 커플/가족 체험 코스. "함께 만드는 초콜릿" DIY를 핵심 프로그램으로 &mdash; <strong>관계 기억에 브랜드 각인</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 7: 핵심 요약 ==================== -->
+  <section style="background:linear-gradient(135deg,#3b1506,#4c1d95);color:#fff;">
+    <h2 style="color:#fff;border-bottom-color:rgba(255,255,255,0.2);"><span class="num">&starf;</span> 핵심 요약</h2>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:10px;">
+      <div>
+        <h4 style="color:#fcd34d;font-size:13px;margin-bottom:10px;">Layer 1만의 결론</h4>
+        <ul style="color:#cbd5e1;font-size:13px;">
+          <li>제품: 긍정 48%, 보통</li>
+          <li>공간: 긍정 86%, 대성공</li>
+          <li>"공간이 제품보다 좋다"</li>
+          <li>전략? "계속 하면 된다"</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color:#c4b5fd;font-size:13px;margin-bottom:10px;">2-Layer 통합의 결론</h4>
+        <ul style="color:#e2e8f0;font-size:13px;">
+          <li>제품: 긍정도 <strong>Clout 35, 추천 의지 없음. 과거 추억 의존</strong></li>
+          <li>공간: 긍정 86% 중 <strong>진짜 팬 30~35%, 인스타 소비 40~45%</strong></li>
+          <li>제품&rarr;공간 전환 시 <strong>5개 심리 축 동시 전환</strong> 실증</li>
+          <li>전략: 세그먼트별 차별화 + Freshness 모니터링</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:28px;padding:18px;background:rgba(255,255,255,0.08);border-radius:12px;">
+      <div style="font-size:17px;font-weight:700;color:#fff;line-height:1.5;">
+        같은 "긍정 86%"도, Layer 2를 추가하면<br>3개의 전혀 다른 세그먼트가 보인다.
+      </div>
+      <div style="font-size:13px;color:#94a3b8;margin-top:8px;">
+        Layer 1은 "좋다/나쁘다"를 말해준다. Layer 2는 <strong style="color:#c4b5fd;">"왜 좋은지, 얼마나 진심인지, 언제까지 지속될지"</strong>를 말해준다.
+      </div>
+    </div>
+
+    <div style="margin-top:20px;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;text-align:center;">
+      <div style="padding:12px;background:rgba(255,255,255,0.06);border-radius:10px;">
+        <div style="font-size:11px;color:#fcd34d;font-weight:600;">자아 축</div>
+        <div style="font-size:13px;color:#fff;margin-top:4px;">"나" &rarr; "우리"</div>
+      </div>
+      <div style="padding:12px;background:rgba(255,255,255,0.06);border-radius:10px;">
+        <div style="font-size:11px;color:#fcd34d;font-weight:600;">시간 축</div>
+        <div style="font-size:13px;color:#fff;margin-top:4px;">과거 &rarr; 현재</div>
+      </div>
+      <div style="padding:12px;background:rgba(255,255,255,0.06);border-radius:10px;">
+        <div style="font-size:11px;color:#fcd34d;font-weight:600;">감각 축</div>
+        <div style="font-size:13px;color:#fff;margin-top:4px;">미각 &rarr; 시각</div>
+      </div>
+      <div style="padding:12px;background:rgba(255,255,255,0.06);border-radius:10px;">
+        <div style="font-size:11px;color:#fcd34d;font-weight:600;">인지 축</div>
+        <div style="font-size:13px;color:#fff;margin-top:4px;">분석 &rarr; 감동</div>
+      </div>
+      <div style="padding:12px;background:rgba(255,255,255,0.06);border-radius:10px;">
+        <div style="font-size:11px;color:#fcd34d;font-weight:600;">행동 축</div>
+        <div style="font-size:13px;color:#fff;margin-top:4px;">평가 &rarr; 추천</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    Project RENT &middot; R-lab &middot; RXR 2-Layer Case Study: 가나초콜릿 &middot; 2026.04
+  </div>
+</div>
+</body>
+</html>

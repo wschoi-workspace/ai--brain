@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>종교 기반 복합문화공간 리서치</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #333;
+    --text: #e0e0e0;
+    --text-muted: #888;
+    --accent: #6C5CE7;
+    --accent2: #a29bfe;
+    --green: #00b894;
+    --orange: #fdcb6e;
+    --red: #e17055;
+    --blue: #74b9ff;
+    --pink: #fd79a8;
+    --teal: #81ecec;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #1a0533 0%, #0a0a2e 50%, #0f0f0f 100%);
+    padding: 80px 40px 60px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent2), var(--teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+  }
+  .hero .meta {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .hero .meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* Container */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* Part Header */
+  .part-header {
+    text-align: center;
+    margin: 60px 0 40px;
+    padding: 32px;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+  .part-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+  .part-header p {
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent2);
+    margin: 24px 0 12px;
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-buddhist { background: rgba(253,203,110,0.15); color: var(--orange); }
+  .badge-christian { background: rgba(116,185,255,0.15); color: var(--blue); }
+  .badge-catholic { background: rgba(253,121,168,0.15); color: var(--pink); }
+  .badge-islam { background: rgba(0,184,148,0.15); color: var(--green); }
+  .badge-multi { background: rgba(162,155,254,0.15); color: var(--accent2); }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  thead { background: var(--surface2); }
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--accent2);
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    vertical-align: top;
+  }
+  tr:hover td { background: rgba(108,92,231,0.05); }
+  td strong { color: #fff; }
+
+  /* Insight Card */
+  .insight-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+    border-left: 4px solid var(--accent);
+  }
+  .insight-card h5 {
+    font-size: 0.95rem;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+  .insight-card p, .insight-card li {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+  .insight-card ul { padding-left: 20px; }
+
+  /* Key Point */
+  .key-point {
+    background: linear-gradient(135deg, rgba(108,92,231,0.1), rgba(129,236,236,0.05));
+    border: 1px solid rgba(108,92,231,0.3);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 0.88rem;
+  }
+  .key-point strong { color: var(--teal); }
+
+  /* BM Card Grid */
+  .bm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 20px;
+    margin: 24px 0;
+  }
+  .bm-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    transition: border-color 0.3s;
+  }
+  .bm-card:hover { border-color: var(--accent); }
+  .bm-card .bm-num {
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .bm-card h4 {
+    font-size: 1.05rem;
+    color: #fff;
+    margin: 0 0 6px;
+  }
+  .bm-card .bm-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    font-style: italic;
+  }
+  .bm-card .bm-features {
+    list-style: none;
+    padding: 0;
+  }
+  .bm-card .bm-features li {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .bm-card .bm-features li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* Stars */
+  .stars { color: var(--orange); letter-spacing: 1px; }
+
+  /* Comparison Matrix */
+  .matrix-table td:first-child { font-weight: 600; color: #fff; white-space: nowrap; }
+
+  /* Purpose Cards */
+  .purpose-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .purpose-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .purpose-card .purpose-label {
+    font-size: 0.7rem;
+    color: var(--green);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .purpose-card h5 {
+    font-size: 0.95rem;
+    color: #fff;
+    margin: 6px 0 8px;
+  }
+  .purpose-card p {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .purpose-card .examples {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .purpose-card .examples strong { color: var(--accent2); }
+
+  /* Highlight Stat */
+  .stat-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 24px 0;
+  }
+  .stat-box {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-box .stat-num {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent2), var(--teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-box .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Traits list */
+  .traits {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+  }
+  .traits li {
+    font-size: 0.88rem;
+    padding: 6px 0 6px 20px;
+    position: relative;
+    color: var(--text-muted);
+  }
+  .traits li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: absolute;
+    left: 0;
+    top: 14px;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 48px 0;
+  }
+
+  /* Footer */
+  .sources {
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-top: 48px;
+  }
+  .sources h4 {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+  .sources a {
+    display: block;
+    color: var(--accent2);
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 3px 0;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .sources a:hover { opacity: 1; text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero { padding: 48px 20px 40px; }
+    .hero h1 { font-size: 1.6rem; }
+    .container { padding: 24px 16px; }
+    .bm-grid { grid-template-columns: 1fr; }
+    .purpose-grid { grid-template-columns: 1fr; }
+    .stat-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>종교 기반 복합문화공간 리서치</h1>
+  <p style="color:var(--text-muted); margin-bottom: 16px; font-size: 0.95rem;">
+    종교활동이 아닌, 전시 / F&B / 체험 / 교육 중심으로 운영되는 문화공간의 비즈니스 모델 분석
+  </p>
+  <div class="meta">
+    <span>Part 1: 한국 (불교 / 기독교)</span>
+    <span>Part 2: 전세계 7개 BM 유형</span>
+    <span>2026-04-05</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ==================== PART 1 ==================== -->
+<div class="part-header">
+  <h2>Part 1: 한국 사례</h2>
+  <p>불교 / 기독교(개신교 + 가톨릭) - 소규모 단일공간 & 대규모 복합공간</p>
+</div>
+
+<!-- 1. 불교 -->
+<div class="section">
+  <h3><span class="badge badge-buddhist">불교</span> 1. 불교 기반 문화공간</h3>
+
+  <h4>1-A. 소규모 단일공간</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>공간명</th><th>위치</th><th>운영주체</th><th>주요 콘텐츠</th><th>비즈니스 모델</th></tr></thead>
+      <tbody>
+        <tr><td><strong>카페 나무</strong></td><td>서울 종로구 조계사</td><td>대한불교조계종</td><td>차·다과 카페, 문화상품</td><td>F&B + 굿즈 판매</td></tr>
+        <tr><td><strong>나무갤러리</strong></td><td>서울 종로구</td><td>조계종</td><td>상설전시 + 기획전시</td><td>무료 전시 (카페·기념품 연계)</td></tr>
+        <tr><td><strong>선재사찰음식문화센터</strong></td><td>서울 법룡사</td><td>선재 스님</td><td>사찰음식 강좌, 체험</td><td>수강료</td></tr>
+        <tr><td><strong>두수고방</strong></td><td>경기도 수원</td><td>정관 스님</td><td>사찰음식 다이닝</td><td>프리미엄 식사 매출</td></tr>
+        <tr><td><strong>본디나 매장</strong></td><td>템플스테이 홍보관</td><td>한국불교문화사업단</td><td>전통문화상품 브랜드</td><td>굿즈 판매</td></tr>
+        <tr><td><strong>마하몰</strong></td><td>온·오프라인</td><td>불교문화상품 전문</td><td>라이프스타일 큐레이션</td><td>이커머스</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul class="traits">
+    <li>사찰 부지 활용 → 임대료 최소화</li>
+    <li>"명상·힐링·전통문화" 키워드로 포지셔닝, 종교색 최소화</li>
+    <li>단일 기능 특화 (카페 / 갤러리 / 음식체험 / 굿즈숍)</li>
+  </ul>
+
+  <h4>1-B. 대규모 복합공간</h4>
+
+  <!-- 조계사 -->
+  <h4 style="color:#fff;">① 조계사 불교문화벨트 <span style="font-size:0.8rem; color:var(--text-muted);">서울 종로구</span></h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>시설</th><th>기능</th></tr></thead>
+      <tbody>
+        <tr><td><strong>불교중앙박물관</strong></td><td>상설/기획전시 (성보 유물 3,500점+)</td></tr>
+        <tr><td><strong>나무갤러리</strong></td><td>현대미술 x 불교미술 전시</td></tr>
+        <tr><td><strong>카페 나무</strong></td><td>F&B (차·다과)</td></tr>
+        <tr><td><strong>발우공양 레스토랑</strong></td><td>미쉐린 1스타 사찰음식 (일 120명, 외국인 35%+)</td></tr>
+        <tr><td><strong>템플스테이 홍보관</strong></td><td>프로그램 안내 + 본디나 굿즈숍</td></tr>
+        <tr><td><strong>한국불교역사문화기념관</strong></td><td>전시·교육·국제회의</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="key-point">
+    <strong>핵심:</strong> 발우공양은 미쉐린 스타 획득으로 "사찰음식"을 글로벌 다이닝 브랜드화. 외국인 관광객이 수익의 핵심 드라이버.
+    BM = F&B(코스 3.6~12만원) + 박물관 입장료 + 템플스테이(3~8만원) + 굿즈 + 대관 + 종단 보조
+  </div>
+
+  <!-- 템플스테이 -->
+  <h4 style="color:#fff;">② 템플스테이 네트워크 <span style="font-size:0.8rem; color:var(--text-muted);">전국 137개 사찰</span></h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>유형</th><th>내용</th><th>가격</th></tr></thead>
+      <tbody>
+        <tr><td>체험형 (1박2일)</td><td>예불, 108배, 차담, 염주 만들기</td><td>5~8만원</td></tr>
+        <tr><td>휴식형 (1박2일)</td><td>자유 산책, 명상, 사찰 체류</td><td>3~5만원</td></tr>
+        <tr><td>당일형</td><td>사찰음식 만들기, 차담</td><td>1.5~3만원</td></tr>
+        <tr><td>행복두배</td><td>정부 지원 할인</td><td>3만원</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="key-point">
+    <strong>핵심:</strong> 한국 최성공 종교 문화 비즈니스. 누적 600만명+. "종교 체험" → "웰니스 관광" 리브랜딩.
+    BM = 참가비 + 정부 보조금(문체부) + 부대 수익(카페·기념품) + 외국인 프로그램
+  </div>
+</div>
+
+<!-- 2. 기독교 -->
+<div class="section">
+  <h3><span class="badge badge-christian">기독교</span> 2. 기독교 기반 문화공간</h3>
+
+  <h4>2-A. 소규모 단일공간</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>공간명</th><th>위치</th><th>운영주체</th><th>콘텐츠</th><th>BM</th></tr></thead>
+      <tbody>
+        <tr><td><strong>갤러리교회</strong></td><td>서울</td><td>개별 교회</td><td>평일=갤러리, 일요일=예배</td><td>후원 기반 (비영리)</td></tr>
+        <tr><td><strong>카페 그레이스</strong></td><td>서울 정동 (성공회)</td><td>GFS우물가</td><td>카페 (탈북여성 바리스타)</td><td>F&B + 사회적기업 지원금</td></tr>
+        <tr><td><strong>아트스페이스 노갤러리교회</strong></td><td>서울</td><td>개별 교회</td><td>갤러리 + 공연장, 무료 대관</td><td>후원 기반</td></tr>
+        <tr><td><strong>한국천주교순교자박물관</strong></td><td>서울 마포구 절두산</td><td>서울대교구</td><td>순교 역사 전시 (3,500점+)</td><td>무료 (교구 재정)</td></tr>
+        <tr><td><strong>한국기독교역사문화관</strong></td><td>서울 은평구</td><td>기독교역사문화재단</td><td>상설/기획전시 + 아카이브</td><td>입장료 + 교육 + 재단</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>2-B. 대규모 복합공간</h4>
+
+  <h4 style="color:#fff;">① 1898 명동성당 <span class="badge badge-catholic">가톨릭</span> <span style="font-size:0.8rem; color:var(--text-muted);">서울 중구</span></h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>시설</th><th>기능</th></tr></thead>
+      <tbody>
+        <tr><td><strong>갤러리 1898</strong></td><td>가톨릭 미술 + 현대미술 전시</td></tr>
+        <tr><td><strong>1898+ 기념품점</strong></td><td>성당 공식 기념품·성물</td></tr>
+        <tr><td><strong>북카페 (인터파크 북파크)</strong></td><td>서점 + 카페</td></tr>
+        <tr><td><strong>르빵</strong></td><td>베이커리 (당일 판매, 잔여 기부)</td></tr>
+        <tr><td><strong>리브레</strong></td><td>공정무역 커피</td></tr>
+        <tr><td><strong>RE;CODE</strong></td><td>업사이클링 패션</td></tr>
+        <tr><td><strong>기타</strong></td><td>약 20개 입점 매장</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="key-point">
+    <strong>핵심:</strong> 종교 복합문화공간 중 가장 상업적 성공 사례. 프라임 입지 + 성당 관광 앵커 + 사회적 가치 입점 큐레이션.
+    BM = 임대 수익(핵심) + 직영 매출 + 대관 + 관광
+  </div>
+
+  <h4 style="color:#fff;">② 고촌아트홀 <span class="badge badge-christian">개신교</span> <span style="font-size:0.8rem; color:var(--text-muted);">경기도</span></h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>시설</th><th>기능</th></tr></thead>
+      <tbody>
+        <tr><td><strong>고촌아트홀</strong></td><td>대형 공연장</td></tr>
+        <tr><td><strong>갤러리 + 카페</strong></td><td>1층 통유리 전시 + F&B</td></tr>
+        <tr><td><strong>악기 교육시설</strong></td><td>층별 관악기/현악기 수업</td></tr>
+        <tr><td><strong>관현악 꿈의 학교</strong></td><td>토요 500명+ 초중생 클래스</td></tr>
+        <tr><td><strong>7개 오케스트라 + 합창단</strong></td><td>정기 공연</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 3. 한국 비교 분석 -->
+<div class="section">
+  <h3>3. 한국 비즈니스 모델 비교</h3>
+
+  <h4>수익 구조 매트릭스</h4>
+  <div class="table-wrap">
+    <table class="matrix-table">
+      <thead><tr><th>수익원</th><th>불교</th><th>개신교</th><th>가톨릭</th></tr></thead>
+      <tbody>
+        <tr><td>F&B</td><td><span class="stars">&#9733;&#9733;&#9733;</span> 발우공양, 사찰음식</td><td><span class="stars">&#9733;</span> 부속 카페</td><td><span class="stars">&#9733;&#9733;</span> 입점 카페·베이커리</td></tr>
+        <tr><td>전시 입장료</td><td><span class="stars">&#9733;&#9733;</span></td><td><span class="stars">&#9733;</span> 대부분 무료</td><td><span class="stars">&#9733;</span> 대부분 무료</td></tr>
+        <tr><td>체험 프로그램</td><td><span class="stars">&#9733;&#9733;&#9733;</span> 템플스테이</td><td><span class="stars">&#9733;&#9733;</span> 음악교육</td><td><span class="stars">&#9733;</span></td></tr>
+        <tr><td>굿즈 판매</td><td><span class="stars">&#9733;&#9733;</span> 본디나, 마하몰</td><td><span class="stars">&#9733;</span></td><td><span class="stars">&#9733;&#9733;</span> 1898+ 성물</td></tr>
+        <tr><td>임대/대관</td><td><span class="stars">&#9733;</span></td><td><span class="stars">&#9733;&#9733;</span> 아트홀 대관</td><td><span class="stars">&#9733;&#9733;&#9733;</span> 1898 임대</td></tr>
+        <tr><td>정부 보조금</td><td><span class="stars">&#9733;&#9733;&#9733;</span> 문체부</td><td><span class="stars">&#9733;</span></td><td><span class="stars">&#9733;</span></td></tr>
+        <tr><td>종단/교단 재정</td><td><span class="stars">&#9733;&#9733;</span></td><td><span class="stars">&#9733;&#9733;&#9733;</span> 헌금</td><td><span class="stars">&#9733;&#9733;&#9733;</span> 교구 재정</td></tr>
+        <tr><td>관광객 유입</td><td><span class="stars">&#9733;&#9733;&#9733;</span> K-Culture</td><td><span class="stars">&#9733;</span></td><td><span class="stars">&#9733;&#9733;&#9733;</span> 명동 입지</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-card">
+    <h5>불교 = "체험경제" 모델</h5>
+    <ul><li>템플스테이 누적 600만명 — "웰니스 관광" 리브랜딩</li><li>사찰음식이 미쉐린/넷플릭스로 글로벌 브랜드화</li><li>정부(문체부) 지원이 강력한 재정 기반</li></ul>
+  </div>
+  <div class="insight-card" style="border-left-color:var(--pink);">
+    <h5>가톨릭 = "공간 임대 + 관광앵커" 모델</h5>
+    <ul><li>1898 명동성당 — 프라임 입지 성당이 관광 앵커</li><li>지하 유휴 공간 → 복합 상업시설 개발</li><li>사회적 가치 기반 입점 큐레이션이 차별점</li></ul>
+  </div>
+  <div class="insight-card" style="border-left-color:var(--blue);">
+    <h5>개신교 = "커뮤니티 허브" 모델</h5>
+    <ul><li>교회 시설을 지역 문화공간으로 개방</li><li>교육(음악, 아트) 프로그램이 주요 콘텐츠</li><li>헌금 기반 운영 — 독립적 BM 구축이 약함</li></ul>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ==================== PART 2 ==================== -->
+<div class="part-header">
+  <h2>Part 2: 전세계 7가지 비즈니스 모델</h2>
+  <p>종교 기반 대형 복합문화공간의 글로벌 사례 — BM 유형별 + 목적별 분류</p>
+</div>
+
+<!-- Stat Row -->
+<div class="stat-row">
+  <div class="stat-box">
+    <div class="stat-num">€1.36억</div>
+    <div class="stat-label">사그라다 파밀리아 연 매출 (2025)</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num">700만명</div>
+    <div class="stat-label">바티칸 박물관 연 방문객</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num">1,000만명+</div>
+    <div class="stat-label">불광산 불타기념관 (무료입장)</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num">600만명</div>
+    <div class="stat-label">한국 템플스테이 누적 참가자</div>
+  </div>
+</div>
+
+<!-- 7 BM Cards -->
+<div class="section">
+  <h3>비즈니스 모델 7가지 유형</h3>
+  <div class="bm-grid">
+
+    <!-- BM-1 -->
+    <div class="bm-card">
+      <div class="bm-num">BM-1</div>
+      <h4>관광 수익형 <span style="font-size:0.8rem; color:var(--text-muted);">Heritage Tourism</span></h4>
+      <div class="bm-desc">종교 건축/유산 자체가 관광 상품. 입장료가 매출의 90%+</div>
+      <ul class="bm-features">
+        <li><strong>사그라다 파밀리아</strong> — 바르셀로나. 488만명/년, €1.36억. 100% 민간자금, 52% 건축 재투자</li>
+        <li><strong>바티칸 박물관</strong> — 700만명/년, ~$1억. 교황청 전체 행정비의 핵심 재원</li>
+        <li><strong>셰이크 자이드 모스크</strong> — 아부다비. 700만명, 수크(마켓)+극장+전시관. 정부 운영</li>
+      </ul>
+    </div>
+
+    <!-- BM-2 -->
+    <div class="bm-card">
+      <div class="bm-num">BM-2</div>
+      <h4>체험경제형 <span style="font-size:0.8rem; color:var(--text-muted);">Experience Economy</span></h4>
+      <div class="bm-desc">종교 문화를 "체험 상품"으로 패키징. F&B + 참가비가 핵심.</div>
+      <ul class="bm-features">
+        <li><strong>츠키지 혼간지</strong> — 도쿄. 400년 사찰이 "오픈 템플"로 리브랜딩. 18품 아침이 관광 명물</li>
+        <li><strong>템플스테이</strong> — 한국 137개 사찰. 누적 600만명. "웰니스 관광" 리프레이밍</li>
+        <li><strong>발우공양</strong> — 서울. 미쉐린 1스타 사찰음식. 외국인 35%+</li>
+        <li><strong>SMCCU</strong> — 두바이. 모스크 투어 + 에미라티 전통식사 체험</li>
+      </ul>
+    </div>
+
+    <!-- BM-3 -->
+    <div class="bm-card">
+      <div class="bm-num">BM-3</div>
+      <h4>복합 임대형 <span style="font-size:0.8rem; color:var(--text-muted);">Mixed-Use Lease</span></h4>
+      <div class="bm-desc">종교 부지에 상업시설 개발. 임대 수익이 안정적 캐시플로우.</div>
+      <ul class="bm-features">
+        <li><strong>1898 명동성당</strong> — 서울. 갤러리+카페+패션 등 20개 매장. 사회적 가치 큐레이션</li>
+        <li><strong>House of Religions</strong> — 베른. 8개 종교 + 아파트 88세대 + 상점 (30,000m²)</li>
+        <li><strong>Lakewood Church</strong> — 휴스턴. 16,800석 + 서점 + 교육 + 방송시설. $50M+/년</li>
+      </ul>
+    </div>
+
+    <!-- BM-4 -->
+    <div class="bm-card">
+      <div class="bm-num">BM-4</div>
+      <h4>커뮤니티 허브형 <span style="font-size:0.8rem; color:var(--text-muted);">Community Hub</span></h4>
+      <div class="bm-desc">지역사회 개방 + 교육/문화 프로그램. 수익 < 사회적 기여.</div>
+      <ul class="bm-features">
+        <li><strong>고촌아트홀</strong> — 경기도. 7개 오케스트라 + 음악교육 (토요 500명+)</li>
+        <li><strong>갤러리교회</strong> — 서울. 평일=갤러리, 주말=예배. 무료 대관</li>
+        <li><strong>카페 그레이스</strong> — 서울 성공회. 탈북여성 바리스타. 사회적기업</li>
+      </ul>
+    </div>
+
+    <!-- BM-5 -->
+    <div class="bm-card">
+      <div class="bm-num">BM-5</div>
+      <h4>박물관/전시형 <span style="font-size:0.8rem; color:var(--text-muted);">Museum & Exhibition</span></h4>
+      <div class="bm-desc">종교 유산/역사를 전시 콘텐츠로. 재단 보조가 필수.</div>
+      <ul class="bm-features">
+        <li><strong>불광산 불타기념관</strong> — 대만. 100ha, 연 1,000만명. 무료입장, 기부 기반</li>
+        <li><strong>이슬람미술관 (IAMM)</strong> — 쿠알라룸푸르. 동남아 최대, 7,000점+</li>
+        <li><strong>한국천주교순교자박물관</strong> — 서울 절두산. 무료, 교구 재정</li>
+      </ul>
+    </div>
+
+    <!-- BM-6 -->
+    <div class="bm-card">
+      <div class="bm-num">BM-6</div>
+      <h4>적응적 재사용형 <span style="font-size:0.8rem; color:var(--text-muted);">Adaptive Reuse</span></h4>
+      <div class="bm-desc">폐쇄 종교 건물 → 상업시설. 건축 분위기가 브랜드 프리미엄.</div>
+      <ul class="bm-features">
+        <li><strong>The Church</strong> — 더블린. 18세기 성당 → 카페+바+레스토랑+클럽</li>
+        <li><strong>Church Brew Works</strong> — 피츠버그. 1902 성당 → 크래프트 브루어리</li>
+        <li><strong>네덜란드</strong> — 교회 5곳 중 1곳 폐쇄 → 호텔/도서관/클럽으로 대규모 전환</li>
+      </ul>
+    </div>
+
+    <!-- BM-7 -->
+    <div class="bm-card">
+      <div class="bm-num">BM-7</div>
+      <h4>국가 프로젝트형 <span style="font-size:0.8rem; color:var(--text-muted);">State-Sponsored</span></h4>
+      <div class="bm-desc">정부 주도 종교 간 대화·관광 프로젝트. 소프트파워 목적.</div>
+      <ul class="bm-features">
+        <li><strong>Abrahamic Family House</strong> — 아부다비. 모스크+교회+시나고그. 정부 전액</li>
+        <li><strong>셰이크 자이드 모스크</strong> — 아부다비. 700만명/년. 수크+극장+도서관</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- 종합 비교 -->
+<div class="section">
+  <h3>BM 종합 비교표</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>모델</th><th>주 수익원</th><th>수익 자립도</th><th>초기 투자</th><th>종교색</th><th>대표 사례</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>관광 수익형</strong></td><td>입장료 97%+</td><td><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span></td><td>매우 높음</td><td>중간</td><td>사그라다 파밀리아, 바티칸</td></tr>
+        <tr><td><strong>체험경제형</strong></td><td>참가비 + F&B</td><td><span class="stars">&#9733;&#9733;&#9733;&#9733;</span></td><td>중간</td><td>낮음</td><td>템플스테이, 츠키지 혼간지</td></tr>
+        <tr><td><strong>복합 임대형</strong></td><td>임대 + 부대수익</td><td><span class="stars">&#9733;&#9733;&#9733;&#9733;</span></td><td>높음</td><td>낮음</td><td>1898 명동성당, House of Religions</td></tr>
+        <tr><td><strong>커뮤니티 허브형</strong></td><td>헌금 + 교육비</td><td><span class="stars">&#9733;&#9733;</span></td><td>낮음</td><td>중간</td><td>고촌아트홀, 갤러리교회</td></tr>
+        <tr><td><strong>박물관/전시형</strong></td><td>입장료 + 기부</td><td><span class="stars">&#9733;&#9733;</span></td><td>높음</td><td>높음</td><td>불광산, IAMM</td></tr>
+        <tr><td><strong>적응적 재사용형</strong></td><td>F&B + 대관</td><td><span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span></td><td>중간</td><td>없음</td><td>Church Brew Works, The Church</td></tr>
+        <tr><td><strong>국가 프로젝트형</strong></td><td>정부 재정</td><td><span class="stars">&#9733;</span></td><td>매우 높음</td><td>높음</td><td>Abrahamic Family House</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 목적별 분류 -->
+<div class="section">
+  <h3>목적별 분류</h3>
+  <div class="purpose-grid">
+    <div class="purpose-card">
+      <div class="purpose-label">목적 A</div>
+      <h5>종교 유산 보존 + 관광 수익</h5>
+      <p>종교 건축/유물 자체가 상품. 수익으로 유지보수·건축비 자체 충당. <strong>가장 높은 수익 자립도.</strong></p>
+      <div class="examples"><strong>대표:</strong> 사그라다 파밀리아, 바티칸 박물관</div>
+    </div>
+    <div class="purpose-card">
+      <div class="purpose-label">목적 B</div>
+      <h5>종교의 현대적 리브랜딩</h5>
+      <p>"종교" → "웰니스/라이프스타일/미식"으로 포지셔닝. MZ세대·외국인 유입이 핵심 KPI. <strong>가장 혁신적.</strong></p>
+      <div class="examples"><strong>대표:</strong> 츠키지 혼간지, 템플스테이, 발우공양</div>
+    </div>
+    <div class="purpose-card">
+      <div class="purpose-label">목적 C</div>
+      <h5>유휴 부동산 수익화</h5>
+      <p>종교 부지의 유휴 공간을 상업·주거로 전환. 임대 수익 = 안정적 캐시플로우. <strong>가장 현실적인 BM.</strong></p>
+      <div class="examples"><strong>대표:</strong> 1898 명동성당, House of Religions, 메가처치</div>
+    </div>
+    <div class="purpose-card">
+      <div class="purpose-label">목적 D</div>
+      <h5>지역사회 기여 + 간접 선교</h5>
+      <p>수익보다 사회적 기여. 교단 재정 의존도 높음. <strong>가장 낮은 상업성, 가장 높은 사회적 가치.</strong></p>
+      <div class="examples"><strong>대표:</strong> 고촌아트홀, 갤러리교회, 카페 그레이스</div>
+    </div>
+    <div class="purpose-card">
+      <div class="purpose-label">목적 E</div>
+      <h5>국가 브랜딩 / 소프트파워</h5>
+      <p>정부 주도, 관광+외교 목적. 종교적 관용의 상징. <strong>상업 수익 < 국가 이미지 투자.</strong></p>
+      <div class="examples"><strong>대표:</strong> Abrahamic Family House, 셰이크 자이드 모스크</div>
+    </div>
+    <div class="purpose-card">
+      <div class="purpose-label">목적 F</div>
+      <h5>건축 유산 상업 전환</h5>
+      <p>폐쇄 종교 건물을 민간이 인수·전환. 종교와 완전 분리. <strong>순수 상업 모델.</strong></p>
+      <div class="examples"><strong>대표:</strong> Church Brew Works, The Church Dublin, 네덜란드</div>
+    </div>
+  </div>
+</div>
+
+<!-- 핵심 인사이트 -->
+<div class="section">
+  <h3>핵심 인사이트</h3>
+
+  <div class="insight-card">
+    <h5>1. 수익 자립도의 스펙트럼</h5>
+    <p>최상위: 사그라다 파밀리아 (100% 자립, €1.36억) &nbsp;|&nbsp; 최하위: 커뮤니티 허브형 (90%+ 헌금 의존)</p>
+  </div>
+
+  <div class="insight-card" style="border-left-color: var(--green);">
+    <h5>2. "종교색 낮추기" = 상업적 성공의 핵심 법칙</h5>
+    <ul>
+      <li>츠키지 혼간지: "오픈 템플"</li>
+      <li>템플스테이: "웰니스 관광"</li>
+      <li>1898 명동성당: "사회적 가치 복합공간"</li>
+    </ul>
+  </div>
+
+  <div class="insight-card" style="border-left-color: var(--orange);">
+    <h5>3. F&B = 가장 범용적인 진입 모델</h5>
+    <ul>
+      <li>카페 → 레스토랑 → 브루어리 순으로 투자비 증가</li>
+      <li>사찰음식/사찰 아침은 차별화된 콘텐츠 (미쉐린, 넷플릭스 효과)</li>
+      <li>종교 공간의 분위기가 F&B 경험의 프리미엄 요소</li>
+    </ul>
+  </div>
+
+  <div class="insight-card" style="border-left-color: var(--blue);">
+    <h5>4. 부동산 활용 = 가장 현실적인 대형 BM</h5>
+    <ul>
+      <li>종교 단체 최대 자산 = 도심 프라임 입지 부동산</li>
+      <li>지하/유휴 공간 개발 = 리스크 대비 수익 효율 최고</li>
+      <li>House of Religions (아파트 88세대) = 가장 혁신적 사례</li>
+    </ul>
+  </div>
+
+  <div class="insight-card" style="border-left-color: var(--pink);">
+    <h5>5. 적응적 재사용 = 유럽·북미 메가트렌드</h5>
+    <ul>
+      <li>교회 폐쇄 가속화 → 전환 시장 급성장 (네덜란드: 5곳 중 1곳 폐쇄)</li>
+      <li>스테인드글라스, 높은 천장 등 건축 유산 = 상업적 프리미엄</li>
+      <li>종교 단체 미관여, 순수 부동산·사업 관점</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Sources -->
+<div class="sources">
+  <h4>Sources</h4>
+  <strong style="color:var(--text-muted); font-size:0.78rem;">Part 1 - 한국</strong>
+  <a href="http://www.ibulgyo.com/news/articleView.html?idxno=135737" target="_blank">불교신문 - 서울 한복판서 '문화지대방'을 만난다</a>
+  <a href="https://1898.catholic.or.kr/plaza_guide.asp" target="_blank">1898광장 공식 사이트</a>
+  <a href="https://guide.michelin.co.kr/ko/restaurant/balwoo-gongyang" target="_blank">발우공양 - 미쉐린 가이드 서울</a>
+  <a href="https://www.kcmuseum.or.kr/index" target="_blank">한국기독교역사문화관</a>
+  <a href="https://www.templestay.com/" target="_blank">템플스테이 공식</a>
+  <a href="https://www.bulkyo21.com/news/articleView.html?idxno=42543" target="_blank">불교닷컴 - 사찰재정 구조 혁신</a>
+  <a href="https://www.igoodnews.net/news/articleView.html?idxno=50857" target="_blank">아이굿뉴스 - 교회가 변하고 있다</a>
+  <a href="https://www.maisonkorea.com/food/2026/03/korean-temple-cuisine-2/" target="_blank">메종코리아 - 절 밖에서 만나는 사찰음식</a>
+  <a href="https://kbuddhism.com/doc?pn=vondina" target="_blank">한국불교문화사업단 - 본디나</a>
+  <a href="http://www.jeoldusan.or.kr/" target="_blank">한국천주교순교자박물관</a>
+  <a href="https://mediahub.seoul.go.kr/archives/2008148" target="_blank">서울시 미디어허브 - 1898 명동성당</a>
+  <br><br>
+  <strong style="color:var(--text-muted); font-size:0.78rem;">Part 2 - 전세계</strong>
+  <a href="https://sagradafamilia.org/en/report" target="_blank">Sagrada Familia Annual Report</a>
+  <a href="https://en.wikipedia.org/wiki/Economy_of_Vatican_City" target="_blank">Economy of Vatican City</a>
+  <a href="https://tsukijihongwanji.jp/global/guide/" target="_blank">Tsukiji Hongwanji Global Site</a>
+  <a href="https://matcha-jp.com/en/9636" target="_blank">Cafe Tsumugi - Temple Breakfast Tokyo</a>
+  <a href="https://en.wikipedia.org/wiki/Fo_Guang_Shan_Buddha_Museum" target="_blank">Fo Guang Shan Buddha Museum</a>
+  <a href="https://en.wikipedia.org/wiki/House_of_Religions" target="_blank">House of Religions - Wikipedia</a>
+  <a href="https://europeanacademyofreligionandsociety.com/education/the-house-of-religions-in-bern-and-its-key-factors-to-success/" target="_blank">House of Religions Key Factors (EARS)</a>
+  <a href="https://www.abrahamicfamilyhouse.ae/" target="_blank">Abrahamic Family House</a>
+  <a href="https://www.szgmc.gov.ae/" target="_blank">Sheikh Zayed Grand Mosque Centre</a>
+  <a href="https://en.wikipedia.org/wiki/Lakewood_Church" target="_blank">Lakewood Church</a>
+  <a href="https://www.inc.com/bruce-crumley/old-churches-become-heavenly-sources-of-new-business-space.html" target="_blank">Church Conversions to Business Space (Inc.)</a>
+  <a href="https://matadornetwork.com/read/churches-turned-breweries-bars/" target="_blank">Churches Turned Breweries (Matador)</a>
+  <a href="https://www.interregeurope.eu/find-policy-solutions/stories/adaptive-reuse-of-religious-heritage" target="_blank">Adaptive Reuse of Religious Heritage (Interreg)</a>
+  <a href="https://iamm.org.my/" target="_blank">Islamic Arts Museum Malaysia</a>
+  <a href="https://cultures.ae/" target="_blank">SMCCU Dubai</a>
+</div>
+
+<p style="text-align:center; color:var(--text-muted); font-size:0.75rem; margin-top:40px; padding-bottom:40px;">
+  Research by do-better-workspace &middot; 2026-04-05
+</p>
+
+</div><!-- /container -->
+</body>
+</html>

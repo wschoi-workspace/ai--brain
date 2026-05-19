@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>특허 명세서 [풀버전] — RXR Mention Analysis</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Pretendard Variable',serif; background:#fff; color:#222; line-height:1.8; padding:60px 80px; max-width:900px; margin:0 auto; font-size:14px; }
+  .badge { display:inline-block; background:#E53935; color:#fff; font-size:11px; font-weight:700; padding:3px 10px; border-radius:4px; margin-bottom:20px; }
+  h1 { font-size:22px; font-weight:800; margin-bottom:6px; }
+  h2 { font-size:17px; font-weight:800; margin:36px 0 14px; padding-bottom:8px; border-bottom:2px solid #222; }
+  h3 { font-size:14px; font-weight:700; margin:20px 0 8px; color:#333; }
+  h4 { font-size:13px; font-weight:700; margin:14px 0 6px; color:#555; }
+  p { margin-bottom:10px; text-align:justify; }
+  table { width:100%; border-collapse:collapse; margin:12px 0 16px; font-size:13px; }
+  th { background:#F5F5F5; border:1px solid #DDD; padding:8px 10px; text-align:left; font-weight:700; }
+  td { border:1px solid #DDD; padding:8px 10px; vertical-align:top; }
+  .formula { background:#F8F8F8; border:1px solid #DDD; border-radius:6px; padding:14px 18px; margin:12px 0; font-family:monospace; font-size:13px; line-height:1.6; }
+  .note { background:#FFF8E1; border-left:4px solid #F9A825; padding:10px 16px; margin:12px 0; font-size:13px; }
+  .claim { background:#F3E5F5; border-left:4px solid #7B1FA2; padding:12px 16px; margin:10px 0; font-size:13px; line-height:1.9; }
+  .claim-num { font-weight:800; color:#7B1FA2; }
+  .sub-claim { background:#F5F5F5; border-left:4px solid #999; padding:10px 16px; margin:8px 0 8px 20px; font-size:13px; line-height:1.9; }
+  .section-label { font-size:11px; color:#999; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+  ul, ol { margin:8px 0 12px 24px; }
+  li { margin-bottom:4px; }
+  .toc { background:#FAFAFA; border:1px solid #EEE; border-radius:8px; padding:20px 24px; margin:20px 0; }
+  .toc a { color:#333; text-decoration:none; }
+  .toc a:hover { color:#7B1FA2; }
+  .highlight { background:#FFFDE7; padding:2px 4px; }
+  .page-break { page-break-before:always; margin-top:40px; }
+  hr { border:none; border-top:1px solid #EEE; margin:24px 0; }
+</style>
+</head>
+<body>
+
+<div class="badge">FULL VERSION — 내부 검토용</div>
+
+<h1>특허 명세서</h1>
+<p style="font-size:16px; font-weight:600; color:#555; margin-bottom:4px;">심리언어학 기반 온라인 멘션의 감정적 인게이지먼트 정량화 시스템 및 방법</p>
+<p style="font-size:12px; color:#999;">System and Method for Quantifying Emotional Engagement of Online Mentions Based on Psycholinguistic Analysis</p>
+<p style="font-size:12px; color:#999;">작성일: 2026-04-26 | 작성자: 최원석 | 문서유형: 풀버전 (내부 검토용)</p>
+
+<div class="toc">
+<strong>목차</strong>
+<ol style="margin-top:8px">
+  <li><a href="#s1">기술 분야</a></li>
+  <li><a href="#s2">배경 기술</a></li>
+  <li><a href="#s3">해결하고자 하는 과제</a></li>
+  <li><a href="#s4">과제의 해결 수단</a></li>
+  <li><a href="#s5">발명의 상세한 설명</a></li>
+  <li><a href="#s6">발명의 효과</a></li>
+  <li><a href="#s7">특허 청구범위</a></li>
+  <li><a href="#s8">도면의 간단한 설명</a></li>
+  <li><a href="#s9">실시예</a></li>
+</ol>
+</div>
+
+<!-- ==================== 1. 기술 분야 ==================== -->
+<h2 id="s1">1. 기술 분야</h2>
+<p>본 발명은 소셜미디어 및 온라인 리뷰 텍스트의 자연어처리(NLP) 및 감성분석 분야에 관한 것으로, 보다 구체적으로는 온라인상의 소비자 반응(멘션)에서 <strong>감정적 품질, 진정성(authenticity), 인지적 몰입도(engagement depth)</strong>를 다층 심리언어학적 분석으로 정량화하여 마케팅 성과를 측정하는 시스템 및 방법에 관한 것이다.</p>
+
+<!-- ==================== 2. 배경 기술 ==================== -->
+<h2 id="s2">2. 배경 기술</h2>
+
+<h3>2-1. 종래 기술 1: 멘션 건수 기반 측정</h3>
+<p>소셜미디어 모니터링 도구(Brand24, Mention, Brandwatch 등)는 브랜드가 언급된 건수(volume)와 도달 범위(reach)를 핵심 지표로 사용한다. 그러나 "281건 언급되었다"는 숫자는 해당 언급의 감정적 품질, 진정성, 인게이지먼트 깊이를 전혀 구분하지 못한다. 협찬 리뷰 100건과 자발적 체험 리뷰 10건이 동일한 가치로 합산되는 문제가 있다.</p>
+
+<h3>2-2. 종래 기술 2: 키워드 매칭 기반 감성분석</h3>
+<p>기존 감성분석 기술은 사전 정의된 긍정/부정 키워드 사전과 텍스트를 대조하여 감성을 분류한다. 그러나 이 방법은 다음의 한계를 가진다:</p>
+<ul>
+  <li><strong>간접 표현 미처리:</strong> "나쁘진 않은데..."는 키워드 매칭으로 부정이 아닌 것으로 판별되지만, 화용론적으로는 약한 부정의 의미를 가짐</li>
+  <li><strong>감정 강도 미구분:</strong> "완전 대박 최고!"(과잉 긍정)와 "꼼꼼히 사용해본 결과 만족스러웠다"(절제된 긍정)의 진정성 차이를 구분하지 못함</li>
+  <li><strong>문맥 부재:</strong> 단어 단위 분석으로 "충치 예방에 좋다는 건 아니지만"을 긍정으로 오분류할 가능성</li>
+</ul>
+
+<h3>2-3. 종래 기술 3: 협찬 콘텐츠 탐지</h3>
+<p>기존 협찬 탐지 기술은 "#광고", "제공받", "협찬" 등 명시적 키워드의 존재 여부에 의존한다. 키워드를 사용하지 않는 우회적 협찬 콘텐츠를 감지하지 못하며, 협찬이라도 진정성 있는 리뷰와 형식적인 리뷰를 구분하지 못한다.</p>
+
+<h3>2-4. 종래 기술 4: 리뷰 품질 평가</h3>
+<p>기존 리뷰 품질 평가는 글자수, 이미지 수, 별점 등 양적 지표에 의존한다. 300자 미만이지만 논증 구조가 있는 분석적 리뷰를 과소평가하고, 1,000자이지만 동일 내용을 반복하는 리뷰를 과대평가하는 문제가 있다.</p>
+
+<h3>2-5. 종래 기술 5: LIWC 기반 텍스트 분석</h3>
+<p>Pennebaker가 개발한 LIWC(Linguistic Inquiry and Word Count)는 텍스트의 기능어 패턴을 분석하여 심리적 상태를 추론하는 학술 도구이다. 그러나 영어 중심 설계로 한국어의 교착어 특성(조사, 어미 활용)을 충분히 반영하지 못하며, 마케팅 성과측정이라는 실용적 목적에 맞는 통합 파이프라인이 부재하다.</p>
+
+<!-- ==================== 3. 과제 ==================== -->
+<h2 id="s3">3. 해결하고자 하는 과제</h2>
+<p>본 발명은 상기 종래 기술의 문제점을 해결하기 위해 다음의 과제를 해결하고자 한다.</p>
+<ol>
+  <li>단순 건수가 아닌, 각 멘션의 <strong>감정적 품질</strong>(진정성, 감정 강도, 인지적 깊이)을 0~100 점수로 수치화</li>
+  <li>내용(Content), 심리(Psyche), 언어학(Linguistic) <strong>3개 레이어의 분석 결과를 통합</strong>하는 점수 체계</li>
+  <li>키워드 패턴 기반 지표와 언어학적 구조 기반 지표를 독립적으로 산출하여 <strong>이중 교차검증</strong></li>
+  <li>한국어의 교착어 특성(조사 "이/가" vs "은/는", 어미 활용, <strong>문체 레지스터</strong>)을 활용한 분석</li>
+  <li>협찬 콘텐츠를 일괄 제거하지 않고, <strong>협찬 내 진심 스펙트럼</strong>을 분석</li>
+</ol>
+
+<!-- ==================== 4. 해결 수단 ==================== -->
+<h2 id="s4">4. 과제의 해결 수단</h2>
+<p>본 발명은 온라인 멘션의 감정적 인게이지먼트를 정량화하기 위해, <strong>데이터 수집부</strong>, <strong>진정성 필터부</strong>, <strong>3-Layer 분석 엔진</strong>(Content Layer, Psyche Layer, Linguistic Layer), <strong>교차검증부</strong>, <strong>리포트 생성부</strong>를 포함하는 시스템을 제공한다.</p>
+<p>특히, 상기 3-Layer 분석 엔진의 Linguistic Layer는 형태소 분포, 기능어 패턴, 확신도 스펙트럼, 담화 표지, 화용론적 패턴, 문체 레지스터의 <strong>6차원 언어학적 분석</strong>을 수행하여, Psyche Layer의 진정성 지표(Auth)와 독립적인 제2 진정성 지표(LAI)를 산출하고, 두 지표의 괴리를 자동 감지하는 것을 특징으로 한다.</p>
+
+<!-- ==================== 5. 상세 설명 ==================== -->
+<h2 id="s5">5. 발명의 상세한 설명</h2>
+
+<h3>5-1. 시스템 전체 구성</h3>
+<p>본 발명의 시스템은 4개의 처리 단계(Stage A~D)로 구성된다.</p>
+
+<table>
+  <tr><th>Stage</th><th>구성부</th><th>기능</th><th>출력</th></tr>
+  <tr><td>A</td><td>데이터 수집부</td><td>검색 API, 3단계 필터링, 본문 추출</td><td>원시 데이터(JSON)</td></tr>
+  <tr><td>B</td><td>진정성 필터부</td><td>Content Class A~G 분류, Trust Score 산출</td><td>등급별 분류 데이터</td></tr>
+  <tr><td>C</td><td>3-Layer 분석 엔진</td><td>Content + Psyche + Linguistic 분석, 교차검증, 브릿지 보정</td><td>종합 분석 데이터</td></tr>
+  <tr><td>D</td><td>수치화/리포트부</td><td>통계 집계, 시각화, Before/After 비교</td><td>리포트</td></tr>
+</table>
+
+<h3>5-2. Stage A: 데이터 수집부</h3>
+<h4>5-2-1. 검색 및 수집</h4>
+<p>소셜미디어 플랫폼의 검색 API를 통해 브랜드명 및 관련 키워드에 대한 멘션 데이터를 자동 수집한다. 키워드별로 관련도순(sim)과 최신순(date)을 병행 검색하여 포괄성을 확보하며, URL 기준으로 중복을 제거한다.</p>
+
+<h4>5-2-2. 3단계 필터링</h4>
+<ol>
+  <li><strong>날짜 필터:</strong> 지정된 분석 기간 내의 포스트만 선별</li>
+  <li><strong>관련성 필터:</strong> 브랜드명 또는 별칭이 제목/본문에 포함된 포스트만 선별</li>
+  <li><strong>노이즈 제외:</strong> 사전 정의된 제외 키워드가 포함된 포스트 제외</li>
+</ol>
+
+<h4>5-2-3. 본문 추출</h4>
+<p>복수의 HTML 구조 패턴을 순차 시도하여 본문 텍스트를 추출한다. 특정 패턴으로 추출 실패 시 다음 패턴을 자동 시도하는 폴백 메커니즘을 적용한다.</p>
+
+<h3>5-3. Stage B: 진정성 필터부 (Sincerity Filter)</h3>
+
+<h4>5-3-1. Content Class 분류 (A~G)</h4>
+<p>수집된 모든 포스트를 텍스트 패턴 분석을 통해 7개 등급으로 자동 분류한다.</p>
+
+<table>
+  <tr><th>등급</th><th>분류명</th><th>분류 기준</th><th>후속 처리</th></tr>
+  <tr><td><strong>A</strong></td><td>진성후기</td><td>개인 경험 신호 2건+ AND 구체적 디테일 3건+</td><td>3-Layer 핵심 대상</td></tr>
+  <tr><td><strong>B</strong></td><td>일반포스트</td><td>특별 플래그 없음, 브랜드 관련</td><td>3-Layer 분석 대상</td></tr>
+  <tr><td><strong>C</strong></td><td>협찬/체험단</td><td>협찬 마커 감지</td><td>3-Layer 분석 (진심 스펙트럼)</td></tr>
+  <tr><td><strong>D</strong></td><td>나열형정보</td><td>제목에 "총정리/리스트/모음" 포함</td><td>버즈량만 카운트</td></tr>
+  <tr><td><strong>E</strong></td><td>리그램/단순공유</td><td>극히 짧은 텍스트 또는 공유 마커</td><td>버즈량만 카운트</td></tr>
+  <tr><td><strong>F</strong></td><td>비즈니스/보도</td><td>보도자료 문구 매칭 또는 비즈니스 신호</td><td>제외</td></tr>
+  <tr><td><strong>G</strong></td><td>노이즈</td><td>브랜드 키워드 미포함</td><td>제외</td></tr>
+</table>
+
+<div class="note"><strong>핵심 설계 원칙:</strong> C등급(협찬)을 제거하지 않고 분석 대상에 포함한다. 협찬 콘텐츠 내에서도 진정성 스펙트럼이 존재하며(Auth 10~63 범위), 이를 구분하는 것이 본 발명의 차별점이다.</div>
+
+<h4>5-3-2. Trust Score 산출 (0~100)</h4>
+<p>기본 100점에서 플래그별 가감점을 적용한다.</p>
+
+<table>
+  <tr><th>플래그</th><th>점수</th><th>감지 조건</th></tr>
+  <tr><td>REGRAM</td><td>-30</td><td>"리그램", "퍼옴", "repost"</td></tr>
+  <tr><td>PRESS_COPY</td><td>-35</td><td>보도자료 문구 3건+ 매칭</td></tr>
+  <tr><td>BIZ_SUSPECT</td><td>-25</td><td>비즈니스 신호 2건+</td></tr>
+  <tr><td>SPONSORED</td><td>-15</td><td>협찬 마커 감지</td></tr>
+  <tr><td>PERSONAL_EXP</td><td><strong>+15</strong></td><td>개인 경험 신호 2건+</td></tr>
+  <tr><td>DETAILED</td><td><strong>+10</strong></td><td>구체적 디테일 3건+</td></tr>
+</table>
+
+<h3>5-4. Stage C: 3-Layer 분석 엔진</h3>
+<p>Content Class A, B, C에 해당하는 포스트에 대해 3개 레이어의 분석을 수행한다.</p>
+
+<h4>5-4-1. Layer 1: Content Layer</h4>
+
+<p><strong>(a) 토픽 분석:</strong> 브랜드별 커스텀 토픽 사전의 키워드 빈도를 계측하여 포스트당 상위 3개 토픽을 추출한다.</p>
+
+<p><strong>(b) 4-way 감성 분류:</strong> 긍정/부정 키워드 공존 시 "혼합"으로 분류하여, 기존 3분류 대비 정보 밀도가 높은 리뷰를 구분한다.</p>
+
+<table>
+  <tr><th>분류</th><th>조건</th></tr>
+  <tr><td>긍정</td><td>긍정 키워드 수 > 부정 키워드 수 + 2</td></tr>
+  <tr><td>부정</td><td>부정 키워드 수 > 긍정 키워드 수</td></tr>
+  <tr><td><strong>혼합</strong></td><td>긍정·부정 키워드 모두 존재</td></tr>
+  <tr><td>중립</td><td>긍정·부정 모두 부재 또는 극소</td></tr>
+</table>
+
+<p><strong>(c) RQL (Review Quality Level):</strong> 5등급 + 가중치 체계</p>
+
+<table>
+  <tr><th>등급</th><th>조건</th><th>가중치</th></tr>
+  <tr><td>Q5 서사형</td><td>500단어+ AND 디테일 3건+ AND 경험 1건+</td><td>×2.0</td></tr>
+  <tr><td>Q4 분석형</td><td>300단어+ AND 디테일 2건+</td><td>×1.5</td></tr>
+  <tr><td>Q3 경험형</td><td>150단어+ AND (디테일 1건+ OR 경험 1건+)</td><td>×1.0</td></tr>
+  <tr><td>Q2 감상형</td><td>50단어+</td><td>×0.5</td></tr>
+  <tr><td>Q1 간단형</td><td>50단어 미만</td><td>×0.2</td></tr>
+</table>
+
+<div class="formula">리뷰 자산값 = Σ(각 등급 건수 × 해당 가중치)</div>
+
+<h4>5-4-2. Layer 2: Psyche Layer</h4>
+
+<p><strong>(a) Freshness Index:</strong> 한국어 조사 "이/가"(초점/발견)와 "은/는"(주제/설명)의 비율로 정보 신선도를 산출한다.</p>
+
+<div class="formula">Freshness Index = "이/가" 출현수 / ("이/가" + "은/는") × 100</div>
+
+<p>이론적 근거: 해석수준이론(Construal Level Theory). "이/가"는 새로운 정보 도입(저수준 해석), "은/는"은 이미 알려진 정보 설명(고수준 해석)을 반영한다.</p>
+
+<p><strong>(b) Authenticity (제1 진정성 지표, 0~100):</strong></p>
+
+<div class="formula">
+Auth = 60(기본)<br>
+&nbsp;&nbsp;- 협찬 감지 시 -15<br>
+&nbsp;&nbsp;- 과잉긍정어 5개 초과 시: 초과분 × -3<br>
+&nbsp;&nbsp;- 느낌표 10개 초과 시: 초과분 × -2<br>
+&nbsp;&nbsp;+ 개인경험 2건+ 시 +10<br>
+&nbsp;&nbsp;+ 구체적 디테일 3건+ 시 +10<br>
+&nbsp;&nbsp;+ 균형 평가(긍정+부정 공존) 시 +15<br>
+범위: 10~95
+</div>
+
+<p><strong>(c) Clout (추천 강도, 0~100):</strong></p>
+
+<div class="formula">
+Clout = 40(기본)<br>
+&nbsp;&nbsp;+ 추천 표현("추천","강추") 건당 +15<br>
+&nbsp;&nbsp;+ 조건부 추천("~라면 추천") +10<br>
+&nbsp;&nbsp;+ 예방 초점("안 사면 후회") +8<br>
+&nbsp;&nbsp;+ 정체성 선언("~팬","~덕후") +12<br>
+범위: 10~95
+</div>
+
+<h4>5-4-3. Layer 3: Linguistic Layer ★ 핵심 신규 구성</h4>
+
+<p>본 발명의 핵심적 차별화 요소. 기존 감성분석에 존재하지 않는 6차원 언어학적 분석을 수행한다.</p>
+
+<p><strong>차원 1 — 형태소 분포:</strong> 감각 어휘(미각/촉각/후각/체화 감각) 밀도 측정</p>
+<div class="formula">감각어 밀도 = 감각 어휘 수 / 전체 단어 수 × 100<br>판정: > 3/100단어 = 직접 체험 가능성 높음 → Auth +8</div>
+
+<p><strong>차원 2 — 기능어 패턴:</strong> Pennebaker LIWC의 한국어 적용. 1인칭 대명사 비율(5~15% = 자연 범위), 조사 패턴, 어미 분석.</p>
+
+<p><strong>차원 3 — 확신도 스펙트럼:</strong> 확신 마커("확실히","진짜") vs 완화 마커("것 같아요","좀")의 비율</p>
+<div class="formula">확신도 비율 = 확신 마커 수 / (확신 마커 수 + 완화 마커 수) × 100</div>
+
+<table>
+  <tr><th>확신도</th><th>해석</th><th>Auth 보정</th></tr>
+  <tr><td>80~100%</td><td>강한 확신 — 과잉 긍정 의심</td><td>과잉긍정 교차 시 -5</td></tr>
+  <tr><td>40~79%</td><td>적절한 확신</td><td>+3</td></tr>
+  <tr><td>20~39%</td><td>균형잡힌 헤징 (가장 진정성 높음)</td><td>+5</td></tr>
+  <tr><td>0~19%</td><td>과도한 불확실</td><td>-3</td></tr>
+</table>
+
+<p><strong>차원 4 — 담화 표지:</strong> 대조("근데","다만"), 조건("~라면"), 인과("그래서") 마커의 빈도 분석</p>
+<div class="formula">Discourse Score = min(대조 × 15 + 조건 × 12 + 인과 × 10, 100)<br>Score ≥ 40이면서 Q3 → Q4 승격</div>
+
+<p><strong>차원 5 — 화용론:</strong> 간접부정("나쁘진 않은데"), 축소어법("안 나쁘다"), 수사적 질문 감지 → 감성 재분류</p>
+
+<p><strong>차원 6 — 문체 레지스터:</strong> 해요체/해체/합쇼체 분류 + 일관성 점수</p>
+<div class="formula">레지스터 일관성 = 최빈 레지스터 문장 수 / 전체 문장 수 × 100<br>일관성 >95% AND 합쇼체 = 템플릿 의심 → Trust -10<br>일관성 60~85% = 자연 전환 → Auth +3</div>
+
+<h4>5-4-4. 복합 지표</h4>
+
+<p><strong>LAI (Linguistic Authenticity Index, 제2 진정성 지표):</strong></p>
+<div class="formula">
+LAI = (감각어밀도정규화 × 0.30) + (헤징자연도 × 0.20) + (레지스터변동성 × 0.20) + (시간근접성 × 0.15) + (1인칭자연도 × 0.15)<br>
+범위: 0~100
+</div>
+
+<p><strong>EDS (Engagement Depth Score, 인지적 몰입도):</strong></p>
+<div class="formula">
+EDS = (은유밀도 × 0.25) + (담화복잡성 × 0.25) + (한정표지밀도 × 0.25) + (구체적디테일밀도 × 0.25)<br>
+범위: 0~100
+</div>
+
+<h4>5-4-5. 이중 교차검증</h4>
+<p>Auth(Layer 2)와 LAI(Layer 3)를 <strong>독립적으로</strong> 산출한 후, 두 지표의 괴리를 자동 감지한다.</p>
+
+<table>
+  <tr><th>|Auth - LAI|</th><th>판정</th><th>조치</th></tr>
+  <tr><td>≤ 10</td><td>일치</td><td>그대로 사용</td></tr>
+  <tr><td>11~20</td><td>경미한 불일치</td><td>참고 표시</td></tr>
+  <tr><td>> 20</td><td>유의미한 괴리</td><td>자동 플래깅 + 수동 검토</td></tr>
+</table>
+
+<p><strong>괴리 유형:</strong> LAI >> Auth = 독특한 표현으로 Auth 과소평가(AUTH_UNDERESTIMATE) / LAI << Auth = 정교한 협찬 리뷰 의심(POSSIBLE_CRAFTED)</p>
+
+<h4>5-4-6. 심리학-언어학 브릿지 보정</h4>
+
+<table>
+  <tr><th>언어학 피처</th><th>조건</th><th>보정 대상</th><th>보정값</th><th>이론적 근거</th></tr>
+  <tr><td>감각어 밀도</td><td>>3/100단어</td><td>Auth</td><td>+8</td><td>체화 인지(Embodied Cognition)</td></tr>
+  <tr><td>1인칭 비율</td><td>5~15%</td><td>Auth</td><td>+5</td><td>Pennebaker LIWC</td></tr>
+  <tr><td>확신도</td><td>20~60%</td><td>Auth</td><td>+5</td><td>ELM 중심경로(Petty & Cacioppo)</td></tr>
+  <tr><td>과잉 확신+과잉 긍정</td><td>>80% & 극긍정 >5</td><td>Auth</td><td>-5</td><td>기만 탐지(Newman & Pennebaker)</td></tr>
+  <tr><td>시간근접 표지</td><td>"오늘/방금" 존재</td><td>Freshness</td><td>+5</td><td>CLT(Trope & Liberman)</td></tr>
+  <tr><td>합쇼체 일관</td><td>>95% & formal</td><td>Trust</td><td>-10</td><td>스타일로메트리</td></tr>
+  <tr><td>자연 레지스터 전환</td><td>60~85%</td><td>Auth</td><td>+3</td><td>사회언어학 Code-switching</td></tr>
+  <tr><td>대조 표지 2건+</td><td>담화 복잡성</td><td>Auth</td><td>+5</td><td>ELM 중심경로</td></tr>
+  <tr><td>Discourse ≥40</td><td>Q3 리뷰</td><td>RQL</td><td>Q3→Q4</td><td>담화분석</td></tr>
+  <tr><td>간접 부정</td><td>패턴 감지</td><td>Sentiment</td><td>중립→혼합</td><td>화용론(Grice)</td></tr>
+  <tr><td>조건부 추천</td><td>"~라면 추천"</td><td>Clout</td><td>+10</td><td>조절초점이론(Higgins)</td></tr>
+</table>
+
+<!-- ==================== 6. 효과 ==================== -->
+<h2 id="s6">6. 발명의 효과</h2>
+
+<h3>6-1. 정량적 효과 (실증: 자이리톨, 1,685건)</h3>
+<table>
+  <tr><th>효과 항목</th><th>수치</th></tr>
+  <tr><td>Auth 보정 발생 비율</td><td>58.1% (978건)에서 상향 보정</td></tr>
+  <tr><td>평균 Auth 변화</td><td>71.3 → 74.6 (+3.4점)</td></tr>
+  <tr><td>RQL 승격 건수</td><td>31건 (Q3→Q4, 담화 복잡성 기반)</td></tr>
+  <tr><td>문체 레지스터 탐지</td><td>합쇼체 458건(27.2%) — 기존 방식 미탐지</td></tr>
+  <tr><td>감각 풍부 리뷰 식별</td><td>200건(11.9%) — 핵심 체험 리뷰 자동 식별</td></tr>
+</table>
+
+<h3>6-2. 정성적 효과</h3>
+<ol>
+  <li>이중 교차검증(Auth+LAI)으로 단일 지표의 오류 자동 감지</li>
+  <li>담화 구조 기반 리뷰 깊이 평가로 "짧지만 깊이 있는 리뷰" 정확 식별</li>
+  <li>문체 레지스터 일관성으로 키워드에 의존하지 않는 협찬 구조적 탐지</li>
+  <li>config 기반 설계로 FMCG/화장품/F&B/팝업 등 다양한 카테고리 적용</li>
+</ol>
+
+<!-- ==================== 7. 청구범위 ==================== -->
+<h2 id="s7">7. 특허 청구범위</h2>
+
+<div class="section-label">독립항</div>
+
+<div class="claim">
+<span class="claim-num">[청구항 1]</span> 온라인 멘션의 감정적 인게이지먼트를 정량화하는 시스템에 있어서,<br><br>
+특정 브랜드에 대한 온라인 멘션 데이터를 수집하는 <strong>데이터 수집부</strong>;<br><br>
+수집된 멘션 데이터를 텍스트 패턴 분석에 기반하여 복수의 진정성 등급(A~G)으로 분류하고, 등급별 신뢰도 점수(Trust Score)를 산출하되, 협찬으로 분류된 멘션을 분석 대상에서 제외하지 않고 진심 스펙트럼 분석 대상으로 포함하는 <strong>진정성 필터부</strong>;<br><br>
+상기 진정성 필터부에서 분석 대상으로 판정된 멘션에 대해,<br>
+(a) 토픽, 감성(긍정/부정/혼합/중립 4-way), 리뷰 품질 등급(RQL)을 분석하는 <strong>Content Layer</strong>,<br>
+(b) 대명사 패턴, 조사 비율 기반 정보 신선도(Freshness Index), 키워드 패턴 기반 제1 진정성 지표(Auth), 추천 강도(Clout)를 분석하는 <strong>Psyche Layer</strong>, 및<br>
+(c) 형태소 분포, 기능어 패턴, 확신도 스펙트럼, 담화 표지, 화용론적 패턴, 문체 레지스터를 포함하는 6차원 언어학적 분석을 수행하고, 상기 분석 결과로부터 제2 진정성 지표(LAI) 및 인지적 몰입도 지표(EDS)를 산출하는 <strong>Linguistic Layer</strong><br>
+를 포함하는 <strong>3-Layer 분석 엔진</strong>;<br><br>
+상기 Psyche Layer에서 산출된 제1 진정성 지표(Auth)와 상기 Linguistic Layer에서 독립적으로 산출된 제2 진정성 지표(LAI)의 차이를 산출하고, 상기 차이가 소정의 임계값을 초과하는 경우 해당 멘션을 자동 플래깅하는 <strong>교차검증부</strong>; 및<br><br>
+상기 Linguistic Layer의 분석 결과에 기반하여 상기 Psyche Layer의 점수를 보정하는 <strong>브릿지 보정부</strong>;<br><br>
+를 포함하는 것을 특징으로 하는 온라인 멘션 감정적 인게이지먼트 정량화 시스템.
+</div>
+
+<div class="claim">
+<span class="claim-num">[청구항 2]</span> 온라인 멘션의 감정적 인게이지먼트를 정량화하는 방법에 있어서,<br><br>
+(a) 특정 브랜드에 대한 온라인 멘션 데이터를 수집하는 단계;<br>
+(b) 수집된 데이터를 텍스트 패턴에 기반하여 복수의 진정성 등급으로 분류하되, 협찬으로 분류된 멘션을 제거하지 않고 분석 대상에 포함하는 단계;<br>
+(c) 분석 대상 멘션에 대해, 내용(Content), 심리(Psyche), 언어학(Linguistic) 3개 레이어로 분석하는 단계;<br>
+(d) 상기 심리 레이어에서 키워드 패턴 기반으로 산출한 제1 진정성 지표(Auth)와, 상기 언어학 레이어에서 언어 구조 기반으로 독립 산출한 제2 진정성 지표(LAI)를 비교하여 괴리를 감지하는 교차검증 단계; 및<br>
+(e) 상기 언어학 레이어의 분석 결과에 기반하여 상기 심리 레이어의 점수를 보정하는 브릿지 보정 단계<br><br>
+를 포함하는 것을 특징으로 하는 온라인 멘션 감정적 인게이지먼트 정량화 방법.
+</div>
+
+<div class="section-label" style="margin-top:24px">종속항</div>
+
+<div class="sub-claim">
+<span class="claim-num">[청구항 3]</span> 제1항에 있어서, 상기 Psyche Layer의 정보 신선도(Freshness Index)는, 한국어 주격 조사 "이/가"의 출현 빈도와 주제 조사 "은/는"의 출현 빈도의 비율로 산출되며, 해석수준이론(Construal Level Theory)에 기반하여 "이/가" 비율이 높을수록 정보 신선도가 높은 것으로 판정하는 것을 특징으로 하는 시스템.
+</div>
+
+<div class="sub-claim">
+<span class="claim-num">[청구항 4]</span> 제1항에 있어서, 상기 Linguistic Layer의 문체 레지스터 분석은, 각 문장의 어미 패턴에 기반하여 해당 문장의 문체를 격식체(합쇼체), 보통존칭(해요체), 비격식체(해체) 중 하나로 분류하고, 전체 문장에서 최빈 문체의 비율로 레지스터 일관성 점수를 산출하되, 일관성이 소정의 기준값 이상이면서 격식체인 경우 템플릿 콘텐츠로 판정하여 신뢰도 점수를 감점하는 것을 특징으로 하는 시스템.
+</div>
+
+<div class="sub-claim">
+<span class="claim-num">[청구항 5]</span> 제1항에 있어서, 상기 Linguistic Layer의 확신도 스펙트럼 분석은, 텍스트 내 확신 마커와 완화 마커(헤징)의 비율을 산출하고, 상기 비율이 제1 범위(20~60%) 내일 때 제1 진정성 지표를 상향 보정하고, 상기 비율이 제2 범위(80% 이상)이면서 과잉 긍정 표현이 소정 수 이상 존재하는 경우 제1 진정성 지표를 하향 보정하는 것을 특징으로 하는 시스템.
+</div>
+
+<div class="sub-claim">
+<span class="claim-num">[청구항 6]</span> 제2항에 있어서, 상기 (c) 단계의 언어학 레이어 분석은 담화 표지(대조, 조건, 인과)의 빈도에 기반한 담화 복잡성 점수를 산출하고, 해당 점수가 소정의 기준값 이상인 경우 리뷰 품질 등급을 상위 등급으로 승격시키는 것을 특징으로 하는 방법.
+</div>
+
+<div class="sub-claim">
+<span class="claim-num">[청구항 7]</span> 제2항에 있어서, 상기 (c) 단계의 언어학 레이어 분석은 화용론적 패턴(간접 부정, 축소어법, 수사적 질문)을 감지하여 감성 분류를 재조정하는 것을 특징으로 하는 방법.
+</div>
+
+<div class="sub-claim">
+<span class="claim-num">[청구항 8]</span> 제1항에 있어서, 상기 제2 진정성 지표(LAI)는 감각어 밀도 정규화, 헤징 자연도, 레지스터 변동성, 시간 근접성, 1인칭 자연도의 가중합으로 산출되는 것을 특징으로 하는 시스템.
+</div>
+
+<div class="sub-claim">
+<span class="claim-num">[청구항 9]</span> 제1항에 있어서, 상기 인지적 몰입도 지표(EDS)는 은유/비유 밀도, 담화 복잡성, 한정 표지 밀도, 구체적 디테일 밀도의 가중합으로 산출되는 것을 특징으로 하는 시스템.
+</div>
+
+<div class="sub-claim">
+<span class="claim-num">[청구항 10]</span> 제1항에 있어서, 상기 교차검증부는, 제1 진정성 지표(Auth)와 제2 진정성 지표(LAI)의 차이가 소정의 임계값을 초과하는 경우, 상기 LAI가 Auth보다 높으면 "과소평가(AUTH_UNDERESTIMATE)"로, 상기 Auth가 LAI보다 높으면 "제작 의심(POSSIBLE_CRAFTED)"으로 유형을 분류하여 플래깅하는 것을 특징으로 하는 시스템.
+</div>
+
+<!-- ==================== 8. 도면 ==================== -->
+<h2 id="s8">8. 도면의 간단한 설명</h2>
+<table>
+  <tr><th>도면</th><th>내용</th></tr>
+  <tr><td>도 1</td><td>시스템 전체 구성도 (4-Stage 블록 다이어그램)</td></tr>
+  <tr><td>도 2</td><td>3-Layer 분석 엔진 상세 구성도</td></tr>
+  <tr><td>도 3</td><td>Sincerity Filter Content Class 분류 플로우차트</td></tr>
+  <tr><td>도 4</td><td>LAI 산출 구성요소 및 가중치 다이어그램</td></tr>
+  <tr><td>도 5</td><td>EDS 산출 구성요소 및 가중치 다이어그램</td></tr>
+  <tr><td>도 6</td><td>Auth-LAI 교차검증 판정 프로세스</td></tr>
+  <tr><td>도 7</td><td>심리학-언어학 브릿지 보정 매핑 테이블</td></tr>
+</table>
+
+<!-- ==================== 9. 실시예 ==================== -->
+<h2 id="s9">9. 실시예</h2>
+<p>본 발명의 시스템을 롯데웰푸드의 "자이리톨" 브랜드에 적용한 실시예를 설명한다.</p>
+
+<h3>9-1. 데이터 수집</h3>
+<p>네이버 블로그 검색 API를 통해 6개 키워드("자이리톨 후기", "자이리톨 껌 추천", "자이리톨 리뷰", "롯데 자이리톨", "자이리톨 맛", "자이리톨 효과")로 최근 30일간의 데이터를 수집하였다. 총 8,227건을 수집하고, 3단계 필터링 후 1,961건이 분석 대상으로 선별되었다.</p>
+
+<h3>9-2. Sincerity Filter 결과</h3>
+<table>
+  <tr><th>등급</th><th>건수</th><th>비율</th></tr>
+  <tr><td>A (진성후기)</td><td>109건</td><td>5.6%</td></tr>
+  <tr><td>B (일반포스트)</td><td>1,491건</td><td>76.1%</td></tr>
+  <tr><td>C (협찬)</td><td>85건</td><td>4.3%</td></tr>
+  <tr><td>D~G (필터)</td><td>276건</td><td>14.1%</td></tr>
+  <tr><td><strong>유효 분석 대상 (A+B+C)</strong></td><td><strong>1,685건</strong></td><td><strong>85.9%</strong></td></tr>
+</table>
+
+<h3>9-3. 3-Layer 분석 결과 (기존 2-Layer vs 3-Layer 비교)</h3>
+<table>
+  <tr><th>지표</th><th>기존 2-Layer</th><th>3-Layer (Linguistic 추가)</th><th>변화</th></tr>
+  <tr><td>Auth 평균</td><td>71.3</td><td><strong>74.6</strong></td><td>+3.4</td></tr>
+  <tr><td>Clout 평균</td><td>53.4</td><td>53.4</td><td>0.0</td></tr>
+  <tr><td>Freshness 평균</td><td>54.6</td><td><strong>57.1</strong></td><td>+2.5</td></tr>
+  <tr><td>LAI 평균</td><td>—</td><td><strong>25.1</strong></td><td>신규</td></tr>
+  <tr><td>EDS 평균</td><td>—</td><td><strong>10.0</strong></td><td>신규</td></tr>
+  <tr><td>Auth 상향 보정</td><td>—</td><td>978건 (58.1%)</td><td>신규</td></tr>
+  <tr><td>RQL Q3→Q4 승격</td><td>—</td><td>31건</td><td>신규</td></tr>
+</table>
+
+<h3>9-4. Linguistic Layer 발견</h3>
+<ul>
+  <li><strong>문체 레지스터:</strong> 해요체 41.5%, 합쇼체 27.2%, 해체 18.8% — 합쇼체 비율이 예상보다 높아, 치과/건강 정보 블로그가 브랜드 인식의 상당 부분을 형성하고 있음을 발견</li>
+  <li><strong>감각어 풍부 리뷰:</strong> 감각어 밀도 >3/100단어인 200건(11.9%)이 "상쾌", "개운", "민트향" 등 직접 체험을 서술한 핵심 리뷰로 식별, Auth 평균 대비 +8점 상향</li>
+  <li><strong>확신도 분포:</strong> 78.6%가 확신/헤징 마커 거의 없음 — 껌이라는 카테고리 특성상 강한 감정 표현이 적음</li>
+</ul>
+
+<hr>
+<p style="text-align:center; color:#999; font-size:12px; margin-top:40px;">— 풀버전 문서 끝 —<br>본 문서는 변리사 검토용 기술설명 자료입니다.</p>
+
+</body>
+</html>

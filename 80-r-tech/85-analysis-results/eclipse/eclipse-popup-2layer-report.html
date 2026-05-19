@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이클립스 월드 — RXR 2-Layer 분석</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+  :root{--primary:#6666FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--black:#000;--dark:#262626;--body:#424D61;--light:#F6F6F6;--white:#FFF;--red:#C00000;--coral:#FF5050;--blue:#4D93F7;--green:#10b981;--orange:#f59e0b;--pink:#d946ef;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:14px;line-height:1.6;max-width:1200px;margin:0 auto;padding:40px 32px;}
+  h1{font-size:28px;font-weight:800;color:var(--black);margin-bottom:4px;}
+  h2{font-size:20px;font-weight:800;margin:32px 0 12px;padding-bottom:8px;border-bottom:2px solid #E1E1FF;}
+  h3{font-size:15px;font-weight:700;margin:12px 0 6px;}
+  .sub{font-size:13px;color:var(--body);margin-bottom:20px;}
+  .metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:16px 0;}
+  .metric{text-align:center;padding:16px 12px;background:var(--light);border-radius:12px;border:1px solid #e8e8e8;}
+  .metric-val{font-family:'DIN Alternate','Poppins',sans-serif;font-size:32px;font-weight:700;}
+  .metric-label{font-size:11px;color:var(--body);margin-top:4px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  .card{background:var(--light);border:1px solid #e8e8e8;border-radius:12px;padding:16px 18px;}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0;}
+  th{background:var(--primary);color:#fff;padding:7px 10px;text-align:left;font-size:11px;}
+  td{padding:6px 10px;border-bottom:1px solid #eee;}
+  .bar-h{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+  .bar-label{width:90px;font-size:11px;text-align:right;flex-shrink:0;}
+  .bar-track{flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:600;color:#fff;}
+  .bar-cnt{width:40px;font-size:11px;font-weight:600;flex-shrink:0;}
+  .gauge{width:100%;height:24px;background:#f0f0f0;border-radius:12px;overflow:hidden;position:relative;margin:6px 0;}
+  .gauge-fill{height:100%;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+  .gauge-label{display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-top:2px;}
+  .tag{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;}
+  .insight{padding:14px 18px;background:#E1E1FF;border-radius:10px;border-left:4px solid var(--primary);margin:10px 0;font-size:13px;line-height:1.7;}
+  .insight strong{color:var(--primary);}
+  .vs-box{display:grid;grid-template-columns:1fr 50px 1fr;gap:8px;align-items:center;margin:16px 0;}
+  .vs-card{padding:16px;border-radius:12px;text-align:center;}
+  .vs-label{font-size:28px;font-weight:900;color:#94a3b8;}
+  .footer{margin-top:40px;padding-top:20px;border-top:2px solid var(--primary);font-size:11px;color:#94a3b8;text-align:center;}
+  @media print{body{max-width:100%;padding:20px;}}
+</style>
+</head>
+<body>
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+  <span style="background:var(--grad);color:#fff;padding:4px 14px;border-radius:6px;font-family:'Poppins';font-size:11px;font-weight:600;letter-spacing:1px;">RXR 2-LAYER ANALYSIS</span>
+  <span style="font-size:12px;color:var(--body);">Content Layer + Psyche Layer</span>
+</div>
+<h1>이클립스 월드 — Into the Tin Case</h1>
+<div class="sub">2-Layer 심층 분석 리포트 | 네이버 블로그 90건 본문 분석 | Project RENT · R-lab</div>
+
+<!-- 핵심 Psyche 메트릭 -->
+<div class="metric-row">
+  <div class="metric" style="border-top:3px solid var(--primary);">
+    <div class="metric-val" style="color:var(--primary);">57.2</div>
+    <div class="metric-label">Authenticity (진정성)</div>
+    <div class="gauge"><div class="gauge-fill" style="width:57.2%;background:var(--primary);">57.2</div></div>
+    <div class="gauge-label"><span>과장</span><span>진심</span></div>
+  </div>
+  <div class="metric" style="border-top:3px solid var(--green);">
+    <div class="metric-val" style="color:var(--green);">48.9</div>
+    <div class="metric-label">Clout (추천 확신도)</div>
+    <div class="gauge"><div class="gauge-fill" style="width:48.9%;background:var(--green);">48.9</div></div>
+    <div class="gauge-label"><span>소극적</span><span>적극 추천</span></div>
+  </div>
+  <div class="metric" style="border-top:3px solid var(--orange);">
+    <div class="metric-val" style="color:var(--orange);">39.8</div>
+    <div class="metric-label">Freshness Index (신선함)</div>
+    <div class="gauge"><div class="gauge-fill" style="width:39.8%;background:var(--orange);">39.8</div></div>
+    <div class="gauge-label"><span>익숙함</span><span>새로운 발견</span></div>
+  </div>
+  <div class="metric" style="border-top:3px solid var(--pink);">
+    <div class="metric-val" style="color:var(--pink);">90</div>
+    <div class="metric-label">분석 대상</div>
+    <div style="font-size:11px;color:var(--body);margin-top:8px;">팝업 관련 블로그<br>본문 100% 확보</div>
+  </div>
+</div>
+
+<!-- Content Layer -->
+<h2>Content Layer — "무엇을 말했는가"</h2>
+
+<div class="grid2">
+  <div>
+    <h3>토픽 분포</h3>
+    <div class="bar-h"><div class="bar-label">제품/맛</div><div class="bar-track"><div class="bar-fill" style="width:67.8%;background:var(--primary);">61건</div></div><div class="bar-cnt">68%</div></div>
+    <div class="bar-h"><div class="bar-label">웨이팅/예약</div><div class="bar-track"><div class="bar-fill" style="width:15.6%;background:var(--orange);">14건</div></div><div class="bar-cnt">16%</div></div>
+    <div class="bar-h"><div class="bar-label">게임/미션</div><div class="bar-track"><div class="bar-fill" style="width:7.8%;background:var(--green);">7건</div></div><div class="bar-cnt">8%</div></div>
+    <div class="bar-h"><div class="bar-label">공간/분위기</div><div class="bar-track"><div class="bar-fill" style="width:5.6%;background:var(--pink);">5건</div></div><div class="bar-cnt">6%</div></div>
+    <div class="bar-h"><div class="bar-label">굿즈/가챠</div><div class="bar-track"><div class="bar-fill" style="width:2.2%;background:var(--blue);">2건</div></div><div class="bar-cnt">2%</div></div>
+
+    <div class="insight" style="margin-top:12px;">
+      <strong>발견:</strong> "제품/맛" 토픽이 68%로 압도적. 팝업의 공간 경험(6%)이나 게임(8%)보다 <strong>포도향 신제품 자체에 대한 관심</strong>이 버즈의 핵심. 팝업이 "공간 체험" 보다 "신제품 시식 이벤트"로 인식된 구조.
+    </div>
+  </div>
+  <div>
+    <h3>감성 분포</h3>
+    <div style="display:flex;gap:8px;margin:12px 0;">
+      <div class="card" style="flex:1;text-align:center;border-top:3px solid var(--green);">
+        <div style="font-size:24px;font-weight:800;color:var(--green);">46%</div>
+        <div style="font-size:11px;">긍정 (41건)</div>
+      </div>
+      <div class="card" style="flex:1;text-align:center;border-top:3px solid #94a3b8;">
+        <div style="font-size:24px;font-weight:800;color:#94a3b8;">41%</div>
+        <div style="font-size:11px;">중립 (37건)</div>
+      </div>
+      <div class="card" style="flex:1;text-align:center;border-top:3px solid var(--orange);">
+        <div style="font-size:24px;font-weight:800;color:var(--orange);">11%</div>
+        <div style="font-size:11px;">혼합 (10건)</div>
+      </div>
+      <div class="card" style="flex:1;text-align:center;border-top:3px solid var(--red);">
+        <div style="font-size:24px;font-weight:800;color:var(--red);">2%</div>
+        <div style="font-size:11px;">부정 (2건)</div>
+      </div>
+    </div>
+
+    <h3>후기 깊이 (RQL)</h3>
+    <div class="bar-h"><div class="bar-label" style="width:80px;">Q5 서사형</div><div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--primary);">9</div></div><div class="bar-cnt" style="color:var(--primary);font-weight:700;">×2.0</div></div>
+    <div class="bar-h"><div class="bar-label" style="width:80px;">Q4 분석형</div><div class="bar-track"><div class="bar-fill" style="width:43.3%;background:var(--blue);">39</div></div><div class="bar-cnt">×1.5</div></div>
+    <div class="bar-h"><div class="bar-label" style="width:80px;">Q3 경험형</div><div class="bar-track"><div class="bar-fill" style="width:21.1%;background:var(--green);">19</div></div><div class="bar-cnt">×1.0</div></div>
+    <div class="bar-h"><div class="bar-label" style="width:80px;">Q2 감상형</div><div class="bar-track"><div class="bar-fill" style="width:23.3%;background:var(--orange);">21</div></div><div class="bar-cnt">×0.5</div></div>
+    <div class="bar-h"><div class="bar-label" style="width:80px;">Q1 간단형</div><div class="bar-track"><div class="bar-fill" style="width:2.2%;background:#94a3b8;">2</div></div><div class="bar-cnt">×0.2</div></div>
+
+    <div class="insight" style="margin-top:12px;">
+      <strong>발견:</strong> Q4 분석형이 43%로 최다. 블로그 특성상 <strong>상세 후기가 많고, 깊이 있는 경험 서술</strong>이 풍부. Q5 서사형(10%)까지 합치면 53%가 "깊은 후기" → FWA 분석에 적합한 고품질 데이터.
+    </div>
+  </div>
+</div>
+
+<!-- Psyche Layer -->
+<h2>Psyche Layer — "어떻게 말했는가"</h2>
+
+<!-- 협찬 vs 자발적 -->
+<h3>협찬 vs 자발적 — 진정성 비교</h3>
+<div class="vs-box">
+  <div class="vs-card" style="background:#d1fae5;border:2px solid var(--green);">
+    <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:4px;">자발적 (Organic)</div>
+    <div style="font-size:36px;font-weight:800;color:var(--green);">82건</div>
+    <div style="margin-top:8px;">
+      <div style="font-size:12px;color:var(--body);">Authenticity</div>
+      <div style="font-size:24px;font-weight:800;color:var(--dark);">58.1</div>
+    </div>
+  </div>
+  <div class="vs-label">VS</div>
+  <div class="vs-card" style="background:#fef3c7;border:2px solid var(--orange);">
+    <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:4px;">협찬 (Sponsored)</div>
+    <div style="font-size:36px;font-weight:800;color:var(--orange);">8건</div>
+    <div style="margin-top:8px;">
+      <div style="font-size:12px;color:var(--body);">Authenticity</div>
+      <div style="font-size:24px;font-weight:800;color:var(--dark);">47.6</div>
+    </div>
+  </div>
+</div>
+
+<div class="insight">
+  <strong>발견: 협찬 포스트의 Authenticity가 10.5점 낮다</strong><br>
+  자발적(58.1) vs 협찬(47.6) — FWA로 <strong>협찬과 자발적의 진정성 차이를 수치로 포착</strong>. 단, 협찬 8건 중에서도 Authenticity 편차가 클 것으로 예상 → 개별 포스트 단위 분석이 필요.
+</div>
+
+<!-- 기간별 Psyche 변화 -->
+<h3>기간별 심리 지표 변화</h3>
+<table>
+  <thead>
+    <tr><th>기간</th><th>N</th><th>Authenticity</th><th>Clout</th><th>Freshness</th><th>해석</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="font-weight:700;color:var(--orange);">사전 (~3/11)</td><td>28건</td>
+      <td><strong style="color:var(--green);">59.5</strong></td>
+      <td>49.1</td>
+      <td>37.5</td>
+      <td style="font-size:11px;">기대감 높은 상태, 정보 탐색 중심</td>
+    </tr>
+    <tr style="background:var(--light);">
+      <td style="font-weight:700;color:var(--primary);">팝업 기간 (3/12~15)</td><td>46건</td>
+      <td><strong>56.7</strong></td>
+      <td>49.0</td>
+      <td style="color:var(--green);font-weight:700;">41.0</td>
+      <td style="font-size:11px;">직접 경험 후 반응, Freshness 상승</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;color:#94a3b8;">팝업 후 (3/16~)</td><td>16건</td>
+      <td><strong style="color:var(--coral);">54.6</strong></td>
+      <td>48.4</td>
+      <td>40.4</td>
+      <td style="font-size:11px;">Authenticity 하락 — 늦은 후기일수록 과장 경향</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>패턴: Authenticity가 시간이 지날수록 하락한다</strong><br>
+  사전(59.5) → 팝업기간(56.7) → 팝업후(54.6). 직접 경험 전(사전)에 가장 솔직하고, <strong>시간이 지날수록 기억의 과장/미화가 반영</strong>되는 패턴. 반면 <strong>Freshness는 팝업 기간에 최고(41.0)</strong> — 실제 체험 시 "새로운 발견" 느낌이 가장 강함.
+</div>
+
+<!-- 대명사 패턴 -->
+<h3>대명사 패턴 분석</h3>
+<div class="grid3">
+  <div class="card" style="text-align:center;border-top:3px solid var(--primary);">
+    <div style="font-size:11px;color:var(--body);margin-bottom:4px;">1인칭 (나/내/저)</div>
+    <div style="font-size:11px;color:#94a3b8;">개인적 경험 서술</div>
+    <div style="margin-top:8px;font-size:12px;color:var(--body);">사전 기대글에서 높음<br>"<strong>나</strong>는 이거 기대돼"</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:3px solid var(--green);">
+    <div style="font-size:11px;color:var(--body);margin-bottom:4px;">복수형 (우리/같이/함께)</div>
+    <div style="font-size:11px;color:#94a3b8;">사회적 경험 공유</div>
+    <div style="margin-top:8px;font-size:12px;color:var(--body);">방문 후기에서 높음<br>"<strong>같이</strong> 가면 재밌을 듯"</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:3px solid var(--pink);">
+    <div style="font-size:11px;color:var(--body);margin-bottom:4px;">장소 지시 (여기/이곳)</div>
+    <div style="font-size:11px;color:#94a3b8;">공간 몰입 신호</div>
+    <div style="margin-top:8px;font-size:12px;color:var(--body);">팝업 기간에 집중<br>"<strong>여기</strong> 진짜 잘 꾸며놨다"</div>
+  </div>
+</div>
+
+<!-- 조사 패턴 -->
+<h3>조사 패턴: "이/가" vs "은/는"</h3>
+<div class="grid2">
+  <div class="card" style="border-left:4px solid var(--green);">
+    <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px;">"이/가" = 초점/발견 (Freshness)</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.7;">
+      "분위기<strong>가</strong> 좋았다", "게임<strong>이</strong> 재밌었다"<br>
+      → 새로운 것을 발견하고 놀라는 패턴<br>
+      → <strong>팝업 기간에 비율 상승 (41%)</strong>
+    </div>
+  </div>
+  <div class="card" style="border-left:4px solid #94a3b8;">
+    <div style="font-size:13px;font-weight:700;color:#94a3b8;margin-bottom:6px;">"은/는" = 주제/설명 (Familiarity)</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.7;">
+      "이클립스<strong>는</strong> 껌 브랜드", "팝업<strong>은</strong> 성수동"<br>
+      → 이미 알고 있는 것을 설명하는 패턴<br>
+      → 사전 안내/정보 정리글에서 우세
+    </div>
+  </div>
+</div>
+
+<!-- 종합 인사이트 -->
+<h2>종합 인사이트</h2>
+
+<div class="insight">
+  <strong>1. 팝업이 "공간 체험"이 아닌 "신제품 시식"으로 인식됨</strong><br>
+  토픽 68%가 "제품/맛" 중심. 공간/분위기(6%), 게임(8%)은 부차적. 이클립스 팝업의 핵심 가치인 "레트로 오락실 경험"은 블로그 텍스트에서 <strong>주요 화제가 아닌 보조 요소로 소비</strong>됨. → 다음 팝업에서 공간 경험의 비중을 높이거나, 공간 경험이 화제가 되도록 콘텐츠 전략 필요.
+</div>
+
+<div class="insight">
+  <strong>2. FWA로 협찬과 자발적의 진정성 차이를 수치로 포착 가능</strong><br>
+  Authenticity 차이 10.5점 (58.1 vs 47.6). <strong>이것이 RXR의 차별화</strong> — 기존 도구는 "협찬 표기 유무"만 보지만, FWA는 텍스트 패턴에서 <strong>무의식적 진정성 수준</strong>을 읽음. 협찬 8건 안에서도 진심 스펙트럼이 있을 것.
+</div>
+
+<div class="insight">
+  <strong>3. 시간에 따른 Authenticity 하락 = 기억의 과장/미화 패턴</strong><br>
+  사전(59.5) → 팝업기간(56.7) → 팝업후(54.6). 이건 팝업 성과를 측정할 때 <strong>"언제 쓴 후기인가"를 보정해야 한다</strong>는 의미. 팝업 기간 직후 1~2일 내 후기가 가장 신뢰도 높음.
+</div>
+
+<div class="insight">
+  <strong>4. Freshness Index가 팝업 기간에 최고 — "직접 경험"의 힘</strong><br>
+  사전(37.5) → 팝업기간(41.0) → 팝업후(40.4). "이/가" 초점 조사 비율이 <strong>실제 방문 후 상승</strong> — "분위기가 좋았다", "게임이 재밌었다" 등 <strong>새로운 발견의 언어 패턴</strong>. 이것은 사전 정보글에서는 나올 수 없는 패턴.
+</div>
+
+<div class="insight" style="background:#fef2f2;border-left-color:var(--coral);">
+  <strong style="color:var(--coral);">5. Clout(추천 확신도)가 전 기간 49 수준으로 평이</strong><br>
+  적극적 추천("꼭 가세요!", "강추!")보다 <strong>정보 공유 톤</strong>이 우세. 이것은 팝업이 "열정적 팬을 만들었다"기보다 <strong>"화제성 있는 체험처로 소비되었다"</strong>에 가까움. Brand Advocacy Score 관점에서 <strong>진정한 옹호자 전환은 아직 미달</strong>.
+</div>
+
+<!-- 다음 단계 -->
+<h2>다음 단계</h2>
+<table>
+  <thead><tr><th>#</th><th>작업</th><th>목적</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Brand24 인스타 데이터와 블로그 데이터 교차 비교</td><td>채널별 심리 패턴 차이 분석</td></tr>
+    <tr><td>2</td><td>협찬 8건 개별 FWA 상세 분석</td><td>협찬 내 진심 스펙트럼 확인</td></tr>
+    <tr><td>3</td><td>Q5 서사형 9건 상세 분석</td><td>최고 품질 후기의 심리 프로필</td></tr>
+    <tr><td>4</td><td>RXR 분석 리포트 v1.0 — 클라이언트 납품 가능 형태</td><td>서비스 프로토타입</td></tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  Project RENT · R-lab · 2026<br>
+  RXR 2-Layer Analysis Engine v0.1 | Content Layer (토픽/감성/RQL) + Psyche Layer (FWA: Auth/Clout/Freshness)<br>
+  Data: 네이버 블로그 90건 본문 분석
+</div>
+
+</body>
+</html>

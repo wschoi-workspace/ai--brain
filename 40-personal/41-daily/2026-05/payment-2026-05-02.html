@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>결제 대시보드 — 2026년 5월 2일</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a2e;
+    --accent: #e94560;
+    --text: #eee;
+    --text-dim: #999;
+    --green: #00c853;
+    --yellow: #ffd600;
+    --red: #ff1744;
+    --blue: #448aff;
+    --orange: #ff9100;
+    --border: #2a2a4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem;
+    max-width: 1060px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  .header {
+    text-align: center;
+    padding: 2rem 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff9100, #e94560);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .date { color: var(--text-dim); font-size: 0.95rem; margin-top: 0.3rem; }
+  .header .source { color: var(--text-dim); font-size: 0.75rem; margin-top: 0.2rem; }
+  .header .source a { color: var(--blue); text-decoration: none; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .stat-card .number { font-size: 2rem; font-weight: 800; }
+  .stat-card .label { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.2rem; }
+  .stat-card.pending .number { color: var(--red); }
+  .stat-card.approved .number { color: var(--yellow); }
+  .stat-card.done .number { color: var(--green); }
+  .stat-card.rejected .number { color: var(--text-dim); }
+  .stat-card.total .number { color: var(--orange); }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+  }
+  .icon-pending { background: rgba(255,23,68,0.2); }
+  .icon-approved { background: rgba(255,214,0,0.2); }
+  .icon-regular { background: rgba(255,145,0,0.2); }
+  .icon-summary { background: rgba(68,138,255,0.2); }
+  .icon-rejected { background: rgba(153,153,153,0.2); }
+  .icon-wage { background: rgba(0,200,83,0.2); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th {
+    text-align: left; padding: 0.6rem 0.8rem; color: var(--text-dim);
+    font-weight: 600; font-size: 0.75rem; text-transform: uppercase;
+    letter-spacing: 0.5px; border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid rgba(42,42,74,0.5);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: 0.7rem; font-weight: 600;
+  }
+  .badge-red { background: rgba(255,23,68,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(255,214,0,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(0,200,83,0.15); color: var(--green); }
+  .badge-gray { background: rgba(153,153,153,0.15); color: var(--text-dim); }
+  .badge-orange { background: rgba(255,145,0,0.15); color: var(--orange); }
+
+  .amount { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .amount-large { font-size: 1.05rem; }
+  .link-icon { text-decoration: none; font-size: 0.85rem; }
+  .memo { font-size: 0.8rem; color: var(--text-dim); max-width: 350px; line-height: 1.4; }
+
+  details { margin-top: 0.5rem; }
+  details summary {
+    cursor: pointer; color: var(--text-dim); font-size: 0.85rem;
+    padding: 0.5rem 0;
+  }
+  details summary:hover { color: var(--text); }
+
+  .empty-state { color: var(--text-dim); text-align: center; padding: 1.5rem; font-size: 0.9rem; }
+  .footer {
+    text-align: center; color: var(--text-dim); font-size: 0.75rem;
+    padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 1rem;
+  }
+
+  .summary-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  }
+  .summary-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(42,42,74,0.3);
+  }
+  .summary-item:last-child { border-bottom: none; }
+  .summary-label { color: var(--text-dim); font-size: 0.85rem; }
+  .summary-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>💳 결제 대시보드</h1>
+  <div class="date">2026년 5월 2일 (금)</div>
+  <div class="source">
+    데이터: <a href="https://docs.google.com/spreadsheets/d/1kWSzNqv5UX97EUYFm6LBEWe2kDuH0CAbtUC3sHEF7so" target="_blank">HR포탈 마스터시트</a>
+  </div>
+</div>
+
+<!-- 요약 카드 -->
+<div class="stats">
+  <div class="stat-card pending">
+    <div class="number">1</div>
+    <div class="label">대기 (처리 필요)</div>
+  </div>
+  <div class="stat-card approved">
+    <div class="number">2</div>
+    <div class="label">승인 (송금 대기)</div>
+  </div>
+  <div class="stat-card done">
+    <div class="number">0</div>
+    <div class="label">완료</div>
+  </div>
+  <div class="stat-card rejected">
+    <div class="number">6</div>
+    <div class="label">반려</div>
+  </div>
+  <div class="stat-card total">
+    <div class="number">61.97M</div>
+    <div class="label">4월 처리 총액</div>
+  </div>
+</div>
+
+<!-- 🔴 처리 필요 (대기) — 일용직 급여 -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-pending">🔴</span> 처리 필요 — 일용직 급여 (대기)
+  </div>
+  <table>
+    <tr>
+      <th>No</th><th>근로일</th><th>수령인</th><th>은행</th><th>계좌</th>
+      <th>총지급액</th><th>원천징수</th><th>실수령액</th><th>입력자</th><th>첨부</th><th>상태</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>2026-04-29</td>
+      <td><strong>홍찬호</strong></td>
+      <td>카카오뱅크</td>
+      <td>3333204558402</td>
+      <td class="amount">1,800,000</td>
+      <td class="amount" style="color:var(--text-dim);">59,400</td>
+      <td class="amount amount-large" style="color:var(--yellow);">1,740,600</td>
+      <td>홍찬호</td>
+      <td><a class="link-icon" href="https://drive.google.com/drive/folders/1U0tsYUha2eaDo-jx14wRo6XAnyCYtErC" target="_blank">📎</a></td>
+      <td><span class="badge badge-red">대기</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- 🟡 승인 완료 (송금 대기) — 결제요청 -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-approved">🟡</span> 승인 완료 — 송금 대기
+  </div>
+  <table>
+    <tr>
+      <th>No</th><th>신청일</th><th>신청자</th><th>거래처</th>
+      <th>금액</th><th>내용</th><th>첨부</th><th>상태</th>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>2026-04-30</td>
+      <td>전제훈</td>
+      <td><strong>비트리코퍼레이션</strong><br><span style="color:var(--text-dim);font-size:0.75rem;">임성용 팀장 010-9737-8167</span></td>
+      <td class="amount amount-large" style="color:var(--yellow);">43,725,000</td>
+      <td class="memo">
+        1) 리스테린 팝업 잔금 30,950,000원 (VAT별도)<br>
+        2) 추가금 8,800,000원 (VAT별도)<br>
+        세금계산서 2개 분리 발행 → gon@bitree.ai / camo@bitree.ai
+      </td>
+      <td><a class="link-icon" href="https://drive.google.com/drive/folders/1wceorfx1oU5AZtw_Ct9lFMUu4TLTSnHP" target="_blank">📎</a></td>
+      <td><span class="badge badge-yellow">승인</span></td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>2026-04-30</td>
+      <td>전제훈</td>
+      <td><strong>피에스앤마케팅</strong><br><span style="color:var(--text-dim);font-size:0.75rem;">김다혜 센터장 010-2016-2435</span></td>
+      <td class="amount amount-large" style="color:var(--yellow);">16,500,000</td>
+      <td class="memo">
+        티팩토리 설계 용역 잔금 결제<br>
+        (SKT 대행사 결제 진행)<br>
+        대표자명 변경 → 신규 사업자등록증 기준 세계발행
+      </td>
+      <td><a class="link-icon" href="https://drive.google.com/drive/folders/1FJ4YWaoQ_WDwWGGhIvNvATDyMYN6ReEq" target="_blank">📎</a></td>
+      <td><span class="badge badge-yellow">승인</span></td>
+    </tr>
+  </table>
+  <div style="text-align:right; margin-top:0.8rem; padding-top:0.5rem; border-top:1px solid var(--border);">
+    <span style="color:var(--text-dim); font-size:0.85rem;">승인 건 합계</span>
+    <span style="font-size:1.2rem; font-weight:800; color:var(--yellow); margin-left:0.8rem;">60,225,000원</span>
+  </div>
+</div>
+
+<!-- 💰 정기 송금 (3일 이내) -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-regular">💰</span> 정기 송금 (3일 이내)
+  </div>
+  <div class="empty-state">5/2~5/4 해당 기간 정기 송금 예정 없음<br>다음 송금: 5/8 GS타워 매출정산 · 5/8 대전 소제점 매출정산</div>
+</div>
+
+<!-- 📊 월간 요약 -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-summary">📊</span> 2026년 4월 — 월간 요약
+  </div>
+  <div class="summary-grid">
+    <div>
+      <div class="summary-item">
+        <span class="summary-label">결제요청 총 건수</span>
+        <span class="summary-value">8건</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">승인 건수</span>
+        <span class="summary-value" style="color:var(--yellow);">2건</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">반려 건수</span>
+        <span class="summary-value" style="color:var(--text-dim);">6건 (중복)</span>
+      </div>
+    </div>
+    <div>
+      <div class="summary-item">
+        <span class="summary-label">승인 총액</span>
+        <span class="summary-value" style="color:var(--yellow);">60,225,000원</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">일용직 급여 (대기)</span>
+        <span class="summary-value" style="color:var(--red);">1,740,600원</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">합계 (승인+대기)</span>
+        <span class="summary-value" style="color:var(--orange);">61,965,600원</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ⬜ 반려 내역 (접이식) -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-rejected">⬜</span> 반려 내역
+  </div>
+  <details>
+    <summary>반려 6건 펼쳐 보기 (모두 비트리코퍼레이션 중복 건)</summary>
+    <table>
+      <tr><th>No</th><th>신청일</th><th>거래처</th><th>금액</th><th>반려사유</th></tr>
+      <tr><td>1</td><td>2026-04-30</td><td>비트리코퍼레이션</td><td class="amount">43,725,000</td><td><span class="badge badge-gray">중복</span></td></tr>
+      <tr><td>2</td><td>2026-04-30</td><td>비트리코퍼레이션</td><td class="amount">43,725,000</td><td><span class="badge badge-gray">중복</span></td></tr>
+      <tr><td>3</td><td>2026-04-30</td><td>비트리코퍼레이션</td><td class="amount">43,725,000</td><td><span class="badge badge-gray">중복</span></td></tr>
+      <tr><td>4</td><td>2026-04-30</td><td>비트리코퍼레이션</td><td class="amount">43,725,000</td><td><span class="badge badge-gray">중복</span></td></tr>
+      <tr><td>5</td><td>2026-04-30</td><td>비트리코퍼레이션</td><td class="amount">43,725,000</td><td><span class="badge badge-gray">중복</span></td></tr>
+      <tr><td>6</td><td>2026-04-30</td><td>비트리코퍼레이션</td><td class="amount">43,725,000</td><td><span class="badge badge-gray">중복</span></td></tr>
+    </table>
+  </details>
+</div>
+
+<div class="footer">
+  Generated by Claude Code · /payment · 2026-05-02 10:30 KST
+</div>
+
+</body>
+</html>

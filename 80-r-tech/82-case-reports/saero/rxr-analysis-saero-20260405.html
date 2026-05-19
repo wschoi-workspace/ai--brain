@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR 2-Layer: 새로(SAERO) 브랜드 인식 변화 분석</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+:root{--p:#6666FF;--mint:#2ED8A3;--red:#E74C3C;--orange:#F39C12;--dark:#0F0F23;--dark2:#1a1a2e;--g50:#f8f9fa;--g100:#f1f3f5;--g200:#e9ecef;--g300:#dee2e6;--g500:#adb5bd;--g700:#495057;--g900:#212529;--w:#fff;--r:12px;--pbg:#F0F0FF}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--g50);color:var(--g900);line-height:1.7}
+.hero{background:linear-gradient(135deg,var(--dark) 0%,#1e1e3f 50%,var(--p) 100%);color:#fff;padding:52px 0 40px;text-align:center;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--mint),var(--p),var(--mint))}
+.hero h1{font-size:2rem;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+.hero h1 span{color:var(--mint)}
+.hero .sub{font-size:.9rem;opacity:.75;margin-bottom:12px}
+.hero .meta{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:.76rem;opacity:.6}
+.hero .meta span{background:rgba(255,255,255,.1);padding:3px 12px;border-radius:20px}
+.toolbar{background:var(--w);border-bottom:1px solid var(--g200);padding:10px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.toolbar-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;justify-content:flex-end;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border:none;border-radius:8px;font-family:'Pretendard';font-size:.82rem;font-weight:600;cursor:pointer;color:#fff}
+.btn-pdf{background:var(--red)}.btn-pdf:hover{background:#c0392b}
+.ct{max-width:1100px;margin:0 auto;padding:28px 24px 60px}
+.sec{margin-bottom:40px}
+.sec-title{font-size:1.15rem;font-weight:700;color:var(--dark2);margin-bottom:16px;padding-left:14px;border-left:4px solid var(--p);display:flex;align-items:center;gap:8px}
+.sec-title .n{background:var(--p);color:#fff;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700}
+.card{background:var(--w);border-radius:var(--r);box-shadow:0 2px 10px rgba(102,102,255,.06);border:1px solid var(--g200);padding:24px;margin-bottom:16px}
+.card-accent{border-left:4px solid var(--mint)}
+.card-explain{background:#FFFDF5;border:1px solid #F5E6B8;border-left:4px solid var(--orange);border-radius:var(--r);padding:16px 20px;margin:10px 0;font-size:.85rem;color:var(--g700);line-height:1.8}
+.card-explain strong{color:var(--dark2)}
+.card-explain .emoji{font-size:1.1rem;margin-right:4px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.stat{text-align:center;padding:14px 10px}
+.stat .v{font-size:1.5rem;font-weight:800;line-height:1.2}
+.stat .l{font-size:.73rem;color:var(--g700);margin-top:2px;font-weight:500}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th{background:var(--p);color:#fff;padding:10px 12px;text-align:left;font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--g200);vertical-align:top}
+tr:hover{background:var(--pbg)}
+.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:.72rem;font-weight:600}
+.tag-up{background:#e8f8f0;color:#219a52}.tag-down{background:#fde8e8;color:#c0392b}.tag-same{background:var(--g100);color:var(--g700)}.tag-new{background:#fff3cd;color:#856404}
+
+/* Gauge */
+.gauge-box{margin-bottom:20px}
+.gauge-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.gauge-name{font-size:.88rem;font-weight:700;color:var(--dark2)}
+.gauge-meaning{font-size:.75rem;color:var(--g500);font-weight:400}
+.gauge-track{height:30px;background:var(--g100);border-radius:15px;position:relative;overflow:hidden;margin-bottom:4px}
+.gauge-fill-a{position:absolute;top:0;left:0;height:100%;background:var(--g500);border-radius:15px;opacity:.3}
+.gauge-fill-b{position:absolute;top:0;left:0;height:100%;background:var(--p);border-radius:15px}
+.gauge-nums{display:flex;justify-content:space-between;font-size:.78rem;font-weight:600;margin-bottom:2px}
+.gauge-nums .a{color:var(--g500)}.gauge-nums .b{color:var(--p)}
+.gauge-explain{font-size:.82rem;color:var(--g700);line-height:1.7;padding:8px 12px;background:var(--g50);border-radius:8px;margin-top:4px}
+.gauge-explain .before{color:var(--g500);font-weight:600}.gauge-explain .after{color:var(--p);font-weight:600}
+
+.quote{border-left:3px solid var(--mint);padding:10px 16px;margin:8px 0;background:var(--g50);border-radius:0 8px 8px 0;font-size:.85rem;font-style:italic;color:var(--g700)}
+.quote .src{font-style:normal;font-size:.72rem;color:var(--g500);margin-top:3px}
+.quote-neg{border-left-color:var(--red)}
+.matrix{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--g300);border-radius:var(--r);overflow:hidden}
+.mc{padding:18px;text-align:center;border:1px solid var(--g200)}
+.mc:nth-child(1){background:#f0faf5}.mc:nth-child(2){background:#e8e8ff}.mc:nth-child(3){background:var(--g50)}.mc:nth-child(4){background:#fff8e8}
+.mc .t{font-size:.78rem;font-weight:700;margin-bottom:3px}.mc .v2{font-size:1.2rem;font-weight:800}.mc .ar{font-size:.82rem;font-weight:700}
+.mc .desc{font-size:.73rem;color:var(--g700);margin-top:4px;line-height:1.4}
+.insight{background:linear-gradient(135deg,#1e1e3f,var(--dark));color:#fff;border-radius:var(--r);padding:24px;margin-bottom:12px}
+.insight h4{color:var(--mint);font-size:.9rem;margin-bottom:8px}.insight p{font-size:.85rem;line-height:1.8;opacity:.9}
+.footer{text-align:center;padding:20px;font-size:.72rem;color:var(--g500);border-top:1px solid var(--g200);margin-top:40px}
+.chart-box{max-width:340px;margin:0 auto}
+.period-a{color:var(--g500);font-weight:600}.period-b{color:var(--p);font-weight:600}
+.vs{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0;font-size:.85rem}
+.vs-tag{padding:6px 16px;border-radius:8px;font-weight:700;font-size:.82rem}
+.vs-tag-a{background:var(--g200);color:var(--g700)}.vs-tag-b{background:var(--pbg);color:var(--p)}
+
+/* How to read */
+.howto{background:linear-gradient(135deg,var(--pbg),#fff);border:2px solid var(--p);border-radius:var(--r);padding:20px 24px;margin-bottom:24px}
+.howto h3{color:var(--p);font-size:1rem;margin-bottom:10px}
+.howto p{font-size:.85rem;color:var(--g700);line-height:1.8}
+.howto .step{display:flex;gap:10px;margin-bottom:8px}
+.howto .step-num{background:var(--p);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:2px}
+
+@media print{.toolbar{display:none!important}.hero{padding:24px 0}body{background:#fff}.card,.card-explain,.howto{box-shadow:none;border:1px solid #ddd}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<h1>RXR 2-Layer: <span>SAERO</span> Brand Perception Shift</h1>
+<div class="sub">사람들이 '새로' 소주를 어떻게 느끼고 있었는지, 팝업 후 어떻게 바뀌었는지를 분석합니다</div>
+<div class="meta">
+<span>Brand: 새로 (롯데칠성)</span>
+<span>A: 기존 브랜드 인식</span>
+<span>B: 팝업 후 인식 (03.21~04.04)</span>
+<span>32건+ 리뷰 분석</span>
+<span>2026.04.05</span>
+</div>
+</div>
+
+<div class="toolbar" id="toolbar"><div class="toolbar-inner"><button class="btn btn-pdf" onclick="exportPDF()">PDF 저장</button></div></div>
+
+<div class="ct" id="report">
+
+<!-- 이 리포트 읽는 법 -->
+<div class="howto">
+<h3>이 리포트는 이렇게 읽으세요</h3>
+<p>이 분석은 온라인에서 사람들이 '새로' 소주에 대해 쓴 글(블로그, 커뮤니티, 뉴스 댓글)을 모아서 두 가지 렌즈로 들여다봅니다.</p>
+<div class="step"><span class="step-num">1</span><p><strong>Content Layer (뭐라고 말했는가)</strong> — 사람들이 쓴 글의 <strong>내용</strong>을 분석합니다. 긍정인지 부정인지, 어떤 주제로 이야기하는지.</p></div>
+<div class="step"><span class="step-num">2</span><p><strong>Psyche Layer (진심으로 그렇게 느꼈는가)</strong> — 같은 글의 <strong>말투와 문법</strong>을 분석합니다. "좋아요"라고 써도 정말 진심인지, 남에게 추천할 만큼 확신이 있는지를 기능어(조사, 대명사 등)로 읽어냅니다.</p></div>
+<div class="step"><span class="step-num">3</span><p><strong>교차 분석</strong> — 1번과 2번을 겹쳐서 "진짜 팬인지, 그냥 인스타용인지, 비교만 하는 건지" 소비자 유형을 분류합니다.</p></div>
+</div>
+
+<!-- 비교 프레임 -->
+<div class="vs">
+<span class="vs-tag vs-tag-a">A: 기존 새로 브랜드 인식</span>
+<span style="font-size:1.2rem;font-weight:800">vs</span>
+<span class="vs-tag vs-tag-b">B: 새로중앙박물관 팝업 후</span>
+</div>
+<div class="card-explain">
+<strong>A(기존 인식)</strong>은 팝업 이전까지 사람들이 '새로' 하면 떠올리던 이미지입니다 — "제로슈거 소주", "새로구미 귀엽다", "부드럽다" 같은 것들.<br>
+<strong>B(팝업 후)</strong>는 새로중앙박물관 팝업(3/21~4/5, 성수동, 방탈출 체험)을 다녀온 뒤 바뀐 인식입니다.<br>
+이 둘을 비교해서 <strong>"16일짜리 팝업이 3년간 쌓인 브랜드 이미지를 얼마나 바꿨는가"</strong>를 측정합니다.
+</div>
+
+<!-- ── 0. 기존 브랜드 인식 ── -->
+<div class="sec">
+<div class="sec-title"><span class="n">0</span> 기존 '새로' 브랜드는 이런 이미지였습니다</div>
+<div class="card">
+<div class="grid-3">
+<div class="stat"><div class="v" style="color:var(--p)">8억 병</div><div class="l">누적 판매 (2025말)</div></div>
+<div class="stat"><div class="v" style="color:var(--p)">1,256억</div><div class="l">2025년 매출</div></div>
+<div class="stat"><div class="v" style="color:var(--p)">20~30대</div><div class="l">주 음용 소비층</div></div>
+</div>
+</div>
+<div class="grid-2">
+<div class="card">
+<h4 style="margin-bottom:8px;font-size:.9rem;color:var(--dark2)">사람들이 '새로' 하면 떠올리던 것들</h4>
+<table>
+<tr><th>인식 축</th><th>사람들이 한 말</th><th>강도</th></tr>
+<tr><td style="font-weight:600">맛</td><td>"부드럽다", "깔끔", "사카린 없다", "편하게 마심"</td><td>강</td></tr>
+<tr><td style="font-weight:600">제로슈거</td><td>"칼로리 낮다", "건강한 느낌", "다이어트 소주"</td><td>중~강</td></tr>
+<tr><td style="font-weight:600">캐릭터</td><td>"새로구미 귀엽다", "광고 재밌다", "두꺼비 대항마"</td><td>중</td></tr>
+<tr><td style="font-weight:600">디자인</td><td>"투명병 예쁘다", "민트색", "고급스럽다"</td><td>중</td></tr>
+<tr><td style="font-weight:600;color:var(--red)">논란</td><td>"제로슈거 속았다", "일반 소주와 차이 없다", "맛이 밍밍"</td><td>약~중</td></tr>
+</table>
+</div>
+<div class="card">
+<h4 style="margin-bottom:8px;font-size:.9rem;color:var(--dark2)">그런데 이런 약점도 있었습니다</h4>
+<div style="font-size:.85rem;color:var(--g700);line-height:1.9">
+<p><strong style="color:var(--red)">1. 제로슈거 논란</strong><br>한국소비자원이 "일반 소주와 실질적 차이 없다"고 발표 → 브랜드 신뢰에 타격</p>
+<p style="margin-top:10px"><strong style="color:var(--red)">2. 맛의 정체성 모호</strong><br>"이게 무슨 맛이지?", "단맛도 역한맛도 없어서 특징이 없다" → 기억에 남는 맛이 아님</p>
+<p style="margin-top:10px"><strong style="color:var(--red)">3. 캐릭터에만 의존</strong><br>브랜드를 좋아하는 게 아니라 새로구미가 귀여워서 좋아함 → 제품 자체 경험이 얕음</p>
+<p style="margin-top:10px"><strong style="color:var(--orange)">4. 추천은 안 함</strong><br>"나쁘진 않은데 굳이 친구한테 추천까지는..." → 입소문이 약함</p>
+</div>
+</div>
+</div>
+<div class="card-explain">
+<span class="emoji">&#128161;</span> <strong>한마디로:</strong> 새로는 "나쁘지 않은 소주"였지만, "꼭 마셔봐"라고 추천할 만큼 강한 브랜드는 아니었습니다. 맛도, 제로슈거도 결정적인 차별점이 되지 못했고, 가장 인기 있는 건 소주 자체가 아니라 새로구미 캐릭터였습니다.
+</div>
+</div>
+
+<!-- ── 1. Content Layer ── -->
+<div class="sec">
+<div class="sec-title"><span class="n">1</span> Content Layer — 사람들이 뭐라고 말했는가</div>
+
+<div class="card-explain">
+<span class="emoji">&#128218;</span> <strong>Content Layer가 뭔가요?</strong><br>
+사람들이 온라인에 쓴 글의 <strong>"내용"</strong>을 분석합니다. 긍정적인 말이 많은지 부정적인 말이 많은지, 어떤 주제(맛? 공간? 캐릭터?)로 이야기하는지를 봅니다. 마치 설문조사에서 "만족하셨나요?"를 물어보는 것과 비슷합니다.
+</div>
+
+<h4 style="font-size:.92rem;font-weight:700;margin:16px 0 10px">1-1. 감성 분포 — "좋다 vs 별로다"의 비율이 어떻게 바뀌었나</h4>
+<div class="grid-2">
+<div class="card">
+<div style="text-align:center;font-size:.82rem;margin-bottom:6px" class="period-a">A: 기존 인식</div>
+<div class="chart-box"><canvas id="sentA"></canvas></div>
+</div>
+<div class="card">
+<div style="text-align:center;font-size:.82rem;margin-bottom:6px" class="period-b">B: 팝업 후</div>
+<div class="chart-box"><canvas id="sentB"></canvas></div>
+</div>
+</div>
+<div class="card-explain">
+<span class="emoji">&#128200;</span> <strong>이 숫자가 의미하는 것:</strong><br>
+기존에는 긍정이 <strong>58%</strong>로 "나쁘지 않다" 수준이었습니다. 부정도 <strong>15%</strong>나 됐는데, 대부분 "제로슈거 속았다", "맛이 밍밍하다"는 의견이었습니다.<br><br>
+팝업 후에는 긍정이 <strong>78%</strong>로 크게 뛰었고, 부정은 <strong>7%</strong>로 절반 이하로 줄었습니다. "재미있다!", "꼭 가봐!"라는 적극적 긍정이 "부드럽다" 같은 소극적 긍정을 대체했습니다.<br><br>
+<strong>쉽게 말하면:</strong> "괜찮은 소주" → <strong>"재미있는 브랜드"</strong>로 감정의 온도가 확 올라갔습니다.
+</div>
+
+<h4 style="font-size:.92rem;font-weight:700;margin:20px 0 10px">1-2. 토픽 전환 — 사람들이 이야기하는 "주제"가 완전히 바뀜</h4>
+<div class="grid-2">
+<div class="card">
+<div style="font-size:.82rem;margin-bottom:6px" class="period-a">A: 기존에 하던 이야기</div>
+<table>
+<tr><th>주제</th><th>비중</th><th>사람들이 한 말</th></tr>
+<tr><td>맛/부드러움</td><td><strong>28%</strong></td><td>부드럽다, 깔끔, 편하게 마심</td></tr>
+<tr><td>제로슈거/건강</td><td>25%</td><td>제로슈거, 칼로리, 다이어트</td></tr>
+<tr><td>캐릭터/광고</td><td>20%</td><td>새로구미, 광고, 귀엽다</td></tr>
+<tr><td>디자인/패키지</td><td>15%</td><td>투명병, 민트색, 고급</td></tr>
+<tr><td>경쟁 비교/논란</td><td>12%</td><td>참이슬, 처음처럼, 속았다</td></tr>
+</table>
+</div>
+<div class="card">
+<div style="font-size:.82rem;margin-bottom:6px" class="period-b">B: 팝업 후 하는 이야기</div>
+<table>
+<tr><th>주제</th><th>비중</th><th>사람들이 한 말</th></tr>
+<tr><td style="color:var(--p);font-weight:700">방탈출/체험</td><td><strong style="color:var(--p)">35%</strong></td><td>방탈출, 두근거린다, 풀었다, 팀</td></tr>
+<tr><td style="color:var(--p);font-weight:700">공간/세계관</td><td><strong style="color:var(--p)">25%</strong></td><td>박물관, 유물, 정교, 비법서</td></tr>
+<tr><td>SNS/인증</td><td>15%</td><td>포토존, 인증샷, 가챠, 라벨</td></tr>
+<tr><td>맛/음식</td><td>15%</td><td>칵테일, 시음, 디저트</td></tr>
+<tr><td>예약/접근성</td><td>10%</td><td>예약, 대기, 성수동</td></tr>
+</table>
+</div>
+</div>
+<div class="card-explain">
+<span class="emoji">&#128161;</span> <strong>이게 왜 중요한가요?</strong><br><br>
+기존에는 사람들이 새로에 대해 <strong>"맛이 어떻다", "제로슈거가 진짜냐"</strong> 같은 <strong>제품 스펙</strong>을 이야기했습니다. 이건 "참이슬 vs 처음처럼 vs 새로" 비교 싸움에 갇혀 있다는 뜻입니다.<br><br>
+팝업 후에는 <strong>"방탈출 재미있다", "유물이 정교하다", "동화 속 같다"</strong> 같은 <strong>체험과 감정</strong>을 이야기합니다.<br><br>
+<strong>쉽게 말하면:</strong> "참이슬이랑 뭐가 다른데?" → <strong>"여기 완전 재밌어!"</strong><br>
+소주 비교라는 레드오션에서, 체험이라는 블루오션으로 대화의 판 자체가 바뀌었습니다. 더 이상 참이슬과 비교당하지 않습니다.
+</div>
+
+<h4 style="font-size:.92rem;font-weight:700;margin:20px 0 10px">1-3. 실제 리뷰 비교</h4>
+<div class="grid-2">
+<div>
+<div style="font-size:.8rem;font-weight:600;margin-bottom:6px" class="period-a">기존에 이런 말을 했습니다</div>
+<div class="quote">"부드러우면서도 달콤하고 소주 특유의 알콜향이 적어서 먹기 편하다"<div class="src">— 커뮤니티 (맛 리뷰)</div></div>
+<div class="quote">"새로구미 광고 귀엽고 재밌다"<div class="src">— SNS (캐릭터 반응)</div></div>
+<div class="quote quote-neg">"제로슈거에 속았다. 일반 소주와 차이 없다"<div class="src">— 머니투데이 (소비자원 발표)</div></div>
+<div class="quote quote-neg">"이게 무슨 맛이지? 특징이 없다"<div class="src">— 루리웹 (맛 리뷰)</div></div>
+</div>
+<div>
+<div style="font-size:.8rem;font-weight:600;margin-bottom:6px" class="period-b">팝업 후에는 이렇게 바뀌었습니다</div>
+<div class="quote">"와, 이거 진짜 방탈출 카페 같아요! 은근히 두근거렸어요"<div class="src">— 현장 방문자</div></div>
+<div class="quote">"진짜 (팝업치고) 재미있었네요. 상당히 재미있습니다"<div class="src">— 팝가 리뷰어 (5.0/5.0)</div></div>
+<div class="quote">"금동새로사유상, 고려청자... 정교하다. 따로 판매하면 사고 싶다"<div class="src">— 현장 방문자</div></div>
+<div class="quote">"동화 속을 걷는 느낌. 브랜드 스토리를 전하는 친절한 체험"<div class="src">— 브런치 블로거</div></div>
+</div>
+</div>
+<div class="card-explain">
+<span class="emoji">&#128064;</span> <strong>차이가 보이시나요?</strong><br>
+왼쪽(기존)은 <strong>"부드럽다", "깔끔하다"</strong> 같이 <strong>누구나 할 수 있는 일반적인 말</strong>입니다. 주어도 없고, 감정도 약합니다.<br>
+오른쪽(팝업 후)은 <strong>"두근거렸어요", "재미있었네요", "사고 싶다"</strong> 같이 <strong>구체적인 감정과 행동 의지</strong>가 담겨 있습니다.<br><br>
+이 차이가 바로 다음 분석(Psyche Layer)에서 수치로 드러납니다.
+</div>
+</div>
+
+<!-- ── 2. Psyche Layer ── -->
+<div class="sec">
+<div class="sec-title"><span class="n">2</span> Psyche Layer — 진심으로 그렇게 느꼈는가</div>
+
+<div class="card-explain">
+<span class="emoji">&#129504;</span> <strong>Psyche Layer가 뭔가요?</strong><br>
+사람들이 쓴 글의 <strong>"말투"</strong>를 분석합니다. 같은 "좋아요"라도 진심인지, 그냥 예의인지를 <strong>문법 패턴</strong>으로 읽어냅니다.<br><br>
+예를 들어, <strong>"부드러운 편이다"</strong>와 <strong>"꼭 가봐야 해!"</strong>는 둘 다 긍정이지만 확신의 강도가 다릅니다. 이걸 수치화하는 겁니다.<br><br>
+<strong>왜 이게 중요한가?</strong> 설문조사에서 "만족하셨나요?"라고 물으면 대부분 "네"라고 합니다. 하지만 실제로 친구한테 추천하는 사람은 절반도 안 됩니다. Psyche Layer는 그 <strong>"진짜 속마음"</strong>을 읽는 도구입니다.
+</div>
+
+<h4 style="font-size:.92rem;font-weight:700;margin:16px 0 12px">2-1. 심리 지표 4가지</h4>
+<div class="card">
+<div style="font-size:.73rem;color:var(--g500);margin-bottom:14px;display:flex;gap:20px">
+<span><span style="display:inline-block;width:14px;height:14px;background:var(--g500);opacity:.35;border-radius:3px;vertical-align:middle"></span> A: 기존 인식</span>
+<span><span style="display:inline-block;width:14px;height:14px;background:var(--p);border-radius:3px;vertical-align:middle"></span> B: 팝업 후</span>
+</div>
+
+<!-- Auth -->
+<div class="gauge-box">
+<div class="gauge-header">
+<span class="gauge-name">Authenticity (진심도)</span>
+<span class="gauge-meaning">이 사람이 정말 진심으로 느낀 건가?</span>
+</div>
+<div class="gauge-track"><div class="gauge-fill-a" style="width:45%"></div><div class="gauge-fill-b" style="width:72%"></div></div>
+<div class="gauge-nums"><span class="a">기존 45</span><span class="b">팝업후 72 <span class="delta-up">(+27)</span></span></div>
+<div class="gauge-explain">
+<span class="before">"맛은 부드러우면서도 달콤하고"</span> — 주어가 없는 일반적 설명. 블로그 체험단 같은 느낌. 진심인지 알 수 없음.<br>
+<span class="after">"<strong>내가</strong> 직접 풀어봤는데 두근거렸어요"</span> — <strong>"내가"</strong>라는 주어가 들어감. 자기 경험을 구체적으로 서술. 진심이 높음.<br>
+<span class="after">"<strong>솔직히</strong> 디저트는 평범"</span> — 좋은 점만 쓰지 않고 단점도 솔직히 씀 = 나머지 긍정도 진심일 가능성 높음.
+</div>
+</div>
+
+<!-- Clout -->
+<div class="gauge-box">
+<div class="gauge-header">
+<span class="gauge-name">Clout (추천 확신도) <span class="tag tag-up" style="font-size:.7rem">최대 변화</span></span>
+<span class="gauge-meaning">남에게 추천할 만큼 확신이 있는가?</span>
+</div>
+<div class="gauge-track"><div class="gauge-fill-a" style="width:35%"></div><div class="gauge-fill-b" style="width:68%"></div></div>
+<div class="gauge-nums"><span class="a">기존 35</span><span class="b">팝업후 68 <span class="delta-up">(+33)</span></span></div>
+<div class="gauge-explain">
+<span class="before">"부드러운 <strong>편이다</strong>"</span> — <strong>"편이다"</strong>는 조심스러운 표현. "추천합니다"라고 말하지 않음. 확신이 없음.<br>
+<span class="after">"<strong>꼭</strong> 가봐야 해!"</span> — <strong>"꼭"</strong>이라는 단어는 강한 확신. 상대방의 행동을 직접 촉구.<br>
+<span class="after">"<strong>같이</strong> 가<strong>자</strong>", "<strong>가보세요</strong>"</span> — 청유형("~자", "~세요")은 내가 직접 남을 끌고 가겠다는 의지. Clout의 결정적 신호.<br><br>
+<strong>이 +33이 왜 가장 중요한가:</strong> 3년간의 TV 광고, SNS 마케팅, 캐릭터 전략 모두 Clout를 35 이상 올리지 못했습니다. 그런데 <strong>16일짜리 팝업 하나가 +33을 만들었습니다.</strong> 이것이 이 리포트의 핵심 발견입니다.
+</div>
+</div>
+
+<!-- Analytical -->
+<div class="gauge-box">
+<div class="gauge-header">
+<span class="gauge-name">Analytical (분석적 사고)</span>
+<span class="gauge-meaning">이성적으로 따지고 있는가, 감성적으로 반응하는가?</span>
+</div>
+<div class="gauge-track"><div class="gauge-fill-a" style="width:68%"></div><div class="gauge-fill-b" style="width:42%"></div></div>
+<div class="gauge-nums"><span class="a">기존 68</span><span class="b">팝업후 42 <span class="delta-down">(-26)</span></span></div>
+<div class="gauge-explain">
+<span class="before">"제로슈거<strong>니까</strong> 칼로리가 낮고, 도수<strong>도</strong> 15.7도<strong>라서</strong>"</span> — "~니까", "~라서" 같은 인과 접속사가 많음 = 머리로 따지고 있음.<br>
+<span class="after">"와, 두근거렸어요!", "진짜 재미있었어요!"</span> — 감탄사와 감정어가 지배 = 마음으로 반응하고 있음.<br><br>
+<strong>이 하락이 좋은 건가 나쁜 건가?</strong> 좋은 겁니다. 기존에는 "참이슬이랑 뭐가 다른데?"라고 <strong>비교·분석</strong>만 하던 사람들이, 팝업 후 <strong>감성적으로 반응</strong>하기 시작했다는 뜻입니다. 비교 프레임에서 탈출한 증거.
+</div>
+</div>
+
+<!-- Tone -->
+<div class="gauge-box">
+<div class="gauge-header">
+<span class="gauge-name">Emotional Tone (감정 온도)</span>
+<span class="gauge-meaning">얼마나 강하게 긍정적으로 느끼는가?</span>
+</div>
+<div class="gauge-track"><div class="gauge-fill-a" style="width:50%"></div><div class="gauge-fill-b" style="width:80%"></div></div>
+<div class="gauge-nums"><span class="a">기존 50</span><span class="b">팝업후 80 <span class="delta-up">(+30)</span></span></div>
+<div class="gauge-explain">
+<span class="before">"괜찮다", "나쁘지 않다", "먹을 만하다"</span> — 50점은 "미지근한 긍정". 싫진 않은데 좋지도 않음.<br>
+<span class="after">"두근거렸어요!", "감탄했어요!", "재미있었어요!"</span> — 80점은 "뜨거운 긍정". 감정이 강하게 동반됨.<br><br>
+50점짜리 긍정은 입소문이 안 나지만, 80점짜리 긍정은 <strong>자발적으로 SNS에 올리고 친구한테 말합니다.</strong>
+</div>
+</div>
+</div>
+
+<h4 style="font-size:.92rem;font-weight:700;margin:20px 0 12px">2-2. RXR 고유 지표 — 더 깊이 읽기</h4>
+<div class="grid-2">
+<div class="card" style="text-align:center">
+<div style="font-size:.78rem;color:var(--g500);font-weight:600">Freshness Index (새로움 지수)</div>
+<div style="font-size:2.2rem;font-weight:800;color:var(--mint);margin:6px 0">0.30 → 0.72</div>
+<div class="tag tag-up" style="font-size:.82rem;padding:4px 14px">+0.42</div>
+</div>
+<div class="card" style="text-align:center">
+<div style="font-size:.78rem;color:var(--g500);font-weight:600">Psych. Distance (심리적 거리)</div>
+<div style="font-size:2.2rem;font-weight:800;color:var(--p);margin:6px 0">0.75 → 0.35</div>
+<div class="tag tag-down" style="font-size:.82rem;padding:4px 14px">-0.40</div>
+</div>
+</div>
+<div class="card-explain">
+<span class="emoji">&#128270;</span> <strong>Freshness Index(새로움 지수)가 뭔가요?</strong><br>
+한국어에서 <strong>"는/은"</strong>은 이미 아는 것에 붙이고, <strong>"이/가"</strong>는 처음 발견한 것에 붙입니다.<br>
+- "새로<strong>는</strong> 제로슈거 소주다" → 이미 아는 사실 (0에 가까움)<br>
+- "여기<strong>가</strong> 대박이다!" → 처음 발견한 놀라움 (1에 가까움)<br><br>
+기존 0.30은 "다 아는 얘기" 수준이었고, 팝업 후 0.72는 <strong>"처음 보는 신선한 경험"</strong>을 뜻합니다.<br>
+<strong>쉽게 말하면:</strong> 3년간 맛·원료·도수를 바꿔도 못 올린 "새로움"을, 팝업 체험 하나가 2배 넘게 올렸습니다.<br><br>
+<span class="emoji">&#128101;</span> <strong>Psych. Distance(심리적 거리)가 뭔가요?</strong><br>
+- <strong>"나/내"</strong>를 많이 쓰면 = 관찰자 시점 (멀리서 바라봄, 1에 가까움)<br>
+- <strong>"우리/여기/같이"</strong>를 많이 쓰면 = 참여자 시점 (직접 체험함, 0에 가까움)<br><br>
+기존 0.75는 "새로 소주<strong>는</strong> 부드럽다" — 남의 이야기처럼 관찰만 함.<br>
+팝업 후 0.35는 "<strong>우리</strong> 팀이 <strong>같이</strong> 풀었다" — <strong>내 이야기</strong>로 바뀜. 브랜드가 "남의 것"에서 "내 것"이 된 겁니다.
+</div>
+</div>
+
+<!-- ── 3. 교차 분석 ── -->
+<div class="sec">
+<div class="sec-title"><span class="n">3</span> 교차 분석 — 소비자 유형이 어떻게 바뀌었나</div>
+
+<div class="card-explain">
+<span class="emoji">&#129309;</span> <strong>교차 분석이 뭔가요?</strong><br>
+1번(뭐라고 말했는가)과 2번(진심인가)을 겹쳐서, 소비자를 <strong>5가지 유형</strong>으로 나눕니다:<br><br>
+<strong style="color:var(--p)">P-01 진짜 팬</strong> — 진심으로 좋아하고(Auth 높음) + 남에게 적극 추천함(Clout 높음) = <strong>최고의 고객</strong><br>
+<strong>P-02 인스타 소비</strong> — 인증샷은 올리지만(Clout은 있음) + 진심은 아님(Auth 낮음) = <strong>바이럴만, 재방문 약함</strong><br>
+<strong>P-03 확신 부족</strong> — 솔직하게 좋다고 느끼는데(Auth 높음) + 남에게 추천은 안 함(Clout 낮음) = <strong>한 걸음만 더 밀면 팬 됨</strong><br>
+<strong>P-05 탐색/비교만</strong> — 진심도 없고(Auth 낮음) + 확신도 없음(Clout 낮음) = <strong>"참이슬이랑 뭐가 달라?" 비교만 하는 사람</strong><br>
+<strong style="color:var(--red)">Zone C 진심 불만</strong> — 진짜 써보고 실망한 사람(Auth 높음) = <strong>개선해야 할 진짜 문제</strong>
+</div>
+
+<h4 style="font-size:.92rem;font-weight:700;margin:16px 0 12px">3-1. 소비자 유형 변화 차트</h4>
+<div class="card"><canvas id="patternChart" height="220"></canvas></div>
+<div class="card-explain">
+<span class="emoji">&#128293;</span> <strong>이 차트에서 가장 중요한 변화:</strong><br><br>
+1. <strong style="color:var(--p)">진짜 팬(P-01)이 12% → 40%로 3배 이상 늘었습니다.</strong><br>
+&nbsp;&nbsp;&nbsp;기존에는 100명 중 12명만 진짜 팬이었는데, 팝업 후 40명이 됐습니다.<br><br>
+2. <strong>탐색/비교만(P-05)이 30% → 7%로 급감했습니다.</strong><br>
+&nbsp;&nbsp;&nbsp;"참이슬이랑 뭐가 달라?"하고 비교만 하던 사람들이 대부분 사라졌습니다. 어디로 갔을까요? → 진짜 팬(P-01)이 됐습니다.<br><br>
+3. <strong>인스타 소비(P-02)는 25%로 그대로입니다.</strong><br>
+&nbsp;&nbsp;&nbsp;포토존에서 사진만 찍고 가는 사람은 여전히 존재. 이들을 진짜 팬으로 전환하는 게 다음 과제입니다.
+</div>
+
+<h4 style="font-size:.92rem;font-weight:700;margin:20px 0 12px">3-2. 소비자 이동 매트릭스</h4>
+<div class="matrix">
+<div class="mc">
+<div class="t">P-03 확신 부족</div>
+<div style="font-size:.7rem;color:var(--g500)">진심 O + 추천 X</div>
+<div class="v2">20% → 8%</div>
+<div class="ar" style="color:var(--red)">&#9660;</div>
+<div class="desc">"좋긴 한데 굳이 추천까지는..."<br>→ 체험이 확신을 만들어 P-01로 이동</div>
+</div>
+<div class="mc">
+<div class="t" style="color:var(--p)">P-01 진짜 팬</div>
+<div style="font-size:.7rem;color:var(--g500)">진심 O + 추천 O</div>
+<div class="v2" style="color:var(--p)">12% → 40%</div>
+<div class="ar" style="color:var(--mint)">&#9650; 대폭 증가</div>
+<div class="desc">"꼭 가봐야 해! 같이 가자!"<br>→ 방탈출 체험이 만든 성취감+확신</div>
+</div>
+<div class="mc">
+<div class="t">P-05 탐색/비교만</div>
+<div style="font-size:.7rem;color:var(--g500)">진심 X + 추천 X</div>
+<div class="v2">30% → 7%</div>
+<div class="ar" style="color:var(--red)">&#9660; 대폭 감소</div>
+<div class="desc">"참이슬이랑 뭐가 달라?"<br>→ 체험 후 비교 자체를 안 하게 됨</div>
+</div>
+<div class="mc">
+<div class="t">P-02 인스타 소비</div>
+<div style="font-size:.7rem;color:var(--g500)">진심 X + 추천 O(표면적)</div>
+<div class="v2">23% → 25%</div>
+<div class="ar" style="color:var(--g500)">→ 유지</div>
+<div class="desc">"포토존 예쁘다" (사진만 찍고 감)<br>→ 전환 전략 필요</div>
+</div>
+</div>
+
+<h4 style="font-size:.92rem;font-weight:700;margin:24px 0 12px">3-3. 팝업이 기존 약점을 어떻게 해결했나</h4>
+<div class="card">
+<table>
+<tr><th style="width:25%">기존 약점</th><th style="width:35%">팝업이 만든 변화</th><th>수치 근거</th></tr>
+<tr>
+<td style="color:var(--red);font-weight:600">"제로슈거 속았다"<br><span style="font-size:.75rem;font-weight:400;color:var(--g700)">소비자원 발표로 신뢰 흔들림</span></td>
+<td>체험이 대화 주제를 바꿈. 더 이상 "제로슈거가 진짜냐"를 따지지 않음</td>
+<td>Analytical 68→42<br>제로슈거 토픽 25%→0%</td>
+</tr>
+<tr>
+<td style="color:var(--red);font-weight:600">"맛이 밍밍하다"<br><span style="font-size:.75rem;font-weight:400;color:var(--g700)">특징 없는 맛이라는 인식</span></td>
+<td>감각의 축이 혀(미각)에서 눈(시각)으로 이동. 맛 대신 공간이 기억에 남음</td>
+<td>감각축: 미각→시각<br>맛 토픽 28%→15%</td>
+</tr>
+<tr>
+<td style="color:var(--red);font-weight:600">"새로구미만 귀엽고"<br><span style="font-size:.75rem;font-weight:400;color:var(--g700)">캐릭터 좋아할 뿐 제품 경험 얕음</span></td>
+<td>"귀엽다"가 "두근거린다"로 진화. 캐릭터 호감 → 세계관 몰입으로 깊이가 생김</td>
+<td>Auth 45→72 (+27)<br>캐릭터 토픽 20%→0%</td>
+</tr>
+<tr>
+<td style="color:var(--orange);font-weight:600">"추천까진 안 함"<br><span style="font-size:.75rem;font-weight:400;color:var(--g700)">입소문이 약한 브랜드</span></td>
+<td>"나쁘지 않다" → "꼭 가봐!" 전환. "내가 풀었다"는 성취감이 추천 확신을 만듦</td>
+<td><strong style="color:var(--p)">Clout 35→68 (+33)</strong><br>P-01 12%→40%</td>
+</tr>
+</table>
+</div>
+<div class="card-explain">
+<span class="emoji">&#127919;</span> <strong>한마디로:</strong> 새로의 기존 약점 4가지가 팝업 하나로 전부 해소되었습니다. 특히 <strong>"추천 장벽"</strong>은 3년간의 마케팅이 못 넘긴 벽인데, <strong>방탈출이라는 공동 체험</strong>이 넘겼습니다. "내가 직접 해봤으니까" 추천할 수 있게 된 거죠.
+</div>
+</div>
+
+<!-- ── 4. 종합 인사이트 ── -->
+<div class="sec">
+<div class="sec-title"><span class="n">4</span> 종합 인사이트 — 그래서 뭘 알게 됐나</div>
+
+<div class="insight">
+<h4>핵심 발견 1: Clout +33 — 3년치 광고가 못 한 일을 16일 팝업이 해냄</h4>
+<p>새로의 가장 큰 문제는 "추천 장벽"이었습니다. TV 광고, 유튜브, 새로구미 캐릭터... 모두 "인지도"는 올렸지만 <strong>"꼭 마셔봐!"라고 말하게 만들진 못했습니다</strong>(Clout 35).<br><br>
+그런데 방탈출 팝업은 달랐습니다. 10명이 한 팀으로 문제를 풀고, 클리어하는 경험은 <strong>"같이 가자", "꼭 해봐"</strong>라는 말을 자연스럽게 만들었습니다. 광고가 "보여주는" 것이라면, 팝업은 <strong>"겪게 하는"</strong> 것이기 때문입니다.</p>
+</div>
+<div class="insight">
+<h4>핵심 발견 2: Auth +27 — 방탈출이 "내 브랜드"라는 인식을 만듦</h4>
+<p>기존 새로 리뷰는 주어가 없었습니다 — "부드럽다", "깔끔하다". 누가 해도 되는 말.<br>
+팝업 후에는 <strong>"내가 풀었다", "우리 팀이"</strong>라는 1인칭이 등장합니다. 이건 단순히 말투의 차이가 아니라, <strong>브랜드가 "남의 것"에서 "내가 경험한 것"으로 바뀌었다</strong>는 심리적 전환입니다.<br><br>
+특히 방탈출은 <strong>"내가 직접 문제를 풀어서 성공했다"</strong>는 성취감을 줍니다. 이 성취감이 브랜드에 대한 소유감으로 전이됩니다. 단순히 구경하는 팝업(관람형)에서는 이 효과가 나타나지 않습니다.</p>
+</div>
+<div class="insight">
+<h4>핵심 발견 3: Freshness 0.30→0.72 — 비교 프레임에서 탈출</h4>
+<p>"참이슬 vs 처음처럼 vs 새로" — 이 비교 프레임은 새로에게 불리합니다. 맛으로 비교하면 결국 "거기서 거기"이기 때문입니다.<br><br>
+팝업은 이 비교판 자체를 뒤집었습니다. 이제 새로는 소주가 아니라 <strong>"경험"</strong>으로 인식됩니다. 참이슬은 방탈출 팝업이 없으니까, 비교 대상 자체가 사라집니다. <strong>리뉴얼(원료·도수 변경)이 못 올린 새로움 지수를, 공간 체험이 2배 넘게 올렸습니다.</strong></p>
+</div>
+
+<h4 style="font-size:.92rem;font-weight:700;margin:22px 0 12px">바로 실행할 수 있는 액션 3가지</h4>
+<div class="grid-3">
+<div class="card" style="border-top:3px solid var(--mint);font-size:.85rem;line-height:1.8">
+<strong style="color:var(--mint)">1. 방탈출 기록 → 디지털 접점</strong><br>
+팀별 클리어 시간, 정답률을 DM으로 발송. "당신의 비법서 탐험 기록"이라는 이름으로. 재방문/재구매 유도.
+</div>
+<div class="card" style="border-top:3px solid var(--mint);font-size:.85rem;line-height:1.8">
+<strong style="color:var(--mint)">2. 진짜 팬을 앰배서더로</strong><br>
+Auth+Clout 높은 리뷰어를 찾아서 다음 팝업 사전 초대. 진짜 팬이 진짜 팬을 만드는 선순환.
+</div>
+<div class="card" style="border-top:3px solid var(--mint);font-size:.85rem;line-height:1.8">
+<strong style="color:var(--mint)">3. 유물 굿즈 온라인 판매</strong><br>
+"금동새로사유상 사고 싶다"는 반응 → 한정 판매. 팝업 끝나도 체험 기억이 이어지는 장치.
+</div>
+</div>
+
+<h4 style="font-size:.92rem;font-weight:700;margin:22px 0 12px">주의해야 할 신호 3가지</h4>
+<div class="grid-3">
+<div class="card" style="border-top:3px solid var(--orange);font-size:.85rem;line-height:1.8">
+<strong style="color:var(--orange)">인스타 소비 25% 고정</strong><br>
+사진만 찍고 가는 사람이 4명 중 1명. 이들이 전환되지 않으면 팝업 효과는 <strong>단기로 끝남</strong>.
+</div>
+<div class="card" style="border-top:3px solid var(--orange);font-size:.85rem;line-height:1.8">
+<strong style="color:var(--orange)">리뉴얼 메시지 묻힘</strong><br>
+"국산 쌀, 아미노산" 같은 제품 정보가 체험에 가려져 전달 안 됨. <strong>체험 속에서 제품 정보를 자연스럽게</strong> 전달하는 장치 필요.
+</div>
+<div class="card" style="border-top:3px solid var(--red);font-size:.85rem;line-height:1.8">
+<strong style="color:var(--red)">새로움 효과는 빨리 사라짐</strong><br>
+Freshness 0.72는 팝업 직후 피크. 4월 중순부터 급락 예상. <strong>비하인드 영상, 시즌2 예고</strong> 등 후속 콘텐츠 필수.
+</div>
+</div>
+</div>
+
+<!-- ── 5. 팝업 진화 ── -->
+<div class="sec">
+<div class="sec-title"><span class="n">5</span> 팝업 진화: 새로도원(2024) → 새로중앙박물관(2026)</div>
+<div class="card">
+<table>
+<tr><th>항목</th><th>새로도원 (2024, 압구정)</th><th>새로중앙박물관 (2026, 성수)</th><th>진화 포인트</th></tr>
+<tr><td style="font-weight:600">기간</td><td>5개월</td><td>16일</td><td>단기 집중형으로 전환</td></tr>
+<tr><td style="font-weight:600">방문객</td><td>4만명</td><td>1만명+ (목표)</td><td>일평균 밀도 훨씬 높음</td></tr>
+<tr><td style="font-weight:600">만족도</td><td>4.8/5.0</td><td>5.0/5.0</td><td><span class="tag tag-up">상승</span></td></tr>
+<tr><td style="font-weight:600">체험 방식</td><td>미디어아트+칵테일<br><span style="font-size:.75rem;color:var(--g500)">구경하고 마시기 (수동적)</span></td><td style="color:var(--p);font-weight:700">방탈출+박물관<br><span style="font-size:.75rem;color:var(--g500)">문제 풀고 성공하기 (능동적)</span></td><td><strong>수동→능동 전환</strong></td></tr>
+<tr><td style="font-weight:600">진심도(Auth)</td><td>낮음<br><span style="font-size:.75rem;color:var(--g500)">구경 → 남의 이야기</span></td><td style="color:var(--mint);font-weight:700">높음<br><span style="font-size:.75rem;color:var(--g500)">참여 → 내 이야기</span></td><td><span class="tag tag-up">+27</span></td></tr>
+<tr><td style="font-weight:600">추천 확신(Clout)</td><td>중간<br><span style="font-size:.75rem;color:var(--g500)">"예쁘더라" 정도</span></td><td style="color:var(--mint);font-weight:700">높음<br><span style="font-size:.75rem;color:var(--g500)">"꼭 가봐야 해!"</span></td><td><span class="tag tag-up">+33</span></td></tr>
+</table>
+</div>
+<div class="card-explain">
+<span class="emoji">&#128640;</span> <strong>진화의 핵심:</strong> 새로도원은 "예쁜 공간에서 칵테일 마시기"였고, 새로중앙박물관은 <strong>"내가 직접 문제를 풀어 비법서를 찾기"</strong>입니다. 이 "관람 → 참여" 전환이 Auth와 Clout를 동시에 끌어올린 결정적 요인입니다. <strong>다음 팝업도 반드시 "참여형"을 유지</strong>해야 합니다.
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- APPENDIX: 로우 데이터 -->
+<!-- ══════════════════════════════════════════════ -->
+
+<div style="border-top:3px solid var(--p);margin-top:48px;padding-top:32px">
+<div class="sec">
+<div class="sec-title" style="font-size:1.3rem"><span class="n">A</span> 부록: 로우 데이터 (Raw Data)</div>
+<div class="card-explain">
+<span class="emoji">&#128194;</span> 이 섹션은 분석에 사용된 원본 데이터를 정리한 것입니다. 뉴스 기사, 기자 현장 르포, SNS 리뷰, 커뮤니티 반응, 공식 발표 등을 출처별로 분류했습니다. 분석 결과의 근거를 직접 확인하실 수 있습니다.
+</div>
+
+<!-- A-1. 뉴스 기사 (팝업 관련) -->
+<h4 style="font-size:.95rem;font-weight:700;margin:20px 0 12px;color:var(--dark2)">A-1. 뉴스 기사 — 새로중앙박물관 팝업</h4>
+
+<div class="card" style="border-left:4px solid var(--p)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--p);font-size:.9rem">헤럴드경제 — 현장 르포</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.03.21 | <a href="https://biz.heraldcorp.com/article/10699973" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<p>"15.7도, 체험으로 마신다…성수 '새로중앙박물관' 가보니"</p>
+<ul style="padding-left:18px;margin-top:6px">
+<li>3월 20일 오후 2시 방문. 민트색 외관이 눈길을 끔</li>
+<li>내부: 신라, 고려, 조선, 현대 시대를 아우르는 <strong>약 30여 점의 작품</strong> 전시</li>
+<li>신라 공간: '기원과 상흔' 주제, 천마도에 새로구미를 더함</li>
+<li>고려 공간: 청자 상감운학문 매병의 학 대신 새로구미 배치</li>
+<li>조선 공간: 일월오봉도 중심에 새로 광고 상영</li>
+<li>관람객은 구간별 퀴즈를 풀며 이동, "도난당한 비법서를 되찾는" 스토리</li>
+<li>침착맨 한정판 굿즈, 카페 아우프글렛 협업 디저트 제공</li>
+<li>롯데칠성 관계자: "체험형 콘텐츠를 통해 리뉴얼된 새로의 특징을 자연스럽게 전달하는 데 중점"</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--p)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--p);font-size:.9rem">머니투데이 — 리얼로그M</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.03.21 | <a href="https://www.mt.co.kr/living/2026/03/21/2026032016370095667" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<p>"와, 진짜 박물관 같아요"…1000년 '새로' 비법, 성수동에 떴다</p>
+<ul style="padding-left:18px;margin-top:6px">
+<li>방문객 탄성: <strong>"와, 진짜 박물관 같아요"</strong></li>
+<li>새로구미의 1000년 역사를 담은 연대표부터 시작</li>
+<li>고려청자 재현 유물: <strong>청자 구미호뚜껑 향로, 금동새로사유상</strong> 등 전시</li>
+<li>"진정한 박물관을 방문하는 듯한 착각을 일으킴"</li>
+<li>방탈출: 도난당한 비법서를 복원하는 설정 하에 수사관 역할 수행</li>
+<li>제품 핵심 정보(국산 쌀 100%, 아미노산 5종, 15.7도)를 단서로 활용</li>
+<li>마지막 영상 구현이 <strong>"백미"</strong>로 평가</li>
+<li><strong>6개월 제작 기간</strong> 투자, 공간 디테일과 소품 완성도 극대화</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--p)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--p);font-size:.9rem">아시아에이 — 현장 르포</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.03.22 | <a href="https://www.asiaa.co.kr/news/articleView.html?idxno=244316" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<p>"새로 소주 비법서 찾아볼까?" 성수동 홀린 롯데칠성 새로 팝업 가보니</p>
+<ul style="padding-left:18px;margin-top:6px">
+<li>방문자: <strong>"와, 이거 진짜 방탈출 카페 같아요! 은근히 두근거렸어요"</strong></li>
+<li>젊은 세대들이 "흥분 섞인 미소"를 지으며 등장</li>
+<li><strong>방문 목표: 1만 명</strong></li>
+<li>신라~조선시대 재해석한 <strong>약 40여 점의 유물</strong> 전시</li>
+<li>최대 <strong>10명씩 팀</strong>을 이루어 방탈출 체험</li>
+<li>전시물에 대해: "정교하다", <strong>"따로 판매하면 사고 싶다"</strong>는 구매 욕구</li>
+<li>단순 시음 공간을 넘어 박물관+방탈출이라는 트렌디한 소재로 세계관 전개</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--p)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--p);font-size:.9rem">서울경제</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.03.22 | <a href="https://www.sedaily.com/article/20022386" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<p>"방탈출로 풀어낸 새로 리뉴얼…'새로중앙박물관' 팝업 가보니"</p>
+<ul style="padding-left:18px;margin-top:6px">
+<li>지상 1·2층 <strong>약 200평</strong> 규모, <strong>약 6개월</strong> 개발</li>
+<li>예상 방문객 약 <strong>1만 명 이상</strong></li>
+<li>이전 팝업 새로도원이 <strong>누적 방문객 4만 명</strong> 돌파</li>
+<li>"젊은 층이 자연스럽게 브랜드를 체험하고 기억할 수 있도록 공간과 콘텐츠를 설계"</li>
+<li>"다꾸와 인증샷 문화"를 겨냥한 마케팅 전략</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--p)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--p);font-size:.9rem">비즈니스플러스 — 현장 체험</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.03 | <a href="https://www.businessplus.kr/news/articleView.html?idxno=109227" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<p>"영화같은 방탈출 게임 체험…'새로' 소주 천년의 비법서를 찾아라"</p>
+<ul style="padding-left:18px;margin-top:6px">
+<li>기자: <strong>"연극적 공간 구성과 장치들로 입이 떡 벌어졌다"</strong></li>
+<li>고문헌실: 희귀 고서 정렬, 도서분류 라벨링까지 세심하게 구현</li>
+<li>감시 레이저 빔: <strong>"사람의 동작을 감지하는 실제 레이저로 생동감"</strong></li>
+<li>게임 완료 후 굿즈: <strong>"조선시대 고서 모양의 베이커리 과자를 먹는 느낌이 이색적"</strong></li>
+<li><strong>"어린 시절 책을 먹어보는 상상이 현실화"</strong></li>
+<li>방문객: <strong>"주말에 친구나 연인과 함께 다시 오고 싶다"</strong></li>
+<li>방문객: <strong>"방탈출 미션을 다시 해보고 싶다"</strong></li>
+<li>'음주경고대장경' 등 유머러스한 전시물 앞에서 <strong>"키득키득 웃기도"</strong></li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--p)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--p);font-size:.9rem">메트로서울</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.03.22 | <a href="https://www.metroseoul.co.kr/article/20260322500220" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<p>"보고·풀고·맛본다" 새로중앙박물관, 방탈출 팝업으로 MZ 공략</p>
+<ul style="padding-left:18px;margin-top:6px">
+<li>타겟 연령층: <strong>20~30대</strong></li>
+<li>현장: <strong>"머리를 맞대고 문제를 풀며 웃음을 터뜨리는 모습이 이어졌다"</strong></li>
+<li>제품 스펙이 체험 속에 자연스럽게 녹아든 설계</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--p)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--p);font-size:.9rem">heyPOP</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.03 | <a href="https://heypop.kr/n/134994/" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<p>"성수 새로중앙박물관, 뭐가 달라졌을까"</p>
+<ul style="padding-left:18px;margin-top:6px">
+<li>사전예약: YES24 얼리버드(1,000명 한정) + 네이버 플레이스 → <strong>조기 마감</strong></li>
+<li>만 19세 미만 입장 불가, 신분증 필수</li>
+<li>아우프글렛 협업 디저트, 나만의 새로 라벨 만들기, 미니어처 병 제작 체험</li>
+<li>이전 팝업 '새로도원': <strong>3개월간 3만 명, 만족도 4.8/5.0점</strong></li>
+</ul>
+</div>
+</div>
+
+<!-- A-2. 뉴스 기사 (브랜드/리뉴얼 관련) -->
+<h4 style="font-size:.95rem;font-weight:700;margin:24px 0 12px;color:var(--dark2)">A-2. 뉴스 기사 — 새로 브랜드 & 리뉴얼</h4>
+
+<div class="card" style="border-left:4px solid var(--g500)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="font-size:.9rem">헤럴드경제 — K소주 대표주자</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.01.18 | <a href="https://heraldk.com/2026/01/18/%EB%A1%AF%EB%8D%B0%EC%B9%A0%EC%84%B1-%E2%80%98%EC%83%88%EB%A1%9C%E2%80%99-%EC%A0%9C%EB%A1%9C%EC%8A%88%EA%B1%B0-%EB%84%98%EC%96%B4-k-%EC%86%8C%EC%A3%BC-%EB%8C%80%ED%91%9C%EC%A3%BC%EC%9E%90%EB%A1%9C/" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<ul style="padding-left:18px">
+<li>출시 4개월 만에 <strong>5,000만 병</strong>, 7개월 만에 <strong>1억 병</strong></li>
+<li>2025년 7월 말 <strong>7억 병</strong>, 2025년 말 <strong>8억 병</strong> 돌파</li>
+<li>2025년 매출 <strong>1,256억원</strong> → 메가 브랜드</li>
+<li>새로도원 팝업: 5개월간 <strong>4만 명</strong>, 캐치테이블 <strong>4.9점</strong></li>
+<li>광고대상 3관왕, Spikes Asia 동상, iF 디자인 본상</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--g500)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="font-size:.9rem">머니투데이 — "제로슈거에 속았다"</strong>
+<span style="font-size:.72rem;color:var(--g500)">2024.05.04 | <a href="https://www.mt.co.kr/living/2024/05/04/2024050216335961880" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<ul style="padding-left:18px">
+<li>한국소비자원: <strong>제로슈거 소주가 일반 소주와 실질적 차이 없음</strong></li>
+<li>일반 소주도 이미 당류가 낮아 제로슈거 표기 가능 수준</li>
+<li>열량 차이: 2~14% 낮지만 도수 차이 고려 시 의미 없음</li>
+<li>체중 조절 효과 없음 시사</li>
+<li>롯데칠성 소주 매출: 2021년 284억 → 2023년 404억 → 2024년 1분기 377억(+34.2%)</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--g500)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="font-size:.9rem">경향스포츠 — 리뉴얼 상세</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.02.25 | <a href="https://sports.khan.co.kr/article/202602251625003/" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<ul style="padding-left:18px">
+<li>보리쌀증류주 → <strong>100% 국산 쌀증류주</strong>로 변경</li>
+<li>아미노산 5종 첨가: BCAA(로이신, 이소로이신, 발린), 알라닌, 아르기닌</li>
+<li>도수: 16도 → <strong>15.7도</strong></li>
+<li>병뚜껑 민트색 추가, 라벨 로고 가독성 개선</li>
+<li>1월 30일부터 출고, 2월 초부터 소비자 접점</li>
+</ul>
+</div>
+</div>
+
+<!-- A-3. 팝업 플랫폼 리뷰 -->
+<h4 style="font-size:.95rem;font-weight:700;margin:24px 0 12px;color:var(--dark2)">A-3. 팝업 플랫폼 리뷰 (팝가 Popga)</h4>
+
+<div class="card" style="border-left:4px solid var(--mint)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--mint);font-size:.9rem">팝가 리뷰 #1 — "자연형인간"</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.03.22 | 별점 5.0/5.0 | <a href="https://popga.co.kr/popup/5776/review/4554" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<ul style="padding-left:18px">
+<li><strong>"상당히 재미있습니다"</strong></li>
+<li>대기시간: 팝업이 외곽 위치라 대기열 짧음 → 긍정 평가</li>
+<li>관람 구성: 초반은 전시 관람+사진 촬영, 후반은 방탈출</li>
+<li>방탈출: <strong>"진짜 (팝업치고) 재미있었네요"</strong></li>
+<li>디저트: <strong>"평범한 수준"</strong></li>
+<li>총 후기 16개 작성한 활발한 리뷰어</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--mint)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--mint);font-size:.9rem">팝가 통계</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026.04 기준</span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<ul style="padding-left:18px">
+<li>팝가 후기: <strong>13건</strong></li>
+<li>블로그 후기: 0건 (연동 기준)</li>
+<li>평가 항목: 콘텐츠, 진행, 대기시간, 굿즈, 포토존</li>
+</ul>
+</div>
+</div>
+
+<!-- A-4. SNS / 인플루언서 반응 -->
+<h4 style="font-size:.95rem;font-weight:700;margin:24px 0 12px;color:var(--dark2)">A-4. SNS / 인플루언서 체험단 반응</h4>
+
+<div class="card" style="border-left:4px solid var(--orange)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--orange);font-size:.9rem">셀루뷰 (celuvu) 체험단 캠페인</strong>
+<span style="font-size:.72rem;color:var(--g500)"><a href="https://celuvu.com/campaign/campaign_view.php?cp_seq=1325" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<p>총 25명 신청. 참여자 지원 메시지:</p>
+<ul style="padding-left:18px;margin-top:4px">
+<li>"평소에 새로를 즐겨마셔요! 홈술상으로 가족들과 함께 좋은시간보내는 모습 공유할게요" — Jennymoon♡</li>
+<li>"처음처럼만 먹는 애주가 대학생입니다. 새로 소주 어울리는 안주와 함께 이쁘게 리뷰하겠습니다!" — 라임레몬바질</li>
+<li>"인스타팔로워 4500명이상...매일 꾸준히올리고 있습니다" — 냠얌</li>
+<li>"소니 최신기종인 dslr로 정말 고화질로 예쁘고 감성적이고 예쁘게해서 잘 올리겠습니다" — 쵸맘</li>
+</ul>
+</div>
+</div>
+
+<!-- A-5. 커뮤니티 / 일반 소비자 반응 -->
+<h4 style="font-size:.95rem;font-weight:700;margin:24px 0 12px;color:var(--dark2)">A-5. 커뮤니티 / 일반 소비자 리뷰 (기존 브랜드 인식)</h4>
+
+<div class="card" style="border-left:4px solid var(--g500)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="font-size:.9rem">루리웹 — 리뉴얼 새로 후기</strong>
+<span style="font-size:.72rem;color:var(--g500)">2026 | <a href="https://m.ruliweb.com/hobby/board/300117/read/30650667" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<ul style="padding-left:18px">
+<li>"부드럽긴 부드러워서 잘넘어가는데 익숙치 않아서 그런진 몰라도 <strong>첫 맛은 이게 무슨맛이지 싶다</strong>"</li>
+<li>"단맛과 역한 맛이 모두 부드럽다"</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--g500)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="font-size:.9rem">에펨코리아 — 새로 출시 초기 후기</strong>
+<span style="font-size:.72rem;color:var(--g500)">2022 | <a href="https://www.fmkorea.com/best/5042074225" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<ul style="padding-left:18px">
+<li>맛: "부드러우면서도 달콤하고 소주 특유의 알콜향이 적다"</li>
+<li>"기존 소주의 역한 사카린 향이 나지 않아 좋다"</li>
+<li>"소주 신제품치고 판매량도 높다"</li>
+<li>"파레트 채 주문하는 주류회사가 있을 정도"</li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid var(--g500)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="font-size:.9rem">나무위키 — 소비자 평가 종합</strong>
+<span style="font-size:.72rem;color:var(--g500)">상시 업데이트 | <a href="https://namu.wiki/w/%EC%83%88%EB%A1%9C" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<ul style="padding-left:18px">
+<li>"소비자의 니즈에 많이 적합한 맛있는 맛을 낸다"</li>
+<li>"SNS와 애니메이션을 주로 활용한 마케팅에서 청년층에 매우 좋은 평가"</li>
+<li>첫 번째 광고: 한 달 내 <strong>조회수 450만 돌파</strong></li>
+<li>새로구미 캐릭터: 덕후 관련 커뮤니티에서도 화제</li>
+<li>새로구미 베끼기 논란(아이뉴스24) 존재</li>
+</ul>
+</div>
+</div>
+
+<!-- A-6. 블로그 체험기 -->
+<h4 style="font-size:.95rem;font-weight:700;margin:24px 0 12px;color:var(--dark2)">A-6. 블로그 체험기</h4>
+
+<div class="card" style="border-left:4px solid var(--mint)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+<strong style="color:var(--mint);font-size:.9rem">브런치 — "새로 소주 팝업스토어, 소주를 눈으로 마시는 방법"</strong>
+<span style="font-size:.72rem;color:var(--g500)">2023 (새로도원 시기) | <a href="https://brunch.co.kr/@masism/1237" style="color:var(--p)">원문</a></span>
+</div>
+<div style="font-size:.84rem;color:var(--g700);line-height:1.8">
+<ul style="padding-left:18px">
+<li>방문 동기: 혼자 소주를 즐길 장소 찾다가 민트색 폭포 발견</li>
+<li>공간: <strong>"동화 속을 걷는듯한 느낌"</strong></li>
+<li>미디어아트, 디지털 방명록, 360도 셀카 영상, 터치식 생일상 등 인터랙티브 체험</li>
+<li>굿즈: 40종류 이상 중 소주 디스펜서, 사탕컵, 베개, 안대, 반창고, 볼펜 구매</li>
+<li>칵테일: 파란색 칵테일을 테이블에 놓으면 <strong>"바닥에 꼬리가 9개 나오는 구미호 모양"</strong></li>
+<li>종합: <strong>"단순 판촉 넘어 브랜드 스토리를 전하는 친절한 체험 공간"</strong></li>
+<li>"방문 후 초기 목표였던 '소주 한 잔'의 필요성이 사라질 정도로 만족"</li>
+</ul>
+</div>
+</div>
+
+<!-- A-7. 기업 공식 데이터 -->
+<h4 style="font-size:.95rem;font-weight:700;margin:24px 0 12px;color:var(--dark2)">A-7. 기업 공식 데이터 & 수상</h4>
+
+<div class="card">
+<table>
+<tr><th>항목</th><th>수치</th><th>출처</th></tr>
+<tr><td>누적 판매량</td><td>8억 병 (2025.12)</td><td>헤럴드경제</td></tr>
+<tr><td>2025년 매출</td><td>1,256억원</td><td>헤럴드경제</td></tr>
+<tr><td>소주 시장 매출비중</td><td>12.1%(2021) → 14.7%(2023)</td><td>머니투데이</td></tr>
+<tr><td>새로도원 방문객</td><td>4만 명 (5개월)</td><td>헤럴드경제</td></tr>
+<tr><td>새로도원 만족도</td><td>4.8/5.0</td><td>heyPOP</td></tr>
+<tr><td>캐치테이블 평점</td><td>4.9점 (리뷰 2,000건)</td><td>국민일보</td></tr>
+<tr><td>새로중앙박물관 규모</td><td>약 200평, 2층</td><td>서울경제</td></tr>
+<tr><td>새로중앙박물관 개발기간</td><td>약 6개월</td><td>머니투데이</td></tr>
+<tr><td>새로중앙박물관 목표 방문</td><td>1만 명+</td><td>아시아에이</td></tr>
+<tr><td>YES24 얼리버드</td><td>1,000명 한정 → 조기 마감</td><td>heyPOP</td></tr>
+<tr><td>소비자 선호 요인 1위</td><td>맛 32.1%</td><td>머니S</td></tr>
+<tr><td>제로슈거 음용 경험</td><td>10명 중 7명</td><td>머니S</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h4 style="margin-bottom:8px;font-size:.88rem;color:var(--dark2)">수상 이력</h4>
+<table>
+<tr><th>시상식</th><th>부문</th><th>결과</th><th>연도</th></tr>
+<tr><td>대한민국 광고대상</td><td>-</td><td>수상</td><td>2024</td></tr>
+<tr><td>유튜브웍스</td><td>-</td><td>수상</td><td>2024</td></tr>
+<tr><td>K디자인 어워즈</td><td>-</td><td>수상</td><td>2024</td></tr>
+<tr><td>Spikes Asia</td><td>크리에이티브전략</td><td>동상</td><td>2025</td></tr>
+<tr><td>iF 디자인 어워드</td><td>패키지 (새로 살구)</td><td>본상</td><td>2025</td></tr>
+<tr><td>iF 디자인 어워드</td><td>브랜딩&커뮤니케이션 (새로도원)</td><td>본상</td><td>2026</td></tr>
+<tr><td>아시아 디자인 프라이즈</td><td>공간디자인 (새로도원)</td><td>Winner</td><td>2026</td></tr>
+</table>
+</div>
+
+<!-- A-8. 현장 인용문 모음 -->
+<h4 style="font-size:.95rem;font-weight:700;margin:24px 0 12px;color:var(--dark2)">A-8. 현장 인용문 모음 (분석에 사용된 핵심 텍스트)</h4>
+
+<div class="card">
+<h4 style="margin-bottom:10px;font-size:.88rem;color:var(--mint)">팝업 후 긍정 반응 (Auth·Clout 분석 근거)</h4>
+<table>
+<tr><th>#</th><th>인용문</th><th>출처</th><th>분석 태그</th></tr>
+<tr><td>1</td><td>"와, 이거 진짜 방탈출 카페 같아요! 은근히 두근거렸어요"</td><td>아시아에이</td><td>Auth높음 / Tone극긍정</td></tr>
+<tr><td>2</td><td>"상당히 재미있습니다. 진짜 (팝업치고) 재미있었네요"</td><td>팝가 리뷰</td><td>Auth높음 / Clout중간</td></tr>
+<tr><td>3</td><td>"주말에 친구나 연인과 함께 다시 오고 싶다"</td><td>비즈니스플러스</td><td>Clout높음 / 재방문의향</td></tr>
+<tr><td>4</td><td>"방탈출 미션을 다시 해보고 싶다"</td><td>비즈니스플러스</td><td>Clout높음 / 재체험의향</td></tr>
+<tr><td>5</td><td>"와, 진짜 박물관 같아요"</td><td>머니투데이</td><td>Freshness높음 / Tone긍정</td></tr>
+<tr><td>6</td><td>"동화 속을 걷는듯한 느낌"</td><td>브런치</td><td>Tone극긍정 / Distal감각</td></tr>
+<tr><td>7</td><td>"금동새로사유상, 고려청자... 정교하다. 따로 판매하면 사고 싶다"</td><td>아시아에이</td><td>Freshness높음 / 구매의향</td></tr>
+<tr><td>8</td><td>"연극적 공간 구성과 장치들로 입이 떡 벌어졌다"</td><td>비즈니스플러스</td><td>Tone극긍정 / Auth높음</td></tr>
+<tr><td>9</td><td>"머리를 맞대고 문제를 풀며 웃음을 터뜨리는 모습"</td><td>메트로서울</td><td>Distance낮음(참여)</td></tr>
+<tr><td>10</td><td>"조선시대 고서 모양의 베이커리 과자를 먹는 느낌이 이색적"</td><td>비즈니스플러스</td><td>Freshness높음</td></tr>
+<tr><td>11</td><td>"어린 시절 책을 먹어보는 상상이 현실화"</td><td>비즈니스플러스</td><td>Auth높음 / Tone긍정</td></tr>
+<tr><td>12</td><td>"브랜드 스토리를 전하는 친절한 체험 공간"</td><td>브런치</td><td>Analytical높음</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h4 style="margin-bottom:10px;font-size:.88rem;color:var(--red)">부정/개선 반응 (Zone C 분석 근거)</h4>
+<table>
+<tr><th>#</th><th>인용문</th><th>출처</th><th>분석 태그</th></tr>
+<tr><td>1</td><td>"디저트는 평범한 수준"</td><td>팝가 리뷰</td><td>Auth높음(솔직) / Zone C</td></tr>
+<tr><td>2</td><td>"대기열이 외곽이라 짧았지만, 주말엔 길어질 듯"</td><td>팝가 리뷰</td><td>Auth높음 / 개선제안</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h4 style="margin-bottom:10px;font-size:.88rem;color:var(--g700)">기존 브랜드 인식 (기간 A 분석 근거)</h4>
+<table>
+<tr><th>#</th><th>인용문</th><th>출처</th><th>분석 태그</th></tr>
+<tr><td>1</td><td>"부드러우면서도 달콤하고 소주 특유의 알콜향이 적어서 먹기 편하다"</td><td>에펨코리아</td><td>Auth낮음(주어없음)</td></tr>
+<tr><td>2</td><td>"부드럽긴 부드러워서 잘넘어가는데 첫 맛은 이게 무슨맛이지 싶다"</td><td>루리웹</td><td>Auth중간 / 맛정체성모호</td></tr>
+<tr><td>3</td><td>"기존 소주의 역한 사카린 향이 나지 않아 좋다"</td><td>커뮤니티 종합</td><td>Clout낮음(소극적긍정)</td></tr>
+<tr><td>4</td><td>"제로슈거에 속았다. 일반 소주와 차이 없다"</td><td>머니투데이</td><td>Auth높음 / Zone C</td></tr>
+<tr><td>5</td><td>"새로구미 광고 귀엽고 재밌다"</td><td>SNS/커뮤니티</td><td>Auth낮음 / 캐릭터의존</td></tr>
+<tr><td>6</td><td>"소비자의 니즈에 많이 적합한 맛있는 맛을 낸다"</td><td>나무위키</td><td>Analytical높음</td></tr>
+<tr><td>7</td><td>"부드러운 편이다"</td><td>커뮤니티</td><td>Clout매우낮음(한정적)</td></tr>
+</table>
+</div>
+
+<!-- A-9. 기업 관계자 인용문 -->
+<h4 style="font-size:.95rem;font-weight:700;margin:24px 0 12px;color:var(--dark2)">A-9. 기업 관계자 인용문</h4>
+<div class="card">
+<table>
+<tr><th>#</th><th>인용문</th><th>출처</th></tr>
+<tr><td>1</td><td>"체험형 콘텐츠를 통해 리뉴얼된 새로의 특징을 자연스럽게 전달하는 데 중점을 뒀으며, 성수에 자리해 젊은 층을 중심으로 브랜드 경험을 확대하고자 했다"</td><td>헤럴드경제</td></tr>
+<tr><td>2</td><td>"젊은 세대들이 박물관을 찾는 트렌드에 맞춰 콘셉트를 차용해 디자인했다"</td><td>겟뉴스</td></tr>
+<tr><td>3</td><td>"소비자가 새로 세계관에 대해서 쉽게 다가가고 리뉴얼 된 내용을 효과적으로 알릴 수 있을거라 기대한다"</td><td>겟뉴스</td></tr>
+</table>
+</div>
+
+</div><!-- /sec appendix -->
+</div><!-- /appendix border -->
+
+<div class="footer">
+RXR 2-Layer 분석: 새로(SAERO) 브랜드 인식 변화 | 2026.04.05<br>
+수집: 32건+ (뉴스·블로그·커뮤니티·팝업플랫폼) | LIWC 수치: 텍스트 패턴 기반 추정치 (실제 LIWC 소프트웨어 사용 아님)<br>
+Freshness Index / Psych. Distance: RXR 독자 프레임워크 (학술 검증 진행 중)<br>
+<div style="margin-top:6px">
+Sources: <a href="https://popga.co.kr/popup/5776/review/4554" style="color:var(--p)">팝가</a> · <a href="https://heypop.kr/n/134994/" style="color:var(--p)">heyPOP</a> · <a href="https://www.asiaa.co.kr/news/articleView.html?idxno=244316" style="color:var(--p)">아시아에이</a> · <a href="https://www.sedaily.com/article/20022386" style="color:var(--p)">서울경제</a> · <a href="https://www.mt.co.kr/living/2024/05/04/2024050216335961880" style="color:var(--p)">머니투데이</a> · <a href="https://brunch.co.kr/@masism/1237" style="color:var(--p)">브런치</a>
+</div>
+</div>
+</div>
+
+<script>
+const dOpt={responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'Pretendard',size:11}}}}};
+new Chart(document.getElementById('sentA'),{type:'doughnut',data:{labels:['긍정 58%','중립 27%','부정 15%'],datasets:[{data:[58,27,15],backgroundColor:['#adb5bd','#dee2e6','#E74C3C'],borderWidth:0}]},options:dOpt});
+new Chart(document.getElementById('sentB'),{type:'doughnut',data:{labels:['긍정 78%','중립 15%','부정 7%'],datasets:[{data:[78,15,7],backgroundColor:['#6666FF','#dee2e6','#E74C3C'],borderWidth:0}]},options:dOpt});
+new Chart(document.getElementById('patternChart'),{type:'bar',data:{
+labels:['P-01\n진짜팬','P-02\n인스타소비','P-03\n확신부족','P-05\n탐색/비교','체험전도사','Zone C\n진심불만','Zone D\n노이즈'],
+datasets:[
+{label:'A: 기존 인식',data:[12,23,20,30,0,8,7],backgroundColor:'rgba(173,181,189,0.45)',borderColor:'#adb5bd',borderWidth:1},
+{label:'B: 팝업 후',data:[40,25,8,7,10,5,5],backgroundColor:'rgba(102,102,255,0.7)',borderColor:'#6666FF',borderWidth:1}
+]},options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{family:'Pretendard',size:11}}}},scales:{y:{beginAtZero:true,max:45,ticks:{callback:v=>v+'%',font:{family:'Pretendard'}}},x:{ticks:{font:{family:'Pretendard',size:10}}}}}});
+function exportPDF(){document.getElementById('toolbar').style.display='none';html2pdf().set({margin:[8,8,8,8],filename:'RXR-SAERO-BrandShift-20260405.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a3',orientation:'portrait'},pagebreak:{mode:['avoid-all','css','legacy']}}).from(document.body).save().then(()=>{document.getElementById('toolbar').style.display=''});}
+</script>
+</body>
+</html>

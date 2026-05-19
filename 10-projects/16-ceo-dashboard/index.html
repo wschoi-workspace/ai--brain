@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO Daily Dashboard — Obsidian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ===== Obsidian Design Tokens ===== */
+  :root {
+    --bg:  #09090b;
+    --s0:  #0c0c0f;
+    --s1:  #131316;
+    --s2:  #1b1b1f;
+    --s3:  #27272a;
+    --s4:  #3f3f46;
+
+    --txt:  #fafafa;
+    --txt2: #a1a1aa;
+    --txt3: #71717a;
+
+    --violet: #a78bfa;
+    --violet-dim:  rgba(167,139,250,0.12);
+    --violet-line: rgba(167,139,250,0.35);
+    --green:  #34d399;
+    --amber:  #facc15;
+    --red:    #ef4444;
+
+    --font: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+  }
+
+  /* ===== Reset ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #000; font-family: var(--font); color: var(--txt); -webkit-font-smoothing: antialiased; overflow: hidden; height: 100%; }
+
+  /* ===== Stage / Canvas ===== */
+  .stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; }
+  .canvas {
+    width: 1920px; height: 1080px;
+    background: var(--bg);
+    position: relative;
+    transform-origin: center center;
+    overflow: hidden;
+    color: var(--txt);
+  }
+
+  /* ===== Top Bar ===== */
+  .topbar {
+    height: 64px;
+    background: var(--s0);
+    border-bottom: 1px solid var(--s3);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logomark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--violet); color: var(--bg);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; letter-spacing: -0.03em;
+  }
+  .brand .name { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+  .brand .sub { font-family: var(--mono); font-size: 11px; color: var(--txt3); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 2px; }
+
+  .toprt { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 12px; color: var(--txt2); }
+  .when { color: var(--txt); font-weight: 500; }
+  .sync { display: inline-flex; align-items: center; gap: 8px; }
+  .sync-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--green); box-shadow: 0 0 0 3px rgba(52,211,153,0.15); display: inline-block; }
+  .btn {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 7px 12px; border: 1px solid var(--s3); background: var(--s1); color: var(--txt);
+    border-radius: 6px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .btn:hover { border-color: var(--s4); background: var(--s2); }
+  .btn.primary { background: var(--violet); color: var(--bg); border-color: var(--violet); font-weight: 600; }
+  .btn.primary:hover { background: #b89cff; }
+  .kbd { font-family: var(--mono); font-size: 10px; background: var(--s3); padding: 1px 5px; border-radius: 3px; color: var(--txt2); }
+
+  /* ===== Grid ===== */
+  .grid {
+    height: calc(1080px - 64px);
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1.32fr;
+    grid-template-rows: 1fr 1fr 240px;
+    gap: 16px;
+  }
+  .panel.e { grid-column: 1 / -1; }
+
+  /* ===== Panel Card ===== */
+  .panel {
+    background: var(--s1);
+    border: 1px solid var(--s3);
+    border-radius: 8px;
+    padding: 20px 24px 18px 24px;
+    display: flex; flex-direction: column;
+    min-height: 0; overflow: hidden;
+  }
+  *:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+
+  /* Panel header */
+  .phead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-shrink: 0; }
+  .phead-left { display: flex; align-items: baseline; gap: 12px; }
+  .ptag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--txt3);
+  }
+  .ptag b { color: var(--violet); font-weight: 600; }
+  .ptitle { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; color: var(--txt); }
+  .pmeta { font-family: var(--mono); font-size: 11px; color: var(--txt3); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 8px; border-radius: 999px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em;
+  }
+  .badge.violet { background: var(--violet); color: var(--bg); font-weight: 600; }
+  .badge.red { background: var(--red); color: #fff; font-weight: 600; }
+  .badge.amber { background: var(--amber); color: var(--bg); font-weight: 600; }
+  .badge.ghost { background: transparent; border: 1px solid var(--s3); color: var(--txt2); }
+
+  /* Traffic-light dots */
+  .tl { width: 10px; height: 10px; border-radius: 999px; display: inline-block; background: var(--s3); flex-shrink: 0; }
+  .tl.g { background: var(--green); box-shadow: 0 0 0 3px rgba(52,211,153,0.12); }
+  .tl.y { background: var(--amber); box-shadow: 0 0 0 3px rgba(250,204,21,0.12); }
+  .tl.r { background: var(--red); box-shadow: 0 0 0 3px rgba(239,68,68,0.15); }
+
+  /* ========== A: URGENT ========== */
+  .sect {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--txt3); padding: 12px 0 8px 0; border-top: 1px solid var(--s3);
+    margin-top: 6px; display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .sect:first-of-type { border-top: 0; margin-top: 0; padding-top: 2px; }
+  .u-row {
+    display: grid; grid-template-columns: 14px 1fr auto; gap: 12px;
+    padding: 8px 0; align-items: center;
+    border-bottom: 1px solid var(--s2);
+    text-decoration: none; color: inherit;
+  }
+  .u-row:hover { background: var(--s2); margin: 0 -8px; padding: 8px 8px; border-radius: 4px; }
+  .u-row:last-of-type { border-bottom: 0; }
+  .u-pill { width: 8px; height: 8px; border-radius: 999px; background: var(--s4); margin-left: 3px; }
+  .u-pill.g { background: var(--green); }
+  .u-pill.a { background: var(--amber); }
+  .u-pill.r { background: var(--red); }
+  .u-main .t { font-size: 13px; color: var(--txt); font-weight: 500; line-height: 1.3; }
+  .u-main .s { font-size: 11px; color: var(--txt3); font-family: var(--mono); margin-top: 2px; letter-spacing: 0.02em; }
+  .u-right { font-family: var(--mono); font-size: 11px; color: var(--txt3); text-align: right; }
+  .u-right .d { font-weight: 600; }
+  .u-right .d.r { color: var(--red); }
+  .u-right .d.a { color: var(--amber); }
+  .u-right .d.g { color: var(--green); }
+  .u-right .sub { color: var(--txt3); font-size: 10px; margin-top: 2px; }
+  .urgent-body { flex: 1; min-height: 0; overflow-y: auto; }
+  .urgent-body::-webkit-scrollbar { width: 4px; }
+  .urgent-body::-webkit-scrollbar-track { background: transparent; }
+  .urgent-body::-webkit-scrollbar-thumb { background: var(--s3); border-radius: 2px; }
+
+  /* ========== B: SCHEDULE ========== */
+  .wkstrip { display: flex; gap: 8px; margin-bottom: 14px; flex-shrink: 0; }
+  .d-cell {
+    flex: 1;
+    background: var(--s0); border: 1px solid var(--s3);
+    border-radius: 6px; padding: 9px 10px;
+    display: flex; flex-direction: column; gap: 2px; align-items: center;
+  }
+  .d-cell.today { background: var(--violet); border-color: var(--violet); color: var(--bg); }
+  .d-cell .dw { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt3); }
+  .d-cell.today .dw { color: rgba(9,9,11,0.7); }
+  .d-cell .dt { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+  .d-cell .ct { font-family: var(--mono); font-size: 10px; color: var(--txt3); margin-top: 2px; }
+  .d-cell.today .ct { color: rgba(9,9,11,0.7); }
+
+  .timeline { display: grid; grid-template-columns: 54px 10px 1fr; column-gap: 10px; row-gap: 2px; flex: 1; min-height: 0; overflow: hidden; align-content: start; }
+  .tl-time { font-family: var(--mono); font-size: 11px; color: var(--txt3); padding-top: 9px; }
+  .tl-rail { position: relative; width: 2px; background: var(--s3); margin: 0 auto; min-height: 28px; }
+  .tl-rail::before { content: ""; position: absolute; left: -3px; top: 11px; width: 8px; height: 8px; background: var(--violet); border-radius: 999px; }
+  .tl-rail.past::before { background: var(--s4); }
+  .tl-rail.future::before { background: var(--bg); border: 1.5px solid var(--s4); width: 5px; height: 5px; left: -2px; }
+  .tl-ev {
+    background: var(--s0); border: 1px solid var(--s3); border-radius: 6px;
+    padding: 8px 12px; margin-bottom: 6px; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .tl-ev:hover { border-color: var(--violet-line); }
+  .tl-ev.now { background: var(--violet-dim); border-color: var(--violet-line); }
+  .tl-ev.past { opacity: 0.55; }
+  .tl-ev .en { font-size: 12.5px; font-weight: 500; color: var(--txt); }
+  .tl-ev .ew { font-family: var(--mono); font-size: 10.5px; color: var(--txt3); margin-top: 2px; letter-spacing: 0.01em; }
+  .tl-ev .next { margin-left: 8px; font-family: var(--mono); font-size: 9.5px; color: var(--violet); letter-spacing: 0.1em; }
+
+  /* ========== C: STORES ========== */
+  .kpis { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; flex-shrink: 0; }
+  .kpi { background: var(--s0); border: 1px solid var(--s3); border-radius: 6px; padding: 10px 12px; }
+  .kpi .k { font-family: var(--mono); font-size: 9.5px; color: var(--txt3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .kpi .v { font-size: 22px; font-weight: 600; letter-spacing: -0.025em; line-height: 1; }
+  .kpi .v .u { font-size: 11px; color: var(--txt3); margin-left: 3px; font-weight: 400; }
+  .kpi .dd { font-family: var(--mono); font-size: 10px; margin-top: 5px; color: var(--txt3); }
+  .kpi .dd.g { color: var(--green); }
+  .kpi .dd.r { color: var(--red); }
+  .kpi .gbar { height: 3px; background: var(--s2); border-radius: 999px; margin-top: 8px; position: relative; }
+  .kpi .gbar .fl { position: absolute; inset: 0 auto 0 0; background: var(--violet); border-radius: 999px; }
+  .kpi .gbar .fl.g { background: var(--green); }
+  .kpi .gbar .fl.r { background: var(--red); }
+
+  .st-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; flex-shrink: 0; }
+  .st-table th {
+    text-align: left; font-family: var(--mono); font-size: 9.5px; font-weight: 500;
+    color: var(--txt3); letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 8px 8px 8px 0; border-bottom: 1px solid var(--s3);
+  }
+  .st-table th.n { text-align: right; }
+  .st-table tr:nth-child(even) td { background: var(--s0); }
+  .st-table td { padding: 8px 8px 8px 0; border-bottom: 1px solid var(--s2); font-variant-numeric: tabular-nums; color: var(--txt2); }
+  .st-table td.n { text-align: right; }
+  .st-table td.name { color: var(--txt); font-weight: 500; }
+  .st-table td.up { color: var(--green); }
+  .st-table td.down { color: var(--red); }
+  .st-table td.flag { color: var(--red); font-weight: 600; }
+  .st-table td.flag::before { content: "\25BC "; }
+
+  .issues { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--s3); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; font-size: 12px; flex-shrink: 0; }
+  .issue { display: flex; align-items: flex-start; gap: 10px; padding: 3px 0; }
+  .issue .ik { font-family: var(--mono); font-size: 9.5px; color: var(--txt3); letter-spacing: 0.08em; text-transform: uppercase; min-width: 44px; padding-top: 3px; }
+  .issue .iv { color: var(--txt); line-height: 1.35; }
+  .issue .iv .store { font-family: var(--mono); font-size: 10px; color: var(--violet); letter-spacing: 0.04em; text-transform: uppercase; margin-right: 6px; }
+  .issue.flag .iv { color: #fecaca; }
+
+  /* Sparkline */
+  .spark { width: 80px; height: 20px; }
+  .spark path.area { fill: rgba(167,139,250,0.12); }
+  .spark path.line { fill: none; stroke: var(--violet); stroke-width: 1.6; }
+  .spark.red path.line { stroke: var(--red); }
+  .spark.red path.area { fill: rgba(239,68,68,0.12); }
+  .spark.green path.line { stroke: var(--green); }
+  .spark.green path.area { fill: rgba(52,211,153,0.12); }
+
+  /* ========== D: PROJECTS ========== */
+  .proj-list { display: flex; flex-direction: column; gap: 0; flex: 1; min-height: 0; overflow: hidden; }
+  .proj-row {
+    display: grid; grid-template-columns: 20px 1.3fr 2.2fr 52px 52px 14px;
+    gap: 14px; align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--s2);
+  }
+  .proj-row:last-of-type { border-bottom: 0; }
+  .proj-tag { font-family: var(--mono); font-size: 13px; color: var(--txt3); font-weight: 500; }
+  .proj-info .pname { font-size: 13px; font-weight: 500; color: var(--txt); line-height: 1.2; }
+  .proj-info .psub { font-family: var(--mono); font-size: 10.5px; color: var(--txt3); margin-top: 3px; }
+  .proj-bars { position: relative; height: 22px; }
+  .proj-bars .track { position: absolute; left: 0; right: 0; top: 5px; height: 5px; background: var(--s2); border-radius: 999px; }
+  .proj-bars .prog { position: absolute; left: 0; top: 5px; height: 5px; background: var(--violet); border-radius: 999px; }
+  .proj-bars .track2 { position: absolute; left: 0; right: 0; top: 14px; height: 3px; background: var(--s2); border-radius: 999px; }
+  .proj-bars .spend { position: absolute; left: 0; top: 14px; height: 3px; background: var(--txt3); border-radius: 999px; }
+  .proj-bars .spend.over { background: var(--red); }
+  .proj-num { font-family: var(--mono); font-size: 12px; color: var(--txt); text-align: right; font-variant-numeric: tabular-nums; }
+  .proj-num.c { color: var(--txt2); }
+  .proj-num.c.over { color: var(--red); font-weight: 600; }
+
+  .legend { display: flex; gap: 18px; font-family: var(--mono); font-size: 9.5px; color: var(--txt3); letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 0 0 0; border-top: 1px solid var(--s3); margin-top: 6px; flex-shrink: 0; }
+  .legend span::before { content: ""; display: inline-block; width: 14px; height: 2px; background: var(--violet); margin-right: 6px; vertical-align: middle; }
+  .legend .gs::before { background: var(--txt3); }
+
+  .discuss { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--s3); flex-shrink: 0; }
+  .discuss h4 { font-family: var(--mono); font-size: 10px; color: var(--txt3); letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 500; }
+  .discuss ul { margin: 0; padding-left: 0; list-style: none; font-size: 12px; color: var(--txt2); line-height: 1.5; }
+  .discuss li { padding: 3px 0; display: flex; gap: 10px; }
+  .discuss li .ik { font-family: var(--mono); font-size: 9.5px; color: var(--violet); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; min-width: 48px; padding-top: 3px; }
+  .discuss li .iv { color: var(--txt); }
+
+  /* ========== E: ATTENDANCE ========== */
+  .att { display: grid; grid-template-columns: 1.1fr 1.1fr 1.5fr 1.6fr; gap: 28px; flex: 1; min-height: 0; }
+  .att h3 { font-family: var(--mono); font-size: 10px; color: var(--txt3); letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 10px 0; font-weight: 500; }
+  .att-col { display: flex; flex-direction: column; min-height: 0; }
+
+  .big { font-size: 34px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: var(--txt); }
+  .big .u { font-size: 14px; color: var(--txt3); margin-left: 4px; font-weight: 400; }
+  .att-sub { font-family: var(--mono); font-size: 10.5px; color: var(--txt3); margin-top: 5px; }
+  .att-sub .g { color: var(--green); }
+  .att-sub .a { color: var(--amber); }
+  .att-sub .r { color: var(--red); }
+
+  .gauge { height: 6px; background: var(--s0); border-radius: 999px; margin-top: 8px; position: relative; border: 1px solid var(--s2); }
+  .gauge .fl { position: absolute; inset: 0 auto 0 0; background: var(--violet); border-radius: 999px; }
+  .gauge .fl.a { background: var(--amber); }
+  .gauge .fl.r { background: var(--red); }
+  .gauge .fl.g { background: var(--green); }
+  .gauge .limit { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--txt3); }
+  .gauge .limit::after { content: "90%"; position: absolute; top: -13px; left: 3px; font-family: var(--mono); font-size: 9px; color: var(--txt3); }
+
+  .leave { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; overflow: hidden; }
+  .lv-row { display: grid; grid-template-columns: 54px 1fr 54px; gap: 10px; align-items: center; font-size: 12px; }
+  .lv-row .nm { color: var(--txt); }
+  .lv-row .bar { height: 7px; background: var(--s0); border: 1px solid var(--s2); border-radius: 4px; position: relative; }
+  .lv-row .bar .fl { position: absolute; left: 0; top: 0; bottom: 0; background: var(--violet); border-radius: 3px; }
+  .lv-row .bar .fl.r { background: var(--red); }
+  .lv-row .rm { font-family: var(--mono); font-size: 10.5px; color: var(--txt2); text-align: right; }
+  .lv-row .rm.r { color: var(--red); font-weight: 600; }
+
+  .ratio { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .rt-row { display: grid; grid-template-columns: 48px 1fr 70px; gap: 10px; align-items: center; font-size: 12px; }
+  .rt-row .nm { color: var(--txt); }
+  .rt-row .bar { height: 9px; background: var(--s0); border: 1px solid var(--s2); border-radius: 4px; position: relative; }
+  .rt-row .bar .fl { position: absolute; left: 0; top: 0; bottom: 0; background: var(--violet); border-radius: 3px; }
+  .rt-row .bar .fl.a { background: var(--amber); }
+  .rt-row .bar .fl.r { background: var(--red); }
+  .rt-row .bar .ref { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--violet); }
+  .rt-row .bar .ref::after { content: ""; position: absolute; top: -2px; width: 5px; height: 5px; background: var(--violet); border-radius: 999px; left: -2px; }
+  .rt-row .val { font-family: var(--mono); font-size: 11.5px; text-align: right; color: var(--txt); font-variant-numeric: tabular-nums; }
+  .rt-row .val.r { color: var(--red); font-weight: 600; }
+  .rt-row .val.a { color: var(--amber); }
+
+  /* ===== Empty State ===== */
+  .empty-state {
+    text-align: center; padding: 32px 16px; color: var(--txt2); font-size: 13px;
+    border: 1px dashed var(--s3); border-radius: 6px;
+  }
+
+  /* ===== Upload Modal ===== */
+  .upload-overlay {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  .upload-overlay.show { display: flex; }
+  .upload-modal {
+    background: var(--s1); border: 1px solid var(--s3); border-radius: 8px;
+    padding: 28px; width: 520px; max-width: 90vw;
+  }
+  .upload-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .upload-title { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+  .upload-close { background: none; border: none; color: var(--txt3); font-size: 20px; cursor: pointer; padding: 4px 8px; }
+  .upload-close:hover { color: var(--txt); }
+  .upload-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .upload-tab {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    background: transparent; border: 1px solid var(--s3); color: var(--txt2);
+    padding: 6px 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s;
+  }
+  .upload-tab.active { background: var(--violet); color: var(--bg); border-color: var(--violet); font-weight: 600; }
+  .upload-tab:hover:not(.active) { border-color: var(--violet); color: var(--violet); }
+  .dropzone {
+    border: 2px dashed var(--s3); border-radius: 8px; padding: 40px;
+    text-align: center; color: var(--txt2); font-size: 13px;
+    transition: border-color 0.15s, background 0.15s; cursor: pointer; position: relative;
+  }
+  .dropzone.dragover { border-color: var(--violet); background: var(--violet-dim); }
+  .dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .dropzone-icon { font-size: 28px; margin-bottom: 8px; display: block; color: var(--txt3); }
+  .upload-result {
+    margin-top: 12px; padding: 10px 14px;
+    background: var(--s0); border: 1px solid var(--s3);
+    border-radius: 6px; font-size: 12px; font-family: var(--mono); display: none;
+  }
+  .upload-result.show { display: block; }
+  .upload-result.success { border-color: var(--green); }
+  .upload-result.error { border-color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="canvas" id="canvas">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="brand">
+        <div class="logomark">C</div>
+        <div>
+          <div class="name">CEO Daily Dashboard</div>
+          <div class="sub">Obsidian · v0.1</div>
+        </div>
+      </div>
+      <div class="toprt">
+        <span class="when" id="header-date"></span>
+        <span class="sync" id="header-sync"><span class="sync-dot"></span><span id="header-updated">Loading...</span></span>
+        <span class="btn" onclick="loadAll()">Refresh <span class="kbd">R</span></span>
+        <span class="btn" onclick="toggleUpload()">Upload <span class="kbd">U</span></span>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid">
+
+      <!-- A: URGENT ACTIONS -->
+      <section class="panel a">
+        <div class="phead">
+          <div class="phead-left">
+            <span class="ptag"><b>A</b> · D1</span>
+            <span class="ptitle">Urgent Actions</span>
+          </div>
+          <span class="badge red" id="badge-urgent" style="display:none"></span>
+        </div>
+        <div class="urgent-body" id="panel-a-body">
+          <div class="empty-state">Loading...</div>
+        </div>
+      </section>
+
+      <!-- B: SCHEDULE -->
+      <section class="panel b">
+        <div class="phead">
+          <div class="phead-left">
+            <span class="ptag"><b>B</b> · D2</span>
+            <span class="ptitle">Today & This Week</span>
+          </div>
+          <span class="badge violet" id="badge-events" style="display:none"></span>
+        </div>
+        <div id="panel-b-body">
+          <div class="empty-state">Loading...</div>
+        </div>
+      </section>
+
+      <!-- C: STORES -->
+      <section class="panel c">
+        <div class="phead">
+          <div class="phead-left">
+            <span class="ptag"><b>C</b> · D3</span>
+            <span class="ptitle">Stores</span>
+          </div>
+          <span class="pmeta" id="badge-stores"></span>
+        </div>
+        <div id="panel-c-body" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">
+          <div class="empty-state">Loading...</div>
+        </div>
+      </section>
+
+      <!-- D: PROJECTS -->
+      <section class="panel d">
+        <div class="phead">
+          <div class="phead-left">
+            <span class="ptag"><b>D</b> · D4</span>
+            <span class="ptitle">Projects</span>
+          </div>
+          <span class="pmeta" id="badge-projects"></span>
+        </div>
+        <div id="panel-d-body" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">
+          <div class="empty-state">Loading...</div>
+        </div>
+      </section>
+
+      <!-- E: ATTENDANCE -->
+      <section class="panel e">
+        <div class="phead">
+          <div class="phead-left">
+            <span class="ptag"><b>E</b> · D5</span>
+            <span class="ptitle">Attendance</span>
+          </div>
+          <span class="pmeta" id="badge-attendance"></span>
+        </div>
+        <div id="panel-e-body" style="flex:1;min-height:0;overflow:hidden;">
+          <div class="empty-state">Loading...</div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="upload-overlay" id="upload-overlay" onclick="if(event.target===this)toggleUpload()">
+  <div class="upload-modal">
+    <div class="upload-header">
+      <span class="upload-title">Upload Data</span>
+      <button class="upload-close" onclick="toggleUpload()">&times;</button>
+    </div>
+    <div class="upload-tabs">
+      <button class="upload-tab active" data-type="regular" onclick="setUploadType('regular',this)">Regular</button>
+      <button class="upload-tab" data-type="pos" onclick="setUploadType('pos',this)">POS</button>
+      <button class="upload-tab" data-type="project" onclick="setUploadType('project',this)">Project</button>
+      <button class="upload-tab" data-type="attendance" onclick="setUploadType('attendance',this)">Attendance</button>
+    </div>
+    <div class="dropzone" id="dropzone">
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(event)">
+      <span class="dropzone-icon">+</span>
+      Drop file or click to upload<br>
+      <span style="font-size:11px;color:var(--txt3);font-family:var(--mono)">.xlsx .xls .csv supported</span>
+    </div>
+    <div class="upload-result" id="upload-result"></div>
+  </div>
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script>
+// ===== Utilities =====
+const fmt = (n) => n != null ? n.toLocaleString('ko-KR') : '-';
+const fmtM = (n) => {
+  if (n == null) return '-';
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 10000) return (n / 10000).toFixed(0) + '만';
+  return fmt(n);
+};
+const fmtWon = (n) => n != null ? n.toLocaleString('ko-KR') + '원' : '-';
+const fmtPct = (n) => n != null ? (n >= 0 ? '+' : '') + n.toFixed(0) + '%' : '-';
+
+function getEmailPill(hoursAgo) {
+  if (hoursAgo >= 48) return 'r';
+  if (hoursAgo >= 24) return 'a';
+  return 'g';
+}
+
+function getDdayPill(dday) {
+  if (dday <= 1) return 'r';
+  if (dday <= 3) return 'a';
+  return 'g';
+}
+
+function calcDday(dateStr) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(dateStr); target.setHours(0,0,0,0);
+  return Math.round((target - today) / (1000*60*60*24));
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return `${d.getMonth()+1}/${d.getDate()} (${days[d.getDay()]})`;
+}
+
+function makeSparkSVG(data, trend) {
+  if (!data || data.length < 2) return '';
+  const w = 80, h = 20;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const step = w / (data.length - 1);
+  const points = data.map((v, i) => `${(i * step).toFixed(1)},${(h - ((v - min) / range) * (h - 4) - 2).toFixed(1)}`);
+  const lineD = 'M' + points.join(' L');
+  const areaD = lineD + ` L${w},${h} L0,${h} Z`;
+  const cls = trend === 'down' ? 'red' : trend === 'up' ? 'green' : '';
+  return `<svg class="spark ${cls}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path class="area" d="${areaD}"/><path class="line" d="${lineD}"/></svg>`;
+}
+
+function getTrend(data) {
+  if (!data || data.length < 2) return '';
+  const last = data[data.length - 1];
+  const first = data[0];
+  if (last > first * 1.05) return 'up';
+  if (last < first * 0.95) return 'down';
+  return '';
+}
+
+// ===== Embedded Data (file:// fallback) =====
+const EMBEDDED_DATA = {"email-actions.json":{"generated_at":"2026-04-19T11:08:00.141861","recent_emails":[{"id":"brand24-comonstyle-17","from":"Brand24","subject":"컴온스타일 - new mentions: 17","date":"2026-04-19","hours_ago":11,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/컴온스타일 - new mentions"},{"id":"brand24-beyond-129","from":"Brand24","subject":"비욘드팝업스토어 - new mentions: 129","date":"2026-04-19","hours_ago":11,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/비욘드팝업스토어 - new menti"},{"id":"brand24-expire","from":"Brand24","subject":"Brand24 access about to expire","date":"2026-04-19","hours_ago":11,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/Brand24 access about"},{"id":"google-alert","from":"Google Workspace Alerts","subject":"Alert: Suspicious login","date":"2026-04-18","hours_ago":35,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/Alert:  Suspicious l"},{"id":"brand24-beyond-165","from":"Brand24","subject":"비욘드팝업스토어 - new mentions: 165","date":"2026-04-18","hours_ago":35,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/비욘드팝업스토어 - new menti"},{"id":"urbanbreak-objet","from":"이슬아","subject":"[어반브레이크] 오브제 프로젝트 작가 자료 전달 및 미팅 일정 문의","date":"2026-04-17","hours_ago":59,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/[어반브레이크] 오브제 프로젝트 작가"},{"id":"gyeongnam-popup","from":"프로젝트렌트","subject":"초대장: 경남 팝업스토어 발표 - 2026년 4월 24일 (금) 오후 2시","date":"2026-04-17","hours_ago":59,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/초대장: 경남 팝업스토어 발표 - 2"},{"id":"sungin-remodel","from":"jehun jeon","subject":"Re: [프로젝트렌트] 숭인동 202-14 리모델링 관련의 건","date":"2026-04-17","hours_ago":59,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/Re: [프로젝트렌트] 숭인동 202"},{"id":"wynn-palace","from":"Stephanie Sin","subject":"[To Choi Won Seok] Media Invite: Wynn Palace Six-Hands Collaboration","date":"2026-04-17","hours_ago":59,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/[To Choi Won Seok] M"},{"id":"seongdong-list","from":"조웅제","subject":"[성동구청] 공개공지 리스트 발송","date":"2026-04-17","hours_ago":59,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/[성동구청] 공개공지 리스트 발송"},{"id":"skt-result","from":"open_help2@sktelecom.com","subject":"SK텔레콤 제안요청관련 최종 결과입니다.","date":"2026-04-16","hours_ago":83,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/SK텔레콤 제안요청관련 최종 결과입니"},{"id":"skt-rfi","from":"open_help2@sktelecom.com","subject":"정보요청(RFI) 알림기능","date":"2026-04-16","hours_ago":83,"replied":false,"gmail_link":"https://mail.google.com/mail/u/0/#search/정보요청(RFI) 알림기능"}],"unreplied_summary":{"total":12,"urgent":7,"warning":2,"normal":3}},"regular-tasks.json":{"generated_at":"2026-04-19T11:08:00.141861","tasks":[{"name":"임대료 송금 (성수점)","cycle":"매월","day":25,"amount":3500000,"next_date":"2026-04-25","note":"우리은행 자동이체 확인"},{"name":"임대료 송금 (북촌점)","cycle":"매월","day":25,"amount":4200000,"next_date":"2026-04-25","note":"신한은행 수동 송금"},{"name":"부가세 예정신고","cycle":"매분기","day":25,"amount":null,"next_date":"2026-04-25","note":"세무사 사무실 자료 제출"},{"name":"Brand24 구독 갱신","cycle":"매월","day":22,"amount":199000,"next_date":"2026-04-22","note":"만료 임박 — 갱신 또는 해지 결정"},{"name":"SKT 정보요청(RFI) 응답","cycle":"일회성","day":23,"amount":null,"next_date":"2026-04-23","note":"제안 최종결과 확인 후 대응"},{"name":"경남 팝업스토어 발표 준비","cycle":"일회성","day":24,"amount":null,"next_date":"2026-04-24","note":"발표자료 최종 검토"},{"name":"직원 급여 이체","cycle":"매월","day":10,"amount":null,"next_date":"2026-05-10","note":""},{"name":"4대보험료 납부","cycle":"매월","day":10,"amount":null,"next_date":"2026-05-10","note":"자동이체"}]},"calendar-today.json":{"generated_at":"2026-04-19T11:08:00.141861","date":"2026-04-19","events":[{"id":"evt-sat1","title":"봉은사 마스터플랜 자료 정리","start":"10:00","end":"11:30","location":"Home office","description":"구 웨딩홀 리뉴얼 검토자료 정리","calendar_link":"https://calendar.google.com/"},{"id":"evt-sat2","title":"숭인동 리모델링 현장 확인","start":"14:00","end":"15:30","location":"숭인동 202-14","description":"jehun jeon 메일 관련 현장 방문","calendar_link":"https://calendar.google.com/"},{"id":"evt-sat3","title":"CEO Dashboard 디자인 리뷰","start":"16:00","end":"16:30","location":"Remote","description":"Obsidian 디자인 적용 확인","calendar_link":"https://calendar.google.com/"}]},"calendar-week.json":{"generated_at":"2026-04-19T11:08:00.141861","week_range":"2026-04-19 ~ 2026-04-25","events":[{"title":"봉은사 마스터플랜 자료 정리","date":"2026-04-19","start":"10:00","is_deadline":false},{"title":"숭인동 리모델링 현장 확인","date":"2026-04-19","start":"14:00","is_deadline":false},{"title":"주간회의","date":"2026-04-21","start":"10:00","is_deadline":false},{"title":"어반브레이크 오브제 작가 미팅","date":"2026-04-21","start":"14:00","is_deadline":false},{"title":"Brand24 구독 갱신 마감","date":"2026-04-22","start":null,"is_deadline":true},{"title":"성동구청 공개공지 검토","date":"2026-04-22","start":"11:00","is_deadline":false},{"title":"SKT RFI 응답 마감","date":"2026-04-23","start":null,"is_deadline":true},{"title":"경남 팝업스토어 발표","date":"2026-04-24","start":"14:00","is_deadline":false},{"title":"Wynn Palace 미디어 초대 회신 마감","date":"2026-04-25","start":null,"is_deadline":true}]},"pos-sales.json":{"generated_at":"2026-04-19T11:06:22.730391","source_file":"pos-daily-20260411.xlsx","stores":[{"name":"성수점","yesterday":2450000,"same_day_last_week":2100000,"same_day_last_month":2300000,"change_vs_last_week":16.7,"change_vs_last_month":6.5,"customers":82,"avg_per_customer":29878,"monthly_target":70000000,"monthly_actual":38500000,"daily_trend":[2100000,2350000,1980000,2450000,2200000,2550000,2450000],"voc_count":2,"voc_unresolved":1,"inventory_alerts":["오리지널 커피포 10T — 재고 2일분"],"issues":"해외결제 POS 오류 1건","work_requests":[{"content":"에어컨 필터 교체 요청","urgency":"중","status":"대기","date":"2026-04-11"},{"content":"간판 조명 점멸 수리","urgency":"상","status":"진행","date":"2026-04-10"}]},{"name":"북촌점","yesterday":1750000,"same_day_last_week":2200000,"same_day_last_month":1900000,"change_vs_last_week":-20.5,"change_vs_last_month":-7.9,"customers":58,"avg_per_customer":30172,"monthly_target":60000000,"monthly_actual":29500000,"daily_trend":[2200000,1900000,2050000,1800000,1750000,2100000,1750000],"voc_count":0,"voc_unresolved":0,"inventory_alerts":[],"issues":"","work_requests":[{"content":"화장실 수전 교체","urgency":"하","status":"완료","date":"2026-04-08"}]}],"total":{"yesterday":4200000,"monthly_target":130000000,"monthly_actual":68000000,"achievement_rate":52.3}},"projects.json":{"generated_at":"2026-04-19T11:06:22.730391","source_file":"주간회의자료-20260411.xlsx","projects":[{"name":"성수점 리뉴얼","progress":65,"total_budget":120000000,"spent":58000000,"spend_rate":48.3,"next_milestone":"인테리어 시공 착수","milestone_date":"2026-04-20","today_topics":"시공업체 최종 선정, 임시 영업 일정 조율"},{"name":"북촌점 브랜딩","progress":30,"total_budget":25000000,"spent":12000000,"spend_rate":48.0,"next_milestone":"디자인 시안 확정","milestone_date":"2026-04-15","today_topics":"시안 3종 최종 리뷰"},{"name":"GS리테일 입점","progress":15,"total_budget":50000000,"spent":18000000,"spend_rate":36.0,"next_milestone":"제안서 제출","milestone_date":"2026-04-14","today_topics":""},{"name":"온라인 스토어 구축","progress":80,"total_budget":30000000,"spent":32000000,"spend_rate":106.7,"next_milestone":"베타 테스트","milestone_date":"2026-04-25","today_topics":"결제 모듈 테스트 결과 공유"}]},"attendance.json":{"generated_at":"2026-04-19T11:06:22.730391","source_file":"근태현황-202604.xlsx","month":"2026-04","budget":{"overtime_budget":3000000,"used":2150000,"usage_rate":71.7},"employees":[{"name":"한매니저","store":"성수점","overtime_hours":12,"night_hours":4,"holiday_hours":8,"total_extra_hours":24,"estimated_pay":480000,"total_leave":15,"used_leave":8,"remaining_leave":7},{"name":"김부점장","store":"성수점","overtime_hours":8,"night_hours":6,"holiday_hours":4,"total_extra_hours":18,"estimated_pay":360000,"total_leave":15,"used_leave":12,"remaining_leave":3},{"name":"박매니저","store":"북촌점","overtime_hours":15,"night_hours":8,"holiday_hours":6,"total_extra_hours":29,"estimated_pay":580000,"total_leave":15,"used_leave":5,"remaining_leave":10},{"name":"이스태프","store":"북촌점","overtime_hours":6,"night_hours":2,"holiday_hours":0,"total_extra_hours":8,"estimated_pay":160000,"total_leave":11,"used_leave":4,"remaining_leave":7},{"name":"최인턴","store":"사무실","overtime_hours":20,"night_hours":10,"holiday_hours":4,"total_extra_hours":34,"estimated_pay":570000,"total_leave":11,"used_leave":9,"remaining_leave":2}],"store_labor_ratio":[{"store":"성수점","monthly_sales":38500000,"labor_cost":840000,"ratio":2.2},{"store":"북촌점","monthly_sales":29500000,"labor_cost":740000,"ratio":2.5}]}};
+
+// ===== Data Fetching =====
+async function fetchJSON(file) {
+  try {
+    const res = await fetch(`data/${file}?t=${Date.now()}`);
+    if (res.ok) return await res.json();
+  } catch {}
+  // localStorage fallback
+  const stored = localStorage.getItem(`dashboard_${file}`);
+  if (stored) return JSON.parse(stored);
+  // Embedded data fallback (for file:// protocol)
+  return EMBEDDED_DATA[file] || null;
+}
+
+function saveToLocal(file, data) {
+  if (data) localStorage.setItem(`dashboard_${file}`, JSON.stringify(data));
+}
+
+// ===== Panel A: Urgent Actions =====
+function renderPanelA(emails, tasks) {
+  const body = document.getElementById('panel-a-body');
+  const badge = document.getElementById('badge-urgent');
+  if (!emails && !tasks) {
+    body.innerHTML = '<div class="empty-state">No data — run refresh-data.sh or upload Excel</div>';
+    badge.style.display = 'none';
+    return;
+  }
+
+  let html = '';
+  let urgentCount = 0;
+
+  // Regular Tasks D-day
+  if (tasks && tasks.tasks && tasks.tasks.length > 0) {
+    const sorted = tasks.tasks
+      .map(t => ({ ...t, dday: calcDday(t.next_date) }))
+      .filter(t => t.dday >= -1 && t.dday <= 30)
+      .sort((a, b) => a.dday - b.dday);
+
+    if (sorted.length > 0) {
+      html += `<div class="sect"><span>D-day</span><span>${sorted.length}</span></div>`;
+      sorted.forEach(t => {
+        const pill = getDdayPill(t.dday);
+        if (pill === 'r') urgentCount++;
+        const ddayText = t.dday === 0 ? 'D-0' : t.dday < 0 ? `D+${Math.abs(t.dday)}` : `D-${t.dday}`;
+        const dayLabel = t.dday === 0 ? '오늘' : t.dday === 1 ? '내일' : '';
+        html += `<div class="u-row">
+          <span class="u-pill ${pill}"></span>
+          <div class="u-main">
+            <div class="t">${t.name}</div>
+            <div class="s">${t.cycle} ${t.day}일${t.amount ? ' · ₩' + fmtM(t.amount) : ''}${t.note ? ' · ' + t.note : ''}</div>
+          </div>
+          <div class="u-right"><span class="d ${pill}">${ddayText}</span>${dayLabel ? '<div class="sub">' + dayLabel + '</div>' : ''}</div>
+        </div>`;
+      });
+    }
+  }
+
+  // Unreplied Emails
+  if (emails && emails.recent_emails) {
+    const unreplied = emails.recent_emails
+      .filter(e => !e.replied)
+      .sort((a, b) => b.hours_ago - a.hours_ago);
+
+    if (unreplied.length > 0) {
+      html += `<div class="sect"><span>Unreplied · ${unreplied.length > 0 ? Math.max(...unreplied.map(e=>Math.floor(e.hours_ago/24))) + 'd' : ''}</span><span>${unreplied.length}</span></div>`;
+      unreplied.forEach(e => {
+        const pill = getEmailPill(e.hours_ago);
+        if (pill === 'r') urgentCount++;
+        const timeText = e.hours_ago + 'h';
+        html += `<a class="u-row" href="${e.gmail_link}" target="_blank" style="text-decoration:none;color:inherit">
+          <span class="u-pill ${pill}"></span>
+          <div class="u-main">
+            <div class="t">${e.subject}</div>
+            <div class="s">${e.from}</div>
+          </div>
+          <div class="u-right"><span class="d ${pill}">${timeText}</span><div class="sub">elapsed</div></div>
+        </a>`;
+      });
+    }
+
+    // Recent 3-day review
+    const recent = [...emails.recent_emails].sort((a, b) => a.hours_ago - b.hours_ago);
+    if (recent.length > 0) {
+      html += `<div class="sect"><span>Recent · 3d</span><span>${recent.length}</span></div>`;
+      recent.forEach(e => {
+        const pill = e.replied ? 'g' : getEmailPill(e.hours_ago);
+        html += `<a class="u-row" href="${e.gmail_link}" target="_blank" style="text-decoration:none;color:inherit">
+          <span class="u-pill ${pill}"></span>
+          <div class="u-main">
+            <div class="t">${e.subject}</div>
+            <div class="s">${e.from}</div>
+          </div>
+          <div class="u-right"><span class="d ${pill}">${e.replied ? 'Done' : e.hours_ago + 'h'}</span></div>
+        </a>`;
+      });
+    }
+
+    badge.textContent = urgentCount > 0 ? `${urgentCount} RED` : `${emails.unreplied_summary?.total || 0} OPEN`;
+    badge.className = 'badge ' + (urgentCount > 0 ? 'red' : 'amber');
+    badge.style.display = '';
+  }
+
+  body.innerHTML = html || '<div class="empty-state">No urgent actions</div>';
+}
+
+// ===== Panel B: Schedule =====
+function renderPanelB(today, week) {
+  const body = document.getElementById('panel-b-body');
+  const badge = document.getElementById('badge-events');
+  if (!today && !week) {
+    body.innerHTML = '<div class="empty-state">No schedule data</div>';
+    badge.style.display = 'none';
+    return;
+  }
+
+  let html = '';
+  const now = new Date();
+  const nowHour = now.getHours();
+  const todayDay = now.getDay();
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // Week strip
+  if (week && week.events) {
+    const todayDate = now.getDate();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(todayDate - todayDay);
+
+    html += '<div class="wkstrip">';
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      const isToday = d.getDate() === todayDate && d.getMonth() === now.getMonth();
+      const dateStr = d.toISOString().slice(0, 10);
+      const evtCount = week.events.filter(e => e.date === dateStr).length +
+        (isToday && today?.events ? today.events.length : 0);
+      html += `<div class="d-cell${isToday ? ' today' : ''}">
+        <div class="dw">${dayNames[d.getDay()]}</div>
+        <div class="dt">${d.getDate()}</div>
+        <div class="ct">${evtCount || '—'}</div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+
+  // Today timeline
+  if (today && today.events && today.events.length > 0) {
+    html += '<div class="timeline">';
+    today.events.forEach(evt => {
+      const evtHour = parseInt(evt.start.split(':')[0]);
+      const isPast = evtHour < nowHour - 1;
+      const isNow = evtHour <= nowHour && nowHour < evtHour + 1;
+      const railClass = isPast ? 'past' : (isNow ? '' : 'future');
+      const evClass = isPast ? 'past' : (isNow ? 'now' : '');
+
+      html += `<div class="tl-time">${evt.start}</div>
+        <div class="tl-rail ${railClass}"></div>
+        <div class="tl-ev ${evClass}"${evt.calendar_link ? ' onclick="window.open(\'' + evt.calendar_link + '\',\'_blank\')"' : ''}>
+          <div class="en">${evt.title}${isNow ? ' <span class="next">&#9658; NEXT</span>' : ''}</div>
+          <div class="ew">${evt.location ? evt.location + ' · ' : ''}${evt.start} - ${evt.end}</div>
+        </div>`;
+    });
+    html += '</div>';
+
+    badge.textContent = `TODAY · ${today.events.length}`;
+    badge.style.display = '';
+  }
+
+  // Remaining week events
+  if (week && week.events && week.events.length > 0) {
+    const futureEvents = week.events.filter(e => e.date !== today?.date);
+    if (futureEvents.length > 0) {
+      html += '<div class="timeline" style="margin-top:8px">';
+      futureEvents.forEach(e => {
+        const dday = calcDday(e.date);
+        html += `<div class="tl-time">${formatDate(e.date).split(' ')[0]}</div>
+          <div class="tl-rail future"></div>
+          <div class="tl-ev">
+            <div class="en">${e.title}${e.is_deadline ? ' <span style="color:var(--red);font-family:var(--mono);font-size:9.5px">DEADLINE</span>' : ''}</div>
+            <div class="ew">${e.start || ''} ${dday <= 3 ? '· D-' + dday : ''}</div>
+          </div>`;
+      });
+      html += '</div>';
+    }
+  }
+
+  body.innerHTML = html || '<div class="empty-state">No events today</div>';
+}
+
+// ===== Panel C: Store Status =====
+function renderPanelC(data) {
+  const body = document.getElementById('panel-c-body');
+  const meta = document.getElementById('badge-stores');
+  if (!data || !data.stores || data.stores.length === 0) {
+    body.innerHTML = '<div class="empty-state">No store data — upload POS Excel</div>';
+    meta.textContent = '';
+    return;
+  }
+
+  const totalYesterday = data.total?.yesterday || data.stores.reduce((s, st) => s + (st.yesterday || 0), 0);
+  const achRate = data.total?.achievement_rate;
+  const monthActual = data.total?.monthly_actual;
+  const monthTarget = data.total?.monthly_target;
+
+  meta.textContent = `${data.stores.length} stores · ${data.source_file ? data.source_file : ''}`;
+
+  // KPIs
+  let html = '<div class="kpis">';
+  html += `<div class="kpi">
+    <div class="k">Total Sales · Yesterday</div>
+    <div class="v">₩${fmtM(totalYesterday)}</div>
+    <div class="dd">vs all stores</div>
+    <div class="gbar"><div class="fl" style="width:64%"></div></div>
+  </div>`;
+
+  if (achRate != null) {
+    html += `<div class="kpi">
+      <div class="k">Monthly · ${achRate}%</div>
+      <div class="v">₩${fmtM(monthActual)}</div>
+      <div class="dd">/ ₩${fmtM(monthTarget)} target</div>
+      <div class="gbar"><div class="fl ${achRate >= 80 ? 'g' : ''}" style="width:${Math.min(achRate, 100)}%"></div></div>
+    </div>`;
+  } else {
+    html += `<div class="kpi">
+      <div class="k">Monthly Cumulative</div>
+      <div class="v">₩${fmtM(monthActual || totalYesterday)}</div>
+      <div class="dd">target not set</div>
+      <div class="gbar"><div class="fl" style="width:50%"></div></div>
+    </div>`;
+  }
+
+  const alertStores = data.stores.filter(s =>
+    (s.change_vs_last_week != null && Math.abs(s.change_vs_last_week) >= 15) || s.voc_count > 0
+  );
+  html += `<div class="kpi">
+    <div class="k">Alerts</div>
+    <div class="v">${alertStores.length}<span class="u">stores</span></div>
+    <div class="dd ${alertStores.length > 0 ? 'r' : ''}">${alertStores.length > 0 ? alertStores.map(s => s.name).join(' · ') : 'All clear'}</div>
+    <div class="gbar"><div class="fl ${alertStores.length > 0 ? 'r' : 'g'}" style="width:${alertStores.length > 0 ? 40 : 10}%"></div></div>
+  </div>`;
+  html += '</div>';
+
+  // Store table
+  html += `<table class="st-table"><thead><tr>
+    <th>Store</th><th class="n">Yesterday</th><th class="n">vs D-1</th><th class="n">vs W-1</th><th class="n">vs M-1</th><th>7d</th><th class="n">VOC</th><th>Inv</th>
+  </tr></thead><tbody>`;
+
+  data.stores.forEach(s => {
+    const weekPct = s.change_vs_last_week;
+    const monthPct = s.change_vs_last_month;
+    const weekCls = weekPct == null ? '' : (Math.abs(weekPct) >= 15 ? (weekPct < 0 ? 'flag' : 'up') : (weekPct > 0 ? 'up' : 'down'));
+    const monthCls = monthPct == null ? '' : (Math.abs(monthPct) >= 15 ? (monthPct < 0 ? 'flag' : 'up') : (monthPct > 0 ? 'up' : 'down'));
+    const trend = getTrend(s.daily_trend);
+    const hasAlert = (weekPct != null && Math.abs(weekPct) >= 15) || s.voc_count > 0;
+
+    html += `<tr>
+      <td class="name">${s.name}${hasAlert ? ' <span class="tl r" style="margin-left:6px;width:6px;height:6px"></span>' : ''}</td>
+      <td class="n">${fmtM(s.yesterday)}</td>
+      <td class="n">${fmtPct(0)}</td>
+      <td class="n ${weekCls}">${weekPct != null ? fmtPct(weekPct) : '-'}</td>
+      <td class="n ${monthCls}">${monthPct != null ? fmtPct(monthPct) : '-'}</td>
+      <td>${makeSparkSVG(s.daily_trend, trend)}</td>
+      <td class="n"${s.voc_count > 0 ? ' style="color:var(--red);font-weight:600"' : ''}>${s.voc_count || 0}</td>
+      <td${s.inventory_alerts && s.inventory_alerts.length > 0 ? ' style="color:var(--red)"' : ''}>${s.inventory_alerts && s.inventory_alerts.length > 0 ? 'Alert ' + s.inventory_alerts.length : 'OK'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+
+  // Issues grid
+  const allIssues = [];
+  data.stores.forEach(s => {
+    if (s.voc_count > 0 || s.issues) {
+      allIssues.push({ type: 'VOC', store: s.name, text: s.issues || `VOC ${s.voc_count} issues`, flag: true });
+    }
+    if (s.inventory_alerts && s.inventory_alerts.length > 0) {
+      s.inventory_alerts.forEach(a => allIssues.push({ type: 'INV', store: s.name, text: a, flag: true }));
+    }
+    if (s.work_requests && s.work_requests.length > 0) {
+      s.work_requests.forEach(r => allIssues.push({ type: 'REQ', store: s.name, text: r.content, flag: false }));
+    }
+  });
+
+  if (allIssues.length > 0) {
+    html += '<div class="issues">';
+    allIssues.slice(0, 4).forEach(iss => {
+      html += `<div class="issue ${iss.flag ? 'flag' : ''}">
+        <div class="ik">${iss.type}</div>
+        <div class="iv"><span class="store">${iss.store}</span>${iss.text}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  body.innerHTML = html;
+}
+
+// ===== Panel D: Projects =====
+function renderPanelD(data) {
+  const body = document.getElementById('panel-d-body');
+  const meta = document.getElementById('badge-projects');
+  if (!data || !data.projects || data.projects.length === 0) {
+    body.innerHTML = '<div class="empty-state">No project data — upload weekly Excel</div>';
+    meta.textContent = '';
+    return;
+  }
+
+  const redCount = data.projects.filter(p => p.spend_rate > (p.progress || 0) + 10).length;
+  meta.textContent = `${data.projects.length} active${redCount > 0 ? ' · ' + redCount + ' red' : ''}`;
+
+  const tags = ['\u03B1','\u03B2','\u03B3','\u03B4','\u03B5','\u03B6','\u03B7','\u03B8'];
+  let html = '<div class="proj-list">';
+
+  data.projects.forEach((p, i) => {
+    const progress = p.progress || 0;
+    const spendRate = p.spend_rate || 0;
+    const overSpend = spendRate > progress + 10;
+    const dday = p.milestone_date ? calcDday(p.milestone_date) : null;
+    const ddayText = dday !== null ? (dday === 0 ? 'D-0' : dday < 0 ? `D+${Math.abs(dday)}` : `D-${dday}`) : '';
+    const tlClass = overSpend ? 'r' : (spendRate > progress ? 'y' : 'g');
+
+    html += `<div class="proj-row">
+      <span class="proj-tag">${tags[i] || (i+1)}</span>
+      <div class="proj-info">
+        <div class="pname">${p.name}</div>
+        <div class="psub">${p.next_milestone || ''}${ddayText ? ' · ' + ddayText : ''}</div>
+      </div>
+      <div class="proj-bars">
+        <div class="track"></div><div class="prog" style="width:${progress}%"></div>
+        <div class="track2"></div><div class="spend${overSpend ? ' over' : ''}" style="width:${Math.min(spendRate, 100)}%"></div>
+      </div>
+      <div class="proj-num">${progress}%</div>
+      <div class="proj-num c${overSpend ? ' over' : ''}">${spendRate.toFixed(0)}%</div>
+      <span class="tl ${tlClass}"></span>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Legend
+  html += '<div class="legend"><span>Progress</span><span class="gs">Spend</span><span style="margin-left:auto;color:var(--red)">Red = Spend > Progress + 10%p</span></div>';
+
+  // Discussion topics
+  const topics = data.projects.filter(p => p.today_topics);
+  if (topics.length > 0) {
+    html += '<div class="discuss"><h4>Discussion</h4><ul>';
+    topics.forEach(p => {
+      html += `<li><span class="ik">${p.name.split(' ')[0]}</span><span class="iv">${p.today_topics}</span></li>`;
+    });
+    html += '</ul></div>';
+  }
+
+  body.innerHTML = html;
+}
+
+// ===== Panel E: Attendance =====
+function renderPanelE(data) {
+  const body = document.getElementById('panel-e-body');
+  const meta = document.getElementById('badge-attendance');
+  if (!data || !data.employees || data.employees.length === 0) {
+    body.innerHTML = '<div class="empty-state">No attendance data — upload attendance Excel</div>';
+    meta.textContent = '';
+    return;
+  }
+
+  meta.textContent = data.month || 'This month';
+  let html = '<div class="att">';
+
+  // Column 1: Overtime budget
+  const totalOT = data.employees.reduce((s, e) => s + (e.overtime_hours || 0), 0);
+  const totalNight = data.employees.reduce((s, e) => s + (e.night_hours || 0), 0);
+  const totalHoliday = data.employees.reduce((s, e) => s + (e.holiday_hours || 0), 0);
+  const totalPay = data.employees.reduce((s, e) => s + (e.estimated_pay || 0), 0);
+  const budgetRate = data.budget ? data.budget.usage_rate : null;
+  const gaugeColor = budgetRate != null ? (budgetRate >= 90 ? 'r' : budgetRate >= 70 ? 'a' : 'g') : '';
+
+  html += '<div class="att-col"><h3>Overtime Budget</h3>';
+  if (budgetRate != null) {
+    html += `<div class="big">${budgetRate}<span class="u">%</span></div>
+      <div class="att-sub">${fmtWon(data.budget.used)} / ${fmtWon(data.budget.overtime_budget)}</div>
+      <div class="gauge"><div class="fl ${gaugeColor}" style="width:${Math.min(budgetRate, 100)}%"></div><div class="limit" style="left:90%"></div></div>`;
+  } else {
+    html += `<div class="big">${Math.round(totalOT + totalNight + totalHoliday)}<span class="u">h</span></div>`;
+  }
+  html += `<div class="att-sub" style="margin-top:8px">OT ${totalOT}h · Night ${totalNight}h · Holiday ${totalHoliday}h</div>
+    <div class="att-sub"><span class="${gaugeColor}">₩${fmtM(totalPay)}</span> estimated</div>
+  </div>`;
+
+  // Column 2: Labor/Sales ratio
+  html += '<div class="att-col"><h3>Labor / Sales</h3>';
+  if (data.store_labor_ratio && data.store_labor_ratio.length > 0) {
+    const avgRatio = data.store_labor_ratio.reduce((s, r) => s + r.ratio, 0) / data.store_labor_ratio.length;
+    const ratioColor = avgRatio > 30 ? 'r' : avgRatio > 25 ? 'a' : '';
+    html += `<div class="big">${avgRatio.toFixed(1)}<span class="u">%</span></div>
+      <div class="att-sub">avg · target < 25%</div>
+      <div style="height:8px"></div>`;
+    data.store_labor_ratio.forEach(s => {
+      const c = s.ratio > 30 ? 'r' : s.ratio > 25 ? 'a' : '';
+      html += `<div class="rt-row" style="font-size:11px">
+        <div class="nm">${s.store}</div>
+        <div class="bar"><div class="fl ${c}" style="width:${Math.min(s.ratio * 3, 100)}%"></div></div>
+        <div class="val ${c}">${s.ratio}%</div>
+      </div>`;
+    });
+  } else {
+    html += '<div class="att-sub">No data</div>';
+  }
+  html += '</div>';
+
+  // Column 3: Leave balance
+  html += '<div class="att-col"><h3>Leave Balance</h3><div class="leave">';
+  const sorted = [...data.employees]
+    .filter(e => e.remaining_leave != null)
+    .sort((a, b) => a.remaining_leave - b.remaining_leave);
+  sorted.forEach(e => {
+    const ratio = e.total_leave ? (e.used_leave / e.total_leave * 100) : 0;
+    const isLow = e.remaining_leave <= 3;
+    html += `<div class="lv-row">
+      <div class="nm">${e.name}</div>
+      <div class="bar"><div class="fl${isLow ? ' r' : ''}" style="width:${ratio}%"></div></div>
+      <div class="rm${isLow ? ' r' : ''}">${e.remaining_leave}d</div>
+    </div>`;
+  });
+  html += '</div></div>';
+
+  // Column 4: Employee hours breakdown
+  html += '<div class="att-col"><h3>Hours by Employee</h3><div class="ratio">';
+  data.employees.forEach(e => {
+    const total = e.total_extra_hours || 0;
+    const barW = Math.min(total * 2, 100);
+    html += `<div class="rt-row">
+      <div class="nm">${e.name}</div>
+      <div class="bar"><div class="fl${total > 40 ? ' r' : total > 30 ? ' a' : ''}" style="width:${barW}%"></div></div>
+      <div class="val${total > 40 ? ' r' : ''}">${total}h · ₩${fmtM(e.estimated_pay)}</div>
+    </div>`;
+  });
+  html += '</div></div>';
+
+  html += '</div>';
+  body.innerHTML = html;
+}
+
+// ===== Header =====
+function updateHeader(generatedAt) {
+  const now = new Date();
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('header-date').textContent =
+    `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]}) · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} KST`;
+  if (generatedAt) {
+    const d = new Date(generatedAt);
+    const mins = Math.round((now - d) / 60000);
+    document.getElementById('header-updated').textContent = mins < 2 ? 'Synced · just now' : `Synced · ${mins}m ago`;
+  } else {
+    document.getElementById('header-updated').textContent = 'No sync data';
+  }
+}
+
+// ===== Load All =====
+async function loadAll() {
+  const [emails, tasks, calToday, calWeek, pos, projects, attendance] = await Promise.all([
+    fetchJSON('email-actions.json'),
+    fetchJSON('regular-tasks.json'),
+    fetchJSON('calendar-today.json'),
+    fetchJSON('calendar-week.json'),
+    fetchJSON('pos-sales.json'),
+    fetchJSON('projects.json'),
+    fetchJSON('attendance.json'),
+  ]);
+
+  updateHeader(emails?.generated_at || calToday?.generated_at || pos?.generated_at);
+  renderPanelA(emails, tasks);
+  renderPanelB(calToday, calWeek);
+  renderPanelC(pos);
+  renderPanelD(projects);
+  renderPanelE(attendance);
+}
+
+// ===== Upload =====
+let currentUploadType = 'regular';
+
+function toggleUpload() {
+  const overlay = document.getElementById('upload-overlay');
+  overlay.classList.toggle('show');
+}
+
+const COLUMN_MAP = {
+  "업무명":"name","업무":"name","정기업무명":"name",
+  "주기":"cycle","반복주기":"cycle",
+  "날짜":"day","날짜(일)":"day","일":"day",
+  "금액":"amount","금액(원)":"amount",
+  "비고":"note","메모":"note",
+  "매장명":"store_name","매장":"store_name","점포명":"store_name","점포":"store_name",
+  "매출액":"sales_amount","매출":"sales_amount","일매출":"sales_amount",
+  "객수":"customers","방문객수":"customers","고객수":"customers",
+  "객단가":"avg_per_customer","평균객단가":"avg_per_customer",
+  "voc건수":"voc_count","voc":"voc_count","VOC건수":"voc_count","VOC":"voc_count",
+  "재고부족품목":"inventory_shortage","재고부족":"inventory_shortage",
+  "이슈사항":"issues","이슈":"issues","특이사항":"issues",
+  "업무요청내용":"work_request_content","업무요청":"work_request_content","요청사항":"work_request_content",
+  "요청긴급도":"work_request_urgency","긴급도":"work_request_urgency",
+  "처리상태":"work_request_status","상태":"work_request_status",
+  "프로젝트명":"project_name","프로젝트":"project_name",
+  "진행률":"progress","진행률(%)":"progress",
+  "총예산":"total_budget","예산":"total_budget",
+  "집행액":"spent","지출액":"spent",
+  "다음마일스톤":"next_milestone","마일스톤":"next_milestone",
+  "마일스톤일자":"milestone_date","마일스톤날짜":"milestone_date",
+  "오늘논의사항":"today_topics","논의사항":"today_topics",
+  "월":"month","직원명":"employee_name","직원":"employee_name","이름":"employee_name",
+  "소속매장":"store","소속":"store",
+  "초과근무(h)":"overtime_hours","초과근무":"overtime_hours",
+  "야근(h)":"night_hours","야근":"night_hours",
+  "특근(h)":"holiday_hours","특근":"holiday_hours",
+  "예상수당(원)":"estimated_pay","예상수당":"estimated_pay",
+  "총연차(일)":"total_leave","총연차":"total_leave",
+  "사용연차(일)":"used_leave","사용연차":"used_leave",
+  "잔여연차(일)":"remaining_leave","잔여연차":"remaining_leave",
+};
+
+function setUploadType(type, btn) {
+  currentUploadType = type;
+  document.querySelectorAll('.upload-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function mapColumn(name) {
+  const clean = name.trim().replace(/\s/g, '');
+  if (COLUMN_MAP[clean]) return COLUMN_MAP[clean];
+  const noParens = clean.replace(/\(.*?\)/g, '');
+  if (COLUMN_MAP[noParens]) return COLUMN_MAP[noParens];
+  const lower = clean.toLowerCase();
+  for (const [k, v] of Object.entries(COLUMN_MAP)) {
+    if (k.toLowerCase() === lower) return v;
+  }
+  return null;
+}
+
+function handleFileSelect(event) {
+  const file = event.target.files?.[0] || event.dataTransfer?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (!rows.length) throw new Error('No data');
+
+      const headers = Object.keys(rows[0]);
+      const colMap = {};
+      headers.forEach(h => { const mapped = mapColumn(h); if (mapped) colMap[h] = mapped; });
+
+      const mappedRows = rows.map(r => {
+        const out = {};
+        for (const [orig, key] of Object.entries(colMap)) out[key] = r[orig];
+        return out;
+      });
+
+      const result = transformUpload(currentUploadType, mappedRows, file.name);
+      const jsonFile = TYPE_FILES[currentUploadType];
+      saveToLocal(jsonFile, result);
+      showUploadResult(true, `${file.name} — ${mappedRows.length} rows parsed`);
+      loadAll();
+    } catch (err) {
+      showUploadResult(false, `Error: ${err.message}`);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+const TYPE_FILES = {
+  regular: 'regular-tasks.json',
+  pos: 'pos-sales.json',
+  project: 'projects.json',
+  attendance: 'attendance.json',
+};
+
+function transformUpload(type, rows, filename) {
+  const now = new Date().toISOString();
+  if (type === 'regular') {
+    const tasks = rows.filter(r => r.name).map(r => {
+      const day = parseInt(r.day) || 1;
+      const today = new Date();
+      let next = new Date(today.getFullYear(), today.getMonth(), day);
+      if (next < today) next.setMonth(next.getMonth() + 1);
+      return { name: String(r.name), cycle: String(r.cycle || '매월'), day,
+        amount: parseFloat(r.amount) || null, next_date: next.toISOString().slice(0, 10), note: String(r.note || '') };
+    });
+    return { generated_at: now, source_file: filename, tasks };
+  }
+  if (type === 'pos') {
+    const stores = {};
+    rows.forEach(r => {
+      const name = String(r.store_name || '').trim();
+      if (!name) return;
+      if (!stores[name]) stores[name] = {
+        name, yesterday: 0, same_day_last_week: null, same_day_last_month: null,
+        change_vs_last_week: null, change_vs_last_month: null, customers: 0,
+        avg_per_customer: 0, monthly_target: null, monthly_actual: 0, daily_trend: [],
+        voc_count: 0, voc_unresolved: 0, inventory_alerts: [], issues: '', work_requests: [],
+      };
+      const s = stores[name];
+      const sales = parseFloat(r.sales_amount) || 0;
+      s.yesterday = sales; s.monthly_actual += sales;
+      s.customers = parseInt(r.customers) || s.customers;
+      s.avg_per_customer = parseInt(r.avg_per_customer) || s.avg_per_customer;
+      s.voc_count += parseInt(r.voc_count) || 0;
+      if (r.inventory_shortage) s.inventory_alerts.push(String(r.inventory_shortage));
+      if (r.issues) s.issues = (s.issues ? s.issues + '; ' : '') + String(r.issues);
+      if (r.work_request_content) s.work_requests.push({
+        content: String(r.work_request_content), urgency: String(r.work_request_urgency || '중'),
+        status: String(r.work_request_status || '대기'), date: String(r.date || '').slice(0, 10),
+      });
+    });
+    const list = Object.values(stores);
+    const total = list.reduce((sum, s) => sum + s.yesterday, 0);
+    return { generated_at: now, source_file: filename, stores: list,
+      total: { yesterday: total, monthly_target: null, monthly_actual: total, achievement_rate: null } };
+  }
+  if (type === 'project') {
+    const projects = rows.filter(r => r.project_name).map(r => {
+      const progress = parseFloat(r.progress) || 0;
+      const budget = parseFloat(r.total_budget) || 0;
+      const spent = parseFloat(r.spent) || 0;
+      return { name: String(r.project_name), progress, total_budget: budget, spent,
+        spend_rate: budget ? Math.round(spent / budget * 1000) / 10 : null,
+        next_milestone: String(r.next_milestone || ''), milestone_date: String(r.milestone_date || ''),
+        today_topics: String(r.today_topics || '') };
+    });
+    return { generated_at: now, source_file: filename, projects };
+  }
+  if (type === 'attendance') {
+    const employees = rows.filter(r => r.employee_name).map(r => {
+      const ot = parseFloat(r.overtime_hours) || 0;
+      const nt = parseFloat(r.night_hours) || 0;
+      const ht = parseFloat(r.holiday_hours) || 0;
+      return { name: String(r.employee_name), store: String(r.store || ''), month: String(r.month || ''),
+        overtime_hours: ot, night_hours: nt, holiday_hours: ht,
+        total_extra_hours: Math.round((ot + nt + ht) * 10) / 10,
+        estimated_pay: parseInt(r.estimated_pay) || null,
+        total_leave: parseFloat(r.total_leave) || null,
+        used_leave: parseFloat(r.used_leave) || null,
+        remaining_leave: parseFloat(r.remaining_leave) || null };
+    });
+    return { generated_at: now, source_file: filename, employees };
+  }
+  return null;
+}
+
+function showUploadResult(success, msg) {
+  const el = document.getElementById('upload-result');
+  el.className = `upload-result show ${success ? 'success' : 'error'}`;
+  el.innerHTML = `<span style="color:${success ? 'var(--green)' : 'var(--red)'}">&#${success ? '10003' : '10007'};</span> ${msg}`;
+  setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+// Drag & drop
+const dz = document.getElementById('dropzone');
+if (dz) {
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); handleFileSelect(e); });
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'r' && !e.metaKey && !e.ctrlKey && !e.target.closest('input')) loadAll();
+  if (e.key === 'u' && !e.metaKey && !e.ctrlKey && !e.target.closest('input')) toggleUpload();
+  if (e.key === 'Escape') document.getElementById('upload-overlay').classList.remove('show');
+});
+
+// ===== Canvas fit + Init =====
+function fit() {
+  const c = document.getElementById('canvas');
+  const s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  c.style.transform = 'scale(' + s + ')';
+}
+window.addEventListener('resize', fit);
+document.addEventListener('DOMContentLoaded', () => { fit(); loadAll(); });
+</script>
+
+</body>
+</html>

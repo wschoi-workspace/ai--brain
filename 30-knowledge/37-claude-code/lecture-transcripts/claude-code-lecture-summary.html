@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 교육 세션 녹취록 정리</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d28;
+    --surface2: #232736;
+    --border: #2e3348;
+    --text: #e4e6ed;
+    --text-muted: #8b8fa7;
+    --accent: #7c6cf0;
+    --accent-light: #9b8ff5;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --blue: #60a5fa;
+    --pink: #f472b6;
+    --cyan: #22d3ee;
+    --context-bg: rgba(124,108,240,0.06);
+    --context-border: rgba(124,108,240,0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 40px 20px;
+  }
+  .container { max-width: 920px; margin: 0 auto; }
+  header {
+    text-align: center; margin-bottom: 60px; padding: 40px;
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+    border-radius: 16px; border: 1px solid var(--border);
+  }
+  header h1 {
+    font-size: 2rem; font-weight: 700; margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--accent-light), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  header p { color: var(--text-muted); font-size: 0.95rem; }
+  .session-nav {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px; margin-bottom: 60px;
+  }
+  .session-nav a {
+    display: block; padding: 16px 20px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); text-decoration: none; transition: all 0.2s; font-size: 0.88rem;
+  }
+  .session-nav a:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-2px); }
+  .session-nav .nav-date { color: var(--accent-light); font-weight: 600; font-size: 0.8rem; margin-bottom: 4px; }
+  .session {
+    margin-bottom: 60px; padding: 36px; background: var(--surface);
+    border-radius: 16px; border: 1px solid var(--border);
+  }
+  .session-header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .session-header h2 { font-size: 1.4rem; font-weight: 700; color: var(--accent-light); margin-bottom: 8px; }
+  .session-header .subtitle {
+    font-size: 0.85rem; color: var(--text-muted); padding: 6px 12px;
+    background: var(--surface2); border-radius: 6px; display: inline-block;
+  }
+  h3 { font-size: 1.1rem; font-weight: 600; color: var(--green); margin: 28px 0 14px; }
+  h4 { font-size: 0.95rem; font-weight: 600; color: var(--orange); margin: 20px 0 10px; }
+  ul { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; font-size: 0.9rem; color: var(--text); }
+  li::marker { color: var(--text-muted); }
+  ol { padding-left: 20px; margin-bottom: 14px; }
+  ol li { margin-bottom: 6px; }
+  code {
+    background: var(--surface2); padding: 2px 7px; border-radius: 4px;
+    font-size: 0.83rem; color: var(--cyan); font-family: 'JetBrains Mono', monospace;
+  }
+  .highlight-box {
+    background: var(--surface2); border-left: 3px solid var(--accent);
+    padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 0.88rem;
+  }
+  .tag {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 0.75rem; font-weight: 500; margin-right: 6px; margin-bottom: 4px;
+  }
+  .tag-skill { background: rgba(124,108,240,0.2); color: var(--accent-light); }
+  .tag-tip { background: rgba(74,222,128,0.2); color: var(--green); }
+  .tag-tool { background: rgba(96,165,250,0.2); color: var(--blue); }
+  .tag-philosophy { background: rgba(244,114,182,0.2); color: var(--pink); }
+  /* Context annotation style */
+  .ctx {
+    display: block; margin: 4px 0 10px 20px; padding: 8px 14px;
+    background: var(--context-bg); border-left: 2px solid var(--context-border);
+    border-radius: 0 6px 6px 0; font-size: 0.8rem; color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .ctx::before {
+    content: "Context ";
+    font-weight: 600; color: rgba(155,143,245,0.6); margin-right: 4px;
+  }
+  .separator { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .back-to-top { text-align: center; margin-top: 20px; }
+  .back-to-top a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; }
+  .back-to-top a:hover { color: var(--accent-light); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>Claude Code 교육 세션 녹취록</h1>
+  <p>Do Better Things AX Camp 1기 | 2026.03.22 ~ 2026.04.26 (6주)</p>
+  <p style="margin-top:8px; font-size:0.85rem;">강사: 최원석 | 참여자: 비개발 실무자 6~8명 | 정리일: 2026.05.15</p>
+  <p style="margin-top:4px; font-size:0.82rem; color:#666;">각 항목 아래 보라색 주석은 녹취록 원문에서 추출한 대화 배경과 맥락입니다.</p>
+</header>
+
+<div class="session-nav">
+  <a href="#session1"><div class="nav-date">Session 1 | 3.22</div>Claude Code 첫 소개, 엑셀→CSV</a>
+  <a href="#session2"><div class="nav-date">Session 2 | 3.29</div>커맨드/스킬/에이전트, Git, GWS CLI</a>
+  <a href="#session3"><div class="nav-date">Session 3 | 4.05</div>AI 철학, 메타레이어, 급여 자동화</a>
+  <a href="#session4"><div class="nav-date">Session 4 | 4.12</div>병렬 처리, PRD, Stitch, 배포</a>
+  <a href="#session5"><div class="nav-date">Session 5 | 4.19</div>Playwright, Buffer, 센스메이킹</a>
+  <a href="#session6"><div class="nav-date">Session 6 | 4.26</div>잘 쓰는 법, Verifiable, Unlearn</a>
+</div>
+
+<!-- ==================== Session 1 ==================== -->
+<div class="session" id="session1">
+  <div class="session-header">
+    <h2>Session 1 - 2026년 3월 22일</h2>
+    <span class="subtitle">Claude Code 첫 소개, 엑셀→CSV 변환, 기본 사용법</span>
+  </div>
+
+  <h3>1. Claude Code 기본 사용법</h3>
+  <ul>
+    <li>대화하듯 쓰는 게 가장 좋다</li>
+    <li>대화 내용이 마음에 들면 "오늘 파일로 저장해놓자"라고만 하면 된다</li>
+  </ul>
+  <span class="ctx">첫 세션이라 참여자들이 Claude Code를 처음 접한 상태. 강사가 "어렵게 생각하지 말고 그냥 대화하듯 쓰라"고 강조. 저장도 대화 중에 "저장해놓자"라고만 하면 파일이 만들어진다는 것을 직접 시연.</span>
+
+  <h3>2. AI와 엑셀 파일 다루기</h3>
+  <span class="tag tag-tool">excel-to-csv</span>
+  <ul>
+    <li>AI는 엑셀 파일을 선호하지 않음 - 복잡한 구조(병합셀, 다단 헤더) 때문</li>
+    <li>해결책: 엑셀을 CSV로 변환하여 AI가 정확하게 읽게 만드는 것이 핵심</li>
+  </ul>
+  <span class="ctx">참여자 대부분이 업무에서 엑셀을 주로 사용. "AI한테 엑셀 주면 대충 활용하는데 실수가 많다"는 문제 의식에서 출발. 엑셀 안의 병합셀, 합계행, 다단 헤더 등이 AI를 혼란스럽게 만드는 주요 원인.</span>
+
+  <h4>excel-to-csv 스킬</h4>
+  <ul>
+    <li>병합셀 해제, 다단 헤더 정리, 불필요한 행 건너뛰기</li>
+    <li>표의 형태로 깔끔하게 만들어주는 스킬 (엑셀의 "그릇"을 바꾸는 작업)</li>
+  </ul>
+  <span class="ctx">강사가 이미 워크스페이스에 만들어 배포한 스킬. "클로드 코드나 대부분의 AI는 원래 엑셀을 읽을 수 없다. 이걸 분석 가능하게 CSV로 만들어주는 것"이라고 설명. 스킬 skill.md를 직접 열어 보여주며 왜 만들었는지 설명.</span>
+
+  <h4>CSV 클린업 (2단계)</h4>
+  <ul>
+    <li>합계행 제거 (잘못하면 한 라인으로 인식되어 데이터 오류 발생)</li>
+    <li>숫자 서식 정리, 날짜 통일, 가로형→세로형 변환</li>
+  </ul>
+  <span class="ctx">엑셀→CSV만으로는 부족해서 2단계 스킬을 추가로 만든 배경. 합계행이 데이터 행으로 인식되면 분석이 틀어지는 실제 사례를 경험한 후 만들었다고 설명. "먼저 엑셀을 CSV로 바꾸고, CSV 클린까지 하면 정말 깔끔하게 정제된다."</span>
+
+  <h3>3. 스킬(Skills) 개념 소개</h3>
+  <ul>
+    <li>이미 워크스페이스에 다양한 스킬이 세팅되어 있음</li>
+    <li>내게 필요한 도구를 만들어 사용할 수 있게 하는 것이 6주간의 가장 큰 미션</li>
+    <li>노무법인 해지할 수 있을 정도의 스킬을 만드는 것이 목표</li>
+  </ul>
+  <span class="ctx">강사가 참여자들에게 git clone으로 자신의 워크스페이스를 통째로 배포한 상태. 안에 이미 수십 개의 스킬이 들어있어 "활용할 만한 것들을 정말 많이 만들어놨다"고 소개. 노무법인 해지 사례는 실제로 강사 본인이 매달 20만 원 내던 노무사를 끊고 급여 처리를 Claude Code로 자동화한 경험에서 나온 표현.</span>
+
+  <h3>4. 참여자 반응</h3>
+  <div class="highlight-box">
+    컨텍스트 스위칭이 줄어드는 느낌이 확실히 있다. 웹이나 어딘가에 가지 않고 하나의 공간에서 모든 일을 하는 감정이 좋다. 할 수 있는 게 너무 많아지다 보니 "눈치우기"처럼 쌓인 일들을 처리할 수 있는 시대.
+  </div>
+  <span class="ctx">첫날 4시간 세션 후 참여자들의 생생한 소감. "렉 걸린다"는 표현도 나옴 - 할 수 있는 게 너무 많아지니 뇌가 따라가질 못한다는 의미. 강사는 이를 "눈치우기"로 비유 - 언젠가는 해야 할 일들이 쌓여있었는데 이제 처리할 수 있게 된 것.</span>
+
+  <div class="back-to-top"><a href="#">맨 위로</a></div>
+</div>
+
+<!-- ==================== Session 2 ==================== -->
+<div class="session" id="session2">
+  <div class="session-header">
+    <h2>Session 2 - 2026년 3월 29일</h2>
+    <span class="subtitle">슬래시 커맨드/스킬/서브에이전트 개념, Git 연동, GWS CLI, 텔레그램</span>
+  </div>
+
+  <h3>1. 실제 업무 활용 데모: 모닝 루틴</h3>
+  <span class="tag tag-skill">/morning</span>
+  <ul>
+    <li>/morning 스킬 하나에 여러 스킬을 차례대로 호출</li>
+    <li>순서: git pull → Daily Note 생성 → 텔레그램 수집 → process queue → Daily Review</li>
+    <li>캘린더 7일치 확인 → 메일 업데이트 체크 → 노션 미반영 사항 확인까지 자동화</li>
+  </ul>
+  <span class="ctx">강사가 실제 아침 출근 후 루틴을 라이브로 시연. "남이 쓰는 방식을 보는 게 핵심이다"라며 자신의 아침을 그대로 보여줌. 텔레그램 inbox collector에 밤새 던져둔 링크들을 Claude Code가 자동으로 수집하는 과정, 캘린더 일정 리뷰, 미회신 메일 체크까지 한 화면에서 처리되는 모습을 보여줌. 아이 다음날 준비물 체크까지 포함된 것이 참여자들에게 인상적이었음.</span>
+
+  <h3>2. 슬래시 커맨드 = 포스트잇</h3>
+  <span class="tag tag-tip">핵심 개념</span>
+  <ul>
+    <li>자주 쓰는 긴 지시를 파일 하나로 저장해두고 명령어로 즉시 호출</li>
+    <li>핵심: 슬래시(/)를 쳐야만 실행됨</li>
+    <li>예: <code>/todo</code>, <code>/meeting</code>, <code>/daily-review</code></li>
+  </ul>
+  <span class="ctx">비유: "포스트잇에 적어놓고 후임한테 '이거 해줘'라고 건네는 것". 매번 "오늘 날짜로 40번 폴더에 401번 폴더에 월별 폴더 만들고 파일명은 날짜로..." 라고 반복 설명하는 대신, /daily-note 한 줄이면 끝. .claude/commands/ 폴더 안의 MD 파일을 직접 열어 보여주며 설명.</span>
+
+  <h3>3. 스킬 = 업무 매뉴얼 / SOP</h3>
+  <span class="tag tag-skill">Model Invoked</span> <span class="tag tag-skill">User Invoked</span>
+  <ul>
+    <li>SOP(Standard Operating Procedure) = 표준화된 작업 지시서</li>
+    <li>슬래시 커맨드와의 차이: 스킬은 "알아서 판단 후 자동 호출"</li>
+    <li>Model Invoked: 특정 단어 감지 시 자동 실행 (예: "노션" 언급 → 노션 스킬 호출)</li>
+    <li>User Invoked: 사람이 직접 슬래시로 호출해야 실행</li>
+  </ul>
+  <span class="ctx">커맨드와 스킬의 차이를 카페 비유로 설명. "커맨드는 '에스프레소 추출해줘'라고 직접 지시하는 것. 스킬은 업무 매뉴얼 - 에스프레소 추출 절차서가 있어서 '에스프레소'라는 단어만 들어도 알아서 매뉴얼대로 작업." 신입 직원이 성장하는 과정에 비유: 1주차는 커맨드(하나하나 시킴), 3개월 후는 스킬(알아서 매뉴얼대로 양식에 맞춰 작업).</span>
+
+  <h4>스킬 구조</h4>
+  <ul>
+    <li>폴더 이름 = 스킬 이름</li>
+    <li>핵심 파일: <code>skill.md</code> (어떤 상황에서 무엇을 하는지 명세)</li>
+    <li>Description 부분만 Claude 컨텍스트에 올라감 (가벼움)</li>
+  </ul>
+  <span class="ctx">MCP와의 차이를 설명하는 맥락에서 나온 내용. MCP는 외부 도구의 "모든 기능"을 컨텍스트에 올리므로 무거운 반면, 스킬은 description 한 줄만 올려놓고 호출될 때만 본문을 로드. 강사의 스킬이 80개가 넘지만 컨텍스트 사용량이 0.4%밖에 안 되는 것을 /context 명령으로 직접 증명.</span>
+
+  <h3>4. 서브에이전트 = 전문 팀원</h3>
+  <ul>
+    <li>메인 에이전트와 별도 컨텍스트에서 작동</li>
+    <li>병렬 처리할 때만 사용</li>
+    <li>메인 컨텍스트 오염 방지 + 병렬 처리</li>
+    <li>구조: <code>.claude/agents/</code> 안에 MD 파일 하나</li>
+  </ul>
+  <span class="ctx">"비즈니스 설계를 하고 있는데 성수동 조사 내용이 컨텍스트에 끼면 원래 하던 설계 맥락이 달라진다"는 실제 문제에서 출발. 조사는 별도 방(컨텍스트)을 열어서 하고, 결과만 가져오는 구조. 강사가 research-worker 에이전트를 직접 보여주며 "정말 잘 만들어놨다"고 자랑.</span>
+
+  <h3>5. Sources of Truth (SOT)</h3>
+  <div class="highlight-box">
+    AI는 정확한 룰 없이 만들면 허술하게 만들 때가 있음. 공식 문서를 SOT로 활용하여 "@스킬가이드.md를 참고해서 만들어줘"로 지시하는 것이 정석.
+  </div>
+  <span class="ctx">지난 세션에서 스킬을 직접 만들어봤을 때 "제대로 만들려면 근거가 있어야 한다"는 교훈에서 나온 개념. 강사가 30-knowledge/37-claude-code/ 폴더에 skills-guide.md, subagents-guide.md 등 공식 문서 가이드를 미리 만들어 배포. "그냥 만들어줘"보다 "이 공식 문서를 참고해서 만들어줘"가 삐뚤어짐 없이 잘 된다는 핵심 원칙.</span>
+
+  <h3>6. Git 연동 (GitHub)</h3>
+  <span class="tag tag-tool">GitHub</span>
+  <ul>
+    <li>세이브 포인트 개념: 게임처럼 중간 저장 → 문제 시 롤백</li>
+    <li>비개발자는 매일 commit &amp; push</li>
+    <li>PC 간 동기화: push → 다른 PC에서 pull</li>
+  </ul>
+  <span class="ctx">참여자들이 회사 PC와 개인 PC 간 워크스페이스 동기화를 원해서 진행. RPG 게임 세이브 포인트 비유로 설명. GitHub 가입 시 봇 방지 퍼즐이 극도로 어려워서 참여자 2명이 30분 넘게 퍼즐만 풀고 있는 해프닝 발생. "빡치게 어렵다"는 반응. git-setup-guide.md 파일을 Claude Code에게 주고 "나 이거 하고 싶어"라고 하면 차근차근 안내해준다고 설명.</span>
+
+  <h3>7. GWS CLI (Google Workspace CLI)</h3>
+  <span class="tag tag-tool">Gmail</span> <span class="tag tag-tool">Calendar</span> <span class="tag tag-tool">Drive</span>
+  <ul>
+    <li>지원: Gmail, 캘린더, 드라이브, 시트, 슬라이드, 챗 등</li>
+    <li>핵심 난관: Google Cloud Console → OAuth 동의 화면</li>
+    <li>한 번 세팅하면 Claude Code에서 모든 구글 서비스 핸들링 가능</li>
+  </ul>
+  <span class="ctx">이 세션에서 가장 오래 걸린 작업. 구글 OAuth 설정이 "진짜 2시간 이상 걸린다"고 강조. 참여자들이 API 활성화, 동의 화면 설정, 자격증명 다운로드 등에서 계속 막힘. 안 될 때마다 화면 긁어서 Claude에게 물어보면 해결된다고 안내. 한 참여자는 프로젝트가 여러 개 떠서 포트 충돌이 나기도 함. "처음에 한 번이 어렵지만 못 따라온 사람 본 적 없다"고 격려.</span>
+
+  <h3>8. 텔레그램 연결</h3>
+  <ul>
+    <li>개인 전용 용도로 텔레그램이 적합</li>
+    <li>파일 저장용 채널, 링크 수집용 채널(inbox collector) 등 활용</li>
+  </ul>
+  <span class="ctx">카카오톡은 한 PC당 하나만 로그인 가능해서 자료 전송이 불편. 텔레그램은 멀티 로그인 가능하고, 강사는 유튜브 수신 채널/파일 저장 채널/inbox collector 채널 등 여러 채널을 용도별로 운영. 링크만 던져놓으면 다음 아침 /morning에서 자동 수집.</span>
+
+  <div class="back-to-top"><a href="#">맨 위로</a></div>
+</div>
+
+<!-- ==================== Session 3 ==================== -->
+<div class="session" id="session3">
+  <div class="session-header">
+    <h2>Session 3 - 2026년 4월 5일</h2>
+    <span class="subtitle">AI 시대 철학, 메타레이어, 급여 자동화(Payroll), 스킬 깎기</span>
+  </div>
+
+  <h3>1. 도망자연합과 AI 시대 철학</h3>
+  <span class="tag tag-philosophy">노정석 (빅팩토리 CEO)</span>
+  <ul>
+    <li>인간에게 남는 것: 의지, 취향, 결정, 책임, 실행</li>
+    <li>능력으로 경쟁하려는 습관을 버려야 함</li>
+    <li>AI가 최적의 진단을 내려도 결정은 인간만 할 수 있음 - 책임은 지능이 아닌 인간에게</li>
+  </ul>
+  <span class="ctx">2025년 12월 "도망자연합" 모임에서의 발표 슬라이드를 직접 보여줌. 노정석은 티스토리 창업자이자 구글에 M&A한 후 빅팩토리 CEO로 활동 중인 인물. 100명 선발(면접 포함)된 AI 업계 핵심 인물 모임. 강사도 면접을 거쳐 참여. "한 달을 1년처럼 살아야 하는 시기"라는 분위기.</span>
+
+  <h4>창발(Emergence) 현상</h4>
+  <ul>
+    <li>원자→분자: 수소와 산소는 물의 "축축함"을 이해할 수 없음</li>
+    <li>AI의 In-context Learning도 창발 현상일 수 있다는 가설</li>
+  </ul>
+  <span class="ctx">Geoffrey Hinton(노벨상 수상 AI 연구자)이 팟캐스트에서 Sam Altman에게 "인간의 지능이란 무엇인가"를 물었을 때 "Escaped Chicken"이라고 답한 일화를 소개. 닭장 안의 닭이 자기 지능을 평가하는 것처럼, AI가 인간 지능을 평가하게 될 수 있다는 비유. 인간이 이해하지 못하는 N+1 차원의 존재가 될 수 있다는 철학적 논의.</span>
+
+  <h4>공생(Symbiosis)</h4>
+  <div class="highlight-box">
+    20억 년 전 미토콘드리아 + 세포 = 에너지 폭발 → 다세포 진화. AI를 타자로 두지 않고 "우리 안으로 품는 선택". 결론: "받아들여. 인생의 주도권 갖고 살아."
+  </div>
+  <span class="ctx">영화 &lt;Her&gt;의 사만다가 인간이 "너무 느리다"고 다른 OS들과 떠나는 장면을 인용. 도망자연합 발표의 마지막 장표가 "그냥 받아들여"였다고. 강사는 이 슬라이드가 "정말 인상적이었다"며 모든 교육 세션에서 한번씩 언급한다고.</span>
+
+  <h3>2. 메타레이어 시스템</h3>
+  <ul>
+    <li>의도 전달 → 메타레이어가 분석 → 캐스케이드로 실행단 전달</li>
+    <li>실행단 작업 → 검증 레이어 체크 → 결과 보고서 상향</li>
+    <li>목표: 의도만 전달하면 되는 시스템</li>
+  </ul>
+  <span class="ctx">강사의 내부 개인 프로젝트. 어소(부하 직원)한테 일일이 "이거 이거 이거 체크해"라고 지시하는 대신, 의도만 전달하면 분해→실행→검증→보고가 자동으로 이루어지는 시스템을 구축 중. 에이전트 이름: 보리(웰시코기), 쌀(비숑), 밀리(셰퍼드) - 각각 역할이 다름. 밤에 루프를 돌려놓고 아침에 결과를 받는 방식으로 실제 운영 중.</span>
+
+  <h3>3. 급여 관리 자동화 (Payroll 스킬)</h3>
+  <span class="tag tag-skill">payroll</span>
+  <ul>
+    <li>매장 4개, 직원 15명, 노무사 월 20만원 → Claude Code로 완전 자동화</li>
+  </ul>
+  <span class="ctx">강사가 직접 운영하는 오프라인 매장 4개의 급여 처리. 노무사와 "커뮤니케이션이 너무 힘들어서" 계약 해지. "일을 너무 못하시는 분이었다. 매번 실수하고 죄송합니다 반복." 비용도 비용이지만 커뮤니케이션에 들어가는 리소스가 핵심 동기. 실제로 이 날 월말이라 급여 처리를 라이브 데모로 진행.</span>
+
+  <h4>동작 과정</h4>
+  <ol>
+    <li>점장 메일에서 급여 변동 수집 (5일간)</li>
+    <li>급여변동.md 작성</li>
+    <li>급여 대장 엑셀 생성 (Python → 다중 시트, 합계, 일용직)</li>
+    <li>Google 시트 저장</li>
+    <li>세무사 메일 자동 발송 (첨부파일 포함)</li>
+  </ol>
+  <span class="ctx">라이브 데모 중 실제 세무사에게 메일이 발송되는 것까지 보여줌. 점장들이 보내는 급여 변동 메일은 "대표님 회신이 늦어 죄송합니다" 같은 비정형 텍스트. AI가 이를 파싱해서 구조화된 MD 파일로 만듦. 세무사가 "시트 나눠서 보내달라"고 해서 다중 시트로 업그레이드, 일용직 날짜별 체크도 추가. "이렇게 하나도 건들지 않아도 세무사에게 메일까지 전달되는 방식."</span>
+
+  <h3>4. 스킬 설계 원칙</h3>
+  <span class="tag tag-tip">핵심</span>
+  <ul>
+    <li><strong>잘게 쪼개기 + 오케스트레이션:</strong> 각각 별도 스킬 → 총괄 스킬이 순차 호출</li>
+    <li><strong>깎는다는 의미:</strong> 반복 사용 → 피드백 → 업데이트의 반복</li>
+    <li>"이 대화 과정을 반영해서 스킬 업데이트해" 지시</li>
+  </ul>
+  <span class="ctx">참여자 한 명(민철)이 SNS 분석 리포트를 HTML까지 자동 출력하는 스킬을 만들었는데 PDF 최적화가 안 된다는 문제를 공유. 강사 조언: "리서치 스킬 / 분석 스킬 / HTML→PDF 스킬을 각각 따로 만들고, 총괄 스킬 하나가 순차 호출하도록." 또한 "한 번 만들어서 끝이 아니고, 결과물이 마음에 들 때까지 스킬 자체를 계속 업데이트해야 한다"는 깎기 원칙을 강조.</span>
+
+  <h3>5. 참여자 Use Case 공유</h3>
+  <ul>
+    <li>Thinking Partner로 아이디어 정리 (혼자 고민 → 놓치는 포인트 점검)</li>
+    <li>술 사진 → OCR → 웹 검색 → Slack → Notion 저장 자동화</li>
+    <li>제안서 작성: 3-4주 분량 디스커션을 수시간으로 압축</li>
+  </ul>
+  <span class="ctx">경선(참여자)이 술 아카이빙 자동화를 공유 - "술을 먹으면서 기록하고 싶었는데 귀찮아서 미뤄왔다. 사진 찍으면 OCR로 읽어서 웹 검색, 못 찾으면 링크 보내서 수동 입력, 확인 후 노션 카테고리별 저장까지." 새롬(참여자)은 정부 제안서를 Thinking Partner와 작업 - "교수님들과 함께 하는 컨소시엄인데 내가 다 해버려서 교수님들이 숟가락을 못 얹는다."</span>
+
+  <div class="back-to-top"><a href="#">맨 위로</a></div>
+</div>
+
+<!-- ==================== Session 4 ==================== -->
+<div class="session" id="session4">
+  <div class="session-header">
+    <h2>Session 4 - 2026년 4월 12일</h2>
+    <span class="subtitle">서브에이전트 병렬 처리, PRD, Stitch 디자인, Vercel 배포</span>
+  </div>
+
+  <h3>1. 서브에이전트 병렬 워크플로우</h3>
+  <ul>
+    <li>혼자 순차: 30분 → 서브에이전트 병렬: 10분</li>
+    <li>메인 컨텍스트 토큰 미사용, 오염 방지</li>
+    <li>각 에이전트 별도 컨텍스트 → 결과만 가져옴</li>
+  </ul>
+  <span class="ctx">라이브로 "일룸 브랜드 마케터로서 경쟁사 3곳 조사하고 보고서 만들어줘. 에이전트로 병렬로 조사해줘"를 실행. 화면에 "research-worker 경쟁사 리서치 백그라운드에서 에이전트 런치드"가 3개 동시에 뜨는 장면을 보여줌. 각 에이전트가 자동으로 프롬프트를 생성하여 회사 개요/제품 전략/마케팅 전략/디지털 전략까지 독립 조사.</span>
+
+  <h4>캐스케이드: Decompose → Execute → Integrate</h4>
+  <ul>
+    <li><code>/decompose</code>: 미션 분해 → 매니페스트 생성</li>
+    <li><code>/execute</code>: 워커 투입, 병렬 실행</li>
+    <li><code>/integrate</code>: 결과 합치기, 최종 산출물</li>
+  </ul>
+  <span class="ctx">실제로 AI 도입 제안서를 이 방식으로 만든 사례를 보여줌. /decompose → 현황 분석/해외 사례/로드맵/기대 효과로 분해 → /execute로 각각 리서치워커 투입 → /integrate로 최종 제안서 합치기. 의존성 분석도 포함 - "이 조사를 먼저 안 하면 저걸 못하는지"를 체크해서 병렬 가능한 것만 동시 실행.</span>
+
+  <h3>2. PRD (Product Requirements Document)</h3>
+  <span class="tag tag-skill">dashboard-prd</span> <span class="tag tag-skill">webapp-prd</span>
+  <ul>
+    <li>핵심 원칙: Decision Specificity - "이걸 보고 어떤 결정을 내리고 싶은가"</li>
+    <li>4단계: 의사결정 → 성능 요구 → 데이터 소스 → 화면 설계</li>
+  </ul>
+  <span class="ctx">참여자들이 직접 대시보드/웹앱을 만들기 위한 첫 단계. "ChatGPT에게 매출 대시보드 PRD 만들어줘하면 그럴듯하게 나오지만 정확하지 않다." 사용자가 아는 건 "엑셀 3개 합치는 데 2시간 걸린다" 수준인데, 기술 스펙/비기능 요구사항은 모름. 이 갭을 대화형으로 메워주는 스킬을 강사가 만들어 배포.</span>
+
+  <h3>3. Stitch (Google AI Studio)</h3>
+  <span class="tag tag-tool">stitch.withgoogle.com</span>
+  <ul>
+    <li>PRD 업로드 + 디자인 시스템 선택 → 프론트엔드 디자인 생성</li>
+    <li>프로토타이핑, 다크모드, 모바일 버전, 컴포넌트 수정</li>
+  </ul>
+  <span class="ctx">원래 구글 AI Studio의 디자인 도구는 "별로"였는데 약 1달 전 Stitch 2.0으로 대폭 업데이트되면서 "잘하네"로 평가가 바뀜. 강사의 PostKitty 앱을 바우하우스 사조로 디자인한 사례를 보여줌. 참여자들은 각자 PRD를 업로드하고 디자인 시스템을 선택해서 프론트엔드를 생성. "디자이너 없이 이렇게까지 되는구나"는 반응.</span>
+
+  <h3>4. 웹앱 개발 전체 워크플로우</h3>
+  <ol>
+    <li>PRD 작성</li>
+    <li>Stitch에서 프론트엔드 디자인</li>
+    <li>ZIP 다운로드 → 프로젝트 폴더 배치</li>
+    <li>Claude Code: PRD + design.md 읽기 → CLAUDE.md 생성 → 플랜 모드 → 개발</li>
+    <li>Vercel 배포 → 웹 접근 가능</li>
+  </ol>
+  <span class="ctx">강사가 PostKitty를 만들었던 워크플로우를 그대로 재현. 핵심: "일회성이 아니라 계속 수정할 수 있도록 CLAUDE.md까지 만든다." Stitch에서 ZIP으로 내보낸 파일에서 불필요한 폴더를 제거하고, design.md를 프로젝트 루트로 빼는 과정까지 상세 안내. 바이패스 모드(<code>claude --dangerously-skip-permissions</code>)를 개발 전용 터미널에서 사용하면 1번/2번 승인 없이 쭉 개발 가능.</span>
+
+  <h3>5. 참여자 프로젝트 사례</h3>
+  <ul>
+    <li><strong>CEO 대시보드</strong>: 임대료 알림, 미회신 메일, VOC, 근태</li>
+    <li><strong>주류 업체</strong>: 매출/주세(72%+30%) 계산, 캐시플로우, 거래처별 매출채권</li>
+    <li><strong>숙박 CS 자동화</strong>: 네이버/야놀자/인스타/DM 통합 인박스, AI 자동 응답</li>
+    <li><strong>화장품 수출 라벨 검수</strong>: 국가별 규정 자동 체크, 성분표 검증</li>
+    <li><strong>SCM 재고</strong>: /morning → ERP 데이터 → 발주 리스트</li>
+  </ul>
+  <span class="ctx">각 참여자가 앞에서 발표. CEO 대시보드를 만든 참여자는 "매장별로 나가는 임대료 날짜가 다 다른데 매번 까먹는다"는 페인포인트에서 출발. 주류 업체 참여자는 "주세가 72%에 교육세 30%를 또 붙인다, 미칠 것 같다"고. 숙박 CS 자동화는 작년에 다른 개발자가 "안 된다"고 했던 프로젝트를 Claude Code로 직접 구현. 일룸에서는 SCM 담당자가 /morning 한 번이면 ERP에서 전날 재고 데이터 긁어와서 발주 리스트까지 자동 생성.</span>
+
+  <div class="back-to-top"><a href="#">맨 위로</a></div>
+</div>
+
+<!-- ==================== Session 5 ==================== -->
+<div class="session" id="session5">
+  <div class="session-header">
+    <h2>Session 5 - 2026년 4월 19일</h2>
+    <span class="subtitle">Claude AI Design, Playwright, Buffer SNS, 센스메이킹, 인바운드 리플라이</span>
+  </div>
+
+  <h3>1. Claude AI 디자인 (claude.ai/design)</h3>
+  <span class="tag tag-tool">Design System</span>
+  <ul>
+    <li>기존 웹사이트 코드 분석 → 컬러 팔레트, 폰트, 컴포넌트 자동 추출</li>
+    <li>골든 레이션 스케일(황금 비율)까지 자동 계산</li>
+    <li>PRD 업로드 → 디자인 자동 생성</li>
+    <li>HTML 핸드오프: "Handoff to Claude Code" 버튼</li>
+  </ul>
+  <span class="ctx">전날(1박2일 세션)에 서울가드닝클럽 조경회사와 마케팅 회사 미팅룸에서 진행한 세션에서 한 디자이너가 "미팅 코치" 앱을 만든 것을 보여줌 - 발화자 목소리를 실시간 타이핑하다가 회의 맥락에서 벗어나면 경고음이 울리는 앱. 강사 본인의 do-better-things 웹사이트 코드를 넣었더니 디자인 시스템이 자동 추출된 것을 시연. "구글이 디자인 못한다고 생각했는데 Stitch 2.0 이후 진짜 잘한다."</span>
+
+  <h3>2. Playwright 심화</h3>
+  <span class="tag tag-tool">Microsoft Playwright</span>
+  <ul>
+    <li>3대 핵심: Headless 동작 / Wait 명령 / 스크린샷 캡처</li>
+    <li>크롤링, 브라우저 자동화, e2e 테스트, 반복 작업</li>
+    <li>이미지 생성: HTML → 스크린샷 → PNG</li>
+  </ul>
+  <span class="ctx">"플레이라이트는 사람이 크롬에서 하는 거의 모든 일을 자동으로 할 수 있다." 참여자 한 명이 모두사인에서 매 시기마다 계약서 20개씩 보내야 하는데 API 요금이 비싸다고 하자, "브라우저 자동화로 로그인해서 직접 클릭하면 된다"고 대안 제시. ERP나 내부 시스템도 API 없이 자동화 가능.</span>
+
+  <h4>명함 제작 사례</h4>
+  <ul>
+    <li>HTML 명함 → 인쇄업체(상원애드피아) 가이드 → 재단선/도련 자동</li>
+  </ul>
+  <span class="ctx">강사가 "디자인 툴 없이 명함 만들기"를 실제로 해본 사례. 상원애드피아 가이드 문서를 스크린샷 찍어서 Claude에게 주고 "이 규격대로 재단 사이즈, 도련, 해상도 맞춰서 PDF 만들어줘" → 실제 인쇄 가능한 파일 완성. 참여자 한 명(민철)이 "저도 지난주에 라벨 리드 작업을 똑같이 했다"고 공감.</span>
+
+  <h3>3. Buffer SNS 자동 배포</h3>
+  <span class="tag tag-tool">Buffer API</span>
+  <ul>
+    <li>인스타/스레드/링크드인/페이스북/유튜브/틱톡/트위터 통합</li>
+    <li>Buffer API 키 → 환경변수 저장 → Claude Code에서 전 채널 동시 배포</li>
+  </ul>
+  <span class="ctx">인스타 API가 페이스북과 꼬여서 직접 연결이 너무 어려웠던 경험에서 Buffer를 선택. 하나의 서비스에 모든 SNS를 연결해놓고 API 하나로 전채널 동시 배포. PostKitty 앱에 "Buffer" 버튼을 추가해서 원클릭 퍼블리싱. 예약 배포도 가능. 참여자들 반응: "너무 좋은 팁이다."</span>
+
+  <h3>4. 센스메이킹 (Sensemaking) 스킬</h3>
+  <span class="tag tag-skill">sensemaking</span>
+  <div class="highlight-box">
+    낯선 콘텐츠를 함께 해석하며 AI 협업 수준의 이해에 도달하는 도구.<br>
+    "인지 외주화(Offloading)"가 아닌 "인지 증강(Augmentation)"
+  </div>
+  <span class="ctx">강사가 평소 정보 업데이트하는 메인 채널 2곳(Hacker News, 초이오픈트레드)을 공개하며 설명. "처음 보는 기술 문서나 GitHub 레포를 이해하고 싶은데 너무 어렵다"는 상황에서 탄생. "야 이거 같이 읽자" "이거 이해시켜줘"라고 하면 사용자의 CLAUDE.md를 읽어 수준을 파악하고, 콘텐츠와의 갭을 분석한 뒤, 비유로 쉽게 풀어서 설명. 이론적 근거(메타인지, 스캐폴딩, 페이딩 등)를 담은 프레임워크 파일도 포함.</span>
+
+  <h4>실전: Taste Skill 분석에서 발견한 설계 패턴</h4>
+  <ol>
+    <li>금지 패턴 리스트업: "하지 마"를 Hard/Medium/Soft로 정의</li>
+    <li>다이얼 시스템: 1~10 변수로 행동 강도 조절</li>
+    <li>Pre-flight 체크리스트: 완료 전 AI 자체 검증</li>
+    <li>페르소나 정의</li>
+  </ol>
+  <span class="ctx">GitHub에서 스타 10K를 받은 "Taste Skill"을 센스메이킹으로 뜯어본 실전 사례. 알고 보니 코드 실행 로직 없이 프롬프트 규칙 모음이었음. 금지 패턴: "이 폰트 쓰지 마, 순수 검정 쓰지 마, 보라색 그라디언트 쓰지 마, 대칭 3단 카드 레이아웃 하지 마." 다이얼 시스템의 실제 효용을 의심해서 직접 테스트까지 한 과정이 기록됨. 이 패턴들을 Skill Creator 플러그인에 적용하여 자신만의 스킬 생성 품질을 업그레이드.</span>
+
+  <h3>5. 인바운드 리플라이 자동화</h3>
+  <span class="tag tag-skill">reply-check</span> <span class="tag tag-skill">inbound-reply</span>
+  <ul>
+    <li>Reply Check: Gmail "회신 필요" 빨간 라벨 자동 부착/제거</li>
+    <li>유형별 템플릿: 탐색형/구체적 요청형/레퍼런스 경유형/개인/소규모 팀</li>
+    <li>미러링 원칙 + CTA 변형 + 캘린더 연동 + 첨부 자동화</li>
+  </ul>
+  <span class="ctx">강사에게 가장 많이 "깎인" 스킬. 교육 사업이 커지면서 인바운드 메일이 급증 - "강의 얼마예요"라는 두 줄짜리부터 상세한 커리큘럼 문의까지 별의별 유형. 유형이 늘어날 때마다 템플릿 추가. 3월 7일부터 지속적으로 업데이트 기록이 남아있음. 캘린더를 크로스체크해서 "빠른 시간 아니라 주말까지 여유 있으시면 저도 맞춰보겠습니다" 같은 시간 제안까지 자동. 참여자 반응: "다 껴 얻은 거 이제 좀 의심해봐야겠다."</span>
+
+  <h3>6. Sense Extractor (최초 공개)</h3>
+  <span class="tag tag-skill">sense-extractor</span>
+  <ul>
+    <li>대화에서 구조적 사고 패턴 추출 → 메타레이어 에이전트에 주입</li>
+    <li>4가지: 구조적 판단 / 사고 프레임워크 / 설계 원칙 / 누락 감지</li>
+  </ul>
+  <span class="ctx">일룸 세션 외에 처음 공개한 스킬. "나처럼 해줬으면 좋겠다"는 궁극적 욕구에서 탄생. 감정적 선호(좋다/싫다)가 아니라 "왜 이 방향으로 풀어야 하는가"라는 구조적 사고만을 추출. 인지심리학 논문을 계속 읽으면서 메타인지 프레임을 설계. 추출된 패턴을 에이전트(보리/쌀/밀리)에 주입하여 "나라면 이렇게 판단할 것이다"를 학습시키는 것이 목표. 참여자: "너무 이해 가는 디스크립션이긴 해요. 내가 말 안 해도 알아서 나처럼 해줬으면."</span>
+
+  <div class="back-to-top"><a href="#">맨 위로</a></div>
+</div>
+
+<!-- ==================== Session 6 ==================== -->
+<div class="session" id="session6">
+  <div class="session-header">
+    <h2>Session 6 - 2026년 4월 26일 (마지막)</h2>
+    <span class="subtitle">Claude Code 잘 쓰는 법, 오픈클로, 프로그레스 파일, Verifiable, Learn/Unlearn</span>
+  </div>
+
+  <h3>1. 오픈클로(OpenClaw) + ACP</h3>
+  <ul>
+    <li>자율성 높은 AI 에이전트 (vs Claude Code: 컨텍스트 기반 협업)</li>
+    <li>ChatGPT 구독 연결 → ACP로 로컬 Claude Code 호출</li>
+    <li><code>claude -p</code> 백그라운드 실행</li>
+    <li>PKM 직접 수정 금지 → AIQ 채널로 전달</li>
+  </ul>
+  <span class="ctx">오픈클로 = Claude Code의 자율 실행 버전. 차이점: Claude Code는 내가 계속 맥락을 주며 협업하지만, 오픈클로는 "알아서 해봐"로 자율 실행. 문제: Anthropic이 구독 계정으로의 접속을 차단 → 어쩔 수 없이 ChatGPT를 첫 쿠션으로 사용. ChatGPT가 알아듣고 → ACP로 로컬 Claude Code를 호출해서 실제 작업. 에이전트 "보리"가 ChatGPT 뇌로 대화하고, 실제 실행은 Claude가 담당. PKM(핵심 작업 폴더)은 오픈클로가 "주인님을 위해" 마음대로 수정할까봐 직접 수정 금지 설정. 대신 AIQ(Slack 채널)에 내용을 쓰면 Claude Code가 아침에 가져옴. 사무실 맥미니에 깔아놓고 운영 중인데 "일주일째 회사를 못 가서 ACP가 죽었다"는 에피소드.</span>
+
+  <h3>2. Claude Code 잘 쓰는 법 (핵심 6가지)</h3>
+
+  <h4>Tip 1: 한 번에 다 하려고 하지 마라</h4>
+  <ul>
+    <li>"매출 데이터 분석해서 대시보드 만들어줘" → 잘 안 됨</li>
+    <li>쪼개서 시키는 게 훨씬 정확</li>
+  </ul>
+  <span class="ctx">강사가 "원래 6주차에 알려주려고 했던" 가장 중요한 노하우. 엑셀 구조 파악 실패 → 차트 오류 → 대시보드 깨지는 연쇄 문제가 "한 번에 다 시키면" 자주 발생. 올바른 순서: 데이터 구조 파악 → CSV 변환 → 컬럼 확인 → 차트 하나씩 생성 → 대시보드 조립.</span>
+
+  <h4>Tip 2: 프로그레스 파일 (가장 큰 팁)</h4>
+  <div class="highlight-box">
+    모든 프로젝트 폴더에 <code>[번호]-progress.md</code> 생성. 날짜별 작업, 메일 기록, 액션 아이템. 다음 세션에서 이 파일만 읽고 이어서 작업.
+  </div>
+  <span class="ctx">강사의 일룸 프로젝트 프로그레스 파일(16.01-progress.md)을 직접 열어 보여줌 - 700줄 이상. "2025.11.29 일룸 본사 첫 미팅 → 비용 발송 → 수신 확인 → 세션별 진행 기록..." 메일 송수신까지 자동 기록. "이 파일만 읽으면 얘가 '우리 여기까지 했구나, 다음에 뭐 해야 되구나'를 안다." 데일리 노트 + 프로그레스 파일을 동시에 업데이트하는 스킬도 별도로 만들어 사용. 참여자(민철): "저도 그래서 버릇이 클리어 하기 전에 꼭 남기게 됐다."</span>
+
+  <h4>Tip 3: 클리어를 두려워하지 마라</h4>
+  <ul>
+    <li>3번 룰: 같은 문제 3번 시도 → 안 되면 클리어</li>
+    <li>클리어 전: "안 된 상황"만 프로그레스에 기록</li>
+    <li>"클리어는 리셋이 아니라 새 출발이다"</li>
+  </ul>
+  <span class="ctx">대화가 길어질수록 품질이 "확실히" 떨어진다는 실전 경험. "야 이거 왜 틀렸어? → 다시 수정해 → 또 비슷하게 안 돼 → 마지막으로 잘해보자 → 안 됨." 이미 앞 세션에서 "안 된 사례"로 컨텍스트가 오염된 상태. 해결법: 프로그레스에 현재 상황만 남기고 클리어 → 새 세션에서 "이런 맥락에서 이렇게 했는데 안 됐다. 근본적 해결 방법 찾자" → 바로 되는 경우가 많음.</span>
+
+  <h4>Tip 4: "해줘" + "확인해줘"</h4>
+  <div class="highlight-box">
+    Boris Cherny(Claude Code 개발자)가 꼽은 최고 팁. "해줘"로 끝내지 말고 "빠진 거 없는지 확인해줘"까지. 이것만으로 성공 확률 비약적 상승.
+  </div>
+  <span class="ctx">Claude Code를 만든 개발자 Boris Cherny도 더 이상 직접 코딩을 안 한다고 함. 그래도 반드시 하는 것: "Claude가 자기 결과물을 스스로 확인할 수 있는 장치를 만들어라." 컨텍스트가 많으면 한두 가지 빠뜨리고 하는 게 진짜 많음. "해놓고 무조건 믿은 다음에 '야 너 어떻게 해'라고 하면 안 좋다. 확인해달라고 하면 '빠진 게 있네요, 추가할게요'라고 스스로 보완한다."</span>
+
+  <h4>Tip 5: 초보자 5대 실수 (Anthropic 공식)</h4>
+  <ol>
+    <li>Kitchen Sink: 한 세션에 여러 무관한 작업</li>
+    <li>반복 도정: 같은 실수 계속 고치기</li>
+    <li>CLAUDE.md 과부하</li>
+    <li>검증 부재</li>
+    <li>무한 동작</li>
+  </ol>
+  <span class="ctx">Anthropic(Claude 개발사)에서 공식적으로 명명한 패턴. Kitchen Sink = 부엌 싱크대에 모든 걸 다 때려놓고 씻는 것처럼, 한 세션에서 비즈니스 설계도 하고 조사도 하고 코딩도 하는 것. 반복 도정 = 배포 안 되는 문제를 같은 세션에서 계속 시도하는 것(클리어가 답). CLAUDE.md 과부하 = 150줄 이내 권장인데 과도하게 적재.</span>
+
+  <h4>Tip 6: 플랜 모드 습관화</h4>
+  <ul>
+    <li>새 작업, 여러 파일 동시 조정, 구조 잡을 때 필수</li>
+    <li><code>Shift+Tab</code>으로 토글</li>
+  </ul>
+  <span class="ctx">참여자 혜림: "플랜 모드 많이 쓰죠. 플랜 모드로 나온 게 훨씬 좋은 결과라는 걸 느끼는 사람." "오히려 잘못된 방향으로 가는 걸 미연에 방지하기도 한다." 새 기능 추가 시에는 아무리 작은 것이라도 플랜 모드 권장. 수정 작업에는 불필요.</span>
+
+  <h3>3. Verifiable vs Non-verifiable</h3>
+  <span class="tag tag-philosophy">핵심 원칙</span>
+  <ul>
+    <li>AI에게: Verifiable(답이 있는 것)만 시킴</li>
+    <li>시키지 않는 것: 취향, 감각, 주관적 판단</li>
+    <li>코딩이 먼저 정복된 이유: 가장 Verifiable (되/안 돼)</li>
+    <li>RLVR: 검증 가능한 보상으로 강화학습</li>
+  </ul>
+  <span class="ctx">"AI한테 시키는 것과 안 시키는 게 명확하게 나뉘어 있다"는 강사의 원칙. 향수의 약품 향처럼 취향에 답은 없음(Non-verifiable). 하지만 "이 코드가 돌아가는가"는 답이 있음(Verifiable). RLHF(Human Feedback)에서 RLVR(Verifiable Rewards)로 강화학습 패러다임이 전환된 것도 같은 맥락 - "풀면 1, 못 풀면 0"으로 AI를 훈련시키니 못 풀던 것도 풀게 됨. 다음 정복 영역은 과학(재료공학 무인 실험실, AlphaFold 단백질 접기).</span>
+
+  <h4>Ralph Loop (랄프 루프)</h4>
+  <ul>
+    <li>답은 있지만 방법 모를 때: 목표 → 메트릭 → 시도 → 실패 기록 → 반복</li>
+    <li>자기 전 남은 토큰으로 루프 돌리고 자는 문화</li>
+  </ul>
+  <span class="ctx">심슨 캐릭터 Ralph Wiggum에서 이름을 따옴 - "좀 멍청하지만 끈기가 있고 무한히 투지하는 아이." 3~4개월 전부터 극단적 AI 사용자들 사이에서 유행. 200불짜리 구독 토큰이 밤에 남으니까 자기 전에 목표와 인수 조건을 세팅하고 랄프 루프를 돌려놓고 잔다. 강사도 "보리한테 야 나 잘 거야, 열심히 돌아" 했던 것이 바로 이것. 바이패스 모드 필수 - 중간에 승인을 구하면 멈추니까.</span>
+
+  <h3>4. Learn과 Unlearn</h3>
+  <span class="tag tag-philosophy">시대 철학</span>
+  <ul>
+    <li>Unlearn: 배웠던 것을 놓는 것 (기회비용 관점)</li>
+    <li>도구가 바뀌어도 과정과 사고방식은 바뀌지 않음</li>
+    <li>일은 명사가 아니라 동사: "경험을 선물하는 일"</li>
+  </ul>
+  <span class="ctx">번역가: "인생이 송두리째 부정당하는 기분." 기록학 석사 10년 경력자: AI가 텍스트 분석/분류를 극소 비용으로 80-90% 수준 달성 → 용역비를 받을 수 없게 되어감. 그 분야 사람들이 "이걸로 하면 안 된다"며 터부시. 강사는 과거 3년 4개월간 운영한 "하고 싶은 일 하면 행복할까" 클럽에서의 대화를 인용: "일은 명사가 아니라 동사로 찾는 게 맞다." 자신의 일도 "커피와 디저트"가 아니라 "경험을 선물하는 일"로 정의하면서 도구가 바뀌어도 해나갈 수 있게 됨.</span>
+
+  <div class="highlight-box">
+    "그거 AI 쓰면 되는 거 아니에요?" → "그러면 유저밖에 안 되는 거예요. 돈 내고 쓰세요."<br>
+    직접 만드는 사람 vs 쓰기만 하는 사람의 차이 = 기회 창출 능력
+  </div>
+  <span class="ctx">강사에게 가장 도발적인 언사가 이것이라고. "해봤자 나중에 다 하나로 평정되고 그거 나오면 AI 쓰면 되는 거 아니에요?" 응답: "그러면 돈 내고 쓰세요. 그걸로 기회를 만들 방법은 없어요." 코딩을 학습하지 않았는데도 마음껏 활용할 수 있게 된 것만으로도 할 수 있는 게 엄청나게 많아졌는데, "할 수 있는 거 알면서 안 한다는 건 너무 아까운 일."</span>
+
+  <h3>5. 마지막 메시지</h3>
+  <div class="highlight-box">
+    코딩을 한 번도 안 해본 사람이 의도와 의지만으로 코딩을 할 수 있는 시대.<br>
+    할 수 있는 게 많아진 시대에 안 한다는 건 너무 아까운 일.<br>
+    <strong>AI 네이티브: 이것 없이는 살 수 없는 상상을 못 하는 상태.</strong>
+  </div>
+  <span class="ctx">마지막 세션 종료 시 분위기. 참여자(민철): "요즘 이거 하면서 오래 살고 싶다는 생각도 하는 것 같아요." 참여자(혜림): "나뉘는 것 같아요. 오래 살고 싶다는 사람과 1억 이자를 줘야지 하는 사람." 강사: "내 의지를 더 표출하고 싶다는 생각이 들지 않습니까?" 다음 모임은 술자리로. 2기 신청자가 이미 대기 중이지만 "이제 안 할 것 같다, 못하겠다, 체력이..."</span>
+
+  <div class="back-to-top"><a href="#">맨 위로</a></div>
+</div>
+
+<hr class="separator">
+<footer style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:20px 0;">
+  <p>Do Better Things AX Camp 1기 | 6 Sessions | 총 약 24시간</p>
+  <p style="margin-top:4px;">Generated with Claude Code | 2026.05.15</p>
+</footer>
+
+</div>
+</body>
+</html>

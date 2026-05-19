@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BEI Value Conversion — EMV Simulation</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+:root{--primary:#6666FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--black:#000;--dark:#262626;--body:#424D61;--light:#F6F6F6;--white:#FFF;--red:#C00000;--coral:#FF5050;--blue:#4D93F7;--green:#10b981;--orange:#f59e0b;--pink:#d946ef;--primary-pale:#E1E1FF;--depth:#6366f1;--advocacy:#10b981;--sincerity:#f59e0b;--discovery:#ec4899;--emv:#059669;--emv-pale:#d1fae5;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:14px;line-height:1.6;max-width:1200px;margin:0 auto;padding:40px 32px;}
+h1{font-size:28px;font-weight:800;margin-bottom:4px;}
+h2{font-size:20px;font-weight:800;margin:36px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--primary-pale);}
+h3{font-size:15px;font-weight:700;margin:14px 0 8px;}
+.sub{font-size:13px;color:var(--body);margin-bottom:24px;}
+.card{background:var(--light);border:1px solid #e8e8e8;border-radius:12px;padding:16px 18px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0;}
+th{background:var(--primary);color:#fff;padding:6px 10px;text-align:left;font-size:11px;}
+td{padding:5px 10px;border-bottom:1px solid #eee;}
+.insight{padding:14px 18px;background:var(--primary-pale);border-radius:10px;border-left:4px solid var(--primary);margin:10px 0;font-size:13px;line-height:1.7;}
+.insight strong{color:var(--primary);}
+.emv-insight{padding:14px 18px;background:var(--emv-pale);border-radius:10px;border-left:4px solid var(--emv);margin:10px 0;font-size:13px;line-height:1.7;}
+.emv-insight strong{color:var(--emv);}
+.gauge-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.gauge-label{width:120px;font-size:12px;font-weight:600;text-align:right;flex-shrink:0;}
+.gauge-track{flex:1;height:28px;background:#f0f0f0;border-radius:6px;overflow:hidden;}
+.gauge-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:700;color:#fff;transition:width 0.8s ease;}
+.gauge-val{width:80px;font-family:'DIN Alternate','Poppins',sans-serif;font-size:14px;font-weight:700;text-align:right;flex-shrink:0;}
+.bei-big{font-family:'DIN Alternate','Poppins',sans-serif;font-size:56px;font-weight:800;line-height:1;}
+.bei-label{font-size:14px;font-weight:700;letter-spacing:1px;margin-top:4px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;}
+.sim-badge{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e;padding:4px 12px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1px;}
+.emv-badge{background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;padding:4px 12px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1px;}
+.footer{margin-top:40px;padding-top:16px;border-top:2px solid var(--primary);font-size:11px;color:#94a3b8;text-align:center;}
+.axis-card{border-radius:14px;padding:20px;text-align:center;border:2px solid;}
+.axis-score{font-family:'DIN Alternate','Poppins',sans-serif;font-size:36px;font-weight:800;line-height:1;}
+.axis-name{font-size:13px;font-weight:700;margin-bottom:2px;letter-spacing:1px;}
+.axis-sub{font-size:10px;color:var(--body);line-height:1.5;margin-top:8px;}
+.flow-chain{display:flex;align-items:center;justify-content:center;gap:0;margin:20px 0;}
+.flow-node{padding:14px 20px;border-radius:12px;text-align:center;font-size:12px;font-weight:700;min-width:140px;}
+.flow-arrow{font-size:24px;color:#94a3b8;padding:0 8px;}
+.slider-group{margin-bottom:14px;}
+.slider-group label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;}
+.slider-group input[type=range]{width:100%;accent-color:var(--primary);}
+.slider-val{font-family:'DIN Alternate','Poppins',sans-serif;font-size:14px;font-weight:700;color:var(--primary);}
+.sim-result{font-family:'DIN Alternate','Poppins',sans-serif;font-size:42px;font-weight:800;color:var(--emv);}
+select{padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px;font-family:'Pretendard Variable',sans-serif;}
+
+@media print{
+  @page{size:A4 portrait;margin:14mm 12mm;}
+  body{max-width:100%!important;padding:0!important;margin:0!important;}
+  .pdf-panel,.sim-section{display:none!important;}
+  .card,.grid2,.grid3,.grid4,.insight,.emv-insight,.gauge-row,table,.axis-card{break-inside:avoid!important;page-break-inside:avoid!important;}
+  h2,h3{break-after:avoid;page-break-after:avoid;}
+  h1{font-size:22px!important;} h2{font-size:16px!important;margin-top:20px!important;}
+  .card{padding:10px 12px!important;font-size:10px!important;}
+  table{font-size:10px!important;} th,td{padding:4px 6px!important;}
+  canvas{max-height:300px!important;}
+}
+.pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;}
+.pdf-panel-toggle{display:flex;align-items:center;gap:8px;padding:12px 22px;background:var(--grad);color:#fff;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(102,102,255,0.4);border:none;font-family:'Pretendard Variable',sans-serif;}
+.pdf-panel-body{display:none;position:absolute;bottom:56px;right:0;width:220px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:16px;}
+.pdf-panel-body.open{display:block;}
+.pdf-orient-group{display:flex;gap:8px;margin-bottom:14px;}
+.pdf-orient-btn{flex:1;padding:12px 8px;background:#f9fafb;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;font-family:'Pretendard Variable',sans-serif;color:#475569;font-size:11px;font-weight:600;text-align:center;}
+.pdf-orient-btn.active{border-color:var(--primary);background:#eef2ff;color:var(--primary);}
+.pdf-print-btn{width:100%;padding:10px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Pretendard Variable',sans-serif;}
+</style><style id="pageOrientStyle"></style></head><body>
+
+<!-- Header -->
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+  <span style="background:linear-gradient(135deg,#059669,#10b981);color:#fff;padding:4px 14px;border-radius:6px;font-family:'Poppins';font-size:11px;font-weight:600;letter-spacing:1px;">EMV MODEL</span>
+  <span class="emv-badge">VALUE CONVERSION</span>
+  <span class="sim-badge">SIMULATED DATA</span>
+</div>
+<h1>BEI Value Conversion &#8212; EMV Simulation</h1>
+<div class="sub">BEI 4&#52629; &#8594; &#8361; &#51204;&#54872; &#47784;&#45944; | &#49352;&#47196;&#51473;&#50521;&#48149;&#47932;&#44288; &#54045;&#50629; &#49892;&#52769; &#45936;&#51060;&#53552; &#44592;&#48152; | 4&#51452; Decay-adjusted &#45572;&#51201; &#44032;&#52824; &#49328;&#52636;</div>
+
+<!-- 1. EMV &#51221;&#51032; -->
+<h2>EMV&#46976; &#47924;&#50631;&#51064;&#44032;</h2>
+<div class="card" style="border-top:4px solid var(--emv);margin-bottom:20px;">
+  <div style="font-size:18px;font-weight:800;color:var(--emv);margin-bottom:12px;">
+    EMV(Estimated Media Value) = BEI&#44032; &#47564;&#46308;&#50612;&#45236;&#45716; &#47560;&#52992;&#54021; &#54952;&#44284;&#47484;, &#50976;&#49324;&#54620; &#54952;&#44284;&#51032; paid media &#48708;&#50857;&#51004;&#47196; &#54872;&#49328;&#54620; &#52628;&#51221; &#44032;&#52824;
+  </div>
+  <div style="font-size:12px;color:var(--body);line-height:1.8;">
+    "BEI 57.6&#51060; &#46024;&#51004;&#47196; &#50620;&#47560;&#51064;&#44032;"&#50640; &#45813;&#54616;&#45716; &#47784;&#45944;. &#44048;&#49457; &#51648;&#54364;&#47484; &#51649;&#51217; &#50896;&#54868;&#47196; &#48148;&#44984;&#45716; &#44163;&#51060; &#50500;&#45768;&#46972;, <strong>3&#45800;&#44228; &#51204;&#54872; &#52404;&#51064;</strong>&#51012; &#44221;&#50976;&#54616;&#50668; &#44033; &#52629;&#51060; &#47564;&#46308;&#50612;&#45236;&#45716; &#44221;&#51228;&#51201; &#44032;&#52824;&#47484; &#49328;&#52636;&#54633;&#45768;&#45796;.
+  </div>
+</div>
+
+<div class="grid2" style="margin-bottom:16px;">
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--coral);margin-bottom:8px;">&#44592;&#51316; BEI&#51032; &#54620;&#44228;</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      "BEI 57.6 &#8212; Moderate"<br>
+      &#8594; &#51339;&#50500;&#54616;&#45716; &#49324;&#46988;&#51060; &#49373;&#44192;&#45208;? <strong style="color:var(--primary);">&#8594; &#45813; &#44032;&#45733;</strong><br>
+      &#8594; <span style="color:var(--coral);font-weight:600;">&#44536;&#47000;&#49436; &#46024;&#51004;&#47196; &#50620;&#47560;&#51064;&#45936;? &#8594; &#45813; &#48520;&#44032;</span>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--emv);margin-bottom:8px;">EMV&#44032; &#45813;&#54616;&#45716; &#44163;</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      "EMV 3,067&#47564;&#50896; (4&#51452; &#45572;&#51201;)"<br>
+      &#8594; &#51060; SNS &#51064;&#44172;&#51060;&#51648;&#47676;&#53944;&#47484; paid media&#47196; &#49324;&#47140;&#47732;?<br>
+      <strong style="color:var(--emv);">&#8594; &#50557; 3,067&#47564;&#50896;&#51060; &#54596;&#50836;&#54633;&#45768;&#45796;</strong>
+    </div>
+  </div>
+</div>
+
+<!-- 2. 3&#45800;&#44228; &#51204;&#54872; &#52404;&#51064; -->
+<h2>3&#45800;&#44228; &#51204;&#54872; &#52404;&#51064;</h2>
+<div class="flow-chain">
+  <div class="flow-node" style="background:#eef2ff;color:var(--primary);border:2px solid var(--primary);">
+    <div style="font-size:18px;margin-bottom:4px;">&#128202;</div>
+    Stage 1<br>BEI 4&#52629;<br><span style="font-size:10px;font-weight:400;">(0~100&#51216;)</span>
+  </div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-node" style="background:#fef3c7;color:#92400e;border:2px solid var(--orange);">
+    <div style="font-size:18px;margin-bottom:4px;">&#9881;&#65039;</div>
+    Stage 2<br>&#47560;&#52992;&#54021; &#54952;&#44284; &#45800;&#50948;<br><span style="font-size:10px;font-weight:400;">&#51116;&#44396;&#47588;&#183;&#48148;&#51060;&#47092;&#183;&#51204;&#54872;&#47456;&#183;Earned</span>
+  </div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-node" style="background:var(--emv-pale);color:var(--emv);border:2px solid var(--emv);">
+    <div style="font-size:18px;margin-bottom:4px;">&#8361;</div>
+    Stage 3<br>EMV (&#8361;)<br><span style="font-size:10px;font-weight:400;">&#50629;&#51333;&#48324; &#45800;&#44032; &#51201;&#50857;</span>
+  </div>
+</div>
+
+<div class="emv-insight">
+  <strong>&#54645;&#49900; &#50896;&#47532;:</strong> BEI &#8594; &#8361; &#51649;&#51217; &#51204;&#54872;&#51008; &#48520;&#44032;&#45733;. BEI&#45716; &#49900;&#47532;/&#54665;&#46041; &#54532;&#47197;&#49884;&#51060;&#51648; &#47588;&#52636; &#51088;&#52404;&#44032; &#50500;&#45768;&#44592; &#46412;&#47928;. &#45824;&#49888; 4&#52629;&#51060; &#44033;&#44033; <strong>&#45796;&#47480; &#44221;&#51228;&#51201; &#44221;&#47196;</strong>&#47196; &#46024;&#51012; &#47564;&#46308;&#44592; &#46412;&#47928;&#50640; &#46021;&#47549; &#49328;&#52636; &#54980; &#54633;&#49328;&#54633;&#45768;&#45796;.
+</div>
+
+<!-- 3. 4&#52629;&#48324; &#44032;&#52824; &#44221;&#47196; -->
+<h2>4&#52629;&#48324; &#44032;&#52824; &#44221;&#47196; &#8212; &#49352;&#47196; &#49884;&#48044;&#47112;&#51060;&#49496;</h2>
+
+<div class="grid4" style="margin-bottom:16px;">
+  <div class="axis-card" style="background:#eef2ff;border-color:var(--depth);">
+    <div class="axis-name" style="color:var(--depth);">DEPTH</div>
+    <div style="font-size:10px;color:var(--body);margin-bottom:6px;">&#51116;&#44396;&#47588;/&#51116;&#48169;&#47928; &#44032;&#52824;</div>
+    <div class="axis-score" style="color:var(--depth);">296&#47564;</div>
+    <div style="font-size:10px;color:var(--body);margin-top:6px;">BEI 60.5 &#8594; &#51116;&#44396;&#47588;&#47456; +6.3%<br>&#215; CLV 15&#47564; &#215; 204&#44148;</div>
+  </div>
+  <div class="axis-card" style="background:#ecfdf5;border-color:var(--advocacy);">
+    <div class="axis-name" style="color:var(--advocacy);">ADVOCACY</div>
+    <div style="font-size:10px;color:var(--body);margin-bottom:6px;">&#49888;&#44508; &#44256;&#44061; &#54925;&#46301; &#44032;&#52824;</div>
+    <div class="axis-score" style="color:var(--advocacy);">2,971&#47564;</div>
+    <div style="font-size:10px;color:var(--body);margin-top:6px;">BEI 54.4 &#8594; &#48148;&#51060;&#47092; &#44228;&#49688; 0.2<br>&#215; &#52628;&#52380; &#51204;&#54872;&#47456; 5%</div>
+  </div>
+  <div class="axis-card" style="background:#fefce8;border-color:var(--sincerity);">
+    <div class="axis-name" style="color:var(--sincerity);">SINCERITY</div>
+    <div style="font-size:10px;color:var(--body);margin-bottom:6px;">&#51204;&#54872;&#47456; &#54532;&#47532;&#48120;&#50628;</div>
+    <div class="axis-score" style="color:var(--sincerity);">2,119&#47564;</div>
+    <div style="font-size:10px;color:var(--body);margin-top:6px;">&#51652;&#49457; 72.6% &#8594; &#51204;&#54872;&#47456; +11.3%<br>&#215; &#52509; &#45432;&#52636; 50&#47564;</div>
+  </div>
+  <div class="axis-card" style="background:#fdf2f8;border-color:var(--discovery);">
+    <div class="axis-name" style="color:var(--discovery);">DISCOVERY</div>
+    <div style="font-size:10px;color:var(--body);margin-bottom:6px;">Earned Media &#44032;&#52824;</div>
+    <div class="axis-score" style="color:var(--discovery);">387&#47564;</div>
+    <div style="font-size:10px;color:var(--body);margin-top:6px;">Freshness 43.1 &#8594; &#44277;&#50976; &#48176;&#49688; 1.65<br>&#215; CPM earned 15,000</div>
+  </div>
+</div>
+
+<!-- &#44032;&#52824; &#44172;&#51060;&#51648; -->
+<div style="margin:16px 0;">
+  <div class="gauge-row">
+    <div class="gauge-label" style="color:var(--advocacy);">Advocacy<br><span style="font-size:10px;color:var(--body);">&#48148;&#51060;&#47092; &#54925;&#46301;</span></div>
+    <div class="gauge-track"><div class="gauge-fill" style="width:51.5%;background:var(--advocacy);">51.5%</div></div>
+    <div class="gauge-val" style="color:var(--advocacy);">2,971&#47564;</div>
+  </div>
+  <div class="gauge-row">
+    <div class="gauge-label" style="color:var(--sincerity);">Sincerity<br><span style="font-size:10px;color:var(--body);">&#51204;&#54872;&#47456; &#54532;&#47532;&#48120;&#50628;</span></div>
+    <div class="gauge-track"><div class="gauge-fill" style="width:36.7%;background:var(--sincerity);">36.7%</div></div>
+    <div class="gauge-val" style="color:var(--sincerity);">2,119&#47564;</div>
+  </div>
+  <div class="gauge-row">
+    <div class="gauge-label" style="color:var(--discovery);">Discovery<br><span style="font-size:10px;color:var(--body);">Earned Media</span></div>
+    <div class="gauge-track"><div class="gauge-fill" style="width:6.7%;background:var(--discovery);">6.7%</div></div>
+    <div class="gauge-val" style="color:var(--discovery);">387&#47564;</div>
+  </div>
+  <div class="gauge-row">
+    <div class="gauge-label" style="color:var(--depth);">Depth<br><span style="font-size:10px;color:var(--body);">&#51116;&#44396;&#47588; &#44032;&#52824;</span></div>
+    <div class="gauge-track"><div class="gauge-fill" style="width:5.1%;background:var(--depth);">5.1%</div></div>
+    <div class="gauge-val" style="color:var(--depth);">296&#47564;</div>
+  </div>
+</div>
+
+<div class="grid3" style="margin-bottom:16px;">
+  <div class="card" style="text-align:center;border-top:4px solid var(--emv);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);letter-spacing:1px;">T+0 EMV &#52509;&#44228;</div>
+    <div class="bei-big" style="color:var(--emv);font-size:42px;">5,773&#47564;</div>
+    <div style="font-size:10px;color:var(--body);margin-top:4px;">4&#52629; &#54633;&#49328; (&#44508;&#47784; &#48372;&#51221; &#51204;)</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid var(--primary);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);letter-spacing:1px;">&#44508;&#47784; &#48372;&#51221; (&#215;0.6)</div>
+    <div class="bei-big" style="color:var(--primary);font-size:42px;">3,464&#47564;</div>
+    <div style="font-size:10px;color:var(--body);margin-top:4px;">&#47215;&#45936;&#52832;&#49457; = &#47700;&#44032; &#48652;&#47004;&#46300;</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid var(--orange);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);letter-spacing:1px;">4&#51452; &#45572;&#51201; (Decay)</div>
+    <div class="bei-big" style="color:var(--orange);font-size:42px;">3,067&#47564;</div>
+    <div style="font-size:10px;color:var(--body);margin-top:4px;">Decay-adjusted &#52509; &#44032;&#52824;</div>
+  </div>
+</div>
+
+<div class="emv-insight">
+  <strong>&#54644;&#49437;:</strong> &#49352;&#47196;&#51473;&#50521;&#48149;&#47932;&#44288; &#54045;&#50629;&#51032; SNS &#51064;&#44172;&#51060;&#51648;&#47676;&#53944;&#44032; &#47564;&#46308;&#50612;&#45240; &#52628;&#51221; &#48120;&#46356;&#50612; &#44032;&#52824;&#45716; <strong>4&#51452; &#44592;&#51456; &#50557; 3,067&#47564;&#50896;</strong>. &#51060;&#45716; "&#50976;&#49324;&#54620; &#54952;&#44284;&#47484; paid media&#47196; &#49324;&#47140;&#47732; &#51060; &#51221;&#46020; &#48708;&#50857;&#51060; &#46304;&#45796;"&#45716; &#51032;&#48120;. <strong>Advocacy(&#48148;&#51060;&#47092;)&#44032; &#52509; &#44032;&#52824;&#51032; 47%</strong>&#47484; &#52264;&#51648;&#54616;&#50668; &#44032;&#51109; &#53360; &#44032;&#52824; &#46300;&#46972;&#51060;&#48260;.
+</div>
+
+<!-- 4. &#52629;&#48324; &#51204;&#54872; &#44277;&#49885; &#49345;&#49464; -->
+<h2>&#52629;&#48324; &#51204;&#54872; &#44277;&#49885;</h2>
+
+<div class="card" style="margin-bottom:12px;border-left:4px solid var(--depth);">
+  <div style="font-size:13px;font-weight:800;color:var(--depth);margin-bottom:8px;">Depth &#8594; &#51116;&#44396;&#47588;/&#51116;&#48169;&#47928; &#44032;&#52824;</div>
+  <div style="font-size:12px;color:var(--body);line-height:1.8;margin-bottom:8px;">
+    &#44618;&#51008; &#44288;&#50668;(Auth&#8593; + RQL&#8593;) = &#44592;&#50613;&#51032; &#44618;&#51060; = &#51116;&#48169;&#47928; &#54869;&#47456;&#8593;
+  </div>
+  <div style="background:#fff;padding:12px;border-radius:8px;font-family:'Poppins',monospace;font-size:12px;">
+    V<sub>depth</sub> = N<sub>g3</sub> &#215; (Depth/100) &#215; RetentionLift &#215; CLV &#215; RetentionBase<br>
+    <span style="color:var(--body);">= 204 &#215; 0.605 &#215; 1.063 &#215; 150,000 &#215; 0.15 = <strong style="color:var(--depth);">2,961,456&#50896;</strong></span>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:12px;border-left:4px solid var(--advocacy);">
+  <div style="font-size:13px;font-weight:800;color:var(--advocacy);margin-bottom:8px;">Advocacy &#8594; &#49888;&#44508; &#44256;&#44061; &#54925;&#46301; &#44032;&#52824; (&#48148;&#51060;&#47092;)</div>
+  <div style="font-size:12px;color:var(--body);line-height:1.8;margin-bottom:8px;">
+    &#52628;&#52380;(Clout&#8593; + P-01&#8593;) = &#48148;&#51060;&#47092; &#50976;&#51077; = &#49888;&#44508; &#44256;&#44061;. &#52628;&#52380; &#44592;&#48152; &#51204;&#54872;&#47456;&#51008; &#44305;&#44256;&#51032; 2&#48176;.
+  </div>
+  <div style="background:#fff;padding:12px;border-radius:8px;font-family:'Poppins',monospace;font-size:12px;">
+    V<sub>advocacy</sub> = N<sub>g3</sub> &#215; (Adv/100) &#215; ViralCoeff &#215; ReachPerPost &#215; CR<sub>ref</sub> &#215; CLV<br>
+    <span style="color:var(--body);">= 204 &#215; 0.544 &#215; 0.20 &#215; 1,780 &#215; 0.05 &#215; 150,000 = <strong style="color:var(--advocacy);">29,707,776&#50896;</strong></span>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:12px;border-left:4px solid var(--sincerity);">
+  <div style="font-size:13px;font-weight:800;color:var(--sincerity);margin-bottom:8px;">Sincerity &#8594; &#51204;&#54872;&#47456; &#54532;&#47532;&#48120;&#50628;</div>
+  <div style="font-size:12px;color:var(--body);line-height:1.8;margin-bottom:8px;">
+    &#51652;&#49457; &#47532;&#48624; &#48708;&#50984;&#8593; = &#51104;&#51116; &#44256;&#44061;&#51060; &#48372;&#45716; &#47532;&#48624; &#54408;&#51656;&#8593; = &#51204;&#54872;&#47456; &#51088;&#52404;&#8593;
+  </div>
+  <div style="background:#fff;padding:12px;border-radius:8px;font-family:'Poppins',monospace;font-size:12px;">
+    V<sub>sincerity</sub> = R &#215; CR<sub>base</sub> &#215; SincerityPremium &#215; AOV<br>
+    <span style="color:var(--body);">&#54532;&#47532;&#48120;&#50628;&#48516; = 500,000 &#215; 0.025 &#215; 0.113 &#215; 15,000 = <strong style="color:var(--sincerity);">21,187,500&#50896;</strong></span>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px;border-left:4px solid var(--discovery);">
+  <div style="font-size:13px;font-weight:800;color:var(--discovery);margin-bottom:8px;">Discovery &#8594; Earned Media &#44032;&#52824;</div>
+  <div style="font-size:12px;color:var(--body);line-height:1.8;margin-bottom:8px;">
+    &#49888;&#49440;&#54632;(Freshness&#8593;) = &#51088;&#48156;&#51201; &#44277;&#50976;&#8593; = paid media&#47196; &#45824;&#52404; &#49884; &#44256;&#48708;&#50857;
+  </div>
+  <div style="background:#fff;padding:12px;border-radius:8px;font-family:'Poppins',monospace;font-size:12px;">
+    V<sub>discovery</sub> = N<sub>g3</sub> &#215; (Disc/100) &#215; ShareMult &#215; CPM<sub>earned</sub>/1000 &#215; AvgReach<br>
+    <span style="color:var(--body);">= 204 &#215; 0.431 &#215; 1.647 &#215; 15 &#215; 1,780 = <strong style="color:var(--discovery);">3,868,283&#50896;</strong></span>
+  </div>
+</div>
+
+<!-- 5. Decay-adjusted &#45572;&#51201; &#44032;&#52824; -->
+<h2>4&#51452; Decay-adjusted &#45572;&#51201; &#44032;&#52824;</h2>
+
+<div class="grid2" style="margin-bottom:16px;">
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:12px;">&#52629;&#48324; &#44048;&#49632; &#54632;&#49688;</div>
+    <table>
+      <thead><tr><th>&#52629;</th><th>&#44048;&#49632; &#54056;&#53556;</th><th>&#955;</th><th>4&#51452; &#54217;&#44512; &#44228;&#49688;</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700;color:var(--depth);">Depth</td><td>Slow Decay</td><td>0.036</td><td style="font-weight:700;">0.919</td></tr>
+        <tr><td style="font-weight:700;color:var(--advocacy);">Advocacy</td><td>Rapid Decay</td><td>0.105</td><td style="font-weight:700;">0.803</td></tr>
+        <tr><td style="font-weight:700;color:var(--sincerity);">Sincerity</td><td>Inverse (&#49345;&#49849;)</td><td>&#963;=0.09</td><td style="font-weight:700;">1.047</td></tr>
+        <tr><td style="font-weight:700;color:var(--discovery);">Discovery</td><td>Sharp Decay</td><td>0.245</td><td style="font-weight:700;">0.611</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--emv);margin-bottom:12px;">4&#51452; &#45572;&#51201; &#44032;&#52824; (&#44508;&#47784; &#48372;&#51221; &#54980;)</div>
+    <table>
+      <thead><tr><th>&#52629;</th><th style="text-align:right;">T+0 EMV</th><th style="text-align:right;">Decay &#215; &#44508;&#47784;</th><th style="text-align:right;">CV</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700;color:var(--depth);">Depth</td><td style="text-align:right;">296&#47564;</td><td style="text-align:right;">&#215;0.919 &#215;0.6</td><td style="text-align:right;font-weight:700;">163&#47564;</td></tr>
+        <tr><td style="font-weight:700;color:var(--advocacy);">Advocacy</td><td style="text-align:right;">2,971&#47564;</td><td style="text-align:right;">&#215;0.803 &#215;0.6</td><td style="text-align:right;font-weight:700;">1,431&#47564;</td></tr>
+        <tr><td style="font-weight:700;color:var(--sincerity);">Sincerity</td><td style="text-align:right;">2,119&#47564;</td><td style="text-align:right;">&#215;1.047 &#215;0.6</td><td style="text-align:right;font-weight:700;">1,331&#47564;</td></tr>
+        <tr><td style="font-weight:700;color:var(--discovery);">Discovery</td><td style="text-align:right;">387&#47564;</td><td style="text-align:right;">&#215;0.611 &#215;0.6</td><td style="text-align:right;font-weight:700;">142&#47564;</td></tr>
+        <tr style="background:var(--emv-pale);"><td style="font-weight:800;color:var(--emv);">Total</td><td style="text-align:right;font-weight:800;">5,773&#47564;</td><td></td><td style="text-align:right;font-weight:800;color:var(--emv);">3,067&#47564;</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div style="margin-bottom:20px;">
+  <canvas id="decayChart" height="280"></canvas>
+</div>
+
+<div class="emv-insight">
+  <strong>Decay &#54644;&#49437;:</strong> Sincerity&#44032; &#49884;&#44036;&#51060; &#51648;&#45208;&#47732; <strong>&#50724;&#55176;&#47140; &#49345;&#49849;</strong>(&#215;1.047) &#8212; &#45432;&#51060;&#51592;&#44032; &#49324;&#46972;&#51648;&#44256; &#51652;&#49900;&#51060; &#45224;&#51004;&#48064;&#47196;. &#48152;&#47732; Discovery&#45716; &#44553;&#49549; &#49548;&#47736;(&#215;0.611) &#8212; &#49888;&#49440;&#54632;&#51032; &#50976;&#53685;&#44592;&#54620;. Advocacy&#46020; &#48736;&#47476;&#44172; &#49885;&#50612;(&#215;0.803) &#52628;&#52380; &#50676;&#44592;&#45716; &#45800;&#44592;&#51201;.
+</div>
+
+<!-- 6. ROI &#45824;&#49884;&#48372;&#46300; -->
+<h2>ROI &#45824;&#49884;&#48372;&#46300;</h2>
+
+<div class="grid3" style="margin-bottom:16px;">
+  <div class="card" style="text-align:center;border-top:4px solid var(--primary);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);">&#52880;&#54168;&#51064; &#48708;&#50857;</div>
+    <div style="font-family:'DIN Alternate','Poppins';font-size:36px;font-weight:800;color:var(--dark);">3&#50613;</div>
+    <div style="font-size:10px;color:var(--body);">&#44592;&#54925;+&#50868;&#50689;+&#49444;&#52824;+&#52384;&#44144;</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid var(--emv);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);">SNS EMV (4&#51452;)</div>
+    <div style="font-family:'DIN Alternate','Poppins';font-size:36px;font-weight:800;color:var(--emv);">3,067&#47564;</div>
+    <div style="font-size:10px;color:var(--body);">Decay-adjusted &#45572;&#51201;</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid var(--orange);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);">BVE (&#44032;&#52824; &#54952;&#50984;)</div>
+    <div style="font-family:'DIN Alternate','Poppins';font-size:36px;font-weight:800;color:var(--orange);">0.102</div>
+    <div style="font-size:10px;color:var(--body);">1&#50896; &#53804;&#51077;&#45817; 0.10&#50896; SNS &#44032;&#52824;</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px;border-left:4px solid var(--orange);">
+  <div style="font-size:13px;font-weight:800;color:var(--orange);margin-bottom:8px;">BVE 0.102&#51032; &#51032;&#48120;</div>
+  <div style="font-size:12px;color:var(--body);line-height:1.8;">
+    &#49692;&#49688; SNS &#51064;&#44172;&#51060;&#51648;&#47676;&#53944; &#44032;&#52824;&#47564;&#51004;&#47196;&#45716; 3&#50613; &#52880;&#54168;&#51064; &#48708;&#50857;&#51032; 10.2%&#47484; &#52964;&#48260;. &#51060;&#44163;&#51008; <strong>&#51221;&#49345;&#51201;</strong>&#51077;&#45768;&#45796;.<br><br>
+    &#54045;&#50629;&#49828;&#53664;&#50612;&#51032; &#52509; &#44032;&#52824;&#45716; SNS &#48260;&#51592;&#47564;&#51060; &#50500;&#45768;&#46972;:<br>
+    &#8226; <strong>&#54788;&#51109; &#47588;&#52636;</strong> (&#51649;&#51217; &#49688;&#51061;)<br>
+    &#8226; <strong>PR/&#48120;&#46356;&#50612; &#44032;&#52824;</strong> (&#44592;&#49324; &#45432;&#52636;, &#48169;&#49569; &#52636;&#50672;)<br>
+    &#8226; <strong>&#48652;&#47004;&#46300; &#51088;&#49328; &#52629;&#51201;</strong> (&#51109;&#44592;&#51201; &#51064;&#51648;&#46020; &#49345;&#49849;)<br>
+    &#8226; <strong>&#45236;&#48512; &#45936;&#51060;&#53552;/&#51064;&#49324;&#51060;&#53944;</strong> (&#49548;&#48708;&#51088; &#51060;&#54644;)<br><br>
+    EMV&#45716; &#51060; &#51473; <strong>"SNS &#48260;&#51592;"&#51032; &#44032;&#52824;</strong>&#47564; &#52769;&#51221;. &#51204;&#52404; ROI&#45716; &#47784;&#46304; &#50836;&#49548;&#47484; &#54633;&#49328;&#54644;&#50556; &#49328;&#52636; &#44032;&#45733;.
+  </div>
+</div>
+
+<!-- 7. &#50629;&#51333;&#48324; &#54028;&#46972;&#48120;&#53552; -->
+<h2>&#50629;&#51333;&#48324; &#54028;&#46972;&#48120;&#53552; &#53580;&#51060;&#48660;</h2>
+
+<table style="margin-bottom:16px;">
+  <thead>
+    <tr><th>&#54028;&#46972;&#48120;&#53552;</th><th style="text-align:center;">F&B/&#51452;&#47448;</th><th style="text-align:center;">&#54056;&#49496;/&#48624;&#54000;</th><th style="text-align:center;">&#44277;&#44036;/&#54045;&#50629;</th><th style="text-align:center;">&#53580;&#53356;/SaaS</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>CLV</td><td style="text-align:center;">15&#47564;</td><td style="text-align:center;">50&#47564;</td><td style="text-align:center;">8&#47564;</td><td style="text-align:center;">200&#47564;</td></tr>
+    <tr><td>CAC</td><td style="text-align:center;">2.5&#47564;</td><td style="text-align:center;">4&#47564;</td><td style="text-align:center;">1.5&#47564;</td><td style="text-align:center;">10&#47564;</td></tr>
+    <tr><td>CR_base</td><td style="text-align:center;">2.5%</td><td style="text-align:center;">1.8%</td><td style="text-align:center;">3.5%</td><td style="text-align:center;">1.2%</td></tr>
+    <tr><td>AOV</td><td style="text-align:center;">1.5&#47564;</td><td style="text-align:center;">8&#47564;</td><td style="text-align:center;">2.5&#47564;</td><td style="text-align:center;">20&#47564;</td></tr>
+    <tr><td>CPM</td><td style="text-align:center;">5,000</td><td style="text-align:center;">8,000</td><td style="text-align:center;">4,000</td><td style="text-align:center;">12,000</td></tr>
+    <tr><td>&#946;<sub>depth</sub></td><td style="text-align:center;">0.30</td><td style="text-align:center;">0.40</td><td style="text-align:center;">0.20</td><td style="text-align:center;">0.50</td></tr>
+    <tr><td>K<sub>viral</sub></td><td style="text-align:center;">2.5</td><td style="text-align:center;">3.5</td><td style="text-align:center;">4.0</td><td style="text-align:center;">1.5</td></tr>
+    <tr><td>&#947; (Sincerity)</td><td style="text-align:center;">0.50</td><td style="text-align:center;">0.60</td><td style="text-align:center;">0.40</td><td style="text-align:center;">0.70</td></tr>
+    <tr><td>EarnedPremium</td><td style="text-align:center;">3.0</td><td style="text-align:center;">4.0</td><td style="text-align:center;">5.0</td><td style="text-align:center;">2.0</td></tr>
+  </tbody>
+</table>
+
+<div class="grid4" style="margin-bottom:16px;">
+  <div class="card" style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--body);">&#49548;&#54805; (~10&#50613;)</div><div style="font-family:'DIN Alternate','Poppins';font-size:28px;font-weight:800;color:var(--emv);">&#215;1.2</div><div style="font-size:10px;color:var(--body);">&#54620;&#44228; &#54952;&#50857; &#53372;</div></div>
+  <div class="card" style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--body);">&#51473;&#54805; (10~100&#50613;)</div><div style="font-family:'DIN Alternate','Poppins';font-size:28px;font-weight:800;color:var(--dark);">&#215;1.0</div><div style="font-size:10px;color:var(--body);">&#44592;&#51456;</div></div>
+  <div class="card" style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--body);">&#45824;&#54805; (100~1000&#50613;)</div><div style="font-family:'DIN Alternate','Poppins';font-size:28px;font-weight:800;color:var(--body);">&#215;0.8</div><div style="font-size:10px;color:var(--body);">&#54252;&#54868; &#52404;&#44048;</div></div>
+  <div class="card" style="text-align:center;"><div style="font-size:11px;font-weight:600;color:var(--body);">&#47700;&#44032; (1000&#50613;+)</div><div style="font-family:'DIN Alternate','Poppins';font-size:28px;font-weight:800;color:#94a3b8;">&#215;0.6</div><div style="font-size:10px;color:var(--body);">&#51064;&#51648;&#46020; &#54252;&#54868;</div></div>
+</div>
+
+<!-- 8. &#51064;&#53552;&#47001;&#54000;&#48652; &#49884;&#48044;&#47112;&#51060;&#53552; -->
+<h2 class="sim-section">EMV &#49884;&#48044;&#47112;&#51060;&#53552;</h2>
+
+<div class="sim-section card" style="border-top:4px solid var(--emv);margin-bottom:20px;">
+  <div style="font-size:13px;font-weight:800;color:var(--emv);margin-bottom:16px;">BEI 4&#52629; &#49836;&#46972;&#51060;&#45908;&#47484; &#51312;&#51089;&#54616;&#47732; EMV&#44032; &#49892;&#49884;&#44036;&#51004;&#47196; &#44228;&#49328;&#46121;&#45768;&#45796;</div>
+
+  <div class="grid2" style="margin-bottom:16px;">
+    <div>
+      <div style="font-size:12px;font-weight:700;margin-bottom:10px;">&#50629;&#51333; &#49440;&#53469;</div>
+      <select id="industrySelect" onchange="recalc()" style="width:100%;padding:8px;margin-bottom:16px;">
+        <option value="fnb" selected>F&B / &#51452;&#47448;</option>
+        <option value="fashion">&#54056;&#49496; / &#48624;&#54000;</option>
+        <option value="space">&#44277;&#44036; / &#54045;&#50629;</option>
+        <option value="tech">&#53580;&#53356; / SaaS</option>
+      </select>
+
+      <div style="font-size:12px;font-weight:700;margin-bottom:10px;">&#44508;&#47784; &#49440;&#53469;</div>
+      <select id="scaleSelect" onchange="recalc()" style="width:100%;padding:8px;margin-bottom:16px;">
+        <option value="1.2">&#49548;&#54805; (~10&#50613;) &#215;1.2</option>
+        <option value="1.0">&#51473;&#54805; (10~100&#50613;) &#215;1.0</option>
+        <option value="0.8">&#45824;&#54805; (100~1000&#50613;) &#215;0.8</option>
+        <option value="0.6" selected>&#47700;&#44032; (1000&#50613;+) &#215;0.6</option>
+      </select>
+
+      <div class="slider-group">
+        <label>&#46020;&#45804; &#47784;&#49688; (R): <span class="slider-val" id="rVal">500,000</span></label>
+        <input type="range" id="rSlider" min="10000" max="2000000" step="10000" value="500000" oninput="recalc()">
+      </div>
+      <div class="slider-group">
+        <label>Gate 3 &#44172;&#49884;&#47932; (N<sub>g3</sub>): <span class="slider-val" id="ngVal">204</span></label>
+        <input type="range" id="ngSlider" min="10" max="1000" step="1" value="204" oninput="recalc()">
+      </div>
+      <div class="slider-group">
+        <label>&#51204;&#52404; &#44172;&#49884;&#47932; (N): <span class="slider-val" id="nVal">281</span></label>
+        <input type="range" id="nSlider" min="10" max="1000" step="1" value="281" oninput="recalc()">
+      </div>
+      <div class="slider-group">
+        <label>Q5 &#48708;&#50984; (%): <span class="slider-val" id="q5Val">8</span></label>
+        <input type="range" id="q5Slider" min="0" max="30" step="1" value="8" oninput="recalc()">
+      </div>
+    </div>
+    <div>
+      <div class="slider-group">
+        <label style="color:var(--depth);">Depth: <span class="slider-val" id="depthVal">60.5</span></label>
+        <input type="range" id="depthSlider" min="0" max="100" step="0.1" value="60.5" oninput="recalc()">
+      </div>
+      <div class="slider-group">
+        <label style="color:var(--advocacy);">Advocacy: <span class="slider-val" id="advVal">54.4</span></label>
+        <input type="range" id="advSlider" min="0" max="100" step="0.1" value="54.4" oninput="recalc()">
+      </div>
+      <div class="slider-group">
+        <label style="color:var(--sincerity);">Sincerity: <span class="slider-val" id="sinVal">72.6</span></label>
+        <input type="range" id="sinSlider" min="0" max="100" step="0.1" value="72.6" oninput="recalc()">
+      </div>
+      <div class="slider-group">
+        <label style="color:var(--discovery);">Discovery: <span class="slider-val" id="disVal">43.1</span></label>
+        <input type="range" id="disSlider" min="0" max="100" step="0.1" value="43.1" oninput="recalc()">
+      </div>
+      <div class="slider-group">
+        <label>&#52880;&#54168;&#51064; &#48708;&#50857; (&#47564;&#50896;): <span class="slider-val" id="costVal">30,000</span></label>
+        <input type="range" id="costSlider" min="100" max="100000" step="100" value="30000" oninput="recalc()">
+      </div>
+    </div>
+  </div>
+
+  <!-- &#44208;&#44284; &#52852;&#46300; -->
+  <div class="grid4" style="margin-bottom:12px;">
+    <div style="text-align:center;padding:12px;background:#eef2ff;border-radius:10px;">
+      <div style="font-size:10px;font-weight:600;color:var(--depth);">V<sub>depth</sub></div>
+      <div style="font-family:'DIN Alternate','Poppins';font-size:20px;font-weight:800;color:var(--depth);" id="resDepth">296&#47564;</div>
+    </div>
+    <div style="text-align:center;padding:12px;background:#ecfdf5;border-radius:10px;">
+      <div style="font-size:10px;font-weight:600;color:var(--advocacy);">V<sub>advocacy</sub></div>
+      <div style="font-family:'DIN Alternate','Poppins';font-size:20px;font-weight:800;color:var(--advocacy);" id="resAdv">2,971&#47564;</div>
+    </div>
+    <div style="text-align:center;padding:12px;background:#fefce8;border-radius:10px;">
+      <div style="font-size:10px;font-weight:600;color:var(--sincerity);">V<sub>sincerity</sub></div>
+      <div style="font-family:'DIN Alternate','Poppins';font-size:20px;font-weight:800;color:var(--sincerity);" id="resSin">2,119&#47564;</div>
+    </div>
+    <div style="text-align:center;padding:12px;background:#fdf2f8;border-radius:10px;">
+      <div style="font-size:10px;font-weight:600;color:var(--discovery);">V<sub>discovery</sub></div>
+      <div style="font-family:'DIN Alternate','Poppins';font-size:20px;font-weight:800;color:var(--discovery);" id="resDis">387&#47564;</div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div style="text-align:center;padding:16px;background:var(--emv-pale);border-radius:12px;border:2px solid var(--emv);">
+      <div style="font-size:11px;font-weight:600;color:var(--body);">4&#51452; &#45572;&#51201; EMV</div>
+      <div class="sim-result" id="resTotalCV">3,067&#47564;</div>
+      <div style="font-size:10px;color:var(--body);">Decay + &#44508;&#47784; &#48372;&#51221; &#54980;</div>
+    </div>
+    <div style="text-align:center;padding:16px;background:var(--light);border-radius:12px;">
+      <div style="font-size:11px;font-weight:600;color:var(--body);">BVE (&#44032;&#52824; &#54952;&#50984;)</div>
+      <div style="font-family:'DIN Alternate','Poppins';font-size:42px;font-weight:800;color:var(--orange);" id="resBVE">0.102</div>
+      <div style="font-size:10px;color:var(--body);">EMV / &#52880;&#54168;&#51064; &#48708;&#50857;</div>
+    </div>
+    <div style="text-align:center;padding:16px;background:var(--light);border-radius:12px;">
+      <div style="font-size:11px;font-weight:600;color:var(--body);">BEI &#51333;&#54633;</div>
+      <div style="font-family:'DIN Alternate','Poppins';font-size:42px;font-weight:800;color:var(--primary);" id="resBEI">57.6</div>
+      <div style="font-size:10px;color:var(--body);">Depth&#215;0.35 + Adv&#215;0.35 + Sin&#215;0.15 + Dis&#215;0.15</div>
+    </div>
+  </div>
+</div>
+
+<!-- 9. &#44160;&#51613; &#48169;&#48277;&#47200; -->
+<h2>&#44160;&#51613; &#48169;&#48277;&#47200; &#48143; &#54620;&#44228;</h2>
+
+<div class="grid3" style="margin-bottom:16px;">
+  <div class="card" style="border-top:3px solid var(--green);">
+    <div style="font-size:13px;font-weight:800;color:var(--green);margin-bottom:8px;">Phase 1: N=1</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.7;">
+      &#44592;&#51316; BEI &#49324;&#47168;&#51032; &#49892;&#51228; &#47588;&#52636; &#48320;&#46041;&#44284; EMV &#48708;&#44368;<br>
+      <strong>&#47785;&#54364;:</strong> &#48169;&#54693;&#49457; &#51068;&#52824;
+    </div>
+  </div>
+  <div class="card" style="border-top:3px solid var(--primary);">
+    <div style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:8px;">Phase 2: N=5~10</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.7;">
+      &#45796;&#49688; &#52880;&#54168;&#51064; BEI&#215;EMV vs &#49892;&#51228; KPI &#49345;&#44288;&#44228;&#49688;<br>
+      <strong>&#47785;&#54364;:</strong> r > 0.5
+    </div>
+  </div>
+  <div class="card" style="border-top:3px solid var(--orange);">
+    <div style="font-size:13px;font-weight:800;color:var(--orange);margin-bottom:8px;">Phase 3: N=20+</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.7;">
+      &#54924;&#44480;&#48516;&#49437;&#51004;&#47196; &#44228;&#49688; &#48372;&#51221;<br>
+      <strong>&#47785;&#54364;:</strong> &#50724;&#52264; &#177;30% &#51060;&#45236;
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px;">
+  <div style="font-size:13px;font-weight:800;color:var(--coral);margin-bottom:8px;">&#54620;&#44228; &#48143; &#51452;&#51032;&#49324;&#54637;</div>
+  <div style="font-size:12px;color:var(--body);line-height:1.8;">
+    <strong>1.</strong> &#49345;&#44288; &#44592;&#48152; &#52628;&#51221;&#51060;&#51648; &#51064;&#44284; &#51613;&#47749;&#51060; &#50500;&#45784; &#8212; "BEI&#44032; &#45458;&#51004;&#47732; &#47588;&#52636;&#51060; &#45458;&#45796;"&#44032; &#50500;&#45768;&#46972; "BEI&#44032; &#45458;&#51008; &#49884;&#44592;&#50640; &#47588;&#52636;&#46020; &#45458;&#50520;&#45796;"<br>
+    <strong>2.</strong> &#50808;&#48512; &#48320;&#49688;(&#45216;&#50472;, &#44221;&#51137;&#49324;, &#49884;&#51596;&#45328;&#47532;&#54000;) &#53685;&#51228; &#48520;&#44032;<br>
+    <strong>3.</strong> &#52488;&#44592; &#44228;&#49688;&#45716; &#47928;&#54732;/&#50629;&#44228; &#44288;&#54665; &#44592;&#48152; &#52628;&#51221;&#52824; &#8212; &#45936;&#51060;&#53552; &#52629;&#51201; &#54980; &#48372;&#51221; &#54596;&#50836;<br>
+    <strong>4.</strong> &#52572;&#49548; Gate 1 &#44592;&#51456; 50&#44148; &#51060;&#49345;&#51032; &#47532;&#48624; &#45936;&#51060;&#53552; &#54596;&#50836;<br><br>
+    <span style="color:var(--emv);font-weight:600;">&#49324;&#50857;:</span> "&#52628;&#51221; &#48120;&#46356;&#50612; &#44032;&#52824;(EMV)", "&#50976;&#49324; &#54952;&#44284;&#51032; paid media &#48708;&#50857; &#54872;&#49328;"<br>
+    <span style="color:var(--coral);font-weight:600;">&#44552;&#51648;:</span> "&#51060; &#52880;&#54168;&#51064;&#51060; &#51221;&#54869;&#55176; X&#50896;&#51012; &#48268;&#50632;&#45796;", "&#44284;&#54617;&#51201;&#51004;&#47196; &#51613;&#47749;&#46104;&#50632;&#45796;"
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <strong>BEI Value Conversion Model v1.0</strong> | RXR Framework | &#49352;&#47196;&#51473;&#50521;&#48149;&#47932;&#44288; &#49884;&#48044;&#47112;&#51060;&#49496; | 2026-04-12<br>
+  &#48376; &#47532;&#54252;&#53944;&#51032; &#44552;&#50529;&#51008; &#52628;&#51221; &#48120;&#46356;&#50612; &#44032;&#52824;(EMV)&#47196;, &#49892;&#51228; &#47588;&#52636;&#50529;&#51060; &#50500;&#45784;&#51012; &#50976;&#51032;&#54616;&#49884;&#44592; &#48148;&#46989;&#45768;&#45796;.
+</div>
+
+<!-- PDF Panel -->
+<div class="pdf-panel">
+  <button class="pdf-panel-toggle" onclick="this.nextElementSibling.classList.toggle('open')">&#128424; PDF</button>
+  <div class="pdf-panel-body">
+    <div class="pdf-orient-group">
+      <button class="pdf-orient-btn active" onclick="setOrient('portrait',this)">&#9645; &#49464;&#47196;</button>
+      <button class="pdf-orient-btn" onclick="setOrient('landscape',this)">&#9645; &#44032;&#47196;</button>
+    </div>
+    <button class="pdf-print-btn" onclick="window.print()">&#52636;&#47141;&#54616;&#44592;</button>
+  </div>
+</div>
+
+<script>
+function setOrient(o,btn){
+  document.getElementById('pageOrientStyle').textContent='@page{size:A4 '+o+';}';
+  document.querySelectorAll('.pdf-orient-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+const PARAMS = {
+  fnb:     { CLV:150000, CAC:25000, CR:0.025, AOV:15000, CPM:5000, RetBase:0.15, beta:0.30, Kv:2.5, RefPrem:2.0, gamma:0.50, delta:1.5, EarnPrem:3.0 },
+  fashion: { CLV:500000, CAC:40000, CR:0.018, AOV:80000, CPM:8000, RetBase:0.25, beta:0.40, Kv:3.5, RefPrem:2.5, gamma:0.60, delta:2.0, EarnPrem:4.0 },
+  space:   { CLV:80000,  CAC:15000, CR:0.035, AOV:25000, CPM:4000, RetBase:0.08, beta:0.20, Kv:4.0, RefPrem:3.0, gamma:0.40, delta:2.5, EarnPrem:5.0 },
+  tech:    { CLV:2000000,CAC:100000,CR:0.012, AOV:200000,CPM:12000,RetBase:0.40, beta:0.50, Kv:1.5, RefPrem:1.5, gamma:0.70, delta:1.0, EarnPrem:2.0 }
+};
+
+const DECAY = { depth:0.919, advocacy:0.803, sincerity:1.047, discovery:0.611 };
+
+function fmt(n){ return Math.round(n/10000).toLocaleString('ko-KR'); }
+
+function recalc(){
+  const ind = document.getElementById('industrySelect').value;
+  const scale = parseFloat(document.getElementById('scaleSelect').value);
+  const R = parseInt(document.getElementById('rSlider').value);
+  const Ng3 = parseInt(document.getElementById('ngSlider').value);
+  const N = parseInt(document.getElementById('nSlider').value);
+  const q5 = parseInt(document.getElementById('q5Slider').value) / 100;
+  const depth = parseFloat(document.getElementById('depthSlider').value);
+  const adv = parseFloat(document.getElementById('advSlider').value);
+  const sin = parseFloat(document.getElementById('sinSlider').value);
+  const dis = parseFloat(document.getElementById('disSlider').value);
+  const cost = parseInt(document.getElementById('costSlider').value) * 10000;
+
+  const p = PARAMS[ind];
+  const reach = R / N;
+
+  // Update labels
+  document.getElementById('rVal').textContent = R.toLocaleString('ko-KR');
+  document.getElementById('ngVal').textContent = Ng3;
+  document.getElementById('nVal').textContent = N;
+  document.getElementById('q5Val').textContent = Math.round(q5*100);
+  document.getElementById('depthVal').textContent = depth.toFixed(1);
+  document.getElementById('advVal').textContent = adv.toFixed(1);
+  document.getElementById('sinVal').textContent = sin.toFixed(1);
+  document.getElementById('disVal').textContent = dis.toFixed(1);
+  document.getElementById('costVal').textContent = (cost/10000).toLocaleString('ko-KR');
+
+  // V_depth
+  const retLift = 1 + p.beta * (depth - 50) / 50;
+  const vDepth = Ng3 * (depth/100) * retLift * p.CLV * p.RetBase;
+
+  // V_advocacy
+  const viralCoeff = q5 * p.Kv;
+  const crRef = p.CR * p.RefPrem;
+  const vAdv = Ng3 * (adv/100) * viralCoeff * reach * crRef * p.CLV;
+
+  // V_sincerity
+  const sinPrem = p.gamma * (sin - 50) / 100;
+  const vSin = R * p.CR * sinPrem * p.AOV;
+
+  // V_discovery
+  const shareMult = 1 + p.delta * (dis/100);
+  const cpmEarned = p.CPM * p.EarnPrem;
+  const vDis = Ng3 * (dis/100) * shareMult * (cpmEarned/1000) * reach;
+
+  // Total with decay and scale
+  const cvDepth = vDepth * DECAY.depth * scale;
+  const cvAdv = vAdv * DECAY.advocacy * scale;
+  const cvSin = vSin * DECAY.sincerity * scale;
+  const cvDis = vDis * DECAY.discovery * scale;
+  const totalCV = cvDepth + cvAdv + cvSin + cvDis;
+
+  // BEI
+  const bei = depth*0.35 + adv*0.35 + sin*0.15 + dis*0.15;
+  const bve = totalCV / cost;
+
+  document.getElementById('resDepth').textContent = fmt(vDepth) + '\ub9cc';
+  document.getElementById('resAdv').textContent = fmt(vAdv) + '\ub9cc';
+  document.getElementById('resSin').textContent = fmt(vSin > 0 ? vSin : 0) + '\ub9cc';
+  document.getElementById('resDis').textContent = fmt(vDis) + '\ub9cc';
+  document.getElementById('resTotalCV').textContent = fmt(totalCV > 0 ? totalCV : 0) + '\ub9cc';
+  document.getElementById('resBVE').textContent = bve > 0 ? bve.toFixed(3) : '0.000';
+  document.getElementById('resBEI').textContent = bei.toFixed(1);
+}
+
+// Decay chart
+const ctxDecay = document.getElementById('decayChart').getContext('2d');
+new Chart(ctxDecay, {
+  type: 'line',
+  data: {
+    labels: ['T+0', 'T+1w', 'T+2w', 'T+3w', 'T+4w'],
+    datasets: [
+      { label: 'Depth EMV', data: [2961456, 2961456*0.945, 2961456*0.906, 2961456*0.878, 2961456*0.866].map(v=>Math.round(v*0.6)), borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.3, pointRadius: 4 },
+      { label: 'Advocacy EMV', data: [29707776, 29707776*0.893, 29707776*0.774, 29707776*0.689, 29707776*0.658].map(v=>Math.round(v*0.6)), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3, pointRadius: 4 },
+      { label: 'Sincerity EMV', data: [21187500, 21187500*1.021, 21187500*1.051, 21187500*1.074, 21187500*1.091].map(v=>Math.round(v*0.6)), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3, pointRadius: 4 },
+      { label: 'Discovery EMV', data: [3868283, 3868283*0.724, 3868283*0.529, 3868283*0.427, 3868283*0.373].map(v=>Math.round(v*0.6)), borderColor: '#ec4899', backgroundColor: 'rgba(236,72,153,0.1)', fill: true, tension: 0.3, pointRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      title: { display: true, text: '4\uC8FC Decay-adjusted EMV (\uADDC\uBAA8 \uBCF4\uC815 \uD6C4)', font: { size: 14, weight: 'bold', family: "'Pretendard Variable'" }},
+      tooltip: { callbacks: { label: function(ctx){ return ctx.dataset.label + ': ' + Math.round(ctx.parsed.y/10000).toLocaleString('ko-KR') + '\uB9CC\uC6D0'; }}}
+    },
+    scales: {
+      y: { ticks: { callback: function(v){ return Math.round(v/10000).toLocaleString('ko-KR') + '\uB9CC'; }}}
+    }
+  }
+});
+
+// Init
+recalc();
+</script>
+</body></html>

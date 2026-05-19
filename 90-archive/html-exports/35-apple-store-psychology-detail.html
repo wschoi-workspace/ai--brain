@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apple Store 심리학 심층 해부</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  :root {
+    --primary: #1D1D1F;
+    --primary-light: #6E6E73;
+    --accent: #0071E3;
+    --accent-light: #E8F4FD;
+    --accent-bg: #F5F5F7;
+    --green: #34C759;
+    --green-bg: #E8FAF0;
+    --orange: #FF9500;
+    --orange-bg: #FFF4E5;
+    --red: #FF3B30;
+    --red-bg: #FFF0EF;
+    --purple: #AF52DE;
+    --purple-bg: #F5EDFB;
+    --text: #1D1D1F;
+    --text-light: #86868B;
+    --border: #D2D2D7;
+    --bg: #FFFFFF;
+    --bg-gray: #F5F5F7;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+    --radius: 18px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.72;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Hero */
+  .hero {
+    background: var(--primary);
+    color: white;
+    padding: 100px 40px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.3));
+  }
+  .hero-inner { position: relative; z-index: 2; }
+  .hero-label {
+    display: inline-block;
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    font-size: 0.82rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 24px;
+    color: rgba(255,255,255,0.8);
+  }
+  .hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+  .hero .subtitle {
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.7);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Container */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Core Thesis */
+  .thesis {
+    background: var(--bg-gray);
+    border-radius: var(--radius);
+    padding: 48px 40px;
+    margin: -40px auto 48px;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+    box-shadow: var(--shadow-lg);
+  }
+  .thesis blockquote {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+  .thesis p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 64px;
+    padding-top: 32px;
+  }
+  .section-num {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .section-num::before {
+    content: '';
+    width: 24px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+  .section h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    color: var(--primary);
+  }
+  .section .section-sub {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: 28px;
+  }
+
+  /* Three-part structure */
+  .part-block {
+    margin: 24px 0;
+  }
+  .part-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+  .part-label.what { background: var(--accent-light); color: var(--accent); }
+  .part-label.why { background: var(--purple-bg); color: var(--purple); }
+  .part-label.effect { background: var(--green-bg); color: #1B9E3E; }
+  .part-label.detail { background: var(--orange-bg); color: #CC7700; }
+  .part-label.caution { background: var(--red-bg); color: var(--red); }
+
+  /* Cards */
+  .card {
+    background: var(--bg-gray);
+    border-radius: 14px;
+    padding: 28px;
+    margin: 16px 0;
+  }
+  .card-accent {
+    background: var(--primary);
+    color: white;
+    border-radius: 14px;
+    padding: 28px;
+    margin: 16px 0;
+  }
+  .card-accent p, .card-accent li { color: rgba(255,255,255,0.85); }
+  .card-accent strong { color: white; }
+
+  /* Theory card */
+  .theory {
+    background: white;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 14px 14px 0;
+    padding: 20px 24px;
+    margin: 14px 0;
+  }
+  .theory h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .theory .scholar {
+    font-size: 0.82rem;
+    color: var(--text-light);
+    margin-bottom: 8px;
+  }
+  .theory p { font-size: 0.92rem; }
+
+  /* Quote */
+  .quote {
+    border-left: 3px solid var(--primary);
+    padding: 16px 24px;
+    margin: 20px 0;
+    background: var(--bg-gray);
+    border-radius: 0 12px 12px 0;
+    font-style: italic;
+    color: var(--primary);
+  }
+  .quote .attr {
+    font-style: normal;
+    font-size: 0.82rem;
+    color: var(--text-light);
+    margin-top: 8px;
+  }
+
+  /* Tables */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  thead { background: var(--bg-gray); }
+  th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #F0F0F0;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #FAFAFA; }
+
+  /* Journey map */
+  .journey {
+    margin: 32px 0;
+  }
+  .journey-phase {
+    margin-bottom: 24px;
+  }
+  .journey-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .journey-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .journey-title {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .journey-items {
+    margin-left: 24px;
+    padding-left: 16px;
+    border-left: 2px solid var(--border);
+  }
+  .journey-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    gap: 16px;
+    font-size: 0.88rem;
+  }
+  .journey-item .device { color: var(--text); font-weight: 500; }
+  .journey-item .psych {
+    color: var(--text-light);
+    font-size: 0.82rem;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Insight box */
+  .insight {
+    background: linear-gradient(135deg, var(--primary) 0%, #333336 100%);
+    color: white;
+    border-radius: var(--radius);
+    padding: 32px;
+    margin: 32px 0;
+  }
+  .insight h3 {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+  .insight-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 640px) {
+    .insight-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 2rem; }
+  }
+  .insight-item {
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .insight-item .num {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.5);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .insight-item p {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.5;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 48px 0;
+  }
+
+  /* Compare */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) {
+    .compare { grid-template-columns: 1fr; }
+  }
+  .compare-box {
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .compare-box.bad {
+    background: var(--red-bg);
+    border: 1px solid #FFD4D1;
+  }
+  .compare-box.bad h4 { color: var(--red); font-size: 0.88rem; margin-bottom: 8px; }
+  .compare-box.good {
+    background: var(--green-bg);
+    border: 1px solid #B8F0CC;
+  }
+  .compare-box.good h4 { color: #1B9E3E; font-size: 0.88rem; margin-bottom: 8px; }
+  .compare-box p { font-size: 0.9rem; }
+
+  /* Stat */
+  .stat-row {
+    display: flex;
+    gap: 16px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+  .stat {
+    flex: 1;
+    min-width: 140px;
+    background: var(--bg-gray);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat .number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+  .stat .label {
+    font-size: 0.82rem;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+
+  p { margin-bottom: 10px; }
+  ul, ol { padding-left: 20px; margin-bottom: 10px; }
+  li { margin-bottom: 6px; font-size: 0.92rem; }
+  strong { font-weight: 700; }
+  .small { font-size: 0.85rem; color: var(--text-light); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-light);
+    font-size: 0.82rem;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">Consumer Psychology &times; Behavioral Economics &times; Retail Design</div>
+    <h1>Apple Store<br>심리학 심층 해부</h1>
+    <p class="subtitle">모든 디테일에는 이유가 있다</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Core Thesis -->
+  <div class="thesis">
+    <blockquote>"팔지 않는 것이 가장 잘 파는 것이다."</blockquote>
+    <p>세계 최고의 단위면적 매출을 기록하는 매장에는 "사세요"라는 메시지가 어디에도 없다. 이 역설의 비밀은 20개 이상의 심리학 원리가 동시에 작동하는 시스템 설계에 있다.</p>
+  </div>
+
+  <!-- Proof Numbers -->
+  <div style="margin-bottom: 48px;">
+    <div class="stat-row">
+      <div class="stat"><div class="number">$5,546</div><div class="label">sqft당 매출 (업계 1위, 2위 Tiffany의 1.9배)</div></div>
+      <div class="stat"><div class="number">96.4%</div><div class="label">iPhone 재구매 의향 (2026, 역대 최고)</div></div>
+      <div class="stat"><div class="number">1.1억</div><div class="label">분기당 매장 방문자 수</div></div>
+      <div class="stat"><div class="number">NPS 68</div><div class="label">업계 평균 41 대비 +27p</div></div>
+    </div>
+    <p class="small" style="text-align: center; margin-top: 8px;">출처: Marketing Charts, SellCell 2026, TechCrunch, CustomerGauge</p>
+  </div>
+
+  <!-- Section 1: 76 degrees -->
+  <div class="section" id="s1">
+    <div class="section-num">Case 01</div>
+    <h2>76도의 비밀</h2>
+    <p class="section-sub">만지게 만드는 설계</p>
+
+    <div class="part-block">
+      <div class="part-label what">무엇을 했는가</div>
+      <p>MacBook은 바닥면 기준 <strong>76도</strong>, iPad은 <strong>67도</strong>로 진열된다. 76도는 거의 수직에 가까운 각도로, 이 상태에서는 화면 내용을 제대로 볼 수 없다. 고객이 화면을 보려면 <strong>반드시 손으로 직접 각도를 조절</strong>해야 한다.</p>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="number">76°</div><div class="label">MacBook 전시 각도</div></div>
+      <div class="stat"><div class="number">67°</div><div class="label">iPad 전시 각도</div></div>
+      <div class="stat"><div class="number">2~3x</div><div class="label">소유효과에 의한 가치 과대평가</div></div>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label why">왜 이렇게 했는가</div>
+
+      <div class="theory">
+        <h4>소유효과 (Endowment Effect)</h4>
+        <div class="scholar">Thaler (1980), Kahneman, Knetsch &amp; Thaler (1990)</div>
+        <p>사람은 물건을 한 번이라도 소유(또는 소유했다고 느끼면)하면 그 가치를 <strong>실제보다 2~3배 높게</strong> 평가한다. Apple Store에서 노트북 각도를 내 손으로 조절하는 순간, 뇌는 "이건 내가 쓰고 있는 것"이라는 미세한 소유 신호를 받는다. 이후 내려놓고 나가는 것은 심리적으로 <strong>"내 것을 잃는 것"</strong>이 된다.</p>
+      </div>
+
+      <div class="theory">
+        <h4>액트 마케팅 (Act Marketing)</h4>
+        <div class="scholar">곽영식 교수 (경상대)</div>
+        <p>고객이 직접 행동하면 몰입이 깊어진다. 샤브샤브 식당에서 손님이 직접 재료를 넣는 것과 같은 원리. <strong>수동적 관찰자가 능동적 참여자로</strong> 전환되는 순간, 제품에 대한 심리적 투자가 시작된다.</p>
+      </div>
+
+      <div class="theory">
+        <h4>촉각 프라이밍 (Haptic Priming) / 체화된 인지 (Embodied Cognition)</h4>
+        <div class="scholar">Barsalou (1999)</div>
+        <p>차갑고 매끈한 알루미늄, 유리 스크린의 감촉이 "프리미엄"이라는 인상을 무의식적으로 각인한다. 신체 감각이 판단과 결정에 직접 영향을 준다.</p>
+      </div>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label effect">정량적 증거</div>
+      <div class="card" style="background: var(--accent-light); border: 1px solid #B3D9F7;">
+        <div class="stat-row" style="margin: 0;">
+          <div class="stat" style="background: white;"><div class="number">+33%</div><div class="label">터치 후 지불 의사 증가<br><span style="font-size: 0.75rem;">VR Touch Study</span></div></div>
+          <div class="stat" style="background: white;"><div class="number">2~3x</div><div class="label">소유 시 가치 과대평가<br><span style="font-size: 0.75rem;">Kahneman et al. 1990</span></div></div>
+          <div class="stat" style="background: white;"><div class="number">$5,546</div><div class="label">sqft당 매출 (업계 1위)<br><span style="font-size: 0.75rem;">Tiffany $2,951의 1.9배</span></div></div>
+        </div>
+        <p class="small" style="text-align: center; margin-top: 12px;">Peck &amp; Shu (2009, JCR): 물건을 만지는 것만으로 심리적 소유감이 유의미하게 증가. 접촉 시간이 길어질수록 애착과 가치 평가가 비례적으로 상승.</p>
+      </div>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label detail">추가 디테일</div>
+      <p>76도는 동시에 <strong>휠체어 사용자</strong>가 화면을 편하게 볼 수 있는 각도이기도 하다. 실용성과 심리학이 교차하는 지점 &mdash; Apple은 이런 설계를 "우연"이 아닌 "의도"로 만든다.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 2: Forbidden words -->
+  <div class="section" id="s2">
+    <div class="section-num">Case 02</div>
+    <h2>금지어 시스템</h2>
+    <p class="section-sub">언어가 현실을 만든다</p>
+
+    <div class="part-block">
+      <div class="part-label what">무엇을 했는가</div>
+      <p>Apple은 직원이 <strong>절대 사용하면 안 되는 단어 목록</strong>을 관리한다. Gizmodo가 입수한 실제 Genius 교육 매뉴얼에 기반한 내용이다.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>금지어</th><th>대체어</th><th>왜 바꾸는가</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Crash</strong> (충돌)</td><td>Stops responding</td><td>"충돌"은 심각한 결함 연상. "응답 중지"는 일시적 상태</td></tr>
+            <tr><td><strong>Bug</strong> (버그)</td><td>Issue / Condition</td><td>"버그"는 제품 자체 결함. "상황"은 해결 가능한 조건</td></tr>
+            <tr><td><strong>Hot</strong> (뜨거운)</td><td>Warm (따뜻한)</td><td>"뜨거운"은 안전 위험. "따뜻한"은 정상 범위</td></tr>
+            <tr><td><strong>Eliminate</strong></td><td>Reduce</td><td>"제거"는 공격적. "줄이다"는 완화적</td></tr>
+            <tr><td><strong>Disaster</strong></td><td>Error</td><td>감정적 강도를 중립으로 낮춤</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label why">왜 이렇게 했는가</div>
+
+      <div class="theory">
+        <h4>프레이밍 효과 (Framing Effect)</h4>
+        <div class="scholar">Tversky &amp; Kahneman (1981)</div>
+        <p>같은 사실이라도 어떤 단어로 표현하느냐에 따라 사람의 판단과 감정이 달라진다. "당신의 컴퓨터가 충돌했습니다" vs "응답을 중지한 상태입니다" &mdash; 같은 현상인데 심리적 무게가 전혀 다르다.</p>
+      </div>
+
+      <div class="theory">
+        <h4>인지 부조화 감소 (Cognitive Dissonance Reduction)</h4>
+        <div class="scholar">Festinger (1957)</div>
+        <p>고객은 비싼 돈을 주고 Apple 제품을 샀다. "이 제품에 버그가 있다"는 정보는 구매 결정과 충돌 &rarr; 인지 부조화 &rarr; 불쾌감. "일시적 상황이 발생했다"로 바꾸면 구매 결정과 충돌하지 않아 불쾌감이 최소화된다.</p>
+      </div>
+    </div>
+
+    <div class="card-accent">
+      <h4 style="font-size: 1rem; margin-bottom: 12px;">"turns out" &mdash; 가장 정교한 언어 장치</h4>
+      <p>고객이 틀린 조작을 했을 때, 직원은 이렇게 말한다:</p>
+      <div class="quote" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); color: white;">
+        "알고 보니(turns out) 이 기능은 이렇게 작동합니다."
+      </div>
+      <ul>
+        <li>"틀렸습니다"라고 하면 &rarr; 자존심 손상 &rarr; 방어 태세 &rarr; 매장 이탈</li>
+        <li>"알고 보니"라고 하면 &rarr; 진실이 "우연히 나타난 것"처럼 느껴짐 &rarr; 누구의 잘못도 아님</li>
+        <li>고객의 <strong>자기효능감(Self-Efficacy)</strong>을 보호하면서 올바른 사용법을 전달</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 3: Three Fs -->
+  <div class="section" id="s3">
+    <div class="section-num">Case 03</div>
+    <h2>Three Fs 화법</h2>
+    <p class="section-sub">거절을 수용으로 바꾸는 기술</p>
+
+    <div class="part-block">
+      <div class="part-label what">무엇을 했는가</div>
+      <p>고객이 반박하거나 불만을 제기할 때, Apple 직원은 <strong>Feel-Felt-Found</strong> 3단계 화법을 사용한다.</p>
+    </div>
+
+    <div class="card" style="padding: 32px;">
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <div style="background: var(--accent); color: white; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0;">F1</div>
+          <div>
+            <strong>Feel</strong> &mdash; 감정 인정<br>
+            <span class="small">"그렇게 느끼시는 게 이해됩니다."</span><br>
+            <span style="font-size: 0.85rem; color: var(--accent);">심리학: 공감 반응 &mdash; 감정이 인정되면 방어 태세 해제</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <div style="background: var(--accent); color: white; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0;">F2</div>
+          <div>
+            <strong>Felt</strong> &mdash; 정상화<br>
+            <span class="small">"저도 처음에 가격이 좀 높다고 느꼈습니다."</span><br>
+            <span style="font-size: 0.85rem; color: var(--accent);">심리학: 사회적 증거 &mdash; "당신만 그런 게 아니다" + 같은 고민을 거친 동료로 포지셔닝</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <div style="background: var(--accent); color: white; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0;">F3</div>
+          <div>
+            <strong>Found</strong> &mdash; 인지적 재프레이밍<br>
+            <span class="small">"내장 소프트웨어와 기능을 생각하면 합리적 가치라는 걸 알게 됐습니다."</span><br>
+            <span style="font-size: 0.85rem; color: var(--accent);">심리학: "비싸다" &rarr; "가치 있다"로 프레임 전환. 직접 반박하지 않는 것이 핵심</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote">
+      "이 기법은 고객이 틀렸을 때 특히 잘 작동한다."
+      <div class="attr">&mdash; Apple 내부 교육 매뉴얼</div>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label effect">실제 효과</div>
+      <p>고객이 "틀렸다"고 들으면 심리적 반발(Psychological Reactance)이 발생한다. Three Fs는 고객이 <strong>스스로 결론을 바꾸도록</strong> 유도하는 장치다. 직원이 이기는 것이 아니라 고객이 스스로 발견하게 만든다.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 4: No checkout -->
+  <div class="section" id="s4">
+    <div class="section-num">Case 04</div>
+    <h2>계산대가 없다</h2>
+    <p class="section-sub">지불 고통의 비가시화</p>
+
+    <div class="part-block">
+      <div class="part-label what">무엇을 했는가</div>
+      <p>Apple Store에는 <strong>눈에 보이는 계산대가 없다.</strong> 직원이 아이폰이나 아이패드로 바로 결제를 처리한다. 영수증은 이메일로 전송된다.</p>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label why">왜 이렇게 했는가</div>
+      <div class="theory">
+        <h4>지불 고통 (Pain of Paying)</h4>
+        <div class="scholar">Prelec &amp; Loewenstein (1998)</div>
+        <p>인간은 돈을 지불할 때 <strong>물리적 고통과 유사한 뇌 영역</strong>이 활성화된다. 현금 > 카드 > 모바일 결제 순으로 고통이 줄어든다. Apple Store는 여기서 한 단계 더 나간다: 결제 행위 자체를 보이지 않게 만든다.</p>
+      </div>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label effect">4가지 구체적 효과</div>
+      <ol>
+        <li><strong>심리적 전환점 제거</strong>: 계산대로 이동 = "이제 돈을 내야 한다"는 신호. 이 전환점 자체를 없앰</li>
+        <li><strong>대화의 연장</strong>: 대화 도중 자연스럽게 결제 &rarr; 구매가 "경험의 일부"로 느껴짐</li>
+        <li><strong>재고 기회 차단</strong>: 줄 서기가 없으므로 "기다리는 동안 다시 생각하기" 불가</li>
+        <li><strong>물리적 증거 약화</strong>: 종이 영수증 없음 &rarr; 지출 금액의 가시성 감소</li>
+      </ol>
+    </div>
+
+    <div class="compare">
+      <div class="compare-box bad">
+        <h4>일반 매장</h4>
+        <p>체험 &rarr; <strong>계산대 이동</strong> (전환점) &rarr; 줄 서기 (재고) &rarr; 결제 (고통) &rarr; 영수증 (증거)</p>
+      </div>
+      <div class="compare-box good">
+        <h4>Apple Store</h4>
+        <p>체험 &rarr; 대화 &rarr; 자연스러운 결제 &rarr; 이메일 영수증</p>
+        <p class="small" style="margin-top: 4px;">전환점, 줄, 고통, 물리적 증거 &mdash; 4가지 모두 제거</p>
+      </div>
+    </div>
+
+    <div class="card" style="background: var(--accent-light); border: 1px solid #B3D9F7;">
+      <div class="stat-row" style="margin: 0;">
+        <div class="stat" style="background: white;"><div class="number">+100%</div><div class="label">카드 결제 시 지불 의사 증가<br><span style="font-size: 0.75rem;">Prelec &amp; Simester, MIT 2001</span></div></div>
+        <div class="stat" style="background: white;"><div class="number">$22 vs $112</div><div class="label">현금 vs 비현금 평균 거래액<br><span style="font-size: 0.75rem;">Fed Reserve Bank of Boston</span></div></div>
+      </div>
+      <p class="small" style="text-align: center; margin-top: 12px;">71편 논문·392 효과크기 메타분석(2024): 캐시리스 결제가 유의미하게 지출을 증가시킴. fMRI 연구에서 카드 결제 시 뇌의 보상 중추(선조체)가 활성화됨.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 5: No commission -->
+  <div class="section" id="s5">
+    <div class="section-num">Case 05</div>
+    <h2>무커미션 직원</h2>
+    <p class="section-sub">신뢰가 가장 비싼 자산이다</p>
+
+    <div class="part-block">
+      <div class="part-label what">무엇을 했는가</div>
+      <p>Apple Store 직원은 <strong>판매 수수료를 받지 않는다.</strong> 얼마를 팔든 급여에 변화가 없다.</p>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label why">왜 이렇게 했는가</div>
+      <div class="theory">
+        <h4>귀인 모호성 (Attribution Ambiguity) 제거</h4>
+        <div class="scholar">Kelley (1973) 귀인 이론</div>
+        <p>일반 매장에서 직원이 추천하면 고객의 첫 반응은 "수당 때문에 추천하는 거 아냐?" 이 의심은 심리적 장벽을 만든다. Apple은 무커미션 정책을 통해 이 장벽을 구조적으로 제거했다.</p>
+      </div>
+    </div>
+
+    <div class="compare">
+      <div class="compare-box bad">
+        <h4>커미션 매장 여정</h4>
+        <p>낯선 사람 &rarr; 판매원 (경계) &rarr; 구매 (저항 극복) &rarr; 이탈</p>
+      </div>
+      <div class="compare-box good">
+        <h4>Apple Store 여정</h4>
+        <p>낯선 사람 &rarr; 도우미 (신뢰) &rarr; 미니 우정 &rarr; 자연스러운 구매 &rarr; 재방문</p>
+      </div>
+    </div>
+
+    <div class="card" style="background: var(--accent-light); border: 1px solid #B3D9F7;">
+      <div class="stat-row" style="margin: 0;">
+        <div class="stat" style="background: white;"><div class="number">2년</div><div class="label">역대 최단 연매출 $10억 달성<br><span style="font-size: 0.75rem;">2004년, 이전 기록 Gap 대비 압도</span></div></div>
+        <div class="stat" style="background: white;"><div class="number">$251만</div><div class="label">직원당 연매출 (FY2025)<br><span style="font-size: 0.75rem;">연봉 $5만 투자 → 9.4배 매출</span></div></div>
+        <div class="stat" style="background: white;"><div class="number">38%</div><div class="label">하드웨어 마진율 (업계 최고)<br><span style="font-size: 0.75rem;">무커미션 정책 고수하며 유지</span></div></div>
+      </div>
+      <p class="small" style="text-align: center; margin-top: 12px;">Ritz-Carlton 호텔의 컨시어지 모델에서 영감. 커미션 제거로 직원이 "감정적 관계" 구축에 집중 → 역대 최단 $10억 매출 달성.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 6: Decoy -->
+  <div class="section" id="s6">
+    <div class="section-num">Case 06</div>
+    <h2>디코이 효과</h2>
+    <p class="section-sub">미끼로 최고급을 판다</p>
+
+    <div class="part-block">
+      <div class="part-label what">무엇을 했는가</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>모델</th><th>가격</th><th>전략적 역할</th></tr></thead>
+          <tbody>
+            <tr><td>iPhone 14</td><td>$799</td><td>기본 옵션 (최저가 앵커)</td></tr>
+            <tr><td><strong>iPhone 14 Plus</strong></td><td><strong>$899</strong></td><td><strong style="color: var(--red);">디코이 (미끼)</strong></td></tr>
+            <tr><td>iPhone 14 Pro</td><td>$999</td><td>타겟 상품</td></tr>
+            <tr><td>iPhone 14 Pro Max</td><td>$1,099</td><td>프리미엄 (최고가 앵커)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label why">왜 이렇게 했는가</div>
+      <div class="theory">
+        <h4>디코이 효과 (Decoy Effect / 비대칭적 지배)</h4>
+        <div class="scholar">Huber, Payne &amp; Puto (1982)</div>
+        <p>"비대칭적으로 열등한 옵션"을 추가하면 인접한 상위 옵션의 매력이 극적으로 증가한다. iPhone 14 Plus는 기본 모델보다 $100 비싸지만 화면만 크고 카메라/칩은 동일. Pro는 $100만 더 내면 모든 것이 업그레이드. Plus를 본 고객의 사고: <strong>"겨우 $100 차이인데 Pro가 훨씬 낫잖아"</strong></p>
+      </div>
+      <div class="theory">
+        <h4>앵커링 효과 (Anchoring)</h4>
+        <div class="scholar">Tversky &amp; Kahneman (1974)</div>
+        <p>매장에 들어오면 Pro Max($1,099)가 가장 눈에 잘 띄는 위치에 진열. $1,099를 먼저 보면, $999가 "합리적"으로 느껴진다.</p>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="number">24%→50%</div><div class="label">Pro 라인 비중 (4년간 2배)</div></div>
+      <div class="stat"><div class="number">$705→$1,000</div><div class="label">iPhone ASP 변화 (+42%)</div></div>
+      <div class="stat"><div class="number">14.3%</div><div class="label">Plus(미끼) 판매 비중 (최저)</div></div>
+    </div>
+    <p class="small" style="text-align: center;">출처: Accio iPhone Sales Trends, BusinessWire 2026, PhoneArena. Q4 2025 iPhone ASP가 사상 최초로 $1,000 돌파.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 7: APPLE steps -->
+  <div class="section" id="s7">
+    <div class="section-num">Case 07</div>
+    <h2>A.P.P.L.E. 서비스 5단계</h2>
+    <p class="section-sub">경험의 처음과 끝을 설계한다</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>단계</th><th>행동</th><th>작동하는 심리학</th></tr></thead>
+        <tbody>
+          <tr><td><strong>A</strong>pproach</td><td>10초 내, 10피트 내에서 따뜻하게 환영</td><td><strong>첫인상 효과</strong>: 첫 7초의 인상이 전체 경험을 결정</td></tr>
+          <tr><td><strong>P</strong>robe</td><td>정중하게 질문하여 니즈 파악</td><td><strong>자기결정이론</strong>: 질문을 받으면 대화 주도권과 통제감 형성</td></tr>
+          <tr><td><strong>P</strong>resent</td><td>오늘 가져갈 수 있는 솔루션 제시</td><td><strong>즉시성 편향</strong>: "오늘"이라는 단어가 행동 확률을 높임</td></tr>
+          <tr><td><strong>L</strong>isten</td><td>우려사항 경청 및 해결</td><td><strong>능동적 경청</strong>: 마지막 반론 해소 &rarr; "모든 걱정을 검토했다"는 완결감</td></tr>
+          <tr><td><strong>E</strong>nd</td><td>따뜻한 작별 + 재방문 초대</td><td><strong>최근 효과</strong>: 마지막 순간이 전체 방문을 긍정적으로 재구성</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="theory">
+      <h4>피크-엔드 법칙 (Peak-End Rule)</h4>
+      <div class="scholar">Kahneman (1993)</div>
+      <p>사람은 경험 전체를 평가할 때 <strong>가장 강렬한 순간(Peak)</strong>과 <strong>마지막 순간(End)</strong>만 기억한다. Peak = 제품을 직접 만져보고 "오, 좋다"라고 느끼는 순간. End = 따뜻한 작별. 중간에 대기 시간이 있었더라도, 이 두 순간이 좋으면 전체가 "좋았다"로 기억된다.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 8: Lighting -->
+  <div class="section" id="s8">
+    <div class="section-num">Case 08</div>
+    <h2>인공 하늘</h2>
+    <p class="section-sub">시간을 잊게 만드는 조명</p>
+
+    <div class="part-block">
+      <div class="part-label what">무엇을 했는가</div>
+      <div class="stat-row">
+        <div class="stat"><div class="number">18</div><div class="label">미러글라스 스카이렌즈</div></div>
+        <div class="stat"><div class="number">62</div><div class="label">천장 채광창</div></div>
+        <div class="stat"><div class="number">2,500</div><div class="label">LED 스포트라이트</div></div>
+        <div class="stat"><div class="number">5</div><div class="label">시간대별 조명 모드</div></div>
+      </div>
+      <p>이 조명 시스템은 <strong>실시간으로 외부 환경에 반응</strong>한다. 밖이 화창하면 매장도 밝아지고, 흐린 날이면 은은해지며, 일출/일몰에는 따뜻한 색온도로 전환된다.</p>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label why">왜 이렇게 했는가</div>
+      <div class="theory">
+        <h4>서카디안 리듬 동기화</h4>
+        <div class="scholar">Czeisler et al. (1999)</div>
+        <p>인간의 신체는 빛의 색온도에 반응하여 각성/이완 상태를 조절한다. 형광등(5,000K+)은 차갑고 피로감을 유발한다. 자연광에 가까운 조명은 <strong>"밖에 있는 것 같은" 편안함</strong>을 제공하고 체류 시간을 늘린다.</p>
+      </div>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label detail">그림자 정렬이라는 집착</div>
+      <p>Apple Store에서는 <strong>모든 그림자의 각도가 일직선으로 정렬</strong>되어 있다. 의식적으로 인지하지 못하지만, 무의식적으로 시각적 질서감과 "자연스러움"을 만든다. 게슈탈트 심리학의 <strong>연속의 법칙(Law of Good Continuation)</strong>.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 9: Empathy vs Sympathy -->
+  <div class="section" id="s9">
+    <div class="section-num">Case 09</div>
+    <h2>공감 vs 동정</h2>
+    <p class="section-sub">사과하지 않는 기술</p>
+
+    <div class="compare">
+      <div class="compare-box good">
+        <h4>공감 (해야 할 것)</h4>
+        <p>"답답하신 마음이 이해됩니다."</p>
+        <p class="small">감정 상태를 인정 &rarr; 방어 해제 &rarr; 협조적 대화</p>
+      </div>
+      <div class="compare-box bad">
+        <h4>동정 (하면 안 되는 것)</h4>
+        <p>"저희 제품에 문제가 있어서 죄송합니다."</p>
+        <p class="small">제품 결함 인정 &rarr; 인지 부조화 강화 &rarr; 불만 증폭</p>
+      </div>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label why">왜 이렇게 했는가</div>
+      <div class="theory">
+        <h4>심리적 반응성 (Psychological Reactance)</h4>
+        <div class="scholar">Brehm (1966)</div>
+        <p>"저희 잘못입니다"라고 하면, 고객의 뇌는 "그래, 네 잘못이지"라는 방향으로 더 강화된다. 반면 "답답하셨겠다"는 잘잘못을 논하지 않고 <strong>감정 상태만 인정</strong>한다. 인지 부조화 없이 문제 해결로 넘어갈 수 있다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 10: Body Language -->
+  <div class="section" id="s10">
+    <div class="section-num">Case 10</div>
+    <h2>바디 랭귀지 매뉴얼</h2>
+    <p class="section-sub">고객이 말하지 않은 것을 읽는다</p>
+
+    <div class="part-block">
+      <div class="part-label what">무엇을 했는가</div>
+      <p>Genius 교육 매뉴얼 45페이지에 고객의 비언어적 신호를 해독하는 가이드가 있다.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>고객 행동</th><th>의미</th><th>직원 대응</th></tr></thead>
+          <tbody>
+            <tr><td>미소, 코트 단추 풀기</td><td style="color: #1B9E3E;">개방적</td><td>제품 제안 가능</td></tr>
+            <tr><td>테이블 두드리기, 빈 시선</td><td style="color: var(--orange);">지루함</td><td>주제 전환, 새 체험 제안</td></tr>
+            <tr><td>목 뒤에 손, 짧은 호흡</td><td style="color: var(--orange);">좌절감</td><td>즉시 도움, 공감 표현</td></tr>
+            <tr><td>팔짱, 발목 꼬기</td><td style="color: var(--red);">방어적</td><td>압박 줄이기, 열린 질문</td></tr>
+            <tr><td>허리에 손, 검지 가리키기</td><td style="color: var(--red);">공격적/화남</td><td>경청 모드, Three Fs 화법</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="part-block">
+      <div class="part-label effect">실제 효과</div>
+      <p>전자제품 매장 직원이 바디 랭귀지 교육을 받는 경우는 거의 없다. Apple은 리테일 직원을 <strong>호텔 컨시어지나 심리상담사 수준</strong>으로 훈련한다. 고객이 문제를 말하기 전에 해결하는 서비스 경험을 만든다.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 11: Ecosystem -->
+  <div class="section" id="s11">
+    <div class="section-num">Case 11</div>
+    <h2>생태계 잠금</h2>
+    <p class="section-sub">떠날 수 없게 만드는 보이지 않는 벽</p>
+
+    <div class="part-block">
+      <div class="part-label why">3중 심리적 잠금 구조</div>
+
+      <div class="theory">
+        <h4>현상유지 편향 (Status Quo Bias)</h4>
+        <div class="scholar">Samuelson &amp; Zeckhauser (1988)</div>
+        <p>현재 상태를 바꾸는 것보다 유지하는 것을 선호. Apple 생태계 안에서는 모든 것이 "그냥 작동"(It just works) &rarr; 바꿀 이유가 없다고 느낌.</p>
+      </div>
+
+      <div class="theory">
+        <h4>손실 회피 (Loss Aversion)</h4>
+        <div class="scholar">Kahneman &amp; Tversky (1979)</div>
+        <p>이득의 기쁨보다 같은 크기 손실의 고통이 <strong>2배</strong> 크다. Android로 전환하면 iCloud, AirDrop, iMessage, Apple Watch 연동 등 잃는 것의 목록이 길다. 이 "잃는 것들"의 심리적 무게가 "새로 얻는 것들"보다 2배 크게 느껴진다.</p>
+      </div>
+
+      <div class="theory">
+        <h4>매몰비용 효과 (Sunk Cost Fallacy)</h4>
+        <div class="scholar">Arkes &amp; Blumer (1985)</div>
+        <p>"이미 iCloud에 연 ₩11,900을 내고 있고, AirPods도 샀고, Apple Watch도 있는데..." 이미 투자한 비용이 전환을 막는 심리적 장벽.</p>
+      </div>
+    </div>
+
+    <div class="card" style="background: var(--accent-light); border: 1px solid #B3D9F7;">
+      <div class="stat-row" style="margin: 0;">
+        <div class="stat" style="background: white;"><div class="number">92%</div><div class="label">iPhone 리텐션률 (2025)<br><span style="font-size: 0.75rem;">Samsung 77% 대비 +15%p</span></div></div>
+        <div class="stat" style="background: white;"><div class="number">3.6%</div><div class="label">iPhone→Android 전환 의향<br><span style="font-size: 0.75rem;">역방향 13.6%의 1/4</span></div></div>
+        <div class="stat" style="background: white;"><div class="number">+40%</div><div class="label">Apple One 번들 사용자 지출<br><span style="font-size: 0.75rem;">비번들 사용자 대비</span></div></div>
+        <div class="stat" style="background: white;"><div class="number">22억</div><div class="label">전 세계 활성 Apple 기기<br><span style="font-size: 0.75rem;">서비스 매출 $1,091억 (2025)</span></div></div>
+      </div>
+      <p class="small" style="text-align: center; margin-top: 12px;">출처: SellCell 2026, TechLila, CDO Times. 크로스 디바이스 연동 시 전환 의향 20~30% 감소, 번들 사용자 리텐션 30% 더 높음.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 12: Packaging -->
+  <div class="section" id="s12">
+    <div class="section-num">Case 12</div>
+    <h2>패키징 &mdash; 극장이 된 상자</h2>
+    <p class="section-sub">Jony Ive: "패키징은 극장(theater)이 될 수 있다."</p>
+
+    <div class="part-block">
+      <div class="part-label what">무엇을 했는가</div>
+      <p>Apple에는 <strong>패키징 전용 방</strong>이 있다. 전담 디자이너가 수개월 동안 수백 개의 프로토타입을 열어본다.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>장치</th><th>심리학 원리</th><th>효과</th></tr></thead>
+        <tbody>
+          <tr><td>뚜껑의 느린 개봉</td><td>기대 심리 (Anticipation)</td><td>공기 포켓이 진공 효과 &rarr; 기다림이 보상 가치를 높임</td></tr>
+          <tr><td>정밀한 내부 트레이</td><td>후광효과 (Halo Effect)</td><td>"여기까지 신경 썼다면 제품도 좋겠지" 전이</td></tr>
+          <tr><td>두꺼운 무광 종이</td><td>촉각 프라이밍</td><td>손에 닿는 순간 "프리미엄" 각인</td></tr>
+          <tr><td>미니멀 외부 디자인</td><td>선택적 주의</td><td>제품 자체에만 집중</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="number">250억</div><div class="label">YouTube "unboxing" 총 조회수</div></div>
+      <div class="stat"><div class="number">430억</div><div class="label">TikTok #unboxing 조회수</div></div>
+      <div class="stat"><div class="number">235만</div><div class="label">iPhone 6 언박싱 영상 수</div></div>
+      <div class="stat"><div class="number">62%</div><div class="label">제품 탐색 시 언박싱 영상 시청 비율</div></div>
+    </div>
+    <p class="small" style="text-align: center;">출처: Packaging Dive, SlashGear, Inc.com. Apple은 전담 "Unboxing Room"에 투자하여 수백억 회의 무료 노출을 만들어낸다.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ROI Summary -->
+  <div class="section" id="roi">
+    <div class="section-num">ROI 종합</div>
+    <h2>심리학 전략별 투자 대비 효과</h2>
+    <p class="section-sub">숫자가 증명하는 디테일의 가치</p>
+
+    <div class="card-accent">
+      <h4 style="font-size: 1rem; margin-bottom: 16px;">5번가 플래그십 스토어</h4>
+      <div class="stat-row" style="margin: 0;">
+        <div class="stat" style="background: rgba(255,255,255,0.1);"><div class="number" style="color: white;">$1,200만</div><div class="label" style="color: rgba(255,255,255,0.7);">건설 비용</div></div>
+        <div class="stat" style="background: rgba(255,255,255,0.1);"><div class="number" style="color: white;">$4.5억</div><div class="label" style="color: rgba(255,255,255,0.7);">연매출 (2014)</div></div>
+        <div class="stat" style="background: rgba(255,255,255,0.1);"><div class="number" style="color: white;">~2주</div><div class="label" style="color: rgba(255,255,255,0.7);">건설비 회수 기간</div></div>
+        <div class="stat" style="background: rgba(255,255,255,0.1);"><div class="number" style="color: white;">$35,000</div><div class="label" style="color: rgba(255,255,255,0.7);">sqft당 연매출</div></div>
+      </div>
+    </div>
+
+    <div class="table-wrap" style="margin-top: 20px;">
+      <table>
+        <thead><tr><th>심리학 전략</th><th>적용 방식</th><th>정량적 효과</th></tr></thead>
+        <tbody>
+          <tr><td><strong>소유효과</strong></td><td>76도 진열, 자유 터치</td><td>WTP +33%, 가치 인식 2~3배</td></tr>
+          <tr><td><strong>지불 고통 제거</strong></td><td>계산대 제거, Apple Pay</td><td>비현금 결제 시 지출 +12~100%</td></tr>
+          <tr><td><strong>미끼효과</strong></td><td>Plus 모델 배치</td><td>Pro 비중 24%&rarr;50%, ASP $705&rarr;$1,000</td></tr>
+          <tr><td><strong>호혜성</strong></td><td>Today at Apple (주 18,000 세션)</td><td>연 500만 명 유인</td></tr>
+          <tr><td><strong>무커미션</strong></td><td>직원 교육 중심</td><td>최단 $10억 달성, NPS 68 (+27p)</td></tr>
+          <tr><td><strong>생태계 잠금</strong></td><td>디바이스/서비스 통합</td><td>리텐션 92%, 전환 3.6%, 번들 +40% 지출</td></tr>
+          <tr><td><strong>언박싱 설계</strong></td><td>Unboxing Room 투자</td><td>250억 YouTube + 430억 TikTok 조회</td></tr>
+          <tr><td><strong>플래그십</strong></td><td>5번가 등 아이코닉 매장</td><td>건설비 $1,200만 &rarr; 연매출 $4.5억</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Journey Map -->
+  <div class="section" id="map">
+    <div class="section-num">종합</div>
+    <h2>고객 여정별 심리학 맵</h2>
+    <p class="section-sub">Apple Store에서 우연한 것은 단 하나도 없다</p>
+
+    <div class="journey">
+      <div class="journey-phase">
+        <div class="journey-header">
+          <div class="journey-dot" style="background: var(--text-light);"></div>
+          <div class="journey-title">입장 전</div>
+        </div>
+        <div class="journey-items">
+          <div class="journey-item"><span class="device">유리벽으로 내부가 보임</span><span class="psych">사회적 증거, 밴드왜건 효과</span></div>
+          <div class="journey-item"><span class="device">유리 큐브 건축</span><span class="psych">투명성의 심리학, 랜드마크 효과</span></div>
+        </div>
+      </div>
+      <div class="journey-phase">
+        <div class="journey-header">
+          <div class="journey-dot" style="background: var(--accent);"></div>
+          <div class="journey-title">입장 순간</div>
+        </div>
+        <div class="journey-items">
+          <div class="journey-item"><span class="device">10초 내 환영 인사</span><span class="psych">첫인상 효과 (Primacy)</span></div>
+          <div class="journey-item"><span class="device">오픈 플로어, 자연광</span><span class="psych">서카디안 리듬, 인지 부하 감소</span></div>
+        </div>
+      </div>
+      <div class="journey-phase">
+        <div class="journey-header">
+          <div class="journey-dot" style="background: var(--green);"></div>
+          <div class="journey-title">체험 과정</div>
+        </div>
+        <div class="journey-items">
+          <div class="journey-item"><span class="device">76도 노트북 각도</span><span class="psych">소유효과 (Endowment)</span></div>
+          <div class="journey-item"><span class="device">무제한 터치, 포장 없는 진열</span><span class="psych">촉각 프라이밍, 체화된 인지</span></div>
+          <div class="journey-item"><span class="device">3~5개 옵션만 진열</span><span class="psych">선택 과부하 방지</span></div>
+          <div class="journey-item"><span class="device">인공 하늘 조명</span><span class="psych">시간 왜곡, 체류 시간 증가</span></div>
+        </div>
+      </div>
+      <div class="journey-phase">
+        <div class="journey-header">
+          <div class="journey-dot" style="background: var(--purple);"></div>
+          <div class="journey-title">대화 과정</div>
+        </div>
+        <div class="journey-items">
+          <div class="journey-item"><span class="device">A.P.P.L.E. 5단계</span><span class="psych">첫인상 + 자기결정 + 최근 효과</span></div>
+          <div class="journey-item"><span class="device">Three Fs 화법</span><span class="psych">공감 &rarr; 사회적 증거 &rarr; 재프레이밍</span></div>
+          <div class="journey-item"><span class="device">금지어 시스템</span><span class="psych">프레이밍 효과</span></div>
+          <div class="journey-item"><span class="device">바디 랭귀지 해독</span><span class="psych">선제적 서비스</span></div>
+          <div class="journey-item"><span class="device">무커미션 정책</span><span class="psych">신뢰 격차 해소</span></div>
+        </div>
+      </div>
+      <div class="journey-phase">
+        <div class="journey-header">
+          <div class="journey-dot" style="background: var(--orange);"></div>
+          <div class="journey-title">결제 순간</div>
+        </div>
+        <div class="journey-items">
+          <div class="journey-item"><span class="device">보이지 않는 계산대</span><span class="psych">지불 고통 최소화</span></div>
+          <div class="journey-item"><span class="device">디코이 가격 라인업</span><span class="psych">디코이 효과 + 앵커링</span></div>
+        </div>
+      </div>
+      <div class="journey-phase">
+        <div class="journey-header">
+          <div class="journey-dot" style="background: var(--red);"></div>
+          <div class="journey-title">퇴장 이후</div>
+        </div>
+        <div class="journey-items">
+          <div class="journey-item"><span class="device">따뜻한 작별 + 재방문 초대</span><span class="psych">최근 효과, 피크-엔드 법칙</span></div>
+          <div class="journey-item"><span class="device">패키징의 느린 개봉</span><span class="psych">기대 심리, 후광효과</span></div>
+          <div class="journey-item"><span class="device">생태계 연동</span><span class="psych">현상유지 + 손실 회피 + 매몰비용</span></div>
+          <div class="journey-item"><span class="device">Today at Apple 커뮤니티</span><span class="psych">호혜성, 사회적 정체성, 장소 애착</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Final Insights -->
+  <div class="insight">
+    <h3>비즈니스 기획자를 위한 4가지 시사점</h3>
+    <div class="insight-grid">
+      <div class="insight-item">
+        <div class="num">01</div>
+        <p><strong>모든 "우연"은 설계다.</strong> 76도의 각도, 그림자의 정렬, 뚜껑이 열리는 속도까지 &mdash; 공간 기획에서 "디테일"이란 이런 수준을 말한다.</p>
+      </div>
+      <div class="insight-item">
+        <div class="num">02</div>
+        <p><strong>"안 판다"는 메시지가 가장 잘 판다.</strong> 계산대 제거, 무커미션, 무료 워크숍 &mdash; 판매 의도를 숨기는 모든 장치가 세계 최고 매출을 만들었다.</p>
+      </div>
+      <div class="insight-item">
+        <div class="num">03</div>
+        <p><strong>심리학은 단발 기법이 아니라 시스템이다.</strong> 20개 이상의 원리가 동시에 작동하는 시스템. 하나만 따라하면 효과 없고, 시스템으로 설계해야 한다.</p>
+      </div>
+      <div class="insight-item">
+        <div class="num">04</div>
+        <p><strong>생태계가 궁극의 잠금장치다.</strong> 현상유지 편향 + 손실 회피 + 매몰비용이 결합되면, 고객은 합리적 판단과 무관하게 머문다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>이 문서는 소비자 의사결정 심리학 학습 체계와 연계됩니다.</p>
+    <p>출처 목록: 35-apple-store-consumer-psychology.md</p>
+    <p style="margin-top: 8px;">2026.04.19</p>
+  </div>
+
+</div>
+</body>
+</html>

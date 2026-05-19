@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모닝 브리핑 — 2026년 5월 6일</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a2e;
+    --surface2: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --text: #eee;
+    --text-dim: #999;
+    --green: #00c853;
+    --yellow: #ffd600;
+    --red: #ff1744;
+    --blue: #448aff;
+    --border: #2a2a4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  .header {
+    text-align: center;
+    padding: 2rem 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #e94560, #0f3460);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .date {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-top: 0.3rem;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .stat-card .number { font-size: 2rem; font-weight: 800; }
+  .stat-card .label { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.2rem; }
+  .stat-card.urgent .number { color: var(--red); }
+  .stat-card.pending .number { color: var(--yellow); }
+  .stat-card.schedule .number { color: var(--blue); }
+  .stat-card.project .number { color: var(--green); }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-title .icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+  }
+  .icon-mail { background: rgba(233,69,96,0.2); }
+  .icon-cal { background: rgba(68,138,255,0.2); }
+  .icon-money { background: rgba(255,214,0,0.2); }
+  .icon-project { background: rgba(0,200,83,0.2); }
+  .icon-todo { background: rgba(233,69,96,0.2); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th {
+    text-align: left; padding: 0.6rem 0.8rem; color: var(--text-dim);
+    font-weight: 600; font-size: 0.8rem; text-transform: uppercase;
+    letter-spacing: 0.5px; border-bottom: 1px solid var(--border);
+  }
+  td { padding: 0.7rem 0.8rem; border-bottom: 1px solid rgba(42,42,74,0.5); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  a.mail-link { color: var(--text); text-decoration: none; border-bottom: 1px dashed var(--text-dim); transition: all 0.2s; }
+  a.mail-link:hover { color: var(--blue); border-bottom-color: var(--blue); }
+
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .badge-red { background: rgba(255,23,68,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(255,214,0,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(0,200,83,0.15); color: var(--green); }
+  .badge-blue { background: rgba(68,138,255,0.15); color: var(--blue); }
+  .badge-gray { background: rgba(153,153,153,0.15); color: var(--text-dim); }
+
+  .conflict { color: var(--yellow); font-weight: 600; }
+  .time { color: var(--blue); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  .todo-list { list-style: none; counter-reset: todo; }
+  .todo-list li {
+    counter-increment: todo; padding: 0.7rem 0;
+    border-bottom: 1px solid rgba(42,42,74,0.5);
+    display: flex; align-items: center; gap: 0.8rem;
+  }
+  .todo-list li:last-child { border-bottom: none; }
+  .todo-list li::before {
+    content: counter(todo); background: var(--accent); color: #fff;
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+  }
+
+  .empty-state { color: var(--text-dim); text-align: center; padding: 1.5rem; font-size: 0.9rem; }
+  .footer {
+    text-align: center; color: var(--text-dim); font-size: 0.75rem;
+    padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>☀️ 모닝 브리핑</h1>
+  <div class="date">2026년 5월 6일 (수)</div>
+</div>
+
+<!-- ── 요약 카드 ── -->
+<div class="stats">
+  <div class="stat-card urgent">
+    <div class="number">1</div>
+    <div class="label">회신 필요</div>
+  </div>
+  <div class="stat-card pending">
+    <div class="number">2</div>
+    <div class="label">발신/대기</div>
+  </div>
+  <div class="stat-card schedule">
+    <div class="number">3</div>
+    <div class="label">오늘 일정</div>
+  </div>
+  <div class="stat-card project">
+    <div class="number">8</div>
+    <div class="label">활성 프로젝트</div>
+  </div>
+</div>
+
+<!-- ── 📬 업무 메일 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-mail">📬</span> 업무 메일 (최근 3일)
+  </div>
+
+  <h4 style="color:var(--red); margin-bottom:0.5rem; font-size:0.85rem;">🔴 회신 필요</h4>
+  <table>
+    <tr><th>발신자</th><th>제목</th><th>요약</th><th>상태</th></tr>
+    <tr>
+      <td>MJ Kim (김민정 교수)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19decf8d198ca3d1" target="_blank">안녕하세요, 최대표님! 김민정입니다.</a></td>
+      <td>Manhattan University 마케팅 부교수. 주재우 교수님과 프로젝트렌트 관련 연구 프로젝트 제안</td>
+      <td><span class="badge badge-red">회신 필요</span></td>
+    </tr>
+  </table>
+
+  <h4 style="color:var(--yellow); margin:1rem 0 0.5rem; font-size:0.85rem;">📋 발신/회신 대기</h4>
+  <table>
+    <tr><th>발신자</th><th>제목</th><th>상태</th></tr>
+    <tr>
+      <td>최원석 → 송의석 변리사</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19df0959242aed99" target="_blank">Re: 특허출원 검토의 건_ 프로젝트렌트</a></td>
+      <td><span class="badge badge-yellow">변리사 회신 대기</span></td>
+    </tr>
+    <tr>
+      <td>최원석 → 팀 공유</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19df272fd8909c0c" target="_blank">Fwd: 특강 데이터 공유 (Instagram Post data)</a></td>
+      <td><span class="badge badge-yellow">내부 공유</span></td>
+    </tr>
+  </table>
+
+  <h4 style="color:var(--blue); margin:1rem 0 0.5rem; font-size:0.85rem;">📊 모니터링/참고</h4>
+  <table>
+    <tr><th>발신자</th><th>제목</th><th>조치</th></tr>
+    <tr>
+      <td>Molly Ng (Finn Partners)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19df211b43dfeae9" target="_blank">Wynn – Chef Tam's Seasons FAM Trip 출발 안내</a></td>
+      <td><span class="badge badge-red">오늘 출발!</span></td>
+    </tr>
+    <tr>
+      <td>주재우 교수</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19ded2491c526f1e" target="_blank">Re: 김민정 교수님 인사 메일</a></td>
+      <td><span class="badge badge-blue">참고</span></td>
+    </tr>
+    <tr>
+      <td>홍찬호 (자동)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19df04a7d65f6436" target="_blank">매장 주간매출 대시보드 — 5/4</a></td>
+      <td><span class="badge badge-gray">자동 리포트</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── 📅 오늘 일정 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-cal">📅</span> 오늘 일정 (5/6 수)
+  </div>
+  <table>
+    <tr><th>시간</th><th>일정</th><th>비고</th></tr>
+    <tr>
+      <td class="time">종일</td>
+      <td>마카오 출장 (Wynn Palace)</td>
+      <td style="color:var(--red); font-weight:600;">인천공항 T2 오전 10:10 출발</td>
+    </tr>
+    <tr>
+      <td class="time">종일</td>
+      <td>김가은 OFF</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td class="time">10:00–11:00</td>
+      <td>주간회의</td>
+      <td><span class="badge badge-yellow">출장으로 불참</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── 📅 내일 일정 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-cal">📅</span> 내일 일정 (5/7 목)
+  </div>
+  <div class="empty-state">마카오 출장 중 (5/6~5/8)</div>
+</div>
+
+<!-- ── 💰 임대료 송금 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-money">💰</span> 매출정산 송금 알림 (3일 이내)
+  </div>
+  <table>
+    <tr><th>송금일</th><th>장소</th><th>금액</th><th>받는 사람</th><th>계좌</th></tr>
+    <tr>
+      <td>5/8 (금)</td>
+      <td>GS타워</td>
+      <td style="font-weight:600; color:var(--yellow);">매출의 12%</td>
+      <td>주식회사 지에스</td>
+      <td>우리은행 982-018207-01-001</td>
+    </tr>
+    <tr>
+      <td>5/8 (금)</td>
+      <td>대전 소제점</td>
+      <td style="font-weight:600; color:var(--yellow);">매출의 10%</td>
+      <td>에너넷</td>
+      <td style="color:var(--red);">⚠️ 계좌 미확인</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── 📂 프로젝트 현황 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-project">📂</span> 프로젝트 현황
+  </div>
+  <table>
+    <tr><th>#</th><th>프로젝트</th><th>상태</th><th>긴급 액션</th></tr>
+    <tr>
+      <td>1</td>
+      <td>Wynn Palace 미디어</td>
+      <td><span class="badge badge-red">오늘 출발</span></td>
+      <td>인천공항 T2 10:10 체크인</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>리스테린 팝업</td>
+      <td><span class="badge badge-yellow">정산 대기</span></td>
+      <td>비트리 잔금 지급 확인 + 회수 리스트 확인</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>RXR 특허출원</td>
+      <td><span class="badge badge-yellow">견적 확인</span></td>
+      <td>견적 입금 결정 + 기술자료 업데이트</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>BA파트너스 투자</td>
+      <td><span class="badge badge-yellow">투심위 대기</span></td>
+      <td>투심위 결과 + 매출 자료 제출 확인</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>숭인동 리모델링</td>
+      <td><span class="badge badge-yellow">4차 지급금</span></td>
+      <td>승인/입금 대기 + 직인 스캔본</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>GS타워 운영</td>
+      <td><span class="badge badge-yellow">도서 업데이트</span></td>
+      <td>4월 도서 업데이트 완료 확인</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>SK T팩토리</td>
+      <td><span class="badge badge-yellow">입찰 대기</span></td>
+      <td>원두 3종 + 시공입찰 결과 대기</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>어반브레이크 오브제</td>
+      <td><span class="badge badge-yellow">미팅 조율</span></td>
+      <td>미팅 시간 회신 대기 + 작가 자료 검토</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── ✅ 오늘 할 일 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-todo">✅</span> 오늘 할 일 우선순위
+  </div>
+  <ol class="todo-list">
+    <li>인천공항 T2 체크인 — 10:10 출발 (Wynn Palace FAM Trip)</li>
+    <li>김민정 교수 회신 — 연구 프로젝트 참여 의사 확인</li>
+    <li>5/8 GS타워 매출정산 준비 — 매출 12% 정산 (출장 중 팀 위임 필요)</li>
+    <li>5/8 대전 소제점 매출정산 — 계좌 미확인 해결 필요</li>
+    <li>주간회의 불참 안내 (출장으로 인한 부재)</li>
+  </ol>
+</div>
+
+<div class="footer">
+  Generated by Claude Code · /morning · 2026-05-06 10:30 KST
+</div>
+
+</body>
+</html>

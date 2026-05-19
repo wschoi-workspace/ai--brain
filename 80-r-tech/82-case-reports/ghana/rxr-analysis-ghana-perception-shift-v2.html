@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR 2-Layer: 가나초콜릿 — 2022 이전 vs 2024 이후 인식 변화</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Pretendard+Variable:wght@300;400;500;600;700;900&family=Poppins:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{--p:#6666FF;--pd:#5353FF;--pl:#8A8AFF;--pp:#E1E1FF;--pbg:#CDCEFB;--bk:#000;--dk:#262626;--dk2:#303030;--dk3:#3a3a3a;--w:#fff;--lg:#F6F6F6;--g400:#A1A1AA;--g500:#71717A;--g600:#52525B;--body:#424D61;--gr:#10B981;--wn:#F59E0B;--rd:#C00000;--co:#FF5050;--bl:#4D93F7;--pk:#D946EF;--ch:#8B5E3C;--sp:#7C3AED;--mint:#34D399}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--bk);color:var(--w);line-height:1.7;font-size:14px}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+
+/* ── Hero ── */
+.hero{padding:40px 44px;border-radius:20px;margin-bottom:24px;position:relative;overflow:hidden;background:linear-gradient(135deg,#1a0f00,#2d1b69 50%,#0f172a);border:1px solid rgba(102,102,255,.15)}
+.hero::before{content:'';position:absolute;top:-30%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(102,102,255,.15),transparent 70%);border-radius:50%}
+.hero .tag{font-family:Poppins;font-size:11px;font-weight:600;color:var(--pl);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.hero h1{font-size:26px;font-weight:900;line-height:1.35;margin-bottom:8px;position:relative}
+.hero h1 em{color:var(--pl);font-style:normal}
+.hero .sub{font-size:13px;color:var(--g400);line-height:1.7}
+.hero .meta{margin-top:16px;font-size:11px;color:var(--g500)}
+
+/* ── Section ── */
+section{background:#111;border-radius:16px;padding:28px 32px;margin-bottom:18px;border:1px solid var(--dk2)}
+h2{font-size:18px;font-weight:700;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--dk2);display:flex;align-items:center;gap:8px}
+h2 .n{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--p);color:#fff;border-radius:8px;font-size:12px;font-family:Poppins;flex-shrink:0}
+h3{font-size:15px;font-weight:600;margin:20px 0 8px}
+p{margin-bottom:8px;font-size:13px;color:var(--g400)}
+strong,b{color:var(--w)}
+
+/* ── Table ── */
+.tw{overflow-x:auto;margin:10px 0 14px;border-radius:10px;border:1px solid var(--dk2)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--dk);color:var(--g400);padding:8px 12px;text-align:left;font-weight:600;font-size:11px;border-bottom:1px solid var(--dk2)}
+tbody td{padding:7px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;color:var(--g400)}
+tbody tr:hover{background:rgba(102,102,255,.04)}
+
+/* ── Tags ── */
+.tA{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;background:rgba(139,94,60,.2);color:var(--ch)}
+.tB{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;background:rgba(102,102,255,.15);color:var(--pl)}
+.tag-up{display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;background:rgba(16,185,129,.15);color:var(--gr)}
+.tag-dn{display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;background:rgba(255,80,80,.15);color:var(--co)}
+.tag-new{display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;background:rgba(245,158,11,.15);color:var(--wn)}
+.up{color:var(--gr);font-weight:700}.dn{color:var(--co);font-weight:700}
+
+/* ── Explain Box ── */
+.card-explain{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 16px;margin:10px 0 14px;font-size:12px;line-height:1.7;color:var(--g400)}
+.card-explain strong{color:var(--wn)}
+
+/* ── Boxes ── */
+.box{padding:14px 18px;border-radius:10px;margin:10px 0 14px;font-size:12px;line-height:1.7}
+.box-p{background:rgba(102,102,255,.08);border-left:3px solid var(--p)}
+.box-g{background:rgba(16,185,129,.08);border-left:3px solid var(--gr)}
+.box-w{background:rgba(245,158,11,.08);border-left:3px solid var(--wn)}
+.box-r{background:rgba(255,80,80,.08);border-left:3px solid var(--co)}
+.box strong{color:var(--w)}
+
+/* ── Grid ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin:12px 0}
+.card{background:var(--dk);border:1px solid var(--dk2);border-radius:12px;padding:14px 16px}
+.card h4{margin:0 0 6px;color:var(--w);font-size:13px}
+.card p{margin:0;font-size:11px}
+
+/* ── Chart container ── */
+.chart-wrap{position:relative;max-width:280px;margin:0 auto}
+
+/* ── Gauge ── */
+.gauge-box{background:var(--dk);border:1px solid var(--dk2);border-radius:12px;padding:16px 18px;margin:10px 0}
+.gauge-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.gauge-name{font-size:14px;font-weight:700}
+.gauge-meaning{font-size:11px;color:var(--g500)}
+.gauge-track{height:22px;background:var(--dk2);border-radius:8px;overflow:hidden;position:relative;margin:6px 0}
+.gauge-bar{height:100%;border-radius:8px;position:absolute;top:0;left:0}
+.gauge-bar.a{background:var(--g600);z-index:1}
+.gauge-bar.b{background:var(--p);z-index:2}
+.gauge-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--g500)}
+.gauge-explain{margin-top:8px;padding:10px 14px;background:rgba(102,102,255,.05);border-radius:8px;font-size:11px;line-height:1.7;color:var(--g400)}
+.gauge-explain .before{color:var(--ch);font-weight:600}
+.gauge-explain .after{color:var(--pl);font-weight:600}
+
+/* ── Big Number ── */
+.big-num{text-align:center;padding:16px;background:var(--dk);border:1px solid var(--dk2);border-radius:12px}
+.big-num .v{font-size:32px;font-weight:900;font-family:'JetBrains Mono'}
+.big-num .l{font-size:11px;color:var(--g500);margin-top:2px}
+.big-num .d{font-size:12px;font-weight:700;margin-top:4px}
+
+/* ── Matrix 2x2 ── */
+.matrix{display:grid;grid-template-columns:auto 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:2px;margin:14px 0;font-size:12px}
+.matrix .corner{background:transparent}
+.matrix .hdr{background:var(--dk2);padding:8px 12px;text-align:center;font-weight:700;color:var(--g400);border-radius:6px}
+.matrix .cell{background:var(--dk);padding:14px;border-radius:8px;border:1px solid var(--dk2)}
+.matrix .cell h4{margin:0 0 4px;font-size:13px}
+.matrix .cell p{margin:0;font-size:11px}
+
+/* ── Quote ── */
+.quote{background:var(--dk);border-left:2px solid var(--mint);padding:8px 14px;margin:6px 0;border-radius:0 8px 8px 0;font-size:12px;font-style:italic;color:var(--g400)}
+.quote .qs{font-size:9px;font-style:normal;color:var(--g500);margin-top:3px}
+
+/* ── Appendix ── */
+.appendix{background:var(--dk);border:1px solid var(--dk2);border-radius:12px;padding:14px 16px;margin:8px 0}
+.appendix .ah{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.appendix .ah strong{color:var(--p);font-size:13px}
+.appendix .ah span{font-size:10px;color:var(--g500)}
+.appendix .ah a{color:var(--pl);font-size:10px;text-decoration:none}
+.appendix ul{padding-left:16px;margin:4px 0;font-size:11px;color:var(--g400)}
+.appendix li{margin-bottom:3px}
+
+/* ── Footer ── */
+.footer{text-align:center;padding:24px 0 12px;color:var(--g500);font-size:11px}
+.footer a{color:var(--p);text-decoration:none}
+
+/* ── Sticky PDF Bar ── */
+.pdf-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.9);border-top:1px solid var(--dk2);padding:8px 20px;display:flex;justify-content:center;gap:12px;z-index:1000}
+.pdf-bar button{padding:8px 20px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Pretendard Variable'}
+.pdf-bar .btn-pdf{background:var(--p);color:#fff}
+.pdf-bar .btn-print{background:var(--dk2);color:var(--g400)}
+
+@media(max-width:768px){.g2,.g3,.g4{grid-template-columns:1fr}.wrap{padding:16px 12px 80px}.matrix{grid-template-columns:auto 1fr}}
+@media print{.no-print,.pdf-bar{display:none!important}body{background:#fff;color:#1a1a1a;font-size:9pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}.wrap{max-width:100%;padding:0}section{border:1px solid #ccc!important;break-inside:auto}.card,.gauge-box,.box,.quote,.appendix,table,tr{break-inside:avoid}h2,h3,h4{break-after:avoid}@page{size:A4 portrait;margin:10mm}}
+</style>
+</head>
+<body>
+
+<!-- PDF Bar -->
+<div class="pdf-bar no-print">
+  <button class="btn-pdf" onclick="html2pdf().set({margin:10,filename:'RXR-가나초콜릿-인식변화.pdf',image:{type:'jpeg',quality:0.95},html2canvas:{scale:2},jsPDF:{format:'a4',orientation:'portrait'}}).from(document.querySelector('.wrap')).save()">PDF 저장</button>
+  <button class="btn-print" onclick="window.print()">인쇄</button>
+</div>
+
+<div class="wrap">
+
+<!-- ══════ HERO ══════ -->
+<header class="hero">
+  <div class="tag">RXR 2-Layer Brand Perception Shift</div>
+  <h1>가나초콜릿 브랜드 인식 변화<br><em>A: 2022년 이전 vs B: 2024년 이후</em></h1>
+  <p class="sub">팝업스토어 3시즌(2022~2024) + "가나, 디저트가 되다" 캠페인 + 프리미엄 가나 라인업이 브랜드 인식을 어떻게 바꿨는가(그리고 바꾸지 못했는가)</p>
+  <div class="meta">분석일: 2026-04-05 &middot; Project RENT &middot; R-lab &middot; 수집 리뷰: A 19건 / B 24건</div>
+</header>
+
+<!-- 읽는 가이드 -->
+<div class="card-explain">
+  <strong>이 리포트는 이렇게 읽으세요</strong><br>
+  1단계. <b style="color:var(--ch)">A(기존 인식)</b>: 팝업 이전에 소비자가 "가나초콜릿" 하면 떠올리던 이미지 &mdash; 좋은 것과 나쁜 것 모두<br>
+  2단계. <b style="color:var(--pl)">B(이벤트 후)</b>: 팝업 3시즌 + 캠페인 이후 바뀐 인식 &mdash; 바뀐 것과 안 바뀐 것 구분<br>
+  3단계. <b>왜 중요한가</b>: 각 수치 아래 노란 해설 박스에서 비전문가도 이해할 수 있게 설명합니다
+</div>
+
+<!-- ══════ S1: 감성 분포 (Chart.js) ══════ -->
+<section>
+  <h2><span class="n">1</span> Layer 1: 감성 분포 변화</h2>
+  <div class="card-explain"><strong>감성 분포가 뭔가요?</strong><br>수집된 리뷰를 "좋다(긍정) / 그저 그렇다(중립) / 나쁘다(부정)"로 분류한 비율입니다. A(이전)와 B(이후)를 비교하면 이벤트가 소비자 감정을 얼마나 바꿨는지 알 수 있습니다.</div>
+
+  <div class="g2">
+    <div style="text-align:center">
+      <h4 style="color:var(--ch)"><span class="tA">A</span> 2022년 이전</h4>
+      <div class="chart-wrap"><canvas id="chartA"></canvas></div>
+      <p style="margin-top:8px;font-size:11px">부정 31% &mdash; 팜유·성분 비판 집중</p>
+    </div>
+    <div style="text-align:center">
+      <h4 style="color:var(--pl)"><span class="tB">B</span> 2024년 이후 (체험자 기준)</h4>
+      <div class="chart-wrap"><canvas id="chartB"></canvas></div>
+      <p style="margin-top:8px;font-size:11px">긍정 75% &mdash; 프리미엄 가나 + 팝업 체험자</p>
+    </div>
+  </div>
+  <script>
+  const opt={plugins:{legend:{labels:{color:'#A1A1AA',font:{size:11}}}},cutout:'55%'};
+  new Chart(document.getElementById('chartA'),{type:'doughnut',data:{labels:['긍정','중립','부정'],datasets:[{data:[44,25,31],backgroundColor:['#10B981','#52525B','#FF5050'],borderWidth:0}]},options:opt});
+  new Chart(document.getElementById('chartB'),{type:'doughnut',data:{labels:['긍정','중립','부정'],datasets:[{data:[75,15,10],backgroundColor:['#10B981','#52525B','#FF5050'],borderWidth:0}]},options:opt});
+  </script>
+
+  <div class="card-explain"><strong>이 숫자가 의미하는 것:</strong> 긍정이 44%→75%로 올랐지만, B의 75%는 <b>팝업 체험자 + 프리미엄 구매자</b> 기준입니다. 비체험자만 보면 여전히 40%대. <b>전체 평균이 아니라 "누구의 긍정인가"가 핵심.</b></div>
+
+  <div class="box box-w"><strong>주의:</strong> B(이후)의 비체험자/커뮤니티 반응만 분리하면 긍정 약 40%, 부정 35% &mdash; A(이전)와 거의 동일. <b>이벤트 효과는 체험자에게만 유효.</b></div>
+</section>
+
+<!-- ══════ S2: 토픽 전환 ══════ -->
+<section>
+  <h2><span class="n">2</span> Layer 1: 토픽 전환 추적</h2>
+  <div class="card-explain"><strong>토픽이 뭔가요?</strong><br>소비자가 리뷰에서 주로 이야기하는 "주제"입니다. 이벤트 전후로 어떤 주제가 새로 등장하고, 어떤 주제가 사라졌는지를 보면 소비자 관심이 어떻게 이동했는지 알 수 있습니다.</div>
+
+  <div class="tw"><table>
+    <thead><tr><th>토픽</th><th><span class="tA">A: 이전</span></th><th><span class="tB">B: 이후</span></th><th>변화</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr><td><b>맛/식감</b></td><td><b>40%</b></td><td>25%</td><td class="dn">&darr;15</td><td>공간·디저트 토픽에 밀려남</td></tr>
+      <tr><td><b>공간/분위기</b></td><td>0%</td><td style="color:var(--sp)"><b>22%</b></td><td><span class="tag-new">신규</span></td><td>팝업이 만든 완전히 새로운 토픽</td></tr>
+      <tr><td><b>품질/원료(팜유)</b></td><td><b>28%</b></td><td><b>25%</b></td><td class="fl" style="color:var(--g500)">&darr;3</td><td><b>거의 불변.</b> 비체험자가 유지</td></tr>
+      <tr><td><b>디저트/프리미엄</b></td><td>0%</td><td style="color:var(--sp)"><b>18%</b></td><td><span class="tag-new">신규</span></td><td>프리미엄 가나 + 디저트 하우스</td></tr>
+      <tr><td><b>가격/가성비</b></td><td>17%</td><td>12%</td><td class="dn">&darr;5</td><td>프리미엄 라인은 "합리적" 평가</td></tr>
+      <tr><td><b>추억/브랜드</b></td><td>15%</td><td>10%</td><td class="dn">&darr;5</td><td>노스탤지어 비중 축소</td></tr>
+      <tr><td><b>관계/사회적</b></td><td>0%</td><td>8%</td><td><span class="tag-new">신규</span></td><td>"같이 가자", "데이트" &mdash; 팝업 한정</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="g2">
+    <div class="card" style="border-top:2px solid var(--gr)"><h4 style="color:var(--gr)">신규 등장 키워드</h4><p>공간, 빈티지, 디저트, 페어링, 프리미엄, 파티시에, 아뜰리에, 고급, 안성재, 포토부스</p></div>
+    <div class="card" style="border-top:2px solid var(--co)"><h4 style="color:var(--co)">변하지 않은 키워드</h4><p>팜유, 식물성유지, 준초콜릿, 싸구려, 노브랜드 &mdash; <b>비체험자 세계에서 영구 고착</b></p></div>
+  </div>
+
+  <div class="card-explain"><strong>이게 왜 중요한가요?</strong><br>"공간", "디저트", "프리미엄" 같은 새로운 어휘가 소비자 언어에 추가되었다는 것은 브랜드 인식이 확장되었다는 증거입니다. 그러나 "팜유" 키워드가 28%→25%로 거의 줄지 않았다는 것은 <b>기존 약점이 해소되지 않았다</b>는 뜻입니다.</div>
+</section>
+
+<!-- ══════ S3: 대표 리뷰 ══════ -->
+<section>
+  <h2><span class="n">3</span> Layer 1: 대표 리뷰 비교</h2>
+  <div class="g2">
+    <div>
+      <h3 style="color:var(--ch)"><span class="tA">A</span> 기존 인식</h3>
+      <h4 style="color:var(--gr);font-size:12px">긍정</h4>
+      <div class="quote">"한결같이 변하지 않은 그대로의 맛. 나에게 있어 No.1 초콜릿은 가나"<div class="qs">블로그 / 노스탤지어 기반 긍정</div></div>
+      <div class="quote">"난 아직도 갈색이랑 빨간색 맛의 차이를 모르겠음. 둘 다 맛있으니 내 입속으로"<div class="qs">커뮤니티 / 개인적 만족</div></div>
+      <h4 style="color:var(--co);font-size:12px">부정</h4>
+      <div class="quote">"카카오 함량도 낮고 카카오버터 대신 싸구려 팜유로 만드니까"<div class="qs">클리앙 / 성분 비판</div></div>
+      <div class="quote">"가나초콜렛은 가나초콜렛이지 초콜렛은 아니야"<div class="qs">루리웹 / 풍자적 비판</div></div>
+    </div>
+    <div>
+      <h3 style="color:var(--pl)"><span class="tB">B</span> 이벤트 후</h3>
+      <h4 style="color:var(--gr);font-size:12px">긍정 (체험자)</h4>
+      <div class="quote">"초콜릿을 즐기는 방법을 제대로 알려주는 공간은 처음"<div class="qs">heyPOP 인터뷰 / 인식 전환 증거</div></div>
+      <div class="quote">"어릴 적 추억이 떠오르는 힐링... 예술로 승화시킨 점이 놀라웠다"<div class="qs">아뜰리에 가나 관람객 / 브랜드 확장</div></div>
+      <div class="quote">"프리미엄 가나 헤이즐넛, 진짜 맛있다"<div class="qs">마켓컬리 4.8점 / 제품 실체</div></div>
+      <h4 style="color:var(--co);font-size:12px">부정 (비체험자)</h4>
+      <div class="quote">"팜유 집어넣고 생색 냈었지... 카카오떡이라고 하렴"<div class="qs">루리웹 2025.03 (57,000뷰) / 비판 강화</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ S4: LIWC Gauge ══════ -->
+<section>
+  <h2><span class="n">4</span> Layer 2: LIWC 4대 변수 (A vs B)</h2>
+  <div class="card-explain"><strong>Layer 2 (Psyche Layer)가 뭔가요?</strong><br>Layer 1은 "뭐라고 말했는가"를 봅니다. Layer 2는 "진심으로 그렇게 느꼈는가"를 봅니다. 같은 "좋다"라도 진심인지 립서비스인지, 남에게 추천할 만큼 확신이 있는지를 기능어(대명사, 조사, 어미) 패턴으로 측정합니다.</div>
+
+  <!-- Auth -->
+  <div class="gauge-box">
+    <div class="gauge-header">
+      <span class="gauge-name">Authenticity (진심도) <span class="tag-dn">하락</span></span>
+      <span class="gauge-meaning">솔직하게 자기 생각을 말하고 있는가?</span>
+    </div>
+    <div class="gauge-track">
+      <div class="gauge-bar a" style="width:68%"></div>
+      <div class="gauge-bar b" style="width:58%"></div>
+    </div>
+    <div class="gauge-labels"><span><span class="tA">A</span> 68</span><span><span class="tB">B</span> 58 <span class="dn">(&darr;10)</span></span></div>
+    <div class="gauge-explain">
+      <span class="before">A: "난 아직도 가나 좋아해"</span> &mdash; 1인칭+솔직한 자기 노출 = Auth 높음<br>
+      <span class="after">B 체험자: "진짜 너무 예뻐요!!!"</span> &mdash; 감탄사 과다, 1인칭 부재 = Auth 낮음<br>
+      <span class="after">B 비체험자: "팜유 집어넣고 생색"</span> &mdash; 솔직한 비판 = Auth 높음<br><br>
+      <strong>왜 중요한가:</strong> 전체 Auth가 떨어진 건 체험자의 "과장된 긍정" 때문. 비체험자는 오히려 Auth 70으로 <b>"더 솔직한 비판"</b> 중.
+    </div>
+  </div>
+
+  <!-- Clout -->
+  <div class="gauge-box">
+    <div class="gauge-header">
+      <span class="gauge-name">Clout (추천 확신도) <span class="tag-up">최대 변화 &uarr;10</span></span>
+      <span class="gauge-meaning">남에게 추천할 만큼 확신이 있는가?</span>
+    </div>
+    <div class="gauge-track">
+      <div class="gauge-bar a" style="width:32%"></div>
+      <div class="gauge-bar b" style="width:42%"></div>
+    </div>
+    <div class="gauge-labels"><span><span class="tA">A</span> 32</span><span><span class="tB">B</span> 42 <span class="up">(&uarr;10)</span></span></div>
+    <div class="gauge-explain">
+      <span class="before">A: "맛있긴 한데..."</span> &mdash; "~긴 한데"는 조심스러운 표현 = Clout 낮음<br>
+      <span class="after">B 체험자: "여기 꼭 가봐야 해!"</span> &mdash; "꼭"은 강한 확신 = Clout 높음<br><br>
+      <strong>이 +10이 가장 중요한 이유:</strong> A에서는 <b>"추천하는 사람"이 거의 없었음</b>. B에서 체험자 중심으로 Clout 55+가 생겨남. "가나를 적극 추천하는 세그먼트"가 처음 탄생한 것.
+    </div>
+  </div>
+
+  <!-- Analytical -->
+  <div class="gauge-box">
+    <div class="gauge-header">
+      <span class="gauge-name">Analytical (분석적 사고)</span>
+      <span class="gauge-meaning">이성적으로 따지고 있는가, 감성적으로 반응하는가?</span>
+    </div>
+    <div class="gauge-track">
+      <div class="gauge-bar a" style="width:62%"></div>
+      <div class="gauge-bar b" style="width:55%"></div>
+    </div>
+    <div class="gauge-labels"><span><span class="tA">A</span> 62</span><span><span class="tB">B</span> 55 <span class="dn">(&darr;7)</span></span></div>
+    <div class="gauge-explain">
+      <span class="before">A: "카카오 함량이 28%밖에 안 되고, 성분표를 보면..."</span> &mdash; 분석적 평가<br>
+      <span class="after">B: "공간이 너무 감각적이었어요!"</span> &mdash; 감탄형 반응<br><br>
+      <strong>왜 중요한가:</strong> 체험자가 "분석"에서 "감동"으로 전환. 가격/성분으로 비교당하던 브랜드가 감정적 몰입 대상이 됨.
+    </div>
+  </div>
+
+  <!-- Tone -->
+  <div class="gauge-box">
+    <div class="gauge-header">
+      <span class="gauge-name">Emotional Tone (감정 온도)</span>
+      <span class="gauge-meaning">긍정적 감정이 얼마나 강한가?</span>
+    </div>
+    <div class="gauge-track">
+      <div class="gauge-bar a" style="width:50%"></div>
+      <div class="gauge-bar b" style="width:58%"></div>
+    </div>
+    <div class="gauge-labels"><span><span class="tA">A</span> 50</span><span><span class="tB">B</span> 58 <span class="up">(&uarr;8)</span></span></div>
+    <div class="gauge-explain">
+      <span class="before">A: 긍정/부정 혼재</span> &mdash; "맛있긴 한데 팜유가..." 로 톤 중화<br>
+      <span class="after">B 체험자: Tone 78</span> (강한 긍정) vs <span class="after">B 비체험자: Tone 38</span> (강한 부정)<br><br>
+      <strong>핵심:</strong> 전체 평균 +8은 의미 없음. <b>체험자(78)와 비체험자(38)의 분산이 극대화</b> &mdash; 같은 브랜드에 대해 정반대 감정이 공존.
+    </div>
+  </div>
+</section>
+
+<!-- ══════ S5: RXR 고유 지표 ══════ -->
+<section>
+  <h2><span class="n">5</span> Layer 2: RXR 고유 지표</h2>
+
+  <div class="g4">
+    <div class="big-num">
+      <div class="v" style="color:var(--ch)">0.32</div>
+      <div class="l">A: Freshness</div>
+      <div class="d" style="color:var(--g500)">"가나초콜릿<b>은</b>" &mdash; 익숙</div>
+    </div>
+    <div class="big-num">
+      <div class="v" style="color:var(--pl)">0.48</div>
+      <div class="l">B: Freshness (평균)</div>
+      <div class="d" style="color:var(--wn)">프리미엄 0.65 / 기존 0.30</div>
+    </div>
+    <div class="big-num">
+      <div class="v" style="color:var(--ch)">0.85</div>
+      <div class="l">A: Psych. Distance</div>
+      <div class="d" style="color:var(--g500)">"나" 개인 관찰자</div>
+    </div>
+    <div class="big-num">
+      <div class="v" style="color:var(--pl)">0.68</div>
+      <div class="l">B: Distance (평균)</div>
+      <div class="d" style="color:var(--wn)">체험자 0.52 / 비체험자 0.85</div>
+    </div>
+  </div>
+
+  <div class="card-explain">
+    <strong>Freshness가 뭔가요?</strong><br>
+    한국어에서 "이 공간<b>이</b> 좋다"의 "이/가"는 <b>처음 발견한 새로운 것</b>에 붙습니다.<br>
+    "그 공간<b>은</b> 좋다"의 "은/는"은 <b>이미 알고 있는 것</b>에 붙습니다.<br>
+    Freshness가 높으면 소비자가 브랜드를 "새로운 발견"으로 체험하고 있다는 뜻.<br><br>
+    <b>A:</b> "가나초콜릿<b>은</b>" = 완전히 익숙한 존재 (0.32)<br>
+    <b>B 프리미엄:</b> "이 초콜릿<b>이</b> 진짜 맛있다" = 새로운 발견 (0.65)<br>
+    <b>B 기존 제품:</b> "가나<b>는</b> 여전히..." = 변화 없음 (0.30)
+  </div>
+
+  <div class="card-explain">
+    <strong>Psych. Distance가 뭔가요?</strong><br>
+    "나"를 많이 쓰면 브랜드를 관찰자 시점으로 봄 (거리감 높음).<br>
+    "우리", "여기"를 쓰면 브랜드에 소속감을 느끼고 있음 (거리감 낮음).<br><br>
+    <b>A:</b> "내가 먹어본 결과..." = 관찰자 (0.85)<br>
+    <b>B 체험자:</b> "우리 여기 또 가자" = 소속감 형성 (0.52)<br>
+    <b>B 비체험자:</b> "내가 왜 저런 걸..." = 여전히 관찰자 (0.85)
+  </div>
+</section>
+
+<!-- ══════ S6: 패턴 분류 (Bar Chart) ══════ -->
+<section>
+  <h2><span class="n">6</span> Layer 3: 패턴 분류 (A vs B)</h2>
+  <div class="card-explain"><strong>패턴이 뭔가요?</strong><br>Layer 1(감성)과 Layer 2(심리)를 교차하면 소비자를 유형별로 분류할 수 있습니다. 같은 "좋다"라도 진짜 팬인지, 인스타용인지, 아직 확신이 없는지를 구분합니다.</div>
+
+  <div style="max-width:700px;margin:0 auto"><canvas id="chartPattern" height="300"></canvas></div>
+  <script>
+  new Chart(document.getElementById('chartPattern'),{type:'bar',data:{
+    labels:['P-01\n진짜 팬','P-02\n인스타','P-03\n확신부족','체험전도사','Zone C\n진심불만','기타'],
+    datasets:[
+      {label:'A: 이전',data:[10,0,30,0,30,30],backgroundColor:'rgba(139,94,60,.5)',borderRadius:4},
+      {label:'B: 이후',data:[18,5,22,8,28,19],backgroundColor:'rgba(102,102,255,.7)',borderRadius:4}
+    ]},options:{indexAxis:'y',plugins:{legend:{labels:{color:'#A1A1AA',font:{size:11}}}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#71717A',callback:v=>v+'%'}},y:{grid:{display:false},ticks:{color:'#A1A1AA',font:{size:11}}}}}});
+  </script>
+
+  <div class="card-explain"><strong>이 차트에서 가장 중요한 변화:</strong><br>
+    &bull; <b style="color:var(--gr)">P-01(진짜 팬) +8%p</b>: "진심으로 추천하는 사람"이 10%→18%로 성장. <b>팝업의 핵심 성과.</b><br>
+    &bull; <b style="color:var(--wn)">체험 전도사 8%</b>: A에는 없었던 새로운 유형 &mdash; 직접 체험 후 적극 전파하는 최고 가치 세그먼트<br>
+    &bull; <b style="color:var(--co)">Zone C(진심 불만) 30%→28%</b>: <b>거의 안 줄었음.</b> 팜유 비판층은 이벤트와 무관하게 고착.
+  </div>
+
+  <!-- 패턴별 해설 + 대표 리뷰 -->
+  <div class="tw"><table>
+    <thead><tr><th>패턴</th><th>한 줄 설명</th><th><span class="tA">A</span></th><th><span class="tB">B</span></th><th>대표 리뷰</th></tr></thead>
+    <tbody>
+      <tr><td><b style="color:var(--gr)">P-01 진짜 팬</b></td><td>진심으로 좋아하고 남에게 적극 추천하는 최고의 고객</td><td>10%</td><td><b>18%</b></td><td>"프리미엄 가나 헤이즐넛 진짜 맛있다, 꼭 먹어봐"</td></tr>
+      <tr><td><b style="color:var(--wn)">P-02 인스타</b></td><td>사진 올리려고 간 것. 재방문 가능성 낮음</td><td>0%</td><td>5%</td><td>"포토부스 귀여웠어요~"</td></tr>
+      <tr><td><b style="color:var(--pl)">P-03 확신부족</b></td><td>좋긴 한데 남에게 추천까지는 안 함</td><td><b>30%</b></td><td>22%</td><td>"맛있긴 한데 굳이 또 사먹을 것 같진 않아요"</td></tr>
+      <tr><td><b style="color:var(--mint)">체험 전도사</b></td><td>직접 체험 후 적극 전파. B에서 새로 등장한 최고 가치 유형</td><td>&mdash;</td><td><b>8%</b></td><td>"초콜릿을 즐기는 방법을 제대로 알려주는 공간은 처음!"</td></tr>
+      <tr><td><b style="color:var(--co)">Zone C 진심불만</b></td><td>실제 문제를 솔직하게 지적. 무시하면 안 됨</td><td><b>30%</b></td><td>28%</td><td>"팜유 집어넣고 생색. 카카오떡이라고 하렴"</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ══════ S7: Auth x Clout Matrix ══════ -->
+<section>
+  <h2><span class="n">7</span> Auth &times; Clout 매트릭스</h2>
+  <div class="card-explain"><strong>이 매트릭스는 뭔가요?</strong><br>가로축 = Clout(추천 확신), 세로축 = Auth(진심도). 네 칸에 소비자가 어디에 분포하는지, A→B로 어떻게 이동했는지를 보여줍니다.</div>
+
+  <div class="matrix">
+    <div class="corner"></div>
+    <div class="hdr">Clout 낮음 (추천 안 함)</div>
+    <div class="hdr">Clout 높음 (적극 추천)</div>
+
+    <div class="hdr" style="writing-mode:vertical-rl;text-orientation:mixed">Auth 높음<br>(솔직함)</div>
+    <div class="cell" style="border-top:2px solid var(--pl)">
+      <h4 style="color:var(--pl)">P-03 확신 부족</h4>
+      <p><b>A 30%</b> → <b>B 22%</b> <span class="dn">&darr;8</span></p>
+      <p style="margin-top:4px">"좋긴 한데 추천은..."<br>→ 일부가 P-01로 이동</p>
+    </div>
+    <div class="cell" style="border-top:2px solid var(--gr)">
+      <h4 style="color:var(--gr)">P-01 진짜 팬 + 체험 전도사</h4>
+      <p><b>A 10%</b> → <b>B 26%</b> <span class="up">&uarr;16</span></p>
+      <p style="margin-top:4px">"꼭 가봐야 해!"<br>→ <b>최대 성장 영역</b></p>
+    </div>
+
+    <div class="hdr" style="writing-mode:vertical-rl;text-orientation:mixed">Auth 낮음<br>(과장/피상적)</div>
+    <div class="cell">
+      <h4 style="color:var(--g500)">P-05 탐색만 / 기타</h4>
+      <p><b>A 30%</b> → <b>B 19%</b></p>
+      <p style="margin-top:4px">비교만 하고 결정 안 함<br>→ 일부 이탈, 일부 체험으로 이동</p>
+    </div>
+    <div class="cell" style="border-top:2px solid var(--wn)">
+      <h4 style="color:var(--wn)">P-02 인스타 소비</h4>
+      <p><b>A 0%</b> → <b>B 5%</b></p>
+      <p style="margin-top:4px">"사진 올리려고"<br>→ 소수, 이벤트 기간 한정</p>
+    </div>
+  </div>
+  <div class="box box-p"><strong>이동 방향:</strong> A에서 가장 많았던 P-03(확신 부족, 30%)이 B에서 8%p 줄고, 그만큼 P-01+체험전도사(10%→26%)가 성장. <b>체험이 "좋긴 한데..."를 "꼭 가봐!"로 전환시킨 것.</b> 반면 Zone C(여기 미표시, 30%→28%)는 이 매트릭스 밖에서 거의 움직이지 않음.</div>
+</section>
+
+<!-- ══════ S8: 약점 해결 테이블 ══════ -->
+<section>
+  <h2><span class="n">8</span> 기존 약점 해결 테이블</h2>
+  <div class="card-explain"><strong>이 테이블은 뭔가요?</strong><br>이벤트(팝업 3시즌 + 캠페인) 전에 브랜드가 갖고 있던 약점들을 나열하고, 이벤트가 그 약점을 해결했는지/못했는지를 수치로 보여줍니다.</div>
+
+  <div class="tw"><table>
+    <thead><tr><th>기존 약점 (A)</th><th>이벤트가 만든 변화</th><th>수치 근거</th><th>해결 여부</th></tr></thead>
+    <tbody>
+      <tr><td><b>"추천 안 함"</b><br>Clout 32, 추천 의지 없음</td><td>"꼭 가봐야 해!" 전환<br>체험자 Clout 55+</td><td>Clout 32→42 (+10)</td><td style="color:var(--gr)"><b>부분 해결</b><br>체험자 한정</td></tr>
+      <tr><td><b>"간식 = 저가"</b><br>디저트 인식 0%</td><td>디저트 토픽 신규 등장<br>프리미엄 라인 4.8점</td><td>디저트 토픽 0%→18%</td><td style="color:var(--gr)"><b>해결</b><br>새 인식 레이어 추가</td></tr>
+      <tr><td><b>"추억에만 의존"</b><br>시제 과거 지배</td><td>"지금 여기" 현재 경험 추가<br>팝업 3시즌 + 아뜰리에 전시</td><td>시제 프레임: 과거→현재 추가</td><td style="color:var(--gr)"><b>해결</b><br>현재 경험 생성</td></tr>
+      <tr style="background:rgba(255,80,80,.05)"><td><b>"팜유/준초콜릿"</b><br>Zone C 30%</td><td>팝업 중 상쇄, After 복귀<br>기존 제품 팜유 미변경</td><td>Zone C 30%→28% (&darr;2)</td><td style="color:var(--co)"><b>미해결</b><br>근본 미변경</td></tr>
+      <tr style="background:rgba(255,80,80,.05)"><td><b>"가성비 열세"</b><br>노브랜드 대비 30% 비쌈</td><td>프리미엄 라인은 "합리적"<br>기존 라인은 여전히 비판</td><td>가격 토픽 17%→12%</td><td style="color:var(--wn)"><b>부분</b><br>프리미엄만 해결</td></tr>
+    </tbody>
+  </table></div>
+  <div class="card-explain"><strong>한마디로:</strong> 이벤트가 "추천 의지", "디저트 인식", "현재 경험"이라는 3가지 약점을 해결했지만, "팜유 품질"과 "가격"이라는 2가지 근본 약점은 <b>이벤트만으로는 해결할 수 없었음</b>. 제품 자체의 변화가 필요.</div>
+</section>
+
+<!-- ══════ S9: 세그먼트별 전략 ══════ -->
+<section>
+  <h2><span class="n">9</span> 세그먼트별 전략 제안</h2>
+  <div class="g3">
+    <div class="card" style="border-top:3px solid var(--gr)">
+      <h4 style="color:var(--gr)">P-01 진짜 팬 + 체험 전도사 (26%)</h4>
+      <p><b>특성:</b> 체험 후 진심으로 추천. Auth+Clout 모두 높음</p>
+      <p style="margin-top:8px;color:var(--w)"><b>전략:</b> VIP 프로그램(시즌 프리오픈, 한정 메뉴). 앰배서더 프로그램으로 이 세그먼트의 리뷰를 확산. Zone C 비판층에 대한 자연스러운 반론 역할</p>
+      <p style="margin-top:6px;color:var(--gr)"><b>기대:</b> 이 세그먼트가 P-03→P-01 전환을 유도</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--co)">
+      <h4 style="color:var(--co)">Zone C 진심 불만 (28%)</h4>
+      <p><b>특성:</b> 팜유/성분 비판. Auth 극높. 11년째 고착</p>
+      <p style="margin-top:8px;color:var(--w)"><b>전략:</b> 이벤트만으로 해결 불가. 근본적 제품 개선(카카오버터 비율 확대) 병행 필요. 비체험자→체험자 전환: "노브랜드 vs 프리미엄 가나" 블라인드 테스트 이벤트</p>
+      <p style="margin-top:6px;color:var(--wn)"><b>현실:</b> 제품이 안 바뀌면 인식도 안 바뀜</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--pl)">
+      <h4 style="color:var(--pl)">P-03 확신 부족 (22%)</h4>
+      <p><b>특성:</b> 좋긴 한데 추천까지는 안 함. Auth 높고 Clout 낮음</p>
+      <p style="margin-top:8px;color:var(--w)"><b>전략:</b> 체험 터치포인트 강화. 팝업 시식, DIY 체험으로 확신 부여. P-01 진짜 팬의 리뷰를 이 세그먼트에 노출</p>
+      <p style="margin-top:6px;color:var(--gr)"><b>기대:</b> P-03의 30~40%를 P-01로 전환</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ S10: 종합 ══════ -->
+<section style="background:linear-gradient(135deg,#111,#1e1040);border-color:rgba(102,102,255,.2)">
+  <h2 style="border-bottom-color:rgba(255,255,255,.1)"><span class="n">&starf;</span> 종합 판정</h2>
+
+  <div class="g3" style="margin-bottom:16px">
+    <div class="card" style="background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.15)">
+      <h4 style="color:var(--gr)">바뀐 것</h4>
+      <p style="font-size:18px;font-weight:900;color:var(--gr);margin:6px 0">"간식→디저트"<br>인식 레이어 추가</p>
+      <p>P-01(팬) +8%p / 체험 전도사 8% 신규<br>프리미엄 4.8점 / 디저트 토픽 18% 신규<br>Clout +10 (추천 의지 탄생)</p>
+    </div>
+    <div class="card" style="background:rgba(255,80,80,.08);border-color:rgba(255,80,80,.15)">
+      <h4 style="color:var(--co)">안 바뀐 것</h4>
+      <p style="font-size:18px;font-weight:900;color:var(--co);margin:6px 0">팜유 논란<br>영구 고착</p>
+      <p>Zone C 30%→28% (거의 불변)<br>비체험자 Tone 38 (강한 부정)<br>"카카오떡" 조롱 수위 상승<br>노브랜드 대안 추천 고착화</p>
+    </div>
+    <div class="card" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.15)">
+      <h4 style="color:var(--wn)">새로 생긴 것</h4>
+      <p style="font-size:18px;font-weight:900;color:var(--wn);margin:6px 0">체험자 vs 비체험자<br>인식 단절</p>
+      <p>체험자: "초콜릿에 진심" Clout 55+<br>비체험자: "팜유 범벅" Auth 70+<br>같은 브랜드에 4.8점과 "카카오떡" 공존<br>2022 이전에는 없던 현상</p>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:18px;background:rgba(255,255,255,.05);border-radius:12px">
+    <div style="font-size:17px;font-weight:700;line-height:1.5">
+      3년간의 팝업과 캠페인은 "디저트"라는 새 인식 레이어를 <b style="color:var(--gr)">추가</b>하는 데 성공했지만,<br>
+      "팜유"라는 기존 레이어를 <b style="color:var(--co)">제거</b>하지는 못했다.
+    </div>
+    <div style="font-size:12px;color:var(--g400);margin-top:8px">
+      L1으로 보면 "긍정이 올랐다" &mdash; L2로 보면 <b style="color:var(--pl)">"긍정의 질이 체험자/비체험자로 완전히 다르다"</b>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ APPENDIX ══════ -->
+<section>
+  <h2><span class="n">A</span> 부록 &mdash; 로우 데이터</h2>
+
+  <h3>A-1. 뉴스 기사 (이벤트)</h3>
+  <div class="appendix"><div class="ah"><strong>heyPOP &mdash; 성공 팝업 공식 만든 가나 초콜릿 하우스 ①</strong><span>2024.03 | <a href="https://heypop.kr/cabinet/94129/">원문</a></span></div><ul>
+    <li>시즌1 누적 방문객 2만 명 달성</li>
+    <li>"다녀온 방문객들의 입소문을 타고 '핫플'로 등극"</li>
+    <li>지리적으로 유동인구 적은 성수동 위치에도 불구하고 입소문만으로 성장</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>heyPOP &mdash; 성공 팝업 공식 만든 가나 초콜릿 하우스 ②</strong><span>2024.03 | <a href="https://heypop.kr/cabinet/94225/">원문</a></span></div><ul>
+    <li><b>"초콜릿을 즐기는 방법을 제대로 알려주는 공간은 처음"</b> (방문객 피드백)</li>
+    <li>구매전환율 95%+, 체류시간 1~2시간 (일반 팝업 5분 대비)</li>
+    <li>"가나초콜릿을 디저트로 인식하는 동의도" 목표치 초과 달성</li>
+    <li>"여기는 초콜릿에 진심이구나" (방문객 피드백)</li>
+    <li>오픈 첫날 노부부, 영아 동반 가족 등 다양한 연령층 방문</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>푸드뉴스 &mdash; 가나초콜릿 팝업 방문객 1만명</strong><span>2022.05 | <a href="http://www.foodnews.news/mobile/article.html?no=519420">원문</a></span></div><ul>
+    <li>오픈 9일 만에 1만명 방문</li>
+    <li>인기로 5월 29일까지 연장 운영 결정</li>
+    <li>대기 200명 이상, 예약 프로그램 수초 만에 마감</li>
+    <li>"기간을 더 연장해달라", "짧은 기간이라 너무 아쉽다" 고객 의견 쇄도</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>브리크매거진 &mdash; 2022 가나 초콜릿 하우스 팝업스토어 오픈</strong><span>2022.04 | <a href="https://magazine.brique.co/brq-news/2022ghanapopupstore/">원문</a></span></div><ul>
+    <li>기간: 2022.04.18~05.12 / 장소: 프로젝트렌트 (서울 성동구 성수이로3길)</li>
+    <li>유명 파티셰 자문 5가지 코스 디저트 + 음료 페어링</li>
+    <li>DIY 클래스: 직접 초콜릿 제작 체험</li>
+    <li>사전 예약제 운영</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>브리크매거진 &mdash; 가나 초콜릿 하우스 시즌3</strong><span>2024.03 | <a href="https://magazine.brique.co/brq-news/ghana-chocolate-house-season3/">원문</a></span></div><ul>
+    <li>"18세기 런던 초콜릿 하우스에서 영감 &mdash; 3년째 이어지는 장기 프로젝트"</li>
+    <li>사계절 주제: 매주 다른 디저트 브랜드 8곳 + 게스트 바리스타 4팀</li>
+    <li>참여 셰프: 가루하루, 미뉴트 빠삐용, DORE DORE MOF, 케이크바</li>
+    <li>테이블 장식 꽃도 매주 교체 &mdash; 재방문 동기 부여</li>
+    <li>도쿄 하라주쿠 확장 예정</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>시사저널e &mdash; 가나 초콜릿 하우스, MZ 성수동 핫플 등극</strong><span>2024.03 | <a href="https://www.sisajournal-e.com/news/articleView.html?idxno=401139">원문</a></span></div><ul>
+    <li>S3 오픈 첫 주말 약 2,500명 방문</li>
+    <li>"기다렸다가 디저트 맛보고 가자", "다른 카페 가지 말고 여기 있다 가자" (현장 방문객 대화)</li>
+    <li>"여기저기서 사진을 남기려는 젊은 방문객들의 조용한 눈치 싸움이 벌어졌다"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>소셜마케팅코리아 &mdash; 예약 대기 인원만 2000명인 이유는?</strong><span>2024.03 | <a href="https://blog.socialmkt.co.kr/1231">원문</a></span></div><ul>
+    <li>인기 프로그램 예약 오픈 1분 만에 마감</li>
+    <li>예약 대기 인원 2,000명 초과</li>
+    <li>"초콜릿을 단순한 간식이 아닌, 디저트로써 즐길 수 있는 다양한 방법을 제시"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>사례뉴스 &mdash; 팝업의 성지 성수에 다시 찾아온 디저트의 성지</strong><span>2024.03 | <a href="http://www.casenews.co.kr/news/articleView.html?idxno=15233">원문</a></span></div><ul>
+    <li>"일시적으로 발생했다가 사라지는 기존의 팝업이 아닌 3년째 이어지는 장기 프로젝트"</li>
+    <li>MZ세대뿐 아니라 부모 세대 소비자들도 가나초콜릿과의 오랜 추억과 함께 방문</li>
+  </ul></div>
+
+  <h3>A-1b. 뉴스 기사 (50주년 아뜰리에 가나)</h3>
+  <div class="appendix"><div class="ah"><strong>ZDNet &mdash; 50년 예술 집약체, 초콜릿 향 가득 아뜰리에 가나 전시장 가보니</strong><span>2025.04 | <a href="https://zdnet.co.kr/view/?no=20250430101943">원문</a></span></div><ul>
+    <li>조향사가 설계한 초콜릿 향이 관람객을 맞이</li>
+    <li>3명의 작가 (그라플렉스, 김미영, 코인 파킹 딜리버리)가 초콜릿 관련 기억 표현</li>
+    <li>박선기 작가: 숯으로 초콜릿 큐브 형상화 &mdash; "가나초콜릿이 50년간 지켜온 정체성과 닮아 있다"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>중앙이코노미뉴스 &mdash; 가나 50주년 특별전시 열다</strong><span>2025.05 | <a href="https://www.joongangenews.com/news/articleView.html?idxno=419527">원문</a></span></div><ul>
+    <li>고등학생 단체 관람부터 젊은 커플, 중장년층까지 다양한 연령대 방문</li>
+    <li><b>"기대 이상이었다. 작가들이 인생의 중요한 순간을 초콜릿에 빗대어 표현한 게 인상적"</b> (예술 동호회 회원)</li>
+    <li>"단순한 브랜드 전시가 아니라 인생을 돌아보게 해줘서 좋았다" (관람객)</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>글로벌이코노믹 &mdash; '가나'라는 이름의 기억, 전시로 다시 피어나다</strong><span>2025.05 | <a href="https://www.g-enews.com/article/Distribution/2025/05/202505091549005129586ef8cffa_1">원문</a></span></div><ul>
+    <li>"가나초콜릿 50주년 역사에 대해 자세히 알아볼 수 있었고, 어릴 적 추억이 떠오르는 힐링의 시간"</li>
+    <li>"현대미술 작가들이 가나 초콜릿을 예술로 승화시킨 점이 신선하고 놀라웠다"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>솔직리뷰 블로그 &mdash; 아뜰리에 가나 후기</strong><span>2025.05 | <a href="https://www.a4b4.co.kr/78262">원문</a></span></div><ul>
+    <li>"저는 조형작품 보다는 회화 작품이 더 좋았다... 작품속 메시지도 좋고요"</li>
+    <li>"초콜릿 만드는데 이렇게 많은 과정이 필요한지 처음으로 알았네요"</li>
+    <li>김선우 작가: 도도새를 현대인의 메타포로 활용</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>중앙이코노미뉴스 &mdash; 가나초콜릿 아트 컬렉션 한정판 출시</strong><span>2025.06 | <a href="https://www.joongangenews.com/news/articleView.html?idxno=422420">원문</a></span></div><ul>
+    <li>전시 작품을 담은 한정판 패키지 출시</li>
+    <li>"어디서 구매할 수 있느냐" 소비자 문의가 인스타그램 DM으로 활발</li>
+    <li>김선우 작가 도도새 키링·인형 &mdash; 개막 당일 일시 품절</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>비즈워치 &mdash; 선대 회장의 꿈 이뤘다, 예술작품 된 가나 초콜릿</strong><span>2025.04 | <a href="http://news.bizwatch.co.kr/article/consumer/2025/04/29/0029">원문</a></span></div><ul>
+    <li>참여 작가 31점 신작 전시</li>
+    <li>입장료: 성인 1.2만원, 어린이 6천원</li>
+    <li>6월 29일까지 롯데뮤지엄 개최</li>
+  </ul></div>
+
+  <h3>A-2. 뉴스 기사 (브랜드/제품)</h3>
+  <div class="appendix"><div class="ah"><strong>아시아경제 &mdash; 반백년 66억갑 팔린 '가나초콜릿'</strong><span>2024.02 | <a href="https://www.asiae.co.kr/article/2024021316153148367">원문</a></span></div><ul>
+    <li>누적 매출 1.3조 원, 66억 갑</li>
+    <li>초당 약 4개 판매</li>
+    <li>1975년 출시, 판형 초콜릿 시장 1위</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>이데일리 &mdash; 50년간 사랑받은 가나초콜릿, 디저트로 자리매김</strong><span>2025.05 | <a href="https://m.edaily.co.kr/amp/read?newsId=01872886642172200&mediaCodeNo=E">원문</a></span></div><ul>
+    <li>프리미엄 가나 10종 라인업, 안성재 셰프 협업</li>
+    <li>"가나 디저트 하우스" 브랜드 론칭 (케이크, 빵, 아이스크림)</li>
+    <li>가나산 카카오 베이스의 "세상 모든 초콜릿 디저트" 브랜드 표방</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>AP신문 &mdash; 가나초콜릿 프리미엄 광고평론</strong><span>2024 | <a href="https://www.apnews.kr/news/articleView.html?idxno=3015428">원문</a></span></div><ul>
+    <li>평론가 6인 평균 3.0점 (예술성 3.7 / 호감도 2.8 / 창의성 2.2)</li>
+    <li><b>"기존 가나의 인식 때문에 안 맞는 옷을 입고 있는 것처럼 보인다"</b> (김석용, 2.7점)</li>
+    <li>"초콜릿 광고가 이렇게 고급스러울 수 있다니" (강지은, 3.9점)</li>
+    <li>"너무 정석적이라 기억에도 안 남는 광고" (홍산, 2.7점)</li>
+    <li>"세세한 내레이션으로는 프리미엄 포지셔닝 구축 어렵다" (홍종환, 2.1점)</li>
+    <li>"광고를 위한 평범한 광고" (김기섭, 3.2점)</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>아시아경제 &mdash; 새로운 초콜릿이 뜬다, 프리미엄 디저트 시장 활짝</strong><span>2024.03 | <a href="https://www.asiae.co.kr/article/2024031116540130852">원문</a></span></div><ul>
+    <li>프리미엄 가나 2023.12 론칭 &mdash; 고급 카카오+마다가스카 바닐라+프랑스산 분유</li>
+    <li>소비자 "합리적 프리미엄" 트렌드 반영</li>
+    <li>기존 제품 대비 깊고 진한 풍미 강조</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>푸드투데이 &mdash; 2024 히트상품: 롯데웰푸드 가나초콜릿 10종</strong><span>2024 | <a href="https://foodtoday.or.kr/mobile/article.html?no=189691">원문</a></span></div><ul>
+    <li>프리미엄 가나 헤이즐넛, 랑드샤 쇼콜라, 랑드샤 모카프레소 등 10종</li>
+    <li>"소비자 조사에서 초콜릿과 함께 즐기고 싶은 견과류로 선정된 헤이즐넛"</li>
+    <li>2024 히트상품 선정</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>머니투데이 &mdash; 혜리·아이유도 따라한 '이 광고'...50년 된 롯데의 첫 초콜릿</strong><span>2024.07 | <a href="https://www.mt.co.kr/living/2024/07/13/2024071214430844115">원문</a></span></div><ul>
+    <li>이미연, 채시라, 전지현, 아이유 등 당대 최고 스타 광고모델 계보</li>
+    <li>뉴트로 열풍에 레트로 컨셉 가나 재출시 &mdash; 큰 반응</li>
+    <li>응답하라 1988 등장으로 시청자 추억 자극</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>connectvalue &mdash; 가나초콜릿은 왜 프리미엄 가나에 집중하나?</strong><span>2024 | <a href="https://www.connectvalue.net/story/1159">원문</a></span></div><ul>
+    <li>lowkey 카페 협업 &mdash; Dark Moon Blend 원두 직접 로스팅 사용</li>
+    <li>"소비자들이 관심 카테고리에서 higher-priced products를 선택하는 합리적 프리미엄 트렌드"</li>
+    <li>안성재 셰프 브랜드 필름 &mdash; 커피/와인/아이스크림과 페어링 제안</li>
+    <li>Tiered offering 전략: 매스 유지 + 프리미엄 추가</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>세계일보 &mdash; "싼 게 한국인 입맛에 맞아요"</strong><span>2016.01 | <a href="https://www.segye.com/newsView/20160121002802">원문</a></span></div><ul>
+    <li>롯데제과: "한국인의 입맛에는 저렴한 식물성유지가 맞다" &mdash; 소비자 반발 촉발</li>
+    <li>불만제로: 1kg 식물성유지 5천원 vs 1kg 코코아매스 2.2만원</li>
+    <li>일본에서는 전량 코코아매스로 생산 &mdash; 내수차별 논란</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>대홍기획 블로그 &mdash; 가나, 디저트가 되다</strong><span>2023 | <a href="https://blog.daehong.com/520">원문</a></span></div><ul>
+    <li>2022년 1차 캠페인: 디저트 라인업 활용 프리미엄 포지셔닝 &rarr; "브랜드가 세련돼졌다" 소비자 반응</li>
+    <li>2023년 2차 캠페인: 판초콜릿 중심 전환 필요 &mdash; "마트에서 쉽게 찾아볼 수 있는 판초콜릿을 소비자들은 '디저트'로 여기지 않습니다"</li>
+    <li>파리 디저트 분위기 + 슬로우 카메라 + BGM으로 프리미엄 감각 연출</li>
+    <li>유튜브 공개 1주일 만에 130만 뷰</li>
+  </ul></div>
+
+  <h3>A-3. 팝업 플랫폼 리뷰</h3>
+  <div class="appendix"><div class="ah"><strong>Polle &mdash; 가나 초콜릿 하우스 리뷰 (3건)</strong><span><a href="https://polle.com/place/4SnZMN/">원문</a></span></div><ul>
+    <li>전체 평점 3.2/5</li>
+    <li><b>@be_warm (추천해요):</b> "생각보다 더 좋았습니다! 초콜릿 컬러로 잘 구성된 공간. 초콜릿 모양 벽에서 사진이 엄청 예쁘게 나옵니다. 굿즈 디자인도 우수" <span style="color:var(--gr);font-size:9px">[Auth↑ Freshness↑]</span></li>
+    <li><b>@heiz66 (별로임):</b> "갑자기 성수동으로 약속이 바뀌어서 한번 가볼까~ 하고 간 곳인데 생각보다 별거 볼 건 없더라고요ㅠㅠ 전시 연장된 후에 가서 예쁜 굿즈는 이미 품절... 음료나 디저트에 뭔가 초콜릿의 특색이 덜 보이는 점도 아쉬웠습니다" <span style="color:var(--co);font-size:9px">[Auth↑ Zone C]</span></li>
+    <li><b>@ys03246:</b> 개최 기간(4/19~5/12) 안내만 포함</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>PopUp KOREA &mdash; 초콜릿이 주는 즐거움</strong><span><a href="https://www.popupkorea.kr/popup_blog/51">원문</a></span></div><ul>
+    <li>"한눈에 봐도 엄청난 규모를 자랑하는 2층짜리 독립 건물"</li>
+    <li>"올 상반기, 서울 팝업스토어 중 가장 핫하고 유명할 것이라 예상"</li>
+    <li>"해리 포터에 나올 것 같은 빈티지한 소품들" <span style="color:var(--gr);font-size:9px">[감각축 Distal]</span></li>
+    <li>"주차별로 콘셉트를 바꿔 메뉴와 인테리어가 바뀐다고 하니 여러 번 방문해도 또 다른 즐거움" <span style="color:var(--gr);font-size:9px">[Freshness 유지 전략]</span></li>
+  </ul></div>
+
+  <h3>A-4. SNS/인플루언서 반응</h3>
+  <div class="appendix"><div class="ah"><strong>인스타그램 반응 종합</strong></div><ul>
+    <li>#가나초콜릿하우스 해시태그 다수 게시물</li>
+    <li>아뜰리에 가나 굿즈(도도새 키링/인형) &mdash; 개막 당일 일시 품절, 인스타 DM 구매 문의 쇄도</li>
+    <li>"어디서 구매할 수 있느냐" 소비자 문의 활발 (롯데웰푸드 공식 인스타)</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>Threads 반응</strong></div><ul>
+    <li>"난 아직도 가나초콜릿 갈색이랑 빨간색 맛의 차이를 모르겠음. 그냥 둘다 맛있으니 내 입속으로" (@yuvely_95.12) <span style="color:var(--ch);font-size:9px">[Auth↑ Clout↓ P-03]</span></li>
+  </ul></div>
+
+  <h3>A-5. 커뮤니티/일반 소비자</h3>
+  <div class="appendix"><div class="ah"><strong>클리앙 &mdash; 한국 초콜릿을 맛보는 스위스 형님들</strong><span><a href="https://www.clien.net/service/board/park/18063363">원문</a></span></div><ul>
+    <li><b>"카카오 함량도 낮고 카카오버터 대신 싸구려 팜유로 만드니까"</b> <span style="color:var(--co);font-size:9px">[Auth↑ Analytical↑ Zone C]</span></li>
+    <li>"우리나라 대기업에서 만든 초콜릿은 초콜릿이 아닌게 많다"</li>
+    <li>"자기들도 안좋은건지 아는지 식물성유지(팜유)는 엄청 작게 써놨네요"</li>
+    <li>"애초에 초코렛도 아니니 싸구려란 말도 어울리질 않죠... 그냥 초코맛이 나는 그 무언가지"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>클리앙 &mdash; 제가 한국 초콜릿 안먹는 이유.jpg</strong><span>2020.10 (124댓글) | <a href="https://www.clien.net/service/board/park/15506677">원문</a></span></div><ul>
+    <li>"국내 초콜릿은 거의 다 식물성유지가 들어있더라구요" <span style="color:var(--co);font-size:9px">[Zone C]</span></li>
+    <li>"제대로 된 초콜릿은 코코아매스, 코코아버터, 설탕만 들어가야 한다"</li>
+    <li>124개 댓글 중 대다수 동의</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>클리앙 &mdash; 초콜릿 살때 식물성유지(팜유) 들어있으면 안삽니다</strong><span><a href="https://www.clien.net/service/board/park/14216656">원문</a></span></div><ul>
+    <li>"식물성유지가 들어간 초콜렛을 먹어보면 잘 녹지 않고 혀가 기름으로 코팅되는 듯한 느낌" <span style="color:var(--co);font-size:9px">[Auth↑ 감각축 Proximal 부정]</span></li>
+    <li>팜유 프리 초콜릿 추천 목록 공유</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>루리웹 &mdash; 집단폭행당하고 있는 가나초콜릿</strong><span>2025.03 (57,000뷰, 258추천) | <a href="https://bbs.ruliweb.com/community/board/300143/read/69844256">원문</a></span></div><ul>
+    <li><b>"팜유 집어넣고 생색 냈었지"</b> <span style="color:var(--co);font-size:9px">[Auth 극높 Zone C]</span></li>
+    <li>"팜유는 어디가서 초콜릿이라고 하지 말고 카카오떡이라고 하렴"</li>
+    <li>"개가 먹어도 안전한 초콜릿이라고 비아냥소릴 들었으니"</li>
+    <li>"롯데 보이는 제과류는 대체품 보이면 거름"</li>
+    <li>대안 추천: 노브랜드 벨기에 초콜릿 압도적</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>루리웹 &mdash; 민심 떡락한 가나 초콜릿 먹어보기</strong><span><a href="https://bbs.ruliweb.com/hobby/board/300117/read/30681684">원문</a></span></div><ul>
+    <li>"맛은 먹을만하게 맛있습니다. 그렇다고 굳이 또 사먹을거 같진 않네요" <span style="color:var(--pl);font-size:9px">[Auth↑ Clout↓ P-03]</span></li>
+    <li>"카카오가 28%라고 하고 가공유지도 들어가있네요"</li>
+    <li>"70g 1,980원 vs 노브랜드 90g 1,280원 &mdash; 가성비 약 30% 열세"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>루리웹 &mdash; 가나초코렛 요즘도 팜유 쓰나</strong><span><a href="https://bbs.ruliweb.com/community/board/300143/read/69459758">원문</a></span></div><ul>
+    <li>성분표 확인 후 여전히 식물성유지 사용 확인</li>
+    <li>"이미지가 나락간 팜유초콜릿이라 듣지만 실제로는 버터도 들어간다"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>에펨코리아 &mdash; 한국산 초콜릿들 재평가 시작.jpg</strong><span><a href="https://www.fmkorea.com/index.php?document_srl=5368583196&cpage=9">원문</a></span></div><ul>
+    <li>한국 초콜릿 품질 전반에 대한 재평가 논의</li>
+    <li>가나초콜릿 성분 비교표 공유</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>개드립 &mdash; 생각해보니 가나초콜릿은 양심애미뒤진거 맞긴함</strong><span><a href="https://www.dogdrip.net/625823969">원문</a></span></div><ul>
+    <li>팜유 사용에 대한 강한 비판</li>
+    <li>"오랫동안 팜유 집어넣고 생색 냈었지"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>블라인드 &mdash; 팜유(식물성유지) 없는 초콜릿 추천좀!</strong><span><a href="https://www.teamblind.com/kr/post/%ED%8C%9C%EC%9C%A0%EC%8B%9D%EB%AC%BC%EC%84%B1%EC%9C%A0%EC%A7%80-%EC%97%86%EB%8A%94-%EC%B4%88%EC%BD%9C%EB%A6%BF-%EC%B6%94%EC%B2%9C%EC%A2%80-g0KC8WXr">원문</a></span></div><ul>
+    <li>직장인 커뮤니티에서도 팜유 프리 초콜릿 수요 확인</li>
+    <li>가나초콜릿 자연스럽게 배제</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>나무위키 &mdash; 가나초콜릿 문서</strong><span><a href="https://namu.wiki/w/%EA%B0%80%EB%82%98%EC%B4%88%EC%BD%9C%EB%A6%BF">원문</a></span></div><ul>
+    <li>"카카오버터 대신 팜유를 사용 &mdash; 엄밀히 말하면 '준초콜릿'"</li>
+    <li>"가나 빅 앤 마일드는 되게 크고 달아서 어지간히 단 것을 좋아하는 사람이 아니면 달다고 느껴질 수 있다"</li>
+    <li>"에어라이트 다크는 너무 맛이 없다"</li>
+    <li>"양도 26→34g, 60→70g으로 늘어나고 맛도 좋아져서 흔치 않게 납득할 만한 가격인상"</li>
+    <li>2021년 성분표에서 팜유→식물성유지로 표기 변경</li>
+    <li>2022 FIFA 월드컵 가나전 이후 일시 매출 2~3배 증가 에피소드</li>
+  </ul></div>
+
+  <h3>A-6. 블로그 체험기</h3>
+  <div class="appendix"><div class="ah"><strong>DB블로그 &mdash; 달달함 풀 충전! 성수 가나 초콜릿 하우스</strong><span><a href="https://www.dbblog.co.kr/2302">원문</a></span></div><ul>
+    <li>"벽면 가득 퍼즐처럼 붙어 있는 네모네모 한 것들, 초콜릿 모양이 맞답니다" <span style="color:var(--gr);font-size:9px">[감각축 Distal]</span></li>
+    <li>"야외 테라스가 상당히 시원하고 좋더라고요"</li>
+    <li>"진하고 고급스러운 농도의 초콜릿을 느낄 수 있었던 시간" <span style="color:var(--gr);font-size:9px">[Tone↑ Freshness↑]</span></li>
+    <li>"5가지 코스가 35,000원으로 예약 가능... 마지막 선물 꾸러미까지 받으니 상당히 합리적" <span style="color:var(--gr);font-size:9px">[Analytical 긍정]</span></li>
+    <li>"이런 팝업들은 일정 기간 동안에만 만나볼 수 있기 때문에 더욱 특별한 것 같아요"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>롯데 공식블로그 &mdash; 가나 초콜릿 하우스 시즌3 OPEN</strong><span>2024.03 | <a href="https://blog.lotte.co.kr/45716">원문</a></span></div><ul>
+    <li>"문을 열고 입장하면 초콜릿의 환상과 아늑한 살롱을 적절히 믹스매치한 공간이 펼쳐진다"</li>
+    <li>"고급스럽고 빈티지한 유럽풍의 분위기 속에서 초콜릿이 주는 달콤한 순간을 누구나 즐길 수 있었다"</li>
+    <li>"모든 공간이 포토존으로 이루어져 있다"</li>
+    <li>"큼지막한 초콜릿 조형물에 시선이 쏠린다"</li>
+    <li>시즌3 메뉴: 총 32개 디저트 (상시 6개 + 시즌 특화 9개 x 4주)</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>블로그 종합 &mdash; 가나초콜릿 제품 리뷰</strong></div><ul>
+    <li>"입에서 사르르 녹는 달콤한 맛이 특징이다" <span style="color:var(--gr);font-size:9px">[감각축 Proximal 긍정]</span></li>
+    <li>"부드럽고 진한 초콜릿 맛이 일품이다"</li>
+    <li>"한결같이 변하지 않은 그대로의 맛. 나에게 있어 No.1 초콜릿은 가나" <span style="color:var(--ch);font-size:9px">[Auth↑ 노스탤지어 P-03]</span></li>
+    <li>"카카오 버터를 많이 사용해서 부드러운 식감이 강점" (프리미엄 라인)</li>
+  </ul></div>
+
+  <h3>A-7. 기업 공식 데이터</h3>
+  <div class="tw"><table>
+    <thead><tr><th>항목</th><th>수치</th><th>출처</th></tr></thead>
+    <tbody>
+      <tr><td>누적 매출</td><td>약 1.3조 원</td><td>아시아경제 2024</td></tr>
+      <tr><td>누적 판매</td><td>약 66억 갑 (초당 4개)</td><td>한국경제 2024</td></tr>
+      <tr><td>시장점유율</td><td>약 40% (판형 초콜릿)</td><td>식품음료신문</td></tr>
+      <tr><td>S1 방문객</td><td>2만 명 (연장 운영 포함)</td><td>heyPOP</td></tr>
+      <tr><td>S1 연장</td><td>5.12→5.29 연장</td><td>푸드뉴스 2022</td></tr>
+      <tr><td>S3 첫 주말</td><td>2,500명</td><td>롯데 공식블로그</td></tr>
+      <tr><td>S3 9일간</td><td>9,000명 (S1 대비 2배)</td><td>롯데 공식블로그</td></tr>
+      <tr><td>구매전환율</td><td>95%+</td><td>heyPOP</td></tr>
+      <tr><td>체류시간</td><td>1~2시간 (일반 팝업 5분 대비)</td><td>heyPOP</td></tr>
+      <tr><td>예약 대기</td><td>2,000명+ / 예약 오픈 1분 만에 마감</td><td>소셜마케팅코리아</td></tr>
+      <tr><td>디저트 인식 동의도</td><td>목표치 초과 달성 (수치 비공개)</td><td>heyPOP</td></tr>
+      <tr><td>프리미엄 가나 평점</td><td>4.8/5 (171리뷰)</td><td>마켓컬리</td></tr>
+      <tr><td>프리미엄 라인업</td><td>10종</td><td>푸드투데이</td></tr>
+      <tr><td>광고 유튜브</td><td>공개 1주일 만에 130만 뷰</td><td>대홍기획</td></tr>
+      <tr><td>S2 장소</td><td>부산 전포동 (낮:카페 / 밤:바)</td><td>heyPOP</td></tr>
+      <tr><td>S3 규모</td><td>약 150평(500m2), 70명 동시 수용</td><td>브리크매거진</td></tr>
+      <tr><td>S3 메뉴</td><td>총 32개 디저트</td><td>롯데 공식블로그</td></tr>
+      <tr><td>아뜰리에 가나</td><td>2025.04~06, 롯데뮤지엄, 신작 31점</td><td>ZDNet</td></tr>
+      <tr><td>아뜰리에 입장료</td><td>성인 1.2만원 / 어린이 6천원</td><td>비즈워치</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 style="margin-top:20px">수상 이력</h3>
+  <div class="tw"><table>
+    <thead><tr><th>년도</th><th>수상/이벤트</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td>2024</td><td>푸드투데이 히트상품</td><td>가나초콜릿 10종 선정</td></tr>
+      <tr><td>2024</td><td>S3 팝업 성공</td><td>S1 대비 방문객 2배 성장</td></tr>
+      <tr><td>2025</td><td>아뜰리에 가나 50주년 전시</td><td>롯데뮤지엄 6주 전시, 신작 31점</td></tr>
+      <tr><td>2025</td><td>도쿄 확장</td><td>하라주쿠 피아자 빌딩 개최 예정</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>A-8. 현장 인용문 모음</h3>
+  <div class="tw"><table>
+    <thead><tr><th>인용문</th><th>분류</th><th>분석 태그</th></tr></thead>
+    <tbody>
+      <tr><td>"초콜릿을 즐기는 방법을 제대로 알려주는 공간은 처음"</td><td style="color:var(--gr)">긍정/체험</td><td><span class="tag-up">Auth↑ Clout↑ Freshness↑</span></td></tr>
+      <tr><td>"여기는 초콜릿에 진심이구나"</td><td style="color:var(--gr)">긍정/체험</td><td><span class="tag-up">Auth↑ Clout↑</span></td></tr>
+      <tr><td>"생각보다 더 좋았습니다!"</td><td style="color:var(--gr)">긍정/체험</td><td><span class="tag-up">Freshness↑ 기대위반</span></td></tr>
+      <tr><td>"해리 포터에 나올 것 같은 빈티지한 소품들"</td><td style="color:var(--gr)">긍정/체험</td><td><span class="tag-up">감각축 Distal</span></td></tr>
+      <tr><td>"진하고 고급스러운 농도의 초콜릿을 느낄 수 있었던 시간"</td><td style="color:var(--gr)">긍정/체험</td><td><span class="tag-up">Tone↑ Freshness↑</span></td></tr>
+      <tr><td>"35,000원 페어링 코스가 상당히 합리적"</td><td style="color:var(--gr)">긍정/체험</td><td><span class="tag-up">Analytical 긍정</span></td></tr>
+      <tr><td>"다른 카페 가지 말고 여기 있다 가자"</td><td style="color:var(--gr)">긍정/체험</td><td><span class="tag-up">Clout 극높, 청유형, Distance↓</span></td></tr>
+      <tr><td>"초콜릿 만드는데 이렇게 많은 과정이 필요한지 처음으로 알았네요"</td><td style="color:var(--gr)">긍정/전시</td><td><span class="tag-up">Freshness↑ 기대위반</span></td></tr>
+      <tr><td>"작가들이 인생의 중요한 순간을 초콜릿에 빗대어 표현한 게 인상적"</td><td style="color:var(--gr)">긍정/전시</td><td><span class="tag-up">Auth↑ Tone↑</span></td></tr>
+      <tr><td>"단순한 브랜드 전시가 아니라 인생을 돌아보게 해줘서 좋았다"</td><td style="color:var(--gr)">긍정/전시</td><td><span class="tag-up">Auth↑ 체험전도사</span></td></tr>
+      <tr><td>"프리미엄 가나 헤이즐넛 진짜 맛있다, 꼭 먹어봐"</td><td style="color:var(--gr)">긍정/제품</td><td><span class="tag-up">Auth↑ Clout↑ P-01</span></td></tr>
+      <tr><td>"코코아파우더 묻은 초콜렛을 좋아해서 너무 맛있게 먹었다"</td><td style="color:var(--gr)">긍정/제품</td><td><span class="tag-up">Auth↑ 감각축 Proximal</span></td></tr>
+      <tr><td>"여기저기서 사진을 남기려는 젊은 방문객들의 조용한 눈치 싸움"</td><td style="color:var(--pl)">관찰/체험</td><td><span class="tB">P-02 인스타 소비 신호</span></td></tr>
+      <tr><td>"기간을 더 연장해달라, 짧은 기간이라 너무 아쉽다"</td><td style="color:var(--gr)">긍정/체험</td><td><span class="tag-up">Clout↑ 재방문 의향</span></td></tr>
+      <tr><td>"볼 게 별로 없었고 초콜릿 특색 부족"</td><td style="color:var(--co)">부정/체험</td><td><span class="tag-dn">Auth↑ Zone C</span></td></tr>
+      <tr><td>"팜유 집어넣고 생색 냈었지"</td><td style="color:var(--co)">부정/비체험</td><td><span class="tag-dn">Auth 극높 Zone C</span></td></tr>
+      <tr><td>"팜유는 어디가서 초콜릿이라고 하지 말고 카카오떡이라고 하렴"</td><td style="color:var(--co)">부정/비체험</td><td><span class="tag-dn">Auth↑ Zone C 조롱</span></td></tr>
+      <tr><td>"가나초콜렛은 가나초콜렛이지 초콜렛은 아니야"</td><td style="color:var(--co)">부정/기존인식</td><td><span class="tag-dn">Auth↑ Analytical↑</span></td></tr>
+      <tr><td>"식물성유지가 들어간 초콜렛을 먹어보면 혀가 기름으로 코팅되는 느낌"</td><td style="color:var(--co)">부정/기존인식</td><td><span class="tag-dn">Auth↑ 감각축 Proximal 부정</span></td></tr>
+      <tr><td>"가나 초콜릿 특유의 싼티나는 맛... 입에서 기름느낌"</td><td style="color:var(--co)">부정/기존인식</td><td><span class="tag-dn">Auth↑ 감각축 Proximal 부정</span></td></tr>
+      <tr><td>"비싸기만 비싸고 맛 없긴해요"</td><td style="color:var(--co)">부정/기존인식</td><td><span class="tag-dn">Auth↑ Analytical 가성비</span></td></tr>
+      <tr><td>"초콜릿 광고가 이렇게 고급스러울 수 있다니"</td><td style="color:var(--gr)">긍정/광고평론</td><td><span class="tag-up">Tone↑</span></td></tr>
+      <tr><td>"기존 가나의 인식 때문에 안 맞는 옷을 입고 있는 것처럼 보인다"</td><td style="color:var(--co)">부정/광고평론</td><td><span class="tag-dn">인지부조화 지적</span></td></tr>
+      <tr><td>"너무 정석적이라 기억에도 안 남는 광고"</td><td style="color:var(--co)">부정/광고평론</td><td><span class="tag-dn">Freshness↓</span></td></tr>
+      <tr><td>"난 아직도 가나 좋아해"</td><td style="color:var(--ch)">긍정/기존인식</td><td><span class="tA">Auth↑ Clout↓ P-03</span></td></tr>
+      <tr><td>"맛있긴 한데 또 사먹을것 같진 않네요"</td><td style="color:var(--ch)">중립/기존인식</td><td><span class="tA">Auth↑ Clout↓ P-03</span></td></tr>
+      <tr><td>"한결같이 변하지 않은 그대로의 맛"</td><td style="color:var(--ch)">긍정/기존인식</td><td><span class="tA">노스탤지어 Freshness↓</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>A-9. 기업 관계자 인용문</h3>
+  <div class="appendix"><div class="ah"><strong>최원석 대표 (프로젝트렌트)</strong></div><ul>
+    <li>"오픈 첫날, 노부부는 물론 아기를 데리고 온 엄마, 가족 등 다양한 분들이 찾아주셔서 정말 기분이 좋았어요"</li>
+    <li>"구매 전환율이 95% 이상"</li>
+    <li>"입소문이 나면서 나중에는 줄까지 서야 할 정도로 많은 분이 찾아오셨어요"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>강민영 대리 (롯데웰푸드)</strong></div><ul>
+    <li>"초콜릿을 즐기는 방법을 제대로 알려주는 공간은 처음이라는 피드백을 많이 받았어요"</li>
+    <li>"가나초콜릿을 디저트로 인식하는 동의도 &mdash; 목표치 초과 달성"</li>
+    <li>"어린 시절 먹던 가나가 이렇게 고급스러워질 수 있다는 것을 보여주고 싶었습니다"</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>대홍기획 (광고 대행사)</strong></div><ul>
+    <li>"브랜드가 세련돼졌다는 성공적인 소비자 반응을 얻어냈습니다" (2022 캠페인)</li>
+    <li>"마트에서 쉽게 찾아볼 수 있는 판초콜릿을 소비자들은 '디저트'로 여기지 않습니다" (캠페인 출발점)</li>
+    <li>"약간의 투자로 좀 더 나은 선택지를 발견할 수 있다는 확신을 주는 전략" (합리적 프리미엄)</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>롯데웰푸드 공식 입장</strong></div><ul>
+    <li>"이 팝업스토어는 가나의 정체성을 디저트 브랜드로 확립하기 위한 노력" (2022)</li>
+    <li>"가나, 디저트가 되다" 캠페인 &mdash; 2021년부터 장기 전개</li>
+    <li>프리미엄 가나: "맛과 품질을 업그레이드시킨 가나의 상위 브랜드"</li>
+    <li>"행복은 초콜릿으로부터" (50주년 캠페인 콘셉트)</li>
+  </ul></div>
+  <div class="appendix"><div class="ah"><strong>박선기 작가 (아뜰리에 가나 참여 작가)</strong></div><ul>
+    <li>"가나초콜릿이 50년간 지켜온 정체성과 닮아 있다" (숯으로 초콜릿 큐브 형상화)</li>
+  </ul></div>
+</section>
+
+<div class="footer">
+  RXR 2-Layer Analysis &middot; Brand Perception Shift &middot; Project RENT &middot; R-lab &middot; 2026.04.05<br>
+  <span style="font-size:10px">LIWC 수치는 텍스트 패턴 기반 추정치입니다. Freshness Index는 RXR 독자 프레임워크로 학술적 검증 진행 중입니다.</span><br><br>
+  Sources:
+  <a href="https://heypop.kr/cabinet/94129/">heyPOP①</a> &middot;
+  <a href="https://heypop.kr/cabinet/94225/">heyPOP②</a> &middot;
+  <a href="https://openads.co.kr/content/contentDetail?contsId=15419">openads</a> &middot;
+  <a href="https://www.apnews.kr/news/articleView.html?idxno=3015428">AP신문</a> &middot;
+  <a href="https://m.edaily.co.kr/amp/read?newsId=01872886642172200&mediaCodeNo=E">이데일리</a> &middot;
+  <a href="https://zdnet.co.kr/view/?no=20250430101943">ZDNet</a> &middot;
+  <a href="https://bbs.ruliweb.com/community/board/300143/read/69844256">루리웹</a> &middot;
+  <a href="https://www.clien.net/service/board/park/18063363">클리앙</a> &middot;
+  <a href="https://blog.daehong.com/520">대홍기획</a> &middot;
+  <a href="https://namu.wiki/w/%EA%B0%80%EB%82%98%EC%B4%88%EC%BD%9C%EB%A6%BF">나무위키</a> &middot;
+  <a href="https://polle.com/place/4SnZMN/">Polle</a> &middot;
+  <a href="https://www.dbblog.co.kr/2302">DB블로그</a> &middot;
+  <a href="http://www.foodnews.news/mobile/article.html?no=519420">푸드뉴스</a>
+</div>
+</div>
+</body>
+</html>

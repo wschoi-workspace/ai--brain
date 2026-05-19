@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>비욘드 팝업스토어 — RXR SNS 분석</title>
+<style>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+:root{--primary:#6666FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--black:#000;--dark:#262626;--body:#424D61;--light:#F6F6F6;--white:#FFF;--red:#C00000;--coral:#FF5050;--blue:#4D93F7;--green:#10b981;--orange:#f59e0b;--pink:#d946ef;--primary-pale:#E1E1FF;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:14px;line-height:1.6;max-width:1200px;margin:0 auto;padding:40px 32px;}
+h1{font-size:28px;font-weight:800;margin-bottom:4px;} h2{font-size:20px;font-weight:800;margin:32px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--primary-pale);} h3{font-size:15px;font-weight:700;margin:14px 0 8px;}
+.sub{font-size:13px;color:var(--body);margin-bottom:20px;}
+.card{background:var(--light);border:1px solid #e8e8e8;border-radius:12px;padding:16px 18px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;} .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;} .grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0;}
+th{background:var(--primary);color:#fff;padding:6px 10px;text-align:left;font-size:11px;} td{padding:5px 10px;border-bottom:1px solid #eee;}
+.insight{padding:14px 18px;background:var(--primary-pale);border-radius:10px;border-left:4px solid var(--primary);margin:10px 0;font-size:13px;line-height:1.7;} .insight strong{color:var(--primary);}
+.insight-warn{background:#fef2f2;border-left-color:var(--coral);} .insight-warn strong{color:var(--coral);}
+.insight-blue{background:#eef2ff;border-left-color:var(--blue);} .insight-blue strong{color:var(--primary);}
+.ba-container{display:grid;grid-template-columns:1fr 50px 1fr;gap:0;align-items:stretch;margin:16px 0;}
+.ba-box{padding:20px;border-radius:14px;} .ba-before{background:#f1f5f9;border:2px solid #cbd5e1;} .ba-after{background:#eef2ff;border:2px solid var(--primary);}
+.ba-vs{display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#94a3b8;}
+.ba-label{font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:10px;} .ba-title{font-size:16px;font-weight:800;margin-bottom:12px;}
+.gauge-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.gauge-label{width:120px;font-size:12px;font-weight:600;text-align:right;flex-shrink:0;}
+.gauge-track{flex:1;height:24px;background:#f0f0f0;border-radius:5px;overflow:hidden;}
+.gauge-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;}
+.gauge-val{width:45px;font-family:'DIN Alternate','Poppins',sans-serif;font-size:15px;font-weight:700;text-align:center;flex-shrink:0;}
+.raw-box{border-radius:10px;padding:12px 16px;margin:8px 0;font-size:12px;line-height:1.6;}
+.raw-good{background:#f0fdf4;border-left:4px solid var(--green);}
+.raw-bad{background:#fef2f2;border-left:4px solid var(--coral);}
+.footer{margin-top:40px;padding-top:16px;border-top:2px solid var(--primary);font-size:11px;color:#94a3b8;text-align:center;}
+.metric-card{text-align:center;border-top:3px solid var(--primary);padding:14px;}
+.funnel-bar{height:36px;border-radius:6px;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:700;color:#fff;margin:6px 0;}
+@media print{
+  @page{size:A4 portrait;margin:14mm 12mm;}
+  body{max-width:100%!important;padding:0!important;margin:0!important;}
+  .pdf-panel{display:none!important;}
+  .card,.ba-container,.grid2,.grid3,.insight,.gauge-row,table{break-inside:avoid!important;page-break-inside:avoid!important;}
+  h2,h3{break-after:avoid;page-break-after:avoid;}
+  h1{font-size:22px!important;} h2{font-size:16px!important;margin-top:20px!important;}
+  .card{padding:10px 12px!important;font-size:10px!important;} table{font-size:10px!important;} th,td{padding:4px 6px!important;}
+}
+.pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;}
+.pdf-panel-toggle{display:flex;align-items:center;gap:8px;padding:12px 22px;background:var(--grad);color:#fff;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(102,102,255,0.4);border:none;font-family:'Pretendard Variable',sans-serif;}
+.pdf-panel-body{display:none;position:absolute;bottom:56px;right:0;width:220px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:16px;}
+.pdf-panel-body.open{display:block;}
+.pdf-orient-group{display:flex;gap:8px;margin-bottom:14px;}
+.pdf-orient-btn{flex:1;padding:12px 8px;background:#f9fafb;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;font-family:'Pretendard Variable',sans-serif;color:#475569;font-size:11px;font-weight:600;text-align:center;}
+.pdf-orient-btn.active{border-color:var(--primary);background:#eef2ff;color:var(--primary);}
+.pdf-print-btn{width:100%;padding:10px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Pretendard Variable',sans-serif;}
+</style><style id="pageOrientStyle"></style></head><body>
+
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+  <span style="background:var(--grad);color:#fff;padding:4px 14px;border-radius:6px;font-family:'Poppins';font-size:11px;font-weight:600;letter-spacing:1px;">RXR SNS ANALYSIS</span>
+</div>
+<h1>비욘드 팝업스토어 — Plastic Less, Paper is Enough</h1>
+<div class="sub">기존 분석 vs RXR 2-Layer + Sincerity Gate | 네이버 블로그 251건 | Project RENT · R-lab</div>
+
+
+<div style="padding:20px;background:var(--light);border-radius:14px;margin-bottom:24px;">
+  <div class="grid2">
+    <div>
+      <div style="font-size:11px;font-family:'Poppins';letter-spacing:2px;color:var(--body);margin-bottom:6px;">ABOUT THIS RESEARCH</div>
+      <h3 style="margin-top:0;">분석 대상</h3>
+      <table style="font-size:12px;"><tr><td style="color:var(--body);width:70px;padding:4px 0;">팝업명</td><td style="padding:4px 0;font-weight:700;">비욘드 팝업스토어 — Plastic Less, Paper is Enough</td></tr>
+      <tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">브랜드</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">비욘드 (LG생활건강)</td></tr>
+      <tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">기간</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">2023.05.25 ~ 06.18, <strong>25일간</strong></td></tr>
+      <tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">장소</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">서울 성수동</td></tr>
+      <tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">컨셉</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">친환경 클린뷰티 캠페인 — 공병 수거 → 리필 제품 교환, 종이 패키지 체험</td></tr>
+      <tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">분석 기간</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">2023.05.01 ~ 06.30</td></tr></table>
+    </div>
+    <div>
+      <div style="font-size:11px;font-family:'Poppins';letter-spacing:2px;color:var(--body);margin-bottom:6px;">RESEARCH PERSPECTIVE</div>
+      <h3 style="margin-top:0;">리서치 관점</h3>
+      <div style="font-size:12px;color:var(--body);line-height:1.7;">
+        <div style="padding:4px 0;"><strong style="color:var(--primary);">핵심 질문:</strong> 친환경 메시지가 실제로 소비자 마음에 도달했는가?</div>
+        <div style="padding:4px 0;border-top:1px solid #e8e8e8;"><strong style="color:var(--primary);">데이터:</strong> 네이버 블로그 251건 (2023.05~06)</div>
+        <div style="padding:4px 0;border-top:1px solid #e8e8e8;"><strong style="color:var(--primary);">분석:</strong> Content + Psyche + Sincerity Gate 3단계</div>
+        <div style="padding:4px 0;border-top:1px solid #e8e8e8;"><strong style="color:var(--primary);">초점:</strong> 가치 소비 팝업의 진정성 반응 vs 일반 팝업 대비</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;padding:10px 14px;background:var(--primary-pale);border-radius:8px;font-size:12px;color:var(--body);">
+    📖 <strong>읽는 법:</strong> 각 섹션은 <strong>BEFORE(기존 도구)</strong>와 <strong>AFTER(RXR)</strong>를 나란히 비교합니다. AFTER 파트에는 📊 Raw Data 근거 박스가 포함됩니다.
+  </div>
+</div>
+
+
+<h2>0. 데이터 수집 개요</h2>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;">
+  <div class="card metric-card" style="border-top-color:var(--primary);"><div style="font-size:32px;font-weight:800;color:var(--primary);">251</div><div style="font-size:11px;color:var(--body);font-weight:600;">총 멘션 (네이버 블로그)</div></div>
+  <div class="card metric-card" style="border-top-color:#00b4d8;"><div style="font-size:32px;font-weight:800;color:#00b4d8;">249</div><div style="font-size:11px;color:var(--body);font-weight:600;">Gate 1 유효</div></div>
+  <div class="card metric-card" style="border-top-color:var(--pink);"><div style="font-size:32px;font-weight:800;color:var(--pink);">149</div><div style="font-size:11px;color:var(--body);font-weight:600;">Gate 3 진심</div></div>
+</div>
+
+<h3>데이터 소스</h3>
+<div class="grid2" style="margin:10px 0;">
+  <div class="card" style="border-left:4px solid var(--primary);">
+    <div style="font-size:11px;font-family:'Poppins';letter-spacing:1px;color:var(--body);margin-bottom:6px;">NAVER BLOG (심층 분석)</div>
+    <div style="font-size:28px;font-weight:800;color:var(--primary);">251<span style="font-size:13px;font-weight:600;color:var(--body);"> 건</span></div>
+    <div style="margin-top:8px;">
+      <table style="font-size:11px;margin:0;"><tbody>
+        <tr><td style="color:var(--orange);font-weight:600;border:none;padding:2px 6px;">이벤트 전</td><td style="border:none;padding:2px 6px;"><strong>37</strong> (15%)</td></tr>
+        <tr><td style="color:var(--pink);font-weight:600;border:none;padding:2px 6px;">사전홍보</td><td style="border:none;padding:2px 6px;"><strong>21</strong> (8%)</td></tr>
+        <tr><td style="color:var(--primary);font-weight:600;border:none;padding:2px 6px;">이벤트 기간</td><td style="border:none;padding:2px 6px;"><strong>168</strong> (67%)</td></tr>
+        <tr><td style="color:#94a3b8;font-weight:600;border:none;padding:2px 6px;">이벤트 후</td><td style="border:none;padding:2px 6px;"><strong>25</strong> (10%)</td></tr>
+      </tbody></table>
+    </div>
+    <div style="margin-top:8px;padding:6px 8px;background:var(--primary-pale);border-radius:6px;font-size:10px;color:var(--primary);">API 직접 크롤링 → Content + Psyche Layer 심층 분석 대상</div>
+  </div>
+  <div class="card" style="border-left:4px solid #00b4d8;">
+    <div style="font-size:11px;font-family:'Poppins';letter-spacing:1px;color:var(--body);margin-bottom:6px;">BRAND24 (참고)</div>
+    <div style="font-size:16px;font-weight:700;color:#00b4d8;">별도 데이터 없음</div>
+    <div style="margin-top:8px;font-size:12px;color:var(--body);line-height:1.6;">
+      제공된 Brand24 데이터는 LG생활건강 전체(2026.03~04)로 비욘드 팝업(2023.05~06)과 기간·대상 불일치. 본 분석은 네이버 블로그 251건 기준으로 수행.
+    </div>
+  </div>
+</div>
+
+<h3>날짜별 버즈 분포</h3><div class="card" style="padding:14px 18px;">
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-01</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-03</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-05</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-06</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-07</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-08</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:57.14285714285714%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">8</span><span style="color:var(--orange);font-weight:600;"> 스파이크</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-09</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-10</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-11</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-12</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-13</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-14</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-16</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-17</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-19</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#d946ef;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-20</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#d946ef;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-21</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#d946ef;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-23</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:78.57142857142857%;height:100%;background:#d946ef;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">11</span><span style="color:var(--coral);font-weight:700;"> ★ 피크</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-24</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#d946ef;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-25</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:42.857142857142854%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">6</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-26</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:42.857142857142854%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">6</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-27</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:42.857142857142854%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">6</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-28</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:21.428571428571427%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">3</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-29</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-30</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-31</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:57.14285714285714%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">8</span><span style="color:var(--orange);font-weight:600;"> 스파이크</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-01</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:50.0%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">7</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-02</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-03</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-04</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:50.0%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">7</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-05</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:78.57142857142857%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">11</span><span style="color:var(--coral);font-weight:700;"> ★ 피크</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-06</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-07</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:42.857142857142854%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">6</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-08</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:64.28571428571429%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">9</span><span style="color:var(--orange);font-weight:600;"> 스파이크</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-09</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-10</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:50.0%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">7</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-11</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:100.0%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">14</span><span style="color:var(--coral);font-weight:700;"> ★ 피크</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-12</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-13</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:64.28571428571429%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">9</span><span style="color:var(--orange);font-weight:600;"> 스파이크</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-14</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:50.0%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">7</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-15</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:21.428571428571427%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">3</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-16</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:57.14285714285714%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">8</span><span style="color:var(--orange);font-weight:600;"> 스파이크</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-17</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:71.42857142857143%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">10</span><span style="color:var(--coral);font-weight:700;"> ★ 피크</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-18</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:57.14285714285714%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">8</span><span style="color:var(--orange);font-weight:600;"> 스파이크</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-19</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-20</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-21</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-22</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-23</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-24</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-25</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-26</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-27</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-28</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-29</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-30</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+</div>
+<div style="display:flex;gap:16px;margin:8px 0;font-size:11px;color:var(--body);">
+  <span>🟠 이벤트 전</span><span>🟣 사전홍보</span><span>🔵 이벤트 기간</span><span>⚪ 이벤트 후</span>
+</div>
+<h3>기간별 비교</h3>
+<div class="grid2">
+<div>
+<table><thead><tr><th>기간</th><th>건수</th><th>일평균</th><th>비율</th></tr></thead><tbody>
+<tr><td style="color:var(--orange);font-weight:600;">이벤트 전 (05.01~17)</td><td><strong>37</strong></td><td>2.2</td><td>15%</td></tr>
+<tr><td style="color:var(--pink);font-weight:600;">사전홍보 (05.18~24)</td><td><strong>21</strong></td><td>3.0</td><td>8%</td></tr>
+<tr><td style="color:var(--primary);font-weight:600;">이벤트 기간 (05.25~06.18)</td><td><strong>168</strong></td><td>6.7</td><td>67%</td></tr>
+<tr><td style="color:#94a3b8;font-weight:600;">이벤트 후 (06.19~30)</td><td><strong>25</strong></td><td>2.1</td><td>10%</td></tr>
+</tbody></table>
+</div>
+<div class="grid2" style="gap:8px;">
+  <div class="card" style="text-align:center;padding:10px;"><div style="font-size:22px;font-weight:800;color:var(--primary);">06.11</div><div style="font-size:10px;color:var(--body);">최고 피크 (14건)</div></div>
+  <div class="card" style="text-align:center;padding:10px;"><div style="font-size:22px;font-weight:800;color:var(--orange);">05.23</div><div style="font-size:10px;color:var(--body);">사전홍보 피크 (11건)</div></div>
+  <div class="card" style="text-align:center;padding:10px;"><div style="font-size:22px;font-weight:800;color:var(--green);">67%</div><div style="font-size:10px;color:var(--body);">이벤트 기간 집중도</div></div>
+  <div class="card" style="text-align:center;padding:10px;"><div style="font-size:22px;font-weight:800;color:var(--pink);">10%</div><div style="font-size:10px;color:var(--body);">롱테일 (이벤트 후)</div></div>
+</div>
+</div>
+
+
+<h2>1. 버즈 규모 — 진짜 유효 반응은?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">총 251건 mentions</div>
+    <div style="font-size:13px;color:var(--body);line-height:1.7;">
+      기존 도구는 검색 결과 전체를 1건=1건으로 카운트. 보도자료, 리그램, 노이즈, 협찬이 모두 동일 가치로 합산됨. "251건 mentions"이라는 숫자 하나만 제공.
+    </div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">Gate 3 유효 149건 (59%)</div>
+    <div style="font-size:13px;color:var(--body);line-height:1.7;">
+      251건 중 <strong>102건(41%)</strong>이 노이즈/보도/협찬/Auth 미달로 탈락. 실제로 진심이 담긴 반응은 <strong>149건</strong>.
+    </div>
+    <div class="raw-box raw-good">📊 <strong>최고 Auth 88</strong> — "4月 | 내가 좋아하는 것만 하면 뭐 어때" (05.03, 서사형 Q5, 개인 경험+구체적 디테일 풍부)</div>
+    <div class="raw-box raw-bad">📊 <strong>최저 Auth 10</strong> — "3월 맞벌이 부부 재테크" (06.01, 이벤트 무관 콘텐츠, 브랜드만 언급)</div>
+    <div class="insight-blue insight">→ 251건의 <strong>41%가 허수</strong>. 기존 도구의 "251건"과 RXR의 "149건"은 전혀 다른 이야기를 말한다. 협찬·보도·노이즈를 걸러내면 실제 소비자 반응의 규모와 질이 동시에 보인다.</div>
+  </div>
+</div>
+
+
+<h2>2. 감성 분석 — 긍정이 정말 긍정인가?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">긍정/중립/부정 3단계</div>
+    <div style="font-size:13px;color:var(--body);">
+      기존 3단계: 긍정 38%, 중립 50%, 부정 2%<br>
+      "긍정이 많으니 캠페인 성공"이라는 단순 결론.
+    </div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">4단계 + "혼합"이 핵심</div>
+    <div style="font-size:13px;color:var(--body);">
+      <strong>긍정 37% / 혼합 48% / 부정 1% / 중립 12%</strong><br>
+      기존 "중립 50%"의 대부분이 실은 <strong>"혼합"(48%)</strong> — 긍정+부정이 공존하는 균형 잡힌 리뷰.
+    </div>
+    <div class="raw-box raw-good">📊 <strong>혼합 사례</strong> — "공병 가져가면 리필 제품으로 바꿔줘서 좋았는데, 종류가 더 다양했으면" (긍정+건설적 피드백)</div>
+    <div class="raw-box raw-bad">📊 <strong>위장 긍정</strong> — 협찬 포스트: 느낌표 15개+, 극단 긍정어 7개 → Auth 33 (기존 도구에서는 "긍정"으로 분류)</div>
+    <div class="insight-blue insight">→ <strong>혼합 48%는 오히려 좋은 신호</strong>. "좋긴 한데 더 이런 게 있었으면"이라는 건설적 피드백은 진지하게 경험한 사람들의 신호. 기존 도구가 이를 "중립"으로 묻어버리면 가장 가치 있는 피드백을 놓친다.</div>
+  </div>
+</div>
+
+
+<h2>3. 데이터 분류 — 251건은 모두 같은 1건인가?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">채널별 건수만</div>
+    <div style="font-size:13px;color:var(--body);">블로그 251건. 진성 후기인지, 보도자료인지, 협찬인지 구분 불가.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">A~G 7단계 + Trust Score</div>
+    <table>
+      <tr><th>등급</th><th>분류</th><th>건수</th><th>비율</th></tr>
+      <tr style="background:#f0fdf4;"><td style="font-weight:700;color:var(--green);">A</td><td>진성후기</td><td><strong>75</strong></td><td>30%</td></tr>
+      <tr><td style="font-weight:700;">B</td><td>일반포스트</td><td><strong>96</strong></td><td>38%</td></tr>
+      <tr style="background:#fffbeb;"><td style="font-weight:700;color:var(--orange);">C</td><td>협찬/체험단</td><td><strong>63</strong></td><td>25%</td></tr>
+      <tr style="background:#f9fafb;"><td style="font-weight:700;color:#94a3b8;">D</td><td>나열형정보</td><td><strong>8</strong></td><td>3%</td></tr>
+      <tr style="background:#fef2f2;"><td style="font-weight:700;color:var(--coral);">E~G</td><td>리그램/보도/노이즈</td><td><strong>9</strong></td><td>4%</td></tr>
+    </table>
+    <div class="insight-blue insight">→ A(진성)+B(일반) = <strong>68%가 자발적 콘텐츠</strong>. 협찬 25%는 높은 편이지만, 진성후기 30%가 이를 상쇄. 친환경 가치에 공감한 자발적 방문이 2/3를 차지한다는 것은 캠페인 메시지가 작동했다는 증거.</div>
+  </div>
+</div>
+
+
+<h2>4. 협찬 분석 — 같은 "긍정"인가?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">유/무 이분법</div>
+    <div style="font-size:13px;color:var(--body);">"협찬 63건 있음" — 협찬 안에서도 진심인 사람과 의무적 포스팅의 차이를 구분 불가.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">진심 스펙트럼 분석</div>
+    <div class="grid2" style="margin:10px 0;">
+      <div class="card" style="text-align:center;border-top:3px solid var(--orange);">
+        <div style="font-size:10px;color:var(--body);margin-bottom:4px;">협찬 (63건)</div>
+        <div style="font-size:28px;font-weight:800;color:var(--orange);">56.6</div>
+        <div style="font-size:10px;color:var(--body);">Auth 평균</div>
+      </div>
+      <div class="card" style="text-align:center;border-top:3px solid var(--green);">
+        <div style="font-size:10px;color:var(--body);margin-bottom:4px;">자발적 (171건)</div>
+        <div style="font-size:28px;font-weight:800;color:var(--green);">66.6</div>
+        <div style="font-size:10px;color:var(--body);">Auth 평균</div>
+      </div>
+    </div>
+    <div class="raw-box raw-good">📊 <strong>협찬 중 진심 최고</strong> — Auth 63: "체험단이지만 솔직히 공병 교환 개념이 신선했어요. 집에 쌓인 공병 가져가니 뿌듯" (개인경험+균형 평가)</div>
+    <div class="raw-box raw-bad">📊 <strong>협찬 중 의무적</strong> — Auth 30: "비욘드에서 팝업을 운영합니다! 꼭 방문해보세요!!! 최고의 경험!!!" (느낌표 과다, 개인경험 0)</div>
+    <div class="insight-blue insight">→ Auth 차이 <strong>9.9점</strong>. 같은 "협찬" 안에서도 진심의 농도가 다르다. 비욘드의 경우 차이가 10점으로, 새로(20.9점) 대비 좁다 — <strong>협찬자들도 친환경 가치에 상대적으로 더 공감</strong>했다는 의미.</div>
+  </div>
+</div>
+
+
+<h2>5. 토픽 분석 — 사람들은 무엇을 말했나?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">워드클라우드</div>
+    <div style="font-size:13px;color:var(--body);">빈도 기반 워드클라우드. "비욘드", "팝업", "성수" 같은 당연한 키워드만 크게 표시. 비중과 시사점 불명확.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">구조화 토픽 비중 + 시사점</div>
+
+<div class="gauge-row"><div class="gauge-label">제품/체험</div><div class="gauge-track"><div class="gauge-fill" style="width:71.31474103585657%;background:#6666FF;">179건</div></div><div class="gauge-val" style="color:#6666FF;">71%</div></div>
+<div class="gauge-row"><div class="gauge-label">친환경/가치</div><div class="gauge-track"><div class="gauge-fill" style="width:66.93227091633466%;background:#10b981;">168건</div></div><div class="gauge-val" style="color:#10b981;">67%</div></div>
+<div class="gauge-row"><div class="gauge-label">공간/분위기</div><div class="gauge-track"><div class="gauge-fill" style="width:35.85657370517929%;background:#00b4d8;">90건</div></div><div class="gauge-val" style="color:#00b4d8;">36%</div></div>
+<div class="gauge-row"><div class="gauge-label">굿즈/혜택</div><div class="gauge-track"><div class="gauge-fill" style="width:33.86454183266932%;background:#f59e0b;">85건</div></div><div class="gauge-val" style="color:#f59e0b;">34%</div></div>
+<div class="gauge-row"><div class="gauge-label">위치/접근성</div><div class="gauge-track"><div class="gauge-fill" style="width:33.067729083665334%;background:#94a3b8;">83건</div></div><div class="gauge-val" style="color:#94a3b8;">33%</div></div>
+<div class="gauge-row"><div class="gauge-label">포토부스/SNS</div><div class="gauge-track"><div class="gauge-fill" style="width:27.490039840637447%;background:#d946ef;">69건</div></div><div class="gauge-val" style="color:#d946ef;">27%</div></div>
+<div class="gauge-row"><div class="gauge-label">웨이팅/예약</div><div class="gauge-track"><div class="gauge-fill" style="width:17.131474103585656%;background:#ef4444;">43건</div></div><div class="gauge-val" style="color:#ef4444;">17%</div></div>
+<div class="gauge-row"><div class="gauge-label">헤줘/캠페인</div><div class="gauge-track"><div class="gauge-fill" style="width:3.9840637450199203%;background:#64748b;">10건</div></div><div class="gauge-val" style="color:#64748b;">4%</div></div>
+
+    <div class="raw-box raw-good">📊 <strong>친환경/가치 168건(67%)</strong> — "플라스틱 줄이기", "종이 패키지", "공병 수거", "리필" 등 친환경 메시지가 제품(179건)과 거의 동등한 언급량</div>
+    <div class="raw-box raw-bad">📊 <strong>헤줘/캠페인 10건(4%)</strong> — 비욘드의 주력 라인인 "헤줘" 세정 라인이 팝업에서 거의 언급되지 않음</div>
+    <div class="insight-blue insight">→ <strong>친환경 가치가 제품과 동등하게 언급</strong>된 것은 일반 팝업에서 보기 힘든 패턴. 보통 팝업은 "사진/공간" 중심인데, 비욘드는 "가치관" 언급이 67%를 차지. 반면 <strong>"헤줘" 라인은 4%에 불과</strong> — 팝업 동선에서 제품 체험 접점이 약했다는 신호.</div>
+  </div>
+</div>
+
+
+<h2>6. 심리 분석 — 어떻게 말했는가?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">분석 불가능</div>
+    <div style="font-size:13px;color:var(--body);">기존 도구는 "무엇을 말했는가"까지만. 진정성, 추천 확신도, 신선함 지수 같은 심리적 차원은 측정 불가.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">Auth / Clout / Freshness 3축</div>
+
+<div class="grid3" style="margin:10px 0;">
+<div class="card"><h3 style="margin-top:0;font-size:13px;">이벤트전</h3>
+<div class="gauge-row"><div class="gauge-label" style="width:50px;">Auth</div><div class="gauge-track"><div class="gauge-fill" style="width:60.5945945945946%;background:#6666FF;"></div></div><div class="gauge-val" style="color:#6666FF;">60.6</div></div>
+<div class="gauge-row"><div class="gauge-label" style="width:50px;">Clout</div><div class="gauge-track"><div class="gauge-fill" style="width:48.78378378378378%;background:#00b4d8;"></div></div><div class="gauge-val" style="color:#00b4d8;">48.8</div></div>
+<div class="gauge-row"><div class="gauge-label" style="width:50px;">Fresh</div><div class="gauge-track"><div class="gauge-fill" style="width:43.8864864864865%;background:#10b981;"></div></div><div class="gauge-val" style="color:#10b981;">43.9</div></div>
+</div>
+<div class="card"><h3 style="margin-top:0;font-size:13px;">이벤트중</h3>
+<div class="gauge-row"><div class="gauge-label" style="width:50px;">Auth</div><div class="gauge-track"><div class="gauge-fill" style="width:64.74404761904762%;background:#6666FF;"></div></div><div class="gauge-val" style="color:#6666FF;">64.7</div></div>
+<div class="gauge-row"><div class="gauge-label" style="width:50px;">Clout</div><div class="gauge-track"><div class="gauge-fill" style="width:50.44642857142857%;background:#00b4d8;"></div></div><div class="gauge-val" style="color:#00b4d8;">50.4</div></div>
+<div class="gauge-row"><div class="gauge-label" style="width:50px;">Fresh</div><div class="gauge-track"><div class="gauge-fill" style="width:44.82500000000003%;background:#10b981;"></div></div><div class="gauge-val" style="color:#10b981;">44.8</div></div>
+</div>
+<div class="card"><h3 style="margin-top:0;font-size:13px;">이벤트후</h3>
+<div class="gauge-row"><div class="gauge-label" style="width:50px;">Auth</div><div class="gauge-track"><div class="gauge-fill" style="width:68.96%;background:#6666FF;"></div></div><div class="gauge-val" style="color:#6666FF;">69.0</div></div>
+<div class="gauge-row"><div class="gauge-label" style="width:50px;">Clout</div><div class="gauge-track"><div class="gauge-fill" style="width:53.2%;background:#00b4d8;"></div></div><div class="gauge-val" style="color:#00b4d8;">53.2</div></div>
+<div class="gauge-row"><div class="gauge-label" style="width:50px;">Fresh</div><div class="gauge-track"><div class="gauge-fill" style="width:42.26%;background:#10b981;"></div></div><div class="gauge-val" style="color:#10b981;">42.3</div></div>
+</div>
+</div>
+
+    <div class="raw-box raw-good">📊 <strong>이벤트후 Auth 69.0</strong> — 시간이 지나도 진정성이 오히려 상승. "곰곰이 생각한 후기"가 늦게 올라옴. 긍정률도 27%→52%로 상승.</div>
+    <div class="raw-box raw-bad">📊 <strong>이벤트전 Auth 60.6</strong> — 사전 기대 포스트는 정보 나열 위주로 개인 경험이 적어 Auth가 낮음.</div>
+    <div class="insight-blue insight">→ <strong>Auth가 시간에 따라 상승(60.6→69.0, +8.4점)</strong>하는 것은 매우 긍정적 신호. 일반 팝업은 시간이 지나면 Auth가 하락(기억 미화+의무적 후기 증가)하는데, 비욘드는 반대. 친환경 가치에 대한 <strong>진정한 공감이 시간이 지나도 유지</strong>된다는 뜻.</div>
+  </div>
+</div>
+
+
+<h2>7. 후기 품질 — 1건=1건인가?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">1건 = 1건</div>
+    <div style="font-size:13px;color:var(--body);">20자짜리 감탄사와 1,000자짜리 서사형 후기가 동일한 1건. 후기의 깊이와 영향력 차이를 무시.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">RQL 5단계 가중</div>
+    <table>
+      <tr><th>등급</th><th>조건</th><th>건수</th><th>비율</th><th>가중치</th></tr>
+      <tr style="background:#f0fdf4;"><td><strong>Q5 서사형</strong></td><td>500자+ & 디테일3+</td><td><strong>165</strong></td><td>66%</td><td>×2.0</td></tr>
+      <tr><td><strong>Q4 분석형</strong></td><td>300자+ & 디테일2+</td><td><strong>53</strong></td><td>21%</td><td>×1.5</td></tr>
+      <tr><td>Q3 경험형</td><td>150자+</td><td><strong>14</strong></td><td>6%</td><td>×1.0</td></tr>
+      <tr><td>Q2 감상형</td><td>50자+</td><td><strong>15</strong></td><td>6%</td><td>×0.5</td></tr>
+      <tr style="background:#fef2f2;"><td>Q1 간단형</td><td>50자 미만</td><td><strong>4</strong></td><td>2%</td><td>×0.2</td></tr>
+    </table>
+    <div class="insight-blue insight">→ <strong>Q5 서사형이 66%</strong>로 압도적. 일반 팝업의 Q5 비율(보통 30~40%)을 크게 상회. 친환경 가치 공감 → "왜 이게 중요한지" 서사적 서술 유도. 이는 단순 "예뻐서 찍었다"가 아닌 <strong>"이게 왜 좋은지 설명하고 싶다"</strong>는 동기를 반영.</div>
+  </div>
+</div>
+
+
+<h2>8. Sincerity Gate — 진심 필터링</h2>
+<div class="card" style="padding:20px;">
+  <div class="funnel-bar" style="width:100%;background:linear-gradient(90deg,#94a3b8,#b0b8c4);">Gate 1 (G 제거) — 249건 | 긍정 37% | Auth 64.3</div>
+  <div class="funnel-bar" style="width:72%;background:linear-gradient(90deg,#6666FF,#8888FF);">Gate 2 (+CEF 제거) — 179건 | 긍정 37% | Auth 66.9</div>
+  <div class="funnel-bar" style="width:60%;background:linear-gradient(90deg,#10b981,#34d399);">Gate 3 (+Auth60+) — 149건 | 긍정 38% | Auth 73.7</div>
+</div>
+<div class="insight" style="margin-top:12px;">
+  <strong>Gate 1→3 변화:</strong> 건수 249→149 (<strong>-40%</strong>), 긍정률 37%→38% (<strong>+1%p</strong>), Auth 64.3→73.7 (<strong>+9.4점</strong>)<br>
+  비욘드의 특이점: <strong>긍정률이 Gate를 거쳐도 거의 변하지 않음(+1%p)</strong>. 새로(-12%p)와 극명한 대비. 이는 과장 긍정이 적고, 진짜 긍정이 대부분이라는 뜻.
+</div>
+
+
+<h2>9. 종합 비교표</h2>
+<table>
+  <thead><tr><th>비교 영역</th><th>BEFORE (기존)</th><th>AFTER (RXR)</th><th>차별화</th></tr></thead>
+  <tbody>
+  <tr><td><strong>버즈 규모</strong></td><td>251건</td><td>Gate3 유효 149건 (59%)</td><td style="color:var(--primary);font-weight:700;">진실 폭로</td></tr>
+  <tr><td><strong>감성</strong></td><td>긍정/중립/부정 3단계</td><td>4단계 + 혼합 48% 발견</td><td style="color:var(--primary);font-weight:700;">깊이 ×3</td></tr>
+  <tr><td><strong>데이터 분류</strong></td><td>채널별 건수만</td><td>A~G 7단계 + Trust Score</td><td style="color:var(--primary);font-weight:700;">정확도 ×10</td></tr>
+  <tr><td><strong>협찬 분석</strong></td><td>유/무 이분법</td><td>진심 스펙트럼 (Auth 차이 10점)</td><td style="color:var(--green);font-weight:700;">유일</td></tr>
+  <tr><td><strong>리그램/공유</strong></td><td>구분 불가</td><td>E등급 자동 태깅</td><td style="color:var(--green);font-weight:700;">유일</td></tr>
+  <tr><td><strong>토픽</strong></td><td>워드클라우드</td><td>구조화 8개 토픽 + 비중 + 시사점</td><td style="color:var(--primary);font-weight:700;">액셔너블</td></tr>
+  <tr><td><strong>심리</strong></td><td>불가능</td><td>Auth/Clout/Freshness 시계열</td><td style="color:var(--green);font-weight:700;">유일</td></tr>
+  <tr><td><strong>후기 품질</strong></td><td>1건=1건</td><td>RQL 5단계 (Q5 66%)</td><td style="color:var(--green);font-weight:700;">유일</td></tr>
+  <tr><td><strong>시계열 변화</strong></td><td>날짜별 건수만</td><td>기간별 Auth/감성 변화 추적</td><td style="color:var(--primary);font-weight:700;">인사이트</td></tr>
+  </tbody>
+</table>
+
+
+<h2 style="border-bottom-color:var(--primary);">BOTTOM LINE</h2>
+<div style="padding:24px;background:linear-gradient(135deg,#f8f7ff,#eef2ff);border-radius:16px;border:2px solid var(--primary-pale);margin:16px 0;">
+  <div style="text-align:center;margin-bottom:20px;">
+    <div style="font-size:13px;color:var(--body);margin-bottom:8px;">기존 도구의 결론</div>
+    <div style="font-size:20px;font-weight:700;color:#94a3b8;text-decoration:line-through;">"251건 mentions, 긍정 38%, 캠페인 성공"</div>
+    <div style="font-size:13px;color:var(--body);margin:12px 0 8px;">RXR의 결론</div>
+    <div style="font-size:22px;font-weight:800;color:var(--primary);">"149건 진심 반응, 친환경 가치가 실제로 작동, Q5 서사형 66%"</div>
+  </div>
+
+  <h3 style="margin-top:20px;">왜 이런 결과가 나왔는가?</h3>
+  <div class="grid4" style="margin:12px 0;">
+    <div class="card" style="border-top:3px solid var(--green);text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:var(--green);">+1%p</div>
+      <div style="font-size:10px;color:var(--body);margin-bottom:6px;">Gate 긍정률 변화</div>
+      <div style="font-size:11px;color:var(--body);line-height:1.5;">과장 긍정이 거의 없음. Gate를 거쳐도 긍정률이 유지 — <strong>진짜 좋았던 사람들</strong>이 대부분.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--primary);text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:var(--primary);">67%</div>
+      <div style="font-size:10px;color:var(--body);margin-bottom:6px;">친환경/가치 토픽</div>
+      <div style="font-size:11px;color:var(--body);line-height:1.5;">제품이 아닌 "가치"를 말하는 팝업. 일반 팝업 대비 가치 언급이 <strong>2배 이상</strong>.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--orange);text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:var(--orange);">+8.4</div>
+      <div style="font-size:10px;color:var(--body);margin-bottom:6px;">Auth 시계열 상승</div>
+      <div style="font-size:11px;color:var(--body);line-height:1.5;">시간이 지날수록 진정성 상승. 즉흥적 반응이 아닌 <strong>곰곰이 생각한 후기</strong>.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--pink);text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:var(--pink);">66%</div>
+      <div style="font-size:10px;color:var(--body);margin-bottom:6px;">Q5 서사형 비율</div>
+      <div style="font-size:11px;color:var(--body);line-height:1.5;">가치 공감 → 서사적 서술. "왜 좋은지 <strong>설명하고 싶다</strong>"는 동기.</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:20px;">제언: 다음 팝업에서 무엇을 바꿀 것인가?</h3>
+  <div class="grid3" style="margin:12px 0;">
+    <div style="background:#fff;border-radius:12px;padding:16px;border-left:4px solid var(--primary);">
+      <div style="font-size:20px;margin-bottom:6px;">🧴</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">헤줘 라인 체험 강화</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.6;">헤줘 토픽 4%로 거의 부재. 세정 라인 체험을 팝업 핵심 동선에 배치 — 미니 세면대+향 테스트+리필 시연으로 제품 인지 확대.</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:16px;border-left:4px solid var(--green);">
+      <div style="font-size:20px;margin-bottom:6px;">♻️</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">공병 교환 → 상설화</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.6;">공병 수거가 방문 동기의 핵심. 1회성 팝업이 아닌 네이처컬렉션 매장 상설 리필 스테이션으로 전환하면 Auth 유지 가능.</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:16px;border-left:4px solid var(--orange);">
+      <div style="font-size:20px;margin-bottom:6px;">💬</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">혼합 감성 피드백 반영</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.6;">"종류가 더 다양했으면" 등 건설적 피드백을 다음 팝업에 직접 반영. "여러분의 의견을 반영했습니다" 커뮤니케이션으로 참여감 제고.</div>
+    </div>
+  </div>
+</div>
+
+
+<h2>부록: Sincerity Gate 3 통과 — 유효 Raw Data (149건)</h2>
+<div style="overflow-x:auto;">
+<table style="font-size:11px;">
+<thead><tr><th>#</th><th>날짜</th><th>감성</th><th>Auth</th><th>Clout</th><th>Fresh</th><th>RQL</th><th>토픽</th><th>기간</th><th>제목</th><th>블로거</th></tr></thead>
+<tbody>
+
+<tr style="background:#f0fdf4;"><td>1</td><td>05-03</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>70</td><td>50</td><td>Q5</td><td style="font-size:10px;">웨이팅/예약, 공간/분위기</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/darlene_s2/223092846986" target="_blank" style="color:var(--primary);text-decoration:none;">4月 | 내가 좋아하는 것만 하면 뭐 어때</a></td><td style="font-size:10px;">Call me your</td></tr>
+<tr style="background:#fff;"><td>2</td><td>05-05</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>50</td><td>Q2</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/dr_kio/223094421360" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 토탈리커버리 바디워시 테스터 모집</a></td><td style="font-size:10px;">Dr_Kio</td></tr>
+<tr style="background:#f0fdf4;"><td>3</td><td>05-06</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>55</td><td>56</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 굿즈/혜택</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/skwlgud99/223095077378" target="_blank" style="color:var(--primary);text-decoration:none;">더현대서울 골든듀 팝업 :: Golden dew 비욘드 더 도어 펜던트...</a></td><td style="font-size:10px;">Candy Jelly </td></tr>
+<tr style="background:#fff;"><td>4</td><td>05-06</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>40</td><td>41</td><td>Q5</td><td style="font-size:10px;">굿즈/혜택, 포토부스/SNS</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/now_b612/223095179800" target="_blank" style="color:var(--primary);text-decoration:none;">더현대 팝업 5월 : 글로리어스워커 / PROTO / 오벤져스...</a></td><td style="font-size:10px;">달밤의 그림산책</td></tr>
+<tr style="background:#f0fdf4;"><td>5</td><td>05-06</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>70</td><td>53</td><td>Q5</td><td style="font-size:10px;">포토부스/SNS, 웨이팅/예약</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/aoecute/223095103863" target="_blank" style="color:var(--primary);text-decoration:none;">더 현대 서울 헌터 레인 부츠와 매칭 한 레트로 청청 코디</a></td><td style="font-size:10px;">하니의 취향저격</td></tr>
+<tr style="background:#fff;"><td>6</td><td>05-06</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>10</td><td>Q3</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/dlsea/223094895186" target="_blank" style="color:var(--primary);text-decoration:none;">[비욘드] 비욘드 토탈리커버리 바디워시 기획 뷰티테스터 20명...</a></td><td style="font-size:10px;">노래하는 쾌걸공주</td></tr>
+<tr style="background:#f0fdf4;"><td>7</td><td>05-08</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>50</td><td>Q2</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/jy70417/223096295615" target="_blank" style="color:var(--primary);text-decoration:none;">네이처컬렉션 x 비욘드 토탈리커버리 바디워시기획 뷰티테스...</a></td><td style="font-size:10px;">jy70417님의블로그</td></tr>
+<tr style="background:#fff;"><td>8</td><td>05-08</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">62</td><td>40</td><td>52</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 친환경/가치</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/54_mostly/223096239924" target="_blank" style="color:var(--primary);text-decoration:none;">일상41</a></td><td style="font-size:10px;">мσѕтℓу</td></tr>
+<tr style="background:#f0fdf4;"><td>9</td><td>05-09</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>38</td><td>Q4</td><td style="font-size:10px;">공간/분위기, 굿즈/혜택</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/fashon1/223096962063" target="_blank" style="color:var(--primary);text-decoration:none;">‘골든듀’ 더현대 서울 비욘드더도어 팝업</a></td><td style="font-size:10px;">공유경제형 패션 플랫폼</td></tr>
+<tr style="background:#fff;"><td>10</td><td>05-09</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">80</td><td>55</td><td>30</td><td>Q5</td><td style="font-size:10px;">제품/체험, 굿즈/혜택</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/rrg19921/223096995767" target="_blank" style="color:var(--primary);text-decoration:none;">마곡나루 블리스냅 테린느 먹고 온 후기 (아이파크몰 팝업스토어)</a></td><td style="font-size:10px;">뀨딩의 일상</td></tr>
+<tr style="background:#f0fdf4;"><td>11</td><td>05-09</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">76</td><td>55</td><td>47</td><td>Q5</td><td style="font-size:10px;">굿즈/혜택, 포토부스/SNS</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/kimkj0626/223097079526" target="_blank" style="color:var(--primary);text-decoration:none;">5월팝업스토어(에움,파티세리 후르츠, 골든듀...</a></td><td style="font-size:10px;">김토끼 요가일지</td></tr>
+<tr style="background:#fff;"><td>12</td><td>05-09</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>33</td><td>Q4</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/yetful/223097742649" target="_blank" style="color:var(--primary);text-decoration:none;">0509 뷰티/유통 트렌드</a></td><td style="font-size:10px;">옞풀</td></tr>
+<tr style="background:#f0fdf4;"><td>13</td><td>05-12</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>39</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 굿즈/혜택</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/hahaha_girl/223099990235" target="_blank" style="color:var(--primary);text-decoration:none;">2023.05.12.금 [신문]한국경제</a></td><td style="font-size:10px;">hahaha_girl'</td></tr>
+<tr style="background:#fff;"><td>14</td><td>05-13</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">60</td><td>50</td><td>29</td><td>Q3</td><td style="font-size:10px;">굿즈/혜택, 포토부스/SNS</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/magazine_editio/223101222218" target="_blank" style="color:var(--primary);text-decoration:none;">패션인들이 주목할 만한 5월의 팝업스토어는?</a></td><td style="font-size:10px;">에디티오</td></tr>
+<tr style="background:#f0fdf4;"><td>15</td><td>05-14</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>40</td><td>34</td><td>Q5</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/enalogg/223101450053" target="_blank" style="color:var(--primary);text-decoration:none;">끈적임 없고 고급스러운 향에 촉촉함까지, 비욘드 딥모이처...</a></td><td style="font-size:10px;">Enalog</td></tr>
+<tr style="background:#fff;"><td>16</td><td>05-16</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>95</td><td>Q2</td><td style="font-size:10px;">친환경/가치, 공간/분위기</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/memebena8585/223103228711" target="_blank" style="color:var(--primary);text-decoration:none;">일백마블 산업감각 (230516)</a></td><td style="font-size:10px;">바로바로 매매배나</td></tr>
+<tr style="background:#f0fdf4;"><td>17</td><td>05-17</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>55</td><td>40</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 친환경/가치</td><td style="font-size:10px;">이벤트전</td><td><a href="https://blog.naver.com/tnahsdlekd/223104448723" target="_blank" style="color:var(--primary);text-decoration:none;">골든듀 2023 비욘드더도어 컬렉션 한지민 화보 속 리미티드...</a></td><td style="font-size:10px;">꼬렛의 공간</td></tr>
+<tr style="background:#fff;"><td>18</td><td>05-19</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>50</td><td>35</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/dearus7/223106618578" target="_blank" style="color:var(--primary);text-decoration:none;">[화장품]뷰티업계, ‘컨셔스 뷰티’에 열풍…‘그린어스...</a></td><td style="font-size:10px;">Trendsetter</td></tr>
+<tr style="background:#f0fdf4;"><td>19</td><td>05-20</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>50</td><td>48</td><td>Q4</td><td style="font-size:10px;">제품/체험</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/tokang2479/223106873514" target="_blank" style="color:var(--primary);text-decoration:none;">[22/01/23] HG G-3 건담 [비욘드 글로벌]</a></td><td style="font-size:10px;">TokaNG's STO</td></tr>
+<tr style="background:#fff;"><td>20</td><td>05-21</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">60</td><td>50</td><td>71</td><td>Q4</td><td style="font-size:10px;">제품/체험, 굿즈/혜택</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/zzohani/223107575279" target="_blank" style="color:var(--primary);text-decoration:none;">[일상] 2023년 5월 일상 기록</a></td><td style="font-size:10px;">우신남의 일상</td></tr>
+<tr style="background:#f0fdf4;"><td>21</td><td>05-21</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>50</td><td>46</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 위치/접근성</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/sugarbabyby/223107798843" target="_blank" style="color:var(--primary);text-decoration:none;">[팝업] 성수 서울숲 비욘드 팝업 - R X BEYOND  -클래스...</a></td><td style="font-size:10px;">슈가비의 육아 팝업전시</td></tr>
+<tr style="background:#fff;"><td>22</td><td>05-21</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">70</td><td>50</td><td>31</td><td>Q4</td><td style="font-size:10px;">제품/체험, 위치/접근성</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/jinyupi/223108074913" target="_blank" style="color:var(--primary);text-decoration:none;">투자 아이디어 ('23. 5/21일)</a></td><td style="font-size:10px;">풀꽃님의 블로그</td></tr>
+<tr style="background:#f0fdf4;"><td>23</td><td>05-23</td><td style="color:#ef4444;font-weight:700;">부정</td><td style="color:#6666FF;font-weight:700;">70</td><td>50</td><td>25</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/london2stay/223109770512" target="_blank" style="color:var(--primary);text-decoration:none;">5/25-6/18 성수 서울숲 비욘드 팝업스토어 Less plastic...</a></td><td style="font-size:10px;">런던2의 먹고 싶은거 </td></tr>
+<tr style="background:#fff;"><td>24</td><td>05-23</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>50</td><td>Q1</td><td style="font-size:10px;">친환경/가치</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/naewoenews/223109745245" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 Less plastic, Paper is enough’ 캠페인 팝업스토어....</a></td><td style="font-size:10px;">내외통신 공식 블로그</td></tr>
+<tr style="background:#f0fdf4;"><td>25</td><td>05-23</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>78</td><td>Q5</td><td style="font-size:10px;">제품/체험, 위치/접근성</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/sugarbabyby/223109371084" target="_blank" style="color:var(--primary);text-decoration:none;">[팝업] 5월 하순 4째주 성수 서울숲 팝업 리스트</a></td><td style="font-size:10px;">슈가비의 육아 팝업전시</td></tr>
+<tr style="background:#fff;"><td>26</td><td>05-23</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>80</td><td>44</td><td>Q5</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/ifcmallseoul/223109400445" target="_blank" style="color:var(--primary);text-decoration:none;">[올리브영 비건 선크림 추천] 친환경 성분으로 자극 없는 데일리...</a></td><td style="font-size:10px;">IFC몰 공식블로그</td></tr>
+<tr style="background:#f0fdf4;"><td>27</td><td>05-23</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>50</td><td>Q1</td><td style="font-size:10px;">친환경/가치, 위치/접근성</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/gummio/223110037476" target="_blank" style="color:var(--primary);text-decoration:none;">230523 상승종목 상승내용 매집차트 뉴스 키워드</a></td><td style="font-size:10px;">콩콩 내심장을 울리는 </td></tr>
+<tr style="background:#fff;"><td>28</td><td>05-24</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>65</td><td>33</td><td>Q5</td><td style="font-size:10px;">굿즈/혜택, 포토부스/SNS</td><td style="font-size:10px;">사전홍보</td><td><a href="https://blog.naver.com/audtnr6902/223110744882" target="_blank" style="color:var(--primary);text-decoration:none;">팝업스토어 사전예약 일정!!</a></td><td style="font-size:10px;">떳떳하게해줄게 기살려줄</td></tr>
+<tr style="background:#f0fdf4;"><td>29</td><td>05-25</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>33</td><td>Q2</td><td style="font-size:10px;">친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/industryeconomynews/223111258629" target="_blank" style="color:var(--primary);text-decoration:none;">[산업경제뉴스] LG생활건강, 친환경 체험 비욘드 팝업스토어 초대</a></td><td style="font-size:10px;">산업경제뉴스</td></tr>
+<tr style="background:#fff;"><td>30</td><td>05-25</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>12</td><td>Q3</td><td style="font-size:10px;">제품/체험, 위치/접근성</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/insa004/223111251265" target="_blank" style="color:var(--primary);text-decoration:none;">"비욘드 (BEYOND) 팝업스토어"                         ...</a></td><td style="font-size:10px;">엠에스앤시엘(MS&CL</td></tr>
+<tr style="background:#f0fdf4;"><td>31</td><td>05-25</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>55</td><td>44</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/dbwls7104/223111958716" target="_blank" style="color:var(--primary);text-decoration:none;">[팝업] 컨셉에 진심인 성수 비욘드 팝업_5/25~6/18</a></td><td style="font-size:10px;">김비버의 따란~!</td></tr>
+<tr style="background:#fff;"><td>32</td><td>05-25</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>50</td><td>Q1</td><td style="font-size:10px;"></td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/sisaprime01/223111896172" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드, 팝업스토어 그 이상의 캠페인을 품다</a></td><td style="font-size:10px;">시사프라임</td></tr>
+<tr style="background:#f0fdf4;"><td>33</td><td>05-26</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">62</td><td>40</td><td>32</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/kimsudal_/223111916335" target="_blank" style="color:var(--primary);text-decoration:none;">성수핫플 비욘드 beyond 화장품 성수동 팝업스토어...</a></td><td style="font-size:10px;">유튜버 김수달</td></tr>
+<tr style="background:#fff;"><td>34</td><td>05-26</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>40</td><td>Q3</td><td style="font-size:10px;">포토부스/SNS, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/dltmdgus912/223112875449" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드_성수 팝업 스토어 in 프로젝트렌드 2호점</a></td><td style="font-size:10px;">열정적인 블로그</td></tr>
+<tr style="background:#f0fdf4;"><td>35</td><td>05-26</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">64</td><td>55</td><td>50</td><td>Q5</td><td style="font-size:10px;">포토부스/SNS, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/youandmezip/223112833797" target="_blank" style="color:var(--primary);text-decoration:none;">[서울] 6월에 가봐야 할 성수 팝업스토어 소개 ♥</a></td><td style="font-size:10px;">youandme,</td></tr>
+<tr style="background:#fff;"><td>36</td><td>05-26</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">62</td><td>55</td><td>24</td><td>Q4</td><td style="font-size:10px;">제품/체험, 공간/분위기</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/qkrwjddms105/223111224446" target="_blank" style="color:var(--primary);text-decoration:none;">탬버린즈 비가리코 바디로션, 워시 신세계 인터넷면세점...</a></td><td style="font-size:10px;">여행가는랄라ಇ</td></tr>
+<tr style="background:#f0fdf4;"><td>37</td><td>05-26</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">60</td><td>55</td><td>56</td><td>Q3</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/daily_jiji_/223112692238" target="_blank" style="color:var(--primary);text-decoration:none;">[뷰티] 비욘드 딥 모이스처 바디 에멀전 촉촉하고 냄새 좋은...</a></td><td style="font-size:10px;">데일리지혜</td></tr>
+<tr style="background:#fff;"><td>38</td><td>05-27</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>65</td><td>50</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/now_b612/223113328199" target="_blank" style="color:var(--primary);text-decoration:none;">성수 팝업스토어 : 마마메이드... 코닥 / 샤이니 / 비욘드</a></td><td style="font-size:10px;">달밤의 그림산책</td></tr>
+<tr style="background:#f0fdf4;"><td>39</td><td>05-27</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>50</td><td>Q2</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/ygswjh/223113325517" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 성수 팝업스토어</a></td><td style="font-size:10px;">Happiness</td></tr>
+<tr style="background:#fff;"><td>40</td><td>05-27</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">70</td><td>55</td><td>54</td><td>Q4</td><td style="font-size:10px;">웨이팅/예약, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/mmdye/223113461545" target="_blank" style="color:var(--primary);text-decoration:none;">6월 가볼만한 팝업 스토어 모음집 + 예약링크</a></td><td style="font-size:10px;">기록하지영</td></tr>
+<tr style="background:#f0fdf4;"><td>41</td><td>05-27</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>40</td><td>41</td><td>Q5</td><td style="font-size:10px;">웨이팅/예약, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/bluebear282/223113017219" target="_blank" style="color:var(--primary);text-decoration:none;">2023.05.26 금요일</a></td><td style="font-size:10px;">반짝반짝 빛나는</td></tr>
+<tr style="background:#fff;"><td>42</td><td>05-27</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>50</td><td>42</td><td>Q5</td><td style="font-size:10px;">위치/접근성, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/sugarbabyby/223112926153" target="_blank" style="color:var(--primary);text-decoration:none;">성수동 서울숲 5월 4째주 팝업 지도 - 동선 참고용</a></td><td style="font-size:10px;">슈가비의 육아 팝업전시</td></tr>
+<tr style="background:#f0fdf4;"><td>43</td><td>05-28</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>47</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/eunicemin/223113528690" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드의 환경을 생각하는 팝업 - Less Plastic Paper is...</a></td><td style="font-size:10px;">물병과 사자</td></tr>
+<tr style="background:#fff;"><td>44</td><td>05-29</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">68</td><td>55</td><td>58</td><td>Q4</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/dark_c1oud/223114665270" target="_blank" style="color:var(--primary);text-decoration:none;">성수 비욘드 팝업 화장품 공병으로 새 화장품 받아가세요!</a></td><td style="font-size:10px;">Dear Diary</td></tr>
+<tr style="background:#f0fdf4;"><td>45</td><td>05-29</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>40</td><td>Q5</td><td style="font-size:10px;">제품/체험, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/ilsang___gongyu/223114217391" target="_blank" style="color:var(--primary);text-decoration:none;">[05.27 코엑스&성수팝업] 디어, 클레어스 비타민 차징 트럭...</a></td><td style="font-size:10px;">遠遊, 먼 길을 떠나 </td></tr>
+<tr style="background:#fff;"><td>46</td><td>05-29</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>64</td><td>Q5</td><td style="font-size:10px;">제품/체험, 굿즈/혜택</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/sugarbabyby/223114991134" target="_blank" style="color:var(--primary);text-decoration:none;">[팝업] 6월 1째주 성수 서울숲 팝업 리스트</a></td><td style="font-size:10px;">슈가비의 육아 팝업전시</td></tr>
+<tr style="background:#f0fdf4;"><td>47</td><td>05-29</td><td style="color:#ef4444;font-weight:700;">부정</td><td style="color:#6666FF;font-weight:700;">70</td><td>50</td><td>26</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 굿즈/혜택</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/superchargemoney/223114404886" target="_blank" style="color:var(--primary);text-decoration:none;">주식 오늘의 주요 종목 알아볼게요. 젬백스 코스모화학...</a></td><td style="font-size:10px;">슈퍼차지</td></tr>
+<tr style="background:#fff;"><td>48</td><td>05-30</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>65</td><td>40</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/whitestone_-3/223113947777" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 팝업 | 5월 성수동 팝업스토어 이벤트, 서울숲 놀거리</a></td><td style="font-size:10px;">힌돌이의 우당탕탕 여행</td></tr>
+<tr style="background:#f0fdf4;"><td>49</td><td>05-30</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">68</td><td>40</td><td>56</td><td>Q4</td><td style="font-size:10px;">웨이팅/예약</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/h_an_na_h/223115469399" target="_blank" style="color:var(--primary);text-decoration:none;">이브, 프시케 그리고 푸른 얼굴의 샤월</a></td><td style="font-size:10px;">Days and Yea</td></tr>
+<tr style="background:#fff;"><td>50</td><td>05-31</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>55</td><td>59</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/j_co14/223116374606" target="_blank" style="color:var(--primary);text-decoration:none;">성수동팝업스토어 비욘드 친환경캠페인 참여 후기</a></td><td style="font-size:10px;">사치와 고요,</td></tr>
+<tr style="background:#f0fdf4;"><td>51</td><td>05-31</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>40</td><td>57</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 굿즈/혜택</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/aya006/223116451658" target="_blank" style="color:var(--primary);text-decoration:none;">드림) 드림쇼2 싱가포르 / 싱가포르 팝업스토어</a></td><td style="font-size:10px;">* 잊혀지는 것들에 대</td></tr>
+<tr style="background:#fff;"><td>52</td><td>05-31</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>50</td><td>Q5</td><td style="font-size:10px;">제품/체험, 공간/분위기</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/gongsilc/223116993852" target="_blank" style="color:var(--primary);text-decoration:none;">성수동 팝업, 비욘드 팝업, 미스 디올 성수 전시</a></td><td style="font-size:10px;">공실</td></tr>
+<tr style="background:#f0fdf4;"><td>53</td><td>05-31</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">84</td><td>65</td><td>67</td><td>Q5</td><td style="font-size:10px;">위치/접근성, 공간/분위기</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/kim_bangjung/223116220483" target="_blank" style="color:var(--primary);text-decoration:none;">서울) 23. 05. 25</a></td><td style="font-size:10px;">방정이의 하루</td></tr>
+<tr style="background:#fff;"><td>54</td><td>05-31</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">70</td><td>50</td><td>40</td><td>Q5</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/superchargemoney/223116139895" target="_blank" style="color:var(--primary);text-decoration:none;">주식 오늘의 주요 종목 알아볼게요. 신한지주 현대미포조선...</a></td><td style="font-size:10px;">슈퍼차지</td></tr>
+<tr style="background:#f0fdf4;"><td>55</td><td>06-01</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>40</td><td>48</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/ssgh2312/223117912528" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 팝업스토어 성수핫플 프로젝트렌트에서 6월 18일까지</a></td><td style="font-size:10px;">쭈린 블로그</td></tr>
+<tr style="background:#fff;"><td>56</td><td>06-01</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>42</td><td>Q4</td><td style="font-size:10px;">제품/체험, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/hjo1102/223117924560" target="_blank" style="color:var(--primary);text-decoration:none;">성수동 팝업투어 정보, 6월... 칠드라이브인/포멜카멜레/비욘드]</a></td><td style="font-size:10px;">I'm 단단의 일상이야</td></tr>
+<tr style="background:#f0fdf4;"><td>57</td><td>06-01</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>40</td><td>39</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 위치/접근성</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/designpress2016/223719945027" target="_blank" style="color:var(--primary);text-decoration:none;">71호: 모두를 위한 알록달록 스포츠 공간</a></td><td style="font-size:10px;">네이버 디자인</td></tr>
+<tr style="background:#fff;"><td>58</td><td>06-01</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>80</td><td>24</td><td>Q4</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/babamba1008/223117470193" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 힐링포스 스캘프 클리닉 샴푸가 사랑받는 이유^^</a></td><td style="font-size:10px;">부산경남 도소매 화장품</td></tr>
+<tr style="background:#f0fdf4;"><td>59</td><td>06-02</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">72</td><td>40</td><td>48</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/mangoorm/223118915739" target="_blank" style="color:var(--primary);text-decoration:none;">[서울] 성수 비욘드 팝업스토어, Less plastic에서 친환경 체험</a></td><td style="font-size:10px;">맹구름의 여행</td></tr>
+<tr style="background:#fff;"><td>60</td><td>06-02</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>55</td><td>39</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/yunhj427/223117588473" target="_blank" style="color:var(--primary);text-decoration:none;">성수동팝업 '비욘드 친환경캠페인' 참여 후기 @ 프로젝트렌트</a></td><td style="font-size:10px;">잘 먹고 잘 뛰어봅시다</td></tr>
+<tr style="background:#f0fdf4;"><td>61</td><td>06-02</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>50</td><td>40</td><td>Q5</td><td style="font-size:10px;">위치/접근성, 굿즈/혜택</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/sugarbabyby/223118864989" target="_blank" style="color:var(--primary);text-decoration:none;">성수동 서울숲 6월 1째주 팝업 지도 - 동선 참고용</a></td><td style="font-size:10px;">슈가비의 육아 팝업전시</td></tr>
+<tr style="background:#fff;"><td>62</td><td>06-02</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>55</td><td>44</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/bluerose_1st/223118548455" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 팝업 in 서울숲 - 플라스틱 사용을 줄여 보아요.</a></td><td style="font-size:10px;">파란장미정원에 오신것을</td></tr>
+<tr style="background:#f0fdf4;"><td>63</td><td>06-03</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>40</td><td>36</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/realjaekyo/223119164581" target="_blank" style="color:var(--primary);text-decoration:none;">6월 성수동 팝업스토어 비욘드 팝업 (샘플,젤라또)</a></td><td style="font-size:10px;">재교이의 여행,나들이</td></tr>
+<tr style="background:#fff;"><td>64</td><td>06-03</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>85</td><td>44</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/pingpongjelly/223119290719" target="_blank" style="color:var(--primary);text-decoration:none;">플라스틱 Good Bye  종이 Hello  - 비욘드 팝업 스토어 in...</a></td><td style="font-size:10px;">핑코퐁코젤리</td></tr>
+<tr style="background:#f0fdf4;"><td>65</td><td>06-04</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>40</td><td>33</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/him_e_review/223119849508" target="_blank" style="color:var(--primary);text-decoration:none;">뚝섬 팝업스토어 | 비욘드 친환경 팝업스토어 (~6/18)</a></td><td style="font-size:10px;">리뷰의 힘 ✨</td></tr>
+<tr style="background:#fff;"><td>66</td><td>06-04</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>55</td><td>43</td><td>Q5</td><td style="font-size:10px;">제품/체험, 웨이팅/예약</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/melloh/223119938901" target="_blank" style="color:var(--primary);text-decoration:none;">팝업스토어 5개 추천, 비추천</a></td><td style="font-size:10px;">BEAUTY ARCHI</td></tr>
+<tr style="background:#f0fdf4;"><td>67</td><td>06-04</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">76</td><td>40</td><td>37</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/happy_jjujjoo/223119915512" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 캠페인 팝업 "LESS PLASTIC, PAPER IS ENOUGH...</a></td><td style="font-size:10px;">쭈쪼의 일상</td></tr>
+<tr style="background:#fff;"><td>68</td><td>06-04</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>65</td><td>44</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/deunlog/223119661401" target="_blank" style="color:var(--primary);text-decoration:none;">Garden> 나뚜루 시크릿 가든 | 나뚜루 팝업스토어</a></td><td style="font-size:10px;">딘로그 DEUNLOG</td></tr>
+<tr style="background:#f0fdf4;"><td>69</td><td>06-05</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>55</td><td>46</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/deunlog/223120346350" target="_blank" style="color:var(--primary);text-decoration:none;">LESS PLASTIC. PAPER IS ENOUGH | 비욘드 팝업스토어</a></td><td style="font-size:10px;">딘로그 DEUNLOG</td></tr>
+<tr style="background:#fff;"><td>70</td><td>06-05</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>50</td><td>Q2</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/miracleskny/223120827337" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 팝업스토어 LESS... ENOUGH #팝업스토어 #비욘드...</a></td><td style="font-size:10px;">리베의 백화점</td></tr>
+<tr style="background:#f0fdf4;"><td>71</td><td>06-05</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>44</td><td>Q5</td><td style="font-size:10px;">웨이팅/예약, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/eunicemin/223104127190" target="_blank" style="color:var(--primary);text-decoration:none;">5월 한달의 일기 - 수많은 팝업스토어 탐방과 전시 관람</a></td><td style="font-size:10px;">물병과 사자</td></tr>
+<tr style="background:#fff;"><td>72</td><td>06-05</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">60</td><td>50</td><td>10</td><td>Q3</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/kossaofficial/223120758945" target="_blank" style="color:var(--primary);text-decoration:none;">[한국특수판매공제조합] 6월 5일 환경의 날</a></td><td style="font-size:10px;">KOSSA</td></tr>
+<tr style="background:#f0fdf4;"><td>73</td><td>06-05</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">68</td><td>40</td><td>53</td><td>Q4</td><td style="font-size:10px;">제품/체험, 헤줘/캠페인</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/dusxkfrlf/223119430180" target="_blank" style="color:var(--primary);text-decoration:none;">올리브영 약산성 클렌징폼 구매후기 : 비플레인 녹두 약산성...</a></td><td style="font-size:10px;">Wha't 다연</td></tr>
+<tr style="background:#fff;"><td>74</td><td>06-06</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>50</td><td>39</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/onlyyeom/223121357643" target="_blank" style="color:var(--primary);text-decoration:none;">코닥 팝업스토어, 포레포레 서울숲, 비욘드 프로젝트렌트...</a></td><td style="font-size:10px;">좋아염의 성수동라이프</td></tr>
+<tr style="background:#f0fdf4;"><td>75</td><td>06-06</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>40</td><td>41</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/wiz_js/223121954125" target="_blank" style="color:var(--primary);text-decoration:none;">성수 팝업스토어 6월 모음 7곳 직접 가보고 정리 지도 드림</a></td><td style="font-size:10px;">이나스픽 | 핫플 여행</td></tr>
+<tr style="background:#fff;"><td>76</td><td>06-06</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>40</td><td>35</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/rlagudwls07199/223121853872" target="_blank" style="color:var(--primary);text-decoration:none;">[today is, ] 성수동 팝업 비욘드 친환경캠페인 구경하기</a></td><td style="font-size:10px;">S2</td></tr>
+<tr style="background:#f0fdf4;"><td>77</td><td>06-06</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>80</td><td>Q4</td><td style="font-size:10px;">제품/체험, 굿즈/혜택</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/sugarbabyby/223121399387" target="_blank" style="color:var(--primary);text-decoration:none;">6월 2째주 성수 서울숲 팝업 리스트</a></td><td style="font-size:10px;">슈가비의 육아 팝업전시</td></tr>
+<tr style="background:#fff;"><td>78</td><td>06-06</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">60</td><td>55</td><td>50</td><td>Q2</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/dr_kio/223121906208" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 프로디펜스 샴푸 테스터 모집</a></td><td style="font-size:10px;">Dr_Kio</td></tr>
+<tr style="background:#f0fdf4;"><td>79</td><td>06-07</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">66</td><td>55</td><td>47</td><td>Q5</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/youngnrichstar/223122878799" target="_blank" style="color:var(--primary);text-decoration:none;">성수핫플 비욘드 팝업스토어 후기(친환경캠페인 참여/레스...</a></td><td style="font-size:10px;">✈빛나는 삶을 여행중✈</td></tr>
+<tr style="background:#fff;"><td>80</td><td>06-07</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">60</td><td>50</td><td>67</td><td>Q4</td><td style="font-size:10px;">위치/접근성, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/london2stay/223122163374" target="_blank" style="color:var(--primary);text-decoration:none;">6/9-6/18 성수 서울숲 씨씨콜렉트 X 웜브라운 팝업스토어...</a></td><td style="font-size:10px;">런던2의 먹고 싶은거 </td></tr>
+<tr style="background:#f0fdf4;"><td>81</td><td>06-07</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>26</td><td>Q4</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/campus_plus/223786151660" target="_blank" style="color:var(--primary);text-decoration:none;">2023년 6월 20'S PICK</a></td><td style="font-size:10px;">《캠퍼스플러스》</td></tr>
+<tr style="background:#fff;"><td>82</td><td>06-07</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>40</td><td>50</td><td>Q5</td><td style="font-size:10px;">웨이팅/예약, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/jimkijimki/223122882395" target="_blank" style="color:var(--primary);text-decoration:none;">230607 일기</a></td><td style="font-size:10px;">짐의블로그</td></tr>
+<tr style="background:#f0fdf4;"><td>83</td><td>06-07</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>70</td><td>43</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/iamsolover/223122688349" target="_blank" style="color:var(--primary);text-decoration:none;">[브랜드 경험] 뚝섬부터 성수! 반나절 코스 6월 성수 팝업&쇼룸</a></td><td style="font-size:10px;">브랜딩과 카피라이팅을 </td></tr>
+<tr style="background:#fff;"><td>84</td><td>06-08</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">60</td><td>85</td><td>40</td><td>Q4</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/flskfl88/223123792777" target="_blank" style="color:var(--primary);text-decoration:none;">성수 팝업스토어 6월 비욘드팝업 beyond 친환경캠페인...</a></td><td style="font-size:10px;">감성 사진가, 컬러풀모</td></tr>
+<tr style="background:#f0fdf4;"><td>85</td><td>06-08</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">86</td><td>55</td><td>43</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/ire_iii/223123844672" target="_blank" style="color:var(--primary);text-decoration:none;">성수팝업스토어 추천:: 뚝섬역 비욘드 팝업스토어 친환경...</a></td><td style="font-size:10px;">COSMO COSME</td></tr>
+<tr style="background:#fff;"><td>86</td><td>06-08</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>80</td><td>52</td><td>Q5</td><td style="font-size:10px;">위치/접근성, 웨이팅/예약</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/inpositive87/223122995916" target="_blank" style="color:var(--primary);text-decoration:none;">성수/뚝섬 맛집 - 베트남 쌀국수, 분짜 맛집 꾸아(Qua)</a></td><td style="font-size:10px;">시선이 머무는 씬</td></tr>
+<tr style="background:#f0fdf4;"><td>87</td><td>06-08</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>55</td><td>58</td><td>Q5</td><td style="font-size:10px;">웨이팅/예약, 위치/접근성</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/heidilee_112/223123944629" target="_blank" style="color:var(--primary);text-decoration:none;">[일상] 반드시 해내는 일상_2023년 5월 넷째주</a></td><td style="font-size:10px;">하이디 재밌디</td></tr>
+<tr style="background:#fff;"><td>88</td><td>06-09</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>48</td><td>Q5</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/newgyeon/223124527077" target="_blank" style="color:var(--primary);text-decoration:none;">230604 : 성수핫플 - 비욘드 팝업 스토어</a></td><td style="font-size:10px;">여니의취향</td></tr>
+<tr style="background:#f0fdf4;"><td>89</td><td>06-09</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">74</td><td>50</td><td>46</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 공간/분위기</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/cgl3712/223124065055" target="_blank" style="color:var(--primary);text-decoration:none;">♤♤♤  프로젝트 렌트 No 플라스틱, 종이면 충분!</a></td><td style="font-size:10px;">"같이의 가치"</td></tr>
+<tr style="background:#fff;"><td>90</td><td>06-10</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>50</td><td>50</td><td>Q4</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/whitejua/223125155881" target="_blank" style="color:var(--primary);text-decoration:none;">화장품 공병을 샴푸와 바디워시로! 비욘드 성수 팝업스토어</a></td><td style="font-size:10px;">행복한 일은 매일 있어</td></tr>
+<tr style="background:#f0fdf4;"><td>91</td><td>06-10</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>55</td><td>40</td><td>Q4</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/jiihyewon/223125039242" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 팝업스토어 성수점 다녀옴.</a></td><td style="font-size:10px;">심플제이의 기록로그</td></tr>
+<tr style="background:#fff;"><td>92</td><td>06-10</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>50</td><td>43</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/spzhxhvldk/223125496641" target="_blank" style="color:var(--primary);text-decoration:none;">성수동팝업 비욘드 beyond 친환경브랜드 프로젝트렌트  6월...</a></td><td style="font-size:10px;">계절을 여행하는 기록</td></tr>
+<tr style="background:#f0fdf4;"><td>93</td><td>06-10</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">86</td><td>55</td><td>49</td><td>Q5</td><td style="font-size:10px;">위치/접근성, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/zinizio/223124922404" target="_blank" style="color:var(--primary);text-decoration:none;">서울숲 주차장 요금 카페 놀거리 먹거리 데이트 팝업스토어 핫플</a></td><td style="font-size:10px;">지니지오</td></tr>
+<tr style="background:#fff;"><td>94</td><td>06-10</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">73</td><td>50</td><td>33</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/now_b612/223124930914" target="_blank" style="color:var(--primary);text-decoration:none;">6월 3째주 성수 팝업스토어 11개 모음ZIP (feat.혜택 총정리)</a></td><td style="font-size:10px;">달밤의 그림산책</td></tr>
+<tr style="background:#f0fdf4;"><td>95</td><td>06-11</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">76</td><td>40</td><td>36</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/finerim/223126214075" target="_blank" style="color:var(--primary);text-decoration:none;">성수 팝업 스토어 ː친환경 브랜드 비욘드 팝업</a></td><td style="font-size:10px;">바개림</td></tr>
+<tr style="background:#fff;"><td>96</td><td>06-11</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">62</td><td>55</td><td>38</td><td>Q4</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/minji8635/223125937003" target="_blank" style="color:var(--primary);text-decoration:none;">성수동팝업 비욘드팝업, lessplastic 비욘드 팝업스토어...</a></td><td style="font-size:10px;">글쓰는 미운오리새끼</td></tr>
+<tr style="background:#f0fdf4;"><td>97</td><td>06-11</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">62</td><td>40</td><td>54</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/chlaudrlf91/223125708959" target="_blank" style="color:var(--primary);text-decoration:none;">성수 6월 팝업스토어 서울데이트 비욘드 팝업 으로 즐기기</a></td><td style="font-size:10px;">묭이의 매일 기록하기 </td></tr>
+<tr style="background:#fff;"><td>98</td><td>06-11</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">68</td><td>50</td><td>50</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/suyanablog/223126061006" target="_blank" style="color:var(--primary);text-decoration:none;">성수동팝업 비욘드 팝업스토어에서 찾은 젤라또, 성수 놀거리</a></td><td style="font-size:10px;">수야나블로그</td></tr>
+<tr style="background:#f0fdf4;"><td>99</td><td>06-11</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>57</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/zs2oo/223126207292" target="_blank" style="color:var(--primary);text-decoration:none;">성수 팝업스토어 - 비욘드 친환경 팝업 <Less plastic...</a></td><td style="font-size:10px;">일상 기록</td></tr>
+<tr style="background:#fff;"><td>100</td><td>06-11</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>55</td><td>46</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/eunhye_dobby/223125657025" target="_blank" style="color:var(--primary);text-decoration:none;">[성수] 비욘드 팝업 스토어 / 친환경 플라스틱 줄이기</a></td><td style="font-size:10px;">예신 두리몽의 일상:)</td></tr>
+<tr style="background:#f0fdf4;"><td>101</td><td>06-11</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>55</td><td>51</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/kikiao12/223126140651" target="_blank" style="color:var(--primary);text-decoration:none;">성수동팝업 친환경브랜드 비욘드 lessplastic</a></td><td style="font-size:10px;">츠리의 트립 톡톡♪</td></tr>
+<tr style="background:#fff;"><td>102</td><td>06-11</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>55</td><td>48</td><td>Q5</td><td style="font-size:10px;">굿즈/혜택, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/da010228/223125661358" target="_blank" style="color:var(--primary);text-decoration:none;">[서울 성수] 6월 (지금) 팝업 스토어, 구경거리 모음 1탄.zip</a></td><td style="font-size:10px;">사람이 직접 쓰는 후기</td></tr>
+<tr style="background:#f0fdf4;"><td>103</td><td>06-11</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>55</td><td>17</td><td>Q2</td><td style="font-size:10px;">위치/접근성, 웨이팅/예약</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/pingpongjelly/223125843831" target="_blank" style="color:var(--primary);text-decoration:none;">콩쥐의 6월 팝업 스토어 유랑 Planning : Quick Reservation</a></td><td style="font-size:10px;">핑코퐁코젤리</td></tr>
+<tr style="background:#fff;"><td>104</td><td>06-11</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">76</td><td>40</td><td>63</td><td>Q5</td><td style="font-size:10px;">포토부스/SNS, 웨이팅/예약</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/choimk1103/223125585854" target="_blank" style="color:var(--primary);text-decoration:none;">성찬 포카 소개)성찬아 너는 아무 걱정말고 잘 먹고 잘 자면 된다</a></td><td style="font-size:10px;">민초롱</td></tr>
+<tr style="background:#f0fdf4;"><td>105</td><td>06-12</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>55</td><td>54</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/jan9239/223127196296" target="_blank" style="color:var(--primary);text-decoration:none;">[성수동] 팝업스토어 나들이 (논픽션, 클룹, 레어로우, 비욘드)</a></td><td style="font-size:10px;">MORE LOVE, L</td></tr>
+<tr style="background:#fff;"><td>106</td><td>06-12</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>50</td><td>34</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/1616sm/223127205707" target="_blank" style="color:var(--primary);text-decoration:none;">성수동팝업 비욘드 새로이 하지 말고 재활용으로 다시 사용하자</a></td><td style="font-size:10px;">박로우 : 천천히 걸어</td></tr>
+<tr style="background:#f0fdf4;"><td>107</td><td>06-12</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>40</td><td>46</td><td>Q5</td><td style="font-size:10px;">웨이팅/예약, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/poiu6532/223126791270" target="_blank" style="color:var(--primary);text-decoration:none;">[주간일기] 이번 주 일기 사진 많음 스압주의</a></td><td style="font-size:10px;">해콩달콩 일상</td></tr>
+<tr style="background:#fff;"><td>108</td><td>06-12</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">66</td><td>55</td><td>56</td><td>Q5</td><td style="font-size:10px;">제품/체험, 포토부스/SNS</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/zoamashi/223126874080" target="_blank" style="color:var(--primary);text-decoration:none;">오월에서 유월</a></td><td style="font-size:10px;">zzo_umi</td></tr>
+<tr style="background:#f0fdf4;"><td>109</td><td>06-13</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">74</td><td>70</td><td>43</td><td>Q5</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/jkm5005/223128177703" target="_blank" style="color:var(--primary);text-decoration:none;">[팝업스토어] 성수동 친환경 캠페인 레스 플라스틱 비욘드...</a></td><td style="font-size:10px;">진조이 뷰티</td></tr>
+<tr style="background:#fff;"><td>110</td><td>06-13</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>48</td><td>Q5</td><td style="font-size:10px;">제품/체험, 웨이팅/예약</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/cincoj/223127472376" target="_blank" style="color:var(--primary);text-decoration:none;">향수 네롤리드림, 오픈암스, 심플가든 시향했어요 ft. 팝업 후기</a></td><td style="font-size:10px;">The Septembe</td></tr>
+<tr style="background:#f0fdf4;"><td>111</td><td>06-13</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>35</td><td>Q5</td><td style="font-size:10px;">굿즈/혜택, 위치/접근성</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/youisarchive/223127297709" target="_blank" style="color:var(--primary);text-decoration:none;">아이즈 매거진 10주년 기념 브랜드 콜라보, 팝업 스토어 정보</a></td><td style="font-size:10px;">YOU IS ARCHI</td></tr>
+<tr style="background:#fff;"><td>112</td><td>06-13</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>50</td><td>40</td><td>Q5</td><td style="font-size:10px;">위치/접근성, 굿즈/혜택</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/sugarbabyby/223127444838" target="_blank" style="color:var(--primary);text-decoration:none;">무료전시 김수현 개인전 먹이주기</a></td><td style="font-size:10px;">슈가비의 육아 팝업전시</td></tr>
+<tr style="background:#f0fdf4;"><td>113</td><td>06-14</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>48</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/hyostina/223128962763" target="_blank" style="color:var(--primary);text-decoration:none;">서울숲 비욘드 팝업스토어 Less plastic, Paper is enough</a></td><td style="font-size:10px;">효스티나의 이것저것 기</td></tr>
+<tr style="background:#fff;"><td>114</td><td>06-14</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>40</td><td>48</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/daldalpic/223128608021" target="_blank" style="color:var(--primary);text-decoration:none;">성수동 친환경브랜드 비욘드팝업 프로젝트렌트...</a></td><td style="font-size:10px;">daldalpic</td></tr>
+<tr style="background:#f0fdf4;"><td>115</td><td>06-14</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>75</td><td>Q4</td><td style="font-size:10px;">제품/체험, 굿즈/혜택</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/sugarbabyby/223129031280" target="_blank" style="color:var(--primary);text-decoration:none;">6월 3째주 성수 서울숲 팝업 리스트</a></td><td style="font-size:10px;">슈가비의 육아 팝업전시</td></tr>
+<tr style="background:#fff;"><td>116</td><td>06-14</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>50</td><td>Q1</td><td style="font-size:10px;">위치/접근성</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/twosegye/223128978363" target="_blank" style="color:var(--primary);text-decoration:none;">성수 비욘드 팝업</a></td><td style="font-size:10px;">세계냠냠</td></tr>
+<tr style="background:#f0fdf4;"><td>117</td><td>06-15</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>70</td><td>52</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 위치/접근성</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/finerim/223129478282" target="_blank" style="color:var(--primary);text-decoration:none;">성수 맛집 동죽 칼국수 맛집 조조칼국수 성수점</a></td><td style="font-size:10px;">바개림</td></tr>
+<tr style="background:#fff;"><td>118</td><td>06-15</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>65</td><td>33</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/ykjn1126/223129339793" target="_blank" style="color:var(--primary);text-decoration:none;">TREND_MZ세대 중심 '컨셔스 뷰티'가 뜬다</a></td><td style="font-size:10px;">원텍 중량선별기&금속검</td></tr>
+<tr style="background:#f0fdf4;"><td>119</td><td>06-16</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>70</td><td>42</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/so0ho2/223130461251" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 팝업 스토어 성수 방문 해봄</a></td><td style="font-size:10px;">뷰라블의 뷰티 라이프 </td></tr>
+<tr style="background:#fff;"><td>120</td><td>06-16</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>42</td><td>Q4</td><td style="font-size:10px;">친환경/가치, 공간/분위기</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/funnypaper_official/223130714019" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 팝업스토어 종이가구</a></td><td style="font-size:10px;">종이로 공간을 디자인하</td></tr>
+<tr style="background:#f0fdf4;"><td>121</td><td>06-16</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>48</td><td>Q4</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/db_hhh/223130700674" target="_blank" style="color:var(--primary);text-decoration:none;">성수 비욘드 팝업스토어 화장품 공병 리필팩으로 교환</a></td><td style="font-size:10px;">입에 또 뭘 넣지?</td></tr>
+<tr style="background:#fff;"><td>122</td><td>06-16</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">68</td><td>40</td><td>64</td><td>Q4</td><td style="font-size:10px;">친환경/가치, 굿즈/혜택</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/imzzieun/223130525171" target="_blank" style="color:var(--primary);text-decoration:none;">루일기] 2023.06.15(K직딩/성수 비욘드 팝업스토어 방문후기)</a></td><td style="font-size:10px;">쯔니하! 잇</td></tr>
+<tr style="background:#f0fdf4;"><td>123</td><td>06-16</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>50</td><td>Q2</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/mjmusic/223130348290" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 성수 팝업스토어 (5.26-6.18)</a></td><td style="font-size:10px;">소소한 일상 각종 이벤</td></tr>
+<tr style="background:#fff;"><td>124</td><td>06-16</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">76</td><td>70</td><td>40</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/pinypiny08/223130467434" target="_blank" style="color:var(--primary);text-decoration:none;">6월 성수 팝업스토어... 마카롱, 제로소다 청사과, 비욘드 친환경</a></td><td style="font-size:10px;">논짱♡のんちゃん</td></tr>
+<tr style="background:#f0fdf4;"><td>125</td><td>06-16</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">60</td><td>55</td><td>50</td><td>Q4</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/rlatjsru0916/223130554773" target="_blank" style="color:var(--primary);text-decoration:none;">네이처콜렉션 뷰티테스터 모집</a></td><td style="font-size:10px;">상상쟁이</td></tr>
+<tr style="background:#fff;"><td>126</td><td>06-17</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>55</td><td>44</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/jmmmlp/223131406238" target="_blank" style="color:var(--primary);text-decoration:none;">♻️ 비욘드 팝업 스토어 '화장품 플라스틱 공병 수거해서...</a></td><td style="font-size:10px;">모모의 은밀한 뷰티</td></tr>
+<tr style="background:#f0fdf4;"><td>127</td><td>06-17</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>65</td><td>25</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/jins5372/223131263283" target="_blank" style="color:var(--primary);text-decoration:none;">성수동 팝업 친환경 캠페인 비욘드 팝업스토어</a></td><td style="font-size:10px;">메이크펀</td></tr>
+<tr style="background:#fff;"><td>128</td><td>06-17</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>14</td><td>Q4</td><td style="font-size:10px;">친환경/가치, 굿즈/혜택</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/siawase628/223128042683" target="_blank" style="color:var(--primary);text-decoration:none;">beyond 비욘드 팝업 프로젝트렌트</a></td><td style="font-size:10px;">Soo beauty</td></tr>
+<tr style="background:#f0fdf4;"><td>129</td><td>06-17</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>67</td><td>Q4</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/luckywealthy/223131458877" target="_blank" style="color:var(--primary);text-decoration:none;">6월 성수 팝업 비욘드 다녀왔어요(+꿀팁 준비물)</a></td><td style="font-size:10px;">Daily Vlog</td></tr>
+<tr style="background:#fff;"><td>130</td><td>06-17</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">60</td><td>55</td><td>50</td><td>Q3</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/daara1980/223131492658" target="_blank" style="color:var(--primary);text-decoration:none;">성분은 순하게~효능은 강력하게 업그레이드 리뉴얼된 [비욘드...</a></td><td style="font-size:10px;">잇츠마이원픽</td></tr>
+<tr style="background:#f0fdf4;"><td>131</td><td>06-17</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>40</td><td>48</td><td>Q5</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/eunicemin/223131486055" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드팝업 Less Plastic Paper is Enough 재방문기</a></td><td style="font-size:10px;">물병과 사자</td></tr>
+<tr style="background:#fff;"><td>132</td><td>06-18</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>40</td><td>39</td><td>Q4</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트중</td><td><a href="https://blog.naver.com/juju11_/223132019413" target="_blank" style="color:var(--primary);text-decoration:none;">팝업 : 바슈롬의 레이셀렌즈와 친환경적인 비욘드팝업스토어</a></td><td style="font-size:10px;">주댕이의 소소한 하루ᵔ</td></tr>
+<tr style="background:#f0fdf4;"><td>133</td><td>06-19</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>50</td><td>Q5</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/kyg60kyg60/223132699536" target="_blank" style="color:var(--primary);text-decoration:none;">[성수 비욘드 팝업스토어] 비욘드 팝업스토어 공병 반납리뷰...</a></td><td style="font-size:10px;">갱스의 일상생활</td></tr>
+<tr style="background:#fff;"><td>134</td><td>06-19</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">78</td><td>50</td><td>67</td><td>Q5</td><td style="font-size:10px;">웨이팅/예약, 제품/체험</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/joo0_2/223132416880" target="_blank" style="color:var(--primary);text-decoration:none;">휴일 없어도 즐거운 한주</a></td><td style="font-size:10px;">Joo's life l</td></tr>
+<tr style="background:#f0fdf4;"><td>135</td><td>06-20</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>40</td><td>48</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/kk10152002/223133724004" target="_blank" style="color:var(--primary);text-decoration:none;">[6월 팝업스토어] 성수 팝업, 비욘드/불티나마켓</a></td><td style="font-size:10px;">짹짹이는 짹짹</td></tr>
+<tr style="background:#fff;"><td>136</td><td>06-20</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">78</td><td>65</td><td>59</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 공간/분위기</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/imlovelyjo/223134094626" target="_blank" style="color:var(--primary);text-decoration:none;">지난 주말지낸 이야기</a></td><td style="font-size:10px;">특수교사 쪼조의 블로그</td></tr>
+<tr style="background:#f0fdf4;"><td>137</td><td>06-21</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">68</td><td>50</td><td>36</td><td>Q5</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/401hostudio/223134401219" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드 버베나 바디 로션과 바디 워시 이거 하나로 끝!</a></td><td style="font-size:10px;">401ho</td></tr>
+<tr style="background:#fff;"><td>138</td><td>06-21</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">86</td><td>40</td><td>50</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 제품/체험</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/soo2152/223134693496" target="_blank" style="color:var(--primary);text-decoration:none;">주간 미나리_6월 셋째주 일상</a></td><td style="font-size:10px;">blooming min</td></tr>
+<tr style="background:#f0fdf4;"><td>139</td><td>06-22</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">66</td><td>55</td><td>62</td><td>Q4</td><td style="font-size:10px;">포토부스/SNS, 위치/접근성</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/dalsookeee/223135890651" target="_blank" style="color:var(--primary);text-decoration:none;">6월성수팝업스토어: 태백 여행 팝업스토어 _ 은하수행...</a></td><td style="font-size:10px;">달숙's 나홀로 뚜벅이</td></tr>
+<tr style="background:#fff;"><td>140</td><td>06-22</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>20</td><td>Q4</td><td style="font-size:10px;">공간/분위기, 굿즈/혜택</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/fashon1/223135589827" target="_blank" style="color:var(--primary);text-decoration:none;">‘비욘드클로젯’ 빛의 시어터 팝업 리뉴얼</a></td><td style="font-size:10px;">공유경제형 패션 플랫폼</td></tr>
+<tr style="background:#f0fdf4;"><td>141</td><td>06-22</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>55</td><td>19</td><td>Q4</td><td style="font-size:10px;">제품/체험, 친환경/가치</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/babamba1008/223135785634" target="_blank" style="color:var(--primary);text-decoration:none;">피부미인 되는 클렌징~ 비욘드 피토가닉 페이셜 폼^^</a></td><td style="font-size:10px;">부산경남 도소매 화장품</td></tr>
+<tr style="background:#fff;"><td>142</td><td>06-23</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>55</td><td>53</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 위치/접근성</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/pingpongjelly/223136940925" target="_blank" style="color:var(--primary);text-decoration:none;">한낮 여유롭게 즐기는 콩쥐의 힐링 타임&푸드... 성수동...</a></td><td style="font-size:10px;">핑코퐁코젤리</td></tr>
+<tr style="background:#f0fdf4;"><td>143</td><td>06-23</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#6666FF;font-weight:700;">64</td><td>80</td><td>54</td><td>Q5</td><td style="font-size:10px;">포토부스/SNS, 웨이팅/예약</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/rihwa_u/223137073865" target="_blank" style="color:var(--primary);text-decoration:none;">기억은 잘 나지않지만 아마도 꼬마즈 팝업에 미쳐있던... 4월의...</a></td><td style="font-size:10px;">리화 일기장</td></tr>
+<tr style="background:#fff;"><td>144</td><td>06-24</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>55</td><td>32</td><td>Q5</td><td style="font-size:10px;">친환경/가치, 굿즈/혜택</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/heedongverse/223137803891" target="_blank" style="color:var(--primary);text-decoration:none;">6월 셋째주 일상 :: 잘돌아다니구 잘먹었다~</a></td><td style="font-size:10px;">ෆ LIVE TODAY</td></tr>
+<tr style="background:#f0fdf4;"><td>145</td><td>06-25</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>27</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 굿즈/혜택</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/th_media/223138076199" target="_blank" style="color:var(--primary);text-decoration:none;">[비욘드클로젯(Beyond Closet)] ‘빛의 시어터’ 팝업스토어...</a></td><td style="font-size:10px;">스타일로그 By 텍스헤</td></tr>
+<tr style="background:#fff;"><td>146</td><td>06-25</td><td style="color:#3b82f6;font-weight:700;">혼합</td><td style="color:#10b981;font-weight:700;">88</td><td>65</td><td>44</td><td>Q5</td><td style="font-size:10px;">웨이팅/예약, 제품/체험</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/hnsdr/223138337152" target="_blank" style="color:var(--primary);text-decoration:none;">성수동카페 로와이드, 오와리 뚝섬점, 서촌카페 도틀, 잘빠진...</a></td><td style="font-size:10px;">HANI`S DAILY</td></tr>
+<tr style="background:#f0fdf4;"><td>147</td><td>06-26</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#6666FF;font-weight:700;">70</td><td>40</td><td>29</td><td>Q5</td><td style="font-size:10px;">공간/분위기, 굿즈/혜택</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/tenantnews/223139585407" target="_blank" style="color:var(--primary);text-decoration:none;">비욘드클로젯, 몰입형 예술... 시어터’ 팝업스토어 새단장!</a></td><td style="font-size:10px;">TENANT NEWS</td></tr>
+<tr style="background:#fff;"><td>148</td><td>06-29</td><td style="color:#94a3b8;font-weight:700;">중립</td><td style="color:#6666FF;font-weight:700;">60</td><td>40</td><td>10</td><td>Q3</td><td style="font-size:10px;"></td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/minggi_22/223141807763" target="_blank" style="color:var(--primary);text-decoration:none;">‘IWC’의 팝업 전시회 ‘엔지니어링 비욘드 타임...</a></td><td style="font-size:10px;">민기의 일상로그(min</td></tr>
+<tr style="background:#f0fdf4;"><td>149</td><td>06-29</td><td style="color:#10b981;font-weight:700;">긍정</td><td style="color:#10b981;font-weight:700;">80</td><td>50</td><td>30</td><td>Q5</td><td style="font-size:10px;">제품/체험, 공간/분위기</td><td style="font-size:10px;">이벤트후</td><td><a href="https://blog.naver.com/kiki_h/223142211973" target="_blank" style="color:var(--primary);text-decoration:none;">강남 전시회 마리끌레르 사진전에서 만나 본 루에브르 팝업</a></td><td style="font-size:10px;">❤️쏭베리 달달한 여행</td></tr>
+</tbody></table></div>
+
+<div class="grid4" style="margin-top:12px;">
+  <div class="card" style="text-align:center;">
+    <div style="font-size:11px;color:var(--body);margin-bottom:4px;">감성 분포</div>
+    <div style="font-size:12px;">
+      <span style="color:#10b981;font-weight:700;">긍정 57</span> /
+      <span style="color:#3b82f6;font-weight:700;">혼합 67</span> /
+      <span style="color:#ef4444;font-weight:700;">부정 2</span> /
+      <span style="color:#94a3b8;font-weight:700;">중립 23</span>
+    </div>
+  </div>
+  <div class="card" style="text-align:center;">
+    <div style="font-size:11px;color:var(--body);margin-bottom:4px;">평균 Psyche</div>
+    <div style="font-size:12px;">Auth <strong>73.7</strong> / Clout <strong>49.7</strong> / Fresh <strong>44.4</strong></div>
+  </div>
+  <div class="card" style="text-align:center;">
+    <div style="font-size:11px;color:var(--body);margin-bottom:4px;">기간 분포</div>
+    <div style="font-size:12px;">
+이벤트전 <strong>17</strong> / 
+사전홍보 <strong>11</strong> / 
+이벤트중 <strong>104</strong> / 
+이벤트후 <strong>17</strong> / 
+</div>
+  </div>
+  <div class="card" style="text-align:center;">
+    <div style="font-size:11px;color:var(--body);margin-bottom:4px;">RQL 분포</div>
+    <div style="font-size:12px;">
+Q5 <strong>98</strong> / 
+Q4 <strong>30</strong> / 
+Q3 <strong>8</strong> / 
+Q2 <strong>9</strong> / 
+Q1 <strong>4</strong> / 
+</div>
+  </div>
+</div>
+
+
+<div class="footer">
+  Project RENT · R-lab | 2023.05~06 | RXR SNS Raw Data Analysis<br>
+  비욘드 팝업스토어 — Plastic Less, Paper is Enough | 네이버 블로그 251건 분석
+</div>
+
+
+<div class="pdf-panel">
+  <button class="pdf-panel-toggle" onclick="document.querySelector('.pdf-panel-body').classList.toggle('open')">🖨️ PDF</button>
+  <div class="pdf-panel-body">
+    <div class="pdf-orient-group">
+      <button class="pdf-orient-btn active" onclick="setOrient('portrait',this)">📄 세로</button>
+      <button class="pdf-orient-btn" onclick="setOrient('landscape',this)">📄 가로</button>
+    </div>
+    <button class="pdf-print-btn" onclick="window.print()">출력 / PDF 저장</button>
+  </div>
+</div>
+<script>
+function setOrient(o,btn){
+  document.querySelectorAll('.pdf-orient-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pageOrientStyle').textContent=
+    o==='landscape'?'@media print{@page{size:A4 landscape;}}':'@media print{@page{size:A4 portrait;}}';
+}
+</script>
+</body></html>

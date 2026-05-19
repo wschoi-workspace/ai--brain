@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR Master Framework</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+  :root {
+    --primary:#6666FF; --primary-deep:#5353FF; --primary-light:#8A8AFF;
+    --primary-pale:#E1E1FF; --primary-bg:#CDCEFB;
+    --grad:linear-gradient(135deg,#5353FF,#8A8AFF);
+    --black:#000000; --dark:#262626; --body:#424D61; --light:#F6F6F6; --white:#FFFFFF;
+    --red:#C00000; --coral:#FF5050; --blue:#4D93F7;
+    --green:#10b981; --orange:#f59e0b; --pink:#d946ef;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:13px;line-height:1.6;}
+  .slide{width:1280px;height:720px;padding:52px;position:relative;overflow:hidden;page-break-after:always;display:flex;flex-direction:column;}
+  .slide::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--grad);}
+  .tag{font-family:'Poppins',sans-serif;font-weight:300;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--primary);margin-bottom:8px;}
+  h1{font-size:36px;font-weight:800;line-height:1.3;color:var(--black);}
+  h2{font-size:28px;font-weight:800;line-height:1.3;color:var(--black);margin-bottom:12px;}
+  h3{font-size:16px;font-weight:700;color:var(--dark);margin-bottom:6px;}
+  .sub{font-size:14px;color:var(--body);line-height:1.7;max-width:900px;}
+  .metric{font-family:'DIN Alternate','Poppins',sans-serif;font-weight:700;}
+  .card{background:var(--light);border:1px solid #E8E8E8;border-radius:10px;padding:18px 20px;}
+  .card-dark{background:var(--black);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:18px 20px;color:var(--white);}
+  .card-accent{border-top:3px solid var(--primary);}
+  .card-green{border-top:3px solid var(--green);}
+  .card-pink{border-top:3px solid var(--pink);}
+  .card-orange{border-top:3px solid var(--orange);}
+  .card-blue{border-top:3px solid var(--blue);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+  .badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:600;}
+  .badge-primary{background:var(--primary-pale);color:var(--primary);}
+  .badge-dark{background:var(--black);color:var(--white);}
+  .footer{position:absolute;bottom:16px;left:52px;right:52px;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th{background:var(--light);padding:8px 10px;text-align:left;font-weight:700;font-size:11px;color:var(--body);border-bottom:2px solid #ddd;}
+  td{padding:7px 10px;border-bottom:1px solid #eee;color:var(--body);}
+  .flow-bar{display:flex;align-items:stretch;gap:4px;margin:16px 0;}
+  .flow-step{flex:1;border-radius:8px;padding:12px 8px;text-align:center;font-size:11px;line-height:1.4;}
+  .flow-arrow{display:flex;align-items:center;font-size:14px;color:#ccc;flex-shrink:0;}
+  .level-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .level-label{width:24px;font-size:11px;font-weight:700;color:var(--primary);text-align:center;}
+  .level-track{flex:1;height:20px;background:#f0f0f0;border-radius:10px;overflow:hidden;position:relative;}
+  .level-fill{height:100%;border-radius:10px;display:flex;align-items:center;padding-left:8px;font-size:9px;font-weight:600;color:#fff;}
+  .level-text{width:120px;font-size:10px;color:var(--body);}
+  /* PDF Panel */
+  .pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;font-family:'Pretendard Variable',system-ui,sans-serif;}
+  .pdf-panel-toggle{display:flex;align-items:center;gap:8px;padding:12px 22px;background:var(--grad);color:#fff;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(102,102,255,0.4);transition:all 0.2s;border:none;}
+  .pdf-panel-toggle:hover{transform:translateY(-2px);}
+  .pdf-panel-body{display:none;position:absolute;bottom:56px;right:0;width:220px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:16px;animation:panelIn 0.2s ease;}
+  @keyframes panelIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .pdf-panel-body.open{display:block;}
+  .pdf-panel-title{font-size:12px;font-weight:700;color:#1e293b;margin-bottom:12px;text-align:center;}
+  .pdf-orient-group{display:flex;gap:8px;margin-bottom:14px;}
+  .pdf-orient-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;background:#f9fafb;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:all 0.15s;font-family:'Pretendard Variable',sans-serif;color:#475569;font-size:11px;font-weight:600;}
+  .pdf-orient-btn:hover{border-color:var(--primary);background:var(--primary-pale);}
+  .pdf-orient-btn.active{border-color:var(--primary);background:var(--primary-pale);color:var(--primary);box-shadow:0 0 0 3px rgba(102,102,255,0.15);}
+  .pdf-orient-btn svg{stroke:#475569;}
+  .pdf-orient-btn.active svg{stroke:var(--primary);}
+  .pdf-print-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;font-family:'Pretendard Variable',sans-serif;cursor:pointer;}
+  .pdf-print-btn:hover{opacity:0.9;}
+  @media print{
+    .pdf-panel{display:none!important;}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
+    .slide{break-after:page;page-break-after:always;break-inside:avoid;page-break-inside:avoid;min-height:auto!important;}
+    .slide:last-child{break-after:auto;page-break-after:auto;}
+  }
+</style>
+<style id="pageOrientStyle">
+  @media print{@page{size:A4 landscape;margin:8mm;}}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: COVER -->
+<div class="slide" style="background:var(--black);color:var(--white);justify-content:center;align-items:center;text-align:center;">
+  <div style="margin-bottom:24px;">
+    <span class="badge" style="background:rgba(102,102,255,0.2);color:var(--primary-light);padding:6px 20px;font-size:12px;letter-spacing:3px;font-family:'Poppins',sans-serif;">MASTER FRAMEWORK v1.0</span>
+  </div>
+  <h1 style="color:var(--white);font-size:44px;margin-bottom:16px;">RXR<br><span style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Master Framework</span></h1>
+  <p style="font-size:16px;color:#94a3b8;max-width:600px;line-height:1.8;margin-bottom:32px;">
+    오프라인 매장을 쿠키리스 시대의 1st Party 데이터 플랫폼으로 전환하여,<br>
+    고객 데이터를 양적 수치가 아닌 <strong style="color:var(--primary-light);">질적 인사이트</strong>로 변환하는 통합 체계
+  </p>
+  <div style="padding:12px 32px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;font-size:13px;color:#64748b;">
+    Retail Experience Intelligence — Project RENT · R-lab · 2026
+  </div>
+  <div class="footer" style="color:#475569;"><span>CONFIDENTIAL</span><span>01 / 12</span></div>
+</div>
+
+<!-- SLIDE 2: CORE PRINCIPLE -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">CORE PRINCIPLE</div>
+  <h2>리테일테크의 본질</h2>
+  <p class="sub" style="margin-bottom:24px;">핵심 자산은 기술이 아니라 <strong>분석과 해석의 프레임</strong>이다. 기술은 오픈소스일 뿐이다.</p>
+  <div class="grid3" style="flex:1;">
+    <div class="card card-accent">
+      <div style="font-size:28px;margin-bottom:8px;">🔍</div>
+      <h3>프레임이 자산이다</h3>
+      <p style="font-size:12px;color:var(--body);line-height:1.6;">RetailNext가 비싼 건 센서 때문이 아니라 해석을 못 해서. 같은 데이터를 <strong>다르게 읽는 틀</strong>이 경쟁력.</p>
+      <div style="margin-top:12px;padding:8px;background:var(--primary-pale);border-radius:6px;font-size:11px;color:var(--primary);font-weight:600;text-align:center;">
+        해석 프레임 + 변환 테이블 = Moat
+      </div>
+    </div>
+    <div class="card card-green">
+      <div style="font-size:28px;margin-bottom:8px;">🔄</div>
+      <h3>양적 → 질적 전환</h3>
+      <p style="font-size:12px;color:var(--body);line-height:1.6;">숫자를 세는 게 아니라 <strong>의미를 읽는다</strong>. "1만명, 8%"가 아니라 "왜 샀고, 진심이었고, 다시 올 것인가".</p>
+      <div style="margin-top:12px;padding:8px;background:#d1fae5;border-radius:6px;font-size:11px;color:#059669;font-weight:600;text-align:center;">
+        데이터의 성격 자체를 바꾼다
+      </div>
+    </div>
+    <div class="card card-pink">
+      <div style="font-size:28px;margin-bottom:8px;">🏪</div>
+      <h3>공간 = 데이터 플랫폼</h3>
+      <p style="font-size:12px;color:var(--body);line-height:1.6;">쿠키가 사라진 시대, <strong>오프라인 매장이 유일한 1st party 데이터 채널</strong>. 매장 자체가 쿠키를 대체한다.</p>
+      <div style="margin-top:12px;padding:8px;background:#fae8ff;border-radius:6px;font-size:11px;color:#a21caf;font-weight:600;text-align:center;">
+        Cookieless era → Store = Cookie
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>02 / 12</span></div>
+</div>
+
+<!-- SLIDE 3: ARCHITECTURE OVERVIEW -->
+<div class="slide" style="background:var(--black);color:var(--white);">
+  <div class="tag" style="color:var(--primary-light);">ARCHITECTURE</div>
+  <h2 style="color:var(--white);">통합 아키텍처</h2>
+  <p style="font-size:13px;color:#94a3b8;margin-bottom:20px;">4개 레이어가 유기적으로 연결되어 하나의 인텔리전스 시스템을 구성합니다.</p>
+  <div style="display:grid;grid-template-columns:1fr;gap:10px;flex:1;">
+    <!-- Bracket -->
+    <div style="display:grid;grid-template-columns:120px 1fr 200px;gap:16px;padding:16px 20px;background:#13131f;border:1px solid rgba(255,255,255,0.08);border-radius:12px;border-left:4px solid var(--blue);align-items:center;">
+      <div style="text-align:center;">
+        <div style="font-size:24px;margin-bottom:4px;">🏗️</div>
+        <div style="font-size:14px;font-weight:700;color:var(--blue);">Bracket</div>
+        <div style="font-size:9px;color:#64748b;">수집 인프라</div>
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.6;">물리적 매장 + 센서 + DID + POS + CRM + 서베이<br>모듈형 유닛 구조 — 브랜드별 즉시 교체 가능</div>
+      <div style="text-align:center;"><span class="badge" style="background:rgba(77,147,247,0.15);color:var(--blue);">특허 보호</span></div>
+    </div>
+    <!-- RXR Engine -->
+    <div style="display:grid;grid-template-columns:120px 1fr 200px;gap:16px;padding:16px 20px;background:#13131f;border:1px solid rgba(102,102,255,0.2);border-radius:12px;border-left:4px solid var(--primary);align-items:center;">
+      <div style="text-align:center;">
+        <div style="font-size:24px;margin-bottom:4px;">🧠</div>
+        <div style="font-size:14px;font-weight:700;color:var(--primary-light);">RXR Engine</div>
+        <div style="font-size:9px;color:#64748b;">해석 프레임</div>
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.6;">멘탈코스트 기반 인게이지먼트 퍼널<br>다층위 교차 렌즈 + 행동↔심리 변환 테이블</div>
+      <div style="text-align:center;"><span class="badge" style="background:rgba(102,102,255,0.15);color:var(--primary-light);">핵심 지적 자산</span></div>
+    </div>
+    <!-- 2-Layer -->
+    <div style="display:grid;grid-template-columns:120px 1fr 200px;gap:16px;padding:16px 20px;background:#13131f;border:1px solid rgba(255,255,255,0.08);border-radius:12px;border-left:4px solid var(--pink);align-items:center;">
+      <div style="text-align:center;">
+        <div style="font-size:24px;margin-bottom:4px;">🧬</div>
+        <div style="font-size:14px;font-weight:700;color:#e879f9;">2-Layer</div>
+        <div style="font-size:9px;color:#64748b;">심리 분석</div>
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.6;">Content Layer (무엇을 말했나 — n-gram/감성)<br>Psyche Layer (어떻게 말했나 — FWA/LIWC)</div>
+      <div style="text-align:center;"><span class="badge" style="background:rgba(217,70,239,0.15);color:#e879f9;">질적 전환 엔진</span></div>
+    </div>
+    <!-- OMO -->
+    <div style="display:grid;grid-template-columns:120px 1fr 200px;gap:16px;padding:16px 20px;background:#13131f;border:1px solid rgba(255,255,255,0.08);border-radius:12px;border-left:4px solid var(--green);align-items:center;">
+      <div style="text-align:center;">
+        <div style="font-size:24px;margin-bottom:4px;">🔗</div>
+        <div style="font-size:14px;font-weight:700;color:#6ee7b7;">OMO</div>
+        <div style="font-size:9px;color:#64748b;">데이터 통합</div>
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.6;">오프라인 취향(감성적 자아) + 온라인 구매(이성적 자아)<br>= 통합 개인 프로필 → 개인화 커뮤니케이션</div>
+      <div style="text-align:center;"><span class="badge" style="background:rgba(16,185,129,0.15);color:#6ee7b7;">Stage 2 목표</span></div>
+    </div>
+  </div>
+  <div class="footer" style="color:#475569;"><span>PROJECT RENT · R-lab</span><span>03 / 12</span></div>
+</div>
+
+<!-- SLIDE 4: MENTAL COST ENGAGEMENT -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">ENGAGEMENT MODEL</div>
+  <h2>멘탈코스트 기반 인게이지먼트 레벨</h2>
+  <p class="sub" style="margin-bottom:16px;">모든 행동 전환은 심리적 비용의 산물이다. 전환의 깊이 = 브랜드와의 관계 깊이.</p>
+  <div style="flex:1;">
+    <div class="level-bar">
+      <div class="level-label">L0</div>
+      <div class="level-track"><div class="level-fill" style="width:100%;background:#e2e8f0;">통과</div></div>
+      <div class="level-text">매장 앞 지나감 — <strong>무관심</strong></div>
+    </div>
+    <div class="level-bar">
+      <div class="level-label">L1</div>
+      <div class="level-track"><div class="level-fill" style="width:85%;background:#94a3b8;">시선</div></div>
+      <div class="level-text">파사드에 시선 멈춤 — <strong>인지</strong></div>
+    </div>
+    <div class="level-bar">
+      <div class="level-label">L2</div>
+      <div class="level-track"><div class="level-fill" style="width:70%;background:var(--blue);">진입</div></div>
+      <div class="level-text">매장 안으로 들어옴 — <strong>관심</strong></div>
+    </div>
+    <div class="level-bar" style="background:var(--primary-pale);border-radius:8px;padding:4px 0;">
+      <div class="level-label" style="font-size:12px;">L3</div>
+      <div class="level-track"><div class="level-fill" style="width:55%;background:var(--primary);">체류 ★</div></div>
+      <div class="level-text" style="width:180px;">DQS 측정 — <strong>핵심 가중 변수</strong></div>
+    </div>
+    <div class="level-bar">
+      <div class="level-label">L4</div>
+      <div class="level-track"><div class="level-fill" style="width:40%;background:#7c3aed;">구매</div></div>
+      <div class="level-text">결제 완료 — <strong>확신적 관여</strong></div>
+    </div>
+    <div class="level-bar">
+      <div class="level-label">L5</div>
+      <div class="level-track"><div class="level-fill" style="width:28%;background:var(--pink);">재방문</div></div>
+      <div class="level-text">다시 찾아옴 — <strong>관계적 관여</strong></div>
+    </div>
+    <div class="level-bar">
+      <div class="level-label">L6</div>
+      <div class="level-track"><div class="level-fill" style="width:18%;background:var(--coral);">회원</div></div>
+      <div class="level-text">회원 가입 — <strong>커밋먼트</strong></div>
+    </div>
+    <div class="level-bar" style="background:#fce4ec;border-radius:8px;padding:4px 0;">
+      <div class="level-label" style="font-size:12px;">L7</div>
+      <div class="level-track"><div class="level-fill" style="width:10%;background:var(--red);">추천 ★</div></div>
+      <div class="level-text" style="width:180px;">RQL 측정 — <strong>핵심 가중 변수</strong></div>
+    </div>
+    <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="padding:12px 16px;background:var(--primary-pale);border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:4px;">★ L3 체류 — Dwell Quality Score</div>
+        <div style="font-size:11px;color:var(--body);line-height:1.6;">
+          단순 "몇 분"이 아닌 복합 변수<br>
+          <strong>DQS</strong> = (실제/기대 체류) × 밀도 계수 × 퍼스널리티 가중<br>
+          바쁜 직장인 5분 ≠ 주말 방문자 5분<br>
+          단순 진열 3분 ≠ 체험형 공간 3분
+        </div>
+      </div>
+      <div style="padding:12px 16px;background:#fce4ec;border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:4px;">★ L7 후기 — Review Quality Level</div>
+        <div style="font-size:11px;color:var(--body);line-height:1.6;">
+          별점만(Q1) → 한줄(Q2) → 구체적(Q3) → 비교분석(Q4) → 설득형 서사(Q5)<br>
+          <strong>가중 L7</strong> = RQL × Authenticity × Clout<br>
+          Q5+진심 = 최고 옹호 / Q5+과장 = 기만 패턴
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>04 / 12</span></div>
+</div>
+
+<!-- SLIDE 5: MULTI-LAYER LENS -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">ANALYSIS MODEL</div>
+  <h2>다층위 교차 렌즈</h2>
+  <p class="sub" style="margin-bottom:16px;">같은 데이터에 여러 렌즈를 교차 적용하여 다른 인사이트를 추출합니다.</p>
+  <div class="grid2" style="flex:1;gap:14px;">
+    <div class="card card-accent">
+      <h3>Lens 1 — 인구통계 × 라이프스타일</h3>
+      <div style="font-size:12px;color:var(--body);line-height:1.7;">
+        <div style="margin-bottom:6px;"><span class="badge badge-primary">AI 아웃핏</span> 패션 타입 → 라이프스타일 군</div>
+        <div style="margin-bottom:6px;"><span class="badge badge-primary">영상 AI</span> 연령대 · 성별 추정</div>
+        <div style="margin-bottom:6px;"><span class="badge badge-primary">결제</span> 구매 항목 · 가격대 → 소비 성향</div>
+        <div><span class="badge badge-primary">동선</span> 탐색 유형 분류</div>
+      </div>
+    </div>
+    <div class="card card-green">
+      <h3>Lens 2 — 인게이지먼트 레벨</h3>
+      <div style="font-size:12px;color:var(--body);line-height:1.7;">
+        <div style="margin-bottom:6px;">전체 유입을 L0~L7로 분류</div>
+        <div style="margin-bottom:6px;">각 레벨 간 <strong>전환율</strong> = 핵심 KPI</div>
+        <div style="margin-bottom:6px;">멘탈코스트 기반 <strong>관계 깊이</strong> 측정</div>
+        <div>시계열 추적 → 인게이지먼트 변화 감지</div>
+      </div>
+    </div>
+    <div class="card card-orange">
+      <h3>Lens 3 — 교차 분석</h3>
+      <div style="font-size:12px;color:var(--body);line-height:1.7;">
+        <div style="margin-bottom:6px;">Lens 1 × Lens 2 <strong>교차</strong></div>
+        <div style="margin-bottom:6px;">"20대 스트릿 군 중 L4 전환율 = 12%"</div>
+        <div style="margin-bottom:6px;">구매 고객만 추출 → 결제 세부항목 취향 분석</div>
+        <div><strong>서브세트별 재분석</strong> 무한 가능</div>
+      </div>
+    </div>
+    <div class="card card-pink">
+      <h3>Lens 4 — 브랜드/콘텐츠별</h3>
+      <div style="font-size:12px;color:var(--body);line-height:1.7;">
+        <div style="margin-bottom:6px;">모듈형 유닛 → 브랜드 교체</div>
+        <div style="margin-bottom:6px;">같은 공간에서 <strong>브랜드별 패턴 비교</strong></div>
+        <div style="margin-bottom:6px;">DID 콘텐츠별 진입 전환율 비교</div>
+        <div>→ <strong>브랜드 인텔리전스 DB</strong> 축적</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>05 / 12</span></div>
+</div>
+
+<!-- SLIDE 6: CONVERSION TABLE -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">CORE IP</div>
+  <h2>행동 ↔ 심리 변환 테이블</h2>
+  <p class="sub" style="margin-bottom:16px;">리워드 기반 마이크로 서베이로 행동 데이터의 심리적 의미를 매핑합니다. 이 테이블이 RXR의 <strong>핵심 지적 자산</strong>입니다.</p>
+  <div class="grid2" style="flex:1;">
+    <div>
+      <h3 style="color:var(--primary);margin-bottom:12px;">구축 프로세스</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="card" style="padding:12px 16px;">
+          <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:4px;">STEP 1. 행동 수집</div>
+          <div style="font-size:11px;color:var(--body);">체류 시간, 동선 패턴, 터치포인트, 구매 여부 자동 기록</div>
+        </div>
+        <div style="text-align:center;font-size:14px;color:#ccc;">↓</div>
+        <div class="card" style="padding:12px 16px;">
+          <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:4px;">STEP 2. 서베이 교차</div>
+          <div style="font-size:11px;color:var(--body);">리워드 기반 마이크로 설문 → 만족도, 추천 의향, 재방문 의사</div>
+        </div>
+        <div style="text-align:center;font-size:14px;color:#ccc;">↓</div>
+        <div class="card" style="padding:12px 16px;">
+          <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:4px;">STEP 3. 패턴 매핑</div>
+          <div style="font-size:11px;color:var(--body);">"추천하겠다" 응답자의 행동 패턴 → 기준점 설정</div>
+        </div>
+        <div style="text-align:center;font-size:14px;color:#ccc;">↓</div>
+        <div class="card card-accent" style="padding:12px 16px;">
+          <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:4px;">STEP 4. 자동 추론</div>
+          <div style="font-size:11px;color:var(--body);">서베이 없이 행동 데이터만으로 인게이지먼트 레벨 추론</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h3 style="color:var(--primary);margin-bottom:12px;">변환 테이블 예시</h3>
+      <table>
+        <thead>
+          <tr><th>행동 패턴</th><th>추정 레벨</th><th>신뢰도</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>체류 &lt;1분, 동선 1구역</td><td style="color:#94a3b8;">L2 통과형</td><td>85%</td></tr>
+          <tr><td>체류 1~3분, 동선 2구역</td><td style="color:var(--blue);">L3 탐색형</td><td>72%</td></tr>
+          <tr><td>체류 3분+, 상품 터치 2회+</td><td style="color:var(--primary);">L3+ 관심형</td><td>76%</td></tr>
+          <tr><td>체류 4분+, 3구역+, 구매</td><td style="color:#7c3aed;">L4 확신형</td><td>78%</td></tr>
+          <tr><td>2회+ 방문, 구매 이력</td><td style="color:var(--pink);">L5 관계형</td><td>82%</td></tr>
+          <tr><td>회원 + 리뷰 + 높은 Clout</td><td style="color:var(--red);">L7 옹호형</td><td>88%</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:16px;padding:12px;background:var(--primary-pale);border-radius:8px;">
+        <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:4px;">이것이 Moat가 되는 이유</div>
+        <div style="font-size:11px;color:var(--body);">경쟁사가 같은 센서를 설치해도, 이 변환 로직이 없으면 "체류 4분"이 무엇을 의미하는지 모른다.</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>06 / 12</span></div>
+</div>
+
+<!-- SLIDE 7: 2-LAYER ALGORITHM -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">QUALITY ENGINE</div>
+  <h2>2-Layer 질적 전환 엔진</h2>
+  <p class="sub" style="margin-bottom:16px;">텍스트 데이터가 존재하는 지점에서 양적 데이터를 질적 인사이트로 변환합니다.</p>
+  <div class="grid2" style="flex:1;">
+    <div class="card" style="border-left:4px solid var(--primary);">
+      <h3 style="color:var(--primary);">Content Layer — "무엇을 말했는가"</h3>
+      <div style="font-size:12px;color:var(--body);line-height:1.8;margin-top:8px;">
+        • n-gram 기반 토픽 추출<br>
+        • 감성 분석 (긍정/부정/중립)<br>
+        • 키워드 빈도 및 연관 분석<br>
+        • → <strong>의식적/명시적</strong> 반응 포착
+      </div>
+      <div style="margin-top:12px;padding:10px;background:var(--light);border-radius:8px;font-size:11px;">
+        <strong>예:</strong> "분위기 좋다", "디저트 맛있다", "가격 비싸다"<br>
+        → 토픽: 공간(42%), 메뉴(35%), 가격(23%)
+      </div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--pink);">
+      <h3 style="color:var(--pink);">Psyche Layer — "어떻게 말했는가"</h3>
+      <div style="font-size:12px;color:var(--body);line-height:1.8;margin-top:8px;">
+        • FWA: 대명사, 조사, 접속사 패턴<br>
+        • LIWC 4대 변수 수치화<br>
+        • 한국어: "이/가" vs "은/는" 조사 패턴<br>
+        • → <strong>무의식적/잠재적</strong> 심리 포착
+      </div>
+      <div style="margin-top:12px;padding:10px;background:#fdf2f8;border-radius:8px;font-size:11px;">
+        <strong>예:</strong> 같은 "좋다"라도<br>
+        Authenticity 78 = 진심 vs Authenticity 28 = 과장
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:14px;">
+    <h3 style="margin-bottom:8px;">산출 지표</h3>
+    <div class="grid4">
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:20px;font-weight:700;color:var(--primary);" class="metric">BAS</div>
+        <div style="font-size:10px;color:var(--body);margin-top:4px;">Brand Advocacy Score<br>진정한 옹호자 비율</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:20px;font-weight:700;color:var(--green);" class="metric">FI</div>
+        <div style="font-size:10px;color:var(--body);margin-top:4px;">Freshness Index<br>브랜드 신선함 소진 감지</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:20px;font-weight:700;color:var(--pink);" class="metric">ED</div>
+        <div style="font-size:10px;color:var(--body);margin-top:4px;">Engagement Depth<br>질적 관여도 종합 점수</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:20px;font-weight:700;color:var(--red);" class="metric">SG</div>
+        <div style="font-size:10px;color:var(--body);margin-top:4px;">Sincerity Gate<br>가짜/과장 리뷰 자동 필터</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>07 / 12</span></div>
+</div>
+
+<!-- SLIDE 8: 2-STAGE MODEL -->
+<div class="slide" style="background:var(--black);color:var(--white);">
+  <div class="tag" style="color:var(--primary-light);">DATA MODEL</div>
+  <h2 style="color:var(--white);">2단계 고객 데이터 모델</h2>
+  <p style="font-size:13px;color:#94a3b8;margin-bottom:20px;">표본조사(Stage 1)에서 개인 데이터(Stage 2)로 점진적으로 고도화합니다.</p>
+  <div class="grid2" style="flex:1;gap:20px;">
+    <div style="padding:24px;background:#13131f;border:1px solid rgba(102,102,255,0.2);border-radius:14px;border-top:3px solid var(--primary);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div>
+          <div style="font-size:18px;font-weight:800;color:var(--white);">Stage 1</div>
+          <div style="font-size:11px;color:#64748b;">익명 표본조사 · 오프라인</div>
+        </div>
+        <span class="badge" style="background:rgba(102,102,255,0.15);color:var(--primary-light);">세그먼트 분류</span>
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.8;">
+        <div style="margin-bottom:8px;">📊 행동 데이터 (자동) — 전환율, 동선, 체류</div>
+        <div style="margin-bottom:8px;">👔 AI 아웃핏 (자동) — 라이프스타일 군</div>
+        <div style="margin-bottom:8px;">💳 결제 세부항목 (자동) — 취향/충동소비</div>
+        <div style="margin-bottom:8px;">📝 리워드 서베이 (표본) — 기준점 조사</div>
+        <div>🧠 2-Layer (텍스트) — 심리 프로필</div>
+      </div>
+      <div style="margin-top:14px;padding:10px;background:rgba(102,102,255,0.08);border-radius:8px;text-align:center;">
+        <div style="font-size:11px;color:var(--primary-light);font-weight:600;">산출: 세그먼트 맵 + 변환 테이블 + 인게이지먼트 패턴</div>
+      </div>
+    </div>
+    <div style="padding:24px;background:#13131f;border:1px solid rgba(16,185,129,0.2);border-radius:14px;border-top:3px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div>
+          <div style="font-size:18px;font-weight:800;color:var(--white);">Stage 2</div>
+          <div style="font-size:11px;color:#64748b;">실명 개인 데이터 · OMO</div>
+        </div>
+        <span class="badge" style="background:rgba(16,185,129,0.15);color:#6ee7b7;">개인 프로필</span>
+      </div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.8;">
+        <div style="margin-bottom:8px;">👤 Stage 1 세그먼트 프로필 승계</div>
+        <div style="margin-bottom:8px;">📱 회원 CRM (실명, 연락처)</div>
+        <div style="margin-bottom:8px;">🛒 온라인 구매 = 이성적 자아 (필요 구매)</div>
+        <div style="margin-bottom:8px;">🏪 오프라인 구매 = 감성적 자아 (취향 구매)</div>
+        <div>💬 개인 리뷰 → 퍼스널리티 프로필</div>
+      </div>
+      <div style="margin-top:14px;padding:10px;background:rgba(16,185,129,0.08);border-radius:8px;text-align:center;">
+        <div style="font-size:11px;color:#6ee7b7;font-weight:600;">산출: 통합 개인 프로필 + 개인화 커뮤니케이션 전략</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:14px;text-align:center;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+    <span style="font-size:13px;color:#94a3b8;">
+      <strong style="color:var(--primary-light);">Stage 1</strong> 표본에서 세그먼트를 발견하고 →
+      <strong style="color:#6ee7b7;">Stage 2</strong> 개인을 세그먼트 안에 배치하여 고도화
+    </span>
+  </div>
+  <div class="footer" style="color:#475569;"><span>PROJECT RENT · R-lab</span><span>08 / 12</span></div>
+</div>
+
+<!-- SLIDE 9: OFFLINE PURCHASE INSIGHT -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">KEY INSIGHT</div>
+  <h2>오프라인 결제 데이터의 숨겨진 가치</h2>
+  <p class="sub" style="margin-bottom:20px;">같은 사람의 온라인 구매와 오프라인 구매는 <strong>전혀 다른 자아</strong>를 보여줍니다.</p>
+  <div class="grid2" style="gap:20px;">
+    <div class="card card-blue" style="text-align:center;">
+      <div style="font-size:32px;margin-bottom:8px;">🛒</div>
+      <h3>온라인 구매</h3>
+      <div style="font-size:28px;font-weight:800;color:var(--blue);margin:8px 0;" class="metric">이성적 자아</div>
+      <div style="font-size:13px;color:var(--body);line-height:1.7;">
+        "필요해서 산다"<br>
+        비교 검색 → 리뷰 확인 → 최저가 → 결제<br>
+        <strong>계획적, 합리적, 기능 중심</strong>
+      </div>
+    </div>
+    <div class="card card-pink" style="text-align:center;">
+      <div style="font-size:32px;margin-bottom:8px;">🏪</div>
+      <h3>오프라인 구매</h3>
+      <div style="font-size:28px;font-weight:800;color:var(--pink);margin:8px 0;" class="metric">감성적 자아</div>
+      <div style="font-size:13px;color:var(--body);line-height:1.7;">
+        "끌려서 산다"<br>
+        공간 경험 → 감각 자극 → 충동 → 결제<br>
+        <strong>즉흥적, 감각적, 취향 중심</strong>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:20px;padding:18px 24px;background:var(--primary-pale);border-radius:12px;text-align:center;">
+    <div style="font-size:15px;font-weight:700;color:var(--primary);margin-bottom:6px;">두 개를 합치면</div>
+    <div style="font-size:13px;color:var(--body);">
+      한 사람 안의 <strong>이성과 감성의 비율</strong>까지 보인다 → 기존 어떤 고객 DB에도 없는 차원<br>
+      결제 세부항목을 알면 → <strong>취향의 구체적 방향</strong>까지 파악 가능
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>09 / 12</span></div>
+</div>
+
+<!-- SLIDE 10: COMPETITIVE POSITIONING -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">POSITIONING</div>
+  <h2>경쟁 포지셔닝</h2>
+  <table style="margin-top:12px;">
+    <thead>
+      <tr>
+        <th style="width:160px;">측정 영역</th>
+        <th style="text-align:center;">기존 리테일테크<br><span style="font-weight:400;font-size:10px;">RetailNext · 메이아이</span></th>
+        <th style="text-align:center;">컨설팅/리서치<br><span style="font-weight:400;font-size:10px;">McKinsey · Kantar</span></th>
+        <th style="text-align:center;color:var(--primary);"><strong>RXR Master</strong><br><span style="font-weight:400;font-size:10px;">Bracket + RXR + 2-Layer</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>데이터 범위</td><td style="text-align:center;">단일 축 (동선 or 매출)</td><td style="text-align:center;">설문 기반</td><td style="text-align:center;color:var(--primary);font-weight:700;">6단계 풀퍼널 통합</td></tr>
+      <tr><td>데이터 성격</td><td style="text-align:center;">양적 (숫자)</td><td style="text-align:center;">양적 (점수)</td><td style="text-align:center;color:var(--primary);font-weight:700;">양적 → 질적 전환</td></tr>
+      <tr><td>고객 분류</td><td style="text-align:center;">인구통계 기반</td><td style="text-align:center;">서베이 세그먼트</td><td style="text-align:center;color:var(--primary);font-weight:700;">라이프스타일 × 인게이지먼트</td></tr>
+      <tr><td>심리 분석</td><td style="text-align:center;color:#94a3b8;">불가</td><td style="text-align:center;color:#94a3b8;">의식적 답변만</td><td style="text-align:center;color:var(--primary);font-weight:700;">FWA 무의식 포착</td></tr>
+      <tr><td>온·오프 연결</td><td style="text-align:center;color:#94a3b8;">단절</td><td style="text-align:center;color:#94a3b8;">단절</td><td style="text-align:center;color:var(--primary);font-weight:700;">OMO 실시간 연결</td></tr>
+      <tr><td>비용</td><td style="text-align:center;">센서당 $200+/월</td><td style="text-align:center;">프로젝트당 수억</td><td style="text-align:center;color:var(--primary);font-weight:700;">매장 운영 중 자동 수집</td></tr>
+      <tr><td>핵심 자산</td><td style="text-align:center;">하드웨어</td><td style="text-align:center;">브랜드/인력</td><td style="text-align:center;color:var(--primary);font-weight:700;">해석 프레임 + 변환 테이블</td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>10 / 12</span></div>
+</div>
+
+<!-- SLIDE 11: SERVICE LEVELS -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">BUSINESS MODEL</div>
+  <h2>서비스 레벨 구조</h2>
+  <p class="sub" style="margin-bottom:16px;">자사 매장에서 검증 → 외부 판매로 확장하는 단계적 모델.</p>
+  <div class="grid4" style="flex:1;">
+    <div class="card card-accent" style="display:flex;flex-direction:column;">
+      <div style="text-align:center;margin-bottom:12px;">
+        <span class="badge badge-primary">자사 운영</span>
+        <div style="font-size:18px;font-weight:800;color:var(--primary);margin-top:8px;">Bracket<br>Direct</div>
+      </div>
+      <div style="font-size:11px;color:var(--body);line-height:1.7;flex:1;">
+        • 모듈형 유닛 매장<br>
+        • 위탁 판매 플랫폼<br>
+        • 6단계 풀퍼널<br>
+        • 변환 테이블 구축<br>
+        • 알고리즘 테스트
+      </div>
+      <div style="margin-top:10px;padding:6px;background:var(--primary-pale);border-radius:6px;text-align:center;font-size:10px;font-weight:600;color:var(--primary);">데이터 + R&D</div>
+    </div>
+    <div class="card" style="border-top:3px solid #94a3b8;display:flex;flex-direction:column;">
+      <div style="text-align:center;margin-bottom:12px;">
+        <span class="badge" style="background:#f1f5f9;color:#64748b;">외부 판매</span>
+        <div style="font-size:18px;font-weight:800;color:var(--dark);margin-top:8px;">Basic</div>
+      </div>
+      <div style="font-size:11px;color:var(--body);line-height:1.7;flex:1;">
+        • 전환율 퍼널 리포트<br>
+        • L0~L4 기본 측정<br>
+        • 기본 세그먼트 분류<br>
+        • 월간 리포트
+      </div>
+      <div style="margin-top:10px;padding:6px;background:#f1f5f9;border-radius:6px;text-align:center;font-size:10px;font-weight:600;color:#64748b;">일반 리테일 매장</div>
+    </div>
+    <div class="card card-green" style="display:flex;flex-direction:column;">
+      <div style="text-align:center;margin-bottom:12px;">
+        <span class="badge" style="background:#d1fae5;color:#059669;">외부 판매</span>
+        <div style="font-size:18px;font-weight:800;color:var(--dark);margin-top:8px;">Advanced</div>
+      </div>
+      <div style="font-size:11px;color:var(--body);line-height:1.7;flex:1;">
+        • Basic 전체 포함<br>
+        • 2-Layer 심리 분석<br>
+        • 인게이지먼트 맵<br>
+        • 브랜드 인텔리전스<br>
+        • Daily AI 인사이트
+      </div>
+      <div style="margin-top:10px;padding:6px;background:#d1fae5;border-radius:6px;text-align:center;font-size:10px;font-weight:600;color:#059669;">브랜드 팝업/플래그십</div>
+    </div>
+    <div class="card card-pink" style="display:flex;flex-direction:column;">
+      <div style="text-align:center;margin-bottom:12px;">
+        <span class="badge" style="background:#fae8ff;color:#a21caf;">외부 판매</span>
+        <div style="font-size:18px;font-weight:800;color:var(--dark);margin-top:8px;">Full</div>
+      </div>
+      <div style="font-size:11px;color:var(--body);line-height:1.7;flex:1;">
+        • Advanced 전체 포함<br>
+        • OMO 통합 CRM<br>
+        • 개인화 전략 엔진<br>
+        • 변환 테이블 공유<br>
+        • 전용 대시보드
+      </div>
+      <div style="margin-top:10px;padding:6px;background:#fae8ff;border-radius:6px;text-align:center;font-size:10px;font-weight:600;color:#a21caf;">장기 파트너십</div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>11 / 12</span></div>
+</div>
+
+<!-- SLIDE 12: CLOSING -->
+<div class="slide" style="background:var(--black);color:var(--white);justify-content:center;align-items:center;text-align:center;">
+  <div style="margin-bottom:24px;">
+    <span class="badge" style="background:rgba(102,102,255,0.2);color:var(--primary-light);padding:6px 20px;font-size:11px;letter-spacing:2px;font-family:'Poppins',sans-serif;">6 PRINCIPLES</span>
+  </div>
+  <div style="max-width:700px;margin:0 auto;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px;text-align:left;">
+      <div style="padding:16px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--primary-light);margin-bottom:4px;">01. 프레임이 자산이다</div>
+        <div style="font-size:11px;color:#64748b;">기술은 오픈소스, 해석의 틀이 경쟁력</div>
+      </div>
+      <div style="padding:16px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--primary-light);margin-bottom:4px;">02. 양적 → 질적 전환</div>
+        <div style="font-size:11px;color:#64748b;">숫자를 세는 게 아니라 의미를 읽는다</div>
+      </div>
+      <div style="padding:16px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--primary-light);margin-bottom:4px;">03. 멘탈코스트 = 관계 깊이</div>
+        <div style="font-size:11px;color:#64748b;">모든 전환은 심리적 비용의 산물</div>
+      </div>
+      <div style="padding:16px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--primary-light);margin-bottom:4px;">04. 같은 행동, 다른 무게</div>
+        <div style="font-size:11px;color:#64748b;">퍼스널리티에 따라 가중치가 다르다</div>
+      </div>
+      <div style="padding:16px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--primary-light);margin-bottom:4px;">05. 공간 = 데이터 플랫폼</div>
+        <div style="font-size:11px;color:#64748b;">쿠키리스 시대의 1st party 채널</div>
+      </div>
+      <div style="padding:16px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--primary-light);margin-bottom:4px;">06. 표본에서 개인으로</div>
+        <div style="font-size:11px;color:#64748b;">세그먼트 → 개인 프로필 점진적 고도화</div>
+      </div>
+    </div>
+    <h1 style="color:var(--white);font-size:32px;margin-bottom:12px;">
+      <span style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">RXR Master Framework</span>
+    </h1>
+    <p style="font-size:14px;color:#64748b;line-height:1.7;">
+      오프라인 경험의 모든 것을 데이터화하고,<br>소비자의 무의식적 심리까지 정량화하는 유일한 리테일 인텔리전스
+    </p>
+    <div style="margin-top:24px;font-size:12px;color:#475569;">Project RENT · R-lab · 2026</div>
+  </div>
+  <div class="footer" style="color:#475569;"><span>CONFIDENTIAL</span><span>12 / 12</span></div>
+</div>
+
+<!-- PDF Panel -->
+<div class="pdf-panel" id="pdfPanel">
+  <button class="pdf-panel-toggle" onclick="document.getElementById('pdfBody').classList.toggle('open')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    PDF
+  </button>
+  <div class="pdf-panel-body" id="pdfBody">
+    <div class="pdf-panel-title">PDF 출력 설정</div>
+    <div class="pdf-orient-group">
+      <button class="pdf-orient-btn active" id="btnL" onclick="setOrient('landscape')">
+        <svg width="28" height="20" viewBox="0 0 28 20"><rect x="1" y="1" width="26" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        가로
+      </button>
+      <button class="pdf-orient-btn" id="btnP" onclick="setOrient('portrait')">
+        <svg width="18" height="24" viewBox="0 0 18 24"><rect x="1" y="1" width="16" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        세로
+      </button>
+    </div>
+    <button class="pdf-print-btn" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      출력하기
+    </button>
+  </div>
+</div>
+
+<script>
+document.addEventListener('click', function(e) {
+  var panel = document.getElementById('pdfPanel');
+  if (panel && !panel.contains(e.target)) {
+    document.getElementById('pdfBody').classList.remove('open');
+  }
+});
+function setOrient(o) {
+  var s = document.getElementById('pageOrientStyle');
+  var bL = document.getElementById('btnL');
+  var bP = document.getElementById('btnP');
+  if (o === 'landscape') {
+    s.textContent = '@media print { @page { size: A4 landscape; margin: 8mm; } }';
+    bL.classList.add('active'); bP.classList.remove('active');
+  } else {
+    s.textContent = '@media print { @page { size: A4 portrait; margin: 8mm; } }';
+    bP.classList.add('active'); bL.classList.remove('active');
+  }
+}
+</script>
+</body>
+</html>

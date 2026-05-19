@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR Layer Implementation Guide</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+  :root{--primary:#6666FF;--primary-deep:#5353FF;--primary-light:#8A8AFF;--primary-pale:#E1E1FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--black:#000;--dark:#262626;--body:#424D61;--light:#F6F6F6;--white:#FFF;--red:#C00000;--coral:#FF5050;--blue:#4D93F7;--green:#10b981;--orange:#f59e0b;--pink:#d946ef;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:13px;line-height:1.6;}
+  .slide{width:1280px;height:720px;padding:44px 52px;position:relative;overflow:hidden;page-break-after:always;display:flex;flex-direction:column;}
+  .slide::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--grad);}
+  .tag{font-family:'Poppins',sans-serif;font-weight:300;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--primary);margin-bottom:6px;}
+  h2{font-size:26px;font-weight:800;line-height:1.3;color:var(--black);margin-bottom:10px;}
+  h3{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:4px;}
+  .sub{font-size:13px;color:var(--body);line-height:1.7;max-width:900px;}
+  .metric{font-family:'DIN Alternate','Poppins',sans-serif;font-weight:700;}
+  .card{background:var(--light);border:1px solid #E8E8E8;border-radius:10px;padding:14px 16px;}
+  .card-dark{background:var(--black);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:14px 16px;color:var(--white);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;}
+  .footer{position:absolute;bottom:14px;left:52px;right:52px;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;}
+  table{width:100%;border-collapse:collapse;font-size:11px;}
+  th{background:var(--light);padding:6px 8px;text-align:left;font-weight:700;font-size:10px;color:var(--body);border-bottom:2px solid #ddd;}
+  td{padding:5px 8px;border-bottom:1px solid #eee;color:var(--body);}
+  /* PDF Panel */
+  .pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;font-family:'Pretendard Variable',system-ui,sans-serif;}
+  .pdf-panel-toggle{display:flex;align-items:center;gap:8px;padding:12px 22px;background:var(--grad);color:#fff;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(102,102,255,0.4);transition:all 0.2s;border:none;}
+  .pdf-panel-toggle:hover{transform:translateY(-2px);}
+  .pdf-panel-body{display:none;position:absolute;bottom:56px;right:0;width:220px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:16px;animation:panelIn 0.2s ease;}
+  @keyframes panelIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .pdf-panel-body.open{display:block;}
+  .pdf-panel-title{font-size:12px;font-weight:700;color:#1e293b;margin-bottom:12px;text-align:center;}
+  .pdf-orient-group{display:flex;gap:8px;margin-bottom:14px;}
+  .pdf-orient-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;background:#f9fafb;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:all 0.15s;font-family:'Pretendard Variable',sans-serif;color:#475569;font-size:11px;font-weight:600;}
+  .pdf-orient-btn:hover{border-color:var(--primary);background:var(--primary-pale);}
+  .pdf-orient-btn.active{border-color:var(--primary);background:var(--primary-pale);color:var(--primary);box-shadow:0 0 0 3px rgba(102,102,255,0.15);}
+  .pdf-orient-btn svg{stroke:#475569;}
+  .pdf-orient-btn.active svg{stroke:var(--primary);}
+  .pdf-print-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;font-family:'Pretendard Variable',sans-serif;cursor:pointer;}
+  .pdf-print-btn:hover{opacity:0.9;}
+  @media print{
+    .pdf-panel{display:none!important;}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
+    .slide{break-after:page;page-break-after:always;break-inside:avoid;page-break-inside:avoid;min-height:auto!important;}
+    .slide:last-child{break-after:auto;page-break-after:auto;}
+  }
+</style>
+<style id="pageOrientStyle">
+  @media print{@page{size:A4 landscape;margin:8mm;}}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: COVER -->
+<div class="slide" style="background:var(--black);color:var(--white);justify-content:center;align-items:center;text-align:center;">
+  <div style="margin-bottom:20px;"><span class="badge" style="background:rgba(102,102,255,0.2);color:var(--primary-light);padding:6px 20px;font-size:12px;letter-spacing:3px;font-family:'Poppins',sans-serif;">IMPLEMENTATION GUIDE</span></div>
+  <h2 style="color:var(--white);font-size:40px;margin-bottom:12px;">RXR Master Framework<br><span style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">층위별 고도화 가이드</span></h2>
+  <p style="font-size:14px;color:#94a3b8;max-width:600px;line-height:1.8;margin-bottom:24px;">현시점 기술적으로 구현 가능한 것만 포함.<br>CCTV 기반 · 오픈소스 우선 · 얼굴 인식 없음 · 개인정보 안전</p>
+  <div style="padding:10px 28px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;font-size:12px;color:#64748b;">Project RENT · R-lab · 2026</div>
+  <div class="footer" style="color:#475569;"><span>CONFIDENTIAL</span><span>01 / 08</span></div>
+</div>
+
+<!-- SLIDE 2: OUTFIT AI -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">VISUAL OUTFIT AI</div>
+  <h2>패션 타입 → 라이프스타일 세그먼트</h2>
+  <p class="sub" style="margin-bottom:12px;">얼굴 인식 없이, <strong>의류 + 컬러 + 체형 + 액세서리</strong>만으로 고객을 분류합니다.</p>
+  <div class="grid2" style="flex:1;">
+    <div>
+      <h3 style="color:var(--primary);margin-bottom:8px;">분석 파이프라인</h3>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div class="card" style="padding:10px 14px;"><div style="font-size:10px;font-weight:700;color:var(--primary);">① 의류 카테고리 (13타입)</div><div style="font-size:10px;color:var(--body);">상의 5 + 하의 4 + 원피스/아우터 4 — DeepFashion2 + YOLOv8</div></div>
+        <div class="card" style="padding:10px 14px;"><div style="font-size:10px;font-weight:700;color:var(--primary);">② 컬러 팔레트 (상위 3색)</div><div style="font-size:10px;color:var(--body);">모노톤 / 뉴트럴 / 비비드 / 파스텔 — OpenCV HSV</div></div>
+        <div class="card" style="padding:10px 14px;"><div style="font-size:10px;font-weight:700;color:var(--primary);">③ 스타일 키워드</div><div style="font-size:10px;color:var(--body);">캐주얼/포멀/스트릿/스포츠/미니멀/프리미엄/보헤미안/빈티지</div></div>
+        <div class="card" style="padding:10px 14px;"><div style="font-size:10px;font-weight:700;color:var(--primary);">④ 액세서리 + 체형</div><div style="font-size:10px;color:var(--body);">가방 타입/모자/선글라스 + MediaPipe Pose 체형 추정</div></div>
+        <div class="card" style="padding:10px 14px;"><div style="font-size:10px;font-weight:700;color:var(--primary);">⑤ 연령대·성별 추정</div><div style="font-size:10px;color:var(--body);">체형+의류 조합 기반 (얼굴 인식 아님)</div></div>
+      </div>
+      <div style="margin-top:8px;padding:8px 12px;background:#d1fae5;border-radius:8px;">
+        <div style="font-size:10px;font-weight:600;color:#059669;">✅ 개인정보 안전: 얼굴 미사용, 세션 후 ID 삭제, GDPR 준수</div>
+      </div>
+    </div>
+    <div>
+      <h3 style="color:var(--primary);margin-bottom:8px;">라이프스타일 세그먼트 (7군)</h3>
+      <table>
+        <thead><tr><th>세그먼트</th><th>아웃핏 시그니처</th><th>예상 소비 패턴</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:700;color:var(--dark);">미니멀 모던</td><td>모노톤, 깔끔 실루엣</td><td>선별적, 객단가 높음</td></tr>
+          <tr><td style="font-weight:700;color:var(--dark);">캐주얼 컴포트</td><td>데님+티, 뉴트럴</td><td>가격 민감, 빈도 높음</td></tr>
+          <tr><td style="font-weight:700;color:var(--dark);">스트릿 트렌드</td><td>오버사이즈, 로고, 비비드</td><td>SNS 활발, 한정판</td></tr>
+          <tr><td style="font-weight:700;color:var(--dark);">프리미엄 클래식</td><td>정제된 핏, 가죽, 쥬얼리</td><td>높은 객단가, 로열티</td></tr>
+          <tr><td style="font-weight:700;color:var(--dark);">스포티 액티브</td><td>애슬레저, 기능성</td><td>경험 중심, 클래스</td></tr>
+          <tr><td style="font-weight:700;color:var(--dark);">아트/보헤미안</td><td>레이어드, 빈티지, 패턴</td><td>독특한 아이템 탐색</td></tr>
+          <tr><td style="font-weight:700;color:var(--body);">매스 노멀</td><td>특징 없는 일상복</td><td>가격 중심, 통과형</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:8px;padding:8px 12px;background:var(--primary-pale);border-radius:8px;">
+        <div style="font-size:10px;color:var(--primary);">정확도 로드맵: Phase 1 (500건) 70~75% → Phase 2 (5K건) 80~85%</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>02 / 08</span></div>
+</div>
+
+<!-- SLIDE 3: L0~L2 FUNNEL -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">L0 → L2: ENTRY FUNNEL</div>
+  <h2>노출 → 시선 → 진입: 전환율 퍼널</h2>
+  <div class="grid2" style="flex:1;margin-top:12px;">
+    <div>
+      <h3 style="color:var(--blue);margin-bottom:10px;">주목률 & 진입률</h3>
+      <div class="card" style="margin-bottom:10px;border-left:3px solid #94a3b8;">
+        <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:4px;">L0 → L1: 주목률 (Attention Rate)</div>
+        <div style="font-size:11px;color:var(--body);">파사드 앞 2초+ 정지 / 전체 유동인구<br>기술: YOLOv8 + BoT-SORT 좌표 정지 판정 | 정확도 90%+</div>
+      </div>
+      <div class="card" style="margin-bottom:10px;border-left:3px solid var(--blue);">
+        <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:4px;">L1 → L2: 진입률 (Entry Rate)</div>
+        <div style="font-size:11px;color:var(--body);">매장 진입 인원 / 파사드 주목 인원<br>기술: 입구 라인 교차 감지 | 정확도 94~97%</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--primary);">
+        <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:4px;">DID 콘텐츠 A/B 테스트</div>
+        <div style="font-size:11px;color:var(--body);">시간대별 다른 콘텐츠 송출 → 각 콘텐츠의 주목률 × 진입률 비교<br>→ 콘텐츠 "진입 유도력" 자동 측정</div>
+      </div>
+    </div>
+    <div>
+      <h3 style="color:var(--blue);margin-bottom:10px;">진입 품질 분류</h3>
+      <table>
+        <thead><tr><th>유형</th><th>행동 패턴</th><th>의미</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:700;color:var(--dark);">목적형</td><td>주목 없이 직진 진입</td><td>기존 고객/재방문</td></tr>
+          <tr><td style="font-weight:700;color:var(--blue);">유인형</td><td>파사드 주목 후 진입</td><td>콘텐츠에 의한 신규</td></tr>
+          <tr><td style="font-weight:700;color:var(--green);">동반형</td><td>2인+ 그룹 진입</td><td>사회적 방문</td></tr>
+          <tr><td style="font-weight:700;color:#94a3b8;">통과형</td><td>진입 후 30초 내 퇴장</td><td>오인입/호기심</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px;padding:10px 14px;background:var(--primary-pale);border-radius:8px;">
+        <div style="font-size:11px;color:var(--primary);font-weight:600;">핵심: 진입 유형별 이후 인게이지먼트 패턴이 다름</div>
+        <div style="font-size:10px;color:var(--body);margin-top:4px;">유인형 진입 → 평균 체류 3.2분, 구매 전환 12%<br>목적형 진입 → 평균 체류 1.8분, 구매 전환 34%<br>(파일럿에서 검증할 가설)</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>03 / 08</span></div>
+</div>
+
+<!-- SLIDE 4: L3 DQS -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">L3: DWELL QUALITY SCORE</div>
+  <h2>체류 품질 스코어 — 실제 구현 설계</h2>
+  <div style="margin-top:8px;padding:14px 20px;background:var(--black);border-radius:12px;text-align:center;margin-bottom:14px;">
+    <div style="font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;color:var(--primary-light);">DQS = (실제 체류 / 기대 체류) × 밀도 계수 × 세그먼트 보정</div>
+  </div>
+  <div class="grid3" style="flex:1;">
+    <div class="card" style="border-top:3px solid var(--blue);">
+      <h3 style="color:var(--blue);">① 기대 체류 기준표</h3>
+      <div style="font-size:11px;color:var(--body);line-height:1.7;margin-top:6px;">
+        <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #eee;"><span>상품 진열대</span><span style="font-weight:700;">45초~1.5분</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #eee;"><span>체험존</span><span style="font-weight:700;">2~4분</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #eee;"><span>전시/스토리텔링</span><span style="font-weight:700;">3~7분</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>포토존</span><span style="font-weight:700;">1~3분</span></div>
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:#94a3b8;">파일럿 데이터 축적 시 자동 업데이트</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--green);">
+      <h3 style="color:var(--green);">② 체류 밀도 계수</h3>
+      <div style="font-size:11px;color:var(--body);line-height:1.7;margin-top:6px;">
+        같은 3분이라도:<br><br>
+        <strong>1 Zone × 3분 정지</strong><br>= 수동적 관람 (밀도 낮음)<br><br>
+        <strong>3 Zone × 각 1분 순회</strong><br>= 능동적 탐색 (밀도 높음)<br><br>
+        <div style="padding:6px;background:#d1fae5;border-radius:6px;font-size:10px;margin-top:4px;">
+          밀도 = (방문Zone/전체Zone) × (1 + 상호작용 × 0.1)
+        </div>
+      </div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--pink);">
+      <h3 style="color:var(--pink);">③ 세그먼트 보정</h3>
+      <div style="font-size:11px;color:var(--body);line-height:1.7;margin-top:6px;">
+        아웃핏 세그먼트 평균 대비 편차:<br><br>
+        <strong>미니멀 모던</strong> 평균 2.5분<br>
+        → 이 고객 5분 = 보정 <span style="color:var(--pink);font-weight:700;">2.0</span><br>
+        → <strong>강한 관심 신호</strong><br><br>
+        <strong>캐주얼 컴포트</strong> 평균 4분<br>
+        → 이 고객 4분 = 보정 <span style="color:#94a3b8;font-weight:700;">1.0</span><br>
+        → 보통 수준
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>04 / 08</span></div>
+</div>
+
+<!-- SLIDE 5: L4 PURCHASE -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">L4: CONVERSION QUALITY</div>
+  <h2>구매 전환의 질적 분류</h2>
+  <p class="sub" style="margin-bottom:14px;">같은 구매라도 <strong>어떻게 샀는가</strong>에 따라 의미가 다릅니다. 아웃핏 세그먼트 × 구매 패턴 교차로 취향 DB를 축적합니다.</p>
+  <div class="grid2" style="flex:1;">
+    <div>
+      <h3 style="margin-bottom:8px;">구매 유형 4분류</h3>
+      <div class="card" style="margin-bottom:8px;border-left:3px solid var(--primary);">
+        <div style="font-size:12px;font-weight:700;color:var(--primary);">확신 구매</div>
+        <div style="font-size:10px;color:var(--body);">DQS 높음 + 다구역 탐색 후 구매 → 재방문 가능성 높음</div>
+      </div>
+      <div class="card" style="margin-bottom:8px;border-left:3px solid var(--coral);">
+        <div style="font-size:12px;font-weight:700;color:var(--coral);">충동 구매</div>
+        <div style="font-size:10px;color:var(--body);">DQS 낮음 + 단일 Zone 즉시 구매 → 취향 반응 신호</div>
+      </div>
+      <div class="card" style="margin-bottom:8px;border-left:3px solid var(--green);">
+        <div style="font-size:12px;font-weight:700;color:var(--green);">목적 구매</div>
+        <div style="font-size:10px;color:var(--body);">최단 동선 구매 → 기존 고객 / 재방문자</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--blue);">
+        <div style="font-size:12px;font-weight:700;color:var(--blue);">동반 구매</div>
+        <div style="font-size:10px;color:var(--body);">그룹 진입 + 구매 → 사회적 소비, 추천 기반 전환</div>
+      </div>
+    </div>
+    <div>
+      <h3 style="margin-bottom:8px;">결제 세부항목 → 취향 분석</h3>
+      <table>
+        <thead><tr><th>데이터</th><th>인사이트</th></tr></thead>
+        <tbody>
+          <tr><td>구매 카테고리</td><td>관심 영역 (식음/굿즈/체험/클래스)</td></tr>
+          <tr><td>가격대</td><td>지불 용의(WTP) 세그먼트</td></tr>
+          <tr><td>구매 시점 (체류 몇 분 후)</td><td>의사결정 속도 → 확신형 vs 탐색형</td></tr>
+          <tr><td>동반 구매 여부</td><td>사회적 소비 패턴</td></tr>
+          <tr><td>옵션 선택</td><td>세부 취향 (사이즈/컬러/향)</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:10px;padding:10px;background:var(--primary-pale);border-radius:8px;">
+        <div style="font-size:11px;font-weight:600;color:var(--primary);margin-bottom:4px;">아웃핏 × 구매 교차 예시</div>
+        <div style="font-size:10px;color:var(--body);">
+          "미니멀 모던 → 객단가 35K, 디저트+굿즈 세트 선호"<br>
+          "스트릿 트렌드 → 포토존 5분+ 후 굿즈 구매 전환 42%"
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>05 / 08</span></div>
+</div>
+
+<!-- SLIDE 6: L5~L6 RETENTION -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">L5 → L6: RETENTION & CRM</div>
+  <h2>재방문 · 회원 — 하이브리드 접근</h2>
+  <div class="grid2" style="flex:1;margin-top:12px;">
+    <div>
+      <h3 style="color:var(--pink);margin-bottom:10px;">L5: 재방문 전략</h3>
+      <table style="margin-bottom:12px;">
+        <thead><tr><th>방법</th><th>정확도</th><th>개인정보</th><th>판정</th></tr></thead>
+        <tbody>
+          <tr><td>얼굴 인식</td><td>85~95%</td><td style="color:var(--red);">✗ 위반</td><td style="color:var(--red);font-weight:700;">제외</td></tr>
+          <tr><td>의류 Re-ID (당일)</td><td>80~90%</td><td style="color:var(--green);">✅ 안전</td><td style="color:var(--green);font-weight:700;">사용</td></tr>
+          <tr><td>의류 Re-ID (일간)</td><td>30~50%</td><td style="color:var(--green);">✅ 안전</td><td style="color:var(--orange);">불안정</td></tr>
+          <tr style="background:var(--primary-pale);"><td style="font-weight:700;">회원 앱/카드</td><td style="font-weight:700;">99%+</td><td style="color:var(--green);font-weight:700;">✅ 동의</td><td style="color:var(--primary);font-weight:700;">최우선</td></tr>
+        </tbody>
+      </table>
+      <div class="card" style="border-top:3px solid var(--primary);">
+        <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:4px;">핵심 전략</div>
+        <div style="font-size:11px;color:var(--body);line-height:1.6;">L5 정확도를 높이려면 <strong>L6(회원 전환)을 적극 유도</strong>.<br>회원 되면 재방문 추적이 자동 해결.<br>비회원 재방문률은 서베이 표본으로 추정.</div>
+      </div>
+    </div>
+    <div>
+      <h3 style="color:var(--green);margin-bottom:10px;">L6: 회원 = Stage 1 → 2 전환점</h3>
+      <div class="card" style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px;">회원가입 시 발생하는 데이터 연결</div>
+        <div style="font-size:10px;color:var(--body);line-height:1.7;">
+          익명 아웃핏 세그먼트 → 회원 프로필에 태그<br>
+          인게이지먼트 이력(L0~L4) → 개인 기준선 설정<br>
+          구매 세부항목 → 개인 취향 프로필<br>
+          체류 DQS → 개인 관여도 기준
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green);">
+        <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px;">OMO 통합 가치</div>
+        <div style="font-size:10px;color:var(--body);line-height:1.7;">
+          오프라인 충동구매(감성) + 온라인 비교구매(이성)<br>
+          = 한 사람의 이성/감성 비율<br><br>
+          오프라인 아웃핏 세그먼트 + 온라인 장바구니<br>
+          = 라이프스타일 정밀 프로필
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>06 / 08</span></div>
+</div>
+
+<!-- SLIDE 7: AI C.C -->
+<div class="slide" style="background:var(--black);color:var(--white);">
+  <div class="tag" style="color:var(--primary-light);">AI CUSTOMER CATEGORY</div>
+  <h2 style="color:var(--white);">모든 층위가 합쳐지는 곳 — AI C.C</h2>
+  <p style="font-size:12px;color:#94a3b8;margin-bottom:16px;">시각 + 행동 + 거래 + 텍스트 데이터가 통합되어 다차원 고객 세그먼트를 자동 생성합니다.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="padding:12px 16px;background:#13131f;border:1px solid rgba(77,147,247,0.2);border-radius:10px;border-left:3px solid var(--blue);">
+        <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:4px;">시각 데이터</div>
+        <div style="font-size:10px;color:#94a3b8;">아웃핏 세그먼트 · 연령대 · 성별 · 그룹/단독</div>
+      </div>
+      <div style="padding:12px 16px;background:#13131f;border:1px solid rgba(102,102,255,0.2);border-radius:10px;border-left:3px solid var(--primary);">
+        <div style="font-size:11px;font-weight:700;color:var(--primary-light);margin-bottom:4px;">행동 데이터</div>
+        <div style="font-size:10px;color:#94a3b8;">진입 유형 · DQS · 동선 패턴 · 인게이지먼트 레벨</div>
+      </div>
+      <div style="padding:12px 16px;background:#13131f;border:1px solid rgba(16,185,129,0.2);border-radius:10px;border-left:3px solid var(--green);">
+        <div style="font-size:11px;font-weight:700;color:#6ee7b7;margin-bottom:4px;">거래 데이터</div>
+        <div style="font-size:10px;color:#94a3b8;">구매 카테고리 · 객단가 · 구매 유형 · 의사결정 속도</div>
+      </div>
+      <div style="padding:12px 16px;background:#13131f;border:1px solid rgba(217,70,239,0.2);border-radius:10px;border-left:3px solid var(--pink);">
+        <div style="font-size:11px;font-weight:700;color:#e879f9;margin-bottom:4px;">텍스트 데이터 (있는 경우)</div>
+        <div style="font-size:10px;color:#94a3b8;">RQL 등급 · FWA 프로필 · Content 토픽</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--primary-light);margin-bottom:12px;">C.C 프로필 예시</div>
+      <div style="padding:16px;background:#13131f;border:1px solid rgba(102,102,255,0.3);border-radius:12px;margin-bottom:10px;">
+        <div style="font-size:10px;color:var(--primary-light);font-weight:600;margin-bottom:6px;">핵심 팬 + 잠재 옹호자</div>
+        <div style="font-size:11px;color:#94a3b8;line-height:1.7;">"30대 미니멀 · 확신구매형 · DQS 상위 20%<br>디저트+굿즈 선호 · 객단가 42K · Clout 72"</div>
+      </div>
+      <div style="padding:16px;background:#13131f;border:1px solid rgba(100,116,139,0.3);border-radius:12px;margin-bottom:10px;">
+        <div style="font-size:10px;color:#94a3b8;font-weight:600;margin-bottom:6px;">화제성 방문 + 콘텐츠 소비형</div>
+        <div style="font-size:11px;color:#64748b;line-height:1.7;">"20대 스트릿 · 유인진입 · 포토존 집중<br>구매 없음 · 인스타 후기 Q2 · Authenticity 65"</div>
+      </div>
+      <div style="padding:16px;background:#13131f;border:1px solid rgba(16,185,129,0.3);border-radius:12px;">
+        <div style="font-size:10px;color:#6ee7b7;font-weight:600;margin-bottom:6px;">충동 반응형 + 취향 탐색자</div>
+        <div style="font-size:11px;color:#94a3b8;line-height:1.7;">"20대 캐주얼 · 충동구매 · DQS 중간<br>디저트 단품 선호 · 재방문 1회 · 회원 미가입"</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer" style="color:#475569;"><span>PROJECT RENT · R-lab</span><span>07 / 08</span></div>
+</div>
+
+<!-- SLIDE 8: ROADMAP -->
+<div class="slide" style="background:var(--white);">
+  <div class="tag">IMPLEMENTATION ROADMAP</div>
+  <h2>구현 우선순위</h2>
+  <div style="flex:1;margin-top:12px;">
+    <div class="grid3" style="margin-bottom:14px;">
+      <div class="card" style="border-top:3px solid var(--primary);">
+        <div style="font-size:14px;font-weight:800;color:var(--primary);margin-bottom:6px;">Phase 1 <span style="font-size:11px;font-weight:400;color:var(--body);">즉시~3개월</span></div>
+        <div style="font-size:11px;color:var(--body);line-height:1.8;">
+          ① L0~L2 안정화 (퍼널 기본)<br>
+          ② <strong style="color:var(--primary);">아웃핏 AI 프로토타입</strong> (7세그먼트)<br>
+          ③ L3 DQS v1.0 (Zone + 기대 체류)<br>
+          ④ 리워드 서베이 시스템
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green);">
+        <div style="font-size:14px;font-weight:800;color:var(--green);margin-bottom:6px;">Phase 2 <span style="font-size:11px;font-weight:400;color:var(--body);">3~6개월</span></div>
+        <div style="font-size:11px;color:var(--body);line-height:1.8;">
+          ⑤ L4 POS 연동 (자사 매장)<br>
+          ⑥ <strong style="color:var(--green);">변환 테이블 v1.0</strong><br>
+          ⑦ 아웃핏 × 구매 교차 분석<br>
+          ⑧ L7 리뷰 크롤링 + 2-Layer
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--pink);">
+        <div style="font-size:14px;font-weight:800;color:var(--pink);margin-bottom:6px;">Phase 3 <span style="font-size:11px;font-weight:400;color:var(--body);">6~12개월</span></div>
+        <div style="font-size:11px;color:var(--body);line-height:1.8;">
+          ⑨ L6 회원 CRM 구축<br>
+          ⑩ <strong style="color:var(--pink);">AI C.C 통합 세그먼테이션</strong><br>
+          ⑪ OMO 온·오프 연결<br>
+          ⑫ 외부 Basic 서비스 론칭
+        </div>
+      </div>
+    </div>
+    <div style="padding:16px 20px;background:var(--black);border-radius:12px;">
+      <div style="font-size:13px;font-weight:700;color:var(--primary-light);margin-bottom:10px;">기술 스택 — 전부 오픈소스</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">
+        <div style="text-align:center;"><div style="font-size:10px;color:#64748b;">사람 감지</div><div style="font-size:11px;font-weight:600;color:var(--white);">YOLOv8</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:#64748b;">다중 추적</div><div style="font-size:11px;font-weight:600;color:var(--white);">BoT-SORT</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:#64748b;">아웃핏 분류</div><div style="font-size:11px;font-weight:600;color:var(--white);">DeepFashion2</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:#64748b;">감성/FWA</div><div style="font-size:11px;font-weight:600;color:var(--white);">KoBERT</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:#64748b;">Re-ID</div><div style="font-size:11px;font-weight:600;color:var(--white);">OSNet</div></div>
+      </div>
+      <div style="margin-top:10px;text-align:center;font-size:12px;color:#64748b;">기술은 오픈소스일 뿐. <strong style="color:var(--primary-light);">해석 프레임 + 변환 테이블이 자산.</strong></div>
+    </div>
+  </div>
+  <div class="footer"><span>PROJECT RENT · R-lab</span><span>08 / 08</span></div>
+</div>
+
+<!-- PDF Panel -->
+<div class="pdf-panel" id="pdfPanel">
+  <button class="pdf-panel-toggle" onclick="document.getElementById('pdfBody').classList.toggle('open')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    PDF
+  </button>
+  <div class="pdf-panel-body" id="pdfBody">
+    <div class="pdf-panel-title">PDF 출력 설정</div>
+    <div class="pdf-orient-group">
+      <button class="pdf-orient-btn active" id="btnL" onclick="setOrient('landscape')">
+        <svg width="28" height="20" viewBox="0 0 28 20"><rect x="1" y="1" width="26" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        가로
+      </button>
+      <button class="pdf-orient-btn" id="btnP" onclick="setOrient('portrait')">
+        <svg width="18" height="24" viewBox="0 0 18 24"><rect x="1" y="1" width="16" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        세로
+      </button>
+    </div>
+    <button class="pdf-print-btn" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      출력하기
+    </button>
+  </div>
+</div>
+
+<script>
+document.addEventListener('click', function(e) {
+  var panel = document.getElementById('pdfPanel');
+  if (panel && !panel.contains(e.target)) {
+    document.getElementById('pdfBody').classList.remove('open');
+  }
+});
+function setOrient(o) {
+  var s = document.getElementById('pageOrientStyle');
+  var bL = document.getElementById('btnL');
+  var bP = document.getElementById('btnP');
+  if (o === 'landscape') {
+    s.textContent = '@media print { @page { size: A4 landscape; margin: 8mm; } }';
+    bL.classList.add('active'); bP.classList.remove('active');
+  } else {
+    s.textContent = '@media print { @page { size: A4 portrait; margin: 8mm; } }';
+    bP.classList.add('active'); bL.classList.remove('active');
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오프라인 매장 설계의 심리학 — 종합 가이드</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1a1a1a;
+    background: #f8f9fa;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    color: #fff;
+    padding: 100px 24px 80px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+  .hero .subtitle {
+    font-size: 1.15rem;
+    color: rgba(255,255,255,0.55);
+    font-weight: 400;
+    max-width: 640px;
+    margin: 0 auto 24px;
+  }
+  .hero .meta {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.3);
+  }
+  .hero .layer-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 28px;
+  }
+  .hero .layer-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    opacity: 0.85;
+  }
+
+  /* Container */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Part Header */
+  .part-header {
+    margin: 60px auto 40px;
+    max-width: 900px;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .part-header .part-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #64748b;
+    margin-bottom: 8px;
+  }
+  .part-header h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+  }
+  .part-header p {
+    font-size: 1rem;
+    color: #64748b;
+    max-width: 600px;
+    margin: 12px auto 0;
+  }
+
+  /* Content Card */
+  .content-card {
+    max-width: 900px;
+    margin: 0 auto 32px;
+    padding: 36px 40px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .content-card h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #0f172a;
+  }
+  .content-card p {
+    font-size: 0.95rem;
+    color: #334155;
+    margin-bottom: 12px;
+  }
+
+  /* Layer Section */
+  .layer-section {
+    max-width: 900px;
+    margin: 48px auto;
+  }
+  .layer-header {
+    padding: 32px 40px;
+    border-radius: 16px 16px 0 0;
+    color: #fff;
+    position: relative;
+  }
+  .layer-header .layer-num {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+  .layer-header h3 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .layer-body {
+    background: #fff;
+    border-radius: 0 0 16px 16px;
+    padding: 36px 40px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .layer-body h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 24px 0 12px;
+  }
+  .layer-body h4:first-child {
+    margin-top: 0;
+  }
+  .layer-body p {
+    font-size: 0.93rem;
+    color: #334155;
+    margin-bottom: 10px;
+  }
+
+  /* Theory Card */
+  .theory-card {
+    border-left: 4px solid;
+    padding: 16px 20px;
+    margin: 12px 0;
+    background: #f8fafc;
+    border-radius: 0 8px 8px 0;
+  }
+  .theory-card .theory-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+  .theory-card .theory-scholar {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+  .theory-card .theory-desc {
+    font-size: 0.88rem;
+    color: #475569;
+    line-height: 1.6;
+  }
+
+  /* Evidence Box */
+  .evidence-box {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+  .evidence-box .evidence-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #065f46;
+    margin-bottom: 10px;
+  }
+  .evidence-box table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .evidence-box th {
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #065f46;
+    padding: 6px 8px;
+    border-bottom: 1px solid #a7f3d0;
+  }
+  .evidence-box td {
+    font-size: 0.85rem;
+    color: #334155;
+    padding: 6px 8px;
+    border-bottom: 1px solid #d1fae5;
+  }
+  .evidence-box td strong {
+    color: #047857;
+    font-weight: 800;
+  }
+
+  /* Brand Tag */
+  .brand-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+  .brand-apple { background: #1D1D1F; color: #fff; }
+  .brand-ikea { background: #F59E0B; color: #fff; }
+  .brand-costco { background: #E31837; color: #fff; }
+  .brand-starbucks { background: #00704A; color: #fff; }
+  .brand-nike { background: #111; color: #fff; }
+  .brand-tesla { background: #CC0000; color: #fff; }
+
+  /* Brand Case */
+  .brand-case {
+    padding: 16px 20px;
+    margin: 10px 0;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  .brand-case p {
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+
+  /* Journey Map */
+  .journey-map {
+    max-width: 900px;
+    margin: 32px auto;
+  }
+  .journey-stage {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0;
+    position: relative;
+  }
+  .journey-timeline {
+    width: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .journey-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #334155;
+    border: 3px solid #f8f9fa;
+    box-shadow: 0 0 0 2px #334155;
+    z-index: 1;
+  }
+  .journey-line {
+    width: 2px;
+    flex-grow: 1;
+    background: #cbd5e1;
+    min-height: 20px;
+  }
+  .journey-content {
+    flex: 1;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .journey-content h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+  }
+  .journey-layers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .journey-layer-tag {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #fff;
+  }
+  .journey-content p {
+    font-size: 0.85rem;
+    color: #475569;
+    margin-bottom: 4px;
+  }
+
+  /* Principle Card */
+  .principle-card {
+    max-width: 900px;
+    margin: 32px auto;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .principle-header {
+    padding: 24px 40px;
+    background: #0f172a;
+    color: #fff;
+  }
+  .principle-header .principle-num {
+    font-size: 0.8rem;
+    font-weight: 700;
+    opacity: 0.5;
+    letter-spacing: 0.1em;
+  }
+  .principle-header h4 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-top: 4px;
+  }
+  .principle-body {
+    padding: 32px 40px;
+  }
+  .principle-body h5 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 20px 0 8px;
+  }
+  .principle-body h5:first-child { margin-top: 0; }
+  .principle-body p {
+    font-size: 0.93rem;
+    color: #334155;
+    margin-bottom: 8px;
+  }
+  .principle-body ol, .principle-body ul {
+    padding-left: 20px;
+    margin-bottom: 12px;
+  }
+  .principle-body li {
+    font-size: 0.93rem;
+    color: #334155;
+    margin-bottom: 6px;
+  }
+
+  /* Checklist */
+  .checklist-section {
+    max-width: 900px;
+    margin: 32px auto;
+  }
+  .checklist-group {
+    margin-bottom: 24px;
+  }
+  .checklist-group-header {
+    padding: 12px 20px;
+    border-radius: 8px 8px 0 0;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .checklist-items {
+    background: #fff;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .checklist-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-box {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .checklist-text {
+    flex: 1;
+  }
+  .checklist-text .question {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 2px;
+  }
+  .checklist-text .rationale {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .stat-card {
+    text-align: center;
+    padding: 16px 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+  .stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  /* Case Evidence */
+  .case-evidence {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+  }
+  .case-evidence h5 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+  }
+  .case-evidence-item {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    background: #fff;
+    border-left: 3px solid;
+  }
+  .case-evidence-item:last-child { margin-bottom: 0; }
+  .case-evidence-item .ce-brand {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+  .case-evidence-item .ce-text {
+    font-size: 0.9rem;
+    color: #334155;
+    line-height: 1.7;
+    margin-bottom: 6px;
+  }
+  .case-evidence-item .ce-source {
+    font-size: 0.78rem;
+    color: #94a3b8;
+  }
+
+  /* Footer */
+  .footer {
+    max-width: 900px;
+    margin: 60px auto 40px;
+    padding: 24px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: #94a3b8;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.8rem; }
+    .content-card, .layer-body, .principle-body { padding: 24px 20px; }
+    .layer-header { padding: 24px 20px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Layer Colors */
+  .l1 { background: #F59E0B; }
+  .l2 { background: #8B5CF6; }
+  .l3 { background: #EF4444; }
+  .l4 { background: #0EA5E9; }
+  .l5 { background: #10B981; }
+  .l6 { background: #EC4899; }
+  .l7 { background: #6366F1; }
+  .border-l1 { border-color: #F59E0B; }
+  .border-l2 { border-color: #8B5CF6; }
+  .border-l3 { border-color: #EF4444; }
+  .border-l4 { border-color: #0EA5E9; }
+  .border-l5 { border-color: #10B981; }
+  .border-l6 { border-color: #EC4899; }
+  .border-l7 { border-color: #6366F1; }
+  .dot-l2 { background: #8B5CF6; box-shadow: 0 0 0 2px #8B5CF6; }
+  .dot-l5 { background: #10B981; box-shadow: 0 0 0 2px #10B981; }
+  .dot-l6 { background: #EC4899; box-shadow: 0 0 0 2px #EC4899; }
+  .dot-l1 { background: #F59E0B; box-shadow: 0 0 0 2px #F59E0B; }
+  .dot-l4 { background: #0EA5E9; box-shadow: 0 0 0 2px #0EA5E9; }
+  .dot-l3 { background: #EF4444; box-shadow: 0 0 0 2px #EF4444; }
+  .dot-l7 { background: #6366F1; box-shadow: 0 0 0 2px #6366F1; }
+</style>
+</head>
+<body>
+
+<!-- ========== HERO ========== -->
+<div class="hero">
+  <h1>오프라인 매장 설계의 심리학</h1>
+  <p class="subtitle">7가지 심리학 레이어로 읽는 매장 설계의 모든 것 — Apple, IKEA, Costco, Starbucks, Nike, Tesla의 데이터와 케이스로 증명하는 종합 가이드</p>
+  <p class="meta">2026-04-19 | 소비자 심리학 / 행동경제학 / 리테일 디자인 / 공간 기획</p>
+  <div class="layer-pills">
+    <span class="layer-pill l1">L1 동선</span>
+    <span class="layer-pill l2">L2 감각</span>
+    <span class="layer-pill l3">L3 가격</span>
+    <span class="layer-pill l4">L4 터치</span>
+    <span class="layer-pill l5">L5 직원</span>
+    <span class="layer-pill l6">L6 커뮤니티</span>
+    <span class="layer-pill l7">L7 생태계</span>
+  </div>
+</div>
+
+<!-- ========== PART 1 ========== -->
+<div class="part-header">
+  <p class="part-label">Part 1</p>
+  <h2>왜 매장 설계에 심리학이 필요한가</h2>
+  <p>인간 의사결정의 80%는 System 1(직관)이 주도한다. 매장은 이 직관을 설계하는 건축물이다.</p>
+</div>
+
+<div class="content-card">
+  <h3>큰 그림: 의사결정의 80%는 직관이다</h3>
+  <p>Daniel Kahneman(2002 노벨 경제학상)의 이중 처리 이론에 따르면, 인간의 사고는 두 가지 시스템으로 작동한다. <strong>System 1</strong>은 빠르고 자동적이며 직관적(예: "이거 예쁘다"). <strong>System 2</strong>는 느리고 의도적이며 분석적(예: "가격 대비 스펙을 비교해보자").</p>
+  <p>핵심: <strong>일상적 소비 결정의 약 80%는 System 1이 주도한다.</strong> IKEA USA Creative Director 확인 — IKEA 고객의 80%가 "필요"가 아닌 "감정"으로 구매한다. 매장 설계란 결국 이 직관을 설계하는 건축물을 만드는 일이다.</p>
+</div>
+
+<div class="content-card">
+  <h3>매장은 "선택의 건축물"이다</h3>
+  <p>Richard Thaler와 Cass Sunstein의 넛지(Nudge, 2008)가 제시한 <strong>선택 설계(Choice Architecture)</strong>: "선택지를 제시하는 방식 자체가 선택을 바꾼다." 카페테리아에서 과일을 눈높이에 놓으면 소비가 25% 증가하고, 장기 기증 동의를 옵트아웃으로 바꾸면 동의율이 42%에서 82%로 뛴다.</p>
+  <p>오프라인 매장은 이 선택 설계가 가장 극적으로 구현되는 물리적 공간이다. 동선, 진열 각도, 조명, 가격 구조 — 모두 선택을 유도하는 건축이다.</p>
+</div>
+
+<div class="content-card">
+  <h3>비즈니스 임팩트: 심리학 설계의 결과는 숫자로 증명된다</h3>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" style="color:#1D1D1F;">$5,546</div>
+      <div class="stat-label"><span class="brand-tag brand-apple">Apple</span><br>sqft당 매출 (업계 1위)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#F59E0B;">60%</div>
+      <div class="stat-label"><span class="brand-tag brand-ikea">IKEA</span><br>충동구매 비율 (UCL)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#E31837;">92.3%</div>
+      <div class="stat-label"><span class="brand-tag brand-costco">Costco</span><br>멤버십 갱신율</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#00704A;">55%</div>
+      <div class="stat-label"><span class="brand-tag brand-starbucks">Starbucks</span><br>리워드 매출 기여</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#CC0000;">97</div>
+      <div class="stat-label"><span class="brand-tag brand-tesla">Tesla</span><br>NPS (업계 최고)</div>
+    </div>
+  </div>
+  <p>5개 브랜드의 공통점: 심리학을 "마케팅 기법"이 아닌 <strong>"매장 설계의 운영체제"</strong>로 구축했다. Apple은 20개 이상, Starbucks는 24개 이상의 심리학 원리가 동시에 작동하는 시스템을 운용한다.</p>
+</div>
+
+<!-- ========== PART 2 ========== -->
+<div class="part-header">
+  <p class="part-label">Part 2</p>
+  <h2>매장 설계의 7가지 심리학 레이어</h2>
+  <p>각 레이어: 개념 설명 → 매장에서의 중요성 → 숫자 근거 → 브랜드 케이스</p>
+</div>
+
+<!-- Layer 1 -->
+<div class="layer-section">
+  <div class="layer-header l1">
+    <p class="layer-num">Layer 1</p>
+    <h3>동선 설계 — 행동을 유도하는 길</h3>
+  </div>
+  <div class="layer-body">
+    <h4>개념 설명</h4>
+    <div class="theory-card border-l1">
+      <p class="theory-name">그루엔 효과 (Gruen Effect)</p>
+      <p class="theory-scholar">Victor Gruen, 1956</p>
+      <p class="theory-desc">의도적으로 방향 감각을 상실시키면 고객은 원래 목적을 잊고 충동구매에 빠진다. 쇼핑몰의 아버지 Gruen이 발견한 현상.</p>
+    </div>
+    <div class="theory-card border-l1">
+      <p class="theory-name">매몰비용 효과 (Sunk Cost Fallacy)</p>
+      <p class="theory-scholar">Arkes & Blumer, 1985</p>
+      <p class="theory-desc">이미 투자한 시간, 돈, 에너지를 회수하려는 비합리적 심리. "여기까지 왔는데 빈손으로 나갈 순 없지."</p>
+    </div>
+    <div class="theory-card border-l1">
+      <p class="theory-name">선택 과부하 방지 (Choice Overload Prevention)</p>
+      <p class="theory-scholar">Iyengar & Lepper, 2000 (Columbia University 잼 실험)</p>
+      <p class="theory-desc">24종 잼 → 구매율 3%. 6종 잼 → 구매율 30%. 선택지를 줄이면 구매 확률이 10배 증가한다.</p>
+    </div>
+
+    <h4>매장에서 왜 중요한가</h4>
+    <p>동선은 <strong>체류 시간</strong>(긴 동선 = 긴 체류 = 더 많은 구매 기회), <strong>상품 노출률</strong>(전체 상품 중 몇 %를 실제로 보는가), <strong>의사결정 순서</strong>(어떤 상품을 먼저 만나는가 = 앵커링)를 결정한다.</p>
+
+    <div class="evidence-box">
+      <p class="evidence-title">비즈니스 가능성 (숫자)</p>
+      <table>
+        <tr><th>지표</th><th>수치</th><th>의미</th></tr>
+        <tr><td>체류 1% 증가 시 매출</td><td><strong>+1.3%</strong></td><td>체류와 매출의 정비례 관계</td></tr>
+        <tr><td>IKEA 충동구매 비율</td><td><strong>60%</strong></td><td>UCL Alan Penn 연구</td></tr>
+        <tr><td>일반 vs IKEA 노출률</td><td><strong>33% vs ~100%</strong></td><td>3배의 노출 = 3배의 구매 기회</td></tr>
+        <tr><td>IKEA 평균 체류 시간</td><td><strong>2.5~3시간</strong></td><td>일반 대비 3~5배</td></tr>
+        <tr><td>IKEA AOV</td><td><strong>$325~350</strong></td><td>긴 동선이 만든 높은 객단가</td></tr>
+      </table>
+    </div>
+
+    <h4>브랜드 케이스</h4>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-ikea">IKEA</span> <strong>1.6km 일방통행 미로</strong></p>
+      <p>약 1.6km 고정 경로, 50+ 룸 세팅 순차 통과. 고객은 "책상 하나 사러" 왔지만, 첫 룸 세팅을 지나면서 System 2가 꺼지고 System 1이 주도. 미로 중반에는 매몰비용 + 디드로 효과(소파→쿠션→조명→러그 연쇄)가 결합.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-costco">Costco</span> <strong>표지판 없는 보물찾기</strong></p>
+      <p>통로 표지판 없음, 상품 위치 주기적 변경. 세탁세제 찾으러 가다 $300 시계 발견 → 도파민 분비 (Skinner의 가변 보상 스케줄, 슬롯머신과 동일). 희소성(FOMO) 결합 → 즉각 구매.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-apple">Apple</span> <strong>오픈 플로어 + 3~5개 옵션</strong></p>
+      <p>넓은 나무 테이블, 열린 공간. 카테고리당 3~5개 옵션만 진열. iPhone 4,320가지 조합이 가능하지만 매장에서는 순차적으로 보여주어 선택 과부하 방지. Iyengar 잼 실험의 공간적 구현.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Layer 2 -->
+<div class="layer-section">
+  <div class="layer-header l2">
+    <p class="layer-num">Layer 2</p>
+    <h3>감각 설계 — 무의식을 조종하는 환경</h3>
+  </div>
+  <div class="layer-body">
+    <h4>개념 설명</h4>
+    <div class="theory-card border-l2">
+      <p class="theory-name">서카디안 리듬 (Circadian Rhythm)</p>
+      <p class="theory-desc">인간의 신체는 빛의 색온도에 반응하여 각성/이완 상태를 조절. 형광등(5,000K+)은 피로감, 자연광에 가까운 조명은 편안함 + 시간 감각 무디게.</p>
+    </div>
+    <div class="theory-card border-l2">
+      <p class="theory-name">감각 마케팅 (Sensory Marketing) / 5감</p>
+      <p class="theory-desc">시각, 청각, 후각, 촉각, 미각 모두 구매 의사결정에 개입. 네스프레소 연구: 감각 경험의 60%가 리테일 환경에서 비롯.</p>
+    </div>
+    <div class="theory-card border-l2">
+      <p class="theory-name">환경 프라이밍 & 게슈탈트 법칙</p>
+      <p class="theory-desc">환경의 감각적 단서가 후속 판단에 무의식적 영향. 연속적이고 매끄러운 패턴을 더 자연스럽게 느끼는 지각 원리.</p>
+    </div>
+
+    <h4>매장에서 왜 중요한가</h4>
+    <p>감각 설계는 고객이 <strong>의식하지 못하는 사이에 작동</strong>하기 때문에 가장 강력하다. 네스프레소 연구에 따르면 감각 경험의 60%가 리테일 환경에서 비롯되며, 이 감각이 "이 브랜드가 좋다/나쁘다"의 직관적 판단을 형성한다.</p>
+
+    <div class="evidence-box">
+      <p class="evidence-title">비즈니스 가능성 (숫자)</p>
+      <table>
+        <tr><th>지표</th><th>수치</th><th>의미</th></tr>
+        <tr><td>향기 매장 방문객 증가</td><td><strong>+20%</strong></td><td>무향 매장 대비</td></tr>
+        <tr><td>향기에 의한 매출 증가</td><td><strong>+10%</strong></td><td>방문 트래픽과 별도 객단가 상승</td></tr>
+        <tr><td>느린 음악 체류 시간</td><td><strong>+40%</strong></td><td>빠른 음악 대비</td></tr>
+        <tr><td>감각 경험 = 구매 핵심</td><td><strong>84%</strong></td><td>미국 소비자 응답</td></tr>
+        <tr><td>리테일 감각 비중</td><td><strong>60%</strong></td><td>네스프레소 연구</td></tr>
+      </table>
+    </div>
+
+    <h4>브랜드 케이스</h4>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-apple">Apple</span> <strong>2,500 LED + 그림자 정렬</strong></p>
+      <p>뉴욕 5번가: 18개 미러글라스 스카이렌즈 + 62개 천장 채광창 + 2,500개 LED. 실시간 외부 환경 반응, 서카디안 리듬 5가지 모드. 모든 그림자 각도가 일직선 정렬 — 게슈탈트 법칙(연속성)에 의한 무의식적 질서감.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-ikea">IKEA</span> <strong>시나몬/라벤더 향</strong></p>
+      <p>시나몬 롤 향으로 "편안한 집" 연상. 침실 코너 라벤더 향으로 이완 유도 → System 2 약화 → 충동구매 취약.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-starbucks">Starbucks</span> <strong>커피 아로마 + 80~100 BPM</strong></p>
+      <p>아침 샌드위치 판매를 중단한 이유: "커피 향을 가리기 때문." Spotify 협업 80~100 BPM — 서두르지 않으면서 너무 느리지 않은 적정 체류 유도.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Layer 3 -->
+<div class="layer-section">
+  <div class="layer-header l3">
+    <p class="layer-num">Layer 3</p>
+    <h3>가격 설계 — 숫자가 만드는 착각</h3>
+  </div>
+  <div class="layer-body">
+    <h4>개념 설명</h4>
+    <div class="theory-card border-l3">
+      <p class="theory-name">앵커링 효과 (Anchoring Effect)</p>
+      <p class="theory-scholar">Tversky & Kahneman, 1974</p>
+      <p class="theory-desc">처음 접한 숫자가 기준점(앵커)이 되어 이후 모든 판단에 영향. 룰렛 실험: 무작위 숫자에 따라 유엔 가입국 수 추정치가 극적으로 변동.</p>
+    </div>
+    <div class="theory-card border-l3">
+      <p class="theory-name">디코이 효과 (Decoy Effect)</p>
+      <p class="theory-scholar">Huber, Payne & Puto, 1982</p>
+      <p class="theory-desc">"비대칭적으로 열등한 옵션" 추가 시 인접 상위 옵션의 매력이 극적 증가. Ariely 실험: 최고가 선택률 32% → 84% (163% 증가).</p>
+    </div>
+    <div class="theory-card border-l3">
+      <p class="theory-name">손실선도 (Loss Leader) / 탈앵커링 (De-Anchoring)</p>
+      <p class="theory-desc">원가 이하 판매로 유입 후 다른 상품에서 마진 회수. 익숙한 단위 체계를 낯선 것으로 바꾸면 비교 대상이 사라진다.</p>
+    </div>
+
+    <h4>매장에서 왜 중요한가</h4>
+    <p>같은 제품도 프레이밍에 따라 선택률이 <strong>163% 변동</strong>한다. 가격 설계는 "얼마에 팔 것인가"가 아니라 "고객이 어떤 기준으로 비교하게 만들 것인가"의 문제다.</p>
+
+    <div class="evidence-box">
+      <p class="evidence-title">비즈니스 가능성 (숫자)</p>
+      <table>
+        <tr><th>지표</th><th>수치</th><th>의미</th></tr>
+        <tr><td>Ariely 디코이 실험</td><td><strong>32% → 84%</strong></td><td>163% 증가</td></tr>
+        <tr><td>iPhone Pro 비중</td><td><strong>24% → 50%</strong></td><td>Plus 미끼 도입 후 4년</td></tr>
+        <tr><td>iPhone ASP</td><td><strong>$705 → $1,000</strong></td><td>42% 상승</td></tr>
+        <tr><td>IKEA 미끼효과 총이익</td><td><strong>+14.3%</strong></td><td>미끼 상품 도입 효과</td></tr>
+        <tr><td>가격 전략 수용률</td><td><strong>75%</strong></td><td>소비자 3/4 자연 반응</td></tr>
+      </table>
+    </div>
+
+    <h4>브랜드 케이스</h4>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-apple">Apple</span> <strong>Plus 미끼로 Pro를 판다</strong></p>
+      <p>iPhone 14: 기본($699) → Plus($899, 미끼) → Pro($999, 타겟) → Pro Max($1,099). Plus는 화면만 크고 카메라/칩 동일. "겨우 $100 차이인데 Pro가 훨씬 낫잖아." Pro 비중 24%→50%, ASP $705→$1,000.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-costco">Costco</span> <strong>$4.99 치킨 + $1.50 핫도그 (41년 동결)</strong></p>
+      <p>치킨 연간 손실 $3,000~4,000만. 매장 가장 뒤편 배치 → 고마진 상품 노출 극대화. $4.99로 입장해 $100~150 지출. 핫도그 $1.50 = $65 연회비 앵커("43개면 본전").</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-starbucks">Starbucks</span> <strong>Tall/Grande/Venti 탈앵커링</strong></p>
+      <p>이탈리아어 사이즈명으로 기존 가격 앵커 해제. Venti oz당 가장 저렴($0.25/oz vs Tall $0.35/oz) → 업사이징 유도.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-ikea">IKEA</span> <strong>캐비닛 미끼</strong></p>
+      <p>선택되지 않는 중간 옵션 배치 → 상위 제품으로 자연스러운 이동. 미끼효과로 총이익 +14.3%.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Layer 4 -->
+<div class="layer-section">
+  <div class="layer-header l4">
+    <p class="layer-num">Layer 4</p>
+    <h3>터치/참여 설계 — 만지면 내 것이 된다</h3>
+  </div>
+  <div class="layer-body">
+    <h4>개념 설명</h4>
+    <div class="theory-card border-l4">
+      <p class="theory-name">소유효과 (Endowment Effect)</p>
+      <p class="theory-scholar">Thaler 1980, Kahneman et al. 1990</p>
+      <p class="theory-desc">한 번이라도 소유(또는 소유했다고 느끼면)하면 가치를 2~3배 높게 평가. 고전적 머그컵 실험.</p>
+    </div>
+    <div class="theory-card border-l4">
+      <p class="theory-name">IKEA 효과 (The IKEA Effect)</p>
+      <p class="theory-scholar">Norton, Mochon & Ariely, 2012 (Harvard Business School)</p>
+      <p class="theory-desc">자가 조립 시 지불 의사 63% 증가. 자기 접은 오리가미를 전문가 작품 대비 5배 높은 가격으로 평가.</p>
+    </div>
+    <div class="theory-card border-l4">
+      <p class="theory-name">체화된 인지 (Embodied Cognition)</p>
+      <p class="theory-scholar">Barsalou, 1999</p>
+      <p class="theory-desc">신체 감각이 판단과 결정에 직접 영향. 차갑고 매끈한 알루미늄 감촉 → "프리미엄" 무의식적 각인.</p>
+    </div>
+
+    <h4>매장에서 왜 중요한가</h4>
+    <p><strong>온라인이 대체할 수 없는 오프라인만의 결정적 무기.</strong> 화면으로 아무리 확대하고 360도 회전해도, 직접 만지는 순간 형성되는 심리적 소유감은 재현할 수 없다.</p>
+
+    <div class="evidence-box">
+      <p class="evidence-title">비즈니스 가능성 (숫자)</p>
+      <table>
+        <tr><th>지표</th><th>수치</th><th>의미</th></tr>
+        <tr><td>터치 후 WTP 증가</td><td><strong>+33%</strong></td><td>VR 실험</td></tr>
+        <tr><td>자가 조립 WTP 증가</td><td><strong>+63%</strong></td><td>Norton et al., 2012</td></tr>
+        <tr><td>자기 제작물 과대평가</td><td><strong>5배</strong></td><td>오리가미 실험</td></tr>
+        <tr><td>Apple sqft 매출</td><td><strong>$5,546</strong></td><td>터치 설계의 업계 1위</td></tr>
+        <tr><td>소유효과 배수</td><td><strong>2~3배</strong></td><td>Kahneman 머그컵 실험</td></tr>
+      </table>
+    </div>
+
+    <h4>브랜드 케이스</h4>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-apple">Apple</span> <strong>76도 각도의 비밀 (+ 휠체어 접근성)</strong></p>
+      <p>MacBook 76도, iPad 67도 — 화면을 보려면 반드시 손으로 각도 조절. 소유효과 작동. 동시에 휠체어 사용자 편의 — 실용성과 심리학이 교차하는 설계.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-ikea">IKEA</span> <strong>플랫팩 조립 (Betty Crocker 효과)</strong></p>
+      <p>1950년대 "물만 넣으면" → 판매 부진. "계란 추가" → 매출 급증. IKEA 조립은 이 원리의 가구 버전. 조립 성공 시 유능감 + 노력 정당화 + 소유효과 동시 폭발. 단, 성공적 완성이 전제조건.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-nike">Nike</span> <strong>Nike By You — 15~20분 커스터마이징</strong></p>
+      <p>색상/소재/문구 선택 15~20분 → 자기 정체성 투영 → "내가 만든 나만의 신발." 2일 후 수령 = Zeigarnik Effect(미완성 과제에 대한 지속적 관심) 활용.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-tesla">Tesla</span> <strong>시승</strong></p>
+      <p>갤러리형 쇼룸, 1~3대 전시, 시승. 핸들을 잡는 순간 체화된 인지 작동 + "이미 내가 운전한 차" 소유효과 형성.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Layer 5 -->
+<div class="layer-section">
+  <div class="layer-header l5">
+    <p class="layer-num">Layer 5</p>
+    <h3>직원/서비스 설계 — 신뢰라는 보이지 않는 자산</h3>
+  </div>
+  <div class="layer-body">
+    <h4>개념 설명</h4>
+    <div class="theory-card border-l5">
+      <p class="theory-name">프레이밍 효과 (Framing Effect)</p>
+      <p class="theory-scholar">Tversky & Kahneman, 1981</p>
+      <p class="theory-desc">같은 사실도 표현 방식에 따라 판단이 달라진다. "판매원" vs "전문가" — 같은 사람인데 프레이밍이 신뢰를 바꾼다.</p>
+    </div>
+    <div class="theory-card border-l5">
+      <p class="theory-name">귀인 모호성 제거 (Removing Attribution Ambiguity)</p>
+      <p class="theory-scholar">Kelley, 1973</p>
+      <p class="theory-desc">"수당 때문에 추천하는 거 아냐?" 커미션 제거 → 이 의심이 구조적으로 사라진다.</p>
+    </div>
+    <div class="theory-card border-l5">
+      <p class="theory-name">피크-엔드 법칙 / 심리적 리액턴스</p>
+      <p class="theory-scholar">Kahneman 1993 / Brehm 1966</p>
+      <p class="theory-desc">경험의 Peak와 End만 기억. 자유 위협 시 반발 — 판매 압박 제거로 리액턴스 해소.</p>
+    </div>
+
+    <h4>매장에서 왜 중요한가</h4>
+    <p><strong>직원 1명의 화법이 구매 전환과 재방문을 결정한다.</strong> "사세요" 한 마디가 방어 태세를 올리고, "사지 않으셔도 됩니다"가 역설적으로 전환을 높인다.</p>
+
+    <div class="evidence-box">
+      <p class="evidence-title">비즈니스 가능성 (숫자)</p>
+      <table>
+        <tr><th>지표</th><th>수치</th><th>의미</th></tr>
+        <tr><td>Apple 직원당 매출</td><td><strong>$251만</strong></td><td>FY2025 전사</td></tr>
+        <tr><td>Apple NPS</td><td><strong>68</strong></td><td>업계 평균 41 대비 +27p</td></tr>
+        <tr><td>최단 $10억 달성</td><td><strong>2년</strong></td><td>역대 기록 (2004)</td></tr>
+        <tr><td>Costco 이직률</td><td><strong>6%</strong></td><td>업계 60%+ 대비 1/10</td></tr>
+      </table>
+    </div>
+
+    <h4>브랜드 케이스</h4>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-apple">Apple</span> <strong>APPLE 5단계 + Three Fs + 금지어 + 바디랭귀지 매뉴얼</strong></p>
+      <p>A.P.P.L.E.: Approach(10초 환영) → Probe(니즈) → Present(오늘 솔루션) → Listen(우려) → End(작별+초대). Feel-Felt-Found 화법. "Crash→Stops responding" 금지어. 45페이지 바디랭귀지 해독.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-tesla">Tesla</span> <strong>"Product Specialist"</strong></p>
+      <p>"판매원" 아닌 "Product Specialist." 커미션 없음 → 귀인 모호성 제거 → 신뢰. "구경하는 곳" 프레이밍 → 리액턴스 원천 제거.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-costco">Costco</span> <strong>직원 복지 → 신뢰 전이</strong></p>
+      <p>이직률 6%(업계 60%). 높은 급여/복지 → 직원 만족 → 서비스 품질 → 고객 신뢰 전이. 오래 근무 = 관계 축적 = 재방문 동기.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Layer 6 -->
+<div class="layer-section">
+  <div class="layer-header l6">
+    <p class="layer-num">Layer 6</p>
+    <h3>커뮤니티/정체성 설계 — 떠날 수 없는 소속감</h3>
+  </div>
+  <div class="layer-body">
+    <h4>개념 설명</h4>
+    <div class="theory-card border-l6">
+      <p class="theory-name">사회적 정체성 이론 (Social Identity Theory)</p>
+      <p class="theory-scholar">Tajfel & Turner, 1979</p>
+      <p class="theory-desc">인간은 소속 집단을 통해 자아를 정의. 브랜드 소비 = "나는 어떤 사람인가"를 세상에 선언하는 행위.</p>
+    </div>
+    <div class="theory-card border-l6">
+      <p class="theory-name">소속감 욕구 / 정체성 시그널 / 장소 애착</p>
+      <p class="theory-scholar">Maslow (욕구 위계)</p>
+      <p class="theory-desc">사회적 욕구 충족. 소비 행위가 타인에게 정체성 신호. 반복적 긍정 경험 → 장소 애착 → 브랜드 애착 전이.</p>
+    </div>
+
+    <h4>매장에서 왜 중요한가</h4>
+    <p><strong>정체성이 가격 인상도 이긴다.</strong> Costco 2024년 $5 인상 시 회원 수 오히려 증가. "나는 Costco 회원"이라는 정체성이 가격 불쾌감을 압도.</p>
+
+    <div class="evidence-box">
+      <p class="evidence-title">비즈니스 가능성 (숫자)</p>
+      <table>
+        <tr><th>지표</th><th>수치</th><th>의미</th></tr>
+        <tr><td>Costco 갱신율</td><td><strong>92.3%</strong></td><td>가격 인상에도 증가</td></tr>
+        <tr><td>Apple 재구매 의향</td><td><strong>96.4%</strong></td><td>역대 최고치</td></tr>
+        <tr><td>커뮤니티 브랜드 충성</td><td><strong>47%</strong></td><td>절반 가까이 충성</td></tr>
+        <tr><td>Apple → Android 전환</td><td><strong>3.6%</strong></td><td>정체성의 힘</td></tr>
+        <tr><td>Tesla 재구매 의향</td><td><strong>92%</strong></td><td>오너 정체성</td></tr>
+      </table>
+    </div>
+
+    <h4>브랜드 케이스</h4>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-apple">Apple</span> <strong>"Mac 사용자" + Today at Apple</strong></p>
+      <p>"창의적이고 프리미엄한 취향의 사람." Today at Apple: 분기 25만 세션, 연 500만 명. 매장을 "타운 스퀘어"로 재정의 — 커뮤니티 허브.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-starbucks">Starbucks</span> <strong>Third Place</strong></p>
+      <p>Oldenburg의 "제3의 장소." 특정 좌석 애착(영역 표시) → 장소 애착 → 브랜드 애착 전이. 덴마크: 맛 좋은 로컬보다 스타벅스 선택 — 공간이 맛을 이김.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-nike">Nike</span> <strong>Run Club + SNKRS 래플 정체성</strong></p>
+      <p>Run Club = "러너" 정체성 확장. SNKRS 래플 = "스니커헤드" 정체성. SNS 인증 = 정체성 시그널. 커뮤니티 충성 47%.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-costco">Costco</span> <strong>"현명한 소비자" 멤버십</strong></p>
+      <p>멤버십 = "가격 대비 가치를 아는 현명한 소비자" 증표. 비회원 입장불가 = 배타성 강화. 이그제큐티브 회원이 매출 74.2% 차지.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-tesla">Tesla</span> <strong>오너 클럽</strong></p>
+      <p>"혁신적이고 환경을 생각하는 사람." 추천 프로그램 = 정체성 확산 장치. 광고비 $0 → NPS 97의 비밀 = 자발적 추천.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Layer 7 -->
+<div class="layer-section">
+  <div class="layer-header l7">
+    <p class="layer-num">Layer 7</p>
+    <h3>생태계/잠금 설계 — 돌아오게 만드는 시스템</h3>
+  </div>
+  <div class="layer-body">
+    <h4>개념 설명</h4>
+    <div class="theory-card border-l7">
+      <p class="theory-name">현상유지 편향 (Status Quo Bias)</p>
+      <p class="theory-scholar">Samuelson & Zeckhauser, 1988</p>
+      <p class="theory-desc">현재 상태를 바꾸는 것보다 유지를 선호. 변화의 인지적 비용을 과대평가한다.</p>
+    </div>
+    <div class="theory-card border-l7">
+      <p class="theory-name">손실 회피 (Loss Aversion)</p>
+      <p class="theory-scholar">Kahneman & Tversky, 1979</p>
+      <p class="theory-desc">이득의 기쁨보다 같은 크기 손실의 고통이 2배. 전환 시 잃는 것의 심리적 무게가 2배로 증폭.</p>
+    </div>
+    <div class="theory-card border-l7">
+      <p class="theory-name">목표 구배 효과 / 게이미피케이션</p>
+      <p class="theory-scholar">Kivetz et al., 2006</p>
+      <p class="theory-desc">목표에 가까울수록 행동 가속 — 구매 간격 20% 단축. 가변 보상이 도파민 분비 극대화.</p>
+    </div>
+
+    <h4>매장에서 왜 중요한가</h4>
+    <p>앞의 6개 레이어가 "단발 방문"을 성공시킨다면, Layer 7은 <strong>반복 방문과 생애가치(LTV)를 만드는 최종 레이어</strong>다. 매장은 생태계의 "입구"이자 "체험관."</p>
+
+    <div class="evidence-box">
+      <p class="evidence-title">비즈니스 가능성 (숫자)</p>
+      <table>
+        <tr><th>지표</th><th>수치</th><th>의미</th></tr>
+        <tr><td>Apple 리텐션</td><td><strong>92%</strong></td><td>10명 중 9명+ 유지</td></tr>
+        <tr><td>Apple 전환 의향</td><td><strong>3.6%</strong></td><td>Android 전환 극소</td></tr>
+        <tr><td>번들 사용자 추가 지출</td><td><strong>+40%</strong></td><td>Apple One 효과</td></tr>
+        <tr><td>Starbucks 리워드 매출</td><td><strong>55%</strong></td><td>전체의 절반+</td></tr>
+        <tr><td>목표 구배 가속</td><td><strong>20%</strong></td><td>구매 간격 단축</td></tr>
+        <tr><td>Costco 멤버십 수익</td><td><strong>$53.23억</strong></td><td>거의 순이익</td></tr>
+        <tr><td>Starbucks 유지율</td><td><strong>44%</strong></td><td>업계 25% 대비 +76%</td></tr>
+      </table>
+    </div>
+
+    <h4>브랜드 케이스</h4>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-apple">Apple</span> <strong>iCloud/AirDrop/생태계 3중 잠금</strong></p>
+      <p>현상유지 + 손실 회피 + 매몰비용 3중 결합. iPhone+Mac+iPad+AirPods+Watch+iCloud가 하나로 연결 → "It just works." Android 전환 시 잃는 것의 심리적 무게가 2배 증폭. 활성 기기 22억 대, 서비스 매출 $1,091.6억.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-starbucks">Starbucks</span> <strong>별 적립 + 티어 + Double Star Days</strong></p>
+      <p>목표 구배: 별 120/150개 시 구매 간격 20% 가속. 부여된 진전: 2개 보너스 → 완료 33% 단축. Double Star Days = 손실 회피("놓치면 손해"). Gold 유지 = 강등 회피 동기.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-costco">Costco</span> <strong>연회비 매몰비용</strong></p>
+      <p>$65 선불 → "본전을 뽑아야" 매몰비용 작동. 멤버십 수익 $53.23억 ≈ 순이익. 상품 마진(11%)은 운영비만 충당.</p>
+    </div>
+    <div class="brand-case">
+      <p><span class="brand-tag brand-nike">Nike</span> <strong>SNKRS 래플 가변보상</strong></p>
+      <p>제품 + 구매 기회 이중 희소성. 예측 불가 당첨 = Skinner 가변 보상 → 도파민 극대화. 당첨의 쾌감/미당첨의 아쉬움 → 다음 래플 참여 유도 순환.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PART 3 ========== -->
+<div class="part-header">
+  <p class="part-label">Part 3</p>
+  <h2>고객 여정별 소비의사결정 심리학 통합 맵</h2>
+  <p>소비자의 의사결정은 단선적이지 않다. <strong>인지(Cognition) → 감정(Affect) → 행동(Behavior)</strong>이 매 순간 상호작용하며, 매장의 모든 접점이 이 의사결정 과정에 개입한다. 이 맵은 고객 여정 7단계를 <strong>소비의사결정 이론</strong>으로 해부한 것이다.</p>
+</div>
+
+<div class="container">
+
+  <!-- ===== Stage 1 ===== -->
+  <div class="content-card" style="border-left: 5px solid #F59E0B;">
+    <h3>Stage 1. 입장 전 — 욕구 인식과 기대 형성</h3>
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;"><strong>의사결정 단계</strong>: 문제 인식(Problem Recognition) + 정보 탐색 시작(Information Search)</p>
+    <p>소비자 의사결정의 첫 단계는 <strong>"나에게 충족되지 않은 욕구가 있다"</strong>는 인식이다 (Engel, Blackwell &amp; Miniard 모델). 매장은 이 욕구 인식을 <strong>매장 밖에서부터</strong> 촉발해야 한다.</p>
+
+    <h4 style="margin-top:24px;">작동하는 소비심리학 이론</h4>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">단순 노출 효과 (Mere Exposure Effect)</p>
+      <p class="theory-scholar">Zajonc (1968)</p>
+      <p class="theory-desc">반복 노출만으로 호감이 증가한다. 의식적 기억 없이도 작동. 쇼핑몰을 지나다니며 Tesla 쇼룸을 매번 보는 것만으로 친숙함 → 호감 → "한번 들어가볼까" 전환. <strong>실험 증거</strong>: 반복 노출 시 호감도가 유의미하게 상승 (Zajonc, 1968, 한자 실험).</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">사회적 증거 (Social Proof)</p>
+      <p class="theory-scholar">Cialdini (1984)</p>
+      <p class="theory-desc">"다른 사람이 하는 것 = 올바른 것"이라는 직관적 판단. Apple Store 유리벽을 통해 <strong>안에 사람이 많은 것이 보이면</strong> → "좋은 곳이겠지" → 진입 확률 상승. IKEA 주차장이 가득 차 있으면 → "다들 가는 곳이니 나도". <strong>수치</strong>: Apple 분기 방문자 <strong>1.1억 명</strong> — 사람 자체가 최고의 광고.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">밴드왜건 효과 (Bandwagon Effect)</p>
+      <p class="theory-scholar">Leibenstein (1950)</p>
+      <p class="theory-desc">사회적 증거의 강화 버전. 다수가 선택한 것에 합류하려는 동조 심리. Costco 개장 시 줄 서는 사람들 → "저기 뭔가 좋은 게 있나 보다".</p>
+    </div>
+
+    <h4 style="margin-top:24px;">브랜드 케이스</h4>
+    <div class="evidence-box">
+      <table>
+        <thead>
+          <tr><th>브랜드</th><th>설계 장치</th><th>핵심 이론</th><th>고객의 심리 변화</th><th>수치 효과</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="brand-tag brand-apple">Apple</span></td><td>유리 큐브 건축, 내부가 보이는 유리벽</td><td>단순 노출 + 사회적 증거</td><td>"사람이 많네, 한번 들어가볼까"</td><td>분기 방문자 <strong>1.1억 명</strong></td></tr>
+          <tr><td><span class="brand-tag brand-tesla">Tesla</span></td><td>쇼핑몰 1층 갤러리형 쇼룸</td><td>단순 노출 + 접근성</td><td>"차 살 생각 없었는데, 저기 뭐지?"</td><td>광고비 <strong>$0</strong></td></tr>
+          <tr><td><span class="brand-tag brand-ikea">IKEA</span></td><td>대형 로드사이드 건물 + "식당 있음" 표시</td><td>욕구 인식 촉발</td><td>"밥이나 먹으러 가자" → 가구 노출의 시작</td><td>식당 이용객 가구 구매 <strong>2배+</strong></td></tr>
+          <tr><td><span class="brand-tag brand-starbucks">Starbucks</span></td><td>매장 밖으로 퍼지는 커피 향</td><td>환경 프라이밍 + 욕구 인식</td><td>"커피 향이 좋다... 한 잔 하자"</td><td>향기 매장 방문객 <strong>+20%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-costco">Costco</span></td><td>주차장 가득 + 카트 행렬</td><td>밴드왜건 효과</td><td>"저기 다 가는 이유가 있겠지"</td><td>연 방문 <strong>33회</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 케이스 근거 자료 -->
+    <div class="case-evidence">
+      <h5>케이스 근거 자료</h5>
+      <div class="case-evidence-item" style="border-color: #1D1D1F;">
+        <div class="ce-brand" style="color: #1D1D1F;">Apple — 유리 큐브의 사회적 증거 효과</div>
+        <div class="ce-text">Apple 5번가 유리 큐브는 스티브 잡스가 직접 디자인에 참여하고 개인 자금으로 건설한 건축물이다. 2011년 리모델링에서 90개 유리 패널을 15개로 줄여 더 투명하게 만들었고, 2014년 디자인 특허를 취득했다. University of Washington Visual Life 연구에 따르면, 이 투명한 건축은 "숨길 것이 없다"는 메시지와 동시에 내부의 사람들이 밖에서 보이게 하여 사회적 증거를 물리적으로 구현한다. 결과적으로 건설비 $1,200만으로 연매출 $4.5억을 생성하며, 뉴욕에서 가장 많이 사진 찍히는 건물 중 하나로서 무료 바이럴 마케팅 효과까지 거둔다.</div>
+        <div class="ce-source">출처: TIME, Fast Company, UW Visual Life</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #F59E0B;">
+        <div class="ce-brand" style="color: #F59E0B;">IKEA — 미트볼이 만드는 "밥 먹으러 가자" 욕구 인식</div>
+        <div class="ce-text">IKEA 전 식품운영 이사 Gerd Diewald는 "배고픈 고객과 비즈니스하기 어렵다"고 말했다. IKEA는 도로변 대형 건물에 "식당"이라는 표시를 의도적으로 노출한다. 2012년 이탈리아에서 700명을 대상으로 한 연구에서, 식당을 이용한 고객의 가구 구매액이 비이용 고객의 2배 이상이었다. 방문자의 30%가 식사 목적으로 매장을 찾고, 이들이 매장에 진입한 순간부터 1.6km 미로에 노출된다. 연간 미트볼 판매량 10~12억 개, 식품 매출 $1.8~2.4B는 IKEA 전체 매출의 5%에 불과하지만, 나머지 95%의 매출을 견인하는 Traffic Driver다.</div>
+        <div class="ce-source">출처: IKEA 공식, 이탈리아 소비자 연구</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #CC0000;">
+        <div class="ce-brand" style="color: #CC0000;">Tesla — 쇼핑몰 단순 노출의 힘</div>
+        <div class="ce-text">Zajonc(1968)의 단순 노출 효과 원논문에서, 참가자들에게 의미 없는 한자를 반복 노출했더니 노출 빈도가 높은 한자에 대한 호감이 유의미하게 상승했다. Tesla는 이를 리테일에 직접 적용했다. 쇼핑몰 1층에 갤러리형 쇼룸을 배치하여, 차를 살 생각이 없는 사람도 매주 쇼핑할 때마다 Tesla를 반복적으로 본다. 미국 170개 이상의 쇼룸이 이 전략을 따르며, 전통 광고비 거의 $0임에도 Model 3 사전주문 40만 건을 달성했다. NPS 97(업계 최고)은 이 무압박 반복 노출이 만든 호감의 누적 결과다.</div>
+        <div class="ce-source">출처: Zajonc 1968, Tesla IR</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Stage 2 ===== -->
+  <div class="content-card" style="border-left: 5px solid #8B5CF6;">
+    <h3>Stage 2. 입장 순간 (첫 10초) — 첫인상이 전체를 결정한다</h3>
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;"><strong>의사결정 단계</strong>: 초기 태도 형성(Initial Attitude Formation)</p>
+    <p>Daniel Kahneman의 <strong>첫인상 효과(Primacy Effect)</strong>에 따르면, 첫 7초의 인상이 이후 전체 경험에 대한 판단을 지배한다. 매장 입장 순간은 고객의 <strong>"이 공간에서 나는 편안한가, 위협받는가"</strong>를 결정하는 분기점이다.</p>
+
+    <h4 style="margin-top:24px;">작동하는 소비심리학 이론</h4>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">정서적 프라이밍 (Affective Priming)</p>
+      <p class="theory-scholar">Murphy &amp; Zajonc (1993)</p>
+      <p class="theory-desc">의식 아래에서 작동하는 감정적 단서가 이후 판단에 영향. 입장 순간의 조명 색온도, 향, 음악이 <strong>"이 공간은 안전하다/좋다"는 감정적 기저선</strong>을 설정. 이 기저선은 이후 제품 평가, 직원 신뢰, 가격 수용도에 모두 영향. <strong>실험 증거</strong>: 잠재의식적 미소 얼굴에 노출된 고객이 음료에 약 <strong>2배의 지불 의향</strong> (Starbucks 관련 연구).</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">인지 부하 이론 (Cognitive Load Theory)</p>
+      <p class="theory-scholar">Sweller (1988)</p>
+      <p class="theory-desc">작업 기억 용량은 7±2개로 제한 (Miller, 1956). 이 용량을 초과하면 판단 품질이 급락. 매장 입장 시 <strong>시각적 정보가 폭발</strong>하는 순간, 인지 부하가 높아지면 → 불편함 → 이탈. Apple의 미니멀 디자인은 이 인지 부하를 의도적으로 낮춤 → "편하다" 느낌 → 체류 의사 형성.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">심리적 리액턴스 (Psychological Reactance)</p>
+      <p class="theory-scholar">Brehm (1966)</p>
+      <p class="theory-desc">자유가 위협받으면 반발하는 본능. 입장 즉시 판매원이 다가오면 → "사려는 거 아닌데" → 방어 태세. Tesla는 쇼룸에서 직원이 <strong>먼저 다가가지 않는다.</strong> 고객이 관심을 보일 때만 응대. Apple은 10초 내 환영하되 <strong>"무엇을 도와드릴까요?"가 아닌 "어서 오세요, 편하게 둘러보세요"</strong>로 리액턴스 회피.</p>
+    </div>
+
+    <h4 style="margin-top:24px;">브랜드 케이스</h4>
+    <div class="evidence-box">
+      <table>
+        <thead>
+          <tr><th>브랜드</th><th>설계 장치</th><th>핵심 이론</th><th>고객의 심리 변화</th><th>수치 효과</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="brand-tag brand-apple">Apple</span></td><td>10초 내 환영 + 오픈 플로어 + 자연광</td><td>정서적 프라이밍 + 인지 부하 감소</td><td>"여기 편하네, 좀 둘러봐도 되겠다"</td><td>System 1 유지, 탐색 모드 진입</td></tr>
+          <tr><td><span class="brand-tag brand-ikea">IKEA</span></td><td>위층 쇼룸으로 에스컬레이터 유도</td><td>매몰비용 시작</td><td>"일단 올라가볼까"</td><td>미로 동선 진입 = 매몰비용 시작</td></tr>
+          <tr><td><span class="brand-tag brand-starbucks">Starbucks</span></td><td>커피 아로마 + 따뜻한 조명 + 낮은 머신(바리스타 보임)</td><td>정서적 프라이밍</td><td>"아, 여기 좋다"</td><td>제3의 장소 인식 형성</td></tr>
+          <tr><td><span class="brand-tag brand-tesla">Tesla</span></td><td>차량 1~3대만, 갤러리 분위기, 직원 먼저 안 옴</td><td>리액턴스 제거</td><td>"여긴 구경하는 데구나"</td><td>방어 태세 해제</td></tr>
+          <tr><td><span class="brand-tag brand-costco">Costco</span></td><td>멤버십 카드 스캔 → 입장</td><td>정체성 활성화 + 매몰비용</td><td>"나는 여기 회원이야"</td><td>갱신율 <strong>92.3%</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 케이스 근거 자료 -->
+    <div class="case-evidence">
+      <h5>케이스 근거 자료</h5>
+      <div class="case-evidence-item" style="border-color: #1D1D1F;">
+        <div class="ce-brand" style="color: #1D1D1F;">Apple — A.P.P.L.E. 서비스 5단계의 첫 'A'</div>
+        <div class="ce-text">Gizmodo가 입수한 Apple Genius 교육 매뉴얼에 따르면, Approach(접근)는 "개인화된 따뜻한 환영"을 10초 내, 10피트(약 3m) 이내에서 수행하도록 규정되어 있다. 이것은 Kahneman의 첫인상 효과(Primacy Effect) 연구에 근거한다. Willis & Todorov(2006)의 프린스턴 연구에서 사람은 상대를 본 지 100밀리초(0.1초) 만에 신뢰 여부를 판단하며, 이 판단은 이후 수정되지 않는다. Apple은 이 0.1초를 설계한다. 동시에 오픈 플로어 + 자연광은 Sweller(1988)의 인지 부하 이론에 따라 시각적 복잡성을 최소화하여 "편하다"는 첫 감정을 형성한다.</div>
+        <div class="ce-source">출처: Gizmodo Genius Manual, Willis & Todorov 2006</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #00704A;">
+        <div class="ce-brand" style="color: #00704A;">Starbucks — 커피 아로마의 과학적 설계</div>
+        <div class="ce-text">스타벅스는 효율성 손실을 감수하고 매장 내 직접 원두 그라인딩을 복원했다. 한때 아침 샌드위치를 판매했으나, 계란 냄새가 커피 아로마와 충돌한다는 이유로 메뉴에서 제거한 적이 있다. 네스프레소 연구에 따르면 에스프레소 음용 감각 경험의 60%가 리테일 환경에서 비롯되며, 향(smell)은 5감 중 구매 행동에 가장 지배적인 자극이다. Starbucks Mastrena 에스프레소 머신은 이전 모델보다 7인치 낮게 설계되어 바리스타와 고객의 시각적 상호작용을 증가시켰다. 이 모든 감각 설계의 결과, 미국 소비자 84%가 감각 경험이 현장 구매에 핵심 요인이라고 응답했다.</div>
+        <div class="ce-source">출처: 네스프레소 감각 연구, Starbucks 매장 설계 문서</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #CC0000;">
+        <div class="ce-brand" style="color: #CC0000;">Tesla — 리액턴스 제거의 극단</div>
+        <div class="ce-text">Brehm(1966)의 심리적 리액턴스 이론에 따르면, 인간은 선택의 자유가 위협받으면 본능적으로 반발한다. 전통 딜러십에서 판매원이 다가오는 순간 이 리액턴스가 즉시 작동한다. Tesla는 직원을 "Product Specialist"로 명명하고, 고객이 관심을 보일 때만 응대하도록 교육한다. 쇼룸에 차량 1~3대만 전시하여 갤러리/뮤지엄 분위기를 조성함으로써, 고객의 첫 인식이 "판매 공간"이 아닌 "전시 공간"이 되도록 설계한다. 이 결과 Tesla의 NPS는 97로 자동차 업계 최고이며, 광고비 거의 $0에도 재구매 의향 92%를 달성한다.</div>
+        <div class="ce-source">출처: Brehm 1966, Tesla 쇼룸 운영 분석</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Stage 3 ===== -->
+  <div class="content-card" style="border-left: 5px solid #EF4444;">
+    <h3>Stage 3. 탐색/체험 과정 — 욕구가 욕망으로 전환되는 구간</h3>
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;"><strong>의사결정 단계</strong>: 대안 평가(Alternative Evaluation) + 태도 형성(Attitude Formation)</p>
+    <p>이 단계가 매장 설계의 <strong>핵심 전장</strong>이다. 고객의 뇌가 "구경"에서 <strong>"갖고 싶다"</strong>로 전환되는 순간이 여기서 발생한다.</p>
+
+    <h4 style="margin-top:24px;">작동하는 소비심리학 이론</h4>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">소유효과 (Endowment Effect)</p>
+      <p class="theory-scholar">Thaler (1980), Kahneman, Knetsch &amp; Thaler (1990)</p>
+      <p class="theory-desc">한 번이라도 소유(또는 소유했다고 느끼면) 가치를 <strong>2~3배 높게</strong> 평가. Apple Store의 76도 MacBook: 화면을 보려면 반드시 만져야 함 → 만지는 순간 심리적 소유 시작. <strong>고객의 뇌</strong>: "이거 내가 쓰고 있잖아" → 내려놓으면 "내 것을 잃는" 느낌. <strong>수치</strong>: 터치 후 지불 의사 <strong>+33%</strong> (VR 실험), 소유 시 가치 <strong>2~3배</strong> 과대평가.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">IKEA 효과 (Labor → Love)</p>
+      <p class="theory-scholar">Norton, Mochon &amp; Ariely (2012, Harvard)</p>
+      <p class="theory-desc">노동이 투입되면 결과물의 가치 인식이 급상승. IKEA 조립, Nike By You 커스터마이징이 이 원리의 직접 적용. <strong>핵심 조건</strong>: 성공적 완성 시에만 작동. 실패하면 역효과. <strong>수치</strong>: 자가 조립 시 지불 의사 <strong>+63%</strong>, 자기 제작물 <strong>5배</strong> 과대평가.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">의사결정 피로 (Decision Fatigue)</p>
+      <p class="theory-scholar">Baumeister &amp; Twenge</p>
+      <p class="theory-desc">의사결정은 유한한 자원을 소모. 많이 결정할수록 이후 결정의 질 하락. IKEA 미로 후반부에서 충동구매가 증가하는 이유 = 의사결정 피로 → System 2 방어력 감소. <strong>이스라엘 판사 연구</strong>: 오전 가석방 승인률 65% vs 오후 10% — 피로한 뇌는 현상유지를 택함. <strong>IKEA의 대응</strong>: 미로 중간에 식당 배치 → 혈당 회복 → 하지만 회복된 에너지가 "더 사기"로 전환.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">디드로 효과 (Diderot Effect)</p>
+      <p class="theory-scholar">Denis Diderot (1769)</p>
+      <p class="theory-desc">새 물건 하나가 <strong>연쇄적 보완 구매</strong>를 유발. 프랑스 철학자 디드로가 선물받은 빨간 가운 때문에 서재, 커튼, 의자를 전부 바꾼 일화에서 유래. IKEA 룸 세팅: 소파 → "이 쿠션이 어울리겠다" → 조명 → 러그 → 사이드 테이블. <strong>고객의 뇌</strong>: "소파만 사려고 했는데... 이것도 있어야 완성되는 느낌".</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">정신적 시뮬레이션 (Mental Simulation)</p>
+      <p class="theory-scholar">Elder &amp; Krishna (2012)</p>
+      <p class="theory-desc">제품 사용 장면을 상상할 수 있으면 구매 확률 상승. IKEA 룸 세팅의 거울: 고객이 <strong>그 공간에 있는 자기 모습</strong>을 봄 → 소유 전 소유감(Pre-ownership). Tesla 시승: 운전하는 동안 "이 차가 내 차라면..." 시뮬레이션 → Peak-End Rule과 결합.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">선택의 역설 (Paradox of Choice)</p>
+      <p class="theory-scholar">Schwartz (2004), Iyengar &amp; Lepper (2000)</p>
+      <p class="theory-desc">선택지가 많을수록 만족도가 <strong>떨어진다</strong>. 잼 실험: 24종 → 구매율 3%, 6종 → 구매율 <strong>30%</strong> (10배 차이). Apple: 카테고리당 3~5개만 진열. Costco: 3,800 SKU (월마트 100,000+의 1/26). <strong>고객의 뇌</strong>: "여기는 고민할 게 없어서 편해" → 분석 마비 제거 → 빠른 결정.</p>
+    </div>
+
+    <h4 style="margin-top:24px;">브랜드 케이스</h4>
+    <div class="evidence-box">
+      <table>
+        <thead>
+          <tr><th>브랜드</th><th>설계 장치</th><th>핵심 이론</th><th>고객의 심리 변화</th><th>수치 효과</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="brand-tag brand-apple">Apple</span></td><td>76도 각도, 무제한 터치, 전원 켜짐</td><td>소유효과 + 체화된 인지</td><td>"구경" → "사용 중" → "내 것"</td><td>WTP +33%, sqft <strong>$5,546</strong></td></tr>
+          <tr><td><span class="brand-tag brand-ikea">IKEA</span></td><td>1.6km 미로 + 50개 룸 세팅 + 거울</td><td>그루엔 효과 + 디드로 + 의사결정 피로</td><td>"책상만 사러" → "이것도 저것도"</td><td>충동구매 <strong>60%</strong>, AOV <strong>$325~350</strong></td></tr>
+          <tr><td><span class="brand-tag brand-costco">Costco</span></td><td>표지판 없음 + 위치 변경 + 시식</td><td>가변 보상 + 호혜성</td><td>"세제만 사러" → "어? 이것도 있네"</td><td>시식 후 매출 <strong>+600~2,000%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-nike">Nike</span></td><td>By You 커스터마이징 15~20분</td><td>IKEA 효과 + 매몰비용</td><td>"구경" → "내가 디자인한 것"</td><td>IKEA 효과 유추 WTP <strong>+63%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-tesla">Tesla</span></td><td>시승 (무압박)</td><td>소유효과 + 정신적 시뮬레이션</td><td>"구경" → "이 차 내 차라면..."</td><td>NPS <strong>97</strong>, 재구매 <strong>92%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-starbucks">Starbucks</span></td><td>사행 대기열 + 푸드 디스플레이</td><td>충동구매 존 + 시각적 접근성</td><td>"커피만 시키려 했는데... 빵도"</td><td>눈높이 배치 주의 <strong>+35%</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 케이스 근거 자료 -->
+    <div class="case-evidence">
+      <h5>케이스 근거 자료</h5>
+      <div class="case-evidence-item" style="border-color: #1D1D1F;">
+        <div class="ce-brand" style="color: #1D1D1F;">Apple — 76도 각도와 소유효과의 과학</div>
+        <div class="ce-text">Kahneman, Knetsch & Thaler(1990)의 고전적 머그컵 실험에서, 참가자에게 머그컵을 준 뒤 판매 가격을 물으면 소유하지 않은 사람이 지불하려는 가격의 2~3배를 요구했다. Apple은 이 소유효과를 76도 각도라는 물리적 장치로 구현한다. 경상대 곽영식 교수는 이를 "액트 마케팅"이라 명명했다 — 고객이 직접 행동하면 몰입이 깊어지는 원리다. Peck & Shu(2009, Journal of Consumer Research)의 연구에서는 물건을 만지는 것만으로 심리적 소유감이 유의미하게 증가했고, VR 터치 실험에서 가상 손으로 셔츠를 만진 참가자가 33% 더 높은 가격을 지불하겠다고 답했다. Apple Store의 sqft당 $5,546(업계 1위)은 이 소유효과의 물리적 결과다.</div>
+        <div class="ce-source">출처: Kahneman et al. 1990, Peck & Shu 2009 JCR, VR Touch Study</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #F59E0B;">
+        <div class="ce-brand" style="color: #F59E0B;">IKEA — 미로와 의사결정 피로의 전략적 활용</div>
+        <div class="ce-text">UCL의 건축학자 Alan Penn은 IKEA 매장 구조를 분석하여 고객의 충동구매 비율이 60%에 달한다고 추정했다. IKEA USA Creative Director Richard La Graauw는 "우리 구매 결정의 20%만 논리에 기반하고 80%는 감정에 기반한다"고 공식 확인했다. Baumeister의 의사결정 피로 연구(이스라엘 판사 실험: 오전 가석방 승인률 65% vs 오후 10%)는 왜 미로 후반부에서 충동구매가 증가하는지를 설명한다 — 수백 개 상품을 보며 소진된 뇌가 System 2 방어를 포기하는 것이다. IKEA가 미로 중간에 식당을 배치한 것은 혈당 회복 → 의사결정 에너지 재충전이지만, 매장 환경에서 이 에너지는 "더 사기"로 전환된다.</div>
+        <div class="ce-source">출처: UCL Alan Penn, IKEA USA 인터뷰, Baumeister Decision Fatigue</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #E31837;">
+        <div class="ce-brand" style="color: #E31837;">Costco — 시식과 호혜성의 정량적 효과</div>
+        <div class="ce-text">Cialdini(1984)의 호혜성 원칙에 따르면, 무료로 무언가를 받으면 "빚진 느낌"이 형성되어 보답 행동이 증가한다. Costco의 무료 시식은 이 원칙의 대규모 현장 실험이다. Costco Connection 매거진에 따르면 시식 후 최대 2,000% 매출 증가 사례가 있으며, 냉동 피자의 경우 시식 후 600% 매출 증가가 보고되었다. 시식은 호혜성과 동시에 소유효과 트리거로도 작동한다 — 맛을 본 순간 "이미 경험한 것"이 되어 구매하지 않으면 "잃는 느낌"이 발생한다. Costco의 보물찾기 레이아웃(표지판 없음 + 상품 위치 변경)은 Skinner의 가변 보상 스케줄과 동일한 원리로, 예측 불가능한 발견이 도파민 분비를 극대화한다.</div>
+        <div class="ce-source">출처: Cialdini 1984, Costco Connection, Skinner 가변 보상</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #111111;">
+        <div class="ce-brand" style="color: #111111;">Nike — IKEA 효과의 패션 적용과 Zeigarnik Effect</div>
+        <div class="ce-text">Norton, Mochon & Ariely(2012, Harvard)의 IKEA 효과 원논문에서, 참가자들이 직접 조립한 IKEA 가구에 대해 전문가 제작 제품과 비슷한 수준으로 가치를 평가했고, 자기 접은 오리가미를 전문가 작품 대비 5배 높은 가격으로 평가했다. Nike By You는 이 효과를 패션에 적용한다 — 고객이 15~20분간 색상, 소재, 문구를 선택하는 동안 IKEA 효과(노동→사랑) + 소유효과(디자인 과정에서 심리적 소유 형성) + 매몰비용(투자한 시간)이 복합 작동한다. 또한 HoI 매장에서 주문 후 2일 뒤 수령하는 구조는 Zeigarnik Effect(미완성 과제에 대한 지속적 관심)를 활용하여 재방문을 유도한다.</div>
+        <div class="ce-source">출처: Norton et al. 2012 JCP, Nike HoI 운영</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #CC0000;">
+        <div class="ce-brand" style="color: #CC0000;">Tesla — 시승과 Peak-End Rule의 결합</div>
+        <div class="ce-text">Cambridge 대학 연구에 따르면, 물건을 점유하는 것만으로도 소유감이 유발된다. Tesla 시승은 이 원리의 극단적 적용이다. 고객이 Tesla를 운전하는 30~60분 동안 정신적 시뮬레이션("이 차가 내 차라면...")이 지속적으로 작동하고, Kahneman(1993)의 피크-엔드 법칙에 따라 시승의 가장 강렬한 순간(가속 체험)과 마지막 순간(무압박 하차)이 전체 경험을 결정한다. Tesla의 NPS 97과 재구매 의향 92%는 이 시승 경험이 만든 것이다. 특히 무압박 환경이 심리적 리액턴스를 제거하여, 소유효과가 방어 없이 순수하게 작동하는 구조를 만든다.</div>
+        <div class="ce-source">출처: Cambridge 소유 연구, Kahneman 1993, Tesla 고객 조사</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Stage 4 ===== -->
+  <div class="content-card" style="border-left: 5px solid #0EA5E9;">
+    <h3>Stage 4. 평가/대화 과정 — 망설임을 확신으로 바꾸는 구간</h3>
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;"><strong>의사결정 단계</strong>: 대안 평가 심화(Evaluation Deepening) + 구매 의도 형성(Purchase Intention)</p>
+    <p>고객이 "갖고 싶다"에서 <strong>"사야겠다"</strong>로 넘어가는 결정적 구간. 이 단계에서 직원의 역할과 가격 프레이밍이 핵심이 된다.</p>
+
+    <h4 style="margin-top:24px;">작동하는 소비심리학 이론</h4>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">앵커링 효과 (Anchoring)</p>
+      <p class="theory-scholar">Tversky &amp; Kahneman (1974)</p>
+      <p class="theory-desc">처음 접한 숫자가 이후 판단의 기준점(앵커)이 된다. Apple Store: Pro Max($1,099)를 먼저 보면 Pro($999)가 "합리적"으로 느껴짐. Costco $1.50 핫도그가 $65 연회비를 "싸게" 느끼게 만드는 앵커. <strong>고객의 뇌</strong>: 의식하지 못하는 사이에 첫 번째 숫자가 기준선을 세움.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">디코이 효과 (Decoy Effect)</p>
+      <p class="theory-scholar">Huber, Payne &amp; Puto (1982)</p>
+      <p class="theory-desc">"비대칭적으로 열등한 옵션"을 추가하면 인접한 상위 옵션의 매력이 극적으로 증가. iPhone 14 Plus($899)는 Pro($999)를 돋보이게 하는 미끼. Starbucks Grande는 Venti를 "가성비 최고"로 보이게 하는 구조. <strong>수치</strong>: Ariely 실험에서 디코이 추가 시 최고가 선택률 <strong>32% → 84%</strong> (163% 증가).</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">프레이밍 효과 (Framing Effect)</p>
+      <p class="theory-scholar">Tversky &amp; Kahneman (1981)</p>
+      <p class="theory-desc">같은 사실도 표현 방식에 따라 판단이 달라짐. Apple 직원의 금지어 시스템: "crash" → "stops responding", "bug" → "issue". <strong>고객의 뇌</strong>: "이 제품에 버그가 있다" vs "일시적 상황이 발생했다" — 같은 현상인데 심리적 무게가 전혀 다름.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">권위의 원칙 (Authority Principle)</p>
+      <p class="theory-scholar">Cialdini (1984)</p>
+      <p class="theory-desc">전문가의 판단을 신뢰하는 경향. Apple Genius Bar: "Genius"라는 명칭 자체가 권위 신호. Tesla "Product Specialist": "판매원"이 아닌 "전문가"로 프레이밍. Costco의 제한된 SKU: "Costco가 이미 최고를 골라줬다" = 큐레이션 권위.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">인지 부조화 감소 (Cognitive Dissonance Reduction)</p>
+      <p class="theory-scholar">Festinger (1957)</p>
+      <p class="theory-desc">고가 제품을 사려는 고객은 "이렇게 비싼 걸 사도 되나?"라는 부조화를 느낌. 직원의 역할은 이 부조화를 <strong>해소</strong>해주는 것. Apple Three Fs 화법: Feel("이해합니다") → Felt("저도 그랬어요") → Found("알고 보니 합리적이더라고요"). <strong>고객의 뇌</strong>: "비싸다" → "나만 그런 게 아니구나" → "합리적 가치구나" (3단계 부조화 해소).</p>
+    </div>
+
+    <h4 style="margin-top:24px;">브랜드 케이스</h4>
+    <div class="evidence-box">
+      <table>
+        <thead>
+          <tr><th>브랜드</th><th>설계 장치</th><th>핵심 이론</th><th>고객의 심리 변화</th><th>수치 효과</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="brand-tag brand-apple">Apple</span></td><td>Three Fs + 금지어 + 무커미션</td><td>프레이밍 + 부조화 해소 + 신뢰</td><td>"비싸다" → "가치 있다"</td><td>직원당 <strong>$251만</strong>, NPS <strong>68</strong></td></tr>
+          <tr><td><span class="brand-tag brand-ikea">IKEA</span></td><td>$5 미만 상품으로 "지갑 열기"</td><td>일관성(Commitment)</td><td>"작은 거 하나 사니까" → 이후 구매 저항 감소</td><td>미끼효과 총이익 <strong>+14.3%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-costco">Costco</span></td><td>무료 시식</td><td>호혜성 + 소유효과 트리거</td><td>"맛봤으니 사야 할 것 같은..."</td><td>시식 후 <strong>+600~2,000%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-starbucks">Starbucks</span></td><td>Tall/Grande/Venti 구조</td><td>탈앵커링 + 디코이</td><td>"Venti가 제일 가성비"</td><td>최고가 선택률 <strong>+163%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-tesla">Tesla</span></td><td>No-Haggle 고정가</td><td>절차적 공정성 + 인지 부하 제거</td><td>"흥정 스트레스 없이 공정하다"</td><td>광고비 <strong>$0</strong>, Model 3 <strong>40만</strong> 사전주문</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 케이스 근거 자료 -->
+    <div class="case-evidence">
+      <h5>케이스 근거 자료</h5>
+      <div class="case-evidence-item" style="border-color: #1D1D1F;">
+        <div class="ce-brand" style="color: #1D1D1F;">Apple — Three Fs 화법과 Genius 매뉴얼의 비밀</div>
+        <div class="ce-text">Gizmodo가 입수한 Apple Genius 교육 매뉴얼에 따르면, Three Fs(Feel-Felt-Found)는 "고객이 틀렸을 때 특히 잘 작동한다"고 명시되어 있다. Feel("그렇게 느끼시는 게 이해됩니다")은 Festinger(1957)의 인지 부조화 해소의 첫 단계 — 감정 인정으로 방어를 해제한다. Felt("저도 그랬어요")는 Cialdini의 사회적 증거 — "당신만 그런 게 아니다"는 정상화. Found("합리적 가치라는 걸 알게 됐습니다")는 인지적 재프레이밍 — "비싸다"를 "가치 있다"로 전환한다. 동시에 무커미션 정책이 Kelley(1973)의 귀인 이론에 따라 "수당 때문에 추천하는 거 아냐?"라는 의심 자체를 구조적으로 제거한다. 결과: 직원당 연매출 $251만, NPS 68(업계 평균 41 대비 +27p).</div>
+        <div class="ce-source">출처: Gizmodo Genius Manual, Festinger 1957, Kelley 1973</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #00704A;">
+        <div class="ce-brand" style="color: #00704A;">Starbucks — Ariely의 디코이 실험과 Venti 전략</div>
+        <div class="ce-text">Dan Ariely의 이코노미스트 잡지 실험(Predictably Irrational, 2008)에서, 온라인 구독 옵션에 "비대칭적으로 열등한 중간 옵션"을 추가하자 가장 비싼 옵션의 선택률이 32%에서 84%로 163% 증가했다. Starbucks의 Tall/Grande/Venti 구조는 이 원리를 활용한다: Venti(20oz, $4.95)는 Grande(16oz, $4.65)보다 $0.30만 비싸지만 4oz(25%) 더 크다. oz당 가격으로 보면 Tall $0.35 > Grande $0.29 > Venti $0.25로, Venti가 가성비 최고로 인식된다. 또한 이탈리아어 사이즈명은 소비자의 기존 가격 앵커("커피 = 3,000원")를 해제하는 탈앵커링(De-anchoring) 효과를 만든다. 가격 전략의 소비자 수용률은 75%(β=0.523, p<0.001).</div>
+        <div class="ce-source">출처: Ariely 2008, Kent Hendricks 메뉴 심리 분석</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #E31837;">
+        <div class="ce-brand" style="color: #E31837;">Costco — 시식의 호혜성에서 "지갑 열기"까지</div>
+        <div class="ce-text">Costco의 무료 시식은 Cialdini의 호혜성 원칙이지만, 동시에 Robert Cialdini의 또 다른 원칙인 일관성(Commitment & Consistency)도 작동시킨다. 시식 후 "맛있다"고 말한 고객은 자신의 발언과 일관된 행동(구매)을 하려는 심리적 압력을 느낀다. IKEA도 유사하게 마켓플레이스 입구에 $5 미만 초저가 상품을 배치하여 "첫 번째 구매"의 심리적 장벽을 제거한다. 한 번 지갑을 열면 이후 구매에 대한 저항이 극적으로 감소하는데, 이것이 Cialdini의 일관성 원칙 — "나는 여기서 이미 물건을 산 사람"이라는 자기 인식이 형성되기 때문이다. IKEA의 미끼효과는 INFORMS 연구에서 소매 총이익 14.3% 증가로 정량화되었다.</div>
+        <div class="ce-source">출처: Cialdini 1984 Influence, INFORMS 미끼효과 연구</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Stage 5 ===== -->
+  <div class="content-card" style="border-left: 5px solid #10B981;">
+    <h3>Stage 5. 구매 결정 순간 — 지불 고통을 최소화하는 설계</h3>
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;"><strong>의사결정 단계</strong>: 구매 결정(Purchase Decision) + 지불 행위(Payment Act)</p>
+    <p>"사겠다"에서 <strong>실제로 돈을 내는</strong> 순간 사이에 마지막 장벽이 있다. 이 장벽은 <strong>지불 고통(Pain of Paying)</strong>이다.</p>
+
+    <h4 style="margin-top:24px;">작동하는 소비심리학 이론</h4>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">지불 고통 (Pain of Paying)</p>
+      <p class="theory-scholar">Prelec &amp; Loewenstein (1998)</p>
+      <p class="theory-desc">돈을 지불할 때 뇌의 <strong>고통 관련 영역(insula)</strong>이 활성화된다. 현금 > 카드 > 모바일 순으로 고통 감소. Apple Store는 <strong>계산대 자체를 제거</strong>. <strong>수치</strong>: 카드 결제 시 현금 대비 지출 <strong>+12~100%</strong> (Prelec &amp; Simester, MIT 2001). <strong>Fed Reserve Boston</strong>: 현금 거래 평균 $22 vs 비현금 거래 평균 $112 (409% 차이).</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">심리적 회계 (Mental Accounting)</p>
+      <p class="theory-scholar">Thaler (1985)</p>
+      <p class="theory-desc">사람은 돈을 용도별 "심리적 계좌"로 분리하여 관리. "식비 계좌"와 "가구 계좌"는 별개. IKEA 미트볼은 "식비"에서 나가므로 가구 예산에 영향 안 줌. Starbucks 리워드 "별"은 현금과 다른 심리적 계좌 — <strong>별을 쓰는 것은 돈을 쓰는 것보다 덜 아픔</strong>. <strong>고객의 뇌</strong>: "무료 음료잖아" (실제로는 적립을 위해 수십 잔 구매했지만).</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">예상 후회 (Anticipated Regret)</p>
+      <p class="theory-scholar">Zeelenberg (1999)</p>
+      <p class="theory-desc">구매하지 않았을 때의 후회를 미리 상상하면 구매 확률 상승. Costco 보물찾기: "지금 안 사면 다음에 없을 수도" → 예상 후회 → 즉시 구매. Nike SNKRS 래플: "당첨됐는데 안 사면 후회할 거야" → 구매. Apple 직원의 "오늘 가져갈 수 있는 솔루션" → 미래의 후회 vs 현재의 행동.</p>
+    </div>
+
+    <h4 style="margin-top:24px;">브랜드 케이스</h4>
+    <div class="evidence-box">
+      <table>
+        <thead>
+          <tr><th>브랜드</th><th>설계 장치</th><th>핵심 이론</th><th>고객의 심리 변화</th><th>수치 효과</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="brand-tag brand-apple">Apple</span></td><td>계산대 제거 + 직원 아이폰 결제 + 이메일 영수증</td><td>지불 고통 비가시화</td><td>"어? 이미 결제된 거야?"</td><td>비현금 지출 <strong>+12~100%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-ikea">IKEA</span></td><td>미로 출구 = 계산대 (되돌아갈 수 없음)</td><td>매몰비용 + 예상 후회</td><td>"여기까지 들고 왔는데 내려놓기 아까워"</td><td>AOV <strong>$325~350</strong></td></tr>
+          <tr><td><span class="brand-tag brand-costco">Costco</span></td><td>카트에 이미 쌓인 상품 시각화</td><td>소유효과 (이미 "내 것")</td><td>"카트에서 빼면 잃는 느낌"</td><td>평균 방문당 <strong>$100~150</strong></td></tr>
+          <tr><td><span class="brand-tag brand-starbucks">Starbucks</span></td><td>앱 잔액 + 별 적립</td><td>심리적 회계 분리</td><td>"앱 잔액이니까 공짜 느낌"</td><td>모바일 거래 <strong>31%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-nike">Nike</span></td><td>앱 결제로 계산대 생략</td><td>마찰 제거</td><td>"줄 안 서도 돼? 바로 결제!"</td><td>Nike Live 매출 <strong>+30%</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 케이스 근거 자료 -->
+    <div class="case-evidence">
+      <h5>케이스 근거 자료</h5>
+      <div class="case-evidence-item" style="border-color: #1D1D1F;">
+        <div class="ce-brand" style="color: #1D1D1F;">Apple — 계산대 제거와 지불 고통의 뇌과학</div>
+        <div class="ce-text">Prelec & Loewenstein(1998)은 지불 행위가 뇌의 고통 관련 영역(insula)을 활성화한다는 것을 밝혔다. Prelec & Simester(2001, MIT Sloan)의 후속 실험에서 신용카드 사용 시 현금 대비 최대 100% 더 높은 금액을 지불하겠다고 응답했다. Federal Reserve Bank of Boston 데이터에 따르면 현금 거래 평균 $22 vs 비현금 거래 평균 $112(409% 차이). Apple Store는 이 연구를 극단까지 밀어붙였다: 계산대 자체를 제거하고, 직원이 아이폰으로 결제하며, 영수증은 이메일로 전송한다. 결제 행위의 모든 물리적 증거(계산대 이동, 줄 서기, 종이 영수증)를 지움으로써 지불 고통을 구조적으로 최소화한 것이다. 71편 논문·392 효과크기의 메타분석(2024)도 캐시리스 결제가 지출을 유의미하게 증가시킨다는 결론을 확인했다.</div>
+        <div class="ce-source">출처: Prelec & Loewenstein 1998, MIT Sloan 2001, Fed Reserve Boston, JRetailing 메타분석 2024</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #F59E0B;">
+        <div class="ce-brand" style="color: #F59E0B;">IKEA — 미로 출구 = 계산대라는 동선의 함정</div>
+        <div class="ce-text">IKEA의 일방통행 미로는 물리적으로 "출구 = 계산대"인 구조다. 1.6km를 걸어온 고객이 카트에 담은 상품을 내려놓으려면 되돌아가야 하는데, 이미 투자한 시간과 에너지(매몰비용)가 이를 막는다. Arkes & Blumer(1985)의 매몰비용 연구에서 참가자들은 이미 지불한 비용 때문에 비합리적으로 행동을 지속했다. IKEA의 평균 주문가 $325~350은 이 동선 설계가 만들어낸 결과다. 또한 Zeelenberg(1999)의 예상 후회 이론에 따르면, "여기까지 들고 왔는데 내려놓으면 후회할 것 같다"는 예상 후회가 구매를 확정짓는다.</div>
+        <div class="ce-source">출처: Arkes & Blumer 1985, Zeelenberg 1999, IKEA 매장 동선 분석</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #00704A;">
+        <div class="ce-brand" style="color: #00704A;">Starbucks — 앱 잔액과 심리적 회계의 마법</div>
+        <div class="ce-text">Thaler(1985)의 심리적 회계 이론에 따르면, 사람은 동일한 금액이라도 어디서 왔느냐에 따라 다르게 취급한다. Starbucks 앱에 충전한 $20는 "이미 쓴 돈"으로 심리적 회계가 마감되어, 앱으로 결제할 때 "공짜로 사는 느낌"이 된다. 리워드 별도 마찬가지 — 수십 잔 구매해서 모은 별이지만, 무료 음료를 받을 때는 "선물"로 인식된다. 모바일 오더가 전체 거래의 31%를 차지하며, AI 추천 시스템이 9개월간 $4.1억의 추가 매출을 생성한 것은 이 심리적 회계 분리 효과가 디지털로 확장된 결과다.</div>
+        <div class="ce-source">출처: Thaler 1985, Starbucks FY26 Q1 실적</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Stage 6 ===== -->
+  <div class="content-card" style="border-left: 5px solid #EC4899;">
+    <h3>Stage 6. 구매 직후 — 후회를 확신으로 바꾸는 구간</h3>
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;"><strong>의사결정 단계</strong>: 구매 후 행동(Post-Purchase Behavior) + 인지 부조화 관리</p>
+    <p>구매 직후는 <strong>가장 취약한 순간</strong>이다. 특히 고가 제품일수록 "내가 잘 산 건가?"라는 <strong>구매 후 인지 부조화(Post-Purchase Dissonance)</strong>가 발생한다. 이 순간의 설계가 재구매와 추천을 결정한다.</p>
+
+    <h4 style="margin-top:24px;">작동하는 소비심리학 이론</h4>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">피크-엔드 법칙 (Peak-End Rule)</p>
+      <p class="theory-scholar">Kahneman (1993)</p>
+      <p class="theory-desc">사람은 경험을 <strong>가장 강렬한 순간(Peak)</strong>과 <strong>마지막 순간(End)</strong>으로 평가한다. 중간에 불편함이 있었더라도 마지막이 좋으면 "좋은 경험"으로 기억. Apple APPLE 5단계의 마지막 'E'(End): 따뜻한 작별 + 재방문 초대 → 전체 방문을 긍정적으로 재구성. <strong>고객의 뇌</strong>: "매장이 좋았다"는 기억이 형성되면 → 재방문 확률 급상승.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">구매 후 합리화 (Post-Purchase Rationalization)</p>
+      <p class="theory-scholar">Festinger (1957)</p>
+      <p class="theory-desc">비싼 물건을 산 후 "이건 현명한 선택이었다"고 스스로 설득하는 과정. 이 과정을 <strong>브랜드가 도와주면</strong> 충성도가 극적으로 상승. Apple: 직원이 고객 앞에서 제품을 언박싱하며 기능 시연 → "역시 잘 샀다" 확신 강화. <strong>수치</strong>: Apple iPhone 재구매 의향 <strong>96.4%</strong> — 구매 후 경험이 다음 구매를 결정.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">후광 효과 (Halo Effect)</p>
+      <p class="theory-scholar">Thorndike (1920)</p>
+      <p class="theory-desc">하나의 긍정적 인상이 관련 없는 다른 영역까지 전이. Apple 패키징의 느린 개봉 + 정밀한 내부 트레이 → "상자에 이렇게 신경 썼으면 제품도 좋겠지". <strong>수치</strong>: YouTube 언박싱 영상 <strong>250억 조회</strong>, TikTok <strong>430억 조회</strong> — 패키징이 무료 광고를 생성.</p>
+    </div>
+
+    <h4 style="margin-top:24px;">브랜드 케이스</h4>
+    <div class="evidence-box">
+      <table>
+        <thead>
+          <tr><th>브랜드</th><th>설계 장치</th><th>핵심 이론</th><th>고객의 심리 변화</th><th>수치 효과</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="brand-tag brand-apple">Apple</span></td><td>언박싱 시연 + 출구 에스코트 + 작별 인사</td><td>피크-엔드 + 후광 + 합리화</td><td>"역시 잘 샀다. 다음에도 여기서"</td><td>재구매 <strong>96.4%</strong>, 언박싱 <strong>250억</strong> 조회</td></tr>
+          <tr><td><span class="brand-tag brand-ikea">IKEA</span></td><td>출구 핫도그/소프트아이스크림($1)</td><td>피크-엔드 + 호혜성</td><td>"마지막에 이것까지! IKEA 좋다"</td><td>마지막 긍정 경험 → 재방문</td></tr>
+          <tr><td><span class="brand-tag brand-costco">Costco</span></td><td>출구 영수증 체크 + 핫도그 코너</td><td>피크-엔드 + 의례</td><td>"영수증 체크는 좀 귀찮지만... 핫도그!"</td><td>핫도그 연 <strong>1.5억 개</strong></td></tr>
+          <tr><td><span class="brand-tag brand-starbucks">Starbucks</span></td><td>컵에 이름 쓰기 + 바리스타 미소</td><td>개인화 + 피크-엔드</td><td>"나를 기억해주는 곳"</td><td>고객 유지율 <strong>44%</strong> (업계 25%)</td></tr>
+          <tr><td><span class="brand-tag brand-tesla">Tesla</span></td><td>무압박 퇴장 + 후속 이메일</td><td>리액턴스 제거 유지</td><td>"한 번도 압박 안 받았다"</td><td>NPS <strong>97</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 케이스 근거 자료 -->
+    <div class="case-evidence">
+      <h5>케이스 근거 자료</h5>
+      <div class="case-evidence-item" style="border-color: #1D1D1F;">
+        <div class="ce-brand" style="color: #1D1D1F;">Apple — 언박싱이 만드는 250억 조회의 무료 광고</div>
+        <div class="ce-text">전 Apple 디자인 책임자 Jony Ive는 "패키징은 극장(theater)이 될 수 있다"고 했다. Apple에는 전담 디자이너가 수개월간 수백 개 프로토타입을 열어보는 "Unboxing Room"이 있다. 상자 뚜껑이 천천히 열리는 것은 공기 포켓의 진공 효과를 정밀 설계한 결과다 — 기대 심리(Anticipation)를 극대화하기 위함이다. Thorndike(1920)의 후광 효과에 따르면, 패키징의 품질이 제품 품질로 무의식적으로 전이된다. Apple은 이를 "Impute(전가)"라는 내부 철학으로 명명했다. 결과적으로 YouTube "unboxing" 영상은 250억 조회, TikTok은 430억 조회를 기록했으며, iPhone 6 하나만 235만 개의 언박싱 영상이 생성되었다. 제품 탐색자의 62%가 언박싱 영상을 시청한다는 조사 결과는, 패키징 투자가 광고비 $0의 바이럴 마케팅 시스템을 만들었음을 증명한다.</div>
+        <div class="ce-source">출처: Jony Ive 인터뷰, Thorndike 1920, Packaging Dive, Inc.com</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #F59E0B;">
+        <div class="ce-brand" style="color: #F59E0B;">IKEA — 출구 핫도그의 피크-엔드 설계</div>
+        <div class="ce-text">Kahneman(1993)의 피크-엔드 법칙 원논문(대장내시경 실험)에서, 검사 마지막에 약간의 불쾌감을 추가했더니 역설적으로 전체 경험 평가가 개선되었다 — 마지막 순간이 극심한 고통이 아닌 "약간의 불편함"으로 끝나면 전체가 "그렇게 나쁘지 않았다"로 기억되기 때문이다. IKEA는 이를 반전시킨다: 2.5~3시간의 미로 쇼핑(피로) 끝에 $1 핫도그와 소프트아이스크림이 기다린다. 이 마지막 순간의 "작은 보상"이 전체 방문을 "좋았다"로 재구성한다. 음식값은 원가 이하지만, 피크-엔드 법칙에 의해 재방문 확률을 높이는 투자다.</div>
+        <div class="ce-source">출처: Kahneman 1993 대장내시경 연구, IKEA 출구 설계 분석</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #00704A;">
+        <div class="ce-brand" style="color: #00704A;">Starbucks — 이름이 만드는 개인화의 힘</div>
+        <div class="ce-text">Starbucks 바리스타가 컵에 고객 이름을 쓰는 것은 단순한 서비스가 아니다. 자기 이름은 인간에게 가장 강력한 정서적 자극 중 하나다(Moray, 1959 칵테일파티 효과 — 시끄러운 방에서도 자기 이름은 들린다). 컵에 이름이 쓰이는 순간, 그 음료는 "아메리카노 한 잔"이 아니라 "나의 아메리카노"가 된다 — 소유효과의 미니어처 버전. 간혹 이름 철자가 틀리면 오히려 SNS에 공유하는 "밈(meme)"이 되어 무료 바이럴이 발생한다. 이 개인화 경험의 누적이 고객 유지율 44%(업계 평균 25%)를 만든다.</div>
+        <div class="ce-source">출처: Moray 1959, Starbucks 고객 경험 분석</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Stage 7 ===== -->
+  <div class="content-card" style="border-left: 5px solid #6366F1;">
+    <h3>Stage 7. 재방문/충성 — 습관과 정체성이 만드는 영구 루프</h3>
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;"><strong>의사결정 단계</strong>: 충성도 형성(Loyalty Formation) + 습관 루프(Habit Loop)</p>
+    <p>재방문은 <strong>"다시 좋은 경험을 하고 싶다"</strong>가 아니라 <strong>"이것이 내 정체성의 일부다"</strong>일 때 영구화된다. 단순 만족(Satisfaction)은 경쟁사의 더 나은 제안에 무너지지만, 정체성 기반 충성(Identity-based Loyalty)은 합리적 판단을 넘어선다.</p>
+
+    <h4 style="margin-top:24px;">작동하는 소비심리학 이론</h4>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">사회적 정체성 이론 (Social Identity Theory)</p>
+      <p class="theory-scholar">Tajfel &amp; Turner (1979)</p>
+      <p class="theory-desc">인간은 자신이 속한 집단(내집단)을 통해 자아를 정의한다. "Mac 사용자", "코스트코 회원", "Nike 러너" → 브랜드가 <strong>자아의 일부</strong>가 되는 순간, 이탈은 정체성 포기를 의미. <strong>고객의 뇌</strong>: "나는 Apple 사용자야. Android는 '나'가 아니야". <strong>수치</strong>: Apple 전환 의향 <strong>3.6%</strong> (Android→iPhone 13.6%의 1/4) — 정체성이 전환을 막는다.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">현상유지 편향 (Status Quo Bias)</p>
+      <p class="theory-scholar">Samuelson &amp; Zeckhauser (1988)</p>
+      <p class="theory-desc">현재 상태를 바꾸는 것보다 유지하는 것을 선호. "바꿀 이유가 없으면 안 바꾼다". Apple 생태계: iCloud + AirDrop + iMessage가 "그냥 작동"하므로 바꿀 이유가 없음. Costco: "매번 여기서 사왔고, 잘 되니까 계속" → 연 33회 방문 습관.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">손실 회피 (Loss Aversion)</p>
+      <p class="theory-scholar">Kahneman &amp; Tversky (1979)</p>
+      <p class="theory-desc">같은 크기의 이득보다 손실의 심리적 무게가 <strong>2배</strong> 크다. Apple 생태계 이탈 = iCloud 사진, AirDrop, Apple Watch 연동 <strong>손실</strong>. Starbucks Gold 등급 강등 = "내가 쌓은 지위를 잃는다". <strong>고객의 뇌</strong>: "다른 데가 좋을 수도 있지만, 지금 가진 걸 잃기 싫어".</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">목표 구배 효과 (Goal Gradient Effect)</p>
+      <p class="theory-scholar">Kivetz, Urminsky &amp; Zheng (2006)</p>
+      <p class="theory-desc">목표에 가까워질수록 행동이 가속된다. Starbucks 별 적립: 150개 목표에서 120개일 때 방문 빈도가 <strong>20% 가속</strong>. <strong>부여된 진전 효과</strong>: 2개 보너스 스탬프만 줘도 완료 기간 <strong>33% 단축</strong> (같은 10회 구매인데!). <strong>수치</strong>: Starbucks 리워드 멤버 매출 기여 <strong>55%</strong>, 멤버 지출 비멤버의 <strong>2~3배</strong>.</p>
+    </div>
+
+    <div class="theory-card" style="border-color: #8B5CF6;">
+      <p class="theory-name">매몰비용 효과 (Sunk Cost Fallacy)</p>
+      <p class="theory-scholar">Arkes &amp; Blumer (1985)</p>
+      <p class="theory-desc">이미 투자한 비용이 미래 결정에 비합리적으로 영향. Costco $65 연회비: "이미 냈으니 본전 뽑아야" → 방문 빈도 + 구매량 증가. Nike SNKRS 래플에 투자한 시간: "이번에 안 되면 다음에라도" → 계속 참여. <strong>수치</strong>: Costco 갱신율 <strong>92.3%</strong>, $5 인상에도 회원 수 <strong>오히려 증가</strong>.</p>
+    </div>
+
+    <h4 style="margin-top:24px;">브랜드 케이스</h4>
+    <div class="evidence-box">
+      <table>
+        <thead>
+          <tr><th>브랜드</th><th>잠금 시스템</th><th>핵심 이론 조합</th><th>수치 효과</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="brand-tag brand-apple">Apple</span></td><td>iCloud+AirDrop+Watch 생태계</td><td>현상유지 + 손실 회피 + 매몰비용 (3중 잠금)</td><td>리텐션 <strong>92%</strong>, 전환 <strong>3.6%</strong>, 번들 <strong>+40%</strong> 지출</td></tr>
+          <tr><td><span class="brand-tag brand-ikea">IKEA</span></td><td>KALLAX/PAX 시스템 가구 확장</td><td>디드로 효과 + 현상유지</td><td>빌리 책장 <strong>5초에 1개</strong> 판매</td></tr>
+          <tr><td><span class="brand-tag brand-costco">Costco</span></td><td>연회비 + 이그제큐티브 티어</td><td>매몰비용 + 정체성 + 손실 회피</td><td>갱신율 <strong>92.3%</strong>, 멤버십 수익 <strong>$53.23억</strong></td></tr>
+          <tr><td><span class="brand-tag brand-starbucks">Starbucks</span></td><td>별 적립 + 3단계 티어 + Double Star Days</td><td>목표 구배 + 손실 회피 + 게이미피케이션</td><td>멤버 매출 <strong>55%</strong>, 유지율 <strong>44%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-nike">Nike</span></td><td>Run Club + SNKRS 래플 + 멤버십</td><td>커뮤니티 정체성 + 가변 보상 + 매몰비용</td><td>디지털 회원 <strong>3억+</strong>, 커뮤니티 충성 <strong>47%</strong></td></tr>
+          <tr><td><span class="brand-tag brand-tesla">Tesla</span></td><td>슈퍼차저 + OTA 업데이트 + 추천</td><td>생태계 잠금 + 사회적 증거</td><td>NPS <strong>97</strong>, 추천 ROI <strong>40~119배</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 케이스 근거 자료 -->
+    <div class="case-evidence">
+      <h5>케이스 근거 자료</h5>
+      <div class="case-evidence-item" style="border-color: #1D1D1F;">
+        <div class="ce-brand" style="color: #1D1D1F;">Apple — 3중 잠금이 만드는 리텐션 92%</div>
+        <div class="ce-text">Samuelson & Zeckhauser(1988)의 현상유지 편향 원논문에서 참가자들에게 투자 포트폴리오를 제시했을 때, 기존 포트폴리오를 유지하는 비율이 합리적 수준보다 유의미하게 높았다. Apple 생태계는 이 현상유지 편향에 손실 회피(Kahneman & Tversky, 1979: 이득의 기쁨보다 같은 크기 손실의 고통이 2배)와 매몰비용(iCloud 연 ₩11,900 + AirPods + Apple Watch 투자액)을 결합하여 3중 잠금을 구축한다. SellCell 2026년 조사에서 iPhone 사용자 재구매 의향 96.4%(2019년 90.5%에서 6p 상승), iPhone→Android 전환 의향은 겨우 3.6%로 역방향(13.6%)의 1/4에 불과하다. Kim, Sung & McClure(2012)의 한국-미국 fMRI 비교에서도 확인되었듯, 문화권을 넘어 생태계 잠금은 합리적 판단을 넘어서는 심리적 장벽을 만든다.</div>
+        <div class="ce-source">출처: Samuelson & Zeckhauser 1988, Kahneman & Tversky 1979, SellCell 2026</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #E31837;">
+        <div class="ce-brand" style="color: #E31837;">Costco — 가격 인상에도 회원이 늘어나는 역설</div>
+        <div class="ce-text">Costco는 2024년 9월 일반 회원비를 $60→$65, 이그제큐티브 회원비를 $120→$130으로 인상했다(2017년 이후 첫 인상). 행동경제학의 일반적 예측에 따르면 가격 인상 시 이탈이 발생해야 하지만, Costco의 회원 수는 오히려 증가했다. 이 역설은 매몰비용 효과로 설명된다: "이미 더 많은 돈을 냈으니 더 열심히 본전을 뽑아야 한다." 동시에 Tajfel & Turner(1979)의 사회적 정체성 이론에 따라, 이그제큐티브 회원이라는 지위는 "현명한 소비자" 정체성을 강화한다. 결과적으로 이그제큐티브 회원이 전체 유료 회원의 47.7%이면서 전 세계 매출의 74.2%를 기여하고, 멤버십 수익만 $53.23억(거의 순이익)에 달한다.</div>
+        <div class="ce-source">출처: Costco FY25 10-K, Tajfel & Turner 1979</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #00704A;">
+        <div class="ce-brand" style="color: #00704A;">Starbucks — 목표 구배와 게이미피케이션의 과학</div>
+        <div class="ce-text">Ran Kivetz, Oleg Urminsky & Yuhuang Zheng(2006, Columbia University)의 "The Goal-Gradient Hypothesis Resurrected" 논문은 1930년대 Hull의 쥐 실험(먹이에 가까울수록 달리기 속도 증가)을 인간 소비자에게 재현했다. 카페 스탬프 카드 실험에서, 고객은 무료 음료 보상에 가까워질수록 구매 간격이 약 20% 빨라졌고, 가속하지 않았을 때보다 커피 2잔을 추가 구매했다. 특히 "부여된 진전 효과" 실험에서 12칸 카드에 2개를 미리 찍어준 그룹이 10칸 카드 그룹보다 33% 빠르게 완료했다(같은 10회 구매인데도). Starbucks의 3단계 티어(Green→Gold→Reserve)와 Double Star Days는 이 연구를 직접 구현한 것이다. 리워드 멤버 3,550만 명이 전체 매출의 55%를 기여하고, 멤버 지출이 비멤버의 2~3배인 것은 이 심리학적 설계의 정량적 결과다.</div>
+        <div class="ce-source">출처: Kivetz et al. 2006, Starbucks FY26 Q1</div>
+      </div>
+      <div class="case-evidence-item" style="border-color: #111111;">
+        <div class="ce-brand" style="color: #111111;">Nike — SNKRS 래플이 만드는 3억 디지털 회원</div>
+        <div class="ce-text">Nike의 SNKRS 앱은 Cialdini(1984)의 희소성 원칙과 Skinner의 가변 보상 스케줄을 결합한 정교한 행동 설계 시스템이다. 한정판 스니커즈를 추첨(래플) 방식으로 판매하여 "제품"이 아닌 "구매 기회 자체"를 희소하게 만든다(이중 희소성). 당첨은 예측 불가능하므로 슬롯머신과 동일한 도파민 분비 패턴이 작동하고, 당첨 후 SNS 인증은 Tajfel & Turner(1979)의 사회적 정체성 이론에 따라 "스니커헤드"라는 부족 정체성을 강화한다. Cialdini 연구에서 희소성 메시징은 구매 의향을 약 40% 증가시켰고, 47%의 고객이 커뮤니티가 있는 브랜드에 충성한다는 조사 결과는 Nike Run Club + SNKRS가 만든 디지털 회원 3억+ 명의 근거다.</div>
+        <div class="ce-source">출처: Cialdini 1984, Skinner 가변 보상, Nike FY24 IR</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Journey Flow Diagram ===== -->
+  <div class="content-card" style="border-left: 5px solid #334155;">
+    <h3>여정 전체를 관통하는 핵심 로직</h3>
+    <pre style="background:#0f172a; color:#e2e8f0; padding:24px; border-radius:10px; font-size:0.82rem; line-height:1.8; overflow-x:auto; font-family:'SF Mono','Fira Code',monospace;">
+[입장 전]        [입장 순간]        [탐색/체험]         [평가/대화]
+단순 노출 ────→ 정서적 프라이밍 ──→ 소유효과 ─────→ 앵커링/디코이
+사회적 증거      첫인상 효과         IKEA 효과          프레이밍
+밴드왜건         리액턴스 회피        의사결정 피로       부조화 해소
+
+     [구매 결정]         [구매 직후]          [재방문/충성]
+  ──→ 지불 고통 최소화 ──→ 피크-엔드 법칙 ──→ 정체성 = 자아
+     심리적 회계           구매 후 합리화        현상유지 + 손실 회피
+     예상 후회             후광 효과             목표 구배 + 매몰비용</pre>
+    <p style="margin-top:16px;"><strong>7단계에 걸쳐 총 20+개의 소비의사결정 이론이 순차적으로 작동한다.</strong> 단일 이론으로는 매출을 바꾸지 못하지만, 이 이론들이 고객 여정의 올바른 시점에 배치되면 <strong>시스템으로서 작동</strong>하여 세계 최고의 리테일 성과를 만든다.</p>
+  </div>
+
+</div>
+
+<!-- ========== PART 4 ========== -->
+<div class="part-header">
+  <p class="part-label">Part 4</p>
+  <h2>5가지 설계 원칙 — 실전 적용 가이드</h2>
+  <p>의미 + 메커니즘 + 적용법 3가지 + 숫자 근거 3개</p>
+</div>
+
+<!-- Principle 1 -->
+<div class="principle-card">
+  <div class="principle-header">
+    <p class="principle-num">원칙 01</p>
+    <h4>"안 판다"는 설계가 가장 잘 판다</h4>
+  </div>
+  <div class="principle-body">
+    <h5>의미</h5>
+    <p>판매 의도를 숨기는 모든 장치가 역설적으로 세계 최고 매출을 만든다. 고객은 "내 돈을 가져가려는 곳"에서는 방어 태세(리액턴스)로 입장. Apple(계산대 제거), Tesla(딜러 제거), Starbucks(Third Place)는 "경험하는 곳" 프레이밍을 만든다.</p>
+    <h5>메커니즘</h5>
+    <ol>
+      <li><strong>리액턴스 제거</strong>: 판매 압박 제거 → 자유 위협 감소 → 방어 해제</li>
+      <li><strong>프레이밍 전환</strong>: "판매 공간" → "경험 공간" → 추천 = "도움", 디스플레이 = "영감"</li>
+      <li><strong>지불 고통 비가시화</strong>: 결제 동선을 대화의 연장선으로 설계</li>
+    </ol>
+    <h5>적용법</h5>
+    <ol>
+      <li>눈에 보이는 계산대/POS를 최소화하라. 결제 동선을 대화의 연장선으로.</li>
+      <li>직원 호칭에서 "판매"를 제거하라. 컨시어지, 스페셜리스트, 가이드로 프레이밍.</li>
+      <li>매장 면적의 최소 30%를 비판매 공간(체험, 교육, 커뮤니티)으로 할애.</li>
+    </ol>
+    <div class="evidence-box">
+      <p class="evidence-title">숫자 근거</p>
+      <table>
+        <tr><td>Apple: 계산대 제거</td><td><strong>sqft당 $5,546</strong> (업계 1위)</td></tr>
+        <tr><td>Tesla: 딜러 제거</td><td>광고비 $0 → <strong>NPS 97</strong>, 재구매 92%</td></tr>
+        <tr><td>비현금 결제(보이지 않는 결제)</td><td>지출 <strong>+12~100%</strong> (Prelec & Simester, MIT)</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Principle 2 -->
+<div class="principle-card">
+  <div class="principle-header">
+    <p class="principle-num">원칙 02</p>
+    <h4>손해를 보는 상품이 전체를 먹여 살린다</h4>
+  </div>
+  <div class="principle-body">
+    <h5>의미</h5>
+    <p>단일 상품의 손실이 매장 전체 매출을 끌어올리는 시스템. 핵심은 개별 상품 손익이 아닌 "방문 1회당 총구매액." IKEA 미트볼과 Costco 치킨은 단독 손실이지만 시스템에서는 가장 수익성 높은 투자.</p>
+    <h5>메커니즘</h5>
+    <ol>
+      <li><strong>유입 장치(Traffic Driver)</strong>: 극단적 저가 상품이 매장 방문 이유</li>
+      <li><strong>후광 효과 전이</strong>: 식품 저가 → 매장 전체 "저렴" 인식 (Thorndike, 1920)</li>
+      <li><strong>의사결정 피로 회복</strong>: 식사 → 혈당 상승 → 추가 쇼핑 에너지 전환</li>
+      <li><strong>동선 활용</strong>: 로스리더를 깊숙이 배치 → 고마진 노출 극대화</li>
+    </ol>
+    <h5>적용법</h5>
+    <ol>
+      <li>"시그니처 로스리더" 1개를 만들어라. 누가 봐도 원가 이하.</li>
+      <li>그 상품을 매장 가장 깊은 곳에 배치. 고마진 동선 설계.</li>
+      <li>ROI는 "방문 1회당 총구매액"으로 측정. 개별 마진이 아니라.</li>
+    </ol>
+    <div class="evidence-box">
+      <p class="evidence-title">숫자 근거</p>
+      <table>
+        <tr><td>IKEA 미트볼 식당 이용자</td><td>가구 구매액 <strong>비이용자의 2배+</strong></td></tr>
+        <tr><td>Costco 치킨 손실 $4,000만</td><td>회원당 연간 <strong>$3,213</strong> 지출 유지 장치</td></tr>
+        <tr><td>Costco 치킨 $4.99</td><td>방문당 <strong>$100~150</strong> 지출 → ROI 20배+</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Principle 3 -->
+<div class="principle-card">
+  <div class="principle-header">
+    <p class="principle-num">원칙 03</p>
+    <h4>노동은 사랑을 만든다</h4>
+  </div>
+  <div class="principle-body">
+    <h5>의미</h5>
+    <p>고객이 에너지를 투입하면 가치 인식이 63~500% 상승. Norton et al.(2012)의 IKEA 효과. 노동 투입 시 유능감, 노력 정당화, 소유 강화가 동시에 발생.</p>
+    <h5>메커니즘</h5>
+    <ol>
+      <li><strong>유능감 형성</strong>: 어려움 극복 → 자기효능감(Bandura, 1977) 상승</li>
+      <li><strong>노력 정당화</strong>: "힘들었으니 가치 있는 것" (Aronson & Mills, 1959)</li>
+      <li><strong>소유 강화</strong>: "내 손으로 만든 것" = 자아의 연장 (소유효과 x IKEA 효과)</li>
+    </ol>
+    <p><strong>전제조건: 성공적 완성.</strong> 실패 시 효과 소멸 + 부정적 감정 반전.</p>
+    <h5>적용법</h5>
+    <ol>
+      <li>고객이 직접 참여하는 단계를 최소 1개 만들어라.</li>
+      <li>난이도: "어렵지만 반드시 완성 가능한" 수준. Betty Crocker "계란 추가" 원칙.</li>
+      <li>Apple 76도처럼 "반드시 만지게 만드는" 물리적 장치를 고려.</li>
+    </ol>
+    <div class="evidence-box">
+      <p class="evidence-title">숫자 근거</p>
+      <table>
+        <tr><td>IKEA 조립</td><td>WTP <strong>+63%</strong>, 자기 제작물 <strong>5배</strong> 과대평가</td></tr>
+        <tr><td>Apple 터치</td><td>WTP <strong>+33%</strong> (VR), 가치 <strong>2~3배</strong> (Kahneman)</td></tr>
+        <tr><td>Nike By You</td><td>15~20분 → 매몰비용 + IKEA 효과 + 소유효과 복합</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Principle 4 -->
+<div class="principle-card">
+  <div class="principle-header">
+    <p class="principle-num">원칙 04</p>
+    <h4>정체성이 가격을 이긴다</h4>
+  </div>
+  <div class="principle-body">
+    <h5>의미</h5>
+    <p>5개 브랜드 모두 "이걸 사는 내가 어떤 사람인가"를 설계. 가격 할인보다 정체성 시그널이 더 강력한 전환 동력. Tajfel & Turner(1979): 인간은 소속 집단으로 자아를 정의.</p>
+    <h5>메커니즘</h5>
+    <ol>
+      <li><strong>내집단 형성</strong>: 브랜드 소비자를 집단화 → 소속감 욕구 충족</li>
+      <li><strong>정체성 시그널</strong>: 소비 = 타인에게 정체성 선언</li>
+      <li><strong>전환 비용으로서의 정체성</strong>: 브랜드 이탈 = 정체성 일부 상실 → 심리적 전환 비용</li>
+    </ol>
+    <h5>적용법</h5>
+    <ol>
+      <li>"이 브랜드를 선택하면 고객이 어떤 사람으로 보이는가?"를 먼저 설계.</li>
+      <li>공간, 직원, 패키징, 커뮤니티 모두 같은 정체성 메시지 통일.</li>
+      <li>가격 프로모션보다 정체성 강화 콘텐츠/경험에 투자.</li>
+    </ol>
+    <div class="evidence-box">
+      <p class="evidence-title">숫자 근거</p>
+      <table>
+        <tr><td>Costco 갱신율</td><td><strong>92.3%</strong> — 정체성이 가격 인상을 이김</td></tr>
+        <tr><td>Apple 재구매 의향</td><td><strong>96.4%</strong> — "Mac 사용자" 정체성</td></tr>
+        <tr><td>Nike 커뮤니티 충성</td><td><strong>47%</strong> — 소속감 = 정체성</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Principle 5 -->
+<div class="principle-card">
+  <div class="principle-header">
+    <p class="principle-num">원칙 05</p>
+    <h4>심리학은 단발 기법이 아니라 시스템이다</h4>
+  </div>
+  <div class="principle-body">
+    <h5>의미</h5>
+    <p>하나의 원리를 따라하면 효과가 없다. 경쟁 우위는 20개 이상의 원리가 동시에 작동하는 시스템에서 나온다. Apple 76도(소유효과) 단독 = 효과 미미. 76도 + 금지어 + Three Fs + 무커미션 + 계산대 제거 + 디코이 + 인공 하늘 + 생태계 = sqft당 $5,546.</p>
+    <h5>메커니즘</h5>
+    <ol>
+      <li><strong>복합 작동</strong>: 개별 원리가 서로를 강화(reinforce)</li>
+      <li><strong>여정 전체 커버</strong>: 입장 전→입장→체험→대화→결제→퇴장→재방문 모든 단계에 배치</li>
+      <li><strong>모방 불가 장벽</strong>: 한 전략은 복사 가능, 20개 시스템은 불가</li>
+    </ol>
+    <h5>적용법</h5>
+    <ol>
+      <li>고객 여정을 7단계로 분해하라.</li>
+      <li>각 단계에 최소 2~3개 심리학 원리를 배치하라.</li>
+      <li>한 가지만 모방하지 말고 전체 시스템을 벤치마킹하라.</li>
+    </ol>
+    <div class="evidence-box">
+      <p class="evidence-title">숫자 근거</p>
+      <table>
+        <tr><td>Apple: 20+개 원리</td><td>sqft <strong>$5,546</strong> (2위의 1.9배)</td></tr>
+        <tr><td>Costco: 11개 원리</td><td>갱신율 <strong>92.3%</strong>, 순매출 <strong>$2,699억</strong></td></tr>
+        <tr><td>Starbucks: 24개 원리</td><td>리워드 매출 <strong>55%</strong>, 유지율 <strong>44%</strong> (업계 +76%)</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PART 5 ========== -->
+<div class="part-header">
+  <p class="part-label">Part 5</p>
+  <h2>매장 설계 심리학 체크리스트</h2>
+  <p>20항목 - 레이어별 Yes/No 점검</p>
+</div>
+
+<div class="checklist-section container">
+  <!-- L1 -->
+  <div class="checklist-group">
+    <div class="checklist-group-header l1">Layer 1: 동선 설계 (3항목)</div>
+    <div class="checklist-items">
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">1. 동선이 체류 시간을 최대화하도록 설계되어 있는가?</p>
+          <p class="rationale">체류 1% 증가 시 매출 +1.3%. 긴 체류 = 더 많은 구매 기회.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">2. 고객이 전체 상품의 70% 이상을 자연스럽게 접하는 동선인가?</p>
+          <p class="rationale">일반 매장 노출률 33%. IKEA ~100%. 노출 = 구매 기회.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">3. 카테고리당 선택지가 3~7개로 제한되어 있는가?</p>
+          <p class="rationale">잼 실험: 24종 → 3% 구매, 6종 → 30% 구매. 10배 차이.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- L2 -->
+  <div class="checklist-group">
+    <div class="checklist-group-header l2">Layer 2: 감각 설계 (3항목)</div>
+    <div class="checklist-items">
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">4. 조명이 자연광에 가까운 색온도(3,000~4,000K)인가?</p>
+          <p class="rationale">서카디안 리듬 동기화 → 편안함 + 시간 왜곡 효과.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">5. 매장 고유의 향기(Signature Scent)가 있는가?</p>
+          <p class="rationale">향기 매장: 방문객 +20%, 매출 +10%.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">6. 배경 음악의 템포가 의도적으로 설계되어 있는가?</p>
+          <p class="rationale">느린 음악: 체류 +40%. Starbucks: 80~100 BPM.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- L3 -->
+  <div class="checklist-group">
+    <div class="checklist-group-header l3">Layer 3: 가격 설계 (3항목)</div>
+    <div class="checklist-items">
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">7. 가격 라인업에 디코이(미끼) 옵션이 포함되어 있는가?</p>
+          <p class="rationale">디코이 추가 시 최고가 선택률 163% 증가.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">8. 고객이 가장 먼저 보는 가격이 최고가(앵커)인가?</p>
+          <p class="rationale">앵커링: 높은 가격 먼저 → 이후 가격이 "합리적"으로 인식.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">9. 시그니처 로스리더 상품이 1개 이상 있는가?</p>
+          <p class="rationale">Costco 치킨 $4.99 → 방문당 $100~150 지출 유도.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- L4 -->
+  <div class="checklist-group">
+    <div class="checklist-group-header l4">Layer 4: 터치/참여 설계 (3항목)</div>
+    <div class="checklist-items">
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">10. 고객이 입장 후 3분 이내에 제품을 만질 수 있는 구조인가?</p>
+          <p class="rationale">터치 후 WTP +33%. 접촉 시간 비례 애착 증가.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">11. 직접 참여(커스터마이징, 체험 등)가 최소 1개 있는가?</p>
+          <p class="rationale">IKEA 효과: 자가 참여 시 WTP +63%, 가치 5배.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">12. 참여 난이도가 "어렵지만 완성 가능한" 수준인가?</p>
+          <p class="rationale">Betty Crocker: 너무 쉬우면 효과 없고, 실패하면 역효과.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- L5 -->
+  <div class="checklist-group">
+    <div class="checklist-group-header l5">Layer 5: 직원/서비스 설계 (3항목)</div>
+    <div class="checklist-items">
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">13. 직원이 첫 10초 이내에 고객을 환영하는가?</p>
+          <p class="rationale">첫인상 효과: 첫 7초 인상이 전체 경험 결정.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">14. 직원 화법에서 판매 압박이 제거되어 있는가?</p>
+          <p class="rationale">리액턴스 제거. "사세요" 대신 "도움 되셨으면 좋겠습니다."</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">15. 결제가 대화의 자연스러운 연장선으로 설계되어 있는가?</p>
+          <p class="rationale">지불 고통 최소화. 비현금 결제 시 지출 +12~100%.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- L6 -->
+  <div class="checklist-group">
+    <div class="checklist-group-header l6">Layer 6: 커뮤니티/정체성 설계 (3항목)</div>
+    <div class="checklist-items">
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">16. "이 브랜드 고객 = 어떤 사람"이 명확히 정의되어 있는가?</p>
+          <p class="rationale">정체성 시그널이 가격 할인보다 강력한 전환 동력.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">17. 매장 내 커뮤니티 프로그램(교육, 이벤트)이 있는가?</p>
+          <p class="rationale">커뮤니티 충성 47%. Today at Apple: 연 500만 명.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">18. 멤버십이 "정체성의 증표"로 설계되어 있는가?</p>
+          <p class="rationale">Costco 갱신율 92.3%: 할인 아닌 "현명한 소비자" 정체성.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- L7 -->
+  <div class="checklist-group">
+    <div class="checklist-group-header l7">Layer 7: 생태계/잠금 설계 (2항목)</div>
+    <div class="checklist-items">
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">19. 재방문 잠금 장치(리워드, 생태계, 구독)가 있는가?</p>
+          <p class="rationale">Starbucks 리워드 매출 55%. 목표 구배: 간격 20% 가속.</p>
+        </div>
+      </div>
+      <div class="checklist-item">
+        <div class="checklist-box"></div>
+        <div class="checklist-text">
+          <p class="question">20. 제품/서비스 연동이 전환 비용을 만들고 있는가?</p>
+          <p class="rationale">Apple 리텐션 92%, 전환 3.6%. 번들 +40% 지출.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <p>이 가이드는 34-consumer-decision-psychology.md(62개 이론), 35-apple-store 시리즈(Apple 심층), 36-retail-psychology-casestudy-deep.md(5개 브랜드 케이스)를 종합한 오프라인 매장 설계의 심리학 종합 레퍼런스입니다.</p>
+  <p style="margin-top: 8px;">2026-04-19</p>
+</div>
+
+</body>
+</html>

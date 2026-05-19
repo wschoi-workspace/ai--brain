@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentiment-to-Value: 감성 데이터의 비용 전환 프레임워크</title>
+<style>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+:root{--primary:#6666FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--dark:#1a1a2e;--body:#424D61;--light:#F8F9FB;--white:#FFF;--green:#059669;--orange:#f59e0b;--coral:#FF5050;--pink:#ec4899;--depth:#6366f1;--advocacy:#10b981;--sincerity:#f59e0b;--discovery:#ec4899;--emv:#059669;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:15px;line-height:1.7;max-width:960px;margin:0 auto;padding:48px 32px;}
+h1{font-size:34px;font-weight:900;line-height:1.3;margin-bottom:8px;letter-spacing:-0.5px;}
+h2{font-size:21px;font-weight:800;margin:48px 0 16px;padding-bottom:10px;border-bottom:3px solid #eee;letter-spacing:-0.3px;}
+h3{font-size:16px;font-weight:700;margin:24px 0 10px;}
+.subtitle{font-size:14px;color:var(--body);margin-bottom:32px;line-height:1.7;}
+p{margin-bottom:14px;color:#333;font-size:13px;line-height:1.9;}
+.card{background:var(--light);border-radius:16px;padding:24px;margin-bottom:16px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
+.tag{display:inline-block;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;}
+.callout{padding:20px 24px;background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-radius:16px;margin:16px 0;font-size:13px;line-height:1.9;}
+.callout strong{color:var(--primary);}
+.callout-green{background:linear-gradient(135deg,#ecfdf5,#d1fae5);}
+.callout-green strong{color:var(--green);}
+.callout-dark{background:linear-gradient(135deg,#1e293b,#334155);color:#e2e8f0;}
+.callout-dark strong{color:#fff;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0;}
+th{background:var(--dark);color:#fff;padding:8px 12px;text-align:left;font-size:11px;}
+td{padding:7px 12px;border-bottom:1px solid #eee;font-size:12px;}
+.ref{font-size:10px;color:#94a3b8;font-style:italic;}
+.num{font-family:'Poppins',sans-serif;font-weight:700;}
+.flow{display:flex;align-items:stretch;gap:0;margin:24px 0;}
+.flow-step{flex:1;padding:20px 14px;text-align:center;position:relative;}
+.flow-step::after{content:'';position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:14px solid;border-top:10px solid transparent;border-bottom:10px solid transparent;z-index:1;}
+.flow-step:last-child::after{display:none;}
+.vs{display:grid;grid-template-columns:1fr 50px 1fr;gap:0;align-items:center;margin:20px 0;}
+.vs-side{padding:24px;border-radius:16px;text-align:center;}
+.vs-center{text-align:center;font-size:22px;font-weight:900;color:#ccc;}
+.footer{margin-top:48px;padding-top:16px;border-top:2px solid var(--primary);font-size:11px;color:#94a3b8;text-align:center;}
+.section-num{font-family:'Poppins';font-size:11px;font-weight:700;color:var(--primary);letter-spacing:2px;margin-bottom:4px;}
+.quote-box{padding:16px 24px;border-left:4px solid var(--primary);background:#fafafe;margin:16px 0;font-size:13px;font-style:italic;color:var(--body);}
+.matrix-cell{padding:14px;border-radius:12px;text-align:center;font-size:11px;line-height:1.5;}
+
+@media print{
+  @page{size:A4 portrait;margin:14mm 12mm;}
+  body{max-width:100%!important;padding:0!important;margin:0!important;font-size:11px!important;}
+  .pdf-panel{display:none!important;}
+  .card,.grid2,.grid3,.grid4,.callout,.flow,.vs,table{break-inside:avoid!important;}
+  h1{font-size:24px!important;} h2{font-size:16px!important;margin-top:20px!important;}
+  canvas{max-height:260px!important;}
+}
+.pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;}
+.pdf-panel button{padding:12px 22px;background:var(--grad);color:#fff;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(102,102,255,0.4);border:none;font-family:'Pretendard Variable',sans-serif;}
+</style></head><body>
+
+<!-- ========== COVER ========== -->
+<div style="text-align:center;padding:20px 0 10px;">
+  <span class="tag" style="background:var(--grad);color:#fff;font-size:12px;padding:6px 18px;">RXR Framework &mdash; White Paper</span>
+</div>
+<h1 style="text-align:center;">Sentiment-to-Value</h1>
+<div style="text-align:center;font-size:16px;font-weight:600;color:var(--body);margin-bottom:6px;">감성 데이터의 비용 전환 프레임워크</div>
+<div class="subtitle" style="text-align:center;">
+  Brand Engagement Index(BEI)에서 Estimated Media Value(EMV)까지<br>
+  SNS 감성 지표를 금전적 가치로 환산하는 방법론과 비즈니스 임팩트
+</div>
+
+<!-- ========== 1. PROBLEM ========== -->
+<div class="section-num">PART 01</div>
+<h2>마케팅 ROI의 구조적 한계 &mdash; "절반의 광고비는 낭비"</h2>
+
+<div class="quote-box">
+  "I know half the money I spend on advertising is wasted; the trouble is I don't know which half."<br>
+  <span style="font-style:normal;font-weight:600;color:var(--dark);">&mdash; John Wanamaker (1838-1922)</span>
+</div>
+
+<p>100년 전의 이 문제가 디지털 시대에도 해결되지 않은 이유는, 우리가 측정하는 지표의 본질이 바뀌지 않았기 때문입니다. 노출(Impression)이 클릭(Click)으로, 클릭이 전환(Conversion)으로 바뀌었을 뿐, 여전히 <strong>"행동의 양"</strong>을 세고 있습니다.</p>
+
+<div class="vs">
+  <div class="vs-side" style="background:#fef2f2;">
+    <div style="font-size:14px;font-weight:800;color:var(--coral);margin-bottom:10px;">Vanity Metrics</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;text-align:left;">
+      &bull; Impression 100만 &mdash; 봇도 1로 카운트<br>
+      &bull; Engagement Rate 3.2% &mdash; 의무 좋아요 포함<br>
+      &bull; 리뷰 300건 &mdash; 협찬 20% 미분리<br>
+      &bull; 긍정률 72% &mdash; 극성/피상적 긍정 구분 불가<br><br>
+      <strong style="color:var(--coral);">결론: "좋아 보이지만<br>의사결정 근거가 되지 못하는 숫자"</strong>
+    </div>
+  </div>
+  <div class="vs-center">vs</div>
+  <div class="vs-side" style="background:#ecfdf5;">
+    <div style="font-size:14px;font-weight:800;color:var(--green);margin-bottom:10px;">Actionable Metrics</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;text-align:left;">
+      &bull; BEI 52.3 &mdash; 감성 4축의 가중 종합<br>
+      &bull; Sincerity 80.6% &mdash; 3단계 필터 통과 진심<br>
+      &bull; Advocacy 44.1 &mdash; 추천 행동 강도<br>
+      &bull; EMV 7.8억 &mdash; 축별 비용 전환 누적<br><br>
+      <strong style="color:var(--green);">결론: "어디에 투자하면<br>얼마의 가치가 올라가는지 보이는 숫자"</strong>
+    </div>
+  </div>
+</div>
+
+<div class="callout-dark callout">
+  <strong>핵심 전환:</strong> 마케팅 측정의 패러다임이 <strong>Reach(도달) &rarr; Resonance(공명)</strong>으로 이동하고 있습니다.<br>
+  "얼마나 많이 보여줬는가"에서 <strong>"얼마나 깊이 울렸는가"</strong>로. 이 전환의 핵심이 감성 데이터의 정량화이며,<br>
+  그 정량화된 감성을 비용으로 환산하는 것이 EMV 프레임워크의 목적입니다.
+</div>
+
+<!-- ========== 2. WHY IT MATTERS ========== -->
+<div class="section-num">PART 02</div>
+<h2>왜 감성 데이터의 비용 전환이 필요한가</h2>
+
+<h3>2-1. 브랜드 자산 이론과의 연결</h3>
+
+<p>감성 데이터가 비즈니스 가치를 가지는 근거는 브랜드 자산(Brand Equity) 이론에 있습니다. Keller(1993)의 <strong>CBBE(Customer-Based Brand Equity)</strong> 모델에서 브랜드 자산의 최상위 단계는 <strong>Resonance(공명)</strong> &mdash; 소비자가 브랜드와 깊은 심리적 유대를 형성한 상태입니다.</p>
+
+<div class="card" style="border:2px solid var(--primary);padding:0;overflow:hidden;">
+  <div style="padding:16px 20px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;">Keller's CBBE Pyramid &times; BEI 4축 매핑</div>
+  <table style="margin:0;">
+    <thead><tr><th style="background:var(--light);color:var(--dark);">CBBE 단계</th><th style="background:var(--light);color:var(--dark);">소비자 상태</th><th style="background:var(--light);color:var(--dark);">BEI 대응 축</th><th style="background:var(--light);color:var(--dark);">EMV 경로</th></tr></thead>
+    <tbody>
+      <tr style="background:#eef2ff;"><td style="font-weight:700;color:var(--primary);">4. Resonance</td><td>충성, 옹호, 커뮤니티</td><td style="font-weight:600;color:var(--advocacy);">Advocacy</td><td>바이럴 획득 가치</td></tr>
+      <tr><td style="font-weight:700;">3. Judgments/Feelings</td><td>품질 인식, 감정적 반응</td><td style="font-weight:600;color:var(--depth);">Depth + Sincerity</td><td>재구매 + 전환율</td></tr>
+      <tr><td style="font-weight:700;">2. Performance/Imagery</td><td>기능/이미지 인식</td><td style="font-weight:600;color:var(--discovery);">Discovery</td><td>Earned Media</td></tr>
+      <tr><td style="font-weight:700;">1. Salience</td><td>브랜드 인지</td><td style="color:#94a3b8;">노출/볼륨 (BEI 범위 밖)</td><td style="color:#94a3b8;">CPM 계산</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p style="margin-top:14px;">기존 디지털 마케팅 측정은 CBBE의 1단계(Salience)에 집중합니다. EMV 프레임워크는 <strong>3~4단계의 감성 지표를 비용으로 전환</strong>하여, 브랜드 자산의 상위 계층을 정량화합니다.</p>
+
+<h3>2-2. 감성 &rarr; 행동 &rarr; 매출: 인과 체인</h3>
+
+<div class="card" style="border-left:5px solid var(--primary);">
+<div style="font-size:13px;line-height:2;color:#333;">
+  <strong style="color:var(--primary);">학술적 근거가 확립된 인과 경로:</strong><br><br>
+  <strong>1) Depth &rarr; 재구매:</strong> Packard et al.(2018, PNAS)는 고객 리뷰에서 "I" 대명사 사용 비율 10% 증가 시 매출 0.8% 증가를 실증. 자기 참조적(self-referential) 글쓰기가 브랜드 기억 강도와 정(+)의 상관.<br><br>
+  <strong>2) Advocacy &rarr; 바이럴:</strong> Nielsen Global Trust Report(2021)에서 소비자 88%가 지인 추천을 가장 신뢰. 추천 기반 유입 고객의 LTV는 일반 고객 대비 16~25% 높음(Wharton, 2013).<br><br>
+  <strong>3) Sincerity &rarr; 전환율:</strong> Spiegel Research Center(Northwestern)의 연구에서 리뷰 존재 시 전환율 최대 270% 상승. BrightLocal(2024)은 소비자 79%가 리뷰의 <em>진정성</em>을 구매 결정 최우선 요소로 선택.<br><br>
+  <strong>4) Discovery &rarr; Earned Media:</strong> Berger & Milkman(2012, JMR)은 "경외감(awe)"과 "놀라움"이 자발적 공유의 핵심 드라이버임을 실증. 신선한 경험 = 높은 Share of Voice.
+</div>
+</div>
+
+<div class="callout">
+  <strong>시사점:</strong> 감성 데이터의 비용 전환은 "감(feeling)을 돈으로 바꾸는 것"이 아닙니다.<br>
+  이미 학술적으로 검증된 <strong>"감성 &rarr; 행동 전환 경로"</strong>에 업종별 단가를 적용하는 것입니다.<br>
+  논리적 비약이 아닌, <strong>각 단계가 독립적으로 검증 가능한 3단계 체인</strong>입니다.
+</div>
+
+<!-- ========== 3. HOW IT WORKS ========== -->
+<div class="section-num">PART 03</div>
+<h2>EMV 프레임워크: 3단계 전환 아키텍처</h2>
+
+<div class="flow">
+  <div class="flow-step" style="background:#eef2ff;border-radius:16px 0 0 16px;">
+    <div style="font-family:'Poppins';font-size:11px;font-weight:700;color:var(--primary);letter-spacing:2px;">STAGE 1</div>
+    <div style="font-size:14px;font-weight:800;color:var(--primary);margin:6px 0;">Sentiment<br>Quantification</div>
+    <div style="font-size:10px;color:var(--body);line-height:1.5;">
+      LIWC/FWA 기반 기능어 분석<br>
+      4축(D/A/S/D) 독립 산출<br>
+      Sincerity Gate 3단계 필터<br>
+      <strong>Output: BEI (0~100)</strong>
+    </div>
+  </div>
+  <div class="flow-step" style="background:#fefce8;">
+    <div style="font-family:'Poppins';font-size:11px;font-weight:700;color:var(--orange);letter-spacing:2px;">STAGE 2</div>
+    <div style="font-size:14px;font-weight:800;color:var(--orange);margin:6px 0;">Behavioral<br>Translation</div>
+    <div style="font-size:10px;color:var(--body);line-height:1.5;">
+      축별 행동 전환 계수 적용<br>
+      RetentionLift / ViralCoeff<br>
+      SincerityPremium / ShareMult<br>
+      <strong>Output: 마케팅 효과 단위</strong>
+    </div>
+  </div>
+  <div class="flow-step" style="background:#ecfdf5;border-radius:0 16px 16px 0;">
+    <div style="font-family:'Poppins';font-size:11px;font-weight:700;color:var(--green);letter-spacing:2px;">STAGE 3</div>
+    <div style="font-size:14px;font-weight:800;color:var(--green);margin:6px 0;">Value<br>Monetization</div>
+    <div style="font-size:10px;color:var(--body);line-height:1.5;">
+      업종별 CLV/CAC/CPM 적용<br>
+      규모 보정 (한계효용 반영)<br>
+      Decay-adjusted 4주 누적<br>
+      <strong>Output: EMV (&#8361;)</strong>
+    </div>
+  </div>
+</div>
+<style>.flow-step:nth-child(1)::after{border-left-color:#eef2ff;}.flow-step:nth-child(2)::after{border-left-color:#fefce8;}</style>
+
+<h3>3-1. 4축의 독립적 가치 경로</h3>
+
+<p>BEI 가중치(D 0.35 / A 0.35 / S 0.15 / D 0.15)는 <em>점수 산출용</em>입니다. EMV에서는 4축이 각각 <strong>다른 경제적 메커니즘</strong>으로 가치를 만들기 때문에, 독립 산출 후 합산합니다.</p>
+
+<div class="grid4" style="margin:16px 0;">
+  <div class="matrix-cell" style="background:#eef2ff;border:2px solid var(--depth);">
+    <div style="font-size:12px;font-weight:800;color:var(--depth);">DEPTH</div>
+    <div style="font-size:10px;color:var(--body);margin:6px 0;">관여 깊이 &rarr; 기억 강도</div>
+    <div style="font-size:20px;font-weight:800;color:var(--depth);font-family:'Poppins';">Retention</div>
+    <div style="font-size:9px;color:var(--body);margin-top:4px;">V = N<sub>g3</sub> &times; D/100<br>&times; RetLift &times; CLV &times; RetBase</div>
+    <div style="margin-top:8px;padding:4px 8px;background:var(--depth);color:#fff;border-radius:6px;font-size:9px;font-weight:600;">재구매/재방문 가치</div>
+  </div>
+  <div class="matrix-cell" style="background:#ecfdf5;border:2px solid var(--advocacy);">
+    <div style="font-size:12px;font-weight:800;color:var(--advocacy);">ADVOCACY</div>
+    <div style="font-size:10px;color:var(--body);margin:6px 0;">추천 강도 &rarr; 바이럴 계수</div>
+    <div style="font-size:20px;font-weight:800;color:var(--advocacy);font-family:'Poppins';">Acquisition</div>
+    <div style="font-size:9px;color:var(--body);margin-top:4px;">V = N<sub>g3</sub> &times; A/100<br>&times; Viral &times; Reach &times; CR &times; CLV</div>
+    <div style="margin-top:8px;padding:4px 8px;background:var(--advocacy);color:#fff;border-radius:6px;font-size:9px;font-weight:600;">신규 고객 획득 가치</div>
+  </div>
+  <div class="matrix-cell" style="background:#fefce8;border:2px solid var(--sincerity);">
+    <div style="font-size:12px;font-weight:800;color:var(--sincerity);">SINCERITY</div>
+    <div style="font-size:10px;color:var(--body);margin:6px 0;">진성 비율 &rarr; 신뢰도</div>
+    <div style="font-size:20px;font-weight:800;color:var(--sincerity);font-family:'Poppins';">Conversion</div>
+    <div style="font-size:9px;color:var(--body);margin-top:4px;">V = R &times; CR<sub>base</sub><br>&times; SinPremium &times; AOV</div>
+    <div style="margin-top:8px;padding:4px 8px;background:var(--sincerity);color:#fff;border-radius:6px;font-size:9px;font-weight:600;">전환율 프리미엄</div>
+  </div>
+  <div class="matrix-cell" style="background:#fdf2f8;border:2px solid var(--discovery);">
+    <div style="font-size:12px;font-weight:800;color:var(--discovery);">DISCOVERY</div>
+    <div style="font-size:10px;color:var(--body);margin:6px 0;">신선함 &rarr; 자발적 공유</div>
+    <div style="font-size:20px;font-weight:800;color:var(--discovery);font-family:'Poppins';">Earned</div>
+    <div style="font-size:9px;color:var(--body);margin-top:4px;">V = N<sub>g3</sub> &times; F/100<br>&times; ShareMult &times; CPM<sub>e</sub> &times; Reach</div>
+    <div style="margin-top:8px;padding:4px 8px;background:var(--discovery);color:#fff;border-radius:6px;font-size:9px;font-weight:600;">Earned Media 가치</div>
+  </div>
+</div>
+
+<h3>3-2. Decay-adjusted Cumulative Value</h3>
+
+<p>캠페인 효과는 시간에 따라 감쇠합니다. 그러나 <strong>4축의 감쇠 패턴이 다릅니다</strong>. 이것이 EMV의 핵심 차별점 &mdash; 단순 합산이 아닌 축별 독립 감쇠 적용.</p>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <table style="margin:0;">
+    <thead><tr><th>축</th><th>Decay 패턴</th><th>&lambda;</th><th>4주 평균 계수</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:700;color:var(--depth);">Depth</td><td>Slow Decay</td><td>0.036</td><td class="num">0.919</td><td>체험 기억은 오래 지속</td></tr>
+      <tr><td style="font-weight:700;color:var(--advocacy);">Advocacy</td><td>Rapid Decay</td><td>0.105</td><td class="num">0.803</td><td>추천 열기는 빠르게 식음</td></tr>
+      <tr><td style="font-weight:700;color:var(--sincerity);">Sincerity</td><td>Inverse (상승)</td><td>&sigma;=0.09</td><td class="num">1.047</td><td>노이즈 소멸 후 진심만 잔존</td></tr>
+      <tr><td style="font-weight:700;color:var(--discovery);">Discovery</td><td>Sharp Decay</td><td>0.245</td><td class="num">0.611</td><td>신선함의 유통기한은 짧음</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="ref" style="margin-top:6px;">* 새로중앙박물관 실측 데이터(281건) 기반 지수함수 피팅. 실측치 대비 오차 &plusmn;2% 이내.</div>
+
+<!-- ========== 4. COMPETITIVE POSITIONING ========== -->
+<div class="section-num">PART 04</div>
+<h2>경쟁 도구 대비 포지셔닝</h2>
+
+<div class="card" style="padding:0;overflow:hidden;border-radius:16px;border:1px solid #e2e8f0;">
+  <table style="margin:0;">
+    <thead>
+      <tr>
+        <th style="width:20%;">구분</th>
+        <th style="text-align:center;">Brandwatch<br>Sprinklr</th>
+        <th style="text-align:center;">Interbrand<br>Brand Finance</th>
+        <th style="text-align:center;background:var(--primary);color:#fff;">RXR EMV<br>Framework</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td style="font-weight:600;">측정 레벨</td><td style="text-align:center;">감성 분류<br>(긍정/부정/중립)</td><td style="text-align:center;">브랜드 전체 가치<br>(연간 단위)</td><td style="text-align:center;background:#eef2ff;font-weight:600;">감성 4축 &times; 비용 전환<br>(캠페인 단위)</td></tr>
+      <tr><td style="font-weight:600;">비용 환산</td><td style="text-align:center;color:var(--coral);">EMV 제공하나<br>노출 x CPM 단순 곱</td><td style="text-align:center;">DCF/로열티 기반<br>재무 데이터 필수</td><td style="text-align:center;background:#eef2ff;font-weight:600;">4축별 독립 가치 경로<br>업종/규모 파라미터화</td></tr>
+      <tr><td style="font-weight:600;">진정성 필터</td><td style="text-align:center;color:var(--coral);">없음</td><td style="text-align:center;color:var(--coral);">해당 없음</td><td style="text-align:center;background:#eef2ff;font-weight:600;color:var(--green);">Sincerity Gate 3단계<br>+ Account Trust T1~T5</td></tr>
+      <tr><td style="font-weight:600;">시간 추적</td><td style="text-align:center;">트렌드 차트<br>(감성 변화만)</td><td style="text-align:center;">연간 갱신</td><td style="text-align:center;background:#eef2ff;font-weight:600;">4주 Decay Curve<br>축별 독립 감쇠 함수</td></tr>
+      <tr><td style="font-weight:600;">개선 진단</td><td style="text-align:center;color:var(--coral);">불가</td><td style="text-align:center;color:var(--coral);">불가</td><td style="text-align:center;background:#eef2ff;font-weight:600;color:var(--green);">"Advocacy +10점 = +2.5억"<br>축별 레버리지 제시</td></tr>
+      <tr><td style="font-weight:600;">비용</td><td style="text-align:center;">$1,000~5,000/월</td><td style="text-align:center;">프로젝트 수억 원</td><td style="text-align:center;background:#eef2ff;font-weight:600;">캠페인 단위 과금<br>SMB 접근 가능</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>포지셔닝:</strong> Brandwatch/Sprinklr는 <em>"감성을 보여주지만 돈으로 못 바꾸고"</em>,<br>
+  Interbrand/Brand Finance는 <em>"돈으로 바꾸지만 캠페인 단위는 못 보고"</em>,<br>
+  RXR EMV는 <strong>"캠페인 단위로, 감성을 돈으로 바꾸면서, 어디를 고치면 더 벌 수 있는지"</strong>까지 답합니다.
+</div>
+
+<!-- ========== 5. CASE STUDY ========== -->
+<div class="section-num">PART 05</div>
+<h2>실증 케이스: 비욘드 vs CJ온스타일 동일 업종 비교</h2>
+
+<div class="grid2" style="margin-bottom:16px;">
+  <div class="card" style="border:2px solid var(--green);text-align:center;">
+    <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px;">비욘드 친환경 팝업</div>
+    <div style="font-size:10px;color:var(--body);margin-bottom:8px;">LG생활건강 | Beauty | N=191 | Gate3=154</div>
+    <div style="font-family:'Poppins';font-size:38px;font-weight:800;color:var(--green);">7.8억</div>
+    <div style="font-size:10px;color:var(--body);">4주 EMV | BEI 52.3</div>
+    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
+      <span class="tag" style="background:#d1fae5;color:#065f46;font-size:10px;">Sin 80.6</span>
+      <span class="tag" style="background:#eef2ff;color:var(--primary);font-size:10px;">Dep 54.6</span>
+      <span class="tag" style="background:#fef3c7;color:#92400e;font-size:10px;">Adv 44.1</span>
+      <span class="tag" style="background:#fce7f3;color:#9d174d;font-size:10px;">Dis 37.6</span>
+    </div>
+  </div>
+  <div class="card" style="border:2px solid var(--primary);text-align:center;">
+    <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:2px;">CJ온스타일 컴온스타일 팝업</div>
+    <div style="font-size:10px;color:var(--body);margin-bottom:8px;">CJ ENM | Beauty(슬로우에이징) | N=368 | Gate3=272</div>
+    <div style="font-family:'Poppins';font-size:38px;font-weight:800;color:var(--primary);">5.6억</div>
+    <div style="font-size:10px;color:var(--body);">4주 EMV | BEI 50.6</div>
+    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
+      <span class="tag" style="background:#d1fae5;color:#065f46;font-size:10px;">Sin 73.9</span>
+      <span class="tag" style="background:#eef2ff;color:var(--primary);font-size:10px;">Dep 59.4</span>
+      <span class="tag" style="background:#fef3c7;color:#92400e;font-size:10px;">Adv 25.0</span>
+      <span class="tag" style="background:#fce7f3;color:#9d174d;font-size:10px;">Dis 44.2</span>
+    </div>
+  </div>
+</div>
+
+<h3>동일 업종 비교: 4축 디테일이 EMV 격차를 만든다</h3>
+
+<div class="card" style="border-left:5px solid var(--orange);">
+  <div style="font-size:13px;color:#333;line-height:2;">
+    두 캠페인은 모두 <strong>Beauty 업종, 메가 규모(CJ ENM, LG생활건강)</strong>로 동일 파라미터(CLV 50만, K_viral 3.5, x0.6)를 적용받습니다. BEI 종합도 <strong>52.3 vs 50.6</strong>으로 1.7점 차이에 불과합니다. 그러나 4주 EMV는 <strong>7.8억 vs 5.6억(-28%)</strong>.<br><br>
+    이것은 업종이 아닌 <strong>4축 디테일의 차이</strong>가 만든 격차입니다:<br><br>
+    <strong>&bull; Advocacy 갭(44.1 vs 25.0):</strong> 비욘드 Q5 서사형 13% vs CJ온 6.25% &mdash; 추천 강도가 절반 수준. EMV에서 Advocacy는 곱셈 체인이 가장 길어 격차가 증폭됨<br>
+    <strong>&bull; Sincerity 갭(80.6 vs 73.9):</strong> Gate3 통과율이 6.7%p 낮음. 협찬 비중은 CJ온이 11.7%로 비욘드(25%)보다 낮지만, <strong>협찬 Auth 40.7 vs 56.6</strong>으로 협찬 효율 자체가 떨어짐<br>
+    <strong>&bull; Depth/Discovery 우위:</strong> CJ온이 Depth(+4.8), Discovery(+6.6)에서 앞서지만, 두 축의 EMV 기여도는 합쳐 3% 미만이라 총합을 뒤집지 못함<br><br>
+    <strong style="color:var(--orange);">시사점:</strong> BEI 종합점수만으로는 두 캠페인의 가치 차이를 설명할 수 없습니다. <strong>어느 축이 강한가</strong>가 EMV를 결정하며, 특히 Beauty 업종에서는 <strong>Advocacy(Q5 서사형)와 Sincerity(협찬 효율)가 가장 큰 레버리지</strong>입니다. CJ온스타일은 단기 5일 운영으로 일평균 버즈는 압도적이지만(73.6건/일 vs 비욘드 10.0건/일), 깊이 있는 후기 비율이 낮아 가치 효율은 비욘드가 우위입니다.
+  </div>
+</div>
+
+<h3>비욘드 EMV 구조 분석: Advocacy Dominance</h3>
+
+<div class="card">
+  <table>
+    <thead><tr><th>축</th><th style="text-align:right;">EMV (4주)</th><th style="text-align:right;">비중</th><th>가치 메커니즘</th><th>전략적 해석</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:700;color:var(--advocacy);">Advocacy</td><td style="text-align:right;font-weight:700;">7.0억</td><td style="text-align:right;font-weight:700;">90.1%</td><td>Q5 추천형 13% &times; CLV 50만</td><td style="color:var(--green);font-weight:600;">최대 레버리지 포인트</td></tr>
+      <tr><td style="font-weight:700;color:var(--sincerity);">Sincerity</td><td style="text-align:right;">6,650만</td><td style="text-align:right;">8.6%</td><td>진성 80.6% &rarr; CR +18.4%</td><td>이미 Strong &mdash; 유지 전략</td></tr>
+      <tr><td style="font-weight:700;color:var(--depth);">Depth</td><td style="text-align:right;">801만</td><td style="text-align:right;">1.0%</td><td>RetentionLift +3.7%</td><td>체험 깊이 강화 필요</td></tr>
+      <tr><td style="font-weight:700;color:var(--discovery);">Discovery</td><td style="text-align:right;">249만</td><td style="text-align:right;">0.3%</td><td>Freshness 37.6 (Emerging)</td><td>컨셉 리프레시 필요</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="callout-green callout">
+  <strong>Actionable Insight:</strong> Advocacy가 EMV의 90%를 차지하면서 동시에 Emerging(44.1)에 머물러 있습니다. 이것은 <strong>"가장 큰 가치를 만드는 축이 가장 낮은 점수"</strong>라는 의미 &mdash; 즉, <strong>개선 여지가 곧 수억 원의 기회</strong>입니다.<br><br>
+  <strong>시뮬레이션:</strong> Advocacy +10점(44&rarr;54) 달성 시 EMV <strong>+2.5억 원(+32%)</strong> 상승.<br>
+  전략: "친구와 함께 공병 교환" 같은 Social Referral 메커니즘 설계.
+</div>
+
+<h3>CJ온스타일 EMV 구조 분석: Sincerity Dominance</h3>
+
+<div class="card">
+  <table>
+    <thead><tr><th>축</th><th style="text-align:right;">EMV (4주, scaled)</th><th style="text-align:right;">비중</th><th>가치 메커니즘</th><th>전략적 해석</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:700;color:var(--sincerity);">Sincerity</td><td style="text-align:right;font-weight:700;">3.64억</td><td style="text-align:right;font-weight:700;">62.5%</td><td>진성 73.9% &rarr; CR +14.3%</td><td style="color:var(--orange);font-weight:600;">협찬 Auth 40.7 &mdash; 효율 개선 여지</td></tr>
+      <tr><td style="font-weight:700;color:var(--advocacy);">Advocacy</td><td style="text-align:right;font-weight:700;">2.01억</td><td style="text-align:right;font-weight:700;">34.5%</td><td>Q5 추천형 6.25% &times; CLV 50만</td><td style="color:var(--green);font-weight:600;">Q5 비율 절반 &mdash; 최대 레버리지</td></tr>
+      <tr><td style="font-weight:700;color:var(--depth);">Depth</td><td style="text-align:right;">1,303만</td><td style="text-align:right;">2.2%</td><td>RetentionLift +7.5% (RQL 가중평균 59.4)</td><td>RQL 평균은 비욘드 우위 &mdash; 안정</td></tr>
+      <tr><td style="font-weight:700;color:var(--discovery);">Discovery</td><td style="text-align:right;">435만</td><td style="text-align:right;">0.7%</td><td>Freshness 44.2 (Emerging)</td><td>5일 단기 운영 한계</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="callout-green callout">
+  <strong>Actionable Insight:</strong> CJ온스타일은 비욘드와 정반대로 <strong>Sincerity가 EMV의 62.5%를 차지</strong>합니다. 이는 N_g3가 272건으로 큰 모수(블로그 368건의 73.9%)를 가지면서 R(reach)도 비욘드의 1.9배이기 때문입니다. 그러나 같은 Sincerity 축에서 <strong>협찬 Auth가 40.7</strong>로 비욘드(56.6) 대비 -15.9pt 낮아, 협찬이 진성률을 발목 잡고 있습니다.<br><br>
+  <strong>핵심 레버리지 &mdash; Advocacy(Q5 서사형 비율):</strong> CJ온은 Q5 비율이 6.25%로 비욘드(13%)의 절반입니다. 5일 단기 팝업의 특성상 깊은 후기 작성 동기가 부족했음을 시사합니다.<br><br>
+  <strong>시뮬레이션:</strong> Q5 서사형 비율을 6.25% &rarr; 13%(비욘드 수준)로 끌어올릴 경우, ViralCoeff가 2배가 되어 Advocacy EMV가 <strong>2.01억 &rarr; 4.02억</strong>. 총 EMV <strong>+2.0억 원(+34%)</strong> 상승.<br>
+  전략: "공간 미션 클리어 + 스토리 템플릿 + 리뷰 인증 이벤트" 같은 Q5 유도 장치 설계.
+</div>
+
+<!-- ========== 6. BUSINESS VALUE ========== -->
+<div class="section-num">PART 06</div>
+<h2>비즈니스 가치와 서비스 확장 가능성</h2>
+
+<h3>6-1. 클라이언트 가치 제안 (Value Proposition)</h3>
+
+<div class="grid3" style="margin:16px 0;">
+  <div class="card" style="border-top:4px solid var(--coral);text-align:center;">
+    <div style="font-size:12px;font-weight:800;color:var(--coral);margin-bottom:8px;">Pain Point</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.7;">
+      "팝업스토어에 3억 썼는데<br>효과를 어떻게 증명하죠?"<br><br>
+      방문객 수, SNS 언급량으로는<br><strong>경영진 보고가 안 됨</strong>
+    </div>
+  </div>
+  <div class="card" style="border-top:4px solid var(--green);text-align:center;">
+    <div style="font-size:12px;font-weight:800;color:var(--green);margin-bottom:8px;">Solution</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.7;">
+      "이 캠페인의 SNS 감성 가치는<br>4주 기준 <strong>5.6억 원</strong>입니다"<br><br>
+      4축별 비용 분해 +<br><strong>개선 포인트별 &#8361; 임팩트</strong>
+    </div>
+  </div>
+  <div class="card" style="border-top:4px solid var(--primary);text-align:center;">
+    <div style="font-size:12px;font-weight:800;color:var(--primary);margin-bottom:8px;">Impact</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.7;">
+      캠페인 기획의 근거가<br><strong>"감"에서 "숫자"</strong>로 전환<br><br>
+      "다음 캠페인에서<br><strong>여기에 집중하면 +2.0억"</strong>
+    </div>
+  </div>
+</div>
+
+<h3>6-2. 서비스 상품화 로드맵</h3>
+
+<div class="card" style="border:2px solid var(--primary);border-radius:20px;padding:24px;">
+  <!-- Tier 1 -->
+  <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid #eee;">
+    <div style="min-width:56px;height:56px;background:var(--light);border:2px solid var(--primary);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-size:14px;font-weight:800;color:var(--primary);">Tier 1</div>
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--primary);">Campaign EMV Report</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.8;margin-top:4px;">
+        단일 캠페인 BEI + EMV 산출. 4축 분해 + 개선 레버리지 진단.<br>
+        <strong>타겟:</strong> 팝업/캠페인 운영 브랜드 &bull; <strong>딜리버리:</strong> 리포트 1회 &bull; <strong>데이터:</strong> SNS 공개 데이터
+      </div>
+    </div>
+  </div>
+  <!-- Tier 2 -->
+  <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid #eee;">
+    <div style="min-width:56px;height:56px;background:var(--light);border:2px solid var(--green);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-size:14px;font-weight:800;color:var(--green);">Tier 2</div>
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--green);">Campaign EMV + 4Week Tracking</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.8;margin-top:4px;">
+        Tier 1 + 4주 Decay 추적 + 축별 감쇠 패턴 진단 + 누적 EMV 산출.<br>
+        <strong>타겟:</strong> 분기별 캠페인 운영 브랜드 &bull; <strong>딜리버리:</strong> 리포트 2회 (T+0, T+4w)
+      </div>
+    </div>
+  </div>
+  <!-- Tier 3 -->
+  <div style="display:flex;gap:16px;align-items:flex-start;">
+    <div style="min-width:56px;height:56px;background:var(--light);border:2px solid var(--orange);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-size:14px;font-weight:800;color:var(--orange);">Tier 3</div>
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--orange);">Annual Brand Intelligence</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.8;margin-top:4px;">
+        연간 다수 캠페인 누적 &rarr; 업종별 벤치마크 DB 구축 &rarr; 사전 예측 모델.<br>
+        <strong>타겟:</strong> CMO/브랜드 디렉터 &bull; <strong>딜리버리:</strong> 대시보드 + 분기 리뷰 &bull; <strong>Moat:</strong> 축적된 벤치마크 DB
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>6-3. 시장 기회: "감성 측정의 사각지대"</h3>
+
+<div class="grid2" style="margin:16px 0;">
+  <div class="card" style="border-left:5px solid var(--primary);">
+    <div style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:8px;">공급 측면</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      &bull; Social Listening 시장 $10.3B (2024, Grand View)<br>
+      &bull; 연 15.6% 성장 전망<br>
+      &bull; 그러나 <strong>"감성 &rarr; &#8361;" 전환 도구는 부재</strong><br>
+      &bull; Brandwatch/Sprinklr의 EMV = 노출 &times; CPM (단순 곱)<br>
+      &bull; <strong>질적 분해 + 축별 비용 전환은 글로벌 공백</strong>
+    </div>
+  </div>
+  <div class="card" style="border-left:5px solid var(--green);">
+    <div style="font-size:13px;font-weight:800;color:var(--green);margin-bottom:8px;">수요 측면</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      &bull; 국내 팝업스토어 시장 연 1조 원+ (2024)<br>
+      &bull; 브랜드 경험 마케팅 예산 연 10~20% 증가<br>
+      &bull; CMO의 #1 과제: <strong>"마케팅 ROI 증명"</strong><br>
+      &bull; 쿠키리스 전환으로 1st party 데이터 가치 급등<br>
+      &bull; <strong>오프라인 경험의 효과 측정 = 미해결 난제</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 7. METHODOLOGY ========== -->
+<div class="section-num">PART 07</div>
+<h2>방법론적 엄밀성과 한계</h2>
+
+<div class="grid2" style="margin:16px 0;">
+  <div class="card" style="border-top:4px solid var(--green);">
+    <div style="font-size:13px;font-weight:800;color:var(--green);margin-bottom:8px;">검증된 기반</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      &bull; LIWC (Linguistic Inquiry and Word Count): 20,000+ 학술 논문에서 검증된 텍스트 분석 프레임워크<br>
+      &bull; FWA (Function Word Analysis): 기능어 패턴으로 무의식적 심리 상태 포착<br>
+      &bull; Sincerity Gate: 3단계 진정성 필터 (이클립스 파일럿에서 협찬 부풀림 5%p 실증)<br>
+      &bull; Decay 함수: 실측 데이터 대비 &plusmn;2% 오차
+    </div>
+  </div>
+  <div class="card" style="border-top:4px solid var(--coral);">
+    <div style="font-size:13px;font-weight:800;color:var(--coral);margin-bottom:8px;">명시적 한계</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      &bull; 상관 기반 추정이며 인과 증명이 아님<br>
+      &bull; 초기 전환 계수는 문헌/업계 관행 기반<br>
+      &bull; 최소 Gate 1 기준 50건 이상 필요<br>
+      &bull; 한국어 SNS 데이터에 최적화 (다국어 미검증)<br>
+      &bull; 외부 변수(시즈널리티, 경쟁사) 통제 불가
+    </div>
+  </div>
+</div>
+
+<div class="card" style="border-left:5px solid var(--primary);">
+  <div style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:8px;">계수 보정 로드맵</div>
+  <div style="font-size:12px;color:var(--body);line-height:1.8;">
+    <strong>Phase 1 (N=1~3):</strong> 사후 검증 &mdash; EMV와 실제 매출/검색량 변동의 방향성 일치 확인<br>
+    <strong>Phase 2 (N=5~10):</strong> 상관 분석 &mdash; BEI&times;EMV vs 실제 KPI 상관계수 r > 0.5 목표<br>
+    <strong>Phase 3 (N=20+):</strong> 회귀 보정 &mdash; OLS + 업종 더미 변수로 계수 정밀화, 예측 오차 &plusmn;30% 이내<br>
+    <strong>보정 주기:</strong> 분기 1회 또는 10건 축적 시
+  </div>
+</div>
+
+<!-- ========== 8. SUMMARY ========== -->
+<div class="section-num">PART 08</div>
+<h2>Executive Summary</h2>
+
+<div class="card" style="border:2px solid var(--primary);border-radius:20px;padding:28px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <!-- Left: What -->
+    <div>
+      <div style="font-size:14px;font-weight:800;color:var(--primary);margin-bottom:12px;">What: 무엇인가</div>
+      <div style="font-size:12px;color:var(--body);line-height:2;">
+        SNS 감성 데이터를 4축(Depth/Advocacy/Sincerity/Discovery)으로 분해하고, 각 축이 만드는 경제적 가치를 업종별 단가로 환산하는 프레임워크.<br><br>
+        <strong>= "이 캠페인이 만든 진심의 시장 가격"</strong>
+      </div>
+    </div>
+    <!-- Right: Why -->
+    <div>
+      <div style="font-size:14px;font-weight:800;color:var(--green);margin-bottom:12px;">Why: 왜 필요한가</div>
+      <div style="font-size:12px;color:var(--body);line-height:2;">
+        &bull; 마케팅 ROI 증명의 구조적 한계 해결<br>
+        &bull; Vanity Metrics에서 Actionable Metrics로<br>
+        &bull; 브랜드 자산의 상위 계층(CBBE 3~4단계) 정량화<br>
+        &bull; 캠페인 단위의 비용 효율 진단과 개선점 제시
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;padding-top:24px;border-top:2px solid #eee;display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <!-- Left: How -->
+    <div>
+      <div style="font-size:14px;font-weight:800;color:var(--orange);margin-bottom:12px;">How: 어떻게 작동하는가</div>
+      <div style="font-size:12px;color:var(--body);line-height:2;">
+        <strong>Stage 1:</strong> LIWC/FWA 기반 4축 감성 수치화 (BEI)<br>
+        <strong>Stage 2:</strong> 축별 행동 전환 계수 적용<br>
+        <strong>Stage 3:</strong> 업종별 단가 &times; 규모 보정 &times; Decay 누적<br>
+        <strong>Output:</strong> EMV (&#8361;) + 축별 분해 + 개선 레버리지
+      </div>
+    </div>
+    <!-- Right: So What -->
+    <div>
+      <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:12px;">So What: 비즈니스 임팩트</div>
+      <div style="font-size:12px;color:var(--body);line-height:2;">
+        &bull; Social Listening의 "So What?" 문제 해결<br>
+        &bull; CMO의 경영진 보고 근거 제공<br>
+        &bull; 데이터 축적 시 사전 예측/벤치마크 가능<br>
+        &bull; 글로벌 경쟁 도구 대비 <strong>유일한 포지션</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="callout-dark callout" style="text-align:center;margin-top:20px;">
+  <div style="font-size:18px;font-weight:800;margin-bottom:8px;">One Sentence</div>
+  <div style="font-size:15px;line-height:1.8;">
+    <strong>"사람들이 브랜드를 진심으로 좋아하는 정도"</strong>를 측정하고,<br>
+    그 진심의 <strong>시장 가격</strong>을 매기고, <strong>어떻게 올릴 수 있는지</strong>까지 답합니다.
+  </div>
+</div>
+
+<!-- ========== APPENDIX ========== -->
+<div style="margin-top:64px;padding-top:32px;border-top:4px solid var(--dark);">
+  <div style="font-family:'Poppins';font-size:12px;font-weight:700;color:var(--dark);letter-spacing:3px;margin-bottom:4px;">APPENDIX</div>
+  <h1 style="font-size:28px;margin-bottom:8px;">방법론 상세 &amp; 근거</h1>
+  <div style="font-size:13px;color:var(--body);margin-bottom:32px;">본 프레임워크를 구성하는 핵심 방법론의 원리, 학술적 근거, 적용 방식을 상세히 기술합니다.</div>
+</div>
+
+<!-- ===== A. LIWC / FWA ===== -->
+<div class="section-num">APPENDIX A</div>
+<h2>LIWC &amp; FWA &mdash; 텍스트에서 무의식을 읽는 기술</h2>
+
+<h3>A-1. LIWC란 무엇인가</h3>
+<p><strong>LIWC (Linguistic Inquiry and Word Count)</strong>는 텍스트에 사용된 단어를 심리학적 범주로 분류하여, 글쓴이의 심리 상태를 정량적으로 추론하는 도구입니다. 1993년 James W. Pennebaker(UT Austin)가 개발하였으며, 현재까지 <strong>20,000편 이상의 학술 논문</strong>에서 활용되었습니다.</p>
+
+<div class="card" style="border-left:5px solid var(--primary);">
+  <div style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:10px;">핵심 원리: 내용어(Content Words) vs 기능어(Function Words)</div>
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <strong>내용어</strong> = 무엇을(What) 말하는가: 명사, 동사, 형용사<br>
+    &rarr; 의식적으로 선택 가능 &rarr; 의도적 조작 쉬움<br><br>
+    <strong>기능어</strong> = 어떻게(How) 말하는가: 대명사, 조사, 접속사, 부사<br>
+    &rarr; 무의식적으로 사용 &rarr; 의도적 조작 극히 어려움<br><br>
+    <strong style="color:var(--primary);">예시:</strong> "이 카페 <em>진짜</em> 좋았어요" vs "이 카페 좋았어요"<br>
+    내용은 같지만 <em>강조 부사("진짜")</em>의 유무가 감정 강도의 차이를 드러냅니다.<br>
+    기능어 패턴은 글쓴이가 <strong>의식하지 못하는 사이에 심리 상태를 노출</strong>합니다.
+  </div>
+</div>
+
+<h3>A-2. FWA (Function Word Analysis) &mdash; RXR의 적용</h3>
+
+<p>RXR 프레임워크는 LIWC의 기능어 분석을 마케팅 맥락에 맞게 재구성한 <strong>FWA(Function Word Analysis)</strong>를 사용합니다. 핵심 변수는 4개입니다.</p>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <table style="margin:0;">
+    <thead><tr><th style="width:18%;">FWA 변수</th><th style="width:30%;">측정 대상</th><th>LIWC 원천</th><th>BEI 연결</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:700;color:var(--depth);">Authenticity</td>
+        <td>글이 진솔한가, 꾸며낸 것인가</td>
+        <td>1인칭 대명사, 부정어, 동사/명사 비율, 배타적 단어(exclusion words) 패턴. Pennebaker(2011): 진솔한 글일수록 1인칭 + 구체적 세부 묘사 증가.</td>
+        <td style="font-weight:600;">Depth축 (가중 0.6)<br>Gate 3 필터 기준</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:var(--advocacy);">Clout</td>
+        <td>글에 확신과 영향력이 있는가</td>
+        <td>1인칭 복수("우리"), 2인칭("당신/여러분"), 사회적 단어 비율. Kacewicz et al.(2014): 사회적 지위가 높을수록 Clout 점수 상승.</td>
+        <td style="font-weight:600;">Advocacy축 (가중 0.6)</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;">Analytical</td>
+        <td>논리적/분석적 사고 수준</td>
+        <td>관사, 전치사, 접속사 비율. Pennebaker et al.(2014): 분석적 글쓰기는 인과 추론과 비교 구문이 많음.</td>
+        <td style="font-weight:600;">RQL 보조 참고<br>(직접 BEI축 미사용)</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:var(--sincerity);">Tone</td>
+        <td>전반적 감정 톤 (긍정/부정)</td>
+        <td>긍정 감정어 vs 부정 감정어의 가중 비율. Tausczik &amp; Pennebaker(2010): Tone 점수는 전반적 정서 상태의 신뢰할 수 있는 프록시.</td>
+        <td style="font-weight:600;">감성 분류 보조</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>왜 기능어인가?</strong><br>
+  협찬 리뷰 작성자는 <em>내용어</em>(멋진, 최고, 추천)를 자유롭게 선택할 수 있습니다. 그러나 <em>기능어 패턴</em>은 무의식적으로 결정되기 때문에 조작이 매우 어렵습니다.<br><br>
+  <strong>실증:</strong> 이클립스 월드 파일럿(2026)에서 협찬 리뷰의 평균 Authenticity는 47.6, 자발적 리뷰는 58.1 &mdash; <strong>10.5점 차이</strong>가 기능어 분석만으로 자동 감지되었습니다. 협찬 리뷰는 긍정률 88%(비현실적)였으나, Auth 필터 적용 후 실제 긍정률은 41%로 보정 &mdash; <strong>협찬이 긍정률을 5%p 부풀렸음</strong>을 정량적으로 입증.
+</div>
+
+<h3>A-3. 한국어 특화: Freshness Index</h3>
+
+<div class="card" style="border-left:5px solid var(--discovery);">
+  <div style="font-size:13px;font-weight:800;color:var(--discovery);margin-bottom:8px;">한국어 조사 "이/가" vs "은/는"의 심리학적 차이</div>
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    한국어는 영어와 달리 <strong>주격 조사의 선택</strong>이 화자의 심리를 드러냅니다.<br><br>
+    <strong>"이/가"</strong> (신정보 표지): <em>"분위기<strong>가</strong> 정말 좋았다"</em><br>
+    &rarr; 화자가 <strong>처음 발견한 정보</strong>를 전달 &rarr; <strong>새로운 경험</strong><br><br>
+    <strong>"은/는"</strong> (구정보 표지): <em>"분위기<strong>는</strong> 좋았다"</em><br>
+    &rarr; 화자가 <strong>이미 알고 있던 정보</strong>를 확인 &rarr; <strong>예상 범위 내</strong><br><br>
+    <strong>Freshness Index = "이/가" / ("이/가" + "은/는") &times; 100</strong><br><br>
+    이 비율이 높을수록 소비자가 <strong>"예상을 넘어선 발견"</strong>을 경험한 것이며,<br>
+    이는 자발적 공유(Earned Media)의 핵심 드라이버입니다.<br><br>
+    <span class="ref">근거: 이익섭 &amp; 채완(1999) "국어문법론강의", 남기심(2001) "현대 국어 통사론" &mdash; 한국어 정보 구조에서 "이/가"는 초점(Focus), "은/는"은 주제(Topic)를 표시. 이는 영어 관사 a/the의 신구 정보 대립과 구조적으로 동일.</span>
+  </div>
+</div>
+
+<!-- ===== B. Sincerity Gate ===== -->
+<div class="section-num">APPENDIX B</div>
+<h2>Sincerity Gate &mdash; 3단계 진정성 필터</h2>
+
+<h3>B-1. 왜 필터링이 필요한가</h3>
+
+<p>SNS 리뷰 데이터에는 구조적으로 노이즈가 포함됩니다. 협찬 리뷰, 비즈니스 계정의 홍보성 포스트, 이벤트 무관 콘텐츠 등이 감성 분석의 정확도를 훼손합니다. 기존 Social Listening 도구는 이 노이즈를 분리하지 않고 전체를 분석하여 <strong>"부풀려진 긍정률"</strong>을 보고합니다.</p>
+
+<div class="card" style="border:2px solid var(--sincerity);padding:0;overflow:hidden;">
+  <div style="padding:14px 20px;background:var(--sincerity);color:#fff;font-size:13px;font-weight:700;">Sincerity Gate 3단계 구조</div>
+  <div style="padding:20px;">
+    <!-- Gate 1 -->
+    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee;">
+      <div style="min-width:48px;height:48px;background:#fefce8;border:2px solid var(--sincerity);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-size:16px;font-weight:800;color:var(--sincerity);">G1</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--sincerity);">Gate 1: 전체 (노출 규모)</div>
+        <div style="font-size:12px;color:var(--body);line-height:1.8;margin-top:4px;">
+          관련성 필터만 적용. 이벤트 무관 콘텐츠(Class G) 제거 후 전체.<br>
+          <strong>용도:</strong> 캠페인의 총 버즈 볼륨 측정. "얼마나 화제가 되었는가"<br>
+          <strong>CJ온스타일 사례:</strong> 368건
+        </div>
+      </div>
+    </div>
+    <!-- Gate 2 -->
+    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee;">
+      <div style="min-width:48px;height:48px;background:#fefce8;border:2px solid var(--sincerity);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-size:16px;font-weight:800;color:var(--sincerity);">G2</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--sincerity);">Gate 2: 협찬 제외 (순수 효과)</div>
+        <div style="font-size:12px;color:var(--body);line-height:1.8;margin-top:4px;">
+          협찬/체험단 콘텐츠(Class C) 분리. 협찬 감지: "#광고", "제공받", "체험단" 키워드 + Auth/Clout 이상 패턴.<br>
+          <strong>용도:</strong> 마케팅 비용 없이 자발적으로 발생한 효과 측정<br>
+          <strong>CJ온스타일 사례:</strong> 368 - 43(협찬) = 325건<br>
+          <strong>인사이트:</strong> Gate 1 vs Gate 2 비교로 "협찬이 긍정률을 몇 %p 부풀렸는가" 정량화 가능
+        </div>
+      </div>
+    </div>
+    <!-- Gate 3 -->
+    <div style="display:flex;gap:16px;align-items:flex-start;">
+      <div style="min-width:48px;height:48px;background:var(--sincerity);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-size:16px;font-weight:800;color:#fff;">G3</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--sincerity);">Gate 3: Auth 60+ (진심만)</div>
+        <div style="font-size:12px;color:var(--body);line-height:1.8;margin-top:4px;">
+          Authenticity 60점 미만 제거. 피상적/의무적/기만적 글 필터링.<br>
+          <strong>용도:</strong> 진짜 팬의 목소리만으로 BEI 4축 산출. EMV의 기반 모수(N<sub>g3</sub>)<br>
+          <strong>CJ온스타일 사례:</strong> 272건 (Gate 1 대비 73.9% 통과)<br>
+          <strong>근거:</strong> Authenticity 60점 기준은 Pennebaker의 LIWC 연구에서 "평균 이상의 진솔함"에 해당하는 분위수. 이클립스 파일럿에서 협찬 리뷰 평균 Auth 47.6 vs 자발적 58.1로 변별력 확인.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>B-2. Account Trust Level (T1~T5)</h3>
+
+<p>게시물 수준의 필터(Gate)와 별도로, <strong>계정 수준의 신뢰도</strong>를 5단계로 분류합니다. 같은 긍정 리뷰라도 순수 개인의 리뷰와 비즈니스 계정의 리뷰는 가치가 다릅니다.</p>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <table style="margin:0;">
+    <thead><tr><th>Trust Level</th><th>계정 유형</th><th>가중치</th><th>감지 기준</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:700;color:var(--green);">T1</td><td>순수 개인 계정</td><td class="num" style="color:var(--green);">&times;1.0</td><td>특정 브랜드 집중도 낮음, 일상 포스트 혼재, Auth 정상 범위</td></tr>
+      <tr><td style="font-weight:700;">T2</td><td>마이크로 인플루언서</td><td class="num">&times;0.8</td><td>팔로워 1K~10K, 리뷰 빈도 높으나 다양한 브랜드</td></tr>
+      <tr><td style="font-weight:700;">T3</td><td>매크로 인플루언서</td><td class="num">&times;0.6</td><td>팔로워 10K+, 광고 비율 높음, Clout 높고 Auth 보통</td></tr>
+      <tr><td style="font-weight:700;color:var(--orange);">T4</td><td>명시 비즈니스 계정</td><td class="num" style="color:var(--orange);">&times;0.3</td><td>상호명/브랜드명 프로필, 보도자료형 글, 비즈니스 신호 명확</td></tr>
+      <tr><td style="font-weight:700;color:var(--coral);">T5</td><td>위장 계정</td><td class="num" style="color:var(--coral);">&times;0.1</td><td>개인 행세하나 특정 브랜드 포스트 80%+, 보도자료 유사도 높음, Auth 극저 + Clout 극고</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>적용 방식:</strong> Account Trust는 BEI 4축 산출 시 각 게시물의 가중치로 작용합니다. T1의 Depth 점수와 T4의 Depth 점수는 같은 수치여도 <strong>BEI 기여도가 다릅니다</strong>. 이를 통해 인플루언서 마케팅의 실제 효과와 순수 팬의 효과를 분리 측정할 수 있습니다.
+</div>
+
+<!-- ===== C. BEI 4축 ===== -->
+<div class="section-num">APPENDIX C</div>
+<h2>BEI 4축 &mdash; 산출 공식과 근거</h2>
+
+<h3>C-1. Depth (관여 깊이) &mdash; 가중치 0.35</h3>
+
+<div class="card" style="border-left:5px solid var(--depth);">
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <strong style="color:var(--depth);font-size:14px;">공식: Depth = Authenticity &times; 0.6 + RQL<sub>norm</sub> &times; 0.4</strong><br><br>
+    <strong>Authenticity (가중 0.6):</strong> LIWC FWA에서 산출된 진솔함 점수. 1인칭 대명사, 구체적 세부 묘사, 배타적 단어 사용 패턴이 높을수록 상승. 높은 Auth = "이 사람은 진짜 경험했다".<br><br>
+    <strong>RQL<sub>norm</sub> (가중 0.4):</strong> Review Quality Level의 정규화 점수. 5단계 후기 깊이 분류 후 가중 평균.<br>
+    &bull; Q1 별점/한줄 (&times;0.2) &rarr; Q2 일반 감상 (&times;0.5) &rarr; Q3 구체적 경험 (&times;1.0) &rarr; Q4 맥락 비교 분석 (&times;1.5) &rarr; Q5 추천/설득형 서사 (&times;2.0)<br>
+    &bull; 정규화: (가중평균 - 0.2) / (2.0 - 0.2) &times; 100<br><br>
+    <strong style="color:var(--depth);">경제적 논리:</strong> 높은 멘탈코스트(시간, 노력)를 투자하여 깊이 있는 후기를 쓴 사람은, 인지적 일관성(Cognitive Consistency, Festinger 1957) 효과로 자신의 긍정적 경험을 유지하려는 동기가 강합니다. 이는 재방문/재구매 확률의 상승으로 이어집니다.<br><br>
+    <span class="ref">Packard, Grant &amp; Berger (2018). "How Concrete Language Shapes Customer Satisfaction." PNAS, 에서 고객 리뷰의 구체성이 매출 기여에 정(+)의 영향을 미침을 실증.</span>
+  </div>
+</div>
+
+<h3>C-2. Advocacy (추천 강도) &mdash; 가중치 0.35</h3>
+
+<div class="card" style="border-left:5px solid var(--advocacy);">
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <strong style="color:var(--advocacy);font-size:14px;">공식: Advocacy = Clout &times; 0.6 + P-01<sub>norm</sub> &times; 0.4</strong><br><br>
+    <strong>Clout (가중 0.6):</strong> LIWC FWA에서 산출된 사회적 영향력/확신도 점수. 2인칭 대명사("여러분", "당신도"), 1인칭 복수("우리"), 사회적 참조 단어가 많을수록 상승. 높은 Clout = "이 사람은 확신을 가지고 추천하고 있다".<br><br>
+    <strong>P-01<sub>norm</sub> (가중 0.4):</strong> 진짜 팬(True Advocate) 비율의 정규화.<br>
+    &bull; P-01 정의: Gate 3 통과 게시물 중 감성 = 긍정 AND Clout &ge; 55인 건수<br>
+    &bull; P-01 비율 = P-01 건수 / Gate 3 전체 &times; 100<br>
+    &bull; 정규화 = min(P-01 비율 / 40 &times; 100, 100) &mdash; 벤치마크 40% 도달 시 만점<br><br>
+    <strong style="color:var(--advocacy);">경제적 논리:</strong> 소비자의 88%가 지인 추천을 광고보다 신뢰합니다(Nielsen, 2021). 추천 기반으로 유입된 고객은 일반 고객 대비 LTV가 16~25% 높고, 전환율이 2~4배(Wharton School, 2013). Advocacy는 이 <strong>"무료 영업사원"</strong>의 강도를 측정합니다.<br><br>
+    <span class="ref">Schmitt, Skiera &amp; Van den Bulte (2011). "Referral Programs and Customer Value." Journal of Marketing. 추천 고객의 CLV가 비추천 대비 유의하게 높음을 실증. | Nielsen (2021). Global Trust in Advertising Report.</span>
+  </div>
+</div>
+
+<h3>C-3. Sincerity (진심 비율) &mdash; 가중치 0.15</h3>
+
+<div class="card" style="border-left:5px solid var(--sincerity);">
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <strong style="color:var(--sincerity);font-size:14px;">공식: Sincerity = N<sub>g3</sub> / N<sub>g1</sub> &times; 100</strong><br><br>
+    Gate 3 통과율 그 자체가 Sincerity 점수입니다. 전체 리뷰 중 진정성 필터를 통과한 비율.<br><br>
+    <strong style="color:var(--sincerity);">경제적 논리:</strong> Sincerity가 높다는 것은 잠재 고객이 SNS에서 접하는 리뷰의 평균 품질이 높다는 의미입니다. BrightLocal(2024)에 따르면 소비자의 79%가 리뷰의 <em>진정성</em>을 구매 결정에서 가장 중요한 요소로 선택합니다. Spiegel Research Center(Northwestern)는 리뷰 존재 시 전환율이 최대 270% 상승함을 확인했습니다.<br><br>
+    Sincerity가 업종 평균(50%)보다 높으면 전환율에 <strong>프리미엄</strong>이 발생합니다. EMV에서는 이 프리미엄분만을 가치로 산출합니다.<br><br>
+    <strong>Decay 특성 (Inverse):</strong> Sincerity는 시간이 지나면 <strong>오히려 상승</strong>합니다. 캠페인 직후에는 노이즈(이벤트성, 의무적 포스팅)가 섞여 있지만, 시간이 지나면서 노이즈가 먼저 사라지고 진심 리뷰만 잔존하기 때문입니다. 새로중앙박물관 사례에서 Sincerity 유지율은 <strong>109.1%</strong>(4주 후 오히려 +9.1% 상승).<br><br>
+    <span class="ref">Spiegel Research Center (2017). "How Online Reviews Influence Sales." Northwestern University. | BrightLocal (2024). Local Consumer Review Survey.</span>
+  </div>
+</div>
+
+<h3>C-4. Discovery (발견 신선함) &mdash; 가중치 0.15</h3>
+
+<div class="card" style="border-left:5px solid var(--discovery);">
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <strong style="color:var(--discovery);font-size:14px;">공식: Discovery = Freshness Index (Gate 3 평균)</strong><br><br>
+    Appendix A-3에서 설명한 한국어 조사 "이/가" vs "은/는" 비율.<br>
+    Freshness Index = "이/가" 출현 / ("이/가" + "은/는") &times; 100<br><br>
+    <strong style="color:var(--discovery);">경제적 논리:</strong> Berger &amp; Milkman(2012, JMR)의 연구에 따르면, 콘텐츠의 바이럴리티를 결정하는 핵심 감정은 <strong>"경외감(Awe)"</strong>과 <strong>"놀라움(Surprise)"</strong>입니다. 예상을 넘어선 경험("이런 게 있었어?")은 자발적 공유를 유발하며, 이는 paid media 없이 발생하는 Earned Media의 원천입니다.<br><br>
+    <strong>Decay 특성 (Sharp Decay):</strong> 신선함은 유통기한이 짧습니다. 새로중앙박물관 사례에서 Discovery 유지율은 <strong>37.4%</strong>(4주 후 62.6% 소멸). 이는 정상적 현상 &mdash; 한번 경험하면 더 이상 "새로운 발견"이 아니기 때문.<br><br>
+    <span class="ref">Berger &amp; Milkman (2012). "What Makes Online Content Viral?" Journal of Marketing Research. | 이익섭 &amp; 채완 (1999). 한국어 조사의 정보 구조 기능.</span>
+  </div>
+</div>
+
+<h3>C-5. BEI 종합 &amp; 2관점</h3>
+
+<div class="card">
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <strong style="font-size:14px;color:var(--primary);">BEI 종합 = Depth &times; 0.35 + Advocacy &times; 0.35 + Sincerity &times; 0.15 + Discovery &times; 0.15</strong><br><br>
+    가중치 설계 근거:<br>
+    &bull; <strong>Depth + Advocacy = 0.70:</strong> 브랜드 인게이지먼트의 핵심은 "얼마나 깊이 관여했는가"와 "남에게까지 추천했는가". Keller(2001)의 CBBE에서도 최상위 2개 단계(Feelings/Resonance)가 브랜드 자산의 핵심.<br>
+    &bull; <strong>Sincerity + Discovery = 0.30:</strong> 환경 요인. 진성 비율과 신선함은 인게이지먼트의 <em>질적 조건</em>이지 인게이지먼트 그 자체는 아님.<br><br>
+    <strong>2관점:</strong><br>
+    &bull; <strong>인게이지먼트 관점:</strong> D&times;0.40 + Disc&times;0.25 + A&times;0.20 + S&times;0.15 &mdash; "깊이 있게 좋아하는 사람이 얼마나 되나"<br>
+    &bull; <strong>이슈성 관점:</strong> A&times;0.40 + S&times;0.25 + D&times;0.20 + Disc&times;0.15 &mdash; "얼마나 퍼지고 화제가 되었나"<br><br>
+    같은 BEI 점수라도 두 관점의 차이로 캠페인 성격을 진단합니다.<br>
+    인게이지먼트 >> 이슈성: "조용하지만 깊은 팬을 만든 캠페인"<br>
+    이슈성 >> 인게이지먼트: "화제는 됐지만 깊은 팬은 못 만든 캠페인"
+  </div>
+</div>
+
+<!-- ===== D. EMV 전환 공식 ===== -->
+<div class="section-num">APPENDIX D</div>
+<h2>EMV 전환 공식 &mdash; 축별 상세</h2>
+
+<h3>D-1. V<sub>depth</sub> &mdash; 재구매/재방문 가치</h3>
+
+<div class="card" style="border-left:5px solid var(--depth);">
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <div style="font-family:'Poppins';font-size:13px;font-weight:700;color:var(--depth);background:#eef2ff;padding:10px 14px;border-radius:8px;margin-bottom:12px;">
+      V<sub>depth</sub> = N<sub>g3</sub> &times; (Depth / 100) &times; RetentionLift(Depth) &times; CLV &times; RetentionBase
+    </div>
+    <strong>RetentionLift(Depth) = 1 + &beta;<sub>depth</sub> &times; (Depth - 50) / 50</strong><br><br>
+    &bull; N<sub>g3</sub>: Gate 3 통과 게시물 수 (진심으로 후기를 쓴 사람 수의 프록시)<br>
+    &bull; Depth/100: 관여 깊이의 강도 (0~1 정규화)<br>
+    &bull; RetentionLift: Depth 50(중립)을 기준으로, 그 이상이면 재구매율이 상승하는 계수<br>
+    &bull; &beta;<sub>depth</sub>: 업종별 재구매율 탄력성 (F&B 0.30, 패션/뷰티 0.40, 공간 0.20, 테크 0.50)<br>
+    &bull; CLV: 고객 생애 가치 (업종별 파라미터)<br>
+    &bull; RetentionBase: 업종 기본 재구매율 (F&B 15%, 패션 25%, 공간 8%, 테크 40%)<br><br>
+    <strong>해석:</strong> "진심으로 후기를 쓸 만큼 깊이 관여한 N명이, 업종 기본 재구매율보다 높은 확률로 다시 올 것이며, 그 CLV의 합이 Depth의 가치다."
+  </div>
+</div>
+
+<h3>D-2. V<sub>advocacy</sub> &mdash; 신규 고객 획득 가치</h3>
+
+<div class="card" style="border-left:5px solid var(--advocacy);">
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <div style="font-family:'Poppins';font-size:13px;font-weight:700;color:var(--advocacy);background:#ecfdf5;padding:10px 14px;border-radius:8px;margin-bottom:12px;">
+      V<sub>advocacy</sub> = N<sub>g3</sub> &times; (Advocacy / 100) &times; ViralCoeff &times; ReachPerPost &times; CR<sub>referral</sub> &times; CLV
+    </div>
+    <strong>ViralCoeff = Q5 비율 &times; K<sub>viral</sub></strong><br>
+    <strong>CR<sub>referral</sub> = CR<sub>base</sub> &times; ReferralPremium</strong><br><br>
+    &bull; Q5 비율: 추천/설득형 서사 후기(RQL Q5)의 비율 &mdash; 실제 추천 행동의 프록시<br>
+    &bull; K<sub>viral</sub>: 1건의 추천형 포스트가 평균 몇 명에게 영향을 미치는가 (F&B 2.5, 뷰티 3.5, 공간 4.0, 테크 1.5)<br>
+    &bull; ReachPerPost: 게시물당 평균 도달수 = R / N<br>
+    &bull; ReferralPremium: 추천 기반 전환율이 일반 광고 대비 몇 배인가 (F&B 2.0, 뷰티 2.5, 공간 3.0)<br><br>
+    <strong>해석:</strong> "추천형 포스트를 쓴 사람들이 바이럴을 일으켜 새 잠재 고객에게 도달하고, 그 중 추천 프리미엄이 적용된 전환율로 실제 고객이 되며, 그 고객의 CLV 합이 Advocacy의 가치다."<br><br>
+    <strong style="color:var(--advocacy);">왜 EMV에서 지배적인가:</strong> 공식 구조상 Advocacy는 <em>곱셈의 체인</em>이 가장 깁니다(5개 항 연쇄 곱). CLV가 높은 업종(뷰티 50만)에서 작은 비율 차이도 큰 금액 차이를 만들어내는 이유.
+  </div>
+</div>
+
+<h3>D-3. V<sub>sincerity</sub> &mdash; 전환율 프리미엄</h3>
+
+<div class="card" style="border-left:5px solid var(--sincerity);">
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <div style="font-family:'Poppins';font-size:13px;font-weight:700;color:var(--sincerity);background:#fefce8;padding:10px 14px;border-radius:8px;margin-bottom:12px;">
+      V<sub>sincerity</sub> = R &times; CR<sub>base</sub> &times; SincerityPremium &times; AOV
+    </div>
+    <strong>SincerityPremium = &gamma; &times; (Sincerity - IndustryAvg) / 100</strong><br><br>
+    &bull; R: 총 도달/노출 수<br>
+    &bull; CR<sub>base</sub>: 업종 기본 전환율<br>
+    &bull; &gamma;: 진성 리뷰 전환율 탄력성 (F&B 0.50, 뷰티 0.60, 공간 0.40, 테크 0.70)<br>
+    &bull; IndustryAvg: 업종 평균 진성 비율 (기본 50%)<br>
+    &bull; AOV: 평균 주문 금액<br><br>
+    <strong>주의:</strong> EMV는 프리미엄분만 산출합니다. 기본 전환에 의한 매출은 EMV가 아닌 일반 마케팅 성과이므로, <em>Sincerity가 업종 평균을 초과한 부분</em>에 의한 추가 전환만을 가치로 인정합니다.
+  </div>
+</div>
+
+<h3>D-4. V<sub>discovery</sub> &mdash; Earned Media 가치</h3>
+
+<div class="card" style="border-left:5px solid var(--discovery);">
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <div style="font-family:'Poppins';font-size:13px;font-weight:700;color:var(--discovery);background:#fdf2f8;padding:10px 14px;border-radius:8px;margin-bottom:12px;">
+      V<sub>discovery</sub> = N<sub>g3</sub> &times; (Discovery / 100) &times; ShareMultiplier &times; CPM<sub>earned</sub> / 1000 &times; AvgReach
+    </div>
+    <strong>ShareMultiplier = 1 + &delta; &times; (Discovery / 100)</strong><br>
+    <strong>CPM<sub>earned</sub> = CPM &times; EarnedPremium</strong><br><br>
+    &bull; ShareMultiplier: Discovery가 높을수록 자발적 공유 빈도 증가<br>
+    &bull; &delta;: 발견 공유 탄력성 (공간/팝업 2.5 &mdash; 오프라인 경험의 공유 동기가 가장 높음)<br>
+    &bull; EarnedPremium: Earned Media가 Paid Media 대비 몇 배의 가치인가 (공간 5.0, 뷰티 4.0, F&B 3.0, 테크 2.0)<br><br>
+    <strong>근거:</strong> Earned Media의 가치가 Paid보다 높은 이유는 <strong>신뢰도 차이</strong>. Edelman Trust Barometer(2024)에서 Earned Media 신뢰도 63% vs Paid Media 신뢰도 38%. 같은 1,000회 노출이라도 Earned는 더 높은 행동 전환을 유발하므로 CPM 프리미엄 적용이 정당합니다.
+  </div>
+</div>
+
+<h3>D-5. Decay-adjusted Cumulative Value</h3>
+
+<div class="card" style="border-left:5px solid var(--dark);">
+  <div style="font-size:12px;color:var(--body);line-height:2;">
+    <div style="font-family:'Poppins';font-size:13px;font-weight:700;color:var(--dark);background:var(--light);padding:10px 14px;border-radius:8px;margin-bottom:12px;">
+      Total CV = &Sigma; V<sub>axis</sub>(0) &times; AvgDecayFactor<sub>axis</sub> &times; ScaleCorrection
+    </div>
+    <strong>축별 감쇠 함수:</strong><br>
+    &bull; Depth: BEI(t) = BEI(0) &times; e<sup>-0.036t</sup> &mdash; 체험 기억의 지수적 감쇠<br>
+    &bull; Advocacy: BEI(t) = BEI(0) &times; e<sup>-0.105t</sup> &mdash; 추천 열기의 빠른 소멸<br>
+    &bull; Sincerity: BEI(t) = BEI(0) &times; [1 + 0.09 &times; (1 - e<sup>-0.8t</sup>)] &mdash; 역행 상승 (노이즈 소멸)<br>
+    &bull; Discovery: BEI(t) = BEI(0) &times; e<sup>-0.245t</sup> &mdash; 신선함의 급속 소진<br><br>
+    <strong>AvgDecayFactor:</strong> 0~4주의 5개 시점 평균 &mdash; 해당 기간 동안의 평균 가치 수준<br>
+    <strong>ScaleCorrection:</strong> 브랜드 규모에 따른 한계효용 보정 (소형 &times;1.2 ~ 메가 &times;0.6)<br><br>
+    <strong>피팅 검증:</strong> 새로중앙박물관 실측 데이터(5개 시점, 4축)에 대한 최소자승법 피팅 결과, 모든 축에서 실측치 대비 오차 &plusmn;2% 이내. 단, 현재까지 1개 케이스에서만 검증되었으므로, 추가 케이스 축적에 따른 계수 보정이 필요합니다.
+  </div>
+</div>
+
+<!-- ===== E. 업종별 파라미터 ===== -->
+<div class="section-num">APPENDIX E</div>
+<h2>업종별 파라미터 테이블 &amp; 설정 근거</h2>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <table style="margin:0;">
+    <thead><tr><th style="width:20%;">파라미터</th><th style="text-align:center;">F&B/주류</th><th style="text-align:center;">패션/뷰티</th><th style="text-align:center;">공간/팝업</th><th style="text-align:center;">테크/SaaS</th><th style="text-align:center;background:#334155;">설정 근거</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:600;">CLV</td><td style="text-align:center;">15만</td><td style="text-align:center;">50만</td><td style="text-align:center;">8만</td><td style="text-align:center;">200만</td><td style="font-size:10px;">업종별 평균 구매 빈도 &times; 객단가 &times; 평균 거래 기간</td></tr>
+      <tr><td style="font-weight:600;">CAC</td><td style="text-align:center;">2.5만</td><td style="text-align:center;">4만</td><td style="text-align:center;">1.5만</td><td style="text-align:center;">10만</td><td style="font-size:10px;">업종별 디지털 광고 평균 CPA 기준</td></tr>
+      <tr><td style="font-weight:600;">CR<sub>base</sub></td><td style="text-align:center;">2.5%</td><td style="text-align:center;">1.8%</td><td style="text-align:center;">3.5%</td><td style="text-align:center;">1.2%</td><td style="font-size:10px;">업종별 이커머스 평균 전환율 (Statista 2024)</td></tr>
+      <tr><td style="font-weight:600;">AOV</td><td style="text-align:center;">1.5만</td><td style="text-align:center;">8만</td><td style="text-align:center;">2.5만</td><td style="text-align:center;">20만</td><td style="font-size:10px;">업종별 평균 주문 금액</td></tr>
+      <tr><td style="font-weight:600;">CPM</td><td style="text-align:center;">5,000</td><td style="text-align:center;">8,000</td><td style="text-align:center;">4,000</td><td style="text-align:center;">12,000</td><td style="font-size:10px;">네이버/인스타 업종별 평균 CPM (2024 기준)</td></tr>
+      <tr><td style="font-weight:600;">&beta;<sub>depth</sub></td><td style="text-align:center;">0.30</td><td style="text-align:center;">0.40</td><td style="text-align:center;">0.20</td><td style="text-align:center;">0.50</td><td style="font-size:10px;">관여도 높은 업종일수록 Depth의 재구매율 탄력성 높음</td></tr>
+      <tr><td style="font-weight:600;">K<sub>viral</sub></td><td style="text-align:center;">2.5</td><td style="text-align:center;">3.5</td><td style="text-align:center;">4.0</td><td style="text-align:center;">1.5</td><td style="font-size:10px;">공간/팝업은 장소 특성상 동반 방문 유도 강함</td></tr>
+      <tr><td style="font-weight:600;">ReferralPrem</td><td style="text-align:center;">2.0</td><td style="text-align:center;">2.5</td><td style="text-align:center;">3.0</td><td style="text-align:center;">1.5</td><td style="font-size:10px;">경험재(팝업)의 추천 전환율이 탐색재(테크)보다 높음</td></tr>
+      <tr><td style="font-weight:600;">&gamma;</td><td style="text-align:center;">0.50</td><td style="text-align:center;">0.60</td><td style="text-align:center;">0.40</td><td style="text-align:center;">0.70</td><td style="font-size:10px;">리뷰 의존도 높은 업종(테크/뷰티)일수록 Sincerity 탄력성 높음</td></tr>
+      <tr><td style="font-weight:600;">EarnedPrem</td><td style="text-align:center;">3.0</td><td style="text-align:center;">4.0</td><td style="text-align:center;">5.0</td><td style="text-align:center;">2.0</td><td style="font-size:10px;">오프라인 경험의 Earned 가치가 가장 높음 (희소성)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>파라미터 한계:</strong> 현재 파라미터는 업종별 공개 데이터와 업계 관행(industry convention)에 기반한 <strong>초기 추정치</strong>입니다. Phase 2(N=5~10)에서 실제 매출 데이터와의 상관분석을 통해 보정하며, Phase 3(N=20+)에서 회귀분석으로 정밀화합니다. 파라미터의 정확도는 데이터 축적에 비례하여 향상됩니다.
+</div>
+
+<!-- ===== F. RQL ===== -->
+<div class="section-num">APPENDIX F</div>
+<h2>RQL (Review Quality Level) &mdash; 리뷰 깊이 분류 체계</h2>
+
+<p>모든 리뷰가 같은 가치를 가지지 않습니다. RQL은 리뷰에 투입된 <strong>멘탈코스트(Mental Cost)</strong> &mdash; 시간, 인지적 노력, 정보 처리 깊이 &mdash; 를 기준으로 5단계로 분류합니다.</p>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <table style="margin:0;">
+    <thead><tr><th style="width:10%;">RQL</th><th style="width:15%;">유형</th><th style="width:30%;">판별 기준</th><th style="width:20%;">예시</th><th style="width:10%;">멘탈코스트</th><th style="width:10%;">가중치</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:800;color:var(--depth);">Q5</td>
+        <td style="font-weight:600;">추천/설득형 서사</td>
+        <td>2인칭 호소("꼭 가보세요"), 비교 근거 제시, 행동 촉구 포함</td>
+        <td>"예약 어렵지만 그만한 가치가 있어요. 특히 2층 헤리티지 존은..."</td>
+        <td style="text-align:center;font-weight:700;color:var(--depth);">극고</td>
+        <td style="text-align:center;font-weight:800;">&times;2.0</td>
+      </tr>
+      <tr>
+        <td style="font-weight:800;">Q4</td>
+        <td style="font-weight:600;">맥락 비교 분석</td>
+        <td>다른 경험과의 비교, 가격 대비 분석, 시즌/시리즈 참조</td>
+        <td>"시즌2보다 구성이 나아졌고, 가격 대비 볼거리가..."</td>
+        <td style="text-align:center;font-weight:700;">고</td>
+        <td style="text-align:center;font-weight:800;">&times;1.5</td>
+      </tr>
+      <tr>
+        <td style="font-weight:800;">Q3</td>
+        <td style="font-weight:600;">구체적 경험 서술</td>
+        <td>특정 요소 언급 3건+, 시간/장소/감각 묘사</td>
+        <td>"테린느가 특히 좋았고, 2층 헤리티지 존이 인상적"</td>
+        <td style="text-align:center;">중</td>
+        <td style="text-align:center;font-weight:800;">&times;1.0</td>
+      </tr>
+      <tr>
+        <td style="font-weight:800;">Q2</td>
+        <td style="font-weight:600;">일반 감상</td>
+        <td>포괄적 감상, 구체성 낮음, 짧은 서술</td>
+        <td>"분위기 좋고 맛있었어요"</td>
+        <td style="text-align:center;">저</td>
+        <td style="text-align:center;font-weight:800;">&times;0.5</td>
+      </tr>
+      <tr>
+        <td style="font-weight:800;color:#94a3b8;">Q1</td>
+        <td style="font-weight:600;">별점/한줄</td>
+        <td>실질적 내용 없음, 해시태그만, 이모지만</td>
+        <td>"좋아요" / "&#11088;&#11088;&#11088;&#11088;&#11088;"</td>
+        <td style="text-align:center;color:#94a3b8;">극저</td>
+        <td style="text-align:center;font-weight:800;color:#94a3b8;">&times;0.2</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="margin-top:14px;font-size:12px;color:var(--body);line-height:1.8;">
+  <strong>정규화 공식:</strong><br>
+  RQL 가중평균 = &Sigma;(Q<sub>n</sub> 건수 &times; 가중치) / 전체 건수<br>
+  RQL<sub>norm</sub> = (가중평균 - 0.2) / (2.0 - 0.2) &times; 100<br><br>
+  <strong>CJ온스타일 사례 (Gate 3 272건):</strong> Q1:11 + Q2:93 + Q3:78 + Q4:73 + Q5:17 = 272건<br>
+  가중평균 = (11&times;0.2 + 93&times;0.5 + 78&times;1.0 + 73&times;1.5 + 17&times;2.0) / 272 = 0.993<br>
+  RQL<sub>norm</sub> = (0.993 - 0.2) / 1.8 &times; 100 = <strong>44.1</strong>
+</div>
+
+<div class="callout">
+  <strong>멘탈코스트 이론과의 연결:</strong> RQL 가중치는 RXR Master Framework의 핵심 원칙인 <strong>"멘탈코스트 = 관계 깊이"</strong>를 구현합니다. Q5 후기를 쓰려면 20~30분의 시간, 비교 대상의 기억, 타인 설득 의도가 필요합니다. 이 높은 멘탈코스트는 거짓이기 어렵고, 브랜드와의 깊은 관계를 반증합니다. 가중치 2.0은 Q3(기준=1.0) 대비 "2배의 인게이지먼트 깊이"를 의미합니다.
+</div>
+
+<!-- ===== G. Content Class ===== -->
+<div class="section-num">APPENDIX G</div>
+<h2>Content Class (A~G) &mdash; 콘텐츠 유형 분류 체계</h2>
+
+<p>Sincerity Gate에 진입하기 전, 수집된 전체 게시물을 7개 유형으로 분류합니다. 이 분류가 Gate 1의 기초이며, 어떤 콘텐츠를 분석 대상으로 포함할지 결정합니다.</p>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <table style="margin:0;">
+    <thead><tr><th>Class</th><th>유형</th><th>감지 방법</th><th>분석 처리</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:800;color:var(--green);">A</td><td>진성 후기</td><td>개인 경험 신호 2건+, 구체적 디테일 3건+</td><td style="font-weight:600;color:var(--green);">2-Layer 핵심 분석 대상</td></tr>
+      <tr><td style="font-weight:800;">B</td><td>일반 포스트</td><td>특별 플래그 없음, 이벤트 관련</td><td>2-Layer 분석 대상</td></tr>
+      <tr><td style="font-weight:800;color:var(--orange);">C</td><td>협찬/체험단</td><td>"제공받", "#광고", "체험단" 키워드</td><td style="color:var(--orange);">2-Layer 분석 (진심 스펙트럼)</td></tr>
+      <tr><td style="font-weight:800;">D</td><td>나열형 정보</td><td>"총정리", "리스트", "BEST" 제목</td><td>버즈량만 카운트</td></tr>
+      <tr><td style="font-weight:800;">E</td><td>리그램/단순 공유</td><td>"리그램", 해시태그만, &lt;20자</td><td>버즈량만 카운트</td></tr>
+      <tr><td style="font-weight:800;color:#94a3b8;">F</td><td>비즈니스/보도</td><td>보도자료 핵심 문구, 비즈니스 신호</td><td style="color:#94a3b8;">제외 또는 카운트만</td></tr>
+      <tr><td style="font-weight:800;color:var(--coral);">G</td><td>노이즈</td><td>이벤트 무관 키워드</td><td style="color:var(--coral);">완전 제외</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>Class C(협찬)에 대한 접근:</strong> 협찬 콘텐츠를 일괄 제외하지 않습니다. 협찬 안에서도 <strong>진심 스펙트럼</strong>이 존재하기 때문입니다. 실제로 제품을 사용해보고 진심으로 좋아하는 인플루언서도 있고, 의무적으로 작성하는 인플루언서도 있습니다. 이 차이는 Authenticity/Clout 점수로 구별되며, Gate 2에서 분리 측정, Gate 3에서 Auth 기반 최종 필터링을 거칩니다.
+</div>
+
+<!-- ===== H. 글로벌 브랜드 가치 평가 모델 호환성 ===== -->
+<div class="section-num">APPENDIX H</div>
+<h2>글로벌 브랜드 가치 평가 모델과의 호환성</h2>
+
+<p>EMV는 캠페인 단위의 미시적 가치 측정입니다. 이것이 거시적 브랜드 가치 평가 모델과 어떻게 연결되는지 정리합니다.</p>
+
+<div class="card" style="padding:0;overflow:hidden;">
+  <table style="margin:0;">
+    <thead><tr><th style="width:20%;">모델</th><th style="width:25%;">원리</th><th style="width:25%;">BEI/EMV 연결 지점</th><th style="width:30%;">활용 방식</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:700;">Interbrand<br><span class="ref">DCF 기반</span></td>
+        <td>브랜드가 만들 미래 수익을 현재 가치로 할인</td>
+        <td><strong>Brand Strength Score</strong>가 할인율 결정 &mdash; BEI 4축이 이 점수의 구성 요소로 투입 가능</td>
+        <td>BEI 변화 &rarr; Brand Strength 변화 &rarr; 할인율 변화 &rarr; 브랜드 가치 변화. "BEI 15점 상승이 브랜드 가치를 5억 올렸다"</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;">Brand Finance<br><span class="ref">로열티 면제법</span></td>
+        <td>브랜드를 빌려 쓴다면 얼마의 로열티를 내야 하는가</td>
+        <td><strong>BSI(Brand Strength Index)</strong>가 로열티율 결정 &mdash; BEI가 BSI의 Brand Equity 기둥에 투입</td>
+        <td>BEI 변화 &rarr; BSI 변화 &rarr; 로열티율 변화. "캠페인으로 BSI가 58&rarr;72, 로열티 3.5%&rarr;5%"</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:var(--green);">RXR EMV<br><span class="ref">직접 전환</span></td>
+        <td>감성 4축의 행동 전환 가치를 업종별 단가로 환산</td>
+        <td>BEI 4축이 직접 EMV로 전환. 재무 데이터 불필요.</td>
+        <td style="font-weight:600;color:var(--green);">캠페인 단위 ROI, 축별 개선 레버리지, CPBP/BVE 효율 지표</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>포지셔닝:</strong> Interbrand/Brand Finance는 <strong>연간 단위의 거시적 브랜드 가치</strong>를 산출하며, 재무 데이터가 필수입니다. RXR EMV는 <strong>캠페인 단위의 미시적 감성 가치</strong>를 산출하며, SNS 데이터만으로 가능합니다. 양자는 경쟁이 아닌 <strong>보완 관계</strong> &mdash; EMV가 캠페인별 효과를 증명하고, 이것이 누적되어 거시적 브랜드 가치 변화의 근거가 됩니다.
+</div>
+
+<!-- Appendix 끝 -->
+
+<!-- Footer -->
+<div class="footer">
+  <strong>RXR Framework &mdash; Sentiment-to-Value White Paper</strong> | v2.1 Professional Edition (with Appendix) | 2026-04-12<br>
+  &copy; R-lab | 본 문서의 EMV는 추정 미디어 가치(Estimated Media Value)로, 실제 매출액이 아닌 참고 지표입니다.
+</div>
+
+<!-- PDF -->
+<div class="pdf-panel">
+  <button onclick="window.print()">&#128424; PDF</button>
+</div>
+
+</body></html>

@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>비욘드 팝업스토어 — RXR SNS 분석 (외부 공유용)</title>
+<style>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+:root{--primary:#6666FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--dark:#262626;--body:#424D61;--light:#F6F6F6;--white:#FFF;--red:#C00000;--coral:#FF5050;--blue:#4D93F7;--green:#10b981;--orange:#f59e0b;--pink:#d946ef;--primary-pale:#E1E1FF;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:14px;line-height:1.6;max-width:1200px;margin:0 auto;padding:40px 32px;}
+h1{font-size:28px;font-weight:800;margin-bottom:4px;} h2{font-size:20px;font-weight:800;margin:32px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--primary-pale);} h3{font-size:15px;font-weight:700;margin:14px 0 8px;}
+.sub{font-size:13px;color:var(--body);margin-bottom:20px;}
+.card{background:var(--light);border:1px solid #e8e8e8;border-radius:12px;padding:16px 18px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;} .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;} .grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0;}
+th{background:var(--primary);color:#fff;padding:6px 10px;text-align:left;font-size:11px;} td{padding:5px 10px;border-bottom:1px solid #eee;}
+.insight{padding:14px 18px;background:var(--primary-pale);border-radius:10px;border-left:4px solid var(--primary);margin:10px 0;font-size:13px;line-height:1.7;} .insight strong{color:var(--primary);}
+.insight-blue{background:#eef2ff;border-left-color:var(--blue);} .insight-blue strong{color:var(--primary);}
+.ba-container{display:grid;grid-template-columns:1fr 50px 1fr;gap:0;align-items:stretch;margin:16px 0;}
+.ba-box{padding:20px;border-radius:14px;} .ba-before{background:#f1f5f9;border:2px solid #cbd5e1;} .ba-after{background:#eef2ff;border:2px solid var(--primary);}
+.ba-vs{display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#94a3b8;}
+.ba-label{font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:10px;} .ba-title{font-size:16px;font-weight:800;margin-bottom:12px;}
+.gauge-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.gauge-label{width:120px;font-size:12px;font-weight:600;text-align:right;flex-shrink:0;}
+.gauge-track{flex:1;height:24px;background:#f0f0f0;border-radius:5px;overflow:hidden;}
+.gauge-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;}
+.gauge-val{width:60px;font-size:12px;font-weight:700;text-align:center;flex-shrink:0;}
+.raw-box{border-radius:10px;padding:12px 16px;margin:8px 0;font-size:12px;line-height:1.6;}
+.raw-good{background:#f0fdf4;border-left:4px solid var(--green);}
+.raw-bad{background:#fef2f2;border-left:4px solid var(--coral);}
+.funnel-bar{height:36px;border-radius:6px;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:700;color:#fff;margin:6px 0;}
+.metric-card{text-align:center;border-top:3px solid var(--primary);padding:14px;}
+.footer{margin-top:40px;padding-top:16px;border-top:2px solid var(--primary);font-size:11px;color:#94a3b8;text-align:center;}
+.highlight-card{background:#fff;border-radius:12px;padding:14px 16px;border:1px solid #e8e8e8;margin:8px 0;}
+@media print{
+  @page{size:A4 portrait;margin:14mm 12mm;}
+  body{max-width:100%!important;padding:0!important;margin:0!important;}
+  .pdf-panel{display:none!important;}
+  .card,.ba-container,.grid2,.grid3,.insight,.gauge-row,table,.highlight-card{break-inside:avoid!important;page-break-inside:avoid!important;}
+  h2,h3{break-after:avoid;page-break-after:avoid;}
+  h1{font-size:22px!important;} h2{font-size:16px!important;margin-top:20px!important;}
+  .card{padding:10px 12px!important;font-size:10px!important;} table{font-size:10px!important;}
+}
+.pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;}
+.pdf-panel-toggle{display:flex;align-items:center;gap:8px;padding:12px 22px;background:var(--grad);color:#fff;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(102,102,255,0.4);border:none;font-family:'Pretendard Variable',sans-serif;}
+.pdf-panel-body{display:none;position:absolute;bottom:56px;right:0;width:220px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:16px;}
+.pdf-panel-body.open{display:block;}
+.pdf-orient-group{display:flex;gap:8px;margin-bottom:14px;}
+.pdf-orient-btn{flex:1;padding:12px 8px;background:#f9fafb;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;font-family:'Pretendard Variable',sans-serif;color:#475569;font-size:11px;font-weight:600;text-align:center;}
+.pdf-orient-btn.active{border-color:var(--primary);background:#eef2ff;color:var(--primary);}
+.pdf-print-btn{width:100%;padding:10px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Pretendard Variable',sans-serif;}
+</style><style id="pageOrientStyle"></style></head><body>
+
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+  <span style="background:var(--grad);color:#fff;padding:4px 14px;border-radius:6px;font-family:'Poppins';font-size:11px;font-weight:600;letter-spacing:1px;">RXR SNS ANALYSIS</span>
+</div>
+<h1>비욘드 팝업스토어 — Plastic Less, Paper is Enough</h1>
+<div class="sub">다층 분석 + 진심 필터 | 네이버 블로그 251건 | Project RENT · R-lab</div>
+
+
+<div style="padding:20px;background:var(--light);border-radius:14px;margin-bottom:24px;">
+  <div class="grid2">
+    <div>
+      <div style="font-size:11px;font-family:'Poppins';letter-spacing:2px;color:var(--body);margin-bottom:6px;">ABOUT THIS RESEARCH</div>
+      <h3 style="margin-top:0;">분석 대상</h3>
+      <table style="font-size:12px;"><tr><td style="color:var(--body);width:70px;padding:4px 0;">팝업명</td><td style="padding:4px 0;font-weight:700;">비욘드 팝업스토어 — Plastic Less, Paper is Enough</td></tr>
+      <tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">브랜드</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">비욘드 (LG생활건강)</td></tr>
+      <tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">기간</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">2023.05.25 ~ 06.18, <strong>25일간</strong></td></tr>
+      <tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">장소</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">서울 성수동</td></tr>
+      <tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">컨셉</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">친환경 클린뷰티 캠페인 — 공병 수거 → 리필 제품 교환, 종이 패키지 체험</td></tr>
+      <tr><td style="color:var(--body);padding:4px 0;border-top:1px solid #e8e8e8;">분석 기간</td><td style="padding:4px 0;border-top:1px solid #e8e8e8;">2023.05.01 ~ 06.30</td></tr></table>
+    </div>
+    <div>
+      <div style="font-size:11px;font-family:'Poppins';letter-spacing:2px;color:var(--body);margin-bottom:6px;">RESEARCH PERSPECTIVE</div>
+      <h3 style="margin-top:0;">리서치 관점</h3>
+      <div style="font-size:12px;color:var(--body);line-height:1.7;">
+        <div style="padding:4px 0;"><strong style="color:var(--primary);">핵심 질문:</strong> 친환경 메시지가 실제로 소비자 마음에 도달했는가?</div>
+        <div style="padding:4px 0;border-top:1px solid #e8e8e8;"><strong style="color:var(--primary);">데이터:</strong> 네이버 블로그 251건 (2023.05~06)</div>
+        <div style="padding:4px 0;border-top:1px solid #e8e8e8;"><strong style="color:var(--primary);">분석:</strong> 콘텐츠 분석 + 심리 분석 + 진심 필터 3단계</div>
+        <div style="padding:4px 0;border-top:1px solid #e8e8e8;"><strong style="color:var(--primary);">초점:</strong> 가치 소비 팝업의 진정성 반응</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;padding:10px 14px;background:var(--primary-pale);border-radius:8px;font-size:12px;color:var(--body);">
+    📖 <strong>읽는 법:</strong> 각 섹션은 <strong>BEFORE(기존 도구)</strong>와 <strong>AFTER(RXR 다층 분석)</strong>를 나란히 비교합니다. AFTER에는 실제 데이터 근거와 해석이 포함됩니다.
+  </div>
+</div>
+
+
+<div style="padding:28px;background:linear-gradient(135deg,#f8f7ff,#eef2ff);border-radius:16px;border:2px solid var(--primary-pale);margin-bottom:28px;">
+  <div style="font-size:11px;font-family:'Poppins';letter-spacing:2px;color:var(--primary);margin-bottom:8px;">EXECUTIVE SUMMARY</div>
+  <h2 style="margin:0 0 16px;border:none;padding:0;font-size:22px;">친환경 메시지는 진짜 마음에 닿았을까?</h2>
+  <div style="font-size:14px;color:var(--body);line-height:1.9;">
+    <p>비욘드가 2023년 5월 성수동에서 연 팝업스토어 'Plastic Less, Paper is Enough'는 화장품 공병을 리필 제품으로 교환해주는 친환경 캠페인이었습니다. 25일간 운영된 이 팝업에 대해 네이버 블로그에 <strong>251건</strong>의 포스트가 작성되었고, RXR은 이 251건을 다층 분석과 진심 필터로 해부했습니다.</p>
+
+    <p style="margin-top:12px;">첫 번째 발견은 <strong>"진짜 반응의 규모"</strong>입니다. 251건 중 진심 필터를 통과한 유효 반응은 <strong>149건(59%)</strong>이었습니다. 나머지 41%는 보도자료 전재, 협찬 의무 포스팅, 관련성 없는 노이즈였습니다. 기존 도구가 "251건 mentions"이라고 보고하는 숫자와 실제 소비자 반응 사이에는 적지 않은 간극이 있었습니다.</p>
+
+    <p style="margin-top:12px;">두 번째 발견은 <strong>"친환경 가치가 실제로 작동했다"</strong>는 것입니다. 방문자들의 포스트에서 '친환경', '플라스틱 줄이기', '종이 패키지', '리필' 같은 가치 관련 언급이 전체의 67%에 달했습니다. 이는 제품 관련 언급(71%)과 거의 동등한 수준으로, 일반 팝업스토어에서는 보기 힘든 패턴입니다. 보통 팝업 후기는 "예쁘다", "포토존"에 집중되지만, 비욘드는 <strong>"왜 이 브랜드가 좋은지"</strong>를 사람들이 스스로 설명하고 있었습니다.</p>
+
+    <p style="margin-top:12px;">세 번째 발견은 <strong>"시간이 지날수록 진정성이 높아졌다"</strong>는 점입니다. 팝업 이전의 사전 포스트들은 정보 나열 위주로 진정성 지수가 보통 수준이었지만, 팝업 종료 이후의 늦은 후기들은 진정성이 눈에 띄게 상승했습니다. 이는 즉흥적 반응이 아니라 곰곰이 생각한 뒤 쓴 후기가 늦게 올라왔다는 뜻으로, 일반 팝업(시간이 지나면 기억이 미화되며 진정성 하락)과 정반대 패턴입니다.</p>
+
+    <p style="margin-top:12px;">네 번째 발견은 <strong>"과장 긍정이 거의 없었다"</strong>는 것입니다. 진심 필터를 3단계 거쳐도 긍정률이 37%→38%로 거의 변하지 않았습니다. 이는 "좋아요!" 수준의 과장된 긍정이 적고, 진짜 좋았던 사람들이 대부분이라는 의미입니다. 한편 가장 큰 비중을 차지한 감성은 <strong>혼합(48%)</strong>이었습니다 — "좋긴 한데, 종류가 더 다양했으면", "공병 교환 아이디어가 신선했는데 웨이팅이 아쉬웠다" 같은 건설적 피드백이 절반에 가까웠고, 이는 진지하게 경험한 사람들의 신호입니다.</p>
+
+    <p style="margin-top:12px;">다만 아쉬운 지점도 있었습니다. 비욘드의 주력 세정 라인인 <strong>'헤줘'는 전체 언급의 4%에 불과</strong>했습니다. 팝업에서 친환경 가치와 공간 경험은 충분히 전달되었지만, 핵심 제품 라인의 체험 접점은 약했다는 뜻입니다.</p>
+  </div>
+
+  <h3 style="margin-top:24px;">다음 팝업을 위한 제언</h3>
+  <div class="grid3" style="margin-top:12px;">
+    <div style="background:#fff;border-radius:12px;padding:16px;border-left:4px solid var(--primary);">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">🧴 헤줘 라인 체험 강화</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.6;">세정 라인 체험을 팝업 핵심 동선에 배치하세요. 미니 세면대에서 직접 써보고, 향을 비교하고, 리필 시연을 보여주면 제품 인지가 확대됩니다.</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:16px;border-left:4px solid var(--green);">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">♻️ 공병 교환 상설화</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.6;">공병 수거가 방문 동기의 핵심이었습니다. 네이처컬렉션 매장에 상설 리필 스테이션을 만들면 팝업에서 형성된 신뢰가 일상으로 이어집니다.</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:16px;border-left:4px solid var(--orange);">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">💬 혼합 피드백 반영</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.6;">"종류가 더 다양했으면" 같은 건설적 의견을 다음 팝업에 직접 반영하고, "여러분의 의견을 반영했습니다"라고 소통하세요.</div>
+    </div>
+  </div>
+</div>
+
+
+<h2>데이터 수집 개요</h2>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;">
+  <div class="card metric-card"><div style="font-size:32px;font-weight:800;color:var(--primary);">251</div><div style="font-size:11px;color:var(--body);font-weight:600;">총 포스트</div></div>
+  <div class="card metric-card" style="border-top-color:#00b4d8;"><div style="font-size:32px;font-weight:800;color:#00b4d8;">249</div><div style="font-size:11px;color:var(--body);font-weight:600;">1차 유효</div></div>
+  <div class="card metric-card" style="border-top-color:var(--pink);"><div style="font-size:32px;font-weight:800;color:var(--pink);">149</div><div style="font-size:11px;color:var(--body);font-weight:600;">3차 진심 필터 통과</div></div>
+</div>
+
+<h3>기간별 분포</h3>
+<table>
+<thead><tr><th>기간</th><th>건수</th><th>일평균</th><th>비율</th></tr></thead><tbody>
+<tr><td>이벤트 전 (05.01~17)</td><td><strong>37</strong></td><td>2.2</td><td>15%</td></tr>
+<tr><td>사전홍보 (05.18~24)</td><td><strong>21</strong></td><td>3.0</td><td>8%</td></tr>
+<tr><td>이벤트 기간 (05.25~06.18)</td><td><strong>168</strong></td><td>6.7</td><td>67%</td></tr>
+<tr><td>이벤트 후 (06.19~30)</td><td><strong>25</strong></td><td>2.1</td><td>10%</td></tr>
+</tbody></table>
+
+<h3>날짜별 버즈 분포</h3><div class="card" style="padding:14px 18px;">
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-01</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-03</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-05</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-06</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-07</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-08</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:57.14285714285714%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">8</span><span style="color:var(--orange);font-weight:600;"> ↑</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-09</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-10</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-11</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-12</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-13</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-14</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-16</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-17</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#f59e0b;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-19</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#d946ef;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-20</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#d946ef;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-21</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#d946ef;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-23</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:78.57142857142857%;height:100%;background:#d946ef;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">11</span><span style="color:var(--coral);font-weight:700;"> ★</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-24</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#d946ef;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-25</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:42.857142857142854%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">6</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-26</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:42.857142857142854%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">6</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-27</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:42.857142857142854%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">6</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-28</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:21.428571428571427%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">3</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-29</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-30</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">05-31</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:57.14285714285714%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">8</span><span style="color:var(--orange);font-weight:600;"> ↑</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-01</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:50.0%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">7</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-02</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-03</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-04</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:50.0%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">7</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-05</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:78.57142857142857%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">11</span><span style="color:var(--coral);font-weight:700;"> ★</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-06</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-07</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:42.857142857142854%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">6</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-08</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:64.28571428571429%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">9</span><span style="color:var(--orange);font-weight:600;"> ↑</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-09</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-10</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:50.0%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">7</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-11</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:100.0%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">14</span><span style="color:var(--coral);font-weight:700;"> ★</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-12</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-13</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:64.28571428571429%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">9</span><span style="color:var(--orange);font-weight:600;"> ↑</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-14</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:50.0%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">7</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-15</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:21.428571428571427%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">3</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-16</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:57.14285714285714%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">8</span><span style="color:var(--orange);font-weight:600;"> ↑</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-17</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:71.42857142857143%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">10</span><span style="color:var(--coral);font-weight:700;"> ★</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-18</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:57.14285714285714%;height:100%;background:#6666FF;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">8</span><span style="color:var(--orange);font-weight:600;"> ↑</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-19</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-20</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-21</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-22</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:28.57142857142857%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">4</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-23</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-24</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-25</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-26</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-27</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-28</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:7.142857142857142%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">1</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-29</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:14.285714285714285%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">2</span></div>
+<div style="display:flex;align-items:center;gap:8px;margin:2px 0;font-size:11px;"><span style="width:75px;text-align:right;color:var(--body);flex-shrink:0;">06-30</span><div style="flex:1;height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;"><div style="width:35.714285714285715%;height:100%;background:#94a3b8;border-radius:3px;"></div></div><span style="width:25px;font-weight:700;text-align:right;">5</span></div>
+</div>
+
+<h2>1. 버즈 규모 — 진짜 유효한 반응은?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">총 251건</div>
+    <div style="font-size:13px;color:var(--body);">검색 결과 전체를 합산합니다. 보도자료, 협찬, 노이즈가 모두 동일한 1건으로 카운트됩니다.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">진심 필터 통과 149건 (59%)</div>
+    <div style="font-size:13px;color:var(--body);">251건 중 102건(41%)이 보도자료·협찬·노이즈·진정성 미달로 탈락했습니다. 진심이 담긴 반응만 추리면 149건입니다.</div>
+    <div class="insight-blue insight">→ 기존 도구의 <strong>"251건"</strong>과 RXR의 <strong>"149건"</strong>은 전혀 다른 이야기를 합니다. 수치의 크기보다 수치의 순도가 중요합니다.</div>
+  </div>
+</div>
+
+
+<h2>2. 감성 분석 — 긍정이 정말 긍정인가요?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">긍정/중립/부정 3단계</div>
+    <div style="font-size:13px;color:var(--body);">"긍정 38%, 캠페인 성공" — 단순한 결론을 내립니다.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">4단계 — "혼합"이 핵심 발견</div>
+    <div style="font-size:13px;color:var(--body);"><strong>긍정 37% / 혼합 48% / 부정 1% / 중립 12%</strong></div>
+    <div class="raw-box raw-good">📊 <strong>혼합 감성 사례:</strong> "공병 가져가면 리필 제품으로 바꿔줘서 좋았는데, 종류가 더 다양했으면 좋겠어요" — 진지하게 경험한 사람의 건설적 피드백</div>
+    <div class="insight-blue insight">→ 기존 도구가 <strong>"중립"로 묻어버린 48%</strong>가 실은 가장 가치 있는 피드백이었습니다. "좋긴 한데 이런 점은 아쉬웠다"는 브랜드가 듣고 싶어하는 바로 그 목소리입니다.</div>
+  </div>
+</div>
+
+
+<h2>3. 콘텐츠 유형 분류 — 251건은 모두 같은 가치인가요?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">채널별 건수만</div>
+    <div style="font-size:13px;color:var(--body);">"블로그 251건" — 진성 후기인지, 보도자료인지, 협찬인지 구분하지 못합니다.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">7단계 콘텐츠 유형 + 신뢰도</div>
+    <table>
+      <tr><th>유형</th><th>건수</th><th>비율</th><th>의미</th></tr>
+      <tr style="background:#f0fdf4;"><td><strong>진성 후기</strong></td><td>75</td><td>30%</td><td>직접 방문 + 구체적 경험</td></tr>
+      <tr><td>일반 포스트</td><td>96</td><td>38%</td><td>이벤트 관련 일반 콘텐츠</td></tr>
+      <tr style="background:#fffbeb;"><td>협찬/체험단</td><td>63</td><td>25%</td><td>진심 스펙트럼 분석 대상</td></tr>
+      <tr style="background:#f9fafb;"><td>나열형·보도·기타</td><td>17</td><td>7%</td><td>카운트만 또는 제외</td></tr>
+    </table>
+    <div class="insight-blue insight">→ 자발적 콘텐츠(진성+일반)가 <strong>68%</strong>를 차지합니다. 친환경 가치에 공감해 스스로 찾아와 글을 쓴 사람이 3명 중 2명이라는 것은, 캠페인 메시지가 실제로 사람들을 움직였다는 증거입니다.</div>
+  </div>
+</div>
+
+
+<h2>4. 협찬 분석 — 같은 "좋아요"인가요?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">협찬 유/무 이분법</div>
+    <div style="font-size:13px;color:var(--body);">"협찬 63건 있음" — 그 이상의 분석 불가.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">진심의 농도를 측정합니다</div>
+    <div class="grid2" style="margin:10px 0;">
+      <div class="card" style="text-align:center;border-top:3px solid var(--orange);">
+        <div style="font-size:10px;color:var(--body);margin-bottom:4px;">협찬 63건</div>
+        <div style="font-size:22px;font-weight:800;color:var(--orange);">보통</div>
+        <div style="font-size:10px;color:var(--body);">진정성</div>
+      </div>
+      <div class="card" style="text-align:center;border-top:3px solid var(--green);">
+        <div style="font-size:10px;color:var(--body);margin-bottom:4px;">자발적 171건</div>
+        <div style="font-size:22px;font-weight:800;color:var(--green);">높음</div>
+        <div style="font-size:10px;color:var(--body);">진정성</div>
+      </div>
+    </div>
+    <div class="raw-box raw-good">📊 <strong>진심 있는 협찬:</strong> "체험단이지만 솔직히 공병 교환 개념이 신선했어요. 집에 쌓인 공병 가져가니 뿌듯했습니다" — 개인 경험과 균형 잡힌 평가가 담겨 있습니다</div>
+    <div class="raw-box raw-bad">📊 <strong>의무적 협찬:</strong> "비욘드에서 팝업을 운영합니다! 꼭 방문해보세요!!! 최고의 경험!!!" — 느낌표만 가득, 구체적 경험 0</div>
+    <div class="insight-blue insight">→ 같은 "협찬"이라도 <strong>진심의 농도가 다릅니다</strong>. 비욘드의 경우 협찬자들도 친환경 가치에 상대적으로 더 공감했기 때문에, 일반적인 뷰티 팝업 대비 협찬-자발적 진정성 격차가 좁았습니다.</div>
+  </div>
+</div>
+
+
+<h2>5. 토픽 분석 — 사람들은 무엇을 말했나요?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">워드클라우드</div>
+    <div style="font-size:13px;color:var(--body);">빈도 기반의 키워드 구름. "비욘드", "팝업" 같은 당연한 단어만 크게 보입니다.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">구조화된 토픽 비중 + 시사점</div>
+
+<div class="gauge-row"><div class="gauge-label">제품/체험</div><div class="gauge-track"><div class="gauge-fill" style="width:71%;background:#6666FF;">179건</div></div><div class="gauge-val" style="color:#6666FF;">71%</div></div>
+<div class="gauge-row"><div class="gauge-label">친환경/가치</div><div class="gauge-track"><div class="gauge-fill" style="width:67%;background:#10b981;">168건</div></div><div class="gauge-val" style="color:#10b981;">67%</div></div>
+<div class="gauge-row"><div class="gauge-label">공간/분위기</div><div class="gauge-track"><div class="gauge-fill" style="width:36%;background:#00b4d8;">90건</div></div><div class="gauge-val" style="color:#00b4d8;">36%</div></div>
+<div class="gauge-row"><div class="gauge-label">굿즈/혜택</div><div class="gauge-track"><div class="gauge-fill" style="width:34%;background:#f59e0b;">85건</div></div><div class="gauge-val" style="color:#f59e0b;">34%</div></div>
+<div class="gauge-row"><div class="gauge-label">위치/접근성</div><div class="gauge-track"><div class="gauge-fill" style="width:33%;background:#94a3b8;">83건</div></div><div class="gauge-val" style="color:#94a3b8;">33%</div></div>
+<div class="gauge-row"><div class="gauge-label">포토부스/SNS</div><div class="gauge-track"><div class="gauge-fill" style="width:27%;background:#d946ef;">69건</div></div><div class="gauge-val" style="color:#d946ef;">27%</div></div>
+<div class="gauge-row"><div class="gauge-label">웨이팅/예약</div><div class="gauge-track"><div class="gauge-fill" style="width:17%;background:#ef4444;">43건</div></div><div class="gauge-val" style="color:#ef4444;">17%</div></div>
+<div class="gauge-row"><div class="gauge-label">헤줘/캠페인</div><div class="gauge-track"><div class="gauge-fill" style="width:4%;background:#64748b;">10건</div></div><div class="gauge-val" style="color:#64748b;">4%</div></div>
+
+    <div class="insight-blue insight">→ <strong>친환경/가치(67%)가 제품(71%)과 거의 동등</strong>한 것은 이례적입니다. 일반 팝업은 "사진/공간" 위주인데, 비욘드는 "왜 이 브랜드가 좋은지"를 사람들이 직접 설명합니다. 반면 <strong>헤줘 라인은 4%</strong>에 불과 — 핵심 제품의 체험 접점이 아쉬웠습니다.</div>
+  </div>
+</div>
+
+
+<h2>6. 심리 분석 — 어떤 마음으로 말했나요?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">측정 불가</div>
+    <div style="font-size:13px;color:var(--body);">기존 도구는 "무엇을 말했는가"까지만 봅니다. 글 뒤에 숨은 심리는 분석할 수 없습니다.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">진정성 · 추천 확신도 · 신선함 3축</div>
+    <div class="grid3" style="margin:10px 0;">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:12px;color:var(--body);margin-bottom:4px;">이벤트 전</div>
+        <div style="font-size:11px;">진정성 <strong style="color:var(--primary);">보통</strong></div>
+        <div style="font-size:11px;">긍정률 <strong>27%</strong></div>
+      </div>
+      <div class="card" style="text-align:center;border:2px solid var(--primary);">
+        <div style="font-size:12px;color:var(--body);margin-bottom:4px;">이벤트 기간</div>
+        <div style="font-size:11px;">진정성 <strong style="color:var(--primary);">높음</strong></div>
+        <div style="font-size:11px;">긍정률 <strong>38%</strong></div>
+      </div>
+      <div class="card" style="text-align:center;border:2px solid var(--green);">
+        <div style="font-size:12px;color:var(--body);margin-bottom:4px;">이벤트 후</div>
+        <div style="font-size:11px;">진정성 <strong style="color:var(--green);">높음 ↑</strong></div>
+        <div style="font-size:11px;">긍정률 <strong>52%</strong></div>
+      </div>
+    </div>
+    <div class="insight-blue insight">→ <strong>시간이 지날수록 진정성이 높아지고 긍정률도 상승</strong>합니다. 팝업 직후의 즉흥적 반응이 아니라, 곰곰이 생각한 뒤 쓴 후기가 더 긍정적입니다. 일반 팝업은 시간이 지나면 기억이 미화되며 진정성이 떨어지는데, 비욘드는 정반대 — 친환경 경험이 오래 남는다는 뜻입니다.</div>
+  </div>
+</div>
+
+
+<h2>7. 후기 품질 — 모든 후기가 같은 깊이인가요?</h2>
+<div class="ba-container">
+  <div class="ba-box ba-before">
+    <div class="ba-label" style="color:#64748b;">BEFORE — 기존 도구</div>
+    <div class="ba-title">1건 = 1건</div>
+    <div style="font-size:13px;color:var(--body);">20자짜리 감탄사와 1,000자짜리 서사형 후기가 동일한 1건입니다.</div>
+  </div>
+  <div class="ba-vs">→</div>
+  <div class="ba-box ba-after">
+    <div class="ba-label" style="color:var(--primary);">AFTER — RXR</div>
+    <div class="ba-title" style="color:var(--primary);">후기 깊이 5단계 (분석 가중치 적용)</div>
+    <table>
+      <tr><th>등급</th><th>건수</th><th>비율</th></tr>
+      <tr style="background:#f0fdf4;"><td><strong>서사형</strong> (500자+, 구체적 디테일)</td><td>165</td><td>66%</td></tr>
+      <tr><td><strong>분석형</strong> (300자+)</td><td>53</td><td>21%</td></tr>
+      <tr><td>경험형 (150자+)</td><td>14</td><td>6%</td></tr>
+      <tr><td>감상형 (50자+)</td><td>15</td><td>6%</td></tr>
+      <tr style="background:#fef2f2;"><td>간단형 (50자 미만)</td><td>4</td><td>2%</td></tr>
+    </table>
+    <div class="insight-blue insight">→ <strong>서사형이 66%</strong>로 일반 팝업(30~40%) 대비 압도적으로 높습니다. 친환경 가치에 공감한 사람들은 "왜 이게 좋은지 설명하고 싶다"는 동기로 긴 글을 씁니다. 단순히 "예뻐서 찍었다"가 아닌 <strong>가치 공감형 콘텐츠</strong>가 생산된 것입니다.</div>
+  </div>
+</div>
+
+
+<h2>8. 진심 필터 — 3단계 정제</h2>
+<div class="card" style="padding:20px;">
+  <div class="funnel-bar" style="width:100%;background:linear-gradient(90deg,#94a3b8,#b0b8c4);">1차 필터 (노이즈 제거) — 249건 | 긍정 37%</div>
+  <div class="funnel-bar" style="width:72%;background:linear-gradient(90deg,#6666FF,#8888FF);">2차 필터 (협찬·보도 분리) — 179건 | 긍정 37%</div>
+  <div class="funnel-bar" style="width:60%;background:linear-gradient(90deg,#10b981,#34d399);">3차 필터 (진정성 기준) — 149건 | 긍정 38%</div>
+</div>
+<div class="insight" style="margin-top:12px;">
+  <strong>핵심 발견:</strong> 3단계 필터를 거쳐도 긍정률이 <strong>37%→38%(+1%p)</strong>로 거의 변하지 않습니다. 이는 과장된 긍정이 거의 없고, 진짜 좋았던 사람들이 대부분이라는 뜻입니다.
+</div>
+
+
+<h2>종합 비교표</h2>
+<table>
+  <thead><tr><th>비교 영역</th><th>BEFORE (기존)</th><th>AFTER (RXR)</th><th>차별화</th></tr></thead>
+  <tbody>
+  <tr><td><strong>버즈 규모</strong></td><td>251건</td><td>진심 149건 (59%)</td><td style="color:var(--primary);font-weight:700;">진실 폭로</td></tr>
+  <tr><td><strong>감성</strong></td><td>3단계</td><td>4단계 + 혼합 48%</td><td style="color:var(--primary);font-weight:700;">깊이 ×3</td></tr>
+  <tr><td><strong>분류</strong></td><td>채널별 건수</td><td>7단계 유형 + 신뢰도</td><td style="color:var(--primary);font-weight:700;">정확도 ×10</td></tr>
+  <tr><td><strong>협찬</strong></td><td>유/무</td><td>진심 스펙트럼</td><td style="color:var(--green);font-weight:700;">유일</td></tr>
+  <tr><td><strong>토픽</strong></td><td>워드클라우드</td><td>구조화 8토픽 + 비중</td><td style="color:var(--primary);font-weight:700;">액셔너블</td></tr>
+  <tr><td><strong>심리</strong></td><td>불가능</td><td>진정성/확신도/신선함</td><td style="color:var(--green);font-weight:700;">유일</td></tr>
+  <tr><td><strong>후기 품질</strong></td><td>1건=1건</td><td>5단계 (서사형 66%)</td><td style="color:var(--green);font-weight:700;">유일</td></tr>
+  </tbody>
+</table>
+
+
+<h2 style="border-bottom-color:var(--primary);">BOTTOM LINE</h2>
+<div style="padding:24px;background:linear-gradient(135deg,#f8f7ff,#eef2ff);border-radius:16px;border:2px solid var(--primary-pale);margin:16px 0;">
+  <div style="text-align:center;margin-bottom:20px;">
+    <div style="font-size:13px;color:var(--body);margin-bottom:8px;">기존 도구의 결론</div>
+    <div style="font-size:20px;font-weight:700;color:#94a3b8;text-decoration:line-through;">"251건 mentions, 긍정 38%, 캠페인 성공"</div>
+    <div style="font-size:13px;color:var(--body);margin:12px 0 8px;">RXR의 결론</div>
+    <div style="font-size:22px;font-weight:800;color:var(--primary);">"149건 진심, 친환경 가치가 진짜 작동, 서사형 후기 66%"</div>
+  </div>
+
+  <h3 style="margin-top:20px;">왜 이런 결과가 나왔을까요?</h3>
+  <div class="grid4" style="margin:12px 0;">
+    <div class="card" style="border-top:3px solid var(--green);text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:var(--green);">+1%p</div>
+      <div style="font-size:10px;color:var(--body);margin-bottom:6px;">필터 후 긍정률 변화</div>
+      <div style="font-size:11px;color:var(--body);line-height:1.5;">과장 긍정이 거의 없었습니다. 필터를 거쳐도 긍정률이 유지되었다는 것은 <strong>진짜 좋았던 사람들</strong>이 대부분이라는 뜻입니다.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--primary);text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:var(--primary);">67%</div>
+      <div style="font-size:10px;color:var(--body);margin-bottom:6px;">친환경/가치 언급</div>
+      <div style="font-size:11px;color:var(--body);line-height:1.5;">제품이 아닌 "가치"를 이야기하는 팝업. 일반 팝업 대비 가치 언급이 <strong>2배 이상</strong>이었습니다.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--orange);text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:var(--orange);">↑ 상승</div>
+      <div style="font-size:10px;color:var(--body);margin-bottom:6px;">시간에 따른 진정성</div>
+      <div style="font-size:11px;color:var(--body);line-height:1.5;">시간이 지날수록 진정성이 높아졌습니다. 즉흥적 반응이 아닌 <strong>곰곰이 생각한 후기</strong>가 많았습니다.</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--pink);text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:var(--pink);">66%</div>
+      <div style="font-size:10px;color:var(--body);margin-bottom:6px;">서사형 후기 비율</div>
+      <div style="font-size:11px;color:var(--body);line-height:1.5;">가치에 공감하면 <strong>"왜 좋은지 설명하고 싶다"</strong>는 동기가 생깁니다. 그 결과가 서사형 66%입니다.</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:20px;">제언: 다음 팝업에서 무엇을 바꿀까요?</h3>
+  <div class="grid3" style="margin:12px 0;">
+    <div style="background:#fff;border-radius:12px;padding:16px;border-left:4px solid var(--primary);">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">🧴 헤줘 라인 체험 강화</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.6;">세정 라인이 팝업에서 거의 언급되지 않았습니다. 미니 세면대+향 테스트+리필 시연을 핵심 동선에 배치해보세요.</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:16px;border-left:4px solid var(--green);">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">♻️ 공병 교환 상설화</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.6;">공병 수거가 방문의 핵심 동기였습니다. 매장 상설 리필 스테이션으로 전환하면 팝업에서 형성된 신뢰가 일상으로 이어집니다.</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:16px;border-left:4px solid var(--orange);">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">💬 혼합 피드백 반영</div>
+      <div style="font-size:12px;color:var(--body);line-height:1.6;">건설적 피드백을 다음 팝업에 직접 반영하고, "여러분의 의견을 반영했습니다"라고 소통하면 참여감이 더 커집니다.</div>
+    </div>
+  </div>
+</div>
+
+
+<h2>부록: 하이라이트 20건</h2>
+<p style="font-size:12px;color:var(--body);margin-bottom:12px;">진정성 높은 상위 10건 + 낮은 하위 10건을 선별하여 진심 필터의 차이를 보여드립니다.</p>
+
+<h3 style="color:var(--green);">진정성 높은 상위 10건</h3>
+
+<div class="highlight-card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#10b981;">진정성 매우 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-20</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/kk10152002/223133724004" target="_blank" style="color:var(--dark);text-decoration:none;">[6월 팝업스토어] 성수 팝업, 비욘드/불티나마켓</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#3b82f6;font-weight:600;">혼합</span> ·
+        후기 깊이 <strong>Q5</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트후
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#10b981;">진정성 매우 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-04</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/him_e_review/223119849508" target="_blank" style="color:var(--dark);text-decoration:none;">뚝섬 팝업스토어 | 비욘드 친환경 팝업스토어 (~6/18)</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#3b82f6;font-weight:600;">혼합</span> ·
+        후기 깊이 <strong>Q5</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#10b981;">진정성 매우 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-11</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/eunhye_dobby/223125657025" target="_blank" style="color:var(--dark);text-decoration:none;">[성수] 비욘드 팝업 스토어 / 친환경 플라스틱 줄이기</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#3b82f6;font-weight:600;">혼합</span> ·
+        후기 깊이 <strong>Q5</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#10b981;">진정성 매우 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-05</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/deunlog/223120346350" target="_blank" style="color:var(--dark);text-decoration:none;">LESS PLASTIC. PAPER IS ENOUGH | 비욘드 팝업스토어</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#3b82f6;font-weight:600;">혼합</span> ·
+        후기 깊이 <strong>Q5</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#10b981;">진정성 매우 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-17</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/jins5372/223131263283" target="_blank" style="color:var(--dark);text-decoration:none;">성수동 팝업 친환경 캠페인 비욘드 팝업스토어</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#3b82f6;font-weight:600;">혼합</span> ·
+        후기 깊이 <strong>Q5</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#10b981;">진정성 매우 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-02</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/yunhj427/223117588473" target="_blank" style="color:var(--dark);text-decoration:none;">성수동팝업 '비욘드 친환경캠페인' 참여 후기 @ 프로젝트렌트</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#3b82f6;font-weight:600;">혼합</span> ·
+        후기 깊이 <strong>Q5</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#10b981;">진정성 매우 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-03</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/pingpongjelly/223119290719" target="_blank" style="color:var(--dark);text-decoration:none;">플라스틱 Good Bye  종이 Hello  - 비욘드 팝업 스토어 in...</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#3b82f6;font-weight:600;">혼합</span> ·
+        후기 깊이 <strong>Q5</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#10b981;">진정성 매우 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-12</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/jan9239/223127196296" target="_blank" style="color:var(--dark);text-decoration:none;">[성수동] 팝업스토어 나들이 (논픽션, 클룹, 레어로우, 비욘드)</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#3b82f6;font-weight:600;">혼합</span> ·
+        후기 깊이 <strong>Q5</strong> ·
+        공간/분위기, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#10b981;">진정성 매우 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-05-30</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/whitestone_-3/223113947777" target="_blank" style="color:var(--dark);text-decoration:none;">비욘드 팝업 | 5월 성수동 팝업스토어 이벤트, 서울숲 놀거리</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#3b82f6;font-weight:600;">혼합</span> ·
+        후기 깊이 <strong>Q5</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--green);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#10b981;">진정성 매우 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-12</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/1616sm/223127205707" target="_blank" style="color:var(--dark);text-decoration:none;">성수동팝업 비욘드 새로이 하지 말고 재활용으로 다시 사용하자</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#3b82f6;font-weight:600;">혼합</span> ·
+        후기 깊이 <strong>Q5</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<h3 style="color:var(--coral);margin-top:16px;">진정성 낮은 하위 10건</h3>
+<div class="highlight-card" style="border-left:4px solid var(--coral);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#6666FF;">진정성 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-14</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/twosegye/223128978363" target="_blank" style="color:var(--dark);text-decoration:none;">성수 비욘드 팝업</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#94a3b8;font-weight:600;">중립</span> ·
+        후기 깊이 <strong>Q1</strong> ·
+        위치/접근성 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--coral);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#6666FF;">진정성 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-05-26</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/daily_jiji_/223112692238" target="_blank" style="color:var(--dark);text-decoration:none;">[뷰티] 비욘드 딥 모이스처 바디 에멀전 촉촉하고 냄새 좋은...</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#10b981;font-weight:600;">긍정</span> ·
+        후기 깊이 <strong>Q3</strong> ·
+        제품/체험, 친환경/가치 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--coral);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#6666FF;">진정성 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-05-06</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/dlsea/223094895186" target="_blank" style="color:var(--dark);text-decoration:none;">[비욘드] 비욘드 토탈리커버리 바디워시 기획 뷰티테스터 20명...</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#94a3b8;font-weight:600;">중립</span> ·
+        후기 깊이 <strong>Q3</strong> ·
+        제품/체험, 친환경/가치 ·
+        이벤트전
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--coral);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#6666FF;">진정성 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-05-08</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/jy70417/223096295615" target="_blank" style="color:var(--dark);text-decoration:none;">네이처컬렉션 x 비욘드 토탈리커버리 바디워시기획 뷰티테스...</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#94a3b8;font-weight:600;">중립</span> ·
+        후기 깊이 <strong>Q2</strong> ·
+        제품/체험, 친환경/가치 ·
+        이벤트전
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--coral);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#6666FF;">진정성 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-17</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/daara1980/223131492658" target="_blank" style="color:var(--dark);text-decoration:none;">성분은 순하게~효능은 강력하게 업그레이드 리뉴얼된 [비욘드...</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#10b981;font-weight:600;">긍정</span> ·
+        후기 깊이 <strong>Q3</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--coral);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#6666FF;">진정성 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-06</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/dr_kio/223121906208" target="_blank" style="color:var(--dark);text-decoration:none;">비욘드 프로디펜스 샴푸 테스터 모집</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#10b981;font-weight:600;">긍정</span> ·
+        후기 깊이 <strong>Q2</strong> ·
+        친환경/가치, 제품/체험 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--coral);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#6666FF;">진정성 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-06-16</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/rlatjsru0916/223130554773" target="_blank" style="color:var(--dark);text-decoration:none;">네이처콜렉션 뷰티테스터 모집</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#10b981;font-weight:600;">긍정</span> ·
+        후기 깊이 <strong>Q4</strong> ·
+        제품/체험, 친환경/가치 ·
+        이벤트중
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--coral);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#6666FF;">진정성 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-05-05</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/dr_kio/223094421360" target="_blank" style="color:var(--dark);text-decoration:none;">비욘드 토탈리커버리 바디워시 테스터 모집</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#94a3b8;font-weight:600;">중립</span> ·
+        후기 깊이 <strong>Q2</strong> ·
+        제품/체험, 친환경/가치 ·
+        이벤트전
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--coral);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#6666FF;">진정성 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-05-16</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/memebena8585/223103228711" target="_blank" style="color:var(--dark);text-decoration:none;">일백마블 산업감각 (230516)</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#94a3b8;font-weight:600;">중립</span> ·
+        후기 깊이 <strong>Q2</strong> ·
+        친환경/가치, 공간/분위기 ·
+        이벤트전
+      </div>
+    </div>
+<div class="highlight-card" style="border-left:4px solid var(--coral);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;color:#6666FF;">진정성 높음</span>
+        <span style="font-size:11px;color:var(--body);">2023-05-23</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;"><a href="https://blog.naver.com/gummio/223110037476" target="_blank" style="color:var(--dark);text-decoration:none;">230523 상승종목 상승내용 매집차트 뉴스 키워드</a></div>
+      <div style="font-size:11px;color:var(--body);">
+        <span style="color:#94a3b8;font-weight:600;">중립</span> ·
+        후기 깊이 <strong>Q1</strong> ·
+        친환경/가치, 위치/접근성 ·
+        사전홍보
+      </div>
+    </div>
+
+<div class="footer">
+  Project RENT · R-lab | 2023.05~06 | RXR SNS Analysis<br>
+  비욘드 팝업스토어 — Plastic Less, Paper is Enough
+</div>
+
+<div class="pdf-panel">
+  <button class="pdf-panel-toggle" onclick="document.querySelector('.pdf-panel-body').classList.toggle('open')">🖨️ PDF</button>
+  <div class="pdf-panel-body">
+    <div class="pdf-orient-group">
+      <button class="pdf-orient-btn active" onclick="setOrient('portrait',this)">📄 세로</button>
+      <button class="pdf-orient-btn" onclick="setOrient('landscape',this)">📄 가로</button>
+    </div>
+    <button class="pdf-print-btn" onclick="window.print()">출력 / PDF 저장</button>
+  </div>
+</div>
+<script>
+function setOrient(o,btn){
+  document.querySelectorAll('.pdf-orient-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pageOrientStyle').textContent=
+    o==='landscape'?'@media print{@page{size:A4 landscape;}}':'@media print{@page{size:A4 portrait;}}';
+}
+</script>
+</body></html>

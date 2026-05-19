@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>명동1898 복합문화공간 종합 리서치</title>
+<style>
+  :root {
+    --primary: #8B1A1A;
+    --accent: #C9A96E;
+    --bg: #FAF8F5;
+    --card-bg: #FFFFFF;
+    --text: #2D2D2D;
+    --text-light: #6B6B6B;
+    --border: #E8E2D9;
+    --highlight: #FFF8E7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    font-size: 15px;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, var(--primary) 0%, #5C1515 100%);
+    color: white;
+    padding: 80px 40px;
+    text-align: center;
+  }
+  .hero h1 { font-size: 2.8em; font-weight: 800; letter-spacing: -1px; }
+  .hero .subtitle { font-size: 1.2em; opacity: 0.85; margin-top: 12px; }
+  .hero .meta {
+    margin-top: 24px;
+    font-size: 0.85em;
+    opacity: 0.6;
+  }
+
+  /* Container */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* TOC */
+  .toc {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin: -40px auto 40px;
+    position: relative;
+    z-index: 10;
+    max-width: 960px;
+  }
+  .toc h2 { font-size: 1.1em; color: var(--primary); margin-bottom: 16px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 6px; }
+  .toc a { color: var(--primary); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Section */
+  section { margin-bottom: 48px; }
+  section h2 {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: var(--primary);
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 8px;
+    margin-bottom: 24px;
+  }
+  section h3 {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--text);
+    margin: 24px 0 12px;
+  }
+  section h4 {
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--text-light);
+    margin: 16px 0 8px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card.highlight {
+    border-left: 4px solid var(--accent);
+    background: var(--highlight);
+  }
+
+  /* Quote */
+  .quote {
+    background: var(--highlight);
+    border-left: 4px solid var(--accent);
+    padding: 20px 24px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+  }
+  .quote .speaker {
+    display: block;
+    font-style: normal;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 8px;
+    font-size: 0.9em;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.92em;
+  }
+  th {
+    background: var(--primary);
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  tr:nth-child(even) { background: #FAFAFA; }
+
+  /* Rating */
+  .rating { display: inline-block; color: var(--accent); letter-spacing: 2px; }
+
+  /* Tag */
+  .tag {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78em;
+    margin-right: 4px;
+    font-weight: 600;
+  }
+  .tag.green { background: #2D6A4F; }
+  .tag.blue { background: #1B4965; }
+  .tag.orange { background: #BC6C25; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* Diagram */
+  .diagram {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    padding: 24px;
+    border-radius: 12px;
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.85em;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 16px 0;
+  }
+
+  /* Sources */
+  .sources {
+    background: #F5F3EF;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 48px;
+  }
+  .sources h2 { border-bottom-color: #CCC; }
+  .sources a { color: var(--primary); }
+  .sources li { margin-bottom: 6px; font-size: 0.9em; }
+
+  /* Insight Box */
+  .insight {
+    background: linear-gradient(135deg, #F0E6D3 0%, #FFF8E7 100%);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+  .insight h4 { color: var(--primary); margin-top: 0; }
+
+  /* Separator */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  /* PDF Controls */
+  .pdf-controls {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    gap: 8px;
+    z-index: 9999;
+  }
+  .pdf-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pdf-btn:hover { background: #5C1515; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+  .pdf-btn svg { width: 16px; height: 16px; fill: currentColor; }
+  .pdf-btn.landscape { background: var(--accent); color: var(--text); }
+  .pdf-btn.landscape:hover { background: #b8954e; }
+
+  @media print {
+    .pdf-controls { display: none !important; }
+    .hero { padding: 40px 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .toc { margin-top: 0; break-inside: avoid; }
+    section { break-inside: avoid; }
+    .card { break-inside: avoid; }
+    body { font-size: 12px; background: white; }
+    th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .tag { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .diagram { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pdf-controls">
+  <button class="pdf-btn" onclick="printPDF('portrait')">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+    PDF 세로
+  </button>
+  <button class="pdf-btn landscape" onclick="printPDF('landscape')">
+    <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3V6zm2 2v8h14V8H5z"/></svg>
+    PDF 가로
+  </button>
+</div>
+
+<style id="print-orientation"></style>
+<script>
+function printPDF(orientation) {
+  var styleEl = document.getElementById('print-orientation');
+  if (orientation === 'landscape') {
+    styleEl.textContent = '@page { size: A4 landscape; margin: 15mm; } @media print { .container { max-width: 100%; } .grid-2 { grid-template-columns: 1fr 1fr; } .diagram { font-size: 11px; } }';
+  } else {
+    styleEl.textContent = '@page { size: A4 portrait; margin: 20mm; }';
+  }
+  setTimeout(function() { window.print(); }, 100);
+}
+</script>
+
+<!-- ==================== HERO ==================== -->
+<div class="hero">
+  <h1>명동 1898</h1>
+  <div class="subtitle">복합문화공간 종합 리서치 &amp; 케이스 리뷰</div>
+  <div class="meta">
+    리서치 일자: 2026-04-07 | 작성: Claude Code + 최원석<br>
+    비즈니스모델 · 콘텐츠 구성 · 사람들의 반응 · 기획자/건축가 관점
+  </div>
+</div>
+
+<!-- ==================== TOC ==================== -->
+<div class="container">
+<div class="toc">
+  <h2>목차</h2>
+  <ol>
+    <li><a href="#overview">프로젝트 개요</a></li>
+    <li><a href="#history">탄생 배경과 논쟁</a></li>
+    <li><a href="#architects">건축가·기획자 관점</a></li>
+    <li><a href="#space">공간 구성 상세</a></li>
+    <li><a href="#business">비즈니스모델 분석</a></li>
+    <li><a href="#tenants">핵심 입점 브랜드 심층 분석</a></li>
+    <li><a href="#content">콘텐츠 구성 리뷰</a></li>
+    <li><a href="#reaction">사람들의 반응</a></li>
+    <li><a href="#evaluation">종합 평가</a></li>
+    <li><a href="#implications">공간 기획 시사점</a></li>
+  </ol>
+</div>
+
+<!-- ==================== 1. OVERVIEW ==================== -->
+<section id="overview">
+  <h2>1. 프로젝트 개요</h2>
+
+  <table>
+    <tr><th style="width:30%">항목</th><th>내용</th></tr>
+    <tr><td>정식명칭</td><td><strong>1898광장</strong> (명동성당 복합문화공간)</td></tr>
+    <tr><td>위치</td><td>서울시 중구 명동길 74, 명동성당 B1~F1</td></tr>
+    <tr><td>개관</td><td>2014년 9월 (명동성당 종합계획 1단계 완료 시점)</td></tr>
+    <tr><td>이름 유래</td><td>명동대성당 축성연도(1898년)에서 차용</td></tr>
+    <tr><td>로고 상징</td><td>오병이어(빵 5개 + 물고기 2마리) — "많은 이들과 더 넓고, 깊은 사랑을 나누자"</td></tr>
+    <tr><td>운영 주체</td><td>천주교 서울대교구 (가톨릭회관)</td></tr>
+    <tr><td>운영시간</td><td>09:00~22:00 (연중무휴, 설/추석 당일 휴무)</td></tr>
+    <tr><td>규모</td><td>2개 층, 약 20개 매장/시설, 주차 202대</td></tr>
+    <tr><td>상위 계획</td><td>명동성당 종합계획 (4단계, 2029년까지) 중 1단계</td></tr>
+    <tr><td>총 사업 면적</td><td>명동 특별계획구역 48,845㎡</td></tr>
+  </table>
+</section>
+
+<!-- ==================== 2. HISTORY ==================== -->
+<section id="history">
+  <h2>2. 탄생 배경과 논쟁</h2>
+
+  <h3>2-1. 추진 경위</h3>
+  <div class="card">
+    <table>
+      <tr><th>시기</th><th>내용</th></tr>
+      <tr><td>2003년</td><td>정진석 추기경 주도로 <strong>명동개발특별위원회</strong> 설립. "후손들에게 기념비적 유산"을 남기겠다는 비전 제시</td></tr>
+      <tr><td>2009년</td><td>종합계획 1단계 사업 본격 착수</td></tr>
+      <tr><td>2011.09.01</td><td>서울시 건축허가 취득</td></tr>
+      <tr><td>2011.09.16</td><td>기공식 거행</td></tr>
+      <tr><td>2014.09</td><td><strong>1898광장 개관</strong> — 교구청 신관(지하4층~지상10층) 완공과 함께 오픈</td></tr>
+      <tr><td>2014.10.10</td><td>인터파크 북파크 오픈 (마지막 입점 매장 중 하나)</td></tr>
+    </table>
+  </div>
+
+  <h3>2-2. 3가지 비전</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>1. 명동성당의 보존과 복원</h4>
+      <p>1898년 축성된 네오고딕 양식 성당의 역사적 가치를 훼손하지 않으면서 현대적 활용 방안 모색</p>
+    </div>
+    <div class="card">
+      <h4>2. 시민과 공유하는 열린 광장</h4>
+      <p>종교 시설을 넘어 시민 누구나 쉬어갈 수 있는 도심 속 쉼터 조성</p>
+    </div>
+  </div>
+  <div class="card">
+    <h4>3. 천주교 신자들의 교류 공간 확보</h4>
+    <p>사제서품식 수용 시설 부족 해결 (약 5,000명 규모 대성당 필요성)</p>
+  </div>
+
+  <h3>2-3. 찬반 논쟁 — 보존 vs 개발</h3>
+
+  <p>이 프로젝트는 건축계에서 <strong>격렬한 논쟁</strong>을 불러일으켰습니다. "종교 공간의 본질"과 "도시 개발의 현실" 사이에서 다양한 전문가들이 상반된 의견을 내놓았습니다.</p>
+
+  <div class="card" style="border-left: 4px solid #C0392B;">
+    <h4>반대 의견 — "개발은 폭력이다"</h4>
+
+    <div class="quote">
+      "개발은 폭력이다. 인간의 편리성과 경제적 이득을 위한 행위일 뿐이다."
+      <span class="speaker">— 김원 대표 (건축가)</span>
+    </div>
+
+    <div class="quote">
+      "진정성과 완전성에 심각한 훼손을 자행할 것이다. 세계문화유산 등재 가능성이 사실상 소멸된다."
+      <span class="speaker">— 김정신 교수 (문화재 전문가)</span>
+    </div>
+
+    <div class="quote">
+      "교회는 하느님의 집이고 기도하는 장소이다. 이 계획은 복음적이지 않다."
+      <span class="speaker">— 김영섭 교수</span>
+    </div>
+
+    <p style="margin-top: 12px;"><strong>핵심 지적:</strong></p>
+    <ul>
+      <li>1970년 이후 건물들의 양식 불일치 문제</li>
+      <li>보호구역 미설정 상태에서의 개발</li>
+      <li>구 주교관 등 역사적 건축물 문화재 지정 누락</li>
+      <li>도코모모코리아 등 "사회적 합의 없이 결정" 지적</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-left: 4px solid #27AE60;">
+    <h4>찬성/중도 의견 — "무조건적 보존도 정답은 아니다"</h4>
+
+    <div class="quote">
+      "장소의 불편함을 해소하면서 동시에 가능성을 구현하는 것이 원칙이다. 무조건적인 보존도 정답은 아닐 것이다."
+      <span class="speaker">— 유걸 대표 (건축가, 설계 참여)</span>
+    </div>
+
+    <div class="quote">
+      "거대한 건물을 짓는 개발계획에 반대하면서도 해결책을 모색해본 적 없다."
+      <span class="speaker">— 김용미 대표 (건축계 자기비판)</span>
+    </div>
+
+    <p style="margin-top: 12px;"><strong>핵심 논리:</strong></p>
+    <ul>
+      <li>자동차가 점령한 전면을 지하화하여 보행 환경 개선</li>
+      <li>높은 건물 대신 "지평을 넓히는" 수평적 확장</li>
+      <li>스위스 베드로 성당 사례 — 중요한 장소는 유지 노력 필요</li>
+    </ul>
+  </div>
+
+  <div class="insight">
+    <h4>기획자 관점 인사이트</h4>
+    <p>이 논쟁에서 주목할 점은 <strong>최종 결과물인 1898광장이 '절충의 산물'</strong>이라는 것입니다. 높은 건물을 짓는 대신 <strong>지하에 수평적 광장</strong>을 조성함으로써, 지상의 성당 경관을 보존하면서도 새로운 공간을 확보했습니다. 완전한 보존도, 완전한 개발도 아닌 이 <strong>"지하 전략"</strong>이 양측의 가장 격렬한 반대를 피할 수 있었던 핵심 설계 판단이었습니다.</p>
+  </div>
+</section>
+
+<!-- ==================== 3. ARCHITECTS ==================== -->
+<section id="architects">
+  <h2>3. 건축가·기획자 관점</h2>
+
+  <h3>3-1. 원 설계 — 유진 코스트 신부 (1898년 원본 건축)</h3>
+  <div class="card">
+    <table>
+      <tr><th style="width:25%">항목</th><th>내용</th></tr>
+      <tr><td>이름</td><td>Eugene Jean Georges Coste (한국명: 고의선)</td></tr>
+      <tr><td>소속</td><td>프랑스 파리외방전교회</td></tr>
+      <tr><td>양식</td><td>네오고딕 (Neo-Gothic)</td></tr>
+      <tr><td>핵심 설계</td><td>적벽돌 치장쌓기, 수직적 전면 + 부드러운 후면부</td></tr>
+    </table>
+  </div>
+
+  <h3>3-2. 종합계획 1단계 (2014년 현대 프로젝트)</h3>
+  <div class="card">
+    <table>
+      <tr><th style="width:25%">항목</th><th>내용</th></tr>
+      <tr><td>프로젝트 리포트</td><td>한국건축가협회 「건축」 제58권 제4호 (2014.04)</td></tr>
+      <tr><td>저자</td><td>박노성, 김한수, 류 (건축사)</td></tr>
+      <tr><td>설계 참여</td><td>유걸 대표 (메타건축 추정)</td></tr>
+      <tr><td>자문</td><td>김광현 교수 (명동개발특별위원회)</td></tr>
+      <tr><td>총괄 의뢰</td><td>천주교 서울대교구 (허영엽 신부 — 문화홍보국장)</td></tr>
+    </table>
+  </div>
+
+  <h3>3-3. 핵심 인물 인터뷰 & 발언 정리</h3>
+
+  <div class="card highlight">
+    <h4>허영엽 신부 (서울대교구 문화홍보국장) — 프로젝트 총괄</h4>
+    <div class="quote">
+      "이번 명동성당종합계획은 교회가 좀 더 세상과 적극적으로 소통하고 교류하는 데 목적이 있다."
+      <span class="speaker">— 허영엽 신부</span>
+    </div>
+    <p><strong>핵심 의도:</strong></p>
+    <ul>
+      <li>"높은 건물을 짓기보다는 <strong>지평을 넓혀</strong> 시민들에게 휴식처가 되는 교회를 만드는 것"</li>
+      <li>움푹 꺼져 있는 주차장 부분을 채워 올리고, 도시에서 성당이 드러나 보이게 하는 구상</li>
+      <li>수익성보다 <strong>공익과 사회적 가치 우선</strong> 운영 원칙 확립</li>
+    </ul>
+  </div>
+
+  <div class="card highlight">
+    <h4>유걸 대표 (건축가) — 설계 참여</h4>
+    <div class="quote">
+      "장소의 불편함을 해소하면서 동시에 가능성을 구현하는 것이 원칙이다."
+      <span class="speaker">— 유걸 대표</span>
+    </div>
+    <p><strong>설계 원칙:</strong></p>
+    <ul>
+      <li>자동차가 점령한 전면을 <strong>지하화</strong>하여 보행 친화적 환경 조성</li>
+      <li>"무조건적인 보존도 정답이 아니다" — 보존과 활용의 균형</li>
+      <li>빨간 벽돌 고딕 양식을 <strong>실내로 들여와 현대적으로 재해석</strong></li>
+    </ul>
+  </div>
+
+  <div class="card highlight">
+    <h4>임진우 (건축가, 매거진HD 기고) — 외부 평가</h4>
+    <div class="quote">
+      "외장 재료로 사용된 적벽돌의 치장쌓기 디테일에서는 벽돌공의 놀라운 숙련이 느껴진다. 역사적으로도, 건축적으로도 완벽한 건축물이다."
+      <span class="speaker">— 임진우 건축가</span>
+    </div>
+    <p><strong>공간 분석:</strong></p>
+    <ul>
+      <li>전면: "수직적이고 남성처럼 강한 조형언어"</li>
+      <li>후면: "둥근 외관과 높고 낮은 매스의 중첩 → 부드러운 엄마의 품 같은 아늑함"</li>
+      <li>1898 지하공간: "<strong>신자와 비신자가 함께 어울릴 수 있도록 라이프스타일을 고려</strong>한 만남과 교제의 다용도 문화공간"</li>
+    </ul>
+  </div>
+
+  <div class="card highlight">
+    <h4>김광현 교수 (명동개발특별위원회) — 사업 기획</h4>
+    <p>정진석 추기경이 "후손들에게 <strong>기념비적 유산</strong>"을 원했다고 배경 설명. 사제서품식 수용 시설 부족(약 5,000명 규모)과 교구청 현대화가 직접적 동기였음을 밝힘.</p>
+  </div>
+
+  <div class="card highlight">
+    <h4>이주연 이사 (대안 제시자) — 건축적 대안</h4>
+    <div class="quote">
+      "저층 고밀도 개발로 기존 질서를 유지하면서 지형도를 살리는 방식을 제안한다."
+      <span class="speaker">— 이주연 이사</span>
+    </div>
+    <p>최종 결과물인 1898광장은 이 대안과 유사한 방향 — <strong>지하 수평 확장 + 지상 저층 유지</strong> — 을 선택했습니다.</p>
+  </div>
+
+  <div class="card highlight">
+    <h4>김정동 교수 — 역사적 맥락</h4>
+    <div class="quote">
+      "코스트 신부가 세운 명동성당은 한국 천주교의 새 시대를 열었으며 고딕양식을 전하는 계기가 되었다."
+      <span class="speaker">— 김정동 교수</span>
+    </div>
+    <p>120여년간 신앙의 중심지이자 1980년대 민주화운동의 성지로서의 이중적 역사 가치 강조.</p>
+  </div>
+</section>
+
+<!-- ==================== 4. SPACE ==================== -->
+<section id="space">
+  <h2>4. 공간 구성 상세</h2>
+
+  <h3>4-1. 건축적 특징</h3>
+  <div class="card">
+    <ul>
+      <li><strong>인테리어 컨셉:</strong> 빨간 벽돌 고딕 양식 → 실내에 현대적으로 재해석</li>
+      <li><strong>천장:</strong> 높은 천정고 + 자연광처럼 느껴지는 천정 조명 (착각 유발)</li>
+      <li><strong>공간감:</strong> "상가라고는 하나 내부가 광장처럼 넓다"</li>
+      <li><strong>동선:</strong> 중앙 광장을 축으로 매장들이 둘러싸는 구조</li>
+    </ul>
+  </div>
+
+  <h3>4-2. 층별 구성</h3>
+  <div class="diagram">
+  ┌─────────────────────────────────────────────────────────┐
+  │                       F1층 (지상)                        │
+  │  ┌────────────┐  ┌──────────────┐  ┌────────────────┐  │
+  │  │ 광장동 가온 │  │ 커피리브레    │  │  비스트로74    │  │
+  │  │ 곰국시·만두 │  │ 공정무역 커피 │  │ 이탈리안 식당 │  │
+  │  └────────────┘  └──────────────┘  └────────────────┘  │
+  ├─────────────────────────────────────────────────────────┤
+  │                       B1층 (지하)                        │
+  │                                                         │
+  │  ┌────────┐  ┌──────────────┐  ┌─────────────────────┐ │
+  │  │ 1898+  │  │ 갤러리1898   │  │  인터파크 북앤샵     │ │
+  │  │ 기념품 │  │ 기획전시     │  │  150평·3만권·대여   │ │
+  │  └────────┘  └──────────────┘  └─────────────────────┘ │
+  │                                                         │
+  │  ┌────────────┐  ┌────────┐  ┌──────────┐  ┌────────┐ │
+  │  │전광수커피   │  │ 르빵   │  │ 에쎄레    │  │홍밀밀  │ │
+  │  │하우스      │  │베이커리│  │ 젤라또    │  │팥빙수  │ │
+  │  └────────────┘  └────────┘  └──────────┘  └────────┘ │
+  │                                                         │
+  │  ┌──────────┐  ┌──────────┐  ┌───────────────────────┐ │
+  │  │래;코드   │  │ 꽃다지   │  │ 가톨릭정보·나눔센터  │ │
+  │  │업사이클  │  │ 화원     │  │ (비상업 사회시설)     │ │
+  │  └──────────┘  └──────────┘  └───────────────────────┘ │
+  │                                                         │
+  │              ┌──────────────────┐                        │
+  │              │ 1898광장 약국    │                        │
+  │              │ 365일 연중무휴   │                        │
+  │              └──────────────────┘                        │
+  └─────────────────────────────────────────────────────────┘
+  </div>
+
+  <h3>4-3. 접근성</h3>
+  <table>
+    <tr><th>교통수단</th><th>상세</th></tr>
+    <tr><td>을지로입구역</td><td>5번 출구 도보 500m</td></tr>
+    <tr><td>을지로3가역</td><td>12번 출구 도보 400m</td></tr>
+    <tr><td>명동역</td><td>9번 출구 도보 700m</td></tr>
+    <tr><td>주차</td><td>202대, 최초 30분 3,000원 / 추가 10분 1,000원</td></tr>
+  </table>
+</section>
+
+<!-- ==================== 5. BUSINESS MODEL ==================== -->
+<section id="business">
+  <h2>5. 비즈니스모델 분석</h2>
+
+  <h3>5-1. 운영 철학</h3>
+  <div class="card highlight">
+    <p style="font-size: 1.1em; font-weight: 700; text-align: center;">
+      "수익성보다 공익과 사회적 가치 우선"
+    </p>
+    <p style="text-align: center; color: var(--text-light);">
+      — 서울대교구 운영 원칙
+    </p>
+  </div>
+
+  <h3>5-2. 수익 구조</h3>
+  <div class="diagram">
+  ┌──────────────────────────────────────────────────┐
+  │              1898 수익 구조 (추정)                │
+  ├──────────────┬───────────────────────────────────┤
+  │  ① 임대수익  │ 약 20개 매장 임대료 (최대 매출원) │
+  │  ② 직영수익  │ 1898+ 기념품 (100여 상품)         │
+  │  ③ 주차수익  │ 202대, 30분/3,000원              │
+  │  ④ 문화수익  │ 갤러리 전시, 공방 수업 (일부 유료)│
+  │  ⑤ 간접효과  │ 명동 랜드마크 집객 → 부수 소비   │
+  └──────────────┴───────────────────────────────────┘
+  </div>
+
+  <h3>5-3. 입점 브랜드 선별 기준 — "3C 원칙"</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Charity (자선)</h4>
+      <p>르빵: 남은 빵 전량 기부<br>래;코드: 업사이클링 사회공헌<br>나눔센터: 비상업 사회시설</p>
+    </div>
+    <div class="card">
+      <h4>Culture (문화)</h4>
+      <p>갤러리1898: 무료 전시<br>인터파크 북파크: 독서문화 촉진<br>버스킹·음악회: 정기 공연</p>
+    </div>
+  </div>
+  <div class="card">
+    <h4>Catholic (가톨릭)</h4>
+    <p>1898+: 대교구 공식 기념품<br>가톨릭정보센터<br>성물·종교 서적</p>
+  </div>
+
+  <div class="insight">
+    <h4>비즈니스모델 특이점</h4>
+    <p>일반 상업시설이 "집객→매출→수익" 사이클을 최우선으로 하는 반면, 1898은 <strong>"가치→집객→사회적 임팩트"</strong>를 우선시합니다. 이는 <strong>부지 비용이 0원</strong>(교구 소유)이기에 가능한 모델입니다. 임대료를 공격적으로 올리지 않아도 되기 때문에 공정무역 카페, 적자 운영 업사이클 브랜드, 자선 베이커리 같은 "사회적 기업형 테넌트"를 유치할 수 있었습니다.</p>
+    <p style="margin-top: 8px;">이것은 <strong>일반 디벨로퍼가 복제할 수 없는 구조</strong>이며, "종교시설의 사회적 역할 확장"이라는 맥락에서만 작동하는 모델입니다.</p>
+  </div>
+</section>
+
+<!-- ==================== 6. TENANT DEEP DIVE ==================== -->
+<section id="tenants">
+  <h2>6. 핵심 입점 브랜드 심층 분석</h2>
+
+  <h3>6-1. 1898+ (기념품 편집숍)</h3>
+  <div class="card">
+    <p><span class="tag">Catholic</span> <span class="tag green">Charity</span> <span class="tag blue">Culture</span></p>
+    <table>
+      <tr><th style="width:25%">항목</th><th>내용</th></tr>
+      <tr><td>운영 주체</td><td>서울대교구 직영</td></tr>
+      <tr><td>컨셉</td><td>"3C(Charity, Culture, Catholic) — 고객과 공감하고 소통하는 기념품"</td></tr>
+      <tr><td>상품 수</td><td>약 100여 종</td></tr>
+      <tr><td>시그니처 상품</td><td>명동 1898 향초, 북마크, 액세서리, 성물, 생활용품, 의류</td></tr>
+      <tr><td>타깃</td><td>신자 + 비신자 + 외국인 관광객 (동선 설계까지 고려)</td></tr>
+      <tr><td>디스플레이</td><td>편집숍 수준의 진열 — "편안하고 물 흐르듯 자연스러운 동선"</td></tr>
+    </table>
+    <div class="insight" style="margin-top: 12px;">
+      <h4>기획 의도</h4>
+      <p>기존 "성물방"의 이미지를 완전히 탈피. 비신자와 관광객도 부담 없이 들어올 수 있도록 <strong>편집숍형 디스플레이</strong>와 <strong>라이프스타일 상품</strong>을 전면에 배치. 종교적 요소는 자연스럽게 녹여내되 강요하지 않는 방식.</p>
+    </div>
+  </div>
+
+  <h3>6-2. RE;CODE 래;코드 (업사이클링)</h3>
+  <div class="card">
+    <p><span class="tag green">Charity</span> <span class="tag blue">Culture</span></p>
+    <table>
+      <tr><th style="width:25%">항목</th><th>내용</th></tr>
+      <tr><td>운영 주체</td><td>코오롱인더스트리 (코오롱FnC)</td></tr>
+      <tr><td>창립자</td><td><strong>한경애 상무</strong></td></tr>
+      <tr><td>브랜드 철학</td><td>"선택받지 못한 옷과 재료들에 생명을 불어넣는다" — 진실성(authenticity) 최우선</td></tr>
+      <tr><td>운영 상태</td><td><strong>적자 운영</strong> (이익보다 환경가치 창출에 중점)</td></tr>
+    </table>
+
+    <div class="quote" style="margin-top: 16px;">
+      "단순히 기업의 홍보를 위한 것이 아니라 진실성을 생각하고 시작했다."
+      <span class="speaker">— 한경애 상무 (RE;CODE 창립자)</span>
+    </div>
+
+    <h4>3가지 컬렉션 라인</h4>
+    <table>
+      <tr><th>컬렉션</th><th>소재</th><th>특징</th></tr>
+      <tr><td>인벤토리</td><td>3년 미판매 패션 재고</td><td>소각 예정 의류를 재설계</td></tr>
+      <tr><td>인더스트리얼</td><td>자동차 에어백, 시트커버</td><td>산업폐기물 활용</td></tr>
+      <tr><td>밀리터리</td><td>군 의류, 텐트, 낙하산</td><td>군폐기물 재활용</td></tr>
+    </table>
+
+    <h4>1898 내 사회활동</h4>
+    <ul>
+      <li>업사이클링 전시 + 시청각실 + 라이브러리 운영</li>
+      <li>주말마다 <strong>재활용 공방 수업</strong></li>
+      <li>미혼모를 위한 무료 강좌 (입양아동용 인형 제작)</li>
+      <li>난청 청소년 지원 프로모션</li>
+    </ul>
+
+    <div class="insight" style="margin-top: 12px;">
+      <h4>입점 시너지</h4>
+      <p>적자 운영 브랜드가 명동 한복판에 입점할 수 있었던 이유는 1898의 <strong>"사회적 가치 우선" 임대 정책</strong> 덕분. RE;CODE 입장에서는 월 임대료 부담이 일반 상권 대비 낮고, 교회 방문객이라는 <strong>"가치 소비에 열린 고객군"</strong>에 노출되는 이점.</p>
+    </div>
+  </div>
+
+  <h3>6-3. 인터파크 북파크 (서점)</h3>
+  <div class="card">
+    <p><span class="tag blue">Culture</span></p>
+    <table>
+      <tr><th style="width:25%">항목</th><th>내용</th></tr>
+      <tr><td>오픈</td><td>2014년 10월 10일</td></tr>
+      <tr><td>규모</td><td>전용면적 424.80㎡ (약 130평), 보유 28,000~30,000권</td></tr>
+      <tr><td>서비스</td><td>신간 대여 (2,000원/주), 현장 수령, 음반숍, 카페테리아</td></tr>
+      <tr><td>기획 의도</td><td>"책, 저자, 독자가 만나는 오프라인 문화공간"</td></tr>
+    </table>
+
+    <div class="quote" style="margin-top: 16px;">
+      "단순히 책을 대여하는 서비스에서 더 나아가, 도심 속 쾌적한 공간에서 독서를 즐길 수 있어 장기적으로 독서문화 촉진에도 기여할 수 있기를 바란다."
+      <span class="speaker">— 인터파크 북파크 점장</span>
+    </div>
+
+    <p><strong>정기 프로그램:</strong> '저자와의 대화', 새 책 대여 프로그램 — "읽는 문화 만들기"</p>
+  </div>
+
+  <h3>6-4. 커피리브레 (공정무역 카페)</h3>
+  <div class="card">
+    <p><span class="tag green">Charity</span></p>
+    <ul>
+      <li>브라질·동남아시아 원두 산지 <strong>직거래</strong></li>
+      <li>매일 현장 로스팅, 유기농 원두</li>
+      <li>매주 2회 <strong>퍼블릭 커핑</strong> (고객 참여형 커피 문화)</li>
+      <li>"커피 재배 농민과의 지속가능한 발전" 가치 지향</li>
+    </ul>
+  </div>
+
+  <h3>6-5. 르빵 (자선 베이커리)</h3>
+  <div class="card">
+    <p><span class="tag green">Charity</span></p>
+    <ul>
+      <li>프랑스산 밀가루 등 최고급 재료 사용</li>
+      <li><strong>당일 판매 원칙</strong></li>
+      <li><strong>남은 빵 전량 기부</strong> — 자선 원칙의 실천적 운영</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 7. CONTENT ==================== -->
+<section id="content">
+  <h2>7. 콘텐츠 구성 리뷰</h2>
+
+  <h3>7-1. 정기 문화 프로그램</h3>
+  <table>
+    <tr><th>프로그램</th><th>주기</th><th>주관</th><th>특징</th></tr>
+    <tr><td>소소한 음악회</td><td>매월 셋째 수요일</td><td>1898광장</td><td>실내 공연</td></tr>
+    <tr><td>더 버스킹</td><td>매주 화요일</td><td>1898광장</td><td>라이브 버스킹</td></tr>
+    <tr><td>저자와의 대화</td><td>비정기</td><td>인터파크 북파크</td><td>작가 초청 행사</td></tr>
+    <tr><td>재활용 공방</td><td>매주 주말</td><td>래;코드</td><td>체험형 워크숍</td></tr>
+    <tr><td>퍼블릭 커핑</td><td>주 2회</td><td>커피리브레</td><td>커피 체험</td></tr>
+    <tr><td>기획 전시</td><td>시즌별</td><td>갤러리1898</td><td>교회미술 + 한국 현대미술</td></tr>
+  </table>
+
+  <h3>7-2. 콘텐츠 강점 / 약점</h3>
+  <div class="grid-2">
+    <div class="card" style="border-left: 4px solid #27AE60;">
+      <h4>강점</h4>
+      <ul>
+        <li><strong>공간 자체가 콘텐츠:</strong> 고딕 벽돌 인테리어 + 높은 천장 → 포토존</li>
+        <li><strong>종교 × 문화 × 상업 크로스오버:</strong> 국내 유일</li>
+        <li><strong>"쉼" 일관 테마:</strong> 명동 번화가의 대비 효과</li>
+        <li><strong>365일 운영 + 무료 입장</strong></li>
+        <li><strong>가치 소비 일관성:</strong> 모든 입점 브랜드가 사회적 가치 지향</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 4px solid #C0392B;">
+      <h4>약점</h4>
+      <ul>
+        <li><strong>인지도 부족:</strong> 지하 위치로 우연 발견 다수</li>
+        <li><strong>콘텐츠 갱신 느림:</strong> 재방문 유인 부족</li>
+        <li><strong>온라인 마케팅 부재:</strong> SNS 공식 계정 활동 미미</li>
+        <li><strong>타깃 불명확:</strong> 관광객 vs 신자 vs 시민</li>
+        <li><strong>매장간 시너지 부족:</strong> 20개 매장 개별 운영</li>
+        <li><strong>시그니처 경험 부재:</strong> "여기 가면 꼭 OO" 없음</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 8. REACTION ==================== -->
+<section id="reaction">
+  <h2>8. 사람들의 반응</h2>
+
+  <h3>8-1. 긍정 반응</h3>
+  <div class="card" style="border-left: 4px solid #27AE60;">
+    <div class="quote">"정신 없던 명동 거리에서 잠시 쉬어 가기 좋은 장소"<span class="speaker">— 블로그 방문 후기</span></div>
+    <div class="quote">"종교가 없어도 선물 구매 목적으로 방문. 상품 구성이 알차다."<span class="speaker">— 1898+ 방문자</span></div>
+    <div class="quote">"명동의 새로운 문화적 랜드마크"<span class="speaker">— 서울시 공식 블로그</span></div>
+    <ul style="margin-top: 12px;">
+      <li><strong>외국인 관광객:</strong> 기념품 + 플라워샵 호응 높음</li>
+      <li><strong>건축 애호가:</strong> 고딕→현대 재해석에 만족</li>
+      <li><strong>"도심 오아시스":</strong> 여름철 피서지로 인기</li>
+    </ul>
+  </div>
+
+  <h3>8-2. 부정/아쉬움 반응</h3>
+  <div class="card" style="border-left: 4px solid #C0392B;">
+    <div class="quote">"존재를 몰랐다. 지하에 있어 간판이나 안내가 부족하다."<span class="speaker">— 방문 후기 공통</span></div>
+    <div class="quote">"뭘 하러 가는 곳인지 모호하다. 카페? 갤러리? 서점? 성지순례?"<span class="speaker">— 정체성 혼란 후기</span></div>
+    <ul style="margin-top: 12px;">
+      <li><strong>평일 유동인구 대비 실제 방문/소비 적음</strong></li>
+      <li><strong>F&B 가격대가 명동 상권 특성상 저렴하지 않음</strong></li>
+      <li><strong>1회 방문 후 재방문 동기 부족</strong></li>
+    </ul>
+  </div>
+
+  <h3>8-3. 타깃별 반응 요약</h3>
+  <table>
+    <tr><th>타깃</th><th>만족도</th><th>핵심 포인트</th></tr>
+    <tr><td>외국인 관광객</td><td><span class="rating">★★★★☆</span></td><td>명동성당 방문 후 자연 유입, 기념품 구매 활발</td></tr>
+    <tr><td>종교인 (신자)</td><td><span class="rating">★★★★☆</span></td><td>성물방·정보센터 등 실질적 니즈 충족</td></tr>
+    <tr><td>내국인 일반</td><td><span class="rating">★★★☆☆</span></td><td>"알면 좋은 곳"이지만 적극적 재방문 약함</td></tr>
+    <tr><td>건축/디자인 관심층</td><td><span class="rating">★★★★★</span></td><td>공간 자체에 높은 만족, 오픈하우스 서울 선정</td></tr>
+  </table>
+</section>
+
+<!-- ==================== 9. EVALUATION ==================== -->
+<section id="evaluation">
+  <h2>9. 종합 평가</h2>
+
+  <h3>9-1. 4대 축 종합 점수</h3>
+  <table>
+    <tr><th>평가 항목</th><th>점수</th><th>근거</th></tr>
+    <tr><td>비즈니스 독창성</td><td><span class="rating">★★★★☆</span></td><td>종교시설 + 복합문화공간 = 국내 유일 모델</td></tr>
+    <tr><td>비즈니스 수익성</td><td><span class="rating">★★☆☆☆</span></td><td>공익 우선 의도적 제한. 부지 무상이라 가능</td></tr>
+    <tr><td>비즈니스 지속가능성</td><td><span class="rating">★★★★☆</span></td><td>명동성당 자산(부지+역사성) 기반 → 리스크 낮음</td></tr>
+    <tr><td>비즈니스 확장성</td><td><span class="rating">★★☆☆☆</span></td><td>장소 특수성 의존, 타지 복제 불가</td></tr>
+    <tr><td colspan="3" style="border-bottom: 2px solid var(--border);"></td></tr>
+    <tr><td>공간 매력도</td><td><span class="rating">★★★★★</span></td><td>건축적 완성도, 분위기 압도적</td></tr>
+    <tr><td>콘텐츠 다양성</td><td><span class="rating">★★★☆☆</span></td><td>전시·공방·공연 있으나 갱신 속도 느림</td></tr>
+    <tr><td>고객 경험</td><td><span class="rating">★★★☆☆</span></td><td>발견하면 만족 높지만, 발견까지가 어려움</td></tr>
+    <tr><td>온라인 존재감</td><td><span class="rating">★★☆☆☆</span></td><td>SNS 마케팅 거의 없음, 바이럴 부재</td></tr>
+    <tr><td colspan="3" style="border-bottom: 2px solid var(--border);"></td></tr>
+    <tr><td>사회적 가치 실현</td><td><span class="rating">★★★★★</span></td><td>자선·공정무역·업사이클 입점 일관성 탁월</td></tr>
+    <tr><td>종합</td><td><span class="rating">★★★☆☆</span></td><td><strong>사회적 가치의 모범이나, 상업적 활력은 아쉬움</strong></td></tr>
+  </table>
+
+  <h3>9-2. SWOT</h3>
+  <div class="grid-2">
+    <div class="card" style="border-left: 4px solid #27AE60;">
+      <h4>S — 강점</h4>
+      <ul>
+        <li>128년 역사의 명동성당이라는 압도적 자산</li>
+        <li>부지비용 0원 → 낮은 임대료 가능</li>
+        <li>"1898" 숫자 브랜딩의 간결함</li>
+        <li>3C 원칙의 일관된 입점 큐레이션</li>
+        <li>고딕→현대 건축 재해석의 공간 매력</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 4px solid #C0392B;">
+      <h4>W — 약점</h4>
+      <ul>
+        <li>지하 위치 → 낮은 인지도/발견성</li>
+        <li>SNS·디지털 마케팅 부재</li>
+        <li>타깃 불명확 (관광객? 신자? 시민?)</li>
+        <li>시그니처 경험 부재</li>
+        <li>매장간 통합 경험 설계 미흡</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 4px solid #2980B9;">
+      <h4>O — 기회</h4>
+      <ul>
+        <li>명동 관광 부활 (코로나 이후 회복)</li>
+        <li>가치 소비 트렌드 성장</li>
+        <li>명동 고도제한 완화 정책 (2026)</li>
+        <li>인스타그래머블 공간으로서의 잠재력</li>
+        <li>종합계획 2~4단계 추가 확장 예정</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 4px solid #F39C12;">
+      <h4>T — 위협</h4>
+      <ul>
+        <li>명동 상권 자체의 침체/변화</li>
+        <li>독립서점·카페 트렌드 경쟁</li>
+        <li>입점 브랜드 철수 리스크 (적자 운영 브랜드)</li>
+        <li>온라인 대체재 (기념품 → e-commerce)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 10. IMPLICATIONS ==================== -->
+<section id="implications">
+  <h2>10. 공간 기획 시사점</h2>
+
+  <h3>10-1. 배울 점 (Best Practice)</h3>
+
+  <div class="card highlight">
+    <h4>1. 장소성(Place Identity) 브랜딩</h4>
+    <p>128년 역사의 성당이라는 자산을 <strong>"1898"이라는 숫자 하나</strong>로 압축. 연도가 곧 브랜드명이 되어 장소의 역사를 직관적으로 전달. 로고에 오병이어를 넣어 종교적 의미까지 내포.</p>
+  </div>
+
+  <div class="card highlight">
+    <h4>2. 가치 기반 테넌트 큐레이션</h4>
+    <p>공정무역(커피리브레) + 업사이클(래;코드) + 자선(르빵) + 문화(갤러리·서점) → <strong>모든 매장이 "선한 소비"라는 하나의 메시지</strong>를 강화. 일반 쇼핑몰의 "아무 테넌트나 채우기"와 완전히 다른 접근.</p>
+  </div>
+
+  <div class="card highlight">
+    <h4>3. 지하 공간의 역발상</h4>
+    <p>지하라는 약점을 <strong>"도심 속 은밀한 안식처"</strong>로 포지셔닝. 높은 천장과 자연광 조명으로 지하라는 느낌을 제거. 명동 거리의 소란함과의 대비가 오히려 공간 경험을 극대화.</p>
+  </div>
+
+  <div class="card highlight">
+    <h4>4. 종교시설의 현대적 전환 모델</h4>
+    <p>종교 공간 ≠ 닫힌 공간. <strong>"세상과 소통하는 교회"</strong>라는 비전을 물리적 공간으로 구현. 비신자도 자연스럽게 방문하는 설계가 핵심.</p>
+  </div>
+
+  <h3>10-2. 개선 여지 (공간 기획자 제언)</h3>
+
+  <div class="card">
+    <h4>1. 디지털 마케팅 전략 필요</h4>
+    <p>인스타그래머블한 공간임에도 불구하고 SNS 공식 채널/해시태그 전략이 부재. #명동1898 #1898광장 같은 태그 전략, UGC(사용자 생성 콘텐츠) 유도가 비용 대비 효과 높을 것.</p>
+  </div>
+
+  <div class="card">
+    <h4>2. 시그니처 경험 설계</h4>
+    <p>"1898에 가면 꼭 OO을 해야 해"라는 킬러 콘텐츠 부재. 예: 명동성당 모티브 한정판 디저트, 성당 지하에서만 살 수 있는 독점 상품, 기념품 각인 서비스 등.</p>
+  </div>
+
+  <div class="card">
+    <h4>3. 외국인 관광객 동선 설계</h4>
+    <p>명동성당 관광 → 1898 자연 유입이 핵심인데, 지상 → 지하 연결 동선의 안내가 부족. 성당 출구에서 1898로 이어지는 사이니지, QR코드 안내 등 개선 여지.</p>
+  </div>
+
+  <div class="card">
+    <h4>4. 매장간 크로스 프로모션</h4>
+    <p>20개 매장이 개별 운영되어 통합 경험이 약함. 예: "1898 패스포트" (5개 매장 스탬프 → 기념품 증정), 래;코드 공방 + 르빵 빵 세트, 서점 + 카페 연계 등.</p>
+  </div>
+
+  <div class="card">
+    <h4>5. 콘텐츠 갱신 주기 단축</h4>
+    <p>갤러리 전시 외에 월간/주간 단위의 새로운 이벤트가 부족해 재방문 유인이 약함. 팝업 전시, 계절 한정 메뉴, 아티스트 콜라보 등 "한정성"을 활용한 콘텐츠 설계 필요.</p>
+  </div>
+</section>
+
+<hr>
+
+<!-- ==================== SOURCES ==================== -->
+<div class="sources">
+  <h2>참고 자료</h2>
+  <h4>공식/기관 자료</h4>
+  <ul>
+    <li><a href="https://1898.catholic.or.kr/plaza_guide.asp" target="_blank">1898광장 공식 사이트</a></li>
+    <li><a href="https://gallery1898.catholic.or.kr/gallery1898/aboutUs.asp" target="_blank">갤러리1898 공식</a></li>
+    <li><a href="https://mediahub.seoul.go.kr/archives/2008148" target="_blank">서울시 미디어허브 — 문화공간 '1898 명동성당'</a></li>
+    <li><a href="https://www.auric.or.kr/user/rdoc/DocCmag.aspx?returnVal=CMAG&dn=200665" target="_blank">AURIC — 명동성당 종합계획 1단계 프로젝트 리포트</a> (박노성, 김한수, 류)</li>
+  </ul>
+  <h4>건축가/기획자 인터뷰 & 분석</h4>
+  <ul>
+    <li><a href="https://www.catholicnews.co.kr/news/articleView.html?idxno=5953" target="_blank">가톨릭뉴스 — 명동성당 개발 계획, 이게 최선입니까?</a> (김원, 김정신, 유걸, 김영섭, 김용미, 이주연 등 전문가 인터뷰)</li>
+    <li><a href="https://magazine-hd.kr/524" target="_blank">매거진HD — 임진우 건축가의 명동성당 분석</a></li>
+    <li><a href="https://www.catholictimes.org/article/201606140160435" target="_blank">가톨릭타임즈 — 도심에서 '힐링' 선사하는 교회문화공간 1번지</a></li>
+  </ul>
+  <h4>입점 브랜드 분석</h4>
+  <ul>
+    <li><a href="https://www.jungle.co.kr/magazine/23172" target="_blank">디자인정글 — 나는 래코디안(RE;CODIAN)입니다</a> (한경애 상무 인터뷰)</li>
+    <li><a href="https://www.asiae.co.kr/article/2014101609423863688" target="_blank">아시아경제 — 인터파크도서, 명동 '북파크' 오픈</a></li>
+    <li><a href="https://m.prida.co.kr/product/detail_ac.html?product_no=107&cate_no=58&display_group=1" target="_blank">프리다 — 명동성당 1898+ 향초</a></li>
+  </ul>
+  <h4>방문 후기/리뷰</h4>
+  <ul>
+    <li><a href="https://130.pe.kr/336" target="_blank">블로그 — 명동성당 1898 광장 방문기</a></li>
+    <li><a href="https://korean.visitkorea.or.kr/detail/rem_detail.do?cotid=5db7b164-ebb4-4669-8fed-79ff3933feb6" target="_blank">대한민국 구석구석 — 새 단장한 명동성당 산책</a></li>
+  </ul>
+</div>
+
+<div style="text-align: center; padding: 40px; color: var(--text-light); font-size: 0.85em;">
+  명동1898 복합문화공간 종합 리서치 | 2026-04-07 | Claude Code + 최원석
+</div>
+
+</div><!-- container end -->
+</body>
+</html>

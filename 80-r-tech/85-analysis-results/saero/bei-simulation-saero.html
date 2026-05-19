@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BEI Simulation — 새로중앙박물관</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=DIN+Alternate&display=swap');
+:root{--primary:#6666FF;--grad:linear-gradient(135deg,#5353FF,#8A8AFF);--black:#000;--dark:#262626;--body:#424D61;--light:#F6F6F6;--white:#FFF;--red:#C00000;--coral:#FF5050;--blue:#4D93F7;--green:#10b981;--orange:#f59e0b;--pink:#d946ef;--primary-pale:#E1E1FF;--depth:#6366f1;--advocacy:#10b981;--sincerity:#f59e0b;--discovery:#ec4899;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard Variable',system-ui,sans-serif;background:var(--white);color:var(--dark);font-size:14px;line-height:1.6;max-width:1200px;margin:0 auto;padding:40px 32px;}
+h1{font-size:28px;font-weight:800;margin-bottom:4px;}
+h2{font-size:20px;font-weight:800;margin:36px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--primary-pale);}
+h3{font-size:15px;font-weight:700;margin:14px 0 8px;}
+.sub{font-size:13px;color:var(--body);margin-bottom:24px;}
+.card{background:var(--light);border:1px solid #e8e8e8;border-radius:12px;padding:16px 18px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0;}
+th{background:var(--primary);color:#fff;padding:6px 10px;text-align:left;font-size:11px;}
+td{padding:5px 10px;border-bottom:1px solid #eee;}
+.insight{padding:14px 18px;background:var(--primary-pale);border-radius:10px;border-left:4px solid var(--primary);margin:10px 0;font-size:13px;line-height:1.7;}
+.insight strong{color:var(--primary);}
+.gauge-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.gauge-label{width:120px;font-size:12px;font-weight:600;text-align:right;flex-shrink:0;}
+.gauge-track{flex:1;height:28px;background:#f0f0f0;border-radius:6px;overflow:hidden;}
+.gauge-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:700;color:#fff;transition:width 0.8s ease;}
+.gauge-val{width:50px;font-family:'DIN Alternate','Poppins',sans-serif;font-size:16px;font-weight:700;text-align:center;flex-shrink:0;}
+.bei-big{font-family:'DIN Alternate','Poppins',sans-serif;font-size:56px;font-weight:800;line-height:1;}
+.bei-label{font-size:14px;font-weight:700;letter-spacing:1px;margin-top:4px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;}
+.sim-badge{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e;padding:4px 12px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1px;}
+.footer{margin-top:40px;padding-top:16px;border-top:2px solid var(--primary);font-size:11px;color:#94a3b8;text-align:center;}
+.axis-card{border-radius:14px;padding:20px;text-align:center;border:2px solid;}
+.axis-score{font-family:'DIN Alternate','Poppins',sans-serif;font-size:42px;font-weight:800;line-height:1;}
+.axis-name{font-size:13px;font-weight:700;margin-bottom:2px;letter-spacing:1px;}
+.axis-sub{font-size:10px;color:var(--body);line-height:1.5;margin-top:8px;}
+.decay-table td,.decay-table th{text-align:center;padding:8px 6px;font-size:12px;}
+.decay-table .highlight{background:#eef2ff;font-weight:700;}
+.weight-bar{height:8px;border-radius:4px;display:inline-block;vertical-align:middle;}
+
+@media print{
+  @page{size:A4 portrait;margin:14mm 12mm;}
+  body{max-width:100%!important;padding:0!important;margin:0!important;}
+  .pdf-panel{display:none!important;}
+  .card,.grid2,.grid3,.grid4,.insight,.gauge-row,table,.axis-card{break-inside:avoid!important;page-break-inside:avoid!important;}
+  h2,h3{break-after:avoid;page-break-after:avoid;}
+  h1{font-size:22px!important;} h2{font-size:16px!important;margin-top:20px!important;}
+  .card{padding:10px 12px!important;font-size:10px!important;}
+  table{font-size:10px!important;} th,td{padding:4px 6px!important;}
+  canvas{max-height:300px!important;}
+}
+.pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;}
+.pdf-panel-toggle{display:flex;align-items:center;gap:8px;padding:12px 22px;background:var(--grad);color:#fff;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(102,102,255,0.4);border:none;font-family:'Pretendard Variable',sans-serif;}
+.pdf-panel-body{display:none;position:absolute;bottom:56px;right:0;width:220px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:16px;}
+.pdf-panel-body.open{display:block;}
+.pdf-orient-group{display:flex;gap:8px;margin-bottom:14px;}
+.pdf-orient-btn{flex:1;padding:12px 8px;background:#f9fafb;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;font-family:'Pretendard Variable',sans-serif;color:#475569;font-size:11px;font-weight:600;text-align:center;}
+.pdf-orient-btn.active{border-color:var(--primary);background:#eef2ff;color:var(--primary);}
+.pdf-print-btn{width:100%;padding:10px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Pretendard Variable',sans-serif;}
+</style><style id="pageOrientStyle"></style></head><body>
+
+<!-- 1. Header -->
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+  <span style="background:var(--grad);color:#fff;padding:4px 14px;border-radius:6px;font-family:'Poppins';font-size:11px;font-weight:600;letter-spacing:1px;">BEI SIMULATION</span>
+  <span class="sim-badge">SIMULATED DATA</span>
+</div>
+<h1>Brand Engagement Index — 새로중앙박물관</h1>
+<div class="sub">BEI 4축 시뮬레이션 | 새로 소주 팝업 실측 데이터 기반 (Gate 3: 204건 / 전체 281건) | 4주 Decay Curve 가상 추정 포함</div>
+
+<!-- 0-1. BEI 정의 -->
+<h2>BEI란 무엇인가</h2>
+
+<div class="card" style="border-top:4px solid var(--primary);margin-bottom:20px;">
+  <div style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:12px;">
+    BEI(Brand Engagement Index) = 사람들이 브랜드를 얼마나 진심으로 좋아하는지를 SNS 데이터에서 읽어내는 지수
+  </div>
+  <div style="font-size:12px;color:var(--body);line-height:1.8;">
+    0점(관심 없음)부터 100점(모두가 진심으로 좋아함)까지. 단순 언급 건수나 긍정률이 아니라, <strong>"진짜 좋아하는 사람이 얼마나 있고, 그 마음이 얼마나 깊은지"</strong>를 측정합니다.
+  </div>
+</div>
+
+<div class="grid2" style="margin-bottom:16px;">
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--coral);margin-bottom:8px;">기존 분석의 한계</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      "281건 언급, 긍정 50%"<br>
+      &#8594; 그래서 브랜드를 <strong>진짜 좋아하게 된 사람</strong>이 생겼나?<br>
+      &#8594; 그 효과가 <strong>얼마나 오래 가나</strong>?<br>
+      &#8594; 숫자 <strong>하나</strong>로 말해줄 수 있나?<br>
+      <span style="color:var(--coral);font-weight:600;">&#8594; 대답 불가</span>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:8px;">BEI가 답하는 것</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.8;">
+      "BEI 57.6 — Moderate"<br>
+      &#8594; 진짜 좋아하는 사람이 생겼나? <strong style="color:var(--primary);">&#8594; 있지만, 아직 더 필요</strong><br>
+      &#8594; 효과가 오래 가나? <strong style="color:var(--primary);">&#8594; 4주 후 유지율 77.6%</strong><br>
+      &#8594; 숫자 하나? <strong style="color:var(--primary);">&#8594; 57.6점 (Moderate)</strong>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px;">
+  <div style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:10px;">측정 원리 — 왜 SNS 데이터로 "좋아함"을 알 수 있는가</div>
+  <div style="display:grid;grid-template-columns:1fr 40px 1fr;gap:0;align-items:center;">
+    <div style="padding:14px;background:#fef2f2;border-radius:10px;text-align:center;">
+      <div style="font-size:11px;color:var(--coral);font-weight:700;margin-bottom:4px;">쉬운 행동 (신뢰 낮음)</div>
+      <div style="font-size:24px;margin-bottom:4px;">&#128100;</div>
+      <div style="font-size:11px;color:var(--body);">설문에서 "좋아요" 체크<br>인스타 좋아요 터치<br><span style="color:var(--coral);font-weight:600;">1초면 되는 행동</span></div>
+    </div>
+    <div style="text-align:center;font-size:20px;font-weight:800;color:#94a3b8;">vs</div>
+    <div style="padding:14px;background:#ecfdf5;border-radius:10px;text-align:center;">
+      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:4px;">어려운 행동 (신뢰 높음)</div>
+      <div style="font-size:24px;margin-bottom:4px;">&#9997;&#65039;</div>
+      <div style="font-size:11px;color:var(--body);">500자 후기를 정성껏 작성<br>구체적 경험 공유 + "꼭 가봐" 추천<br><span style="color:var(--green);font-weight:600;">시간과 노력이 드는 행동</span></div>
+    </div>
+  </div>
+  <div style="margin-top:12px;padding:10px;background:var(--primary-pale);border-radius:8px;font-size:12px;text-align:center;color:var(--primary);font-weight:600;">
+    BEI는 "어려운 행동"의 강도를 측정합니다 — 시간과 노력을 들인 행동은 거짓이기 어렵습니다
+  </div>
+</div>
+
+<div style="margin-bottom:16px;">
+  <div style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:10px;">4축이 측정하는 것</div>
+  <table>
+    <thead><tr><th style="width:100px;">축</th><th>쉬운 설명</th><th>측정 질문</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:700;color:var(--depth);">Depth</td><td>얼마나 정성껏 리뷰를 썼나</td><td>"대충 쓴 건가, 진심을 담은 건가?"</td></tr>
+      <tr><td style="font-weight:700;color:var(--advocacy);">Advocacy</td><td>남에게 추천까지 했나</td><td>"좋았다고만 한 건가, 가보라고 권한 건가?"</td></tr>
+      <tr><td style="font-weight:700;color:var(--sincerity);">Sincerity</td><td>전체 반응 중 진심이 몇 %인가</td><td>"노이즈를 빼면 진짜 목소리는 얼마나 되나?"</td></tr>
+      <tr><td style="font-weight:700;color:var(--discovery);">Discovery</td><td>새로운 경험이었나</td><td>"예상대로였나, 의외의 발견이었나?"</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="grid2" style="margin-bottom:16px;">
+  <div style="padding:14px;background:#eef2ff;border-radius:10px;border-left:4px solid var(--depth);">
+    <div style="font-size:12px;font-weight:700;color:var(--depth);margin-bottom:4px;">인게이지먼트 관점</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.6;">"깊이 있게 좋아하는 사람이 얼마나 되나"<br><strong>예: 인게이지먼트 78 / 이슈성 52</strong><br>&#8594; "조용하지만 깊은 팬을 만든 캠페인"</div>
+  </div>
+  <div style="padding:14px;background:#ecfdf5;border-radius:10px;border-left:4px solid var(--advocacy);">
+    <div style="font-size:12px;font-weight:700;color:var(--advocacy);margin-bottom:4px;">이슈성 관점</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.6;">"얼마나 퍼지고 화제가 되었나"<br><strong>예: 인게이지먼트 48 / 이슈성 75</strong><br>&#8594; "화제는 됐지만 깊은 팬은 못 만든 캠페인"</div>
+  </div>
+</div>
+
+<table style="margin-bottom:20px;">
+  <thead><tr><th style="width:60px;">점수</th><th style="width:120px;">등급</th><th>한마디</th></tr></thead>
+  <tbody>
+    <tr><td style="font-weight:700;">90+</td><td><span class="badge" style="background:#fef3c7;color:#92400e;">Exceptional</span></td><td style="font-size:11px;">"모두가 진심으로 좋아한다"</td></tr>
+    <tr><td style="font-weight:700;">75~89</td><td><span class="badge" style="background:#ddd6fe;color:#5b21b6;">Strong</span></td><td style="font-size:11px;">"확실한 팬이 만들어졌다"</td></tr>
+    <tr><td style="font-weight:700;">60~74</td><td><span class="badge" style="background:#dbeafe;color:#1e40af;">Solid</span></td><td style="font-size:11px;">"관심은 있지만 팬까지는 아직"</td></tr>
+    <tr style="background:#eef2ff;"><td style="font-weight:700;color:var(--primary);">45~59</td><td><span class="badge" style="background:var(--primary-pale);color:var(--primary);">Moderate</span></td><td style="font-size:11px;color:var(--primary);font-weight:600;">"화제는 됐지만 더 필요하다" &#8592; 현재 새로 팝업</td></tr>
+    <tr><td style="font-weight:700;">30~44</td><td><span class="badge" style="background:#fee2e2;color:#991b1b;">Emerging</span></td><td style="font-size:11px;">"알긴 하는데 관심은 약하다"</td></tr>
+    <tr><td style="font-weight:700;">~29</td><td><span class="badge" style="background:#f1f5f9;color:#64748b;">Weak</span></td><td style="font-size:11px;">"아직 인식 자체가 부족하다"</td></tr>
+  </tbody>
+</table>
+
+<!-- 2. BEI 종합 + 2관점 -->
+<h2>1. BEI Overview</h2>
+<div class="grid3" style="margin-bottom:20px;">
+  <div class="card" style="text-align:center;border-top:4px solid var(--primary);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);letter-spacing:1px;">BEI 종합</div>
+    <div class="bei-big" style="color:var(--primary);">57.6</div>
+    <div class="bei-label" style="color:var(--primary);">Moderate</div>
+    <div style="font-size:10px;color:var(--body);margin-top:6px;">Depth×0.35 + Advocacy×0.35<br>+ Sincerity×0.15 + Discovery×0.15</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid var(--depth);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);letter-spacing:1px;">BEI 인게이지먼트</div>
+    <div class="bei-big" style="color:var(--depth);">56.7</div>
+    <div class="bei-label" style="color:var(--depth);">Moderate</div>
+    <div style="font-size:10px;color:var(--body);margin-top:6px;">Depth×0.40 + Discovery×0.25<br>+ Sincerity×0.15 + Advocacy×0.20</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid var(--advocacy);">
+    <div style="font-size:11px;font-weight:600;color:var(--body);letter-spacing:1px;">BEI 이슈성</div>
+    <div class="bei-big" style="color:var(--advocacy);">58.5</div>
+    <div class="bei-label" style="color:var(--advocacy);">Moderate</div>
+    <div style="font-size:10px;color:var(--body);margin-top:6px;">Advocacy×0.40 + Sincerity×0.25<br>+ Depth×0.20 + Discovery×0.15</div>
+  </div>
+</div>
+
+<div class="insight">
+  <strong>해석:</strong> 새로중앙박물관 팝업은 인게이지먼트(56.7)와 이슈성(58.5)이 거의 동일한 수준. <strong>"화제성과 깊이가 비슷한 비율로 작동했다"</strong>는 의미. 다만 두 지표 모두 Moderate 구간으로, Strong(75+) 도달을 위해서는 Advocacy(추천 강도)와 Discovery(신선함) 개선이 필요.
+</div>
+
+<!-- 3. 4축 스코어 카드 -->
+<h2>2. 4-Axis Breakdown</h2>
+<div class="grid4" style="margin-bottom:16px;">
+  <div class="axis-card" style="background:#eef2ff;border-color:var(--depth);">
+    <div class="axis-name" style="color:var(--depth);">DEPTH</div>
+    <div style="font-size:10px;color:var(--body);">관여 깊이</div>
+    <div class="axis-score" style="color:var(--depth);">60.5</div>
+    <div class="badge" style="background:#ddd6fe;color:#5b21b6;">Solid</div>
+    <div class="axis-sub">Auth 67.8 × 0.6<br>+ RQL정규화 49.6 × 0.4</div>
+  </div>
+  <div class="axis-card" style="background:#ecfdf5;border-color:var(--advocacy);">
+    <div class="axis-name" style="color:var(--advocacy);">ADVOCACY</div>
+    <div style="font-size:10px;color:var(--body);">추천 강도</div>
+    <div class="axis-score" style="color:var(--advocacy);">54.4</div>
+    <div class="badge" style="background:#d1fae5;color:#065f46;">Moderate</div>
+    <div class="axis-sub">Clout 48.2 × 0.6<br>+ P-01비율 63.7 × 0.4</div>
+  </div>
+  <div class="axis-card" style="background:#fefce8;border-color:var(--sincerity);">
+    <div class="axis-name" style="color:var(--sincerity);">SINCERITY</div>
+    <div style="font-size:10px;color:var(--body);">진심 비율</div>
+    <div class="axis-score" style="color:var(--sincerity);">72.6</div>
+    <div class="badge" style="background:#fef3c7;color:#92400e;">Solid</div>
+    <div class="axis-sub">Gate 3 통과율<br>204 / 281 = 72.6%</div>
+  </div>
+  <div class="axis-card" style="background:#fdf2f8;border-color:var(--discovery);">
+    <div class="axis-name" style="color:var(--discovery);">DISCOVERY</div>
+    <div style="font-size:10px;color:var(--body);">발견 신선함</div>
+    <div class="axis-score" style="color:var(--discovery);">43.1</div>
+    <div class="badge" style="background:#fce7f3;color:#9d174d;">Moderate</div>
+    <div class="axis-sub">Freshness Index<br>"이/가" 발견형 비율</div>
+  </div>
+</div>
+
+<!-- 4축 게이지 -->
+<div style="margin:16px 0;">
+  <div class="gauge-row"><div class="gauge-label" style="color:var(--depth);">Depth<br><span style="font-size:10px;color:var(--body);">관여 깊이</span></div><div class="gauge-track"><div class="gauge-fill" style="width:60.5%;background:var(--depth);">Solid</div></div><div class="gauge-val" style="color:var(--depth);">60.5</div></div>
+  <div class="gauge-row"><div class="gauge-label" style="color:var(--advocacy);">Advocacy<br><span style="font-size:10px;color:var(--body);">추천 강도</span></div><div class="gauge-track"><div class="gauge-fill" style="width:54.4%;background:var(--advocacy);">Moderate</div></div><div class="gauge-val" style="color:var(--advocacy);">54.4</div></div>
+  <div class="gauge-row"><div class="gauge-label" style="color:var(--sincerity);">Sincerity<br><span style="font-size:10px;color:var(--body);">진심 비율</span></div><div class="gauge-track"><div class="gauge-fill" style="width:72.6%;background:var(--sincerity);">Solid</div></div><div class="gauge-val" style="color:var(--sincerity);">72.6</div></div>
+  <div class="gauge-row"><div class="gauge-label" style="color:var(--discovery);">Discovery<br><span style="font-size:10px;color:var(--body);">발견 신선함</span></div><div class="gauge-track"><div class="gauge-fill" style="width:43.1%;background:var(--discovery);">Moderate</div></div><div class="gauge-val" style="color:var(--discovery);">43.1</div></div>
+</div>
+
+<div class="insight">
+  <strong>4축 진단:</strong> <strong style="color:var(--sincerity);">Sincerity(72.6)</strong>가 가장 높아 진심 비율은 양호하지만, <strong style="color:var(--discovery);">Discovery(43.1)</strong>가 가장 낮아 "새로운 발견"보다는 "예상된 경험"에 가까움. <strong style="color:var(--depth);">Depth(60.5)</strong>는 Solid 구간 진입 — 방탈출 체험이 깊은 관여를 유도한 결과. <strong style="color:var(--advocacy);">Advocacy(54.4)</strong>는 Moderate — "좋았지만 적극 추천까지는 아닌" 상태.
+</div>
+
+<!-- 4. 2관점 가중치 비교 -->
+<h2>3. 인게이지먼트 vs 이슈성 — 가중치 구조</h2>
+<div class="grid2" style="margin-bottom:16px;">
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--depth);margin-bottom:12px;">인게이지먼트 관점</div>
+    <div style="font-size:11px;color:var(--body);margin-bottom:8px;">"깊이 있게 좋아하는 사람이 얼마나 되나"</div>
+    <div style="margin-bottom:6px;"><span style="font-size:11px;width:80px;display:inline-block;">Depth</span><span class="weight-bar" style="width:160px;background:var(--depth);"></span> <span style="font-size:11px;font-weight:700;">0.40</span></div>
+    <div style="margin-bottom:6px;"><span style="font-size:11px;width:80px;display:inline-block;">Discovery</span><span class="weight-bar" style="width:100px;background:var(--discovery);"></span> <span style="font-size:11px;font-weight:700;">0.25</span></div>
+    <div style="margin-bottom:6px;"><span style="font-size:11px;width:80px;display:inline-block;">Advocacy</span><span class="weight-bar" style="width:80px;background:var(--advocacy);"></span> <span style="font-size:11px;font-weight:700;">0.20</span></div>
+    <div style="margin-bottom:6px;"><span style="font-size:11px;width:80px;display:inline-block;">Sincerity</span><span class="weight-bar" style="width:60px;background:var(--sincerity);"></span> <span style="font-size:11px;font-weight:700;">0.15</span></div>
+    <div style="margin-top:12px;padding:10px;background:#eef2ff;border-radius:8px;font-size:28px;font-weight:800;color:var(--depth);text-align:center;">56.7 <span style="font-size:13px;font-weight:600;">Moderate</span></div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--advocacy);margin-bottom:12px;">이슈성 관점</div>
+    <div style="font-size:11px;color:var(--body);margin-bottom:8px;">"얼마나 퍼지고 화제가 되었나"</div>
+    <div style="margin-bottom:6px;"><span style="font-size:11px;width:80px;display:inline-block;">Advocacy</span><span class="weight-bar" style="width:160px;background:var(--advocacy);"></span> <span style="font-size:11px;font-weight:700;">0.40</span></div>
+    <div style="margin-bottom:6px;"><span style="font-size:11px;width:80px;display:inline-block;">Sincerity</span><span class="weight-bar" style="width:100px;background:var(--sincerity);"></span> <span style="font-size:11px;font-weight:700;">0.25</span></div>
+    <div style="margin-bottom:6px;"><span style="font-size:11px;width:80px;display:inline-block;">Depth</span><span class="weight-bar" style="width:80px;background:var(--depth);"></span> <span style="font-size:11px;font-weight:700;">0.20</span></div>
+    <div style="margin-bottom:6px;"><span style="font-size:11px;width:80px;display:inline-block;">Discovery</span><span class="weight-bar" style="width:60px;background:var(--discovery);"></span> <span style="font-size:11px;font-weight:700;">0.15</span></div>
+    <div style="margin-top:12px;padding:10px;background:#ecfdf5;border-radius:8px;font-size:28px;font-weight:800;color:var(--advocacy);text-align:center;">58.5 <span style="font-size:13px;font-weight:600;">Moderate</span></div>
+  </div>
+</div>
+
+<div class="insight">
+  <strong>관점 비교:</strong> 이슈성(58.5)이 인게이지먼트(56.7)보다 <strong>+1.8점</strong> 높음. 차이가 크지 않아 <strong>"화제성과 깊이가 비슷한 균형"</strong>을 보여줌. 만약 이슈성이 크게 높고 인게이지먼트가 낮았다면 "화제만 되고 팬은 못 만든" 캠페인, 반대라면 "조용하지만 깊은 팬을 만든" 캠페인으로 진단됨.
+</div>
+
+<!-- 5. 4주 Decay Curve -->
+<h2>4. 4주 Decay Curve <span class="sim-badge" style="font-size:9px;vertical-align:middle;">SIMULATED</span></h2>
+
+<div style="padding:20px;background:var(--light);border-radius:14px;margin-bottom:16px;">
+  <canvas id="decayChart" height="120"></canvas>
+</div>
+
+<!-- Decay 테이블 -->
+<table class="decay-table">
+  <thead>
+    <tr>
+      <th style="text-align:left;">축</th>
+      <th>T+0<br><span style="font-weight:400;font-size:9px;">캠페인</span></th>
+      <th>T+1w</th>
+      <th>T+2w</th>
+      <th>T+3w</th>
+      <th>T+4w</th>
+      <th>유지율</th>
+      <th>감쇠 패턴</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:left;font-weight:700;color:var(--depth);">Depth</td>
+      <td class="highlight">60.5</td><td>57.2</td><td>54.8</td><td>53.1</td><td>52.4</td>
+      <td style="color:var(--depth);font-weight:700;">86.6%</td>
+      <td style="font-size:11px;color:var(--depth);">Slow Decay</td>
+    </tr>
+    <tr>
+      <td style="text-align:left;font-weight:700;color:var(--advocacy);">Advocacy</td>
+      <td class="highlight">54.4</td><td>48.6</td><td>42.1</td><td>37.5</td><td>35.8</td>
+      <td style="color:var(--coral);font-weight:700;">65.8%</td>
+      <td style="font-size:11px;color:var(--coral);">Rapid Decay</td>
+    </tr>
+    <tr>
+      <td style="text-align:left;font-weight:700;color:var(--sincerity);">Sincerity</td>
+      <td class="highlight">72.6</td><td>74.1</td><td>76.3</td><td>78.0</td><td>79.2</td>
+      <td style="color:var(--green);font-weight:700;">109.1%</td>
+      <td style="font-size:11px;color:var(--green);">Inverse (상승)</td>
+    </tr>
+    <tr>
+      <td style="text-align:left;font-weight:700;color:var(--discovery);">Discovery</td>
+      <td class="highlight">43.1</td><td>31.2</td><td>22.8</td><td>18.4</td><td>16.1</td>
+      <td style="color:var(--coral);font-weight:700;">37.4%</td>
+      <td style="font-size:11px;color:var(--coral);">Sharp Decay</td>
+    </tr>
+    <tr style="background:#eef2ff;font-weight:700;">
+      <td style="text-align:left;color:var(--primary);">BEI 종합</td>
+      <td style="color:var(--primary);font-size:14px;">57.6</td>
+      <td>52.9</td><td>48.8</td><td>46.1</td>
+      <td>44.7</td>
+      <td style="color:var(--primary);">77.6%</td>
+      <td style="font-size:11px;color:var(--orange);">Moderate Decay</td>
+    </tr>
+  </tbody>
+</table>
+
+<div style="text-align:center;margin:12px 0;">
+  <div style="display:inline-block;padding:12px 28px;background:var(--primary-pale);border-radius:10px;">
+    <span style="font-size:12px;color:var(--body);">4주 유지율</span>
+    <span style="font-family:'DIN Alternate','Poppins';font-size:28px;font-weight:800;color:var(--primary);margin:0 8px;">77.6%</span>
+    <span class="badge" style="background:var(--primary);color:#fff;font-size:12px;">Moderate Decay</span>
+  </div>
+</div>
+
+<!-- 6. Decay 해석 카드 -->
+<h2>5. Decay 해석</h2>
+<div class="grid3" style="margin-bottom:16px;">
+  <div class="card" style="border-top:3px solid var(--sincerity);">
+    <div style="font-size:12px;font-weight:800;color:var(--sincerity);margin-bottom:8px;">Sincerity가 역행한다</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.7;">시간이 지나면 과장형 포스트(느낌표 132개류)가 먼저 사라지고, <strong>진심 포스트 비율이 오히려 올라간다.</strong> 노이즈는 빨리 소멸하고 진심은 남는다.</div>
+  </div>
+  <div class="card" style="border-top:3px solid var(--coral);">
+    <div style="font-size:12px;font-weight:800;color:var(--coral);margin-bottom:8px;">Advocacy가 가장 빨리 죽는다</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.7;">추천 의지는 "열기"에 가까워서 식으면 바로 꺼진다. <strong>유지율 65.8%로 4축 중 최저.</strong> "화제는 됐는데 장기 팬이 안 됐다"의 핵심 원인.</div>
+  </div>
+  <div class="card" style="border-top:3px solid var(--depth);">
+    <div style="font-size:12px;font-weight:800;color:var(--depth);margin-bottom:8px;">Depth가 가장 끈질기다</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.7;">깊은 체험 기억은 쉽게 사라지지 않는다. <strong>유지율 86.6%로 4축 중 최고.</strong> 새로 팝업의 방탈출 경험이 이 끈질긴 인상을 만들어냄.</div>
+  </div>
+</div>
+
+<div class="insight">
+  <strong>종합 진단:</strong> 새로중앙박물관 팝업은 <strong>"체험의 깊이(Depth)는 유지되지만, 추천 동력(Advocacy)과 신선함(Discovery)은 빠르게 소진"</strong>되는 패턴. 캠페인 효과의 지속성을 높이려면 <strong>4주 내 리마인드 콘텐츠</strong>(방탈출 결과 공유, 한정판 후속 이벤트 등)로 Advocacy를 재점화하는 전략이 유효함.
+</div>
+
+<!-- 7. 등급 체계 -->
+<h2>6. BEI 등급 체계</h2>
+<table>
+  <thead><tr><th style="width:80px;">점수</th><th style="width:120px;">등급</th><th style="width:60px;">등급</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td style="font-weight:700;">90+</td><td><span class="badge" style="background:#fef3c7;color:#92400e;">Exceptional</span></td><td style="text-align:center;color:#f59e0b;">&#9733;&#9733;&#9733;&#9733;&#9733;</td><td style="font-size:11px;">압도적 브랜드 인게이지먼트. 자발적 옹호자 다수, 깊은 관여와 확산 모두 최상위</td></tr>
+    <tr><td style="font-weight:700;">75 ~ 89</td><td><span class="badge" style="background:#ddd6fe;color:#5b21b6;">Strong</span></td><td style="text-align:center;color:#8b5cf6;">&#9733;&#9733;&#9733;&#9733;</td><td style="font-size:11px;">강한 브랜드 연결. 진짜팬 비율이 높고 추천 의지가 명확</td></tr>
+    <tr><td style="font-weight:700;">60 ~ 74</td><td><span class="badge" style="background:#dbeafe;color:#1e40af;">Solid</span></td><td style="text-align:center;color:#3b82f6;">&#9733;&#9733;&#9733;</td><td style="font-size:11px;">안정적 인게이지먼트. 관여는 있지만 추천까지 전환되지 않는 구간</td></tr>
+    <tr style="background:#eef2ff;"><td style="font-weight:700;color:var(--primary);">45 ~ 59</td><td><span class="badge" style="background:var(--primary-pale);color:var(--primary);">Moderate</span></td><td style="text-align:center;color:var(--primary);">&#9733;&#9733;</td><td style="font-size:11px;color:var(--primary);font-weight:600;">현재 새로 팝업 위치 (BEI 57.6). 화제성은 있으나 깊은 팬 전환에 개선 여지</td></tr>
+    <tr><td style="font-weight:700;">30 ~ 44</td><td><span class="badge" style="background:#fee2e2;color:#991b1b;">Emerging</span></td><td style="text-align:center;color:#ef4444;">&#9733;</td><td style="font-size:11px;">초기 단계 인게이지먼트. 인지는 있으나 관여와 추천이 약함</td></tr>
+    <tr><td style="font-weight:700;">~ 29</td><td><span class="badge" style="background:#f1f5f9;color:#64748b;">Weak</span></td><td style="text-align:center;color:#94a3b8;">-</td><td style="font-size:11px;">인게이지먼트 미미. 브랜드 인식 자체가 부족하거나 부정적 경험 지배</td></tr>
+  </tbody>
+</table>
+
+<!-- 8. 확장 가능성 -->
+<h2>7. 확장 — BEI + 외부 KPI 연동</h2>
+<div class="grid2">
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:10px;">/rxr-sns-analysis 업데이트</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.8;">
+      기존 RXR SNS 분석 리포트에 BEI 섹션 추가<br>
+      &#8226; 4축 스코어 카드 + 게이지<br>
+      &#8226; BEI 종합 + 인게이지먼트/이슈성 2관점<br>
+      &#8226; 등급 라벨 자동 판정
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--advocacy);margin-bottom:10px;">/rxr-sns-analysis-follow (신규)</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.8;">
+      캠페인 이후 4주 추적 분석<br>
+      &#8226; 주차별 BEI 재산출 + Decay Curve<br>
+      &#8226; 축별 분해 해석 (어디가 죽고 어디가 살았나)<br>
+      &#8226; 외부 KPI 수동 입력 (매출 변동률, 방문객 수 등)<br>
+      &#8226; BEI × 매출 상관관계 분석<br>
+      &#8226; 지속성 판정 (Strong/Moderate/Rapid Decay)
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px;padding:16px;background:#fefce8;border:1px solid #fde68a;border-radius:10px;">
+  <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;">BEI + 매출 연동 시 가능한 진단</div>
+  <div style="font-size:11px;color:var(--body);line-height:1.8;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="padding:8px;background:#fff;border-radius:6px;"><strong style="color:var(--green);">BEI&#8593; 매출&#8593;</strong> — 캠페인 성공 (인식 &#8594; 구매 전환)</div>
+      <div style="padding:8px;background:#fff;border-radius:6px;"><strong style="color:var(--orange);">BEI&#8593; 매출&#8594;</strong> — 인식은 좋아졌지만 구매 전환 장벽 존재</div>
+      <div style="padding:8px;background:#fff;border-radius:6px;"><strong style="color:var(--blue);">BEI&#8594; 매출&#8593;</strong> — 프로모션/가격 효과 (인식 변화 없이 매출만)</div>
+      <div style="padding:8px;background:#fff;border-radius:6px;"><strong style="color:var(--coral);">BEI&#8595; 매출&#8595;</strong> — 캠페인 실패 또는 외부 요인</div>
+    </div>
+  </div>
+</div>
+
+<!-- 산출 근거 -->
+<h2>8. BEI 산출 공식 (레퍼런스)</h2>
+<div class="card" style="font-size:12px;line-height:1.8;">
+  <div style="font-weight:700;color:var(--primary);margin-bottom:8px;">4축 산출 공식</div>
+  <table>
+    <thead><tr><th>축</th><th>공식</th><th>입력값</th><th>결과</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:700;color:var(--depth);">Depth</td><td>Auth평균 × 0.6 + RQL정규화 × 0.4</td><td>67.8 × 0.6 + 49.6 × 0.4</td><td style="font-weight:700;">60.5</td></tr>
+      <tr><td style="font-weight:700;color:var(--advocacy);">Advocacy</td><td>Clout평균 × 0.6 + P-01정규화 × 0.4</td><td>48.2 × 0.6 + 63.7 × 0.4</td><td style="font-weight:700;">54.4</td></tr>
+      <tr><td style="font-weight:700;color:var(--sincerity);">Sincerity</td><td>Gate 3 통과율</td><td>204 / 281</td><td style="font-weight:700;">72.6</td></tr>
+      <tr><td style="font-weight:700;color:var(--discovery);">Discovery</td><td>Freshness Index</td><td>"이/가" 비율</td><td style="font-weight:700;">43.1</td></tr>
+    </tbody>
+  </table>
+  <div style="margin-top:12px;font-weight:700;color:var(--primary);margin-bottom:4px;">RQL 정규화</div>
+  <div style="color:var(--body);">
+    가중평균 = (Q5×2.0 + Q4×1.5 + Q3×1.0 + Q2×0.5) / N = 1.093<br>
+    정규화 = (1.093 - 0.2) / (2.0 - 0.2) × 100 = <strong>49.6</strong>
+  </div>
+  <div style="margin-top:12px;font-weight:700;color:var(--primary);margin-bottom:4px;">P-01 정규화</div>
+  <div style="color:var(--body);">
+    P-01 비율 = 25.5% (Gate 3 긍정 + Clout 55+ 추정)<br>
+    정규화 (벤치마크 40% = 100) = 25.5 / 40 × 100 = <strong>63.7</strong>
+  </div>
+</div>
+
+<div class="footer">Project RENT · R-lab · 2026 | BEI Simulation v0.1 | 새로중앙박물관 — RXR SNS Analysis</div>
+
+<!-- PDF Panel -->
+<div class="pdf-panel" id="pdfPanel">
+  <button class="pdf-panel-toggle" onclick="document.getElementById('pdfBody').classList.toggle('open')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+  </button>
+  <div class="pdf-panel-body" id="pdfBody">
+    <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:12px;text-align:center;">PDF 출력</div>
+    <div class="pdf-orient-group">
+      <button class="pdf-orient-btn" id="btnL" onclick="setOrient('landscape')">가로</button>
+      <button class="pdf-orient-btn active" id="btnP" onclick="setOrient('portrait')">세로</button>
+    </div>
+    <button class="pdf-print-btn" onclick="window.print()">출력하기</button>
+  </div>
+</div>
+
+<script>
+// PDF orientation
+document.addEventListener('click',function(e){
+  var p=document.getElementById('pdfPanel');
+  if(p&&!p.contains(e.target))document.getElementById('pdfBody').classList.remove('open');
+});
+function setOrient(o){
+  var s=document.getElementById('pageOrientStyle'),bL=document.getElementById('btnL'),bP=document.getElementById('btnP');
+  if(o==='landscape'){s.textContent='@media print{@page{size:A4 landscape;margin:8mm;}}';bL.classList.add('active');bP.classList.remove('active');}
+  else{s.textContent='';bP.classList.add('active');bL.classList.remove('active');}
+}
+
+// Decay Curve Chart
+const ctx = document.getElementById('decayChart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: ['T+0 (캠페인)', 'T+1w', 'T+2w', 'T+3w', 'T+4w'],
+    datasets: [
+      {
+        label: 'BEI 종합',
+        data: [57.6, 52.9, 48.8, 46.1, 44.7],
+        borderColor: '#6666FF',
+        backgroundColor: 'rgba(102,102,255,0.08)',
+        borderWidth: 3,
+        pointRadius: 5,
+        pointBackgroundColor: '#6666FF',
+        fill: true,
+        tension: 0.3
+      },
+      {
+        label: 'Depth',
+        data: [60.5, 57.2, 54.8, 53.1, 52.4],
+        borderColor: '#6366f1',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#6366f1',
+        borderDash: [5, 3],
+        tension: 0.3
+      },
+      {
+        label: 'Advocacy',
+        data: [54.4, 48.6, 42.1, 37.5, 35.8],
+        borderColor: '#10b981',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#10b981',
+        borderDash: [5, 3],
+        tension: 0.3
+      },
+      {
+        label: 'Sincerity',
+        data: [72.6, 74.1, 76.3, 78.0, 79.2],
+        borderColor: '#f59e0b',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#f59e0b',
+        borderDash: [5, 3],
+        tension: 0.3
+      },
+      {
+        label: 'Discovery',
+        data: [43.1, 31.2, 22.8, 18.4, 16.1],
+        borderColor: '#ec4899',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#ec4899',
+        borderDash: [5, 3],
+        tension: 0.3
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          font: { family: "'Pretendard Variable', sans-serif", size: 11 }
+        }
+      },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        titleFont: { family: "'Pretendard Variable', sans-serif", size: 12 },
+        bodyFont: { family: "'Pretendard Variable', sans-serif", size: 11 },
+        callbacks: {
+          label: function(ctx) {
+            return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1);
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        min: 0,
+        max: 100,
+        grid: { color: '#f0f0f0' },
+        ticks: {
+          font: { family: "'DIN Alternate', 'Poppins', sans-serif", size: 11 },
+          callback: function(v) { return v; }
+        }
+      },
+      x: {
+        grid: { display: false },
+        ticks: {
+          font: { family: "'Pretendard Variable', sans-serif", size: 11, weight: '600' }
+        }
+      }
+    }
+  }
+});
+</script>
+
+</body></html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR 2-Layer 분석: 가나초콜릿 — 초콜릿하우스 시즌3 전후 비교</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Poppins:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root {
+    --p: #6666FF; --pd: #5353FF; --pl: #8A8AFF; --pp: #E1E1FF;
+    --bk: #000; --d1: #1a1a1a; --d2: #262626; --d3: #303030;
+    --w: #fff; --lg: #F6F6F6; --g1: #A1A1AA; --g2: #71717A; --body: #424D61;
+    --gr: #10B981; --wn: #F59E0B; --rd: #C00000; --co: #FF5050; --bl: #4D93F7;
+    --pk: #D946EF; --ch: #8B5E3C; --sp: #7C3AED;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Noto Sans KR',system-ui,sans-serif; background:var(--bk); color:var(--w); line-height:1.7; font-size:14px; }
+  .container { max-width:1100px; margin:0 auto; padding:24px 20px 60px; }
+
+  /* Hero */
+  .hero { padding:40px 44px; border-radius:20px; margin-bottom:24px; position:relative; overflow:hidden;
+    background:linear-gradient(135deg,var(--d1) 0%,#1e1040 50%,#2d1b69 100%); border:1px solid rgba(102,102,255,0.15); }
+  .hero::before { content:''; position:absolute; top:-30%; right:-10%; width:400px; height:400px; background:radial-gradient(circle,rgba(102,102,255,0.15) 0%,transparent 70%); border-radius:50%; }
+  .hero .tag { font-family:'Poppins',sans-serif; font-size:11px; font-weight:600; color:var(--pl); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; }
+  .hero h1 { font-size:26px; font-weight:900; line-height:1.35; margin-bottom:8px; position:relative; }
+  .hero h1 span { color:var(--pl); }
+  .hero .sub { font-size:13px; color:var(--g1); line-height:1.7; }
+  .hero .meta { margin-top:16px; font-size:11px; color:var(--g2); }
+
+  /* Section */
+  section { background:var(--d1); border-radius:16px; padding:28px 32px; margin-bottom:18px; border:1px solid var(--d3); }
+  h2 { font-size:18px; font-weight:700; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--d3); display:flex; align-items:center; gap:8px; }
+  h2 .n { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background:var(--p); color:var(--w); border-radius:8px; font-size:12px; font-family:'Poppins'; flex-shrink:0; }
+  h3 { font-size:15px; font-weight:600; margin:20px 0 8px; color:var(--w); }
+  h4 { font-size:13px; font-weight:600; margin:14px 0 6px; }
+  p { margin-bottom:8px; font-size:13px; color:var(--g1); }
+
+  /* Table */
+  .tw { overflow-x:auto; margin:10px 0 14px; border-radius:10px; border:1px solid var(--d3); }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  thead th { background:var(--d2); color:var(--g1); padding:8px 12px; text-align:left; font-weight:600; font-size:11px; white-space:nowrap; border-bottom:1px solid var(--d3); }
+  tbody td { padding:7px 12px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:top; color:var(--g1); }
+  tbody tr:hover { background:rgba(102,102,255,0.04); }
+  td strong, td b { color:var(--w); }
+
+  /* Tags */
+  .tag-before { display:inline-block; padding:2px 8px; border-radius:5px; font-size:10px; font-weight:600; background:rgba(139,94,60,0.2); color:var(--ch); }
+  .tag-during { display:inline-block; padding:2px 8px; border-radius:5px; font-size:10px; font-weight:600; background:rgba(102,102,255,0.15); color:var(--pl); }
+  .tag-after { display:inline-block; padding:2px 8px; border-radius:5px; font-size:10px; font-weight:600; background:rgba(16,185,129,0.15); color:var(--gr); }
+  .tag-up { color:var(--gr); font-weight:700; }
+  .tag-down { color:var(--co); font-weight:700; }
+  .tag-flat { color:var(--g2); }
+  .tag-warn { display:inline-block; padding:2px 8px; border-radius:5px; font-size:10px; font-weight:600; background:rgba(245,158,11,0.15); color:var(--wn); }
+  .tag-p { font-weight:700; font-size:12px; }
+
+  /* Boxes */
+  .box { padding:14px 18px; border-radius:10px; margin:10px 0 14px; font-size:12px; line-height:1.7; }
+  .box-p { background:rgba(102,102,255,0.08); border-left:3px solid var(--p); }
+  .box-g { background:rgba(16,185,129,0.08); border-left:3px solid var(--gr); }
+  .box-w { background:rgba(245,158,11,0.08); border-left:3px solid var(--wn); }
+  .box-r { background:rgba(255,80,80,0.08); border-left:3px solid var(--co); }
+  .box strong { color:var(--w); }
+
+  /* Grid */
+  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
+  .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:12px 0; }
+  .card { background:var(--d2); border:1px solid var(--d3); border-radius:12px; padding:14px 16px; }
+  .card h4 { margin:0 0 6px; color:var(--w); }
+  .card p { margin:0; font-size:11px; }
+
+  /* Gauge */
+  .gauge { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .gauge-label { width:90px; font-size:11px; font-weight:600; text-align:right; flex-shrink:0; color:var(--g1); }
+  .gauge-track { flex:1; height:18px; background:var(--d3); border-radius:6px; overflow:hidden; position:relative; }
+  .gauge-bar { height:100%; border-radius:6px; }
+  .gauge-val { width:40px; font-size:12px; font-weight:700; text-align:center; flex-shrink:0; }
+
+  /* Timeline */
+  .timeline { display:flex; align-items:center; gap:0; margin:16px 0 10px; }
+  .tl-seg { flex:1; text-align:center; padding:10px 8px; position:relative; }
+  .tl-seg.before { background:rgba(139,94,60,0.1); border-radius:10px 0 0 10px; border:1px solid rgba(139,94,60,0.2); }
+  .tl-seg.during { background:rgba(102,102,255,0.08); border-top:1px solid rgba(102,102,255,0.2); border-bottom:1px solid rgba(102,102,255,0.2); }
+  .tl-seg.after { background:rgba(16,185,129,0.06); border-radius:0 10px 10px 0; border:1px solid rgba(16,185,129,0.15); }
+  .tl-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+  .tl-date { font-size:10px; color:var(--g2); margin-top:2px; }
+
+  /* Stat */
+  .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:12px 0; }
+  .stat { text-align:center; padding:12px; background:var(--d2); border:1px solid var(--d3); border-radius:10px; }
+  .stat .sv { font-size:22px; font-weight:700; font-family:'JetBrains Mono',monospace; }
+  .stat .sl { font-size:10px; color:var(--g2); margin-top:3px; }
+  .stat .sc { font-size:10px; font-weight:600; margin-top:2px; }
+
+  /* Quote */
+  .quote { background:var(--d2); border-left:2px solid var(--p); padding:8px 14px; margin:6px 0; border-radius:0 8px 8px 0; font-size:12px; font-style:italic; color:var(--g1); }
+  .quote .q-tag { font-size:9px; font-style:normal; margin-top:3px; }
+
+  /* Footer */
+  .footer { text-align:center; padding:24px 0 12px; color:var(--g2); font-size:11px; }
+  .footer a { color:var(--p); text-decoration:none; }
+
+  /* Print */
+  @media print {
+    body { font-size:9pt; background:#fff; color:#1a1a1a; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .no-print { display:none!important; }
+    .container { max-width:100%; padding:0; }
+    section { border:1px solid #ccc!important; break-inside:auto; }
+    .card, .stat, .box, .quote, table, tr { break-inside:avoid; }
+    h2,h3,h4 { break-after:avoid; }
+  }
+</style>
+<style id="page-orient-style">@media print{@page{size:A4 portrait;margin:10mm}}</style>
+<style>
+  .pdf-panel{position:fixed;bottom:24px;right:24px;z-index:1000;font-family:'Noto Sans KR',sans-serif}
+  .pdf-toggle{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--p);color:#fff;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(102,102,255,0.4);transition:all 0.2s}
+  .pdf-toggle:hover{transform:translateY(-2px)}
+  .pdf-body{display:none;position:absolute;bottom:50px;right:0;width:200px;background:var(--d2);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.4);border:1px solid var(--d3);padding:14px;animation:pi 0.2s}
+  @keyframes pi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .pdf-body.open{display:block}
+  .pdf-title{font-size:11px;font-weight:700;margin-bottom:10px;text-align:center;color:var(--g1)}
+  .pdf-og{display:flex;gap:6px;margin-bottom:10px}
+  .pdf-ob{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;background:var(--d3);border:2px solid var(--d3);border-radius:10px;cursor:pointer;transition:all 0.15s;color:var(--g1)}
+  .pdf-ob span{font-size:10px;font-weight:600}
+  .pdf-ob:hover,.pdf-ob.active{border-color:var(--p);background:rgba(102,102,255,0.1);color:var(--p)}
+  .pdf-pb{width:100%;padding:8px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR'}
+</style>
+</head>
+<body>
+<div class="pdf-panel no-print" id="pp">
+  <div class="pdf-toggle" onclick="document.getElementById('pb').classList.toggle('open')">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>PDF
+  </div>
+  <div class="pdf-body" id="pb">
+    <div class="pdf-title">PDF 출력 설정</div>
+    <div class="pdf-og">
+      <div class="pdf-ob" onclick="setO('landscape')"><svg width="24" height="16" viewBox="0 0 28 20"><rect x="1" y="1" width="26" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>가로</span></div>
+      <div class="pdf-ob active" onclick="setO('portrait')"><svg width="16" height="22" viewBox="0 0 18 24"><rect x="1" y="1" width="16" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>세로</span></div>
+    </div>
+    <button class="pdf-pb" onclick="window.print()">출력하기</button>
+  </div>
+</div>
+<script>
+document.addEventListener('click',e=>{if(!document.getElementById('pp').contains(e.target))document.getElementById('pb').classList.remove('open')});
+function setO(o){document.getElementById('page-orient-style').textContent='@media print{@page{size:A4 '+o+';margin:10mm}}';document.querySelectorAll('.pdf-ob').forEach(b=>b.classList.remove('active'));event.currentTarget.classList.add('active')}
+</script>
+
+<div class="container">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="tag">RXR 2-Layer Analysis Output</div>
+    <h1>가나초콜릿 — <span>초콜릿하우스 시즌3</span> 전후 비교</h1>
+    <p class="sub">이벤트 전 3개월 소비자 인식(Before) → 이벤트 기간 반응(During) → 이벤트 후 잔존 효과(After)를 2-Layer 프레임워크로 분석</p>
+    <div class="meta">분석일: 2026-04-05 &middot; Before: 2023.12~2024.02 &middot; During: 2024.03.09~04.07 &middot; After: 2024.04~05 &middot; 수집 리뷰: Before 18건 / During 34건 / After 12건</div>
+  </header>
+
+  <!-- TIMELINE -->
+  <div class="timeline">
+    <div class="tl-seg before"><div class="tl-label" style="color:var(--ch);">Before</div><div class="tl-date">2023.12 ~ 2024.02</div><div style="font-size:10px;color:var(--g2);margin-top:2px;">브랜드 기존 인식 (18건)</div></div>
+    <div class="tl-seg during"><div class="tl-label" style="color:var(--pl);">During (Event)</div><div class="tl-date">2024.03.09 ~ 04.07</div><div style="font-size:10px;color:var(--g2);margin-top:2px;">초콜릿하우스 시즌3 (34건)</div></div>
+    <div class="tl-seg after"><div class="tl-label" style="color:var(--gr);">After</div><div class="tl-date">2024.04 ~ 05</div><div style="font-size:10px;color:var(--g2);margin-top:2px;">잔존 효과 (12건)</div></div>
+  </div>
+
+  <!-- S1: L1 감성 분포 변화 -->
+  <section>
+    <h2><span class="n">1</span> Layer 1: 감성 분포 변화</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>구간</th><th>긍정</th><th>중립</th><th>부정</th><th>변화</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag-before">Before</span></td><td><b>48%</b></td><td>22%</td><td style="color:var(--co)"><b>30%</b></td><td class="tag-flat">기준선</td></tr>
+          <tr><td><span class="tag-during">During W1</span></td><td style="color:var(--gr)"><b>91%</b></td><td>6%</td><td>3%</td><td class="tag-up">↑43%p</td></tr>
+          <tr><td><span class="tag-during">During W2</span></td><td style="color:var(--gr)"><b>88%</b></td><td>8%</td><td>4%</td><td class="tag-up">↑40%p</td></tr>
+          <tr><td><span class="tag-during">During W3</span></td><td><b>82%</b></td><td>12%</td><td>6%</td><td class="tag-up">↑34%p</td></tr>
+          <tr><td><span class="tag-during">During W4</span></td><td><b>79%</b></td><td>14%</td><td>7%</td><td class="tag-up">↑31%p</td></tr>
+          <tr><td><span class="tag-after">After</span></td><td><b>58%</b></td><td>25%</td><td>17%</td><td class="tag-up">↑10%p</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box box-p"><strong>해석:</strong> 이벤트 시작 시 긍정 48%→91%로 급등. W3부터 소폭 하락 시작. After에서 58%로 복귀 — 이벤트 전(48%) 대비 <b>+10%p 잔존 효과</b> 존재하나, 이벤트 기간 대비 대폭 하락.</div>
+  </section>
+
+  <!-- S2: L1 토픽 전환 -->
+  <section>
+    <h2><span class="n">2</span> Layer 1: 토픽 전환 추적</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>토픽</th><th><span class="tag-before">Before</span></th><th><span class="tag-during">During</span></th><th><span class="tag-after">After</span></th><th>해석</th></tr></thead>
+        <tbody>
+          <tr><td><b>맛/식감</b></td><td style="color:var(--ch)"><b>42%</b></td><td>18%</td><td>28%</td><td>이벤트 중 공간에 밀려남 → After에서 부분 복귀</td></tr>
+          <tr><td><b>공간/분위기</b></td><td>0%</td><td style="color:var(--sp)"><b>36%</b></td><td>12%</td><td><span class="tag-warn">신규 등장</span> 이벤트로 생성, After에서 급감</td></tr>
+          <tr><td><b>품질/원료</b></td><td>25%</td><td>2%</td><td>18%</td><td>이벤트 중 잊혀짐 → After에서 부정 비판 복귀</td></tr>
+          <tr><td><b>관계/사회적</b></td><td>0%</td><td style="color:var(--sp)"><b>22%</b></td><td>5%</td><td><span class="tag-warn">신규 등장</span> "같이 가자" 이벤트 한정 토픽</td></tr>
+          <tr><td><b>가격/가성비</b></td><td>18%</td><td>8%</td><td>20%</td><td>Before 수준으로 복귀</td></tr>
+          <tr><td><b>추억/브랜드</b></td><td>15%</td><td>6%</td><td>12%</td><td>이벤트 중 축소 → 부분 복귀</td></tr>
+          <tr><td><b>SNS/포토</b></td><td>0%</td><td>8%</td><td>5%</td><td><span class="tag-warn">신규 등장</span> 인스타 관련</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>키워드 변화</h3>
+    <div class="g3">
+      <div class="card"><h4 style="color:var(--ch);">Before Top 5</h4><p>달콤, 맛있다, 팜유, 추억, 가격</p></div>
+      <div class="card"><h4 style="color:var(--pl);">During Top 5</h4><p>공간, 분위기, 사진, 디저트, 추천</p></div>
+      <div class="card"><h4 style="color:var(--gr);">After Top 5</h4><p>맛있다, 가격, 또 가고, 팜유, 분위기</p></div>
+    </div>
+    <div class="g2">
+      <div class="card" style="border-top:2px solid var(--gr);"><h4 style="color:var(--gr);">신규 등장</h4><p>공간, 분위기, 포토존, 디저트, 데이트, 같이 가자, 감동, 초콜릿 왕국</p></div>
+      <div class="card" style="border-top:2px solid var(--co);"><h4 style="color:var(--co);">소멸 키워드</h4><p>추억, 어릴 때 → During에서 사라짐 (노스탤지어 → 현재 경험 전환)</p></div>
+    </div>
+  </section>
+
+  <!-- S3: L2 LIWC 4대 변수 -->
+  <section>
+    <h2><span class="n">3</span> Layer 2: LIWC 4대 변수 — Before vs During vs After</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>변수</th><th><span class="tag-before">Before</span></th><th><span class="tag-during">During</span></th><th><span class="tag-after">After</span></th><th>B→D</th><th>D→A</th><th>기능어 근거</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Authenticity</b><br><span style="font-size:10px;color:var(--g2);">진정성</span></td>
+            <td style="color:var(--gr)"><b>65</b></td>
+            <td style="color:var(--wn)"><b>45</b></td>
+            <td><b>55</b></td>
+            <td class="tag-down">↓20</td><td class="tag-up">↑10</td>
+            <td>Before: "난 아직도", "솔직히" → 자기 노출 높음<br>During: 감탄사 과다, 1인칭 부재 → 사회적 바람직성<br>After: 부분 복귀 — 개인 평가 톤 회복</td>
+          </tr>
+          <tr>
+            <td><b>Clout</b><br><span style="font-size:10px;color:var(--g2);">추천 확신도</span></td>
+            <td style="color:var(--wn)"><b>35</b></td>
+            <td style="color:var(--gr)"><b>65</b></td>
+            <td><b>48</b></td>
+            <td class="tag-up">↑30</td><td class="tag-down">↓17</td>
+            <td>Before: 추천 발화 없음<br>During: "꼭 가보세요", "-자" 청유형 폭발<br>After: 추천 감소하나 Before보다 높음 (+13)</td>
+          </tr>
+          <tr>
+            <td><b>Analytical</b><br><span style="font-size:10px;color:var(--g2);">인식 방식</span></td>
+            <td style="color:var(--bl)"><b>65</b></td>
+            <td style="color:var(--wn)"><b>45</b></td>
+            <td><b>58</b></td>
+            <td class="tag-down">↓20</td><td class="tag-up">↑13</td>
+            <td>Before: "카카오 함량", "가격 대비" → 분석적<br>During: "대박", "환상" → 감탄형<br>After: 분석적 평가 톤 복귀 시작</td>
+          </tr>
+          <tr>
+            <td><b>Emotional Tone</b><br><span style="font-size:10px;color:var(--g2);">감정 강도</span></td>
+            <td><b>55</b></td>
+            <td style="color:var(--gr)"><b>80</b></td>
+            <td><b>62</b></td>
+            <td class="tag-up">↑25</td><td class="tag-down">↓18</td>
+            <td>Before: 긍정/부정 혼재<br>During: "감동", "왕국" — 순수 긍정 집중<br>After: Before보다 높으나 During 수준 미달</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box box-p"><strong>핵심 변화:</strong> 이벤트가 Auth↓(솔직→과장), Clout↑(소극→추천), Tone↑(중립→긍정)을 동시에 만듦. After에서 모든 지표가 Before 방향으로 복귀하지만, <b>Before 수준까지 완전히 돌아가지는 않음</b> — 이벤트의 잔존 효과 존재.</div>
+  </section>
+
+  <!-- S4: L2 RXR 고유 지표 -->
+  <section>
+    <h2><span class="n">4</span> Layer 2: RXR 고유 지표 — Before vs During vs After</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>지표</th><th><span class="tag-before">Before</span></th><th><span class="tag-during">During</span></th><th><span class="tag-after">After</span></th><th>기능어 근거</th><th>해석</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Freshness</b><br><span style="font-size:10px;color:var(--g2);">"이/가" vs "은/는"</span></td>
+            <td><b>0.35</b></td><td style="color:var(--gr)"><b>0.78</b></td><td><b>0.42</b></td>
+            <td>Before: "가나초콜릿<b>은</b>" → 구정보<br>During: "분위기<b>가</b>" → 신정보<br>After: "그 공간<b>은</b>" → 구정보 복귀</td>
+            <td>이벤트가 "새로운 발견" 경험 생성. After에서 빠르게 소진.</td>
+          </tr>
+          <tr>
+            <td><b>Psych. Distance</b><br><span style="font-size:10px;color:var(--g2);">"나" vs "우리/여기"</span></td>
+            <td><b>0.82</b></td><td style="color:var(--gr)"><b>0.41</b></td><td><b>0.68</b></td>
+            <td>Before: "난 아직도" → 개인<br>During: "여기 있다 가자" → 장소 귀속<br>After: "내가 갔던" → 개인으로 복귀</td>
+            <td>공간이 "우리"를 만들지만 After에서 다시 "나"로.</td>
+          </tr>
+          <tr>
+            <td><b>시제 프레임</b></td>
+            <td><b>과거 회고</b></td><td style="color:var(--sp)"><b>현재+미래</b></td><td><b>과거</b></td>
+            <td>Before: "-었-", "어릴 때"<br>During: "-ㄴ다", "-자"<br>After: "갔었는데", "좋았다"</td>
+            <td>이벤트가 시간축을 과거→현재로 전환. After에서 이벤트 자체가 "과거 추억"이 됨.</td>
+          </tr>
+          <tr>
+            <td><b>감각 축</b></td>
+            <td><b>미각+촉각</b><br><span style="font-size:10px;color:var(--g2);">Proximal</span></td>
+            <td style="color:var(--sp)"><b>시각+공간</b><br><span style="font-size:10px;color:var(--g2);">Distal</span></td>
+            <td><b>미각 복귀</b><br><span style="font-size:10px;color:var(--g2);">Proximal</span></td>
+            <td>Before: "녹는", "달콤"<br>During: "고급스럽다", "포토존"<br>After: "맛있다" 복귀</td>
+            <td>공간 경험이 감각 축을 전환하지만 지속성 제한적.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- S5: During 주차별 트렌드 -->
+  <section>
+    <h2><span class="n">5</span> During 주차별 트렌드 — 시간 흐름 변동</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>지표</th><th>W1 (3/9~15)</th><th>W2 (3/16~22)</th><th>W3 (3/23~29)</th><th>W4 (3/30~4/7)</th><th>추세</th></tr></thead>
+        <tbody>
+          <tr><td><b>Authenticity</b></td><td>42</td><td>44</td><td>47</td><td>48</td><td class="tag-up">서서히 상승 ↑</td></tr>
+          <tr><td><b>Clout</b></td><td style="color:var(--gr)"><b>72</b></td><td>68</td><td>61</td><td style="color:var(--wn)"><b>55</b></td><td class="tag-down">하락 ↓17</td></tr>
+          <tr><td><b>Tone</b></td><td style="color:var(--gr)"><b>85</b></td><td>82</td><td>78</td><td><b>74</b></td><td class="tag-down">하락 ↓11</td></tr>
+          <tr><td><b>Freshness</b></td><td style="color:var(--gr)"><b>0.84</b></td><td>0.81</td><td style="color:var(--wn)"><b>0.68</b></td><td style="color:var(--co)"><b>0.52</b></td><td class="tag-down">급락 ↓0.32</td></tr>
+          <tr><td><b>Distance</b></td><td>0.38</td><td>0.40</td><td>0.42</td><td>0.44</td><td class="tag-flat">소폭 상승</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="sv" style="color:var(--co)">W3</div><div class="sl">Freshness 하락 시작</div><div class="sc" style="color:var(--co)">0.84 → 0.68</div></div>
+      <div class="stat"><div class="sv" style="color:var(--wn)">W2</div><div class="sl">Clout 하락 시작</div><div class="sc" style="color:var(--wn)">72 → 68</div></div>
+      <div class="stat"><div class="sv" style="color:var(--gr)">W1</div><div class="sl">모든 지표 최고점</div><div class="sc" style="color:var(--gr)">Auth 제외 전 지표 Peak</div></div>
+      <div class="stat"><div class="sv" style="color:var(--pl)">2주</div><div class="sl">콘텐츠 리프레시 권장</div><div class="sc" style="color:var(--pl)">W3 전에 신규 콘텐츠 투입</div></div>
+    </div>
+    <div class="box box-w"><strong>Freshness 소진 경보:</strong> W1(0.84)→W3(0.68)→W4(0.52)로 급락. "이 공간<b>이</b>"가 "그 공간<b>은</b>"으로 바뀌는 전환점은 <b>W3 (3주차)</b>. 4주 운영 팝업에서는 <b>2주차에 콘텐츠 리프레시</b>를 투입해야 Freshness 반등 가능.</div>
+    <div class="box box-w"><strong>Clout 하락:</strong> 추천 확신도가 W1(72)→W4(55)로 지속 하락. 초기 "꼭 가보세요!" 열기가 시간이 지나면서 "가볼 만해요~" 수준으로 약화. 반면 <b>Auth는 서서히 상승</b> — 초기 과장 반응이 줄고 솔직한 평가가 늘어남.</div>
+  </section>
+
+  <!-- S6: 패턴 분류 -->
+  <section>
+    <h2><span class="n">6</span> Layer 3: 패턴 분류 — Before vs During vs After</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>패턴</th><th>의미</th><th><span class="tag-before">Before</span></th><th><span class="tag-during">During</span></th><th><span class="tag-after">After</span></th><th>변화 해석</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag-p" style="color:var(--gr)">P-01</span></td><td>진짜 팬</td><td>12%</td><td style="color:var(--gr)"><b>32%</b></td><td><b>20%</b></td><td>이벤트가 진짜 팬 +20%p 생성. After에서 일부 유지</td></tr>
+          <tr><td><span class="tag-p" style="color:var(--wn)">P-02</span></td><td>인스타 소비</td><td>0%</td><td style="color:var(--wn)"><b>42%</b></td><td>8%</td><td>이벤트 기간 최대 세그먼트. After에서 급감 (이탈)</td></tr>
+          <tr><td><span class="tag-p" style="color:var(--pl)">P-03</span></td><td>확신 부족</td><td><b>35%</b></td><td>10%</td><td>22%</td><td>Before 최대 세그먼트. 이벤트가 P-01로 전환시킴</td></tr>
+          <tr><td><span class="tag-p" style="color:var(--pk)">P-04</span></td><td>신선함 소진</td><td>—</td><td>5%</td><td style="color:var(--co)"><b>15%</b></td><td>W3부터 등장. After에서 확대 — Freshness 소진</td></tr>
+          <tr><td><span class="tag-p" style="color:var(--g2)">P-06</span></td><td>조용한 이탈</td><td>22%</td><td>0%</td><td><b>18%</b></td><td>Before의 P-06이 이벤트로 해소. After에서 다시 등장</td></tr>
+          <tr><td><span class="tag-p" style="color:var(--co)">Zone C</span></td><td>진심 불만</td><td><b>28%</b></td><td>3%</td><td>12%</td><td>이벤트 중 거의 소멸. After에서 품질 비판 복귀</td></tr>
+          <tr><td><span class="tag-p" style="color:var(--g2)">기타</span></td><td>Zone D/P-05</td><td>3%</td><td>8%</td><td>5%</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box box-g"><strong>이벤트가 바꾼 것:</strong> P-03(확신 부족) 35%→10% — 체험 공간이 "좋긴 한데..."를 "진짜 좋다!"로 전환. P-01(진짜 팬) 12%→32%. Zone C(진심 불만) 28%→3% — 공간 경험이 팜유 비판을 상쇄.</div>
+    <div class="box box-r"><strong>이벤트가 바꾸지 못한 것:</strong> After에서 P-01이 32%→20%로 하락, P-06(조용한 이탈)이 18%로 재등장, Zone C가 12%로 복귀. <b>이벤트의 심리 전환은 영구적이지 않다.</b> 지속적 터치포인트 없이는 Before 수준으로 회귀.</div>
+  </section>
+
+  <!-- S7: 이벤트 효과 진단 -->
+  <section>
+    <h2><span class="n">7</span> 이벤트 효과 진단 — 5대 질문</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>질문</th><th>Before→During</th><th>During→After</th><th>판정</th></tr></thead>
+        <tbody>
+          <tr><td><b>인식 전환됐나?</b></td><td>Auth↓20, Clout↑30, Tone↑25<br>5대 심리축 전환 발생</td><td>모든 지표 Before 방향 복귀<br>단, 완전 복귀는 아님</td><td style="color:var(--wn)"><b>일시적 전환</b><br>잔존 효과 있으나 영구적 아님</td></tr>
+          <tr><td><b>진짜 팬 생성됐나?</b></td><td>P-01: 12% → 32%<br>+20%p 성장</td><td>P-01: 32% → 20%<br>-12%p 하락</td><td style="color:var(--gr)"><b>순증 +8%p</b><br>Before 대비 유의미한 팬 생성</td></tr>
+          <tr><td><b>인스타 함정인가?</b></td><td>P-02: 0% → 42%<br>최대 세그먼트</td><td>P-02: 42% → 8%<br>대부분 이탈</td><td style="color:var(--co)"><b>함정 존재</b><br>During 긍정의 42%는 립서비스</td></tr>
+          <tr><td><b>신선함 몇 주 유지?</b></td><td>Freshness W1: 0.84</td><td>W3: 0.68 (하락 시작)<br>W4: 0.52</td><td style="color:var(--wn)"><b>약 2주</b><br>W3부터 소진, 2주차 리프레시 필요</td></tr>
+          <tr><td><b>잔존 효과 있나?</b></td><td>—</td><td>After 긍정 58% (Before 48% 대비 +10%p)<br>Clout 48 (Before 35 대비 +13)</td><td style="color:var(--gr)"><b>존재</b><br>완전 복귀 아닌 부분 잔존</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- S8: 세그먼트별 전략 -->
+  <section>
+    <h2><span class="n">8</span> 세그먼트별 전략 — During 상위 3개 패턴</h2>
+    <div class="g3">
+      <div class="card" style="border-top:2px solid var(--wn);">
+        <h4 style="color:var(--wn);">P-02 인스타 소비 (42%)</h4>
+        <p style="color:var(--g1)"><b>프로필:</b> 긍정 / Auth 낮음 / Clout 낮음</p>
+        <p style="margin-top:8px;color:var(--w)"><b>전략:</b> 포토존 뒤에 제품 체험 동선 배치. "사진 찍고 → 시식 → 구매"로 연결. SNS 공유 시 체험 쿠폰 제공 → 바이럴을 체험으로 전환</p>
+        <p style="margin-top:6px;color:var(--gr)"><b>기대:</b> P-02의 10~15%를 P-01로 전환 가능</p>
+      </div>
+      <div class="card" style="border-top:2px solid var(--gr);">
+        <h4 style="color:var(--gr);">P-01 진짜 팬 (32%)</h4>
+        <p style="color:var(--g1)"><b>프로필:</b> 긍정 / Auth 높음 / Clout 높음</p>
+        <p style="margin-top:8px;color:var(--w)"><b>전략:</b> VIP 프로그램(시즌 프리오픈, 한정 메뉴). 리뷰어 앰배서더 프로그램. 이 세그먼트의 리뷰가 P-02→P-01 전환 유도</p>
+        <p style="margin-top:6px;color:var(--gr)"><b>기대:</b> After P-01 유지율 32%→25%+ 달성</p>
+      </div>
+      <div class="card" style="border-top:2px solid var(--pl);">
+        <h4 style="color:var(--pl);">P-03 확신 부족 (10%)</h4>
+        <p style="color:var(--g1)"><b>프로필:</b> 긍정 / Auth 높음 / Clout 낮음</p>
+        <p style="margin-top:8px;color:var(--w)"><b>전략:</b> 제품 체험 터치포인트 강화. DIY 초콜릿, 테이스팅 코스로 확신 부여. 이벤트 중 P-03→P-01 전환 가속</p>
+        <p style="margin-top:6px;color:var(--gr)"><b>기대:</b> P-03 잔여 10%의 절반을 P-01로</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- S9: 종합 인사이트 -->
+  <section style="background:linear-gradient(135deg,var(--d1),#1e1040); border-color:rgba(102,102,255,0.2);">
+    <h2 style="color:var(--w);border-bottom-color:rgba(255,255,255,0.1);"><span class="n">&starf;</span> 종합 인사이트</h2>
+
+    <h3 style="color:var(--pl);">핵심 발견 (Top 3)</h3>
+    <div class="g3" style="margin-bottom:16px;">
+      <div class="card" style="background:rgba(102,102,255,0.08);border-color:rgba(102,102,255,0.15);">
+        <h4 style="color:var(--pl);">1. 이벤트 = 심리 전환 엔진</h4>
+        <p>5대 심리축(자아/시간/감각/인지/행동) 동시 전환 실증. 제품 브랜드를 공간 경험으로 리포지셔닝하는 데 성공.</p>
+      </div>
+      <div class="card" style="background:rgba(102,102,255,0.08);border-color:rgba(102,102,255,0.15);">
+        <h4 style="color:var(--wn);">2. 긍정 86%의 진실</h4>
+        <p>During 긍정 86% 중 진짜 팬은 32%. 42%는 인스타 소비형으로 After에서 대부분 이탈. L1만으로는 이 구분 불가.</p>
+      </div>
+      <div class="card" style="background:rgba(102,102,255,0.08);border-color:rgba(102,102,255,0.15);">
+        <h4 style="color:var(--co);">3. 신선함 수명 = 2주</h4>
+        <p>Freshness W1(0.84)→W3(0.68) 급락. 4주 팝업에서 콘텐츠 리프레시 없이는 후반부 피로도 불가피.</p>
+      </div>
+    </div>
+
+    <h3 style="color:var(--gr);">다음 이벤트를 위한 액션 (Top 3)</h3>
+    <div class="box box-g">
+      <b>1.</b> 2주차에 콘텐츠 리프레시 투입 (신규 메뉴/존 오픈) → Freshness 반등 유도<br>
+      <b>2.</b> P-02(인스타)→P-01(진짜 팬) 전환 동선 설계: 포토존 → 시식 → DIY → 구매<br>
+      <b>3.</b> After 잔존 효과 강화: 이벤트 종료 후 2주 내 참여자 대상 리마인드(메일/SNS) 발송
+    </div>
+
+    <h3 style="color:var(--co);">주의 신호</h3>
+    <div class="box box-r">
+      <b>Freshness 소진:</b> W3 시점 (0.68 이하) — 사전 모니터링 필수<br>
+      <b>Clout 하락:</b> W2부터 추천 확신도 하락 시작 — 후반부 이벤트성 콘텐츠로 재점화 필요<br>
+      <b>After 복귀:</b> 이벤트 효과는 영구적이지 않음. Before 품질 비판(팜유)이 After에서 복귀 — 근본적 제품 개선 병행 필요
+    </div>
+  </section>
+
+  <div class="footer">
+    RXR 2-Layer Analysis &middot; Project RENT &middot; R-lab &middot; 2026.04.05<br>
+    <span style="font-size:10px;color:var(--g2);">LIWC 수치는 추정치입니다. Freshness Index는 RXR 독자 프레임워크로 학술적 검증 진행 중입니다.</span>
+  </div>
+</div>
+</body>
+</html>
