@@ -278,6 +278,151 @@
         .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
         .empty-state p { font-size: 14px; }
 
+        /* Mode Tabs */
+        .mode-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1.5px solid #e0e0e0;
+        }
+        .mode-tab {
+            flex: 1;
+            padding: 12px 16px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: white;
+            color: #888;
+            border: none;
+            transition: all 0.2s;
+        }
+        .mode-tab.active {
+            background: linear-gradient(135deg, #6C5CE7, #a29bfe);
+            color: white;
+        }
+        .mode-tab:hover:not(.active) { background: #f8f7ff; color: #6C5CE7; }
+
+        .mode-panel { display: none; }
+        .mode-panel.active { display: block; }
+
+        /* Daily specific */
+        .staff-row {
+            display: grid;
+            grid-template-columns: 70px 60px 1fr 1fr;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .staff-row label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .staff-row input {
+            width: 100%;
+            padding: 8px 6px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            text-align: center;
+        }
+        .staff-row input:focus { outline: none; border-color: #6C5CE7; }
+        .staff-row-header {
+            display: grid;
+            grid-template-columns: 70px 60px 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .staff-row-header span {
+            font-size: 10px;
+            color: #aaa;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .staff-row-header span:first-child { text-align: left; }
+
+        .add-staff-btn {
+            width: 100%;
+            padding: 8px;
+            border: 1.5px dashed #ccc;
+            border-radius: 8px;
+            background: transparent;
+            color: #888;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .add-staff-btn:hover { border-color: #6C5CE7; color: #6C5CE7; }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 2px;
+            line-height: 1;
+        }
+        .remove-btn:hover { color: #e74c3c; }
+
+        .daily-result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .daily-result-card h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2d2d2d;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .daily-total-box {
+            background: linear-gradient(135deg, #6C5CE7, #a29bfe);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            color: white;
+            margin-bottom: 16px;
+        }
+        .daily-total-box .amount {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .daily-total-box .sub { font-size: 12px; opacity: 0.85; }
+
+        /* Action buttons row */
+        .btn-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .btn-share {
+            padding: 12px;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-share:hover { background: #e55a2b; }
+
         @media (max-width: 900px) {
             .layout { grid-template-columns: 1fr; }
             .input-panel { position: static; }
@@ -287,9 +432,11 @@
         @media print {
             .app-header { position: static; }
             .input-panel { display: none; }
+            .mode-tabs { display: none; }
             .layout { grid-template-columns: 1fr; }
             body { background: white; }
-            .result-section { box-shadow: none; border: 1px solid #eee; }
+            .result-section, .daily-result-card { box-shadow: none; border: 1px solid #eee; }
+            .daily-total-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
@@ -300,6 +447,14 @@
     </div>
 
     <div class="container">
+        <!-- 모드 탭 -->
+        <div class="mode-tabs">
+            <button class="mode-tab active" onclick="switchMode('monthly')">월간 시뮬레이션</button>
+            <button class="mode-tab" onclick="switchMode('daily')">일일 비용 산출</button>
+        </div>
+
+        <!-- ===== 월간 모드 ===== -->
+        <div class="mode-panel active" id="monthlyMode">
         <div class="layout">
             <!-- 입력 패널 -->
             <div class="input-panel">
@@ -330,12 +485,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>영업일</label>
-                    <select id="opDays">
-                        <option value="7">주 7일 (연중무휴)</option>
-                        <option value="6">주 6일</option>
-                        <option value="5">주 5일</option>
-                    </select>
+                    <label>주당 영업일수</label>
+                    <input type="number" id="opDays" value="7" min="1" max="7">
                 </div>
 
                 <div class="divider"></div>
@@ -410,9 +561,12 @@
                 <div class="divider"></div>
 
                 <button class="btn-calculate" onclick="calculate()">인건비 산출하기</button>
-                <button class="btn-reset" onclick="resetAll()" style="display:none" id="btnReset">초기화 (새로 계산)</button>
-                <button class="btn-export" onclick="exportCSV()" style="display:none" id="btnExport">CSV 다운로드 (시트)</button>
-                <button class="btn-print" onclick="window.print()" style="display:none" id="btnPrint">PDF 인쇄</button>
+                <div class="btn-actions" style="display:none" id="btnMonthlyActions">
+                    <button class="btn-print" onclick="doPrint('monthly')">PDF 인쇄</button>
+                    <button class="btn-share" onclick="shareMonthly()">공유</button>
+                </div>
+                <button class="btn-export" onclick="exportCSV()" style="display:none" id="btnExport">CSV 다운로드</button>
+                <button class="btn-reset" onclick="resetAll()" style="display:none" id="btnReset">초기화</button>
             </div>
 
             <!-- 결과 패널 -->
@@ -453,9 +607,10 @@
 
                     <div class="note-box">
                         <strong>법적 참고사항</strong><br>
+                        - 5인 이상: 연장(8H 초과) ×1.5배, 야간(22~06시) ×1.5배, 휴일 ×1.5배 가산<br>
+                        - 5인 미만: 연장/야간/휴일 가산수당 법적 의무 없음<br>
                         - 교대제 소정근로일의 토/일 근무는 휴일가산 미적용<br>
                         - 주 15시간 이상 근무 시 주휴수당 발생 (PT 포함)<br>
-                        - 5인 미만 사업장은 연장/야간/휴일 가산수당 미적용<br>
                         - 퇴직급여: 1년 이상 계속 근로 시 발생<br>
                         - 2026년 최저시급: 10,320원 (월 환산 2,156,880원)
                     </div>
@@ -467,9 +622,456 @@
                 </div>
             </div>
         </div>
+        </div><!-- /monthlyMode -->
+
+        <!-- ===== 일일 비용 산출 모드 ===== -->
+        <div class="mode-panel" id="dailyMode">
+        <div class="layout">
+            <div class="input-panel">
+                <h2>일일 비용 산출</h2>
+
+                <div class="form-group">
+                    <label>근무 유형</label>
+                    <select id="dDayType">
+                        <option value="weekday">평일</option>
+                        <option value="weekend">주말/공휴일</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>시급 기준</label>
+                    <select id="dWageType" onchange="document.getElementById('dCustomWageGroup').style.display=this.value==='custom'?'block':'none'">
+                        <option value="minimum">2026 최저시급 (10,320원)</option>
+                        <option value="custom">직접 입력</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="dCustomWageGroup" style="display:none;">
+                    <label>시급 (원)</label>
+                    <input type="number" id="dCustomWage" value="12000" min="10030">
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-group">
+                    <label>인력 배치</label>
+                </div>
+
+                <div class="staff-row-header">
+                    <span>역할</span>
+                    <span>인원</span>
+                    <span>시작</span>
+                    <span>종료</span>
+                </div>
+
+                <div id="dStaffList">
+                    <div class="staff-row" data-idx="0">
+                        <label>스태프</label>
+                        <input type="number" value="2" min="1" max="20" class="d-count">
+                        <input type="time" value="09:00" class="d-start">
+                        <input type="time" value="18:00" class="d-end">
+                    </div>
+                </div>
+
+                <button class="add-staff-btn" onclick="addDailyStaffRow()">+ 시간대/역할 추가</button>
+
+                <div class="divider"></div>
+
+                <div class="form-group">
+                    <label>급여 지급 방식</label>
+                    <select id="dPayMethod">
+                        <option value="daily">일용직 (원천징수 적용)</option>
+                        <option value="monthly">정규직 (월급 환산)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>식대 지급</label>
+                    <div class="form-row">
+                        <select id="dMealType">
+                            <option value="0">미지급</option>
+                            <option value="10000">1만원/인</option>
+                            <option value="15000">1.5만원/인</option>
+                            <option value="custom">직접 입력</option>
+                        </select>
+                        <input type="number" id="dMealCustom" value="10000" min="0" style="display:none" placeholder="원/인">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>교통비 지급 (인당)</label>
+                    <input type="number" id="dTransport" value="0" min="0" step="5000" placeholder="0원">
+                </div>
+
+                <div class="divider"></div>
+
+                <button class="btn-calculate" onclick="calculateDaily()">일일 비용 산출</button>
+                <div class="btn-actions" style="display:none" id="btnDailyActions">
+                    <button class="btn-print" onclick="printDaily()">PDF 인쇄</button>
+                    <button class="btn-share" onclick="shareDaily()">공유</button>
+                </div>
+                <button class="btn-reset" onclick="resetDaily()" style="display:none" id="btnDailyReset">초기화</button>
+            </div>
+
+            <!-- 일일 결과 패널 -->
+            <div>
+                <div id="dailyResultPanel" style="display:none;">
+                    <div class="daily-total-box" id="dailyTotalBox"></div>
+                    <div class="daily-result-card">
+                        <h3>인력별 비용 상세</h3>
+                        <div id="dailyStaffDetail"></div>
+                    </div>
+                    <div class="daily-result-card">
+                        <h3>비용 총괄</h3>
+                        <div id="dailyCostSummary"></div>
+                    </div>
+                    <div class="note-box">
+                        <strong>일용직 원천징수 기준</strong><br>
+                        - 일당 150,000원 이하: 원천징수 없음 (전액 수령)<br>
+                        - 일당 초과분: (초과액 × 6%) × 55% = 소득세, 소득세 × 10% = 지방소득세<br>
+                        - 2026년 최저시급: 10,320원
+                    </div>
+                </div>
+
+                <div class="empty-state" id="dailyEmptyState">
+                    <div class="icon">&#128197;</div>
+                    <p>왼쪽에서 인력 배치를 설정하고<br><strong>"일일 비용 산출"</strong> 버튼을 눌러주세요</p>
+                </div>
+            </div>
+        </div>
+        </div><!-- /dailyMode -->
+
     </div>
 
     <script>
+        // ===== 모드 전환 =====
+        function switchMode(mode) {
+            document.querySelectorAll('.mode-tab').forEach((t, i) => {
+                t.classList.toggle('active', (mode === 'monthly' && i === 0) || (mode === 'daily' && i === 1));
+            });
+            document.getElementById('monthlyMode').classList.toggle('active', mode === 'monthly');
+            document.getElementById('dailyMode').classList.toggle('active', mode === 'daily');
+        }
+
+        // ===== 일일 모드: 식대 커스텀 토글 =====
+        document.getElementById('dMealType').addEventListener('change', function() {
+            document.getElementById('dMealCustom').style.display = this.value === 'custom' ? 'block' : 'none';
+        });
+
+        // ===== 일일 모드: 인력 행 추가/삭제 =====
+        let dailyRowIdx = 1;
+        function addDailyStaffRow() {
+            const div = document.createElement('div');
+            div.className = 'staff-row';
+            div.dataset.idx = dailyRowIdx++;
+            div.innerHTML = `
+                <label>스태프 <button class="remove-btn" onclick="this.parentElement.parentElement.remove()">×</button></label>
+                <input type="number" value="1" min="1" max="20" class="d-count">
+                <input type="time" value="10:00" class="d-start">
+                <input type="time" value="18:00" class="d-end">
+            `;
+            document.getElementById('dStaffList').appendChild(div);
+        }
+
+        // ===== 일일 비용 산출 =====
+        function calculateDaily() {
+            const wageType = document.getElementById('dWageType').value;
+            const wage = wageType === 'minimum' ? 10320 : (parseInt(document.getElementById('dCustomWage').value) || 10320);
+            const dayType = document.getElementById('dDayType').value;
+            const payMethod = document.getElementById('dPayMethod').value;
+            const mealType = document.getElementById('dMealType').value;
+            const mealPerPerson = mealType === 'custom' ? (parseInt(document.getElementById('dMealCustom').value) || 0) : parseInt(mealType);
+            const transportPerPerson = parseInt(document.getElementById('dTransport').value) || 0;
+
+            const rows = document.querySelectorAll('#dStaffList .staff-row');
+            let staffDetails = [];
+            let totalHeadcount = 0;
+            let totalWage = 0;
+
+            rows.forEach(row => {
+                const count = parseInt(row.querySelector('.d-count').value) || 1;
+                const startStr = row.querySelector('.d-start').value;
+                const endStr = row.querySelector('.d-end').value;
+                const startMin = timeToMinutes(startStr);
+                const endMin = timeToMinutes(endStr);
+                const totalMin = endMin - startMin;
+                if (totalMin <= 0) return;
+
+                const breakMin = totalMin > 8 * 60 ? 60 : (totalMin > 4 * 60 ? 30 : 0);
+                const workMin = totalMin - breakMin;
+                const workHours = workMin / 60;
+                const baseHours = Math.min(workHours, 8);
+                const overtimeHours = Math.max(0, workHours - 8);
+
+                // 기본급
+                let dailyPay = wage * baseHours;
+                // 연장수당 (1.5배)
+                dailyPay += wage * overtimeHours * 1.5;
+                // 주말 가산 (1.5배 전체)
+                if (dayType === 'weekend') {
+                    dailyPay = wage * baseHours * 1.5 + wage * overtimeHours * 2.0;
+                }
+
+                const groupTotal = dailyPay * count;
+                totalWage += groupTotal;
+                totalHeadcount += count;
+
+                staffDetails.push({
+                    count,
+                    start: startStr,
+                    end: endStr,
+                    workHours: workHours.toFixed(1),
+                    breakMin,
+                    baseHours: baseHours.toFixed(1),
+                    overtimeHours: overtimeHours.toFixed(1),
+                    dailyPay: Math.round(dailyPay),
+                    groupTotal: Math.round(groupTotal)
+                });
+            });
+
+            if (staffDetails.length === 0) return;
+
+            // 원천징수 (일용직일 때)
+            let taxDetails = [];
+            if (payMethod === 'daily') {
+                staffDetails.forEach(s => {
+                    const taxable = Math.max(0, s.dailyPay - 150000);
+                    const computedTax = taxable * 0.06;
+                    const incomeTax = Math.floor(computedTax * 0.55);
+                    const localTax = Math.floor(incomeTax * 0.1 / 10) * 10;
+                    const totalTax = incomeTax + localTax;
+                    const netPay = s.dailyPay - totalTax;
+                    taxDetails.push({
+                        ...s,
+                        taxable,
+                        incomeTax,
+                        localTax,
+                        totalTax: totalTax * s.count,
+                        netPay,
+                        netPayTotal: netPay * s.count
+                    });
+                });
+            }
+
+            const totalMeal = mealPerPerson * totalHeadcount;
+            const totalTransport = transportPerPerson * totalHeadcount;
+            const totalTax = taxDetails.reduce((sum, t) => sum + t.totalTax, 0);
+            const grandTotal = totalWage + totalMeal + totalTransport;
+
+            // ===== 렌더링 =====
+
+            // 총액 박스
+            document.getElementById('dailyTotalBox').innerHTML = `
+                <div class="amount">${Math.round(grandTotal).toLocaleString('ko-KR')}원</div>
+                <div class="sub">일일 총 비용 (${totalHeadcount}명 × ${dayType === 'weekend' ? '주말/공휴일' : '평일'})</div>
+            `;
+
+            // 인력별 상세
+            let detailHTML = `<table><tr>
+                <th>시간대</th><th>인원</th><th>실근무</th><th>연장</th><th>인당 일당</th><th>소계</th>
+            </tr>`;
+            staffDetails.forEach(s => {
+                detailHTML += `<tr>
+                    <td>${s.start}~${s.end}</td>
+                    <td>${s.count}명</td>
+                    <td>${s.baseHours}H ${s.breakMin > 0 ? '(휴게 ' + s.breakMin + '분)' : ''}</td>
+                    <td>${s.overtimeHours > 0 ? s.overtimeHours + 'H ×1.5' : '-'}</td>
+                    <td style="text-align:right">${s.dailyPay.toLocaleString()}원</td>
+                    <td style="text-align:right;font-weight:600">${s.groupTotal.toLocaleString()}원</td>
+                </tr>`;
+            });
+            detailHTML += `</table>`;
+
+            // 원천징수 상세 (일용직일 때)
+            if (payMethod === 'daily' && taxDetails.some(t => t.totalTax > 0)) {
+                detailHTML += `<div style="margin-top:16px;padding-top:12px;border-top:1px solid #f0f0f0;">
+                    <strong style="font-size:13px;color:#888;">원천징수 내역</strong>
+                    <table style="margin-top:8px;"><tr><th>시간대</th><th>인당 일당</th><th>과세분</th><th>소득세</th><th>지방세</th><th>인당 실수령</th></tr>`;
+                taxDetails.forEach(t => {
+                    detailHTML += `<tr>
+                        <td>${t.start}~${t.end}</td>
+                        <td>${t.dailyPay.toLocaleString()}원</td>
+                        <td>${t.taxable > 0 ? t.taxable.toLocaleString() + '원' : '-'}</td>
+                        <td>${t.incomeTax > 0 ? t.incomeTax.toLocaleString() + '원' : '-'}</td>
+                        <td>${t.localTax > 0 ? t.localTax.toLocaleString() + '원' : '-'}</td>
+                        <td style="font-weight:600">${t.netPay.toLocaleString()}원</td>
+                    </tr>`;
+                });
+                detailHTML += `</table></div>`;
+            }
+
+            document.getElementById('dailyStaffDetail').innerHTML = detailHTML;
+
+            // 비용 총괄
+            let summaryHTML = `<table class="cost-table">
+                <tr><th style="text-align:left">항목</th><th style="text-align:right">금액</th></tr>
+                <tr><td>급여 합계 (${totalHeadcount}명)</td><td style="text-align:right">${Math.round(totalWage).toLocaleString()}원</td></tr>`;
+            if (totalMeal > 0) {
+                summaryHTML += `<tr><td>식대 (${mealPerPerson.toLocaleString()}원 × ${totalHeadcount}명)</td><td style="text-align:right">${totalMeal.toLocaleString()}원</td></tr>`;
+            }
+            if (totalTransport > 0) {
+                summaryHTML += `<tr><td>교통비 (${transportPerPerson.toLocaleString()}원 × ${totalHeadcount}명)</td><td style="text-align:right">${totalTransport.toLocaleString()}원</td></tr>`;
+            }
+            summaryHTML += `<tr class="row-total"><td>일일 총 비용</td><td style="text-align:right">${Math.round(grandTotal).toLocaleString()}원</td></tr>`;
+            if (payMethod === 'daily' && totalTax > 0) {
+                summaryHTML += `<tr class="row-burden"><td>원천징수 합계 (회사 대납)</td><td style="text-align:right">${totalTax.toLocaleString()}원</td></tr>`;
+                summaryHTML += `<tr><td><strong>실지급액 합계</strong></td><td style="text-align:right;font-weight:700">${(totalWage - totalTax + totalMeal + totalTransport).toLocaleString()}원</td></tr>`;
+            }
+            summaryHTML += `</table>`;
+            document.getElementById('dailyCostSummary').innerHTML = summaryHTML;
+
+            // UI 표시
+            document.getElementById('dailyResultPanel').style.display = 'block';
+            document.getElementById('dailyEmptyState').style.display = 'none';
+            document.getElementById('btnDailyActions').style.display = 'grid';
+            document.getElementById('btnDailyReset').style.display = 'block';
+        }
+
+        function resetDaily() {
+            document.getElementById('dWageType').value = 'minimum';
+            document.getElementById('dCustomWageGroup').style.display = 'none';
+            document.getElementById('dDayType').value = 'weekday';
+            document.getElementById('dPayMethod').value = 'daily';
+            document.getElementById('dMealType').value = '0';
+            document.getElementById('dMealCustom').style.display = 'none';
+            document.getElementById('dTransport').value = '0';
+            document.getElementById('dStaffList').innerHTML = `
+                <div class="staff-row" data-idx="0">
+                    <label>스태프</label>
+                    <input type="number" value="2" min="1" max="20" class="d-count">
+                    <input type="time" value="09:00" class="d-start">
+                    <input type="time" value="18:00" class="d-end">
+                </div>`;
+            dailyRowIdx = 1;
+            document.getElementById('dailyResultPanel').style.display = 'none';
+            document.getElementById('dailyEmptyState').style.display = '';
+            document.getElementById('btnDailyActions').style.display = 'none';
+            document.getElementById('btnDailyReset').style.display = 'none';
+        }
+
+        // ===== PDF 인쇄 =====
+        function printDaily() { doPrint('daily'); }
+
+        function doPrint(mode) {
+            const html = buildShareHTML(mode);
+            const printWin = window.open('', '_blank');
+            printWin.document.write(html);
+            printWin.document.close();
+            setTimeout(() => { printWin.print(); }, 300);
+        }
+
+        // ===== 공유 기능 =====
+        async function generateShareText(mode) {
+            if (mode === 'daily') {
+                const total = document.querySelector('#dailyTotalBox .amount')?.textContent || '';
+                const sub = document.querySelector('#dailyTotalBox .sub')?.textContent || '';
+                return `[일일 인건비 산출]\n${sub}\n총 비용: ${total}\n\n— 매장 인건비 시뮬레이터`;
+            } else {
+                const cards = document.querySelectorAll('#summaryCards .summary-card');
+                let lines = ['[월간 인건비 산출]'];
+                cards.forEach(c => {
+                    const num = c.querySelector('.num')?.textContent || '';
+                    const label = c.querySelector('.label')?.textContent || '';
+                    lines.push(`${label}: ${num}`);
+                });
+                lines.push('\n— 매장 인건비 시뮬레이터');
+                return lines.join('\n');
+            }
+        }
+
+        async function shareDaily() { await doShare('daily'); }
+        async function shareMonthly() { await doShare('monthly'); }
+
+        function buildShareHTML(mode) {
+            const date = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
+            const style = `<style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body { font-family: -apple-system, 'Pretendard', sans-serif; padding:40px; color:#1a1a2e; line-height:1.6; }
+                h1 { font-size:20px; font-weight:700; color:#6C5CE7; margin-bottom:4px; }
+                .date { font-size:12px; color:#888; margin-bottom:24px; }
+                table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px; }
+                th { background:#f8f7ff; color:#6C5CE7; font-weight:600; padding:8px 10px; text-align:center; border-bottom:2px solid #e8e5f7; }
+                td { padding:8px 10px; text-align:center; border-bottom:1px solid #f0f0f0; }
+                .cost-table td:first-child { text-align:left; }
+                .cost-table td:last-child { text-align:right; font-weight:600; }
+                .row-total td { font-weight:700; font-size:14px; background:#6C5CE7; color:white; }
+                .row-burden td { color:#888; font-style:italic; }
+                .row-subtotal td { font-weight:700; border-top:2px solid #6C5CE7; background:#f8f7ff; }
+                .total-box { background:#6C5CE7; color:white; border-radius:10px; padding:20px; text-align:center; margin-bottom:20px; }
+                .total-box .amount { font-size:26px; font-weight:800; }
+                .total-box .sub { font-size:11px; opacity:0.85; }
+                .section { margin-bottom:20px; }
+                .section h3 { font-size:13px; font-weight:700; margin-bottom:10px; padding-bottom:8px; border-bottom:2px solid #f0f0f0; }
+                .footer { margin-top:32px; padding-top:16px; border-top:1px solid #eee; font-size:10px; color:#aaa; text-align:center; }
+                .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+                .summary-card { background:#f8f7ff; border-radius:8px; padding:14px; text-align:center; }
+                .summary-card .num { font-size:18px; font-weight:800; color:#6C5CE7; }
+                .summary-card .label { font-size:10px; color:#888; margin-top:2px; }
+                .summary-card.primary { background:#6C5CE7; }
+                .summary-card.primary .num { color:white; }
+                .summary-card.primary .label { color:rgba(255,255,255,0.8); }
+            </style>`;
+
+            if (mode === 'daily') {
+                return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>일일 인건비 산출서</title>${style}</head><body>
+                    <h1>일일 인건비 산출서</h1>
+                    <div class="date">${date} 작성</div>
+                    <div class="total-box">${document.getElementById('dailyTotalBox').innerHTML}</div>
+                    <div class="section"><h3>인력별 비용 상세</h3>${document.getElementById('dailyStaffDetail').innerHTML}</div>
+                    <div class="section"><h3>비용 총괄</h3>${document.getElementById('dailyCostSummary').innerHTML}</div>
+                    <div class="footer">매장 인건비 시뮬레이터 — Project RENT</div>
+                </body></html>`;
+            } else {
+                return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>월간 인건비 산출서</title>${style}</head><body>
+                    <h1>월간 인건비 산출서</h1>
+                    <div class="date">${date} 작성</div>
+                    <div class="summary-grid">${document.getElementById('summaryCards').innerHTML}</div>
+                    <div class="section"><h3>시프트 설계</h3>${document.getElementById('shiftDesign').innerHTML}</div>
+                    <div class="section"><h3>주간 시프트 배치표</h3>${document.getElementById('shiftTable').innerHTML}</div>
+                    <div class="section"><h3>개인별 근무 요약</h3>${document.getElementById('personTable').innerHTML}</div>
+                    <div class="section"><h3>월간 인건비 산출</h3>${document.getElementById('costTable').innerHTML}</div>
+                    <div class="section"><h3>연간 인건비 추정</h3>${document.getElementById('annualTable').innerHTML}</div>
+                    <div class="footer">매장 인건비 시뮬레이터 — Project RENT</div>
+                </body></html>`;
+            }
+        }
+
+        async function doShare(mode) {
+            const html = buildShareHTML(mode);
+            const title = mode === 'daily' ? '일일 인건비 산출서' : '월간 인건비 산출서';
+            const dateStr = new Date().toISOString().slice(0,10);
+            const fileName = `인건비산출_${mode === 'daily' ? '일일' : '월간'}_${dateStr}.html`;
+
+            // 파일로 만들어야 AirDrop 활성화
+            const blob = new Blob([html], { type: 'text/html' });
+            const file = new File([blob], fileName, { type: 'text/html' });
+
+            // Web Share API + files (Safari/iOS → AirDrop, 메시지, 메일 전부 가능)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        files: [file]
+                    });
+                    return;
+                } catch (e) {
+                    if (e.name === 'AbortError') return;
+                }
+            }
+
+            // Fallback: 파일 다운로드 + 클립보드
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            const text = await generateShareText(mode);
+            try { await navigator.clipboard.writeText(text); } catch(e) {}
+            alert(`"${fileName}" 다운로드 완료\n텍스트 요약도 클립보드에 복사되었습니다.\n\nFinder에서 AirDrop으로 직접 보낼 수 있습니다.`);
+        }
+
         // 시급 타입 변경 시 커스텀 필드 표시
         document.getElementById('wageType').addEventListener('change', function() {
             document.getElementById('customWageGroup').style.display =
@@ -483,7 +1085,7 @@
             document.getElementById('customWage').value = '12000';
             document.getElementById('openTime').value = '09:00';
             document.getElementById('closeTime').value = '18:40';
-            document.getElementById('opDays').value = '7';
+            document.getElementById('opDays').value = 7;
             document.getElementById('weekdayStaff').value = '2';
             document.getElementById('weekendStaff').value = '3';
             document.getElementById('peakStaff').value = '1';
@@ -501,7 +1103,7 @@
             document.getElementById('emptyState').style.display = '';
             document.getElementById('btnReset').style.display = 'none';
             document.getElementById('btnExport').style.display = 'none';
-            document.getElementById('btnPrint').style.display = 'none';
+            document.getElementById('btnMonthlyActions').style.display = 'none';
             window._calcResult = null;
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -669,11 +1271,35 @@
                 managerDetail = `기본 ${base.toLocaleString()} + 주휴 ${Math.round(weeklyPayMonth).toLocaleString()}`;
             }
 
+            // 가산수당 배율 (5인 미만은 미적용)
+            const isOver5 = bizSize === 'over5';
+            const overtimeRate = isOver5 ? 0.5 : 0; // 연장근로 가산 50%
+            const nightRate = isOver5 ? 0.5 : 0;    // 야간근로(22~06) 가산 50%
+
+            // 야간근로 시간 계산 (22:00 이후 영업분)
+            const nightStartMin = 22 * 60; // 22:00
+            let nightMinutesPerDay = 0;
+            if (closeMin > nightStartMin) {
+                nightMinutesPerDay = closeMin - nightStartMin;
+            }
+            const nightHoursPerDay = nightMinutesPerDay / 60;
+
+            // 연장근로 시간 (단일 시프트일 때만 발생)
+            const ftOvertimeHours = !needsSplit ? Math.max(0, (totalOpMinutes - breakMinutes - maxWorkMinutes) / 60) : 0;
+
             // 스태프 (시급제)
             const staffBase = wage.staff * 8 * monthDays;
             const staffWeeklyPay = wage.staff * (40/40) * 8 * weeksPerMonth;
-            const staffMonthlyCost = staffBase + staffWeeklyPay;
-            const staffDetail = `기본 ${staffBase.toLocaleString()} + 주휴 ${Math.round(staffWeeklyPay).toLocaleString()}`;
+            // 연장근로 가산수당
+            const staffOvertimePay = ftOvertimeHours > 0 ? wage.staff * ftOvertimeHours * overtimeRate * monthDays : 0;
+            // 야간근로 가산수당
+            const staffNightPay = nightHoursPerDay > 0 ? wage.staff * nightHoursPerDay * nightRate * monthDays : 0;
+            const staffMonthlyCost = staffBase + staffWeeklyPay + staffOvertimePay + staffNightPay;
+
+            let staffDetailParts = [`기본 ${staffBase.toLocaleString()} + 주휴 ${Math.round(staffWeeklyPay).toLocaleString()}`];
+            if (staffOvertimePay > 0) staffDetailParts.push(`연장 ${Math.round(staffOvertimePay).toLocaleString()}`);
+            if (staffNightPay > 0) staffDetailParts.push(`야간 ${Math.round(staffNightPay).toLocaleString()}`);
+            const staffDetail = staffDetailParts.join(' + ');
 
             // PT (주말 적용 옵션)
             const peakDaysOption = document.getElementById('peakDays').value;
@@ -706,6 +1332,8 @@
             }
 
             const totalWage = (managerMonthlyCost * managerCount) + (staffMonthlyCost * staffCount) + (ptMonthlyCost * peakStaff);
+            const totalOvertimePay = staffOvertimePay * staffCount;
+            const totalNightPay = staffNightPay * staffCount;
             const insurance = totalWage * 0.095;
             const ptWeeklyHoursCalc = peakHours * ptWorkDaysPerWeek;
             const retirement = (managerMonthlyCost * managerCount + staffMonthlyCost * staffCount) * 0.0833
@@ -765,7 +1393,9 @@
                 }
             } else {
                 for (let i = 0; i < staffCount; i++) {
-                    staffSchedules.push([1,1,1,1,1,0,0]);
+                    const sched = [0,0,0,0,0,0,0];
+                    for (let d = 0; d < Math.min(opDays, 5); d++) sched[d] = 1;
+                    staffSchedules.push(sched);
                 }
             }
 
@@ -957,6 +1587,30 @@
                 </tr>`;
             }
 
+            // 가산수당 별도 표기 (5인 이상일 때만)
+            if (isOver5 && (totalOvertimePay > 0 || totalNightPay > 0)) {
+                costHTML += `<tr style="background:#fffde7;"><td colspan="4" style="text-align:left;font-size:11px;color:#888;padding:6px 12px;">▼ 위 급여에 포함된 가산수당 내역 (5인 이상 사업장)</td></tr>`;
+                if (totalOvertimePay > 0) {
+                    costHTML += `<tr class="row-burden">
+                        <td>&nbsp;&nbsp;연장근로 가산 (×0.5)</td>
+                        <td></td>
+                        <td>${wage.staff.toLocaleString()}원 × ${ftOvertimeHours.toFixed(1)}H × 0.5 × ${monthDays}일 × ${staffCount}명</td>
+                        <td style="text-align:right">${formatMoney(totalOvertimePay)}</td>
+                    </tr>`;
+                }
+                if (totalNightPay > 0) {
+                    costHTML += `<tr class="row-burden">
+                        <td>&nbsp;&nbsp;야간근로 가산 (×0.5)</td>
+                        <td></td>
+                        <td>${wage.staff.toLocaleString()}원 × ${nightHoursPerDay.toFixed(1)}H × 0.5 × ${monthDays}일 × ${staffCount}명</td>
+                        <td style="text-align:right">${formatMoney(totalNightPay)}</td>
+                    </tr>`;
+                }
+            }
+            if (!isOver5) {
+                costHTML += `<tr style="background:#f5f5f5;"><td colspan="4" style="text-align:left;font-size:11px;color:#aaa;padding:6px 12px;">* 5인 미만 사업장 — 연장/야간/휴일 가산수당 미적용</td></tr>`;
+            }
+
             costHTML += `<tr class="row-subtotal">
                 <td>급여 소계</td>
                 <td>${totalAll}명</td>
@@ -997,7 +1651,7 @@
             document.getElementById('emptyState').style.display = 'none';
             document.getElementById('btnReset').style.display = 'block';
             document.getElementById('btnExport').style.display = 'block';
-            document.getElementById('btnPrint').style.display = 'block';
+            document.getElementById('btnMonthlyActions').style.display = 'grid';
 
             // 결과 데이터 저장 (CSV 내보내기용)
             window._calcResult = { people, managerCount, staffCount, peakStaff, totalWage, insurance, retirement, totalCost, wage, shifts };
