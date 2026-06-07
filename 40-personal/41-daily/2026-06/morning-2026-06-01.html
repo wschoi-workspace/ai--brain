@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모닝 브리핑 — 2026년 6월 1일</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a2e;
+    --surface2: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --text: #eee;
+    --text-dim: #999;
+    --green: #00c853;
+    --yellow: #ffd600;
+    --red: #ff1744;
+    --blue: #448aff;
+    --border: #2a2a4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  .header {
+    text-align: center;
+    padding: 2rem 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #e94560, #0f3460);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .date {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-top: 0.3rem;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .stat-card .number {
+    font-size: 2rem;
+    font-weight: 800;
+  }
+  .stat-card .label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+  }
+  .stat-card.urgent .number { color: var(--red); }
+  .stat-card.pending .number { color: var(--yellow); }
+  .stat-card.schedule .number { color: var(--blue); }
+  .stat-card.project .number { color: var(--green); }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-title .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+  }
+  .icon-mail { background: rgba(233,69,96,0.2); }
+  .icon-cal { background: rgba(68,138,255,0.2); }
+  .icon-todo { background: rgba(233,69,96,0.2); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  th {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid rgba(42,42,74,0.5);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  a.mail-link {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--text-dim);
+    transition: all 0.2s;
+  }
+  a.mail-link:hover {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-red { background: rgba(255,23,68,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(255,214,0,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(0,200,83,0.15); color: var(--green); }
+  .badge-blue { background: rgba(68,138,255,0.15); color: var(--blue); }
+  .badge-gray { background: rgba(153,153,153,0.15); color: var(--text-dim); }
+
+  .time { color: var(--blue); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  .todo-list {
+    list-style: none;
+    counter-reset: todo;
+  }
+  .todo-list li {
+    counter-increment: todo;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid rgba(42,42,74,0.5);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .todo-list li:last-child { border-bottom: none; }
+  .todo-list li::before {
+    content: counter(todo);
+    background: var(--accent);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>☀️ 모닝 브리핑</h1>
+  <div class="date">2026년 6월 1일 (월)</div>
+</div>
+
+<!-- ── 요약 카드 ── -->
+<div class="stats">
+  <div class="stat-card urgent">
+    <div class="number">3</div>
+    <div class="label">회신/처리 필요</div>
+  </div>
+  <div class="stat-card pending">
+    <div class="number">3</div>
+    <div class="label">발신/대기</div>
+  </div>
+  <div class="stat-card schedule">
+    <div class="number">1</div>
+    <div class="label">오늘 일정</div>
+  </div>
+  <div class="stat-card" style="border-left: 3px solid var(--blue);">
+    <div class="number" style="color: var(--blue);">4</div>
+    <div class="label">내일 일정</div>
+  </div>
+</div>
+
+<!-- ── 📬 업무 메일 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-mail">📬</span> 업무 메일 (최근 3일)
+  </div>
+
+  <h4 style="color:var(--red); margin-bottom:0.5rem; font-size:0.85rem;">🔴 회신/처리 필요</h4>
+  <table>
+    <tr><th>발신자</th><th>제목</th><th>요약</th><th>상태</th></tr>
+    <tr>
+      <td>서울디자인어워드</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19e71910c6ad39e3" target="_blank">서울디자인어워드 2026 심사위원 동의서·사진·오리엔테이션 요청</a></td>
+      <td>심사위원 동의서 제출, 프로필 사진, 오리엔테이션 참여 요청</td>
+      <td><span class="badge badge-red">회신 필요</span></td>
+    </tr>
+    <tr>
+      <td>김민지 (마인드디자인)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19e7133265e59226" target="_blank">더셀렉츠 마인드디자인 부분 초안</a></td>
+      <td>첨부 246MB · 다운로드 기한 <strong style="color:var(--yellow)">6/5</strong> · 100회 제한</td>
+      <td><span class="badge badge-red">다운로드 필요</span></td>
+    </tr>
+    <tr>
+      <td>배성원 (프로젝트렌트)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19e732abf04a5ab5" target="_blank">Re: 더셀렉츠 마인드디자인 부분 초안</a></td>
+      <td>추가 요청사항 확인 필요</td>
+      <td><span class="badge badge-red">확인 필요</span></td>
+    </tr>
+  </table>
+
+  <h4 style="color:var(--yellow); margin:1rem 0 0.5rem; font-size:0.85rem;">🟡 발신/회신 대기</h4>
+  <table>
+    <tr><th>수신자</th><th>제목</th><th>상태</th></tr>
+    <tr>
+      <td>인플루엔셜 (송해인)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19e7d714389a2c00" target="_blank">Re: 아주그룹 기업 강연 문의 — 최종확정 여부 확인</a></td>
+      <td><span class="badge badge-yellow">회신 대기</span></td>
+    </tr>
+    <tr>
+      <td>외벽광고 담당</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19e7c8ef3a10bd0a" target="_blank">외벽광고 집행 관련 문의 — 연무장길 현수막</a></td>
+      <td><span class="badge badge-yellow">회신 대기</span></td>
+    </tr>
+    <tr>
+      <td>둔촌주공 관련</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19e732d53a7cbc9e" target="_blank">둔촌주공 카페 개발 방향 검토 — 7월초 착공 목표</a></td>
+      <td><span class="badge badge-yellow">회신 대기</span></td>
+    </tr>
+  </table>
+
+  <h4 style="color:var(--blue); margin:1rem 0 0.5rem; font-size:0.85rem;">📊 모니터링/참고</h4>
+  <table>
+    <tr><th>발신자</th><th>제목</th><th>조치</th></tr>
+    <tr>
+      <td>서울투자진흥재단</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19e72487a866a2b1" target="_blank">CORE 기업 대상 지원 프로그램 6월 운영 일정 안내</a></td>
+      <td><span class="badge badge-blue">참고</span></td>
+    </tr>
+    <tr>
+      <td>ws.choi (자동)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19e79eeab9c44c85" target="_blank">[TEST] 2026년 5월 일용직 원천징수 자료 (10건)</a></td>
+      <td><span class="badge badge-gray">테스트</span></td>
+    </tr>
+    <tr>
+      <td>ws.choi → RXR 관련</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19e715acae77fc36" target="_blank">RXR 개념자료 공유</a></td>
+      <td><span class="badge badge-green">발신 완료</span></td>
+    </tr>
+    <tr>
+      <td>ws.choi → 제훈</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19e7150044cff5ff" target="_blank">스타필드 코엑스몰 세스크멘슬 입퇴점 TC협의 전달</a></td>
+      <td><span class="badge badge-green">발신 완료</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── 📅 오늘 일정 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-cal">📅</span> 오늘 일정 (6/1 월)
+  </div>
+  <table>
+    <tr><th>시간</th><th>일정</th><th>비고</th></tr>
+    <tr>
+      <td class="time">18:30 – 20:10</td>
+      <td><strong>KPC CEO경영아카데미 서울35기 강의</strong></td>
+      <td>
+        주제: 고객 경험의 진화 — 경험 후기 키워드·신뢰·데이터의 삼각 구도<br>
+        장소: 종로구 새문안로5가길 32 생산성빌딩 4층 405호<br>
+        담당: 문정수 (010-2652-8599)<br>
+        석식: KPC 지하 동원참치 광화문본점 ('KPC강사'로 예약)
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── 📅 내일 일정 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-cal">📅</span> 내일 일정 (6/2 화)
+  </div>
+  <table>
+    <tr><th>시간</th><th>일정</th><th>비고</th></tr>
+    <tr>
+      <td class="time">09:00 – 10:00</td>
+      <td>최성은 인터뷰 (대학원)</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td class="time">종일</td>
+      <td>전사 AX 워크샵</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td class="time">종일 (마감)</td>
+      <td><strong style="color:var(--yellow)">원고마감 — 한국프로스포츠협회 매거진</strong></td>
+      <td>
+        주제: 브랜드는 왜 오프라인으로 향하는가<br>
+        분량: A4 2매 · 원고료 50만원
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── ✅ 오늘 할 일 ── -->
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-todo">✅</span> 오늘 할 일 우선순위
+  </div>
+  <ol class="todo-list">
+    <li><strong>KPC 강의 준비</strong> — 교안 최종 점검, 18:30 생산성빌딩 도착 (석식 가능)</li>
+    <li><strong>서울디자인어워드 심사위원 동의서·사진 회신</strong> — 기한 확인 후 처리</li>
+    <li><strong>마인드디자인 초안 다운로드</strong> — 246MB 첨부, 기한 6/5 (100회 제한)</li>
+    <li><strong>배성원 요청사항 확인</strong> — 더셀렉츠 마인드디자인 관련 추가 요청</li>
+    <li><strong>한국프로스포츠협회 원고 작성</strong> — 내일(6/2) 마감, A4 2매 '브랜드는 왜 오프라인으로 향하는가'</li>
+    <li><strong>발신 대기 메일 팔로업</strong> — 인플루엔셜 아주그룹 강연 확정, 외벽광고, 둔촌주공</li>
+  </ol>
+</div>
+
+<div class="footer">
+  Generated by Claude Code · /morning · 2026-06-01 09:00 KST
+</div>
+
+</body>
+</html>

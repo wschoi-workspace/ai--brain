@@ -4,7 +4,7 @@
 
 ## 🔥 Today
 
-- [ ] 
+- [ ] labor-cost-simulator Netlify 배포 (v3 업데이트 반영)
 
 ## 📅 This Week
 

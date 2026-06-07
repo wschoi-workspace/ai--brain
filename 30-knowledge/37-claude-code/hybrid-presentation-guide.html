@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>하이브리드 프레젠테이션 가이드 — 클라이언트 제안 PT</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2A2A2A;
+  --accent: #6C5CE7; --accent-dark: #5A4BD1; --accent-light: #A29BFE;
+  --accent-sub: rgba(108,92,231,.08);
+  --warm: #E9DCC8; --rust: #B86C4A; --green: #8FA37E;
+  --blue: #6F8AA3; --amber: #D9A34B; --coral: #E17055;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--fg);font-size:14px;font-weight:300;line-height:1.7;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+
+/* Layout */
+.page{max-width:1200px;margin:0 auto;padding:80px 60px}
+
+/* Cover */
+.cover{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 60px;max-width:1200px;margin:0 auto}
+.cover .label{font-size:11px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;font-weight:400;margin-bottom:24px}
+.cover h1{font-size:68px;font-weight:200;line-height:.95;letter-spacing:-.04em;margin-bottom:32px}
+.cover h1 em{font-style:normal;color:var(--accent)}
+.cover .sub{font-size:18px;font-weight:300;color:var(--fg-2);line-height:1.6;max-width:640px}
+.cover .meta{margin-top:48px;font-size:12px;color:var(--fg-3);letter-spacing:.05em}
+
+/* Section */
+.sd{border-top:1px solid var(--line);padding-top:80px;margin-top:80px}
+.pl{font-size:11px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;font-weight:400;margin-bottom:16px}
+.st{font-size:44px;font-weight:500;line-height:1.1;letter-spacing:-.025em;margin-bottom:16px}
+.ss{font-size:16px;color:var(--fg-2);margin-bottom:48px;max-width:640px}
+
+/* Sub */
+.sl{font-size:11px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;font-weight:400;margin-bottom:12px;margin-top:56px}
+h3{font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.02em;margin-bottom:20px}
+h4{font-size:18px;font-weight:500;line-height:1.3;margin-bottom:12px;margin-top:32px}
+p{margin-bottom:16px;color:var(--fg-2);max-width:720px}
+strong{font-weight:500;color:var(--fg)}
+em{font-style:normal;color:var(--accent-light)}
+
+/* Blockquote */
+blockquote{border-left:2px solid var(--accent);padding:20px 24px;margin:24px 0;background:var(--accent-sub);border-radius:0 8px 8px 0}
+blockquote p{font-size:16px;font-weight:300;color:var(--fg);margin:0;font-style:italic}
+
+/* Table */
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13px}
+th{text-align:left;padding:12px 16px;background:var(--bg-3);color:var(--fg-3);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:400;border-bottom:1px solid var(--line)}
+td{padding:12px 16px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tr:hover td{background:rgba(108,92,231,.03)}
+
+/* Cards */
+.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin:24px 0}
+.cd{background:var(--bg-3);border:1px solid var(--line-2);border-radius:12px;padding:24px;transition:border-color 250ms}
+.cd:hover{border-color:var(--accent)}
+.cd .cl{font-size:10px;letter-spacing:.2em;color:var(--accent);text-transform:uppercase;font-weight:400;margin-bottom:8px}
+.cd .ct{font-size:18px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.cd .cb{font-size:13px;color:var(--fg-2);line-height:1.6}
+
+/* Highlight */
+.hl{background:var(--accent-sub);border:1px solid rgba(108,92,231,.2);border-radius:12px;padding:24px 28px;margin:24px 0}
+.hl p{color:var(--fg);margin:0}
+
+/* Warning / Anti */
+.anti{background:rgba(225,112,85,.06);border:1px solid rgba(225,112,85,.15);border-radius:12px;padding:24px 28px;margin:24px 0}
+.anti p{color:var(--fg-2);margin:0;font-size:13px}
+.anti strong{color:var(--coral)}
+
+/* Phase Banner */
+.phase-banner{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;padding:40px;margin:48px 0;position:relative;overflow:hidden}
+.phase-banner::before{content:attr(data-phase);position:absolute;top:-16px;right:20px;font-size:120px;font-weight:200;color:var(--accent);opacity:.06;line-height:1}
+.phase-banner .ph-label{font-size:11px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;font-weight:400;margin-bottom:8px}
+.phase-banner .ph-title{font-size:32px;font-weight:300;color:var(--fg);margin-bottom:8px}
+.phase-banner .ph-desc{font-size:14px;color:var(--fg-2);max-width:600px}
+.phase-banner .ph-steps{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap}
+.phase-banner .ph-step{padding:6px 14px;background:var(--bg-3);border:1px solid var(--line-2);border-radius:8px;font-size:12px;color:var(--fg-3)}
+.phase-banner .ph-step strong{color:var(--fg);font-weight:500}
+
+/* Step Card */
+.step-card{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;padding:40px;margin:32px 0;position:relative}
+.step-card .sn{position:absolute;top:24px;right:28px;font-size:72px;font-weight:200;color:var(--accent);opacity:.12;line-height:1}
+.step-card .s-label{font-size:11px;letter-spacing:.2em;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+.step-card .s-title{font-size:28px;font-weight:300;color:var(--fg);margin-bottom:4px}
+.step-card .s-source{font-size:12px;color:var(--fg-3);margin-bottom:20px}
+
+/* Formula Box */
+.formula{background:var(--bg-3);border:1px solid var(--line-2);border-radius:10px;padding:20px 24px;margin:16px 0;font-size:14px;color:var(--accent-light);font-weight:400;line-height:1.8}
+
+/* 3-Layer Problem */
+.layer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0}
+.layer-card{border-radius:12px;padding:24px;text-align:center}
+.layer-card .ly-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.layer-card .ly-q{font-size:14px;font-weight:500;margin-bottom:8px}
+.layer-card .ly-ex{font-size:13px;line-height:1.5}
+.ly-ext{background:rgba(111,138,163,.08);border:1px solid rgba(111,138,163,.15)}
+.ly-ext .ly-label{color:var(--blue)}
+.ly-ext .ly-q{color:var(--blue)}
+.ly-ext .ly-ex{color:var(--fg-2)}
+.ly-int{background:rgba(108,92,231,.1);border:1px solid rgba(108,92,231,.25)}
+.ly-int .ly-label{color:var(--accent)}
+.ly-int .ly-q{color:var(--accent-light)}
+.ly-int .ly-ex{color:var(--fg)}
+.ly-phi{background:rgba(143,163,126,.08);border:1px solid rgba(143,163,126,.15)}
+.ly-phi .ly-label{color:var(--green)}
+.ly-phi .ly-q{color:var(--green)}
+.ly-phi .ly-ex{color:var(--fg-2)}
+
+/* Empathy + Authority */
+.ea-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.ea-card{border-radius:12px;padding:28px}
+.ea-emp{background:rgba(108,92,231,.06);border:1px solid rgba(108,92,231,.15)}
+.ea-auth{background:rgba(217,163,75,.06);border:1px solid rgba(217,163,75,.15)}
+.ea-card .ea-icon{font-size:28px;margin-bottom:12px}
+.ea-card .ea-title{font-size:16px;font-weight:500;margin-bottom:4px}
+.ea-card .ea-sub{font-size:12px;color:var(--fg-3);margin-bottom:12px}
+.ea-card .ea-body{font-size:13px;color:var(--fg-2);line-height:1.6}
+
+/* Translate Row */
+.tr-row{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin:8px 0}
+.tr-from{background:var(--bg-3);border:1px solid var(--line-2);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--fg-3);text-align:center}
+.tr-arrow{color:var(--accent);font-size:20px}
+.tr-to{background:var(--accent-sub);border:1px solid rgba(108,92,231,.2);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--accent-light);text-align:center;font-weight:400}
+
+/* Pie / Allocation */
+.alloc{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}
+.alloc-item{border-radius:12px;padding:24px;text-align:center}
+.alloc-item .al-pct{font-size:36px;font-weight:200;margin-bottom:4px}
+.alloc-item .al-name{font-size:13px;font-weight:500;margin-bottom:4px}
+.alloc-item .al-desc{font-size:11px;line-height:1.4}
+.al-a{background:rgba(108,92,231,.1);border:1px solid rgba(108,92,231,.2)}.al-a .al-pct{color:var(--accent)}
+.al-b{background:rgba(143,163,126,.1);border:1px solid rgba(143,163,126,.2)}.al-b .al-pct{color:var(--green)}
+.al-c{background:rgba(217,163,75,.1);border:1px solid rgba(217,163,75,.2)}.al-c .al-pct{color:var(--amber)}
+.al-d{background:rgba(184,108,74,.1);border:1px solid rgba(184,108,74,.2)}.al-d .al-pct{color:var(--rust)}
+
+/* Checklist */
+.check-section{margin:24px 0}
+.check-title{font-size:14px;font-weight:500;color:var(--fg);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line-2)}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;font-size:13px;color:var(--fg-2)}
+.check-box{width:18px;height:18px;border:1.5px solid var(--line);border-radius:4px;flex-shrink:0;margin-top:1px}
+
+/* Wow Types */
+.wow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:24px 0}
+.wow-card{background:var(--bg-3);border:1px solid var(--line-2);border-radius:10px;padding:20px;text-align:center}
+.wow-card .wow-icon{font-size:24px;margin-bottom:8px}
+.wow-card .wow-name{font-size:13px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.wow-card .wow-ex{font-size:12px;color:var(--fg-3);line-height:1.4}
+
+/* Overview Flow */
+.flow-wrap{margin:32px 0}
+.flow-phase{display:flex;align-items:stretch;gap:0;margin-bottom:2px}
+.flow-bar{width:6px;border-radius:3px;flex-shrink:0}
+.flow-bar-a{background:var(--accent)}
+.flow-bar-b{background:var(--green)}
+.flow-bar-c{background:var(--amber)}
+.flow-bar-d{background:var(--rust)}
+.flow-steps{flex:1;padding:8px 0 8px 20px}
+.flow-step{display:flex;align-items:center;gap:12px;padding:8px 0}
+.flow-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.flow-num-a{background:rgba(108,92,231,.15);color:var(--accent-light)}
+.flow-num-b{background:rgba(143,163,126,.15);color:var(--green)}
+.flow-num-c{background:rgba(217,163,75,.15);color:var(--amber)}
+.flow-num-d{background:rgba(184,108,74,.15);color:var(--rust)}
+.flow-text{font-size:13px;color:var(--fg-2)}
+.flow-text strong{color:var(--fg)}
+.flow-phase-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:500;padding:12px 0 4px 20px}
+.fpl-a{color:var(--accent)}
+.fpl-b{color:var(--green)}
+.fpl-c{color:var(--amber)}
+.fpl-d{color:var(--rust)}
+
+/* Anti-pattern table */
+.anti-table td:first-child{color:var(--coral);font-weight:400}
+.anti-table td:last-child{color:var(--green)}
+
+/* Mega Quote */
+.mq{text-align:center;padding:64px 40px;margin:48px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.mq p{font-size:24px;font-weight:300;color:var(--fg);max-width:720px;margin:0 auto;line-height:1.5}
+
+/* Footer */
+.footer{margin-top:80px;padding-top:40px;border-top:1px solid var(--line);font-size:11px;color:var(--fg-3);display:flex;justify-content:space-between}
+
+/* Diff Compare */
+.diff{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:24px 0;border-radius:12px;overflow:hidden}
+.diff-bad{background:rgba(225,112,85,.05);border:1px solid rgba(225,112,85,.12);padding:24px;border-right:none;border-radius:12px 0 0 12px}
+.diff-good{background:rgba(143,163,126,.05);border:1px solid rgba(143,163,126,.12);padding:24px;border-radius:0 12px 12px 0}
+.diff-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:8px}
+.diff-bad .diff-label{color:var(--coral)}
+.diff-good .diff-label{color:var(--green)}
+.diff p{font-size:13px;line-height:1.6;margin:0}
+.diff-bad p{color:var(--fg-3)}
+.diff-good p{color:var(--fg-2)}
+</style>
+</head>
+<body>
+
+<!-- ===== COVER ===== -->
+<div class="cover">
+  <div class="label">Practical Guide &mdash; Client Proposal Presentation</div>
+  <h1>하이브리드<br>프레젠테이션<br><em>가이드</em></h1>
+  <div class="sub">
+    7대 프레임워크 &times; 8개 전설적 사례에서 추출한 감성 설득 구조.<br>
+    클라이언트 제안 PT에 특화. "설명"이 아닌 "설득"을 위한 실전 매뉴얼.
+  </div>
+  <div class="meta">10-Step Hybrid Formula &nbsp;|&nbsp; 4 Phases &nbsp;|&nbsp; 15~23 Slides &nbsp;|&nbsp; 2026-06-04</div>
+</div>
+
+<!-- ===== OVERVIEW ===== -->
+<div class="page sd">
+  <div class="pl">Overview</div>
+  <div class="st">10단계 하이브리드 공식</div>
+  <div class="ss">기존 8단계에 시장 문제 해부 + 차별화 강점 어필을 통합. 클라이언트 제안 PT 전용 구조.</div>
+
+  <!-- Flow -->
+  <div class="flow-wrap">
+    <div class="flow-phase">
+      <div class="flow-bar flow-bar-a"></div>
+      <div style="flex:1">
+        <div class="flow-phase-label fpl-a">Phase A &mdash; 공감과 맥락 (~40%)</div>
+        <div class="flow-steps">
+          <div class="flow-step"><div class="flow-num flow-num-a">1</div><div class="flow-text"><strong>WHY 선언</strong> &mdash; "우리는 ___을 믿는다"</div></div>
+          <div class="flow-step"><div class="flow-num flow-num-a">2</div><div class="flow-text"><strong>Big Shift</strong> &mdash; "세상이 이렇게 변하고 있다"</div></div>
+          <div class="flow-step"><div class="flow-num flow-num-a">3</div><div class="flow-text"><strong>시장 문제 해부</strong> &mdash; 현상 &rarr; 원인(3중) &rarr; 구조적 한계 &rarr; 방치의 대가</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="flow-phase">
+      <div class="flow-bar flow-bar-b"></div>
+      <div style="flex:1">
+        <div class="flow-phase-label fpl-b">Phase B &mdash; 비전과 해법 (~30%)</div>
+        <div class="flow-steps">
+          <div class="flow-step"><div class="flow-num flow-num-b">4</div><div class="flow-text"><strong>Promised Land</strong> &mdash; 제품 없이 "도달해야 할 미래"</div></div>
+          <div class="flow-step"><div class="flow-num flow-num-b">5</div><div class="flow-text"><strong>What Is &harr; Could Be</strong> &mdash; 현실 고통 &harr; 이상 가능성 교차</div></div>
+          <div class="flow-step"><div class="flow-num flow-num-b">6</div><div class="flow-text"><strong>Wow Moment</strong> &mdash; 1개의 감정적 클라이맥스</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="flow-phase">
+      <div class="flow-bar flow-bar-c"></div>
+      <div style="flex:1">
+        <div class="flow-phase-label fpl-c">Phase C &mdash; 우리만의 답 (~25%)</div>
+        <div class="flow-steps">
+          <div class="flow-step"><div class="flow-num flow-num-c">7</div><div class="flow-text"><strong>차별화 강점 어필</strong> &mdash; 공감 + 권위 + 관점의 차별화</div></div>
+          <div class="flow-step"><div class="flow-num flow-num-c">8</div><div class="flow-text"><strong>Magic Gifts</strong> &mdash; 기능을 약속의 땅 도달 도구로</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="flow-phase">
+      <div class="flow-bar flow-bar-d"></div>
+      <div style="flex:1">
+        <div class="flow-phase-label fpl-d">Phase D &mdash; 행동 유도 (~5%)</div>
+        <div class="flow-steps">
+          <div class="flow-step"><div class="flow-num flow-num-d">9</div><div class="flow-text"><strong>Success &harr; Failure</strong> &mdash; 행동하면 / 안 하면</div></div>
+          <div class="flow-step"><div class="flow-num flow-num-d">10</div><div class="flow-text"><strong>New Bliss</strong> &mdash; 변화된 세계의 비전으로 마무리</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Allocation -->
+  <div class="sl">Slide Allocation</div>
+  <h3>슬라이드 비중 배분</h3>
+  <div class="alloc">
+    <div class="alloc-item al-a">
+      <div class="al-pct">~40%</div>
+      <div class="al-name">A. 공감과 맥락</div>
+      <div class="al-desc">5~8장<br>WHY + Shift + 문제 해부</div>
+    </div>
+    <div class="alloc-item al-b">
+      <div class="al-pct">~30%</div>
+      <div class="al-name">B. 비전과 해법</div>
+      <div class="al-desc">4~6장<br>약속의 땅 + 교차 + Wow</div>
+    </div>
+    <div class="alloc-item al-c">
+      <div class="al-pct">~25%</div>
+      <div class="al-name">C. 우리만의 답</div>
+      <div class="al-desc">4~6장<br>강점 어필 + Magic Gifts</div>
+    </div>
+    <div class="alloc-item al-d">
+      <div class="al-pct">~5%</div>
+      <div class="al-name">D. 행동 유도</div>
+      <div class="al-desc">2~3장<br>Success/Failure + Bliss</div>
+    </div>
+  </div>
+
+  <div class="hl">
+    <p><strong>핵심:</strong> Phase A(공감과 맥락)에 40%. 대부분의 실패한 제안 PT는 Phase C(우리 얘기)에 70%를 쓴다. 순서를 뒤집어라.</p>
+  </div>
+</div>
+
+<!-- ===== PHASE A ===== -->
+<div class="page sd">
+  <div class="phase-banner" data-phase="A">
+    <div class="ph-label">Phase A</div>
+    <div class="ph-title">공감과 맥락</div>
+    <div class="ph-desc">클라이언트의 세계에 먼저 들어간다. 우리 얘기는 아직 하지 않는다. 이 Phase의 목표: "이 사람들은 우리를 이해하고 있다."</div>
+    <div class="ph-steps">
+      <div class="ph-step"><strong>Step 1</strong> WHY 선언</div>
+      <div class="ph-step"><strong>Step 2</strong> Big Shift</div>
+      <div class="ph-step"><strong>Step 3</strong> 시장 문제 해부</div>
+    </div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="step-card">
+    <div class="sn">01</div>
+    <div class="s-label">Step 1</div>
+    <div class="s-title">WHY 선언</div>
+    <div class="s-source">Simon Sinek &mdash; Golden Circle &nbsp;|&nbsp; 1장</div>
+
+    <p>첫 슬라이드는 "회사 소개"가 <strong>아니다.</strong> 우리의 신념, 존재 이유, 이 프로젝트에 임하는 철학을 한 문장으로 선언한다. 변연계(감정+의사결정)를 먼저 자극하면, 이후 논리에 수용적 상태가 된다.</p>
+
+    <div class="formula">
+      "우리는 [신념/가치]를 믿습니다."<br>
+      "우리는 [대상]이 [이상적 상태]에 도달할 수 있다고 확신합니다."
+    </div>
+
+    <div class="diff">
+      <div class="diff-bad">
+        <div class="diff-label">&#10005; 기존 방식</div>
+        <p>"안녕하세요, 저희 회사는 2015년에 설립된 공간기획 전문 회사로..."<br><br>회사 연혁 타임라인, 조직도, 수상 이력</p>
+      </div>
+      <div class="diff-good">
+        <div class="diff-label">&#10003; 하이브리드</div>
+        <p>"우리는 모든 공간이 미디어가 될 수 있다고 믿습니다."<br><br>한 문장. 풀 블리드 이미지 또는 미니멀 타이포.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-card">
+    <div class="sn">02</div>
+    <div class="s-label">Step 2</div>
+    <div class="s-title">Big Shift &mdash; 맥락 설정</div>
+    <div class="s-source">Andy Raskin &mdash; 5-Part Narrative &nbsp;|&nbsp; 1~2장</div>
+
+    <p>우리 제품이 아닌 <strong>세상의 변화</strong>로 시작. 클라이언트가 이미 느끼고 있는 변화를 명명한다. "당신의 제품을 믿으라"가 아닌 <em>"이 변화를 인정하라."</em></p>
+
+    <div class="formula">
+      "[산업/시장]에 [거부할 수 없는 변화]가 일어나고 있습니다."<br>
+      + 이 변화를 증명하는 1개의 충격적 수치
+    </div>
+
+    <div class="anti">
+      <p><strong>안티패턴:</strong> 업계 상식의 반복 ("디지털 전환이 가속화되고 있습니다"), 데이터 3개 이상 (1개면 충분. 3개 이상은 기억 안 됨)</p>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step-card">
+    <div class="sn">03</div>
+    <div class="s-label">Step 3 &mdash; 승부처</div>
+    <div class="s-title">시장 문제 해부</div>
+    <div class="s-source">Miller SB7 + Raskin Winners/Losers + Gallo Villain First &nbsp;|&nbsp; 3~5장</div>
+
+    <p>제안 PT의 <strong>승부처.</strong> 클라이언트의 문제를 그들보다 더 깊이 이해하고 있음을 증명하는 구간. 목표: <em>"맞아, 바로 이게 우리 문제야."</em></p>
+
+    <h4>4단계 해부 구조</h4>
+    <div class="cg" style="grid-template-columns:repeat(4,1fr)">
+      <div class="cd">
+        <div class="cl">3-1</div>
+        <div class="ct">현상 진단</div>
+        <div class="cb">클라이언트가 이미 체감하는 표면적 증상. 통계표가 아닌 <strong>감정적 증거</strong> (사진, 스크린샷, 실제 사례).</div>
+      </div>
+      <div class="cd" style="border-color:var(--accent)">
+        <div class="cl">3-2</div>
+        <div class="ct">원인 분석 (3중)</div>
+        <div class="cb">표면 아래의 구조적 원인 규명. <strong>3중 Problem 구조</strong>를 적용하여 External + Internal + Philosophical 층위.</div>
+      </div>
+      <div class="cd">
+        <div class="cl">3-3</div>
+        <div class="ct">구조적 한계</div>
+        <div class="cb">기존 접근법이 왜 불충분한지. <strong>빌런 = 낡은 관행</strong> (경쟁사를 직접 공격하지 않음).</div>
+      </div>
+      <div class="cd">
+        <div class="cl">3-4</div>
+        <div class="ct">방치의 대가</div>
+        <div class="cb">이 문제를 방치하면? <strong>Loss Aversion</strong> 활용. 소금처럼 &mdash; 과하면 공포 마케팅.</div>
+      </div>
+    </div>
+
+    <h4>3중 Problem 구조 &mdash; 가장 강력한 무기</h4>
+    <div class="layer-grid">
+      <div class="layer-card ly-ext">
+        <div class="ly-label">External</div>
+        <div class="ly-q">표면적 문제</div>
+        <div class="ly-ex">매장 방문객 감소<br>체류시간 단축<br>재방문율 하락</div>
+      </div>
+      <div class="layer-card ly-int">
+        <div class="ly-label">Internal &mdash; 실제 구매 동기</div>
+        <div class="ly-q">감정적 문제</div>
+        <div class="ly-ex">"우리 브랜드가<br>잊혀지고 있다는 불안"<br>"뭔가 해야 하는데 방법을 모르겠다"</div>
+      </div>
+      <div class="layer-card ly-phi">
+        <div class="ly-label">Philosophical</div>
+        <div class="ly-q">도덕적 부당함</div>
+        <div class="ly-ex">"좋은 브랜드가 공간 경험<br>하나 때문에 저평가되어서는<br>안 된다"</div>
+      </div>
+    </div>
+
+    <div class="hl">
+      <p><strong>핵심:</strong> External은 의식적이지만, <em>Internal(감정)이 실제 구매 동기</em>. 클라이언트의 감정적 고통을 정확히 짚는 것이 승부처다.</p>
+    </div>
+
+    <h4>슬라이드 설계 원칙</h4>
+    <table>
+      <tr><th>원칙</th><th>실행</th></tr>
+      <tr><td><strong>감정적 증거 우선</strong></td><td>데이터표 &lt; 실제 고객 후기, 매장 사진, 소비자 반응 캡처</td></tr>
+      <tr><td><strong>클라이언트 언어 사용</strong></td><td>RFP/미팅에서 클라이언트가 쓴 단어를 그대로 인용</td></tr>
+      <tr><td><strong>숫자의 인간화</strong></td><td>"매출 15% 하락" &lt; "10명 중 1.5명이 다시 오지 않는다"</td></tr>
+      <tr><td><strong>대비 활용</strong></td><td>Before/After, 승자/패자, 이상/현실 나란히</td></tr>
+    </table>
+
+    <div class="anti">
+      <p><strong>안티패턴:</strong> 문제를 클라이언트 탓으로 돌리기 (빌런은 구조/관행이지 클라이언트가 아님) &middot; 너무 많은 문제 나열 (3개 이하) &middot; 문제 분석 없이 바로 솔루션으로 점프</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PHASE B ===== -->
+<div class="page sd">
+  <div class="phase-banner" data-phase="B">
+    <div class="ph-label">Phase B</div>
+    <div class="ph-title">비전과 해법</div>
+    <div class="ph-desc">문제를 깊이 공감한 뒤, 아직 제품을 말하지 않고 "도달해야 할 미래"를 그린다. 갈망을 먼저 생성하고, 해법은 그 갈망 위에 얹는다.</div>
+    <div class="ph-steps">
+      <div class="ph-step"><strong>Step 4</strong> Promised Land</div>
+      <div class="ph-step"><strong>Step 5</strong> What Is &harr; Could Be</div>
+      <div class="ph-step"><strong>Step 6</strong> Wow Moment</div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-card">
+    <div class="sn">04</div>
+    <div class="s-label">Step 4</div>
+    <div class="s-title">Promised Land &mdash; 약속의 땅</div>
+    <div class="s-source">Andy Raskin &mdash; 5-Part Narrative &nbsp;|&nbsp; 1~2장</div>
+
+    <p>우리 제품/서비스를 <strong>아직 언급하지 않고</strong> 매력적 미래상을 제시. 클라이언트가 "저기 가고 싶다"고 느끼게. 제품 소개를 지연시켜 <em>갈망(desire)을 먼저 생성.</em></p>
+
+    <div class="formula">
+      "만약 [이상적 상태]가 가능하다면?"<br>
+      "[구체적 장면/경험]이 현실이 되는 세계"
+    </div>
+
+    <div class="diff">
+      <div class="diff-bad">
+        <div class="diff-label">&#10005; 기존 방식</div>
+        <p>"저희 솔루션은 A, B, C 기능을 제공하며..."<br><br>아직 제품을 소개할 때가 아님</p>
+      </div>
+      <div class="diff-good">
+        <div class="diff-label">&#10003; 하이브리드</div>
+        <p>"방문객이 매장을 나서며 SNS에 올리고 싶어지는 공간이 현실이 된다면?"<br><br>구체적 장면. 열망적 이미지. 밝은 톤.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step-card">
+    <div class="sn">05</div>
+    <div class="s-label">Step 5</div>
+    <div class="s-title">What Is &harr; What Could Be 교차</div>
+    <div class="s-source">Nancy Duarte &mdash; Sparkline &nbsp;|&nbsp; 2~3장</div>
+
+    <p>현실의 고통과 이상의 가능성을 <strong>반복 교차.</strong> 교차할 때마다 "간극"을 체감 &rarr; 해결 욕구 증폭. 프레젠테이션 중반부의 에너지를 유지하는 엔진.</p>
+
+    <table>
+      <tr><th></th><th>What Is (현실)</th><th>What Could Be (이상)</th></tr>
+      <tr><td><strong>톤</strong></td><td>어둡고 무겁게</td><td>밝고 열망적으로</td></tr>
+      <tr><td><strong>색상</strong></td><td>모노톤, 회색</td><td>포인트 컬러, 선명</td></tr>
+      <tr><td><strong>데이터</strong></td><td>문제의 수치</td><td>가능성의 수치</td></tr>
+      <tr><td><strong>이미지</strong></td><td>현재 상태 사진</td><td>이상적 상태 레퍼런스</td></tr>
+    </table>
+  </div>
+
+  <!-- Step 6 -->
+  <div class="step-card">
+    <div class="sn">06</div>
+    <div class="s-label">Step 6</div>
+    <div class="s-title">Wow Moment</div>
+    <div class="s-source">Carmine Gallo + Nancy Duarte &nbsp;|&nbsp; 1장</div>
+
+    <p>프레젠테이션 전체에서 <strong>단 1개</strong>의 감정적 클라이맥스. 청중이 기억하고, 나가서 다른 사람에게 이야기할 순간.</p>
+
+    <div class="wow-grid">
+      <div class="wow-card">
+        <div class="wow-icon" style="color:var(--accent)">&#9654;</div>
+        <div class="wow-name">극적 시연</div>
+        <div class="wow-ex">프로토타입 체험<br>미니어처 모델 공개</div>
+      </div>
+      <div class="wow-card">
+        <div class="wow-icon" style="color:var(--coral)">&#9733;</div>
+        <div class="wow-name">충격 통계</div>
+        <div class="wow-ex">"이 비용이면 매장<br>3개를 리뉴얼 가능"</div>
+      </div>
+      <div class="wow-card">
+        <div class="wow-icon" style="color:var(--green)">&#9632;</div>
+        <div class="wow-name">강렬한 비주얼</div>
+        <div class="wow-ex">경쟁사 vs 제안<br>동일 앵글 비교</div>
+      </div>
+      <div class="wow-card">
+        <div class="wow-icon" style="color:var(--amber)">&#9829;</div>
+        <div class="wow-name">감성 스토리</div>
+        <div class="wow-ex">실제 소비자<br>인터뷰 영상 30초</div>
+      </div>
+      <div class="wow-card">
+        <div class="wow-icon" style="color:var(--blue)">&#10038;</div>
+        <div class="wow-name">사운드바이트</div>
+        <div class="wow-ex">기억에 남는 한 문장<br>"공간이 미디어가 되는 순간"</div>
+      </div>
+    </div>
+
+    <div class="anti">
+      <p><strong>안티패턴:</strong> Wow Moment 2개 이상 (분산되면 효과 제로) &middot; 준비 없는 즉흥 (잡스는 며칠간 리허설)</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PHASE C ===== -->
+<div class="page sd">
+  <div class="phase-banner" data-phase="C">
+    <div class="ph-label">Phase C</div>
+    <div class="ph-title">우리만의 답</div>
+    <div class="ph-desc">비로소 "우리"가 등장한다. 하지만 여전히 기능 나열이 아니라 "왜 우리만 이것을 해결할 수 있는가"를 증명하는 구조.</div>
+    <div class="ph-steps">
+      <div class="ph-step"><strong>Step 7</strong> 차별화 강점 어필</div>
+      <div class="ph-step"><strong>Step 8</strong> Magic Gifts</div>
+    </div>
+  </div>
+
+  <!-- Step 7 -->
+  <div class="step-card">
+    <div class="sn">07</div>
+    <div class="s-label">Step 7 &mdash; 핵심</div>
+    <div class="s-title">차별화 강점 어필</div>
+    <div class="s-source">Sinek WHY&rarr;HOW + Miller Guide + Gallo Messianic Purpose &nbsp;|&nbsp; 2~3장</div>
+
+    <p>강점을 "기능"이 아닌 <strong>"자격"</strong>으로 프레이밍. StoryBrand Guide 원칙: <em>공감(Empathy) + 권위(Authority)</em> 동시 필요. 공감만 있으면 약해 보이고, 권위만 있으면 거만해 보인다.</p>
+
+    <h4>3단계 어필 구조</h4>
+    <div class="ea-grid">
+      <div class="ea-card ea-emp">
+        <div class="ea-icon">&#9829;</div>
+        <div class="ea-title">7-1. 공감 증명</div>
+        <div class="ea-sub">"우리는 이 문제를 깊이 이해합니다"</div>
+        <div class="ea-body">
+          &bull; 클라이언트와 같은 고민을 해본 경험<br>
+          &bull; 업계 인사이트, 소비자 심리에 대한 이해<br>
+          &bull; Internal Problem을 정확히 짚는 것 자체가 공감 증명<br>
+          &bull; 클라이언트 언어 인용: "말씀하신 '브랜드 피로감'이 정확합니다"
+        </div>
+      </div>
+      <div class="ea-card ea-auth">
+        <div class="ea-icon">&#9878;</div>
+        <div class="ea-title">7-2. 권위 증명</div>
+        <div class="ea-sub">"그리고 해결할 역량이 있습니다"</div>
+        <div class="ea-body">
+          &bull; 성과 수치: "이 접근법으로 재방문율 12%&rarr;34%"<br>
+          &bull; 외부 검증: 수상, 미디어, 파트너십<br>
+          &bull; 방법론: "저희만의 [프레임워크명]으로 접근"<br>
+          &bull; 1개의 깊은 케이스 &gt; 10개의 로고 나열
+        </div>
+      </div>
+    </div>
+
+    <div class="cd" style="margin-top:16px;border-color:var(--accent)">
+      <div class="cl">7-3. 관점의 차별화</div>
+      <div class="ct">"우리는 이 문제를 다르게 봅니다"</div>
+      <div class="cb" style="margin-top:12px">
+        경쟁사와의 차이를 <strong>접근 방식/관점</strong>으로 설명. 직접 비교보다 프레임 전환이 효과적.<br><br>
+        <strong>관점 전환:</strong> "매장이 아닌 미디어로 봅니다"<br>
+        <strong>방법론 차별:</strong> "RXR 분석으로 소비자 감정을 수치화합니다"<br>
+        <strong>경험 차별:</strong> "47개 공간 프로젝트에서 발견한 패턴"<br>
+        <strong>구조 차별:</strong> "기획-디자인-운영이 분리되지 않는 원팀 구조"
+      </div>
+    </div>
+
+    <div class="anti" style="margin-top:20px">
+      <p><strong>안티패턴:</strong> 회사 연혁부터 시작 (연혁은 부록) &middot; 자화자찬 ("업계 최고") &mdash; 수치로 보여줘라 &middot; 경쟁사 직접 비하 &mdash; 빌런은 "관행"이지 "경쟁사"가 아님</p>
+    </div>
+  </div>
+
+  <!-- Step 8 -->
+  <div class="step-card">
+    <div class="sn">08</div>
+    <div class="s-label">Step 8</div>
+    <div class="s-title">Magic Gifts &mdash; 기능 프레이밍</div>
+    <div class="s-source">Andy Raskin &mdash; 5-Part Narrative &nbsp;|&nbsp; 2~3장</div>
+
+    <p>기능을 나열하지 않고, <strong>약속의 땅(Step 4)에 도달하는 도구</strong>로 프레이밍. 각 기능 = 영웅(클라이언트)에게 주어지는 마법의 도구. <em>Rule of Three: 핵심 3개로 묶어라.</em></p>
+
+    <div class="tr-row">
+      <div class="tr-from">"공간 디자인 서비스"</div>
+      <div class="tr-arrow">&rarr;</div>
+      <div class="tr-to">"브랜드 메시지를 공간 언어로 번역하는 도구"</div>
+    </div>
+    <div class="tr-row">
+      <div class="tr-from">"소비자 분석 리포트"</div>
+      <div class="tr-arrow">&rarr;</div>
+      <div class="tr-to">"보이지 않는 소비자 감정을 수치로 만드는 렌즈"</div>
+    </div>
+    <div class="tr-row">
+      <div class="tr-from">"운영 컨설팅"</div>
+      <div class="tr-arrow">&rarr;</div>
+      <div class="tr-to">"오픈 후 6개월간 성과를 보장하는 가드레일"</div>
+    </div>
+
+    <div class="formula" style="margin-top:20px">
+      [약속의 땅의 특정 측면]을 실현하기 위해<br>
+      [우리의 기능/서비스]가 [구체적 방법]으로 작동합니다.
+    </div>
+  </div>
+</div>
+
+<!-- ===== PHASE D ===== -->
+<div class="page sd">
+  <div class="phase-banner" data-phase="D">
+    <div class="ph-label">Phase D</div>
+    <div class="ph-title">행동 유도</div>
+    <div class="ph-desc">두 개의 미래를 나란히 보여주고, 변화된 세계의 비전으로 마무리한다. 짧고 강하게.</div>
+    <div class="ph-steps">
+      <div class="ph-step"><strong>Step 9</strong> Success &harr; Failure</div>
+      <div class="ph-step"><strong>Step 10</strong> New Bliss</div>
+    </div>
+  </div>
+
+  <!-- Step 9 -->
+  <div class="step-card">
+    <div class="sn">09</div>
+    <div class="s-label">Step 9</div>
+    <div class="s-title">Success &harr; Failure 대비</div>
+    <div class="s-source">Donald Miller &mdash; StoryBrand SB7 &nbsp;|&nbsp; 1~2장</div>
+
+    <div class="diff">
+      <div class="diff-bad">
+        <div class="diff-label">안 하면 (Failure 30%)</div>
+        <p>현재 문제가 지속·악화<br>기회비용 + 리스크<br>구체적이되 과하지 않게<br><br><em style="color:var(--fg-3)">어둡지만 공포 마케팅은 금물</em></p>
+      </div>
+      <div class="diff-good">
+        <div class="diff-label">행동하면 (Success 70%)</div>
+        <p>6개월/1년 후의 구체적 장면<br>수치 + 감각적 묘사<br>열망할 만한 미래<br><br><em style="color:var(--fg-3)">밝고 구체적이고 감각적으로</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 10 -->
+  <div class="step-card">
+    <div class="sn">10</div>
+    <div class="s-label">Step 10</div>
+    <div class="s-title">New Bliss &mdash; 마무리</div>
+    <div class="s-source">Nancy Duarte &mdash; Sparkline &nbsp;|&nbsp; 1장</div>
+
+    <p>시작점보다 <strong>높은 차원</strong>에서 마무리. 제안 내용 요약이 아닌, 변화된 세계의 비전. 클라이언트가 이 프로젝트를 통해 도달할 미래를 <em>한 장면으로.</em></p>
+
+    <div class="formula">
+      "매장을 나서는 고객이 '여기 또 와야지'가 아니라<br>
+      '여기 꼭 보여줘야 할 사람이 있어'라고 말하는 순간."
+    </div>
+
+    <div class="diff" style="margin-top:20px">
+      <div class="diff-bad">
+        <div class="diff-label">&#10005; 기존 마무리</div>
+        <p>"감사합니다."<br>"Q&amp;A"<br>"연락처: 02-xxxx-xxxx"</p>
+      </div>
+      <div class="diff-good">
+        <div class="diff-label">&#10003; 하이브리드 마무리</div>
+        <p>변화된 세계의 한 장면.<br>감정적 울림 + 여운.<br>"감사합니다"는 구두로만.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APPENDIX ===== -->
+<div class="page sd">
+  <div class="pl">Appendix</div>
+  <div class="st">부록</div>
+
+  <!-- A: Slide Design -->
+  <div class="sl">Appendix A</div>
+  <h3>슬라이드 설계 7원칙</h3>
+  <table>
+    <tr><th>#</th><th>원칙</th><th>근거</th><th>실행</th></tr>
+    <tr><td>1</td><td><strong>슬라이드당 1아이디어</strong></td><td>Gallo, Godin, Airbnb</td><td>2개 메시지가 들어가면 0개가 전달됨</td></tr>
+    <tr><td>2</td><td><strong>6단어 이하</strong></td><td>Seth Godin</td><td>슬라이드 = 빌보드. 한눈에 감정 전달</td></tr>
+    <tr><td>3</td><td><strong>감정적 증거 &gt; 데이터표</strong></td><td>Godin</td><td>오염 통계표 &lt; 기름범벅 새 사진</td></tr>
+    <tr><td>4</td><td><strong>숫자의 인간화</strong></td><td>Jobs, Gallo</td><td>"5GB" &lt; "1,000 songs in your pocket"</td></tr>
+    <tr><td>5</td><td><strong>10분마다 형식 전환</strong></td><td>Brain Rules</td><td>데모, 영상, 질문, 케이스로 리셋</td></tr>
+    <tr><td>6</td><td><strong>10~12장 최적</strong></td><td>DocSend</td><td>더 긴 덱 대비 22% 높은 인게이지먼트</td></tr>
+    <tr><td>7</td><td><strong>불릿 포인트 금지</strong></td><td>Godin</td><td>불릿 1개 추가 = 감정 1개 제거</td></tr>
+  </table>
+
+  <!-- B: Anti-patterns -->
+  <div class="sl">Appendix B</div>
+  <h3>안티패턴 &mdash; 절대 하지 말 것</h3>
+  <table class="anti-table">
+    <tr><th>패턴</th><th>문제</th><th>대안</th></tr>
+    <tr><td>회사 소개부터 시작</td><td>청중 관심 0</td><td>WHY/Big Shift로 시작</td></tr>
+    <tr><td>기능 나열 슬라이드</td><td>기억 안 됨</td><td>Magic Gifts로 프레이밍</td></tr>
+    <tr><td>불릿 포인트 도배</td><td>감정 사망</td><td>1슬라이드 1아이디어 + 이미지</td></tr>
+    <tr><td>"감사합니다" 엔딩</td><td>에너지 소멸</td><td>New Bliss로 비전 마무리</td></tr>
+    <tr><td>30장+ 덱</td><td>집중력 고갈</td><td>15~23장 + 부록 분리</td></tr>
+    <tr><td>데이터 테이블</td><td>좌뇌만 자극</td><td>숫자 인간화 + 감정적 증거</td></tr>
+    <tr><td>경쟁사 직접 비하</td><td>소인배로 보임</td><td>관점/방법론 차별화</td></tr>
+    <tr><td>자화자찬</td><td>신뢰 하락</td><td>수치와 케이스로 증명</td></tr>
+    <tr><td>문제 건너뛰기</td><td>갈망 없음</td><td>Phase A에 40% 배분</td></tr>
+    <tr><td>Wow Moment 0개</td><td>기억에 안 남음</td><td>반드시 1개 설계</td></tr>
+  </table>
+
+  <!-- C: Checklist -->
+  <div class="sl">Appendix C</div>
+  <h3>자가 검수 체크리스트</h3>
+
+  <div class="cg">
+    <div class="cd">
+      <div class="cl">구조 검수</div>
+      <div class="cb" style="line-height:2.2">
+        <div class="check-item"><div class="check-box"></div>첫 슬라이드가 WHY/신념 선언인가?</div>
+        <div class="check-item"><div class="check-box"></div>제품이 절반 이후에 처음 등장하는가?</div>
+        <div class="check-item"><div class="check-box"></div>핵심 메시지가 3개 이하인가?</div>
+        <div class="check-item"><div class="check-box"></div>10분마다 형식 전환이 있는가?</div>
+        <div class="check-item"><div class="check-box"></div>Wow Moment가 정확히 1개인가?</div>
+      </div>
+    </div>
+    <div class="cd">
+      <div class="cl">시장 문제 검수</div>
+      <div class="cb" style="line-height:2.2">
+        <div class="check-item"><div class="check-box"></div>3중 Problem 모두 있는가?</div>
+        <div class="check-item"><div class="check-box"></div>빌런이 "관행"이지 "경쟁사"가 아닌가?</div>
+        <div class="check-item"><div class="check-box"></div>방치의 대가가 구체적이되 과하지 않은가?</div>
+        <div class="check-item"><div class="check-box"></div>클라이언트 실제 언어를 인용했는가?</div>
+      </div>
+    </div>
+    <div class="cd">
+      <div class="cl">차별화 검수</div>
+      <div class="cb" style="line-height:2.2">
+        <div class="check-item"><div class="check-box"></div>공감 + 권위 둘 다 있는가?</div>
+        <div class="check-item"><div class="check-box"></div>"기능"이 아닌 "자격/관점"으로 프레이밍?</div>
+        <div class="check-item"><div class="check-box"></div>로고 월이 1장 이하인가?</div>
+        <div class="check-item"><div class="check-box"></div>1개 깊은 케이스가 로고보다 앞에?</div>
+      </div>
+    </div>
+    <div class="cd">
+      <div class="cl">슬라이드 검수</div>
+      <div class="cb" style="line-height:2.2">
+        <div class="check-item"><div class="check-box"></div>모든 슬라이드가 1아이디어인가?</div>
+        <div class="check-item"><div class="check-box"></div>불릿 포인트가 0개인가?</div>
+        <div class="check-item"><div class="check-box"></div>숫자가 "삶의 맥락"으로 번역되어 있는가?</div>
+        <div class="check-item"><div class="check-box"></div>마지막이 "감사합니다"가 아닌 New Bliss?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D: Neuroscience -->
+  <div class="sl">Appendix D</div>
+  <h3>뇌과학 기반 설득 원리</h3>
+  <table>
+    <tr><th>원리</th><th>메커니즘</th><th>적용 Step</th></tr>
+    <tr><td><strong>Loss Aversion</strong></td><td>손실이 이득보다 2배 강력 (Kahneman)</td><td>Step 3 방치의 대가, Step 9 Failure</td></tr>
+    <tr><td><strong>Oxytocin</strong></td><td>캐릭터 이야기 &rarr; 신뢰+공감 (Zak)</td><td>모든 단계에 인물 스토리 삽입</td></tr>
+    <tr><td><strong>Neural Coupling</strong></td><td>스토리 시 화자-청자 뇌 동기화 (Hasson)</td><td>데이터를 스토리로 포장</td></tr>
+    <tr><td><strong>Peak-End Rule</strong></td><td>정점과 끝만 기억 (Kahneman)</td><td>Step 6 Wow + Step 10 Bliss</td></tr>
+    <tr><td><strong>Dual System</strong></td><td>System 1(감정) &rarr; 2(논리)</td><td>Phase A,B(감정) &rarr; C(논리)</td></tr>
+    <tr><td><strong>Chunking</strong></td><td>단기기억 3~4개 (Miller's Law)</td><td>Rule of Three 전체 적용</td></tr>
+    <tr><td><strong>Visual Superiority</strong></td><td>시각 = 텍스트 &times; 60,000배</td><td>이미지 &gt; 텍스트</td></tr>
+    <tr><td><strong>Story Recall</strong></td><td>스토리 기억 63% vs 데이터 5%</td><td>모든 수치를 스토리 안에</td></tr>
+  </table>
+
+  <!-- Final Quote -->
+  <div class="mq">
+    <p>Phase A에 40%를 쓰고,<br>Phase C는 25%로 줄여라.<br><br><strong style="color:var(--accent)">우리 얘기를 줄이고, 클라이언트 얘기를 늘려라.</strong><br>그것이 설득이다.</p>
+  </div>
+
+  <div class="footer">
+    <span>Hybrid Presentation Guide &nbsp;|&nbsp; Client Proposal PT</span>
+    <span>10 Steps &middot; 4 Phases &middot; 15~23 Slides &nbsp;|&nbsp; 2026-06-04</span>
+  </div>
+</div>
+
+</body>
+</html>
