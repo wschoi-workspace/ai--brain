@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정부사업 제안서 마스터 가이드 R — PROJECT RENT</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  :root {
+    --bg: #1A1A1A; --bg-2: #111111; --bg-3: #222222;
+    --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+    --accent: #6C5CE7; --accent-dim: rgba(108, 92, 231, 0.15);
+    --warm: #E9DCC8; --rust: #B86C4A; --green: #8FA37E;
+    --line: #333333; --line-2: #2A2A2A;
+    --red: #E74C3C; --red-dim: rgba(231, 76, 60, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.7; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 60px 40px; }
+
+  .header { border-bottom: 1px solid var(--line); padding-bottom: 40px; margin-bottom: 60px; }
+  .header .label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  .header h1 { font-size: 36px; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
+  .header h1 .r { color: var(--accent); }
+  .header .sub { font-size: 15px; color: var(--fg-2); line-height: 1.6; }
+  .header .meta { margin-top: 20px; font-size: 12px; color: var(--fg-3); }
+
+  .toc { background: var(--bg-3); border: 1px solid var(--line); border-radius: 8px; padding: 28px 32px; margin-bottom: 60px; }
+  .toc h3 { font-size: 14px; font-weight: 700; color: var(--fg-3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+  .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 40px; }
+  .toc-item { font-size: 13px; color: var(--fg-2); padding: 4px 0; }
+  .toc-item .num { color: var(--accent); font-weight: 700; margin-right: 8px; font-size: 11px; }
+  .toc-item .layer { display: inline-block; font-size: 9px; letter-spacing: 1px; padding: 1px 6px; border-radius: 2px; margin-left: 4px; font-weight: 600; }
+  .toc-item .l-s { background: rgba(108, 92, 231, 0.15); color: var(--accent); }
+  .toc-item .l-e { background: rgba(184, 108, 74, 0.2); color: var(--rust); }
+  .toc-item .l-b { background: rgba(231, 76, 60, 0.15); color: var(--red); }
+
+  .section { margin-bottom: 60px; }
+  .section-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .section h2 { font-size: 24px; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line-2); }
+  .section h3 { font-size: 18px; font-weight: 600; margin-top: 32px; margin-bottom: 12px; color: var(--warm); }
+  .section h4 { font-size: 15px; font-weight: 600; margin-top: 20px; margin-bottom: 8px; color: var(--fg); }
+  .section p { font-size: 14px; color: var(--fg-2); margin-bottom: 12px; }
+
+  .phase { background: var(--bg-3); border: 1px solid var(--line); border-radius: 8px; padding: 28px 32px; margin-bottom: 20px; position: relative; }
+  .phase::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 8px 0 0 8px; }
+  .phase.phase-1::before { background: var(--accent); }
+  .phase.phase-2::before { background: var(--rust); }
+  .phase.phase-3::before { background: var(--green); }
+  .phase.phase-4::before { background: var(--warm); }
+  .phase.phase-5::before { background: var(--fg-3); }
+  .phase .phase-num { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--fg-3); margin-bottom: 4px; }
+  .phase .phase-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .phase .phase-pages { font-size: 12px; color: var(--accent); margin-bottom: 8px; }
+  .phase .phase-purpose { font-size: 13px; color: var(--fg-2); margin-bottom: 12px; font-style: italic; }
+  .phase .phase-emotion { font-size: 12px; color: var(--red); margin-bottom: 16px; }
+  .phase .phase-emotion::before { content: '♥ EMOTION → '; font-weight: 700; }
+
+  .sub-item { background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 6px; padding: 16px 20px; margin-bottom: 10px; }
+  .sub-item .si-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .sub-item .si-title { font-size: 14px; font-weight: 600; }
+  .sub-item .si-page { font-size: 11px; color: var(--fg-3); white-space: nowrap; }
+  .sub-item .si-desc { font-size: 13px; color: var(--fg-2); line-height: 1.6; }
+  .sub-item .si-logic { margin-top: 8px; font-size: 12px; color: var(--green); line-height: 1.5; }
+  .sub-item .si-logic::before { content: 'LOGIC → '; font-weight: 700; color: var(--accent); }
+  .sub-item .si-exec { margin-top: 6px; font-size: 12px; color: var(--rust); line-height: 1.5; }
+  .sub-item .si-exec::before { content: 'EXEC → '; font-weight: 700; color: var(--rust); }
+  .sub-item .si-b2c { margin-top: 6px; font-size: 12px; color: var(--red); line-height: 1.5; }
+  .sub-item .si-b2c::before { content: 'B2C → '; font-weight: 700; color: var(--red); }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+  th { background: var(--bg-3); color: var(--fg-3); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--line-2); color: var(--fg-2); vertical-align: top; }
+  tr:hover td { background: rgba(108, 92, 231, 0.04); }
+
+  .tag { display: inline-block; font-size: 10px; letter-spacing: 1px; padding: 2px 8px; border-radius: 3px; font-weight: 600; margin-right: 4px; }
+  .tag-must { background: rgba(108, 92, 231, 0.2); color: var(--accent); }
+  .tag-new { background: rgba(231, 76, 60, 0.2); color: var(--red); }
+  .tag-rec { background: rgba(143, 163, 126, 0.2); color: var(--green); }
+
+  .principle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .principle { background: var(--bg-3); border: 1px solid var(--line-2); border-radius: 8px; padding: 20px 24px; }
+  .principle .p-num { font-size: 28px; font-weight: 800; color: var(--accent); opacity: 0.3; margin-bottom: 4px; }
+  .principle .p-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .principle .p-desc { font-size: 12px; color: var(--fg-3); line-height: 1.6; }
+
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .flow-step { background: var(--bg-3); border: 1px solid var(--line); border-radius: 6px; padding: 10px 16px; font-size: 12px; font-weight: 600; text-align: center; min-width: 90px; }
+  .flow-arrow { color: var(--accent); font-size: 16px; }
+
+  .callout { background: var(--accent-dim); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 16px 20px; margin: 20px 0; font-size: 13px; color: var(--fg-2); line-height: 1.6; }
+  .callout strong { color: var(--fg); }
+  .callout.warn { background: rgba(184, 108, 74, 0.12); border-left-color: var(--rust); }
+  .callout.b2c { background: var(--red-dim); border-left-color: var(--red); }
+  .callout.b2c strong { color: var(--red); }
+
+  .sparkline { background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 8px; padding: 20px 24px; margin: 20px 0; font-family: monospace; font-size: 12px; line-height: 1.4; color: var(--fg-3); white-space: pre; overflow-x: auto; }
+
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { font-size: 13px; color: var(--fg-2); margin-bottom: 4px; line-height: 1.6; }
+  .divider { border: none; border-top: 1px solid var(--line); margin: 48px 0; }
+  .footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 11px; color: var(--fg-3); display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ================================================================ -->
+<!-- HEADER -->
+<!-- ================================================================ -->
+<div class="header">
+  <div class="label">Government Proposal Master Guide</div>
+  <h1>정부사업 제안서 마스터 가이드 <span class="r">R</span></h1>
+  <div class="sub">
+    정부 제안서의 정석(구조·배점·정산)에 B2C 감성 설득(하이브리드 10단계)을 통합.<br>
+    "심사위원의 머리와 가슴을 동시에 움직이는" 제안서를 만드는 유일한 가이드.
+  </div>
+  <div class="meta">
+    구조 기반: 제안서 3건 (4억~328억) + 내부 전략 3건 + B2C 하이브리드 10단계 공식<br>
+    <span style="color:var(--red);">R</span> = PROJECT RENT Edition · v5.0-R · 2026-06-05
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h3>목차 — 3레이어 통합</h3>
+  <div class="toc-grid">
+    <div class="toc-item"><span class="num">01</span>7대 설득 원칙<span class="layer l-s">전략</span><span class="layer l-b">B2C</span></div>
+    <div class="toc-item"><span class="num">02</span>감정 설계: SCQA + HIRE + Sparkline<span class="layer l-b">B2C</span></div>
+    <div class="toc-item"><span class="num">03</span>PR 표준 5챕터 + 감정 곡선 매핑<span class="layer l-e">실행</span></div>
+    <div class="toc-item"><span class="num">04</span>표지 — WHY 선언 + Opening Shot<span class="layer l-s">전략</span><span class="layer l-e">실행</span></div>
+    <div class="toc-item"><span class="num">05</span>01 제안배경 — 공감과 맥락<span class="layer l-s">전략</span><span class="layer l-b">B2C</span></div>
+    <div class="toc-item"><span class="num">06</span>02 일반현황 — 우리만의 답<span class="layer l-e">실행</span></div>
+    <div class="toc-item"><span class="num">07</span>03 사업계획 — 비전의 실체<span class="layer l-s">전략</span><span class="layer l-e">실행</span><span class="layer l-b">B2C</span></div>
+    <div class="toc-item"><span class="num">08</span>04 운영관리 + 05 클로징<span class="layer l-e">실행</span><span class="layer l-b">B2C</span></div>
+    <div class="toc-item"><span class="num">09</span>분량 레시피 + 압축 7원칙<span class="layer l-e">실행</span></div>
+    <div class="toc-item"><span class="num">10</span>설득 패턴 사전 (12개)<span class="layer l-s">전략</span><span class="layer l-b">B2C</span></div>
+    <div class="toc-item"><span class="num">11</span>코어리뷰 + QA 체크리스트<span class="layer l-e">실행</span></div>
+    <div class="toc-item"><span class="num">12</span>발표 설계 가이드<span class="layer l-b">B2C</span></div>
+    <div class="toc-item"><span class="num">13</span>Quick Start 워크플로우<span class="layer l-e">실행</span></div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 01. 7대 설득 원칙 -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">01 · Principles</div>
+  <h2>7대 설득 원칙</h2>
+  <p>기존 5대 원칙(정부 정석) + B2C 2대 원칙(감정 설계). 이 7가지가 관통하면 머리와 가슴이 동시에 움직인다.</p>
+
+  <div class="principle-grid">
+    <div class="principle">
+      <div class="p-num">01</div>
+      <div class="p-title">정책 정합성 우선</div>
+      <div class="p-desc">"당신이 풀려는 문제를 우리가 푼다"의 순서. 발주처의 상위 정책을 먼저 읽고, 제안이 그 정책을 실현하는 구조임을 증명.</div>
+    </div>
+    <div class="principle">
+      <div class="p-num">02</div>
+      <div class="p-title">HIRE 프레임 (F/E/S)</div>
+      <div class="p-desc">발주처가 '고용(HIRE)'하려는 것. F(기능: 할 수 있게) / E(정서: 느끼게) / S(사회: 보이게). 제안 전체의 평가 기준.</div>
+    </div>
+    <div class="principle">
+      <div class="p-num">03</div>
+      <div class="p-title">3중 Problem</div>
+      <div class="p-desc">External(시장 한계) + <strong style="color:var(--red)">Internal(담당자의 진짜 고민)</strong> + <strong style="color:var(--red)">Philosophical(실패 시 훼손되는 가치)</strong>. External만으로는 심사위원의 가슴이 움직이지 않는다.</div>
+    </div>
+    <div class="principle">
+      <div class="p-num">04</div>
+      <div class="p-title">리스크 → 자산 1:1 매칭</div>
+      <div class="p-desc">사업의 구조적 리스크를 정의하고 제안사 자산에 1:1 매칭. 컨소시엄이면 "왜 이 조합인가"의 답.</div>
+    </div>
+  </div>
+  <div class="principle-grid">
+    <div class="principle">
+      <div class="p-num">05</div>
+      <div class="p-title">검증 가능한 성과 체계</div>
+      <div class="p-desc">"성과보고서를 어떻게 쓸 것인가"를 역산하여 제안을 설계. KPI·EMV·BEI 등 정량 지표 + 측정 방법론.</div>
+    </div>
+    <div class="principle" style="border: 1px solid rgba(231, 76, 60, 0.3);">
+      <div class="p-num" style="color:var(--red);">06</div>
+      <div class="p-title">Promised Land 먼저 <span class="tag tag-new">B2C</span></div>
+      <div class="p-desc">우리 솔루션 없이 "이 사업이 성공하면 어떤 세계가 되는가"를 먼저 그린다. 비전이 먼저, 제품은 비전 도달의 도구. 심사위원이 "이 비전을 실현할 제안사"를 고르는 프레임으로 전환.</div>
+    </div>
+  </div>
+  <div class="principle-grid">
+    <div class="principle" style="grid-column: 1 / -1; border: 1px solid rgba(231, 76, 60, 0.3);">
+      <div class="p-num" style="color:var(--red);">07</div>
+      <div class="p-title">감정 곡선 설계 (Sparkline) <span class="tag tag-new">B2C</span></div>
+      <div class="p-desc">제안서 전체에 감정의 오르내림을 의도적으로 설계한다. 배경 챕터에서 Pain으로 감정을 올리고, 현황 챕터에서 신뢰를 축적하며, 사업계획 중간에 Wow Moment(최고점)를 배치하고, 클로징에서 New Bliss로 마감. 감정 곡선 없는 제안서는 "읽히지만 움직이지 않는" 문서가 된다.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 02. 감정 설계 프레임 -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">02 · Emotion Architecture</div>
+  <h2>감정 설계: SCQA + HIRE + Sparkline</h2>
+  <p>제안서를 쓰기 전에 이 세 프레임을 완성해야 한다. SCQA가 논리 뼈대, HIRE가 성과 정의, Sparkline이 감정 흐름.</p>
+
+  <h3>SCQA — 논리 뼈대</h3>
+  <div class="sub-item">
+    <div class="si-desc">
+      <strong>S (Situation)</strong> — 해당 분야의 현실. 팩트와 숫자.<br>
+      <strong>C (Complication)</strong> — 구조적 문제. 3중 Problem으로 확장.<br>
+      <strong>Q (Question)</strong> — 이 격차를 어떻게 메우는가?<br>
+      <strong>A (Answer)</strong> — 우리 컨셉의 핵심 한 줄 = Promised Land의 입구.
+    </div>
+    <div class="si-logic">
+      섬세한식탁: S(세계 휴양지=섬) → C(한국 섬은 낙후 인지 격차) → Q(어떻게?) → A(주민의 손이 빚어낸 정교함)</div>
+  </div>
+
+  <h3>HIRE (F/E/S) — 성과 정의</h3>
+  <div class="sub-item">
+    <div class="si-desc">
+      <strong>F (Functional)</strong> — "방문객이 경험하고 재방문하게 만든다"<br>
+      <strong>E (Emotional)</strong> — "브랜드 이미지를 '낙후'에서 '가고 싶은 곳'으로"<br>
+      <strong>S (Social)</strong> — "국가 브랜드 행사, 정책 성과 보고"
+    </div>
+  </div>
+
+  <h3>Sparkline — 감정 곡선 설계 <span class="tag tag-new">B2C</span></h3>
+  <div class="sparkline">감정 ▲
+강도  │      ★ Promised    ★ Wow Moment         ★ New
+      │       Land          (시그니처)            Bliss
+      │      ╱╲             ╱╲                   ╱
+      │     ╱  ╲    ╱╲    ╱  ╲                  ╱
+      │    ╱ Big╲  ╱Pain╲╱    ╲     ╱╲    ╱╲  ╱
+      │   ╱ Shift╲╱      3중   ╲   ╱  ╲  ╱  ╲╱
+      │  ╱         Problem      ╲ ╱ 거점╲╱ 운영
+      │ WHY                      ╲
+      └────────────────────────────────────────────▶
+       표지   01 배경(18%)   02 현황   03 계획(57%)   04+클로징
+       ─ 공감·맥락 ──── ─ 신뢰 ─ ── 비전·실체 ──── ─행동유도─</div>
+
+  <div class="callout b2c">
+    <strong>감정 곡선의 3대 규칙:</strong><br>
+    ① 표지~배경에서 감정을 40%까지 끌어올린다 (대부분 실패한 제안서는 여기서 0%)<br>
+    ② Wow Moment는 전체의 50~60% 지점에 정확히 1개 배치<br>
+    ③ 클로징에서 표지의 감정 수준 이상으로 다시 올린다 (원형 구조)
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 03. 5챕터 + 감정 곡선 매핑 -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">03 · Structure</div>
+  <h2>PR 표준 5챕터 + 감정 곡선 + B2C 매핑</h2>
+
+  <table>
+    <thead><tr><th>막</th><th>챕터</th><th>비중</th><th>발주처 질문</th><th>감정 역할</th><th>B2C 매핑</th></tr></thead>
+    <tbody>
+      <tr><td>—</td><td>표지</td><td>1장</td><td>첫인상</td><td>WHY 선언 (감정 시동)</td><td>[1] WHY 선언</td></tr>
+      <tr><td><strong>I</strong></td><td>01 배경</td><td><strong>18%</strong></td><td>왜 지금?</td><td>Big Shift→3중 Pain→Promised Land (감정 상승)</td><td>[2][3][4]</td></tr>
+      <tr><td><strong>II</strong></td><td>02 현황</td><td><strong>11%</strong></td><td>왜 너희?</td><td>신뢰 축적 (감정 안정)</td><td>[7] 차별화</td></tr>
+      <tr><td><strong>III</strong></td><td>03 계획</td><td><strong>57%</strong></td><td>어떻게?</td><td>What Is↔Could Be 교차 → Wow Moment → 하강</td><td>[5][6][8]</td></tr>
+      <tr><td><strong>IV</strong></td><td>04+클로징</td><td><strong>14%</strong></td><td>일정·예산 + 비전</td><td>Success↔Failure → New Bliss (감정 재상승)</td><td>[9][10]</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 04. 표지 -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">04 · Cover</div>
+  <h2>표지 — WHY 선언 + Opening Shot</h2>
+
+  <div class="phase phase-5">
+    <div class="phase-num">표지</div>
+    <div class="phase-title">1장 고정 · 감정의 시동</div>
+    <div class="phase-pages"><span class="tag tag-must">MUST</span> 1장. 절대 늘리지 않는다</div>
+    <div class="phase-emotion">심사위원이 표지를 보고 "이 제안서는 다르겠다"고 직감하는 순간. 변연계(감정+의사결정)를 먼저 자극.</div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">WHY 선언 + 컨셉 한 줄</span><span class="si-page">cover 레이아웃</span></div>
+      <div class="si-desc">한 문장의 신념 선언 + 서브 카피 + 풀블리드 실사. 회사 소개가 아니라 "우리가 믿는 것".</div>
+      <div class="si-logic">패턴: "X가 아니라 Y다" 대비 구조. 표지에서 선언 → 배경 끝(s06)에서 논리적 증명.</div>
+      <div class="si-b2c">
+        ❌ "안녕하세요, 저희 OOO입니다" (회사 소개형)<br>
+        ✅ "그동안 섬 홍보는 '진열'에 그쳤습니다. 섬세한 식탁은 한 끼의 '경험'을 제공합니다." (신념 선언형)
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 05. 01 제안배경 -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">05 · Chapter 01</div>
+  <h2>01 제안배경 — 공감과 맥락 (Phase A)</h2>
+
+  <div class="phase phase-1">
+    <div class="phase-num">01 제안배경</div>
+    <div class="phase-title">"왜 지금 이 사업인가" — 감정 상승 구간</div>
+    <div class="phase-pages"><span class="tag tag-must">MUST</span> 3~6P · 전체의 18%</div>
+    <div class="phase-purpose">발주처 정책 → 시장 변화 → 3중 문제 → Promised Land → 컨셉. 자사 자랑이 아니라 정책부터.</div>
+    <div class="phase-emotion">표지의 WHY 선언 이후, Big Shift로 "세상이 변하고 있다"는 위기감을 만들고, 3중 Pain으로 감정을 끌어올린 뒤, Promised Land에서 희망을 보여주고, 컨셉으로 "그 희망에 도달하는 열쇠"를 제시.</div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">① 간지 (28P 이상일 때만)</span><span class="si-page">divider</span></div>
+      <div class="si-desc">Chapter 01 · Background. 28P 이상이면 풀페이지 간지.</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">② 사업환경 = Big Shift</span><span class="si-page">1P · 카드+스탯</span></div>
+      <div class="si-desc">발주 기관의 상위 정책 + 시장 데이터를 1장에 압축. "세상이 이렇게 변하고 있다".</div>
+      <div class="si-logic">[상위 정책] → [시장 규모·CAGR] → [국가적 타이밍] → [카드형 KPI 숫자]</div>
+      <div class="si-b2c">B2C [2] Big Shift — 우리 제품이 아닌 '세상의 변화'로 시작. "당신의 제품을 믿으라"가 아닌 "이 변화를 인정하라".</div>
+      <div class="si-exec">50P 이상: 정책/시장 분리(각 1P). 40P 이하: 1장 통합. 숫자는 카드형 KPI (100K+, 38섬, 4억 패턴).</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">③ 기존 한계 = 3중 Problem <span class="tag tag-new">강화</span></span><span class="si-page">1~2P · 대조 분할</span></div>
+      <div class="si-desc">기존 방식의 구조적 한계. 3개 층위로 깊이를 만든다.</div>
+      <div class="si-logic">
+        <strong>External</strong> (시장/구조적 한계): "진열은 있었지만 경험은 없었다"<br>
+        <strong>Internal</strong> (담당자의 진짜 고민): "이 사업 또 전년도처럼 되면 성과보고서에 뭘 쓰지?"<br>
+        <strong>Philosophical</strong> (실패 시 훼손되는 가치): "38개 섬 주민의 자립 기회가 1년 더 지연된다"
+      </div>
+      <div class="si-b2c">
+        External만 있으면 머리만 끄덕인다. Internal을 건드리면 심사위원이 개인적으로 공감한다. Philosophical을 건드리면 "이건 꼭 해야 한다"는 당위성이 강해진다.<br>
+        ★ 톤 조절법: "까지 않으면서 한계를 드러낸다" — [잘한 점 인정] + [그러나 빈틈] + [왜 올해 다르게]
+      </div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">④ Promised Land <span class="tag tag-new">신규</span></span><span class="si-page">0.5~1P</span></div>
+      <div class="si-desc">우리 솔루션 없이, "이 사업이 성공하면 어떤 세계가 되는가?"를 그린다.</div>
+      <div class="si-logic">
+        섬세한식탁: "38개 섬이 제주도처럼 '가고 싶은 곳'이 되는 세계"<br>
+        더셀렉츠: "K-패션 디자이너가 파리에서 자기 이름으로 팔리는 세계"<br>
+        신기술융합: "경주에서 출발한 K-신기술 콘텐츠가 글로벌 표준이 되는 세계"
+      </div>
+      <div class="si-b2c">B2C [4] Promised Land — 제품이 등장하기 전에 비전을 먼저 그리면, 심사위원이 "이 비전을 실현할 제안사"를 고르는 프레임으로 전환된다. 가장 강력한 설득 도구.</div>
+      <div class="si-exec">독립 1P가 이상적이나, 28P 이하에서는 ⑤추진방향과 합쳐 "Promised Land + 도달 경로" 1장으로.</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">⑤ 추진방향 (Promised Land 도달 경로)</span><span class="si-page">1P · flow+사이클</span></div>
+      <div class="si-desc">Promised Land에 도달하는 3~5축 전략. NOT→IS→BECOMES 3단 전환 또는 영문 네이밍된 축.</div>
+      <div class="si-logic">항상 3~5축. 각 축에 영문 네이밍(SplitSync, K-Chain Reaction 등). 심사위원이 기억할 수 있는 단위.</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">⑥ 본 제안 컨셉</span><span class="si-page">1P · 공식 도식+chips</span></div>
+      <div class="si-desc">SCQA의 A(답)를 시각화. 컨셉 공식(A×B×C=X) + 톤 가드레일(❌NOT / ✅YES) + 카피 패밀리.</div>
+      <div class="si-logic">컨셉은 5~6장째에 등장 — 정책을 먼저 읽고 난 뒤라야 설득된다.</div>
+    </div>
+
+    <div class="callout">
+      <strong>01 배경의 정석 (감정 흐름):</strong><br>
+      Big Shift(②: 세상이 변했다) → 3중 Pain(③: 그런데 이 문제가...) → Promised Land(④: 이 세계에 도달해야) → 도달 경로(⑤: 3축으로) → 컨셉(⑥: 이것이 열쇠)<br>
+      이 순서가 "당신의 정책이 풀려는 문제 → 우리가 본 미래 → 그 미래에 가는 방법"이 된다.
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 06. 02 일반현황 -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">06 · Chapter 02</div>
+  <h2>02 일반현황 — 우리만의 답 (Phase C)</h2>
+
+  <div class="phase phase-2">
+    <div class="phase-num">02 일반현황</div>
+    <div class="phase-title">"우리가 적임자다" — 신뢰 축적 구간</div>
+    <div class="phase-pages"><span class="tag tag-must">MUST</span> 2~5P · 전체의 11%</div>
+    <div class="phase-purpose">자격 증명은 3장 안에. 정체성 → 차별성 → 증거. 본 사업과 무관한 실적은 버린다.</div>
+    <div class="phase-emotion">감정을 올리는 구간이 아니라, 신뢰를 축적하는 구간. "이 팀이라면 Promised Land에 데려다줄 수 있겠다".</div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">① 회사현황 + 사업분야</span><span class="si-page">1P</span></div>
+      <div class="si-desc">법인 기본정보 + 정체성 한 줄 + 사업축. 컨소시엄이면 각 사 역할 1줄 표.</div>
+      <div class="si-b2c">B2C [7] 차별화 강점 — "우리가 잘하는 것" 나열이 아니라 "왜 우리만 Promised Land에 도달할 수 있는가". 01 배경의 리스크 N개 = 우리 자산 N개 대칭 구조.</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">② 운영모델 차별성</span><span class="si-page">1P</span></div>
+      <div class="si-desc">리스크-자산 1:1 매칭의 구체적 증거. 인력 조직도: 총감독(연출) → PM(관리) → 분야별 책임자.</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">③ 주요실적 + 전차년도 수행</span><span class="si-page">1P</span></div>
+      <div class="si-desc">본 사업과 결 맞는 실적만. 전차년도 수행 경험이 있으면 = 최강 무기. 연도별 성과 숫자(바이어 수, 상담 금액, 방문객).</div>
+      <div class="si-exec">50P 이상: 성공 사례/레퍼런스 2~5P 추가. 28P 이하: 1장.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 07. 03 사업계획 -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">07 · Chapter 03</div>
+  <h2>03 사업계획 — 비전의 실체 (Phase B + C)</h2>
+
+  <div class="phase phase-3">
+    <div class="phase-num">03 사업계획</div>
+    <div class="phase-title">"어떻게 실행하나" — ★ 감정 최고점 포함</div>
+    <div class="phase-pages"><span class="tag tag-must">MUST</span> 11~25P · 전체의 57%</div>
+    <div class="phase-purpose">Promised Land에 어떻게 도달하는가의 구체적 실체. 페이지를 여기에 몰아준다.</div>
+    <div class="phase-emotion">What Is↔Could Be 교차로 긴장을 유지하다가, Wow Moment(시그니처)에서 감정 최고점. 이후 운영 디테일로 점진 하강하며 "실현 가능하다"는 안도감.</div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">① 간지</span><span class="si-page">divider</span></div>
+      <div class="si-desc">01과 03에만 풀 간지.</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">② 과업분석 (HIRE)</span><span class="si-page">1P</span></div>
+      <div class="si-desc">F/E/S 3축 + 발주처 의도 해석. Section 02에서 설계한 HIRE 프레임을 여기서 시각화.</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">③ 기획 3축 + 매트릭스</span><span class="si-page">2P</span></div>
+      <div class="si-desc">01 배경의 추진방향 3축을 구체 실행 계획으로 전환. 프로그램/콘텐츠 매트릭스.</div>
+      <div class="si-b2c">B2C [8] Magic Gifts — 기능을 "Promised Land 도달 도구"로 프레이밍. "38섬 풀코스 매트릭스"는 기능이 아니라 "38개 섬이 가고 싶은 곳이 되는 설계도".</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">④ 시그니처 = Wow Moment <span class="tag tag-new">강화</span></span><span class="si-page">1P · scene(실사)</span></div>
+      <div class="si-desc">컨셉 전체의 무게중심. 감정 곡선의 최고점. 이 1장이 심사위원 기억에 남아야 한다.</div>
+      <div class="si-b2c">
+        B2C [6] Wow Moment 3대 원칙:<br>
+        ① <strong>정확히 1개</strong>. 2개 이상이면 분산됨<br>
+        ② <strong>예상 밖</strong>이어야 함. 예측 가능하면 Wow가 아님<br>
+        ③ <strong>전체의 50~60% 지점</strong>에 배치 (28P 기준 s14~s16)<br>
+        발표 시: 슬라이드가 아닌 실물(시식 샘플, VR 시연, 3D 워크스루 영상)로 전달하면 10배 효과.
+      </div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">⑤ 거점별 운영 = What Is ↔ Could Be <span class="tag tag-new">강화</span></span><span class="si-page">거점 수 × 3~4P</span></div>
+      <div class="si-desc">각 거점: 개요(1P) → 특화연출(1~2P) → 모객+KPI(1P).</div>
+      <div class="si-b2c">
+        B2C [5] What Is ↔ Could Be — 거점 설명마다 현실과 가능성을 교차:<br>
+        <em>What Is</em>: "전년도 박람회 부스 — 시식하고 끝, 다음날 기억 없음"<br>
+        <em>Could Be</em>: "올해 팝업 — 해녀가 차린 한 끼, 다음 휴가에 그 섬을 떠올림"<br>
+        이 교차를 거점마다 반복하면 "전년도 vs 올해"가 감정적 대비로 작동한다.
+      </div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">⑥ 현장 운영 + 마케팅 + RXR + 안전 + 무드</span><span class="si-page">5~8P</span></div>
+      <div class="si-desc">운영체계(1P) + 마케팅(1~4P) + 성과측정(1P) + 안전(1P) + 무드보드(1P). 감정 곡선은 Wow 이후 점진 하강 — "실현 가능하다"는 안도감.</div>
+      <div class="si-exec">마케팅에서 "연쇄 확산" 구조: 강력한 IP → 방송매체 → SNS → 바이럴. 안전관리: 중대재해처벌법 + 책임자 실명.</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">⑦ 제안 핵심 정리 (40P 이상)</span><span class="si-page">1P</span></div>
+      <div class="si-desc">사업계획 전체를 1P 압축. 컨셉 반복 + 차별화 3~5개. 28P 이하: 클로징에 흡수.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 08. 04 운영관리 + 클로징 -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">08 · Chapter 04 + Closing</div>
+  <h2>04 운영관리 + 05 클로징 — 행동 유도 (Phase D)</h2>
+
+  <div class="phase phase-4">
+    <div class="phase-num">04 운영관리</div>
+    <div class="phase-title">"일정과 예산" — 리스크 해소</div>
+    <div class="phase-pages"><span class="tag tag-must">MUST</span> 2~4P</div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">① 간트차트</span><span class="si-page">1P</span></div>
+      <div class="si-desc">준비기→실행기→사후기 + 마일스톤. 중간·최종보고 시점 필수.</div>
+    </div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">② 예산 + 인력 + 추가제안 흡수</span><span class="si-page">1P</span></div>
+      <div class="si-desc">RFP 비목 준수 + 증빙 5종 이해 표시 + 스케일업/글로벌 출구를 하단에 흡수.</div>
+    </div>
+  </div>
+
+  <div class="phase phase-5">
+    <div class="phase-num">클로징</div>
+    <div class="phase-title">Success ↔ Failure + New Bliss <span class="tag tag-new">강화</span></div>
+    <div class="phase-pages"><span class="tag tag-must">MUST</span> 1장</div>
+    <div class="phase-emotion">감정 곡선을 표지 수준 이상으로 다시 끌어올리며 원형 구조 완성.</div>
+
+    <div class="sub-item">
+      <div class="si-header"><span class="si-title">Success ↔ Failure 암시 + New Bliss</span><span class="si-page">대형 카피</span></div>
+      <div class="si-desc">표지 컨셉을 반복하되, "변화된 세계의 비전"으로 확장. Failure를 직접 말하지 않고 암시.</div>
+      <div class="si-b2c">
+        B2C [9]+[10] — "이 제안이 실행되면/안 되면"의 대비를 암시 수준으로:<br>
+        ✅ "섬세한 식탁이 여는 38섬의 다음 100년, 그 첫 페이지가 됩니다." (실패 = 이 페이지가 시작되지 않는다)<br>
+        ✅ "From Display to Experience" (Display에 머무르면 = Failure)<br>
+        정부 제안서에서 노골적 Failure 언급은 역효과. "선택하면 열리는 것"만 말하되, "선택하지 않으면"이 행간에 있어야 한다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 09. 분량 레시피 + 압축 -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">09 · Execution</div>
+  <h2>분량 레시피 + 압축 7원칙</h2>
+
+  <table>
+    <thead><tr><th>챕터</th><th>50P</th><th>40P</th><th>28P</th><th>20P</th></tr></thead>
+    <tbody>
+      <tr><td><strong>표지</strong></td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+      <tr><td><strong>01 배경</strong> (Big Shift→Pain→PL→방향→컨셉)</td><td>10</td><td>6</td><td>5</td><td>3</td></tr>
+      <tr><td><strong>02 현황</strong> (회사+차별+실적)</td><td>8</td><td>6</td><td>3</td><td>2</td></tr>
+      <tr><td><strong>03 계획</strong> (HIRE→기획→★Wow→거점→운영→마케팅→안전→무드)</td><td>25</td><td>22</td><td>16</td><td>11</td></tr>
+      <tr><td><strong>04 운영</strong> (간트+예산)</td><td>4</td><td>3</td><td>2</td><td>2</td></tr>
+      <tr><td><strong>클로징</strong> (New Bliss)</td><td>2</td><td>2</td><td>1</td><td>1</td></tr>
+      <tr style="font-weight:700;"><td>합계</td><td>50</td><td>40</td><td>28</td><td>20</td></tr>
+    </tbody>
+  </table>
+
+  <h3>압축 7원칙</h3>
+  <table>
+    <thead><tr><th>#</th><th>원칙</th><th>적용</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>한 장 = 한 메시지</td><td>늘리기식 걷어내기</td></tr>
+      <tr><td>2</td><td>추가제안 → 예산장에 흡수</td><td>5챕터→4+클로징</td></tr>
+      <tr><td>3</td><td>간지는 01·03에만</td><td>02·04는 정보바 라벨</td></tr>
+      <tr><td>4</td><td>배경: 정책+시장 → 1장</td><td>매니페스토+방향도 1장</td></tr>
+      <tr><td>5</td><td>현황: 회사+분야 통합</td><td>실적도 1장</td></tr>
+      <tr><td>6</td><td>계획: 거점별로 묶기</td><td>콘텐츠+홍보 분리 금지</td></tr>
+      <tr><td>7</td><td>운영: 간트 1 + 예산 1</td><td>성과품도 예산장에</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>손대지 말 것:</strong> 논리 대흐름(Big Shift→Pain→PL→컨셉→계획→Wow→클로징)과 핵심 무기(컨셉·매트릭스·시그니처·RXR)는 압축해도 유지. 감정 곡선의 3개 피크(Pain, Wow, Bliss)도 유지.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 10. 설득 패턴 사전 (12개) -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">10 · Patterns</div>
+  <h2>설득 패턴 사전 — 12개</h2>
+  <p>기존 10개 + B2C 2개. 새 제안서 작성 시 페이지별로 패턴을 선택.</p>
+
+  <table>
+    <thead><tr><th>#</th><th>패턴</th><th>구조</th><th>적용 위치</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>대비 선언</strong></td><td>"X가 아니라 Y다"</td><td>표지, 배경④, 클로징</td></tr>
+      <tr><td>2</td><td><strong>3중 Problem</strong></td><td>External + Internal + Philosophical</td><td>배경③</td></tr>
+      <tr><td>3</td><td><strong>3축 프레임</strong></td><td>3가지 축으로 전략 정리</td><td>배경⑤, 계획③</td></tr>
+      <tr><td>4</td><td><strong>사례→확장</strong></td><td>"A에서 → B로 확장"</td><td>배경⑥, 현황③</td></tr>
+      <tr><td>5</td><td><strong>역산 설계</strong></td><td>"보고서 역산 → 실행 설계"</td><td>계획⑥(RXR), 운영②</td></tr>
+      <tr><td>6</td><td><strong>평가 매트릭스</strong></td><td>5축 평가 + 레이더 차트</td><td>계획(장소/콘텐츠 선정)</td></tr>
+      <tr><td>7</td><td><strong>단계별 체험</strong></td><td>①입장→②체험→③심화→④클라이맥스</td><td>계획④(시그니처)</td></tr>
+      <tr><td>8</td><td><strong>공간 기능 전환</strong></td><td>같은 공간이 시간별로 전환</td><td>계획⑤(거점)</td></tr>
+      <tr><td>9</td><td><strong>데이터 계층</strong></td><td>글로벌→지역→한국→개최지</td><td>배경②</td></tr>
+      <tr><td>10</td><td><strong>반복 포맷</strong></td><td>존/거점별 동일 포맷 반복</td><td>계획⑤⑥</td></tr>
+      <tr style="background: var(--red-dim);">
+        <td>11</td><td><strong>Promised Land <span class="tag tag-new">B2C</span></strong></td><td>솔루션 없이 비전 먼저</td><td>배경④</td></tr>
+      <tr style="background: var(--red-dim);">
+        <td>12</td><td><strong>What Is ↔ Could Be <span class="tag tag-new">B2C</span></strong></td><td>현실 고통 ↔ 이상 가능성 교차</td><td>계획⑤(거점 반복)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 11. 코어리뷰 + QA -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">11 · Tools</div>
+  <h2>코어리뷰 + QA 체크리스트</h2>
+
+  <h3>GO/NO-GO 판단</h3>
+  <div class="sub-item">
+    <div class="si-desc">
+      1. <strong>역량 일치</strong> — RFP 과업이 핵심 역량과 80%+ 일치?<br>
+      2. <strong>정량 점수</strong> — 수행실적 + 경영상태 예상?<br>
+      3. <strong>자격 요건</strong> — 필수 서류 발급 ETA<br>
+      4. <strong>단독 vs 컨소시엄</strong> — 단독이 디폴트<br>
+      5. <strong>일정 리스크</strong> — 잔여 영업일 대비 완성 가능성<br>
+      6. <strong>경쟁 구도</strong> — 차별화 포인트 2~3개 확인
+    </div>
+  </div>
+
+  <h3>자체 평가 점수표 (정성 80점)</h3>
+  <table>
+    <thead><tr><th>항목</th><th>배점</th><th>예상</th><th>보완 포인트</th></tr></thead>
+    <tbody>
+      <tr><td>기획·제작</td><td>20</td><td>__/20</td><td>컨셉 워드플레이 + 시각 시안 + 무드보드</td></tr>
+      <tr><td>모객</td><td>15</td><td>__/15</td><td>후크 메커니즘 + SNS + KOL</td></tr>
+      <tr><td>운영</td><td>15</td><td>__/15</td><td>매뉴얼 + 인력 명단 + 교육안</td></tr>
+      <tr><td>이해도</td><td>10</td><td>__/10</td><td>정책 본질 한 줄 통역</td></tr>
+      <tr><td>성과관리</td><td>10</td><td>__/10</td><td>KPI + 측정 방법론</td></tr>
+      <tr><td>안전관리</td><td>10</td><td>__/10</td><td>중대재해법 + 책임자 실명</td></tr>
+    </tbody>
+  </table>
+
+  <h3>페이지별 QA 체크리스트</h3>
+  <table>
+    <thead><tr><th>요소</th><th>설명</th><th>적용</th></tr></thead>
+    <tbody>
+      <tr><td><strong>페이지 제목</strong></td><td>목차 없이도 구조 파악 가능</td><td><span class="tag tag-must">ALL</span></td></tr>
+      <tr><td><strong>핵심 메시지 1문장</strong></td><td>"이 페이지를 한 줄로?"</td><td><span class="tag tag-must">ALL</span></td></tr>
+      <tr><td><strong>수치/팩트 최소 1개</strong></td><td>매출, 방문자, KPI, 기간, 면적, 인원</td><td><span class="tag tag-must">ALL</span></td></tr>
+      <tr><td><strong>비주얼 앵커</strong></td><td>이미지·표·다이어그램 중 1개+</td><td><span class="tag tag-rec">ALL</span></td></tr>
+      <tr><td><strong>HIRE 연결</strong></td><td>03 계획의 각 페이지가 F/E/S 중 어디에 기여</td><td><span class="tag tag-rec">03</span></td></tr>
+      <tr><td><strong>Pain↔Solution 대응</strong></td><td>01 배경의 3중 Problem과의 대응</td><td><span class="tag tag-rec">01↔03</span></td></tr>
+      <tr><td><strong>표지-클로징 일관성</strong></td><td>같은 메시지가 양쪽 끝에서 감싸는가</td><td><span class="tag tag-must">표지+클로징</span></td></tr>
+      <tr style="background: var(--red-dim);">
+        <td><strong>감정 곡선 3피크</strong></td><td>Pain(배경③) + Wow(계획④) + Bliss(클로징)가 살아있는가</td><td><span class="tag tag-new">B2C</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 12. 발표 설계 가이드 -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">12 · Presentation</div>
+  <h2>발표 설계 가이드 <span class="tag tag-new">B2C</span></h2>
+  <p>제안서(문서)와 발표(프레젠테이션)는 다르다. 문서는 읽히고, 발표는 보이고 들린다.</p>
+
+  <h3>9분 리프레시 사이클</h3>
+  <p>인간의 집중력은 ~10분 후 급격히 하락(John Medina, Brain Rules). 매 9~10분마다 형식을 바꿔야 한다.</p>
+  <table>
+    <thead><tr><th>전환 방법</th><th>정부 제안서 적용</th></tr></thead>
+    <tbody>
+      <tr><td><strong>화자 교체</strong></td><td>컨소시엄이면 파트별 발표자 교체</td></tr>
+      <tr><td><strong>영상 삽입</strong></td><td>공간 컨셉 영상 30초, 전년도 하이라이트</td></tr>
+      <tr><td><strong>실물 데모</strong></td><td>시식 샘플, VR 시연, 앱 워크스루</td></tr>
+      <tr><td><strong>질문 던지기</strong></td><td>"마지막으로 그 섬에 가고 싶었던 적이 언제였습니까?"</td></tr>
+      <tr><td><strong>시각 전환</strong></td><td>텍스트 → 풀블리드 사진 → 다이어그램 교차</td></tr>
+    </tbody>
+  </table>
+
+  <h3>발표 시간별 구성</h3>
+  <table>
+    <thead><tr><th>발표 시간</th><th>Phase A (공감)</th><th>Phase B+C (해법)</th><th>Phase D (행동)</th><th>리프레시 횟수</th></tr></thead>
+    <tbody>
+      <tr><td><strong>15분</strong></td><td>5분 (33%)</td><td>8분 (53%)</td><td>2분 (14%)</td><td>1~2회</td></tr>
+      <tr><td><strong>30분</strong></td><td>10분 (33%)</td><td>16분 (53%)</td><td>4분 (14%)</td><td>3회</td></tr>
+      <tr><td><strong>60분</strong></td><td>20분 (33%)</td><td>32분 (53%)</td><td>8분 (14%)</td><td>6회</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout b2c">
+    <strong>발표의 황금률:</strong> Phase A(공감·맥락)에 전체의 33%를 쓴다. 대부분 실패한 PT는 Phase A에 5%만 쓰고 바로 "우리 회사는..."으로 넘어간다. 심사위원이 공감하기 전에 솔루션을 들으면 "남의 이야기"가 된다.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ================================================================ -->
+<!-- 13. Quick Start -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="section-label">13 · Workflow</div>
+  <h2>Quick Start — 새 제안서 작업 워크플로우</h2>
+
+  <div class="phase phase-1">
+    <div class="phase-num">Step 1 · 분석</div>
+    <div class="phase-title">RFP 분석 → SCQA + HIRE + 3중 Problem</div>
+    <div class="sub-item">
+      <div class="si-desc">
+        <code>/rfp-analysis</code>로 RFP 분석.<br>
+        <strong>Section 02</strong>의 SCQA + HIRE 프레임 작성. 3중 Problem(External/Internal/Philosophical) 정의.<br>
+        Promised Land 한 문장 확정.
+      </div>
+    </div>
+  </div>
+
+  <div class="phase phase-1">
+    <div class="phase-num">Step 2 · 전략</div>
+    <div class="phase-title">코어리뷰 → GO/NO-GO → 자체평가</div>
+    <div class="sub-item">
+      <div class="si-desc"><strong>Section 11</strong>의 코어리뷰 체크리스트. 컨셉 한 줄, 추진방향 3축, 차별화 포인트 확정. Wow Moment 후보 1개 선정.</div>
+    </div>
+  </div>
+
+  <div class="phase phase-2">
+    <div class="phase-num">Step 3 · 구조</div>
+    <div class="phase-title">분량 산정 + 페이지네이션 + 감정 곡선</div>
+    <div class="sub-item">
+      <div class="si-desc">
+        <strong>Section 09</strong>의 분량 레시피에서 총 페이지 결정.<br>
+        <strong>Section 03</strong>의 5챕터+감정곡선 매핑으로 Sparkline 설계.<br>
+        3개 피크(Pain, Wow, Bliss) 위치를 페이지 번호로 확정.
+      </div>
+    </div>
+  </div>
+
+  <div class="phase phase-3">
+    <div class="phase-num">Step 4 · 내러티브</div>
+    <div class="phase-title">페이지별 패턴 선택 + 내러티브 아크</div>
+    <div class="sub-item">
+      <div class="si-desc">
+        <code>/proposal-architect</code>로 내러티브 설계.<br>
+        <strong>Section 10</strong>의 12개 패턴에서 페이지별 패턴 선택.<br>
+        <strong>Section 09</strong>의 압축 7원칙 적용.
+      </div>
+    </div>
+  </div>
+
+  <div class="phase phase-4">
+    <div class="phase-num">Step 5 · 제작 + QA</div>
+    <div class="phase-title">제작 → 검증 → 발표 설계 → 제출</div>
+    <div class="sub-item">
+      <div class="si-desc">
+        HTML → PNG → PPTX 파이프라인으로 제작.<br>
+        <strong>Section 11</strong>의 QA 체크리스트로 전 페이지 점검. 특히 감정 곡선 3피크 확인.<br>
+        발표가 있으면 <strong>Section 12</strong>의 리프레시 사이클 + 시간 배분 설계.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>PROJECT RENT — Government Proposal Master Guide R · v5.0-R</span>
+  <span>2026-06-05 · Internal Use Only</span>
+</div>
+
+</div>
+</body>
+</html>
