@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>샤퀴테리 3-Brand Mention Comparison | RXR</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Pretendard Variable',system-ui,sans-serif; background:#f8f8fc; color:#1a1a1a; line-height:1.6; }
+  .container { max-width:1200px; margin:0 auto; padding:40px 32px; }
+
+  h1 { font-size:32px; font-weight:900; letter-spacing:-1px; margin-bottom:8px; color:#1a1a1a; }
+  .subtitle { font-size:15px; color:#666; margin-bottom:40px; }
+  .date-badge { display:inline-block; background:#6666FF; color:#fff; padding:3px 12px; border-radius:20px; font-size:12px; font-weight:700; margin-bottom:16px; }
+
+  h2 { font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#1a1a1a; margin:48px 0 20px; padding-bottom:10px; border-bottom:2px solid #6666FF; }
+  h3 { font-size:17px; font-weight:700; color:#333; margin:28px 0 12px; }
+
+  /* KPI Cards */
+  .kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:32px; }
+  .kpi-card { background:#fff; border-radius:14px; padding:24px; box-shadow:0 2px 12px rgba(0,0,0,0.06); text-align:center; border-top:4px solid #ddd; }
+  .kpi-card.xesc { border-top-color:#6666FF; }
+  .kpi-card.maison { border-top-color:#FF6B6B; }
+  .kpi-card.salt { border-top-color:#20C997; }
+  .kpi-brand { font-size:14px; font-weight:800; margin-bottom:12px; letter-spacing:-0.3px; }
+  .kpi-brand.xesc { color:#6666FF; }
+  .kpi-brand.maison { color:#FF6B6B; }
+  .kpi-brand.salt { color:#20C997; }
+  .kpi-number { font-size:36px; font-weight:900; color:#1a1a1a; line-height:1; margin-bottom:4px; }
+  .kpi-label { font-size:12px; color:#888; font-weight:500; }
+  .kpi-sub { font-size:11px; color:#aaa; margin-top:4px; }
+
+  /* Comparison Table */
+  .comp-table { width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.06); margin-bottom:24px; }
+  .comp-table th { background:#f4f3ff; padding:14px 16px; text-align:left; font-size:13px; font-weight:700; color:#555; border-bottom:2px solid #e8e6ff; }
+  .comp-table td { padding:12px 16px; font-size:14px; border-bottom:1px solid #f0f0f0; }
+  .comp-table tr:last-child td { border-bottom:none; }
+  .comp-table .metric { font-weight:700; color:#333; white-space:nowrap; }
+  .comp-table .highlight { background:#f9f8ff; font-weight:800; }
+  .comp-table .best { color:#6666FF; font-weight:800; }
+
+  /* Bar Charts */
+  .bar-group { margin-bottom:20px; }
+  .bar-label { font-size:12px; font-weight:600; color:#555; margin-bottom:6px; }
+  .bar-container { display:flex; gap:4px; height:28px; border-radius:6px; overflow:hidden; }
+  .bar-seg { display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; min-width:24px; transition:all 0.3s; }
+  .bar-seg.pos { background:#6666FF; }
+  .bar-seg.mix { background:#FFB347; }
+  .bar-seg.neu { background:#BDB4FF; }
+  .bar-seg.neg { background:#FF6B6B; }
+
+  /* Radar/Spider placeholder */
+  .insight-card { background:#fff; border-radius:14px; padding:28px; box-shadow:0 2px 12px rgba(0,0,0,0.06); margin-bottom:20px; }
+  .insight-card h4 { font-size:15px; font-weight:800; color:#6666FF; margin-bottom:12px; }
+  .insight-card p { font-size:14px; color:#444; line-height:1.7; }
+  .insight-card ul { padding-left:20px; margin-top:8px; }
+  .insight-card li { font-size:14px; color:#444; margin-bottom:6px; line-height:1.6; }
+  .insight-card li strong { color:#1a1a1a; }
+
+  /* Legend */
+  .legend { display:flex; gap:20px; margin:12px 0 20px; flex-wrap:wrap; }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:#666; }
+  .legend-dot { width:10px; height:10px; border-radius:3px; }
+
+  /* Topic Heatmap */
+  .topic-grid { display:grid; grid-template-columns:120px repeat(3,1fr); gap:1px; background:#e0e0e0; border-radius:10px; overflow:hidden; margin-bottom:24px; }
+  .topic-cell { padding:10px 12px; font-size:13px; text-align:center; }
+  .topic-header { background:#f4f3ff; font-weight:700; color:#555; }
+  .topic-label { background:#fff; font-weight:600; color:#333; text-align:left; }
+  .topic-val { background:#fff; font-weight:600; }
+
+  /* Gauge */
+  .gauge-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+  .gauge-card { background:#fff; border-radius:12px; padding:20px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+  .gauge-card .brand-tag { font-size:12px; font-weight:700; margin-bottom:8px; }
+  .gauge-bar { height:8px; background:#eee; border-radius:4px; margin:8px 0; position:relative; }
+  .gauge-fill { height:100%; border-radius:4px; transition:width 0.5s; }
+  .gauge-value { font-size:24px; font-weight:900; color:#1a1a1a; }
+  .gauge-label { font-size:11px; color:#999; }
+
+  .section-note { font-size:13px; color:#888; background:#fafafa; padding:14px 18px; border-radius:8px; margin:16px 0; border-left:3px solid #ddd; }
+
+  /* Methodology */
+  .method-table { width:100%; border-collapse:collapse; font-size:13px; margin:16px 0; }
+  .method-table th { background:#f8f8fc; padding:10px; text-align:left; font-weight:700; color:#555; border-bottom:2px solid #e8e6ff; }
+  .method-table td { padding:10px; border-bottom:1px solid #f0f0f0; color:#444; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- RXR Header -->
+<div style="display:flex;align-items:center;gap:10px;margin:0 0 20px 0;padding:0;background:transparent;border:none;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  <strong style="font-size:19px;color:#1a1a1a;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+  <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+  <strong style="font-size:13px;color:#6666FF;font-weight:700;letter-spacing:-0.1px;white-space:nowrap;">Project Rent</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+</div>
+
+<span class="date-badge">2026-06-07 | 90일 멘션</span>
+<h1>한국 샤퀴테리 3-Brand<br>Mention Comparison</h1>
+<p class="subtitle">세스크멘슬 vs 메종조 vs 소금집 — RXR Mention Analysis 3-Layer 비교</p>
+
+<!-- ==================== Section 1: Overview KPI ==================== -->
+<h2>1. 데이터 Overview</h2>
+
+<div class="kpi-row">
+  <div class="kpi-card xesc">
+    <div class="kpi-brand xesc">세스크멘슬</div>
+    <div class="kpi-number">174</div>
+    <div class="kpi-label">유효 멘션 (A+B+C)</div>
+    <div class="kpi-sub">전체 196건 / 유효율 89%</div>
+  </div>
+  <div class="kpi-card maison">
+    <div class="kpi-brand maison">메종조</div>
+    <div class="kpi-number">178</div>
+    <div class="kpi-label">유효 멘션 (A+B+C)</div>
+    <div class="kpi-sub">전체 219건 / 유효율 81%</div>
+  </div>
+  <div class="kpi-card salt">
+    <div class="kpi-brand salt">소금집</div>
+    <div class="kpi-number">1,234</div>
+    <div class="kpi-label">유효 멘션 (A+B+C)</div>
+    <div class="kpi-sub">전체 1,433건 / 유효율 86%</div>
+  </div>
+</div>
+
+<h3>Content Class 분포</h3>
+<table class="comp-table">
+  <tr>
+    <th>Class</th><th>세스크멘슬</th><th>메종조</th><th>소금집</th><th>해석</th>
+  </tr>
+  <tr>
+    <td class="metric">A 진성후기</td>
+    <td>42건 (24%)</td>
+    <td class="highlight">51건 (29%)</td>
+    <td>350건 (28%)</td>
+    <td>메종조의 진성후기 비율이 가장 높음</td>
+  </tr>
+  <tr>
+    <td class="metric">B 일반포스트</td>
+    <td>129건 (74%)</td>
+    <td>123건 (69%)</td>
+    <td>852건 (69%)</td>
+    <td>세스크멘슬의 B비율이 상대적으로 높음</td>
+  </tr>
+  <tr>
+    <td class="metric">C 협찬</td>
+    <td>3건 (1.7%)</td>
+    <td>4건 (2.2%)</td>
+    <td>32건 (2.6%)</td>
+    <td>3브랜드 모두 협찬 비율 매우 낮음</td>
+  </tr>
+  <tr>
+    <td class="metric">필터 제외 (D~G)</td>
+    <td>22건</td>
+    <td>41건</td>
+    <td>199건</td>
+    <td>—</td>
+  </tr>
+</table>
+
+<!-- ==================== Section 2: Sentiment ==================== -->
+<h2>2. 감성 분포 비교</h2>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#6666FF;"></div>긍정</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#FFB347;"></div>혼합</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#BDB4FF;"></div>중립</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#FF6B6B;"></div>부정</div>
+</div>
+
+<div class="bar-group">
+  <div class="bar-label">세스크멘슬</div>
+  <div class="bar-container">
+    <div class="bar-seg pos" style="width:39%;">39%</div>
+    <div class="bar-seg mix" style="width:32%;">32%</div>
+    <div class="bar-seg neu" style="width:20%;">20%</div>
+    <div class="bar-seg neg" style="width:9%;">9%</div>
+  </div>
+</div>
+<div class="bar-group">
+  <div class="bar-label">메종조</div>
+  <div class="bar-container">
+    <div class="bar-seg pos" style="width:42%;">42%</div>
+    <div class="bar-seg mix" style="width:28%;">28%</div>
+    <div class="bar-seg neu" style="width:24%;">24%</div>
+    <div class="bar-seg neg" style="width:7%;">7%</div>
+  </div>
+</div>
+<div class="bar-group">
+  <div class="bar-label">소금집</div>
+  <div class="bar-container">
+    <div class="bar-seg pos" style="width:42%;">42%</div>
+    <div class="bar-seg mix" style="width:35%;">35%</div>
+    <div class="bar-seg neu" style="width:15%;">15%</div>
+    <div class="bar-seg neg" style="width:7%;">7%</div>
+  </div>
+</div>
+
+<div class="section-note">
+  <strong>해석:</strong> 3브랜드 모두 긍정률 39~42%로 비슷하나, 소금집의 혼합 감성이 35%로 가장 높음 — 볼륨이 크고 제품군이 넓어 "맛있는데 OO은 아쉬워" 류의 양면 리뷰가 많은 구조. 세스크멘슬은 중립 20%로 가장 높아, 정보 전달형 포스팅(방문기, 소개) 비중이 상대적으로 큼.
+</div>
+
+<!-- ==================== Section 3: Psyche + Linguistic ==================== -->
+<h2>3. Psyche + Linguistic Layer 비교</h2>
+
+<h3>3-1. 핵심 지표 비교</h3>
+<table class="comp-table">
+  <tr>
+    <th>지표</th><th>세스크멘슬</th><th>메종조</th><th>소금집</th><th>해석</th>
+  </tr>
+  <tr>
+    <td class="metric">Authenticity</td>
+    <td>73.7</td>
+    <td class="best">75.1</td>
+    <td>71.7</td>
+    <td>메종조 최고 — 프렌치 정통성 스토리의 진정성 효과</td>
+  </tr>
+  <tr>
+    <td class="metric">Clout (추천 확신)</td>
+    <td class="best">56.3</td>
+    <td>52.9</td>
+    <td>56.1</td>
+    <td>세스크멘슬·소금집 동률 — "꼭 가봐라" 추천 강도 높음</td>
+  </tr>
+  <tr>
+    <td class="metric">Freshness</td>
+    <td>47.1</td>
+    <td class="best">49.0</td>
+    <td>48.4</td>
+    <td>3브랜드 비슷 — 샤퀴테리 카테고리 공통 특성</td>
+  </tr>
+  <tr>
+    <td class="metric">LAI (언어 진정성)</td>
+    <td>27.7</td>
+    <td>27.1</td>
+    <td class="best">31.7</td>
+    <td>소금집 최고 — 일상 구매 경험 기반 자연스러운 언어</td>
+  </tr>
+  <tr>
+    <td class="metric">EDS (인지 몰입)</td>
+    <td>14.8</td>
+    <td>13.9</td>
+    <td class="best">15.1</td>
+    <td>소금집 소폭 우위 — 제품 디테일 묘사 풍부</td>
+  </tr>
+  <tr>
+    <td class="metric">협찬 비율</td>
+    <td class="best">1.7%</td>
+    <td>2.2%</td>
+    <td>2.6%</td>
+    <td>3브랜드 모두 매우 낮음 — 자발적 리뷰 생태계</td>
+  </tr>
+</table>
+
+<h3>3-2. Authenticity 게이지</h3>
+<div class="gauge-row">
+  <div class="gauge-card">
+    <div class="brand-tag" style="color:#6666FF;">세스크멘슬</div>
+    <div class="gauge-value">73.7</div>
+    <div class="gauge-bar"><div class="gauge-fill" style="width:73.7%;background:linear-gradient(90deg,#6666FF,#9999FF);"></div></div>
+    <div class="gauge-label">Auth (보정 후)</div>
+  </div>
+  <div class="gauge-card">
+    <div class="brand-tag" style="color:#FF6B6B;">메종조</div>
+    <div class="gauge-value">75.1</div>
+    <div class="gauge-bar"><div class="gauge-fill" style="width:75.1%;background:linear-gradient(90deg,#FF6B6B,#FF9999);"></div></div>
+    <div class="gauge-label">Auth (보정 후)</div>
+  </div>
+  <div class="gauge-card">
+    <div class="brand-tag" style="color:#20C997;">소금집</div>
+    <div class="gauge-value">71.7</div>
+    <div class="gauge-bar"><div class="gauge-fill" style="width:71.7%;background:linear-gradient(90deg,#20C997,#63E6BE);"></div></div>
+    <div class="gauge-label">Auth (보정 후)</div>
+  </div>
+</div>
+
+<div class="section-note">
+  <strong>Auth-LAI 교차검증 노트:</strong> 3개 브랜드 모두 Auth(70~75)와 LAI(27~32)에 유의미한 괴리(40pt+)가 존재. 이는 F&B/레스토랑 카테고리의 구조적 특성 — 네이버 블로그 맛집 리뷰는 사진 위주+짧은 텍스트가 많아 감각어 밀도와 시간근접 표지가 낮게 측정됨. LAI v1.0은 팝업/이벤트 기준 설계로, F&B 카테고리 캘리브레이션 필요.
+</div>
+
+<!-- ==================== Section 4: Topic ==================== -->
+<h2>4. 토픽 구조 비교</h2>
+
+<div class="topic-grid">
+  <div class="topic-cell topic-header">토픽</div>
+  <div class="topic-cell topic-header" style="color:#6666FF;">세스크멘슬</div>
+  <div class="topic-cell topic-header" style="color:#FF6B6B;">메종조</div>
+  <div class="topic-cell topic-header" style="color:#20C997;">소금집</div>
+
+  <div class="topic-cell topic-label">맛/품질</div>
+  <div class="topic-cell topic-val" style="background:#e8e6ff;">39건 (22%)</div>
+  <div class="topic-cell topic-val" style="background:#ffe0e0;font-weight:800;">70건 (39%)</div>
+  <div class="topic-cell topic-val" style="background:#d4f5e9;font-weight:800;">549건 (44%)</div>
+
+  <div class="topic-cell topic-label">와인/페어링</div>
+  <div class="topic-cell topic-val" style="background:#d4d0ff;font-weight:800;">46건 (26%)</div>
+  <div class="topic-cell topic-val" style="background:#ffe0e0;">30건 (17%)</div>
+  <div class="topic-cell topic-val">32건 (3%)</div>
+
+  <div class="topic-cell topic-label">메뉴/제품</div>
+  <div class="topic-cell topic-val">22건 (13%)</div>
+  <div class="topic-cell topic-val">26건 (15%)</div>
+  <div class="topic-cell topic-val" style="background:#d4f5e9;">396건 (32%)</div>
+
+  <div class="topic-cell topic-label">위치/접근성</div>
+  <div class="topic-cell topic-val" style="background:#e8e6ff;">45건 (26%)</div>
+  <div class="topic-cell topic-val">30건 (17%)</div>
+  <div class="topic-cell topic-val">88건 (7%)</div>
+
+  <div class="topic-cell topic-label">공간/분위기</div>
+  <div class="topic-cell topic-val">12건 (7%)</div>
+  <div class="topic-cell topic-val">13건 (7%)</div>
+  <div class="topic-cell topic-val">104건 (8%)</div>
+
+  <div class="topic-cell topic-label">서비스/경험</div>
+  <div class="topic-cell topic-val">6건 (3%)</div>
+  <div class="topic-cell topic-val">6건 (3%)</div>
+  <div class="topic-cell topic-val">35건 (3%)</div>
+
+  <div class="topic-cell topic-label">셰프/정통성</div>
+  <div class="topic-cell topic-val">2건 (1%)</div>
+  <div class="topic-cell topic-val">3건 (2%)</div>
+  <div class="topic-cell topic-val">1건 (0.1%)</div>
+
+  <div class="topic-cell topic-label">가격/가성비</div>
+  <div class="topic-cell topic-val">2건 (1%)</div>
+  <div class="topic-cell topic-val">—</div>
+  <div class="topic-cell topic-val">—</div>
+</div>
+
+<div class="insight-card">
+  <h4>토픽 구조에서 드러나는 브랜드 정체성 차이</h4>
+  <ul>
+    <li><strong>세스크멘슬 = "와인 페어링 + 성수 핫플"</strong> — 와인/페어링(26%)과 위치/접근성(26%)이 1-2위. 맛/품질(22%)은 3위. 사람들은 세스크멘슬을 "성수에서 와인과 함께 즐기는 경험"으로 인식</li>
+    <li><strong>메종조 = "맛 중심 비스트로"</strong> — 맛/품질이 39%로 압도적 1위. 프렌치 정통 비스트로로서 음식 자체의 만족도가 대화의 중심</li>
+    <li><strong>소금집 = "제품 다양성의 델리"</strong> — 맛/품질(44%) + 메뉴/제품(32%) = 76%. 30종+ 라인업의 델리 특성상 "뭘 사야 하나" 중심의 제품 탐색형 리뷰가 지배적</li>
+  </ul>
+</div>
+
+<!-- ==================== Section 5: Strategic Insight ==================== -->
+<h2>5. 전략 인사이트</h2>
+
+<div class="insight-card">
+  <h4>5-1. 볼륨 격차: 세스크멘슬의 과제</h4>
+  <p>소금집(1,234건)은 세스크멘슬(174건)의 <strong>7배</strong> 멘션을 보유. 이는 단순 인지도 차이가 아니라 <strong>비즈니스 모델의 차이</strong>에서 기인:</p>
+  <ul>
+    <li><strong>소금집</strong>: 온라인 판매 활발 + 2개 매장(망원/안국) + 30종+ 제품 → 구매 후기 + 방문 후기 양면 발생</li>
+    <li><strong>세스크멘슬</strong>: 단일 매장(성수) + 다이닝 중심 → 방문 후기만 발생</li>
+    <li><strong>시사점</strong>: 온라인 채널 확대 시 멘션 볼륨이 구조적으로 증가할 가능성 높음 (그리팅/SSG는 아직 자체 리뷰 생태계로 유입되지 않는 중)</li>
+  </ul>
+</div>
+
+<div class="insight-card">
+  <h4>5-2. "와인 페어링 Bar" — 세스크멘슬만의 독점 포지션</h4>
+  <p>3개 브랜드 중 세스크멘슬만 <strong>와인/페어링 토픽이 1위</strong>. 메종조(17%)와 소금집(3%)은 이 영역에서 약함. 이것은:</p>
+  <ul>
+    <li>세스크멘슬이 "샤퀴테리 레스토랑"이 아니라 <strong>"와인과 함께하는 유럽식 다이닝 경험"</strong>으로 인식되고 있다는 증거</li>
+    <li>콜키지 프리 정책이 소비자 인식에 실제로 작동하고 있음</li>
+    <li><strong>전략적 함의</strong>: 이 포지션을 "와인 + 샤퀴테리 + 성수동"의 삼각축으로 강화하는 것이 차별화 핵심</li>
+  </ul>
+</div>
+
+<div class="insight-card">
+  <h4>5-3. 진정성 vs 추천 확신: 브랜드별 패턴</h4>
+  <ul>
+    <li><strong>메종조</strong>: Auth 최고(75.1) + Clout 최저(52.9) → "맛은 확실한데 추천은 조건부" — 가격대/접근성이 추천을 주저하게 만드는 구조</li>
+    <li><strong>세스크멘슬</strong>: Auth 중간(73.7) + Clout 최고(56.3) → "한번 가보면 추천하게 되는" 전환형 브랜드</li>
+    <li><strong>소금집</strong>: Auth 최저(71.7) + Clout 높음(56.1) → 볼륨이 크면 일반 포스팅 비중 증가 → Auth 희석, 그러나 "사봐라" 추천은 활발</li>
+  </ul>
+</div>
+
+<div class="insight-card">
+  <h4>5-4. 셰프 스토리 — 미활용 자산</h4>
+  <p>김정현 셰프의 유럽 10년 수련 스토리는 세스크멘슬의 핵심 차별화 자산이지만, 토픽 분석에서 <strong>"셰프/스토리" 멘션은 2건(1%)</strong>에 불과. 소비자가 이 스토리를 인지하고 있으나 리뷰에서 적극적으로 언급하지는 않는 상태.</p>
+  <ul>
+    <li><strong>기회</strong>: 셰프 스토리를 콘텐츠화하여 "왜 여기 소시지가 다른가"의 답을 제공 → Auth 강화</li>
+    <li><strong>참고</strong>: 메종조도 프렌치 정통성 멘션이 2%로 비슷 — 정통성 스토리는 "알면 신뢰하지만 자발적으로 퍼뜨리지는 않는" 카테고리</li>
+  </ul>
+</div>
+
+<div class="insight-card">
+  <h4>5-5. 협찬 비율 → 자발적 팬덤의 증거</h4>
+  <p>3개 브랜드 모두 협찬 비율이 2~3% 미만으로, 한국 F&B 업계 평균(추정 10~20%)보다 현저히 낮음. 이는 <strong>샤퀴테리 카테고리 자체가 자발적 경험 공유 동기가 강한 "인스타그래머블" 카테고리</strong>임을 보여줌. 마케팅 예산을 협찬 리뷰보다 <strong>자발적 공유를 촉진하는 경험 설계</strong>에 투자하는 것이 더 효과적.</p>
+</div>
+
+<!-- ==================== Section 6: Methodology ==================== -->
+<h2>6. 분석 방법론</h2>
+
+<table class="method-table">
+  <tr><th>항목</th><th>내용</th></tr>
+  <tr><td>데이터 소스</td><td>네이버 블로그 검색 API (sim+date 병행, 키워드별 최대 1,000건 페이징)</td></tr>
+  <tr><td>분석 기간</td><td>최근 90일 (2026-03-09 ~ 2026-06-07)</td></tr>
+  <tr><td>분석 엔진</td><td>RXR Mention Analysis v1.0 — Sincerity Filter + 2-Layer + Linguistic Layer</td></tr>
+  <tr><td>Sincerity Filter</td><td>Content Class A~G 7등급 + Trust Score (0~100)</td></tr>
+  <tr><td>Content Layer</td><td>토픽 분석 + 4-way 감성 + RQL(Q1~Q5)</td></tr>
+  <tr><td>Psyche Layer</td><td>Authenticity + Clout + Freshness (CLT 기반)</td></tr>
+  <tr><td>Linguistic Layer</td><td>형태소·기능어·확신도·담화·화용론·레지스터 6차원 → LAI + EDS</td></tr>
+  <tr><td>보정</td><td>Linguistic Layer 기반 Auth/Clout/Freshness/Trust/RQL/Sentiment 교차 보정</td></tr>
+  <tr><td>한계</td><td>LAI v1.0은 팝업/이벤트 기준 설계, F&B 카테고리 캘리브레이션 미적용</td></tr>
+</table>
+
+</div><!-- /container -->
+
+<!-- RXR Footer -->
+<footer style="max-width:1200px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#fafafa;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #eee;line-height:1.7;">
+    <p style="margin:0 0 4px;">본 분석은 공개 SNS 데이터에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:#F4F3FF;padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;letter-spacing:-0.3px;">💠 RXR SNS Analysis Solution</div>
+    <p style="margin:0;color:#333;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">『프로젝트 렌트(Project Rent)』</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 SNS 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+      본 리포트에 포함된 분석 프레임, 지표 체계, 용어 정의, 산출 로직 일체는 프로젝트 렌트의 독자 기술이며,
+      무단 복제·인용·역공학·재사용을 엄격히 금합니다.
+    </p>
+  </div>
+  <div style="background:#fafafa;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">
+    📧 <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#999;font-size:11px;">© Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>

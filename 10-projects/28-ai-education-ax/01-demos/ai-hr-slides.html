@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사장님, 직원관리 엑셀 이제 그만 — 슬라이드</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5A4BD1;
+    --primary-light: #A29BFE;
+    --primary-subtle: #EDE9FE;
+    --black: #1A1A2E;
+    --dark-gray: #4A4A68;
+    --mid-gray: #7F7F9E;
+    --light-gray: #E8E8F0;
+    --off-white: #F7F7FB;
+    --accent-neg: #7F7F9E;
+    --accent-pos: #6C5CE7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    color: var(--black);
+  }
+
+  /* ── Slide Container ── */
+  .deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    background: #fff;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── Slide Variants ── */
+  .slide--cover {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--black) 100%);
+    color: #fff;
+    text-align: center;
+  }
+  .slide--dark {
+    background: var(--black);
+    color: #fff;
+    text-align: center;
+  }
+  .slide--accent {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    text-align: center;
+  }
+  .slide--subtle {
+    background: var(--off-white);
+  }
+
+  /* ── Typography ── */
+  .slide-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 8px 24px;
+    border-radius: 24px;
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+  }
+  .slide--subtle .slide-badge,
+  .slide:not(.slide--cover):not(.slide--dark):not(.slide--accent) .slide-badge {
+    background: var(--primary-subtle);
+    color: var(--primary);
+  }
+
+  .slide-title {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+  }
+  .slide-title .highlight {
+    color: var(--primary-light);
+  }
+  .slide:not(.slide--cover):not(.slide--dark):not(.slide--accent) .slide-title .highlight {
+    color: var(--primary);
+  }
+
+  .slide-subtitle {
+    font-size: 22px;
+    font-weight: 400;
+    opacity: 0.85;
+    line-height: 1.5;
+    max-width: 700px;
+  }
+
+  .slide-section {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .slide--dark .slide-section,
+  .slide--accent .slide-section,
+  .slide--cover .slide-section {
+    color: var(--primary-light);
+  }
+
+  .slide-body {
+    font-size: 20px;
+    line-height: 1.7;
+    color: var(--dark-gray);
+    max-width: 800px;
+    text-align: left;
+    width: 100%;
+  }
+
+  /* ── Pain Grid ── */
+  .pain-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 40px;
+    width: 100%;
+    max-width: 1000px;
+  }
+  .pain-card {
+    flex: 1;
+    min-width: 150px;
+    max-width: 180px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 28px 16px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .slide:not(.slide--dark):not(.slide--cover):not(.slide--accent) .pain-card {
+    background: #fff;
+    border: 1px solid var(--light-gray);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .pain-emoji { font-size: 36px; display: block; margin-bottom: 12px; }
+  .pain-text { font-size: 15px; font-weight: 600; line-height: 1.4; }
+  .pain-time { font-size: 13px; color: var(--mid-gray); font-weight: 700; margin-top: 6px; }
+  .slide--dark .pain-time { color: var(--primary-light); }
+
+  /* ── Prompt Box ── */
+  .prompt {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border-radius: 16px;
+    padding: 28px 36px;
+    margin: 24px 0;
+    font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
+    font-size: 18px;
+    line-height: 1.7;
+    text-align: left;
+    max-width: 820px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .prompt::before {
+    content: '$ Claude Code';
+    display: block;
+    font-size: 12px;
+    color: var(--primary-light);
+    font-weight: 600;
+    margin-bottom: 14px;
+    font-family: 'Pretendard Variable', sans-serif;
+    letter-spacing: 1px;
+  }
+  .prompt .cmd { color: #a6e3a1; }
+
+  /* ── Document Preview ── */
+  .doc-frame {
+    background: #fff;
+    border-radius: 12px;
+    padding: 36px 40px;
+    max-width: 700px;
+    width: 100%;
+    text-align: left;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    border: 1px solid var(--light-gray);
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--dark-gray);
+    max-height: 72vh;
+    overflow-y: auto;
+  }
+  .doc-frame-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--primary);
+  }
+  .doc-section-title {
+    font-weight: 700;
+    color: var(--black);
+    margin-top: 18px;
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
+  .doc-field {
+    display: flex;
+    gap: 12px;
+    padding: 4px 0;
+    font-size: 14px;
+  }
+  .doc-label {
+    color: var(--mid-gray);
+    min-width: 100px;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  .doc-value { color: var(--black); font-weight: 500; }
+  .doc-hl {
+    background: var(--primary-subtle);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .doc-fade {
+    text-align: center;
+    padding: 18px;
+    color: var(--mid-gray);
+    font-size: 13px;
+    font-style: italic;
+    border-top: 1px dashed var(--light-gray);
+    margin-top: 18px;
+  }
+
+  /* ── Result Table ── */
+  .result-table {
+    width: 100%;
+    max-width: 820px;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--light-gray);
+    font-size: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .result-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .result-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--light-gray);
+    background: #fff;
+  }
+  .result-table tr:last-child td { border-bottom: none; }
+  .result-table tr:nth-child(even) td { background: var(--off-white); }
+  .result-table .old { color: var(--mid-gray); font-weight: 600; text-decoration: line-through; }
+  .result-table .new { color: var(--primary); font-weight: 700; }
+
+  /* ── Risk Table ── */
+  .risk-table {
+    width: 100%;
+    max-width: 860px;
+    border-collapse: collapse;
+    font-size: 15px;
+    margin-top: 20px;
+  }
+  .risk-table th {
+    padding: 14px 16px;
+    text-align: left;
+    color: var(--primary);
+    font-weight: 700;
+    border-bottom: 2px solid var(--primary);
+    font-size: 14px;
+  }
+  .risk-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--light-gray);
+    font-size: 15px;
+  }
+  .risk-urgent { color: var(--primary-dark); font-weight: 700; }
+  .risk-warn { color: var(--primary); font-weight: 600; }
+  .risk-planned { color: var(--mid-gray); font-weight: 600; }
+
+  /* ── KPI Row ── */
+  .kpi-row {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    margin: 32px 0;
+    flex-wrap: wrap;
+  }
+  .kpi-card {
+    text-align: center;
+    padding: 24px 32px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--light-gray);
+    min-width: 160px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .kpi-num {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--primary);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .kpi-label {
+    font-size: 13px;
+    color: var(--mid-gray);
+    font-weight: 500;
+  }
+
+  /* ── Big Quote ── */
+  .big-quote {
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1.3;
+    text-align: center;
+    max-width: 780px;
+  }
+  .big-quote .accent {
+    color: var(--primary);
+  }
+  .slide--dark .big-quote .accent,
+  .slide--accent .big-quote .accent {
+    color: var(--primary-light);
+  }
+
+  /* ── Step indicator ── */
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 14px;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 20px;
+  }
+
+  /* ── Stat Chips ── */
+  .stat-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .stat-chip {
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .stat-chip--primary { background: var(--primary); color: #fff; }
+  .stat-chip--light { background: var(--primary-light); color: #fff; }
+  .stat-chip--subtle { background: var(--primary-subtle); color: var(--primary); }
+  .stat-chip--muted { background: var(--light-gray); color: var(--dark-gray); }
+
+  /* ── Risk Cards ── */
+  .risk-card {
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 10px 0;
+    max-width: 820px;
+    width: 100%;
+    text-align: left;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .risk-card--urgent {
+    background: rgba(90,75,209,0.12);
+    border-left: 5px solid var(--primary-dark);
+  }
+  .risk-card--warn {
+    background: var(--primary-subtle);
+    border-left: 5px solid var(--primary);
+  }
+  .risk-card--planned {
+    background: var(--off-white);
+    border-left: 5px solid var(--mid-gray);
+  }
+  .risk-card .risk-label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .risk-card--urgent .risk-label { color: var(--primary-dark); }
+  .risk-card--warn .risk-label { color: var(--primary); }
+  .risk-card--planned .risk-label { color: var(--mid-gray); }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed;
+    bottom: 24px;
+    right: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 100;
+  }
+  .nav-counter {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Pretendard Variable', sans-serif;
+  }
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── Speaker Notes Toggle ── */
+  .speaker-note {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(30,30,46,0.95);
+    color: #cdd6f4;
+    padding: 20px 40px;
+    font-size: 15px;
+    line-height: 1.6;
+    max-height: 30vh;
+    overflow-y: auto;
+    z-index: 200;
+    backdrop-filter: blur(12px);
+  }
+  .speaker-note::before {
+    content: '강사 노트 (N키로 토글)';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary-light);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .speaker-note.visible { display: block; }
+
+  /* ── Progress Bar ── */
+  .progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--primary);
+    transition: width 0.3s ease;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="deck" id="deck">
+
+<!-- ═══════ 01. COVER ═══════ -->
+<div class="slide slide--cover active" data-note="직원 관리 좋아하시는 분? 아무도 없죠. 계약 만료일 까먹어서 자동 전환되고, 수습 끝난 줄도 모르고, 급여 계산 틀려서 노동청 진정... 오늘 이 고통을 끝내는 방법 보여드리겠습니다.">
+  <div class="slide-badge">AI 업무전환(AX) 교육 — LIVE DEMO</div>
+  <h1 class="slide-title">사장님, 직원관리 엑셀<br><span class="highlight">이제 그만</span></h1>
+  <p class="slide-subtitle">"계약 만료일 까먹기 → 수습 놓치기 → 급여 계산 실수"<br>이 고통을 끝내는 방법</p>
+</div>
+
+<!-- ═══════ 02. PAIN POINTS ═══════ -->
+<div class="slide slide--dark" data-note="소상공인 HR의 5대 고통. 하나하나 짚으면서 청중 고개 끄덕이게. '직원 10명만 되어도 계약 시작일, 수습 만료일, 갱신일, 연차 기산일... 엑셀로 관리하면 반드시 빠지는 게 생겨요. 그리고 진짜 무서운 건 — 계약 만료일 까먹는 거예요.'">
+  <div class="slide-section">소상공인 HR의 진짜 문제</div>
+  <h1 class="slide-title" style="font-size:40px; margin-bottom:12px;">5대 <span class="highlight">고통</span></h1>
+  <div class="pain-row">
+    <div class="pain-card">
+      <span class="pain-emoji">📋</span>
+      <span class="pain-text">계약 만료일<br>까먹음</span>
+      <div class="pain-time">자동 전환 리스크</div>
+    </div>
+    <div class="pain-card">
+      <span class="pain-emoji">😵</span>
+      <span class="pain-text">수습 끝나는 날<br>놓침</span>
+      <div class="pain-time">서면 통보 의무</div>
+    </div>
+    <div class="pain-card">
+      <span class="pain-emoji">🤔</span>
+      <span class="pain-text">급여 계산<br>맞는 건지 모름</span>
+      <div class="pain-time">4대보험 복잡</div>
+    </div>
+    <div class="pain-card">
+      <span class="pain-emoji">🔄</span>
+      <span class="pain-text">계약서 양식<br>어디서 구하지</span>
+      <div class="pain-time">네이버 검색 2시간</div>
+    </div>
+    <div class="pain-card">
+      <span class="pain-emoji">💸</span>
+      <span class="pain-text">노무사 상담<br>비용 부담</span>
+      <div class="pain-time">건당 10~30만원</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 03. TRANSITION ═══════ -->
+<div class="slide slide--accent" data-note="'직원 명부 파일 하나만 있으면 됩니다. 엑셀 안 열어요. 피벗테이블 안 만들어요. 그냥 파일 넣고 물어보는 겁니다.' 여기서 자연스럽게 화면 전환 → Claude Code 열기.">
+  <div class="slide-section">오늘 보여드릴 것</div>
+  <h1 class="big-quote" style="font-size:42px;">
+    직원 명부 파일 <span class="accent">하나</span>만 있으면<br>
+    AI가 HR 비서가 됩니다
+  </h1>
+  <p class="slide-subtitle" style="margin-top:32px;">엑셀 안 열어요 · 피벗테이블 안 만들어요 · 한국어면 충분</p>
+</div>
+
+<!-- ═══════ 04. STEP 1 — 데이터 투입 ═══════ -->
+<div class="slide slide--subtle" data-note="CSV 파일을 넣는 장면. '이게 실제 회사 직원 명부예요. 2개 법인, 직원 14명. 이름, 직무, 연봉, 입사일, 계약유형, 수습 여부... 이런 게 다 들어있어요. 이걸 그냥 여기에 넣어볼게요.' 파일 드래그앤드롭.">
+  <div class="step-num">1</div>
+  <div class="slide-section">STEP 1 — 데이터 투입</div>
+  <h1 class="slide-title" style="font-size:36px;">직원 명부 CSV, 그냥 넣습니다</h1>
+  <div class="prompt">
+    <span class="cmd">우리 회사 직원 명부야.<br>
+2개 법인(한빛디자인 A, 소울크리에이티브 B)<br>
+재직자 14명 데이터. 분석해줘.</span>
+  </div>
+  <p style="font-size:16px; color:var(--dark-gray); margin-top:16px;">
+    이름, 직무, 연봉, 입사일, 계약유형, 수습 여부 — 전부 CSV 한 장에
+  </p>
+</div>
+
+<!-- ═══════ 05. STEP 2 — 인력 현황 프롬프트 ═══════ -->
+<div class="slide slide--subtle" data-note="프롬프트를 입력하는 장면. 천천히 타이핑하면서 '파일 넣었는데, 그냥 물어보면 됩니다. 법인별, 계약유형별, 인건비 총액까지.' 30초 후 결과 나오면 다음 슬라이드.">
+  <div class="step-num">2</div>
+  <div class="slide-section">STEP 2 — 인력 현황 대시보드</div>
+  <h1 class="slide-title" style="font-size:34px;">한 문장이면 됩니다</h1>
+  <div class="prompt">
+    <span class="cmd">우리 회사 인력 현황 정리해줘.<br>법인별 인원수, 계약유형별 분포,<br>총 인건비, 평균 연봉 알려줘</span>
+  </div>
+</div>
+
+<!-- ═══════ 06. STEP 2 — 결과 ═══════ -->
+<div class="slide" data-note="결과가 쫙 나오는 장면. 잠깐 멈추고 청중이 읽을 시간을 줍니다. '14명분 데이터를 30초 만에 정리했어요. 법인별, 계약유형별, 총 인건비까지. 사장님이 직접 하시면 — 엑셀 필터 걸고, 합계 내고, 분류하고 — 한 시간입니다.'">
+  <div class="slide-section">STEP 2 — 결과</div>
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <span class="kpi-num">14명</span>
+      <span class="kpi-label">총 재직자</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">5.1억</span>
+      <span class="kpi-label">연간 총 인건비</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">4,330만</span>
+      <span class="kpi-label">월 급여 총액</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">3,643만</span>
+      <span class="kpi-label">평균 연봉</span>
+    </div>
+  </div>
+  <div style="margin-top:24px; text-align:center;">
+    <p style="font-size:14px; font-weight:600; color:var(--dark-gray); margin-bottom:10px;">법인별 인원</p>
+    <div class="stat-row">
+      <span class="stat-chip stat-chip--primary">한빛디자인 A — 4명</span>
+      <span class="stat-chip stat-chip--light">소울크리에이티브 B — 10명</span>
+    </div>
+    <p style="font-size:14px; font-weight:600; color:var(--dark-gray); margin-top:20px; margin-bottom:10px;">계약유형별</p>
+    <div class="stat-row">
+      <span class="stat-chip stat-chip--subtle">1년 기간제 5명</span>
+      <span class="stat-chip stat-chip--primary">무기한 정규직 4명</span>
+      <span class="stat-chip stat-chip--light">위임계약(임원) 2명</span>
+      <span class="stat-chip stat-chip--muted">스톡옵션 포함 1명</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 07. IMPACT 1 ═══════ -->
+<div class="slide slide--dark" data-note="숫자 임팩트. '14명분 데이터, 법인별·계약유형별·인건비까지 30초. 사장님이 직접 하시면? 엑셀 열고, 필터 걸고, 합계 내고 — 30분.' 잠깐 멈춤.">
+  <div class="slide-section">방금 일어난 일</div>
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <span class="kpi-num">30초</span>
+      <span class="kpi-label">인력 현황 완성</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num" style="color:var(--mid-gray); text-decoration:line-through; font-size:32px;">30분</span>
+      <span class="kpi-label">직접 하시면</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num" style="font-size:32px;">자동 분류</span>
+      <span class="kpi-label">법인별, 계약유형별, 인건비</span>
+    </div>
+  </div>
+  <p class="slide-subtitle" style="margin-top:36px; text-align:center;">파일 하나 넣었는데 — 정리, 분류, 합계까지 자동으로.</p>
+</div>
+
+<!-- ═══════ 08. STEP 3 — 리스크 캘린더 프롬프트 ═══════ -->
+<div class="slide slide--subtle" data-note="'이제 진짜 무서운 걸 보여드릴게요. 놓치면 큰일 나는 것들. 계약 만료, 수습 평가, 갱신 시점 — 이걸 머리로 기억하고 계셨어요?'">
+  <div class="step-num">3</div>
+  <div class="slide-section">STEP 3 — "놓치면 큰일 나는 것"</div>
+  <h1 class="slide-title" style="font-size:34px;">리스크 캘린더</h1>
+  <div class="prompt">
+    <span class="cmd">앞으로 6개월 이내에 계약 갱신이나<br>수습 평가해야 하는 직원 정리해줘.<br>긴급한 순서대로. 날짜 놓치면 안 되는 것 위주로</span>
+  </div>
+</div>
+
+<!-- ═══════ 09. STEP 3 — 리스크 캘린더 결과 ═══════ -->
+<div class="slide" data-note="여기가 하이라이트. '이수진 수습 만료가 오늘입니다.' — 이걸 까먹으면? 수습 종료 통보를 안 하면 자동으로 본계약으로 넘어갈 수도 있어요. 그리고 6월에 6명이 동시에 평가 시점이라는 것도 — 엑셀만 보고 있으면 놓쳐요. AI한테 물어보면 30초에 나옵니다.">
+  <div class="slide-section">STEP 3 — 결과: 리스크 캘린더</div>
+  <div class="risk-card risk-card--urgent">
+    <div class="risk-label">긴급 — 이번 달 (5월)</div>
+    <div><strong>이수진</strong> (R, 매장/운영관리) — 수습 3개월 만료: <strong>2026-05-19 (오늘)</strong><br>
+    → 정식 채용 여부 확정 필요. 수습 만료 전 서면 통보 의무</div>
+  </div>
+  <div class="risk-card risk-card--warn">
+    <div class="risk-label">주의 — 다음 달 (6월)</div>
+    <div><strong>김하늘, 정유진, 박현우</strong> — 입사 3개월 시점: 2026-06-03<br>
+    <strong>한소희</strong> — 수습 만료: 2026-06-17 · <strong>오서연</strong> — 수습 만료: 2026-06-18<br>
+    <strong>최준호</strong> — 입사 3개월: 2026-06-23<br>
+    → 6월에 <strong>6명의 평가/확인이 집중</strong>. 미리 평가 기준 정리 필요</div>
+  </div>
+  <div class="risk-card risk-card--planned">
+    <div class="risk-label">예정 — 2027년 2~3월 (기간제 만료 집중)</div>
+    <div>7명의 1년 기간제 계약이 <strong>2027년 2~3월에 집중 만료</strong><br>
+    → 2026년 9월부터 갱신 여부 검토 시작 권장</div>
+  </div>
+</div>
+
+<!-- ═══════ 10. STEP 4 — 근로계약서 프롬프트 ═══════ -->
+<div class="slide slide--subtle" data-note="'계약서 양식? 네이버에서 찾아서 수정하고... 맞는지 모르겠고... 노무사한테 물어보면 상담비 나가고... AI한테 조건만 말하면 초안이 나옵니다. 물론 최종 검토는 전문가한테 받으세요. 근데 초안 만드는 데 2시간은 아낍니다.'">
+  <div class="step-num">4</div>
+  <div class="slide-section">STEP 4 — 근로계약서 초안</div>
+  <h1 class="slide-title" style="font-size:34px;">조건만 말하면 초안이 나옵니다</h1>
+  <div class="prompt">
+    <span class="cmd">이수진 수습이 끝나면 정식 1년 기간제로<br>전환할 건데, 근로계약서 초안 만들어줘.<br>연봉 2,800만원, 근무시간 09-17시, 식대 20만원 별도</span>
+  </div>
+  <p style="font-size:16px; color:var(--dark-gray); margin-top:20px; max-width:700px; text-align:center;">
+    AI가 초안을 만들고 → 전문가가 검토<br>
+    <span style="color:var(--primary); font-weight:700;">초안 만드는 2시간을 아끼는 겁니다</span>
+  </p>
+</div>
+
+<!-- ═══════ 11. IMPACT 2 ═══════ -->
+<div class="slide slide--dark" data-note="'현황 파악 30초, 리스크 알림 30초, 계약서 초안 1분. 사장님의 HR 담당 비서가 생긴 겁니다. 정부 지원 제도까지 알고 있는. 월급 0원.'">
+  <div class="slide-section">3번의 질문, 총 2분</div>
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <span class="kpi-num">30초</span>
+      <span class="kpi-label">현황 파악</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">30초</span>
+      <span class="kpi-label">리스크 알림</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">1분</span>
+      <span class="kpi-label">계약서 초안</span>
+    </div>
+  </div>
+  <h1 class="big-quote" style="font-size:36px; margin-top:32px;">
+    사장님의 <span class="accent">HR 비서</span>가 생긴 겁니다<br>
+    <span style="font-size:24px; font-weight:400; opacity:0.7;">월급 0원.</span>
+  </h1>
+</div>
+
+<!-- ═══════ 12. BEFORE / AFTER ═══════ -->
+<div class="slide slide--subtle" data-note="비교표. 하나씩 짚어주면서 '인력 현황 30분 → 30초, 계약 만료 — 머리로 기억 → 자동 알림, 계약서 — 네이버 양식 2시간 → 조건만 말하면 1분...'">
+  <div class="slide-section">Before → After</div>
+  <h1 class="slide-title" style="font-size:32px; text-align:center; margin-bottom:28px;">같은 업무, 다른 세계</h1>
+  <table class="result-table">
+    <tr><th style="width:25%;">업무</th><th>예전 방식</th><th>AI 방식</th></tr>
+    <tr><td><strong>인력 현황 파악</strong></td><td class="old">엑셀 열어서 세기 30분</td><td class="new">물어보면 30초</td></tr>
+    <tr><td><strong>계약 만료 관리</strong></td><td class="old">머리로 기억 or 잊음</td><td class="new">리스크 캘린더 자동</td></tr>
+    <tr><td><strong>수습 평가 시점</strong></td><td class="old">까먹고 넘어감</td><td class="new">"이번 주 확인할 것" 알림</td></tr>
+    <tr><td><strong>근로계약서</strong></td><td class="old">네이버 양식 + 수정 2시간</td><td class="new">조건만 말하면 초안 1분</td></tr>
+    <tr><td><strong>급여 시뮬레이션</strong></td><td class="old">노무사 상담 or 감으로</td><td class="new">"연봉 3천이면 실수령 얼마야?"</td></tr>
+    <tr><td><strong>필요 스킬</strong></td><td class="old">노무 지식, 엑셀, 법률 검색</td><td class="new">한국어</td></tr>
+  </table>
+</div>
+
+<!-- ═══════ 13. KEY MESSAGE ═══════ -->
+<div class="slide slide--dark" data-note="'직원 관리가 어려운 이유는 — 일이 복잡해서가 아니에요. 내 본업이 아닌데 안 하면 안 되고, 실수하면 법적 문제가 생기고, 도와줄 사람은 없고. AI는 이 세 가지를 다 해결합니다.'">
+  <div class="slide-section">핵심</div>
+  <h1 class="big-quote">
+    사장님이 노무사가<br>
+    <span class="accent">될 필요 없어요</span>
+  </h1>
+  <p class="slide-subtitle" style="margin-top:32px; text-align:center;">
+    귀찮은 정리는 자동으로 · 놓치면 안 되는 건 미리 알려주고<br>
+    문서 초안은 바로 만들어주고<br>
+    <strong>AI한테 물어보면 됩니다.</strong>
+  </p>
+</div>
+
+<!-- ═══════ 14. CLOSING ═══════ -->
+<div class="slide slide--accent" data-note="'세 가지 데모 전부 패턴이 같죠? 정보 넣고, 물어보고, 받는다. 이 패턴 하나만 익히면, 사장님의 잡일이 절반으로 줄어요. 그 시간에 — 고객 만나고, 매장 보고, 진짜 중요한 일 하세요.'">
+  <div class="slide-section">결론</div>
+  <h1 class="big-quote" style="font-size:40px; margin-bottom:40px;">
+    <span class="accent">파일 넣고, 물어보고, 받는다</span>
+  </h1>
+  <div style="display:flex; gap:40px; justify-content:center; margin-top:8px;">
+    <div style="text-align:center;">
+      <div style="font-size:48px; font-weight:800;">①</div>
+      <div style="font-size:17px; font-weight:600; margin-top:8px;">직원 명부를 넣는다</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:48px; font-weight:800;">②</div>
+      <div style="font-size:17px; font-weight:600; margin-top:8px;">한국어로 묻는다</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:48px; font-weight:800;">③</div>
+      <div style="font-size:17px; font-weight:600; margin-top:8px;">결과를 받는다</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 15. END ═══════ -->
+<div class="slide slide--cover" data-note="실습으로 전환. '자, 이제 직접 해보세요. 여러분 회사 직원 명부 가져오셨죠? 5분이면 됩니다.'">
+  <div class="slide-badge">LIVE DEMO COMPLETE</div>
+  <h1 class="slide-title" style="font-size:48px;">이제 직접 해보세요</h1>
+  <p class="slide-subtitle">파일 넣고, 물어보고, 받는다.<br>5분이면 됩니다.</p>
+  <p style="margin-top:40px; font-size:14px; opacity:0.5;">Do Better Things — AI 업무전환(AX) 교육</p>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div class="nav">
+  <span class="nav-counter" id="counter">1 / 15</span>
+  <button class="nav-btn" onclick="prev()" aria-label="이전">◂</button>
+  <button class="nav-btn" onclick="next()" aria-label="다음">▸</button>
+</div>
+
+<!-- Speaker Notes -->
+<div class="speaker-note" id="speakerNote"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const speakerNote = document.getElementById('speakerNote');
+  let current = 0;
+  let notesVisible = false;
+
+  function show(idx) {
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    current = idx;
+    counter.textContent = `${idx + 1} / ${slides.length}`;
+    progress.style.width = `${((idx + 1) / slides.length) * 100}%`;
+
+    // Update speaker note
+    const note = slides[idx].getAttribute('data-note') || '';
+    speakerNote.innerHTML = note;
+  }
+
+  function next() { if (current < slides.length - 1) show(current + 1); }
+  function prev() { if (current > 0) show(current - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { e.preventDefault(); show(0); }
+    if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+    if (e.key === 'n' || e.key === 'N') {
+      notesVisible = !notesVisible;
+      speakerNote.classList.toggle('visible', notesVisible);
+    }
+    if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diff) > 50) { diff < 0 ? next() : prev(); }
+  });
+
+  show(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봉은문화회관 공간활용 통합 제언 보고서 — PROJECT RENT</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7;
+  --accent-dark:#5A4BD1;
+  --accent-light:#A29BFE;
+  --accent-subtle:rgba(108,92,231,.08);
+  --warm:#E9DCC8; --stone:#A89E90; --charcoal:#2B2B2B; --rust:#B86C4A;
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --duration-fast:150ms; --duration-base:250ms; --duration-slow:400ms;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+a{color:var(--accent-light);text-decoration:none}
+a:hover{color:var(--accent)}
+strong{color:var(--fg);font-weight:500}
+
+/* Brand Mark */
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+
+/* Navigation */
+.nav{position:fixed;top:50%;left:30px;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:10;font-size:9px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color var(--duration-fast) var(--ease-out);padding:2px 0}
+.nav a:hover,.nav a.active{color:var(--accent)}
+
+/* Sections */
+.sec{padding:100px 120px 120px;max-width:1440px;margin:0 auto;position:relative;opacity:0;transform:translateY(30px);transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out)}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:8px}
+.sec-head h2 em{font-style:normal;color:var(--accent)}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.7;max-width:820px;margin-bottom:40px}
+
+/* Cover */
+#cover{padding-top:180px;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:40px}
+.cover-title{font-size:84px;font-weight:200;letter-spacing:-0.04em;line-height:.95;margin-bottom:24px}
+.cover-title em{font-style:normal;color:var(--accent-light)}
+.cover-sub{font-size:20px;color:var(--fg-2);line-height:1.6;max-width:820px;margin-bottom:60px;letter-spacing:-0.015em}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:32px;max-width:900px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:12px 14px;font-weight:400;border-bottom:1px solid var(--line-2)}
+tbody td{padding:12px 14px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;font-size:10px;letter-spacing:.1em;font-weight:400}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+
+/* Cards */
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}
+.card-grid-5{grid-template-columns:repeat(5,1fr)}
+.card-grid-4{grid-template-columns:repeat(4,1fr)}
+.card-grid-2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--bg-3);border:1px solid var(--line-2);padding:24px;transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out)}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:13px;color:var(--fg-2);margin-bottom:4px}
+.card .tag{display:inline-block;padding:2px 8px;background:var(--accent-subtle);color:var(--accent-light);font-size:10px;letter-spacing:.15em;margin-top:8px;border:1px solid rgba(108,92,231,.15)}
+
+/* Case Study */
+.case-study{background:var(--bg-3);border:1px solid var(--line-2);border-left:3px solid var(--accent);padding:28px 28px 20px;margin:16px 0;transition:border-color var(--duration-base) var(--ease-out)}
+.case-study:hover{border-color:var(--fg-3);border-left-color:var(--accent)}
+.case-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.case-header h4{font-size:17px;font-weight:500;color:var(--fg)}
+.case-header .loc{font-size:12px;color:var(--fg-3);margin-top:4px}
+.case-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:16px 0;padding:16px 0;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+.case-meta .ml{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+.case-meta .mv{font-size:13px;color:var(--fg);font-weight:400}
+.case-insight{background:var(--accent-subtle);border-left:2px solid var(--accent);padding:16px 18px;margin-top:16px}
+.case-insight p{font-size:13px;color:var(--fg-2);margin:0;line-height:1.7}
+.case-insight strong{color:var(--accent-light)}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:24px;text-align:center;transition:border-color var(--duration-base) var(--ease-out)}
+.kpi:hover{border-color:var(--accent)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:36px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi .kpi-unit{font-size:16px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px}
+
+/* Law Diagram */
+.law-diagram{background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:24px 0}
+.law-layer{border:1px solid var(--line-2);padding:20px;margin:12px 0;position:relative}
+.law-layer.outer{border-color:var(--green);background:rgba(143,163,126,.03)}
+.law-layer.mid{border-color:var(--amber);background:rgba(217,163,75,.03);margin:12px}
+.law-layer.inner{border-color:var(--red);background:rgba(225,112,85,.03);margin:12px}
+.law-layer-label{position:absolute;top:-9px;left:16px;background:var(--bg-2);padding:0 8px;font-size:10px;letter-spacing:.2em;font-weight:400;text-transform:uppercase}
+.law-layer.outer .law-layer-label{color:var(--green)}
+.law-layer.mid .law-layer-label{color:var(--amber)}
+.law-layer.inner .law-layer-label{color:var(--red)}
+.law-layer p{font-size:13px;color:var(--fg-2);margin:4px 0}
+.law-core{text-align:center;padding:16px;background:var(--accent-subtle);border:1px solid rgba(108,92,231,.2);margin-top:14px}
+.law-core p{color:var(--accent-light);font-weight:500;font-size:13px;margin:0}
+
+/* Callout */
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:24px 28px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+
+/* Steps */
+.steps{margin:24px 0}
+.step{display:flex;gap:18px;padding:20px 0;border-bottom:1px solid var(--line-2)}
+.step:last-child{border-bottom:none}
+.step-num{width:36px;height:36px;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.step-content{flex:1}
+.step-content h4{font-size:15px;font-weight:500;color:var(--fg);margin:0 0 6px}
+.step-content p{font-size:13px;color:var(--fg-2);margin:0}
+.step-content .step-target{font-size:11px;color:var(--accent-light);letter-spacing:.1em;margin-top:6px}
+
+/* Floor Plan */
+.floor-plan{background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:24px 0}
+.floor-label{font-size:11px;font-weight:500;letter-spacing:.2em;color:var(--accent);text-transform:uppercase;padding:8px 14px;background:var(--accent-subtle);border:1px solid rgba(108,92,231,.15);display:inline-block;margin-bottom:16px}
+.floor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.floor-cell{padding:18px 14px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line-2)}
+.floor-cell.fb{background:rgba(143,163,126,.06);border-color:rgba(143,163,126,.25)}
+.floor-cell.exhibit{background:rgba(108,92,231,.05);border-color:rgba(108,92,231,.2)}
+.floor-cell.shop{background:rgba(217,163,75,.06);border-color:rgba(217,163,75,.25)}
+.floor-cell.meditation{background:rgba(111,138,163,.06);border-color:rgba(111,138,163,.25)}
+.floor-cell.rental{background:rgba(225,112,85,.05);border-color:rgba(225,112,85,.2)}
+.floor-cell.foreign{background:rgba(162,155,254,.06);border-color:rgba(162,155,254,.2)}
+.floor-cell .cell-name{font-size:12px;font-weight:500;color:var(--fg)}
+.floor-cell .cell-area{font-size:10px;color:var(--fg-3);margin-top:4px}
+
+/* Interpretation Scale */
+.interpretation{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}
+.interp-card{padding:28px;text-align:center;border:1px solid var(--line-2)}
+.interp-card.narrow{background:rgba(225,112,85,.04);border-color:rgba(225,112,85,.2)}
+.interp-card.mid{background:rgba(217,163,75,.04);border-color:rgba(217,163,75,.2)}
+.interp-card.wide{background:rgba(143,163,126,.04);border-color:rgba(143,163,126,.2)}
+.interp-card .interp-label{font-size:10px;letter-spacing:.25em;font-weight:400;text-transform:uppercase;margin-bottom:10px}
+.interp-card.narrow .interp-label{color:var(--red)}
+.interp-card.mid .interp-label{color:var(--amber)}
+.interp-card.wide .interp-label{color:var(--green)}
+.interp-card .interp-value{font-size:36px;font-weight:200;color:var(--fg);letter-spacing:-0.02em}
+.interp-card .interp-unit{font-size:16px;font-weight:300}
+.interp-card .interp-desc{font-size:12px;color:var(--fg-3);margin-top:10px;line-height:1.5}
+
+/* Church Grid */
+.church-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:16px 0}
+.church-card{background:var(--bg-3);border:1px solid var(--line-2);padding:24px}
+.church-card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.church-card p{font-size:13px;color:var(--fg-2);margin-bottom:6px}
+.church-card .lesson{background:var(--bg-2);border-left:2px solid var(--accent);padding:12px 14px;margin-top:12px;font-size:12px;color:var(--fg-2);line-height:1.6}
+.church-card .lesson strong{color:var(--accent-light)}
+
+/* Compare Table */
+.compare-table thead th{text-align:center}
+.compare-table thead th:first-child{text-align:left}
+.compare-table tbody td{text-align:center;font-size:13px}
+.compare-table tbody td:first-child{text-align:left;font-weight:500;color:var(--fg)}
+
+/* TOC */
+.toc{background:var(--bg-2);border:1px solid var(--line-2);padding:28px 32px;margin-top:40px}
+.toc h3{font-size:11px;letter-spacing:.3em;color:var(--accent);text-transform:uppercase;margin-bottom:20px}
+.toc ol{list-style:none;counter-reset:toc;display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+.toc li{counter-increment:toc;padding:10px 0;border-bottom:1px solid var(--line-2);font-size:13px}
+.toc li:last-child,.toc li:nth-last-child(2):nth-child(odd){border-bottom:none}
+.toc li::before{content:counter(toc,decimal-leading-zero);font-size:10px;letter-spacing:.15em;color:var(--fg-3);margin-right:12px}
+.toc a{color:var(--fg-2);transition:color var(--duration-fast) var(--ease-out)}
+.toc a:hover{color:var(--accent)}
+
+/* Highlight number */
+.hero-number{text-align:center;margin:40px 0 24px}
+.hero-number .value{font-size:72px;font-weight:200;color:var(--accent);letter-spacing:-0.03em;line-height:1}
+.hero-number .unit{font-size:24px;font-weight:300;color:var(--fg-2)}
+.hero-number .sub{font-size:13px;color:var(--fg-3);margin-top:8px}
+
+/* Footer */
+footer{padding:80px 120px 60px;border-top:1px solid var(--line-2);max-width:1440px;margin:80px auto 0;display:flex;justify-content:space-between;align-items:baseline}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg)}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+
+/* Toast */
+#toast{position:fixed;bottom:30px;right:30px;background:rgba(20,20,20,.92);backdrop-filter:blur(10px);border:1px solid var(--accent);color:var(--fg);padding:12px 20px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;z-index:100;opacity:0;transform:translateY(20px);transition:opacity var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);pointer-events:none}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* Row — compact unornable section separator */
+h3.sub{font-size:18px;font-weight:500;color:var(--fg);margin:40px 0 16px;letter-spacing:-0.01em}
+h3.sub::before{content:'';display:inline-block;width:3px;height:18px;background:var(--accent);margin-right:12px;vertical-align:text-bottom}
+
+@media (prefers-reduced-motion:reduce){
+  .sec{opacity:1;transform:none;transition:none}
+  *{transition:none!important;animation:none!important}
+}
+@media (max-width:1200px){
+  .sec{padding:80px 60px}
+  .cover-title{font-size:56px}
+  .sec-head h2{font-size:32px}
+  .card-grid,.card-grid-5,.card-grid-4{grid-template-columns:1fr 1fr}
+  .kpi-grid,.kpi-grid-3{grid-template-columns:1fr 1fr}
+  .floor-grid{grid-template-columns:repeat(2,1fr)}
+  .church-grid{grid-template-columns:1fr}
+  .interpretation{grid-template-columns:1fr}
+  .nav{display:none}
+  .cover-meta{grid-template-columns:repeat(2,1fr)}
+  .toc ol{grid-template-columns:1fr}
+}
+@media print{
+  .nav,.brand-mark,#toast{display:none}
+  .sec{opacity:1;transform:none;padding:40px 60px}
+  body{background:#fff;color:#111}
+}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+
+<nav class="nav" id="mainNav">
+  <a href="#cover">Cover</a>
+  <a href="#s1">Law</a>
+  <a href="#s2">Matrix</a>
+  <a href="#s3">F&amp;B</a>
+  <a href="#s4">Museum</a>
+  <a href="#s5">Shop</a>
+  <a href="#s6">Wellness</a>
+  <a href="#s7">Rental</a>
+  <a href="#s8">Cases</a>
+  <a href="#s9">Plan</a>
+  <a href="#s10">Action</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">Bongeunsa Cultural Hall &mdash; Space Strategy Report</div>
+  <h1 class="cover-title">봉은문화회관<br><em>공간활용 통합 제언</em></h1>
+  <p class="cover-sub">문화집회시설(건축법) &times; 전통사찰보존구역(전통사찰법) 이중 규제 하의<br>공간활용 전략 및 상업화 가능성 분석</p>
+  <dl class="cover-meta">
+    <div><dt>Project</dt><dd>봉은문화센터 활용전략 수립</dd></div>
+    <div><dt>Area</dt><dd>8,868㎡ (1F+2F)</dd></div>
+    <div><dt>Date</dt><dd>2026. 05. 21</dd></div>
+    <div><dt>By</dt><dd>PROJECT RENT</dd></div>
+  </dl>
+
+  <nav class="toc">
+    <h3>Contents</h3>
+    <ol>
+      <li><a href="#s1">법적 프레임워크 요약</a></li>
+      <li><a href="#s2">공간활용 가능 영역 &mdash; 법적 허용 매트릭스</a></li>
+      <li><a href="#s3">제언 1: 전통다원 &middot; 사찰음식 F&amp;B</a></li>
+      <li><a href="#s4">제언 2: 전시 &middot; 체험 뮤지엄</a></li>
+      <li><a href="#s5">제언 3: 전통문화 상품 편집숍</a></li>
+      <li><a href="#s6">제언 4: 명상 &middot; 웰니스 센터</a></li>
+      <li><a href="#s7">제언 5: 대관 &middot; 기업 프로그램</a></li>
+      <li><a href="#s8">국내 종교시설 상업화 케이스</a></li>
+      <li><a href="#s9">통합 공간 배치 시나리오</a></li>
+      <li><a href="#s10">실행을 위한 선결 과제</a></li>
+    </ol>
+  </nav>
+</section>
+
+<!-- SECTION 1: Law -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">01 &middot; Legal Framework</div><h2>법적 프레임워크 <em>요약</em></h2></div>
+    <div class="no">3 Laws &times; 1 Space</div>
+  </div>
+  <p class="sec-desc">봉은문화회관은 세 개의 법이 동시에 적용되는 특수한 공간이다. 어떤 활용 방안이든 이 세 법의 교집합 안에 있어야 한다.</p>
+
+  <div class="law-diagram">
+    <div class="law-layer outer">
+      <span class="law-layer-label">건축법 (가장 유연)</span>
+      <p>문화집회시설(4군) &rarr; 하위군 변경 = <strong>신고만으로 가능</strong></p>
+      <div class="law-layer mid">
+        <span class="law-layer-label">도시공원법 (중간)</span>
+        <p>역사공원 내: 교양시설(전시) &middot; 편익시설(음식점) OK &nbsp;|&nbsp; 독립적 판매시설은 공원시설 미해당 위험</p>
+        <div class="law-layer inner">
+          <span class="law-layer-label">전통사찰법 (가장 제약적)</span>
+          <p>보존구역 내 영업행위 <strong>원칙 금지</strong></p>
+          <p>허용: 불교 &middot; 전통문화 상품, 전통다원, 신도 편의시설(교육 &middot; 포교)</p>
+          <div class="law-core">
+            <p>&#9733; 이 안이 실제 사업 가능 영역 &#9733;</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub">법별 핵심 조항</h3>
+  <table>
+    <thead><tr><th>법령</th><th>핵심 조항</th><th>봉은문화회관 적용</th></tr></thead>
+    <tbody>
+      <tr><td><strong>건축법</strong> 시행령 제14조</td><td>4군(문화집회)&rarr;5군(영업)/7군(근린): 신고</td><td>용도변경 절차 자체는 간단</td></tr>
+      <tr><td><strong>전통사찰법</strong> 제6조</td><td>보존구역 내 영업행위 <strong>원칙 금지</strong></td><td>모든 상업 활동의 상위 규제</td></tr>
+      <tr><td><strong>전통사찰법</strong> 시행령 제7조</td><td>예외 허용: 불교문화상품, 전통문화상품, 전통다원, 신도편의시설</td><td>허용 범위 내에서만 상업 가능</td></tr>
+      <tr><td><strong>도시공원법</strong> 시행규칙 별표1</td><td>역사공원 내 교양시설, 편익시설 허용</td><td>전시&middot;F&amp;B 가능, 독립 판매시설 위험</td></tr>
+      <tr><td><strong>전통사찰법</strong> 제9조</td><td>외부 임대 시 서울시장 허가 + 조계종 승인</td><td>직영이 법적으로 가장 안전</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout-success callout">
+    <p><strong>핵심 인사이트: 제약이 곧 차별화.</strong><br>일반 상업시설로의 전환은 불가능하지만, 이 제약은 역설적으로 경쟁 해자(moat)를 만든다. "강남 한복판에서 1,200년 사찰이 직접 운영하는 프리미엄 문화공간"은 어떤 상업시설도 흉내낼 수 없는 포지셔닝이다.</p>
+  </div>
+</section>
+
+<!-- SECTION 2: Matrix -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">02 &middot; Feasibility Matrix</div><h2>공간활용 가능 영역 &mdash; <em>법적 허용 매트릭스</em></h2></div>
+    <div class="no">건축법 &times; 사찰법 &times; 공원법</div>
+  </div>
+  <p class="sec-desc">건축법 &times; 전통사찰법 &times; 도시공원법의 교차 판정 결과.</p>
+
+  <table class="compare-table">
+    <thead>
+      <tr><th style="width:26%">활용 방향</th><th>건축법</th><th>전통사찰법</th><th>도시공원법</th><th>종합 판정</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>전시장 &middot; 박물관 &middot; 미술관</td><td><span class="badge badge-yes">기재변경</span></td><td><span class="badge badge-yes">포교&middot;교육</span></td><td><span class="badge badge-yes">교양시설</span></td><td><strong style="color:var(--green)">확실히 가능</strong></td></tr>
+      <tr><td>전통다원 (전통차 &middot; 한과)</td><td><span class="badge badge-yes">신고</span></td><td><span class="badge badge-yes">제7조 명시</span></td><td><span class="badge badge-yes">편익시설</span></td><td><strong style="color:var(--green)">확실히 가능</strong></td></tr>
+      <tr><td>사찰음식 레스토랑</td><td><span class="badge badge-yes">신고</span></td><td><span class="badge badge-yes">전통다원 해석</span></td><td><span class="badge badge-yes">편익시설</span></td><td><strong style="color:var(--green)">가능 (선례)</strong></td></tr>
+      <tr><td>불교 &middot; 전통문화 상품 판매</td><td><span class="badge badge-yes">신고</span></td><td><span class="badge badge-yes">제7조 명시</span></td><td><span class="badge badge-warn">뮤지엄숍</span></td><td><strong style="color:var(--amber)">조건부 가능</strong></td></tr>
+      <tr><td>명상 &middot; 수행 프로그램</td><td><span class="badge badge-yes">변경불요</span></td><td><span class="badge badge-yes">수행&middot;교화</span></td><td><span class="badge badge-yes">교양시설</span></td><td><strong style="color:var(--green)">확실히 가능</strong></td></tr>
+      <tr><td>교육 프로그램 (유료)</td><td><span class="badge badge-yes">변경불요</span></td><td><span class="badge badge-yes">교육&middot;포교</span></td><td><span class="badge badge-yes">교양시설</span></td><td><strong style="color:var(--green)">확실히 가능</strong></td></tr>
+      <tr><td>문화행사 대관</td><td><span class="badge badge-yes">기존 용도</span></td><td><span class="badge badge-warn">행사별</span></td><td><span class="badge badge-yes">교양시설</span></td><td><strong style="color:var(--amber)">행사별 판단</strong></td></tr>
+      <tr style="opacity:.6"><td>일반 카페 / 프랜차이즈</td><td><span class="badge badge-yes">신고</span></td><td><span class="badge badge-no">영업 금지</span></td><td><span class="badge badge-yes">OK</span></td><td><strong style="color:var(--red)">불가</strong></td></tr>
+      <tr style="opacity:.6"><td>일반 음식점 / 소매 매장</td><td><span class="badge badge-yes">신고</span></td><td><span class="badge badge-no">영업 금지</span></td><td><span class="badge badge-no">미해당</span></td><td><strong style="color:var(--red)">불가</strong></td></tr>
+      <tr style="opacity:.6"><td>숙박 / 오피스 임대</td><td><span class="badge badge-yes">신고</span></td><td><span class="badge badge-no">영업 금지</span></td><td><span class="badge badge-no">미해당</span></td><td><strong style="color:var(--red)">불가</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">법적으로 가능한 5대 활용 영역</h3>
+  <div class="card-grid card-grid-5">
+    <div class="card" style="text-align:center;padding:20px 14px">
+      <div style="font-size:28px;margin-bottom:10px">&#127861;</div>
+      <h4 style="font-size:12px">전통다원 &middot;<br>사찰음식 F&amp;B</h4>
+      <span class="tag">시행령 제7조</span>
+    </div>
+    <div class="card" style="text-align:center;padding:20px 14px">
+      <div style="font-size:28px;margin-bottom:10px">&#127912;</div>
+      <h4 style="font-size:12px">전시 &middot;<br>체험 뮤지엄</h4>
+      <span class="tag">문화집회시설 유지</span>
+    </div>
+    <div class="card" style="text-align:center;padding:20px 14px">
+      <div style="font-size:28px;margin-bottom:10px">&#128717;</div>
+      <h4 style="font-size:12px">전통문화<br>상품 판매</h4>
+      <span class="tag">시행령 제7조</span>
+    </div>
+    <div class="card" style="text-align:center;padding:20px 14px">
+      <div style="font-size:28px;margin-bottom:10px">&#128992;</div>
+      <h4 style="font-size:12px">명상 &middot;<br>웰니스</h4>
+      <span class="tag">신도 편의시설</span>
+    </div>
+    <div class="card" style="text-align:center;padding:20px 14px">
+      <div style="font-size:28px;margin-bottom:10px">&#127979;</div>
+      <h4 style="font-size:12px">대관 &middot; 포럼<br>&middot; 기업 프로그램</h4>
+      <span class="tag">집회장 기존 용도</span>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: F&B -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">03 &middot; Proposal 1</div><h2>전통다원 &middot; 사찰음식 <em>F&amp;B</em></h2></div>
+    <div class="no">시행령 제7조</div>
+  </div>
+  <p class="sec-desc">시행령 제7조의 "전통다원의 운영"은 가장 확실한 수익원이자 법적으로 가장 안전한 상업 활동이다.</p>
+
+  <div class="card-grid">
+    <div class="card"><h4>사찰음식 레스토랑</h4><p>예약제 코스 다이닝, 사찰 장류 활용, 계절 메뉴</p><p><strong>300~500㎡</strong> &nbsp;|&nbsp; 객단가 <strong>5~10만원</strong></p></div>
+    <div class="card"><h4>전통다원</h4><p>프리미엄 전통차 + 한과&middot;떡, 다도 체험 겸용</p><p><strong>200~300㎡</strong> &nbsp;|&nbsp; 객단가 <strong>1.5~3만원</strong></p></div>
+    <div class="card"><h4>사찰음식 체험 키친</h4><p>쿠킹클래스, 발효식품 워크숍, 외국인 체험</p><p><strong>150~200㎡</strong> &nbsp;|&nbsp; 객단가 <strong>8~15만원</strong></p></div>
+  </div>
+
+  <h3 class="sub">레퍼런스 케이스</h3>
+
+  <div class="case-study">
+    <div class="case-header">
+      <div><h4>발우공양 Balwoo Gongyang</h4><div class="loc">서울 종로구 &middot; 조계사 앞</div></div>
+      <span class="badge badge-info">미쉐린 1스타</span>
+    </div>
+    <div class="case-meta">
+      <div><div class="ml">운영</div><div class="mv">한국불교문화사업단 직영</div></div>
+      <div><div class="ml">개업</div><div class="mv">2009년</div></div>
+      <div><div class="ml">코스 가격</div><div class="mv">36,000~70,000원</div></div>
+      <div><div class="ml">외국인 비율</div><div class="mv">35%</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 사찰음식이 프리미엄 파인다이닝으로 성립할 수 있음을 입증한 최초이자 유일한 사례. 봉은사가 강남 입지의 프리미엄을 더하면 더 높은 객단가가 가능.</p></div>
+  </div>
+
+  <div class="case-study">
+    <div class="case-header">
+      <div><h4>산촌 山村</h4><div class="loc">서울 종로구 인사동</div></div>
+      <span class="badge badge-info">40년 운영</span>
+    </div>
+    <div class="case-meta">
+      <div><div class="ml">운영</div><div class="mv">정산 스님 (1981년 개업)</div></div>
+      <div><div class="ml">가격</div><div class="mv">점심 22,000 / 저녁 39,600원</div></div>
+      <div><div class="ml">특징</div><div class="mv">뉴욕타임스 선정 한국 맛집</div></div>
+      <div><div class="ml">공연</div><div class="mv">저녁 전통춤&middot;가야금 공연</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 사찰음식 + 전통공연의 복합 경험 모델. 40년 지속 운영이 사업 안정성을 증명. 봉은문화회관의 넓은 공간에서 한층 고급화 가능.</p></div>
+  </div>
+
+  <div class="case-study">
+    <div class="case-header">
+      <div><h4>경인미술관 전통다원</h4><div class="loc">서울 종로구 인사동</div></div>
+      <span class="badge badge-info">전시+다원 복합</span>
+    </div>
+    <div class="case-meta">
+      <div><div class="ml">공간</div><div class="mv">박영효 저택 터, 한옥 대청마루</div></div>
+      <div><div class="ml">메뉴</div><div class="mv">전통차 15종 + 모둠떡 8가지</div></div>
+      <div><div class="ml">구조</div><div class="mv">6개 전시관 안의 전통다원</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> "전시+다원" 결합의 직접적 선례. 봉은문화회관에서 전시 동선 안에 전통다원을 배치하는 모델의 근거.</p></div>
+  </div>
+</section>
+
+<!-- SECTION 4: Museum -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">04 &middot; Proposal 2</div><h2>전시 &middot; 체험 <em>뮤지엄</em></h2></div>
+    <div class="no">문화집회시설 유지</div>
+  </div>
+  <p class="sec-desc">문화집회시설의 본래 용도를 살리면서 몰입형&middot;체험형 전시로 MZ세대와 외국인 관광객의 방문을 유도한다.</p>
+
+  <div class="card-grid">
+    <div class="card"><h4>상설전시관</h4><p>봉은사 1,200년 역사 + 불교미술 + 디지털 미디어아트 융합</p><p><strong>2,000~3,000㎡</strong> &nbsp;|&nbsp; 입장료 <strong>15,000~20,000원</strong></p></div>
+    <div class="card"><h4>기획전시실</h4><p>시즌별 기획전: 현대미술&times;불교, K-Culture&times;전통</p><p><strong>800~1,200㎡</strong> &nbsp;|&nbsp; 전시별 상이</p></div>
+    <div class="card"><h4>체험 전시존</h4><p>인터랙티브 명상 체험, 사찰건축 VR, 경전 필사</p><p><strong>500~800㎡</strong> &nbsp;|&nbsp; 상설전 포함</p></div>
+  </div>
+
+  <h3 class="sub">레퍼런스 케이스</h3>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>아르떼뮤지엄 Arte Museum</h4><div class="loc">제주 &middot; 강릉 &middot; 여수 &middot; 부산</div></div><span class="badge badge-info">연매출 240억</span></div>
+    <div class="case-meta">
+      <div><div class="ml">운영</div><div class="mv">디스트릭트 d'strict</div></div>
+      <div><div class="ml">규모</div><div class="mv">제주 4,600㎡ / 강릉 4,950㎡</div></div>
+      <div><div class="ml">입장료</div><div class="mv">성인 17,000원</div></div>
+      <div><div class="ml">방문객</div><div class="mv">제주 누적 200만명</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 몰입형 디지털 전시가 대규모 방문객과 높은 수익을 창출할 수 있음을 입증. "영원한 자연"을 "영원한 불법(佛法)"으로 치환하면 봉은사 고유의 콘텐츠.</p></div>
+  </div>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>문화역 서울 284</h4><div class="loc">서울 중구 &middot; 구 서울역사</div></div><span class="badge badge-info">역사건물+문화</span></div>
+    <div class="case-meta">
+      <div><div class="ml">규모</div><div class="mv">연면적 약 9,202㎡</div></div>
+      <div><div class="ml">운영</div><div class="mv">KCDF 위탁</div></div>
+      <div><div class="ml">내용</div><div class="mv">전시 + 공연 + 공예숍 + 한복진흥센터</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 역사 건물의 원형 보존 + 현대적 문화 콘텐츠의 모범 사례. 전통문화 관련 상품 판매(KCDF숍)가 전시 부대시설로 자연스럽게 운영됨.</p></div>
+  </div>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>그라운드시소 Ground Seesaw</h4><div class="loc">서울 성수 &middot; 서촌 &middot; 명동</div></div><span class="badge badge-info">MZ 타겟</span></div>
+    <div class="case-meta">
+      <div><div class="ml">운영</div><div class="mv">미디어앤아트 Media&amp;Art</div></div>
+      <div><div class="ml">규모</div><div class="mv">서촌점 약 723㎡, 4개 층</div></div>
+      <div><div class="ml">수익</div><div class="mv">입장료 + 아트샵 + 워크숍</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 중규모 공간에서 기획전시 + 아트샵 + 체험의 복합 수익 모델이 작동. 봉은문화회관 2층의 기획전시 공간 참고 모델.</p></div>
+  </div>
+</section>
+
+<!-- SECTION 5: Shop -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">05 &middot; Proposal 3</div><h2>전통문화 상품 <em>편집숍 &middot; 브랜드 스토어</em></h2></div>
+    <div class="no">시행령 제7조</div>
+  </div>
+  <p class="sec-desc">단순 기념품이 아닌, 봉은사 오리지널 브랜드 + 전통 공예 큐레이션으로 상품 가치를 높인다.</p>
+
+  <h3 class="sub">레퍼런스 케이스</h3>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>MMCA 뮤지엄숍</h4><div class="loc">서울 종로구 &middot; 국립현대미술관 서울관</div></div><span class="badge badge-info">500여종 상품</span></div>
+    <div class="case-meta">
+      <div><div class="ml">운영</div><div class="mv">MMCA Foundation 위탁</div></div>
+      <div><div class="ml">상품</div><div class="mv">오리지널 아트상품, 전시 연계, 작가 콜라보</div></div>
+      <div><div class="ml">채널</div><div class="mv">오프라인 + 온라인숍 병행</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 전시 부대시설로서의 상품 판매가 독립적 수익원이 되는 구조. "봉은사 뮤지엄숍"으로 동일 모델 적용 가능.</p></div>
+  </div>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>승소몰 &mdash; 조계종 공인 플랫폼</h4><div class="loc">seungso.co.kr</div></div><span class="badge badge-info">종단 직영</span></div>
+    <div class="case-meta">
+      <div><div class="ml">운영</div><div class="mv">(주)도반HC (조계종 사업지주회사)</div></div>
+      <div><div class="ml">상품</div><div class="mv">불교용품 + 사찰 토산품 + 스님 제작 상품</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 조계종이 종단 차원에서 상품 유통 사업을 공식 추진 중. 봉은사가 독자 브랜드("봉은사 오리지널")로 오프라인 플래그십을 운영할 근거.</p></div>
+  </div>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>1898+ 기념품점</h4><div class="loc">서울 중구 &middot; 명동성당 1898광장</div></div><span class="badge badge-info">종교 브랜딩</span></div>
+    <div class="case-meta">
+      <div><div class="ml">운영</div><div class="mv">서울대교구 직영</div></div>
+      <div><div class="ml">콘셉트</div><div class="mv">3C &mdash; Charity, Culture, Catholic</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 종교 정체성을 브랜드 가치로 전환한 모델. 봉은사 버전 3C &mdash; <strong>Charity(자비) &middot; Culture(문화) &middot; Contemplation(명상)</strong></p></div>
+  </div>
+</section>
+
+<!-- SECTION 6: Wellness -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">06 &middot; Proposal 4</div><h2>명상 &middot; 웰니스 <em>프로그램 센터</em></h2></div>
+    <div class="no">신도 편의시설</div>
+  </div>
+  <p class="sec-desc">강남 고소득층&middot;기업&middot;외국인을 타겟으로 프리미엄 명상 프로그램을 개발한다.</p>
+
+  <div class="card-grid card-grid-4">
+    <div class="card" style="padding:18px"><h4 style="font-size:13px">프리미엄 명상</h4><p style="font-size:12px">3~7일 집중 리트리트</p><p style="font-size:12px"><strong>30~80만원</strong></p></div>
+    <div class="card" style="padding:18px"><h4 style="font-size:13px">기업 마인드풀니스</h4><p style="font-size:12px">B2B 명상 워크숍</p><p style="font-size:12px"><strong>100~500만원/회</strong></p></div>
+    <div class="card" style="padding:18px"><h4 style="font-size:13px">K-Temple 외국인</h4><p style="font-size:12px">영어 명상+다도+사찰음식</p><p style="font-size:12px"><strong>8~15만원</strong></p></div>
+    <div class="card" style="padding:18px"><h4 style="font-size:13px">일상 명상 클래스</h4><p style="font-size:12px">주 1회 퇴근 후, 월 구독</p><p style="font-size:12px"><strong>10~20만원/월</strong></p></div>
+  </div>
+
+  <h3 class="sub">레퍼런스 케이스</h3>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>힐리언스 선마을</h4><div class="loc">강원도 홍천</div></div><span class="badge badge-info">웰니스 관광 25선</span></div>
+    <div class="case-meta">
+      <div><div class="ml">설립</div><div class="mv">이시형 박사</div></div>
+      <div><div class="ml">프로그램</div><div class="mv">요가, 명상, 숲 테라피, 5대 습관 개선</div></div>
+      <div><div class="ml">인증</div><div class="mv">문화관광부 웰니스 관광 25선</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 숙박형 웰니스 프로그램의 상업적 성공 입증. 봉은사는 강남 도심에서 "반나절~당일" 프로그램으로 더 넓은 고객층 접근 가능.</p></div>
+  </div>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>마인드풀코리아 / SIY</h4><div class="loc">서울</div></div><span class="badge badge-info">기업 B2B</span></div>
+    <div class="case-meta">
+      <div><div class="ml">콘셉트</div><div class="mv">구글 SIY 한국 최초 도입</div></div>
+      <div><div class="ml">프로그램</div><div class="mv">기업 맞춤형 마음챙김, 리더십 코칭</div></div>
+      <div><div class="ml">관련</div><div class="mv">명상앱 '마보' + 마보홈 오프라인 공간</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 기업 B2B 명상 프로그램이 국내에서도 시장 형성. 봉은사라는 장소의 정통성 &rarr; 프리미엄 가격 설정 가능.</p></div>
+  </div>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>봉은사 기존 템플스테이</h4><div class="loc">서울 강남구 삼성동</div></div><span class="badge badge-info">기존 자산</span></div>
+    <div class="case-meta">
+      <div><div class="ml">운영</div><div class="mv">봉은사 직영</div></div>
+      <div><div class="ml">프로그램</div><div class="mv">외국인 전담 영어 프로그램 (월별 주말)</div></div>
+      <div><div class="ml">가격</div><div class="mv">9~12만원</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 봉은사가 이미 유료 체험 프로그램을 운영 중. 봉은문화회관으로 확장하면 규모와 품질 모두 업그레이드 가능.</p></div>
+  </div>
+</section>
+
+<!-- SECTION 7: Rental -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div><div class="eyebrow">07 &middot; Proposal 5</div><h2>대관 &middot; 포럼 &middot; <em>기업 프로그램</em></h2></div>
+    <div class="no">집회장 기존 용도</div>
+  </div>
+  <p class="sec-desc">기존 집회장 용도를 유지하면서, 문화 포럼&middot;기업 리트리트&middot;불교식 행사를 유치한다.</p>
+
+  <h3 class="sub">레퍼런스 케이스</h3>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>코엑스 별마당 도서관</h4><div class="loc">서울 강남구 삼성동 &mdash; 봉은사 맞은편</div></div></div>
+    <div class="case-meta">
+      <div><div class="ml">규모</div><div class="mv">2,800㎡ / 5만권 / 무료 개방</div></div>
+      <div><div class="ml">모델</div><div class="mv">도서관 자체 비수익 &rarr; 코엑스몰 앵커 콘텐츠</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 문화 앵커가 주변 상업시설의 가치를 끌어올리는 구조. 봉은문화회관의 문화 기능이 봉은사 전체 브랜드 가치를 높이는 동일한 역할.</p></div>
+  </div>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>송은 SONGEUN</h4><div class="loc">서울 강남구 청담동</div></div></div>
+    <div class="case-meta">
+      <div><div class="ml">규모</div><div class="mv">연면적 8,167㎡, 11층</div></div>
+      <div><div class="ml">설계</div><div class="mv">헤르조그 &amp; 드 뫼론</div></div>
+      <div><div class="ml">특징</div><div class="mv">모든 전시 무료, 기업 메세나</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 강남 소재 대규모 무료 문화공간. 봉은사가 종교법인의 사회공헌으로 운영하면 전통사찰법 "포교&middot;교화" 목적에 정확히 부합.</p></div>
+  </div>
+
+  <div class="case-study">
+    <div class="case-header"><div><h4>사랑의교회 복합문화시설</h4><div class="loc">서울 서초구 반포대로</div></div></div>
+    <div class="case-meta">
+      <div><div class="ml">규모</div><div class="mv">2013년 준공, 대규모 복합 건물</div></div>
+      <div><div class="ml">시설</div><div class="mv">식당, 카페, 서점, 사랑몰, 공연장</div></div>
+      <div><div class="ml">부대</div><div class="mv">안성 수양관 (리트리트 센터)</div></div>
+    </div>
+    <div class="case-insight"><p><strong>시사점:</strong> 대형 교회가 내부에 다양한 부대시설을 운영하는 국내 대표 사례. 봉은사도 "신도 편의시설" 범주 내에서 유사 구조 가능.</p></div>
+  </div>
+</section>
+
+<!-- SECTION 8: Religious Cases -->
+<section class="sec" id="s8">
+  <div class="sec-head">
+    <div><div class="eyebrow">08 &middot; Precedent Cases</div><h2>국내 종교시설 <em>상업화 케이스</em></h2></div>
+    <div class="no">설득 근거</div>
+  </div>
+  <p class="sec-desc">의사결정권자 설득 근거: 다른 종교시설이 이미 상업적 운영을 하고 있다는 선례.</p>
+
+  <h3 class="sub">기독교(교회&middot;성당) 상업화 사례</h3>
+
+  <div class="church-grid">
+    <div class="church-card">
+      <h4>명동성당 1898광장</h4>
+      <p>2014년 개관 &middot; 지하 2개 층 &middot; <strong>20개 상업&middot;문화 시설</strong></p>
+      <p style="font-size:12px;color:var(--fg-3)">서점(28,000권), 베이커리, 갤러리, 기념품점, 공연장, 연회장 등</p>
+      <div class="lesson"><strong>봉은사 시사점:</strong> 종교시설 내 상업공간이 사회적으로 거부감 없이 수용되는 선례. 국내 최대 규모.</div>
+    </div>
+    <div class="church-card">
+      <h4>소망교회 소망풍경 카페</h4>
+      <p>2017년 &middot; 강남구 &middot; 직영 카페+베이커리</p>
+      <p style="font-size:12px;color:var(--red);font-weight:500">2012년 세금 5억원 추징 (수익사업 미신고)</p>
+      <div class="lesson"><strong>봉은사 시사점:</strong> 수익사업 개시신고 + 구분회계 필수. 세무 리스크 사전 관리 교훈.</div>
+    </div>
+    <div class="church-card">
+      <h4>새문안교회 복합문화공간</h4>
+      <p>2019년 완공 &middot; 31,900㎡ &middot; 13층</p>
+      <p style="font-size:12px;color:var(--fg-3)">1층 시민 개방 다목적홀, 카페, 복합문화공간</p>
+      <div class="lesson"><strong>봉은사 시사점:</strong> 도심 대형 종교시설이 1층을 시민에게 개방하여 공공성 확보.</div>
+    </div>
+    <div class="church-card">
+      <h4>충현교회 카페드림</h4>
+      <p>2022년 &middot; 교육관 리모델링</p>
+      <p style="font-size:12px;color:var(--fg-3)">장애인 직업재활 카페 &mdash; 사회공헌형 상업 모델</p>
+      <div class="lesson"><strong>봉은사 시사점:</strong> 상업+사회적 가치 결합 &rarr; "신도 복지 편의시설" 논리와 부합.</div>
+    </div>
+  </div>
+
+  <h3 class="sub">교회 vs 사찰 &mdash; 상업화 법적 환경 비교</h3>
+  <table class="compare-table">
+    <thead><tr><th>항목</th><th>교회 (기독교)</th><th>사찰 (불교)</th></tr></thead>
+    <tbody>
+      <tr><td>특별법 적용</td><td><span class="badge badge-yes">없음</span></td><td><span class="badge badge-no">전통사찰법</span></td></tr>
+      <tr><td>영업 범위</td><td>사실상 <strong>제한 없음</strong></td><td>불교&middot;전통문화 상품, 전통다원, 신도편의시설 <strong>만</strong></td></tr>
+      <tr><td>임대</td><td>자유 (이사회 결의)</td><td>서울시장 허가 + 조계종 승인</td></tr>
+      <tr><td>세법</td><td colspan="2" style="text-align:center">동일: 수익사업 = 법인세 과세</td></tr>
+      <tr><td>사회적 인식</td><td>교회 상업화 비판적 시선</td><td>사찰 전통문화 활동은 비교적 <strong>긍정적</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">불교계 내 상업화 선례</h3>
+  <table>
+    <thead><tr><th>사례</th><th>내용</th><th>봉은사 참고</th></tr></thead>
+    <tbody>
+      <tr><td><strong>발우공양</strong></td><td>미쉐린 1스타 사찰음식, 조계종 직영</td><td>F&amp;B 모델 벤치마크</td></tr>
+      <tr><td><strong>승소몰</strong></td><td>종단 공인 온&middot;오프라인 유통</td><td>상품 판매 채널</td></tr>
+      <tr><td><strong>해인사통</strong></td><td>사찰 브랜드 전통 장류 온라인 직거래</td><td>자체 브랜드 상품</td></tr>
+      <tr><td><strong>사찰음식문화체험관</strong></td><td>안국동, 체험&middot;강좌&middot;교육</td><td>체험 프로그램</td></tr>
+      <tr><td><strong>CJ&times;사찰음식</strong></td><td>대안 스님 간편식 홈쇼핑 판매</td><td>사찰음식 대중화</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- SECTION 9: Floor Plan -->
+<section class="sec" id="s9">
+  <div class="sec-head">
+    <div><div class="eyebrow">09 &middot; Integrated Plan</div><h2>통합 공간 배치 <em>시나리오</em></h2></div>
+    <div class="no">"봉은 1,200"</div>
+  </div>
+  <p class="sec-desc">추천안: "봉은 1,200" &mdash; 1,200년의 문화가 오늘을 만나는 곳</p>
+
+  <div class="floor-plan">
+    <div class="floor-label">2F &mdash; 2,710㎡</div>
+    <div class="floor-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="floor-cell exhibit"><div class="cell-name">상설전시관</div><div class="cell-area">1,200㎡ &middot; 봉은사 역사+미디어아트</div></div>
+      <div class="floor-cell exhibit"><div class="cell-name">기획전시실</div><div class="cell-area">800㎡ &middot; 시즌별 기획전</div></div>
+      <div class="floor-cell meditation"><div class="cell-name">명상&middot;웰니스 센터</div><div class="cell-area">500㎡ &middot; 명상실+기업 워크숍</div></div>
+    </div>
+    <div class="floor-label" style="margin-top:24px">1F &mdash; 6,158㎡</div>
+    <div class="floor-grid">
+      <div class="floor-cell fb"><div class="cell-name">사찰음식 레스토랑</div><div class="cell-area">500㎡</div></div>
+      <div class="floor-cell fb"><div class="cell-name">전통다원</div><div class="cell-area">300㎡ &middot; 차+한과</div></div>
+      <div class="floor-cell fb"><div class="cell-name">쿠킹클래스</div><div class="cell-area">200㎡</div></div>
+      <div class="floor-cell shop"><div class="cell-name">전통문화 편집숍</div><div class="cell-area">600㎡</div></div>
+    </div>
+    <div class="floor-grid">
+      <div class="floor-cell shop"><div class="cell-name">봉은사 오리지널</div><div class="cell-area">200㎡ &middot; 브랜드 스토어</div></div>
+      <div class="floor-cell rental"><div class="cell-name">대관홀</div><div class="cell-area">1,500㎡ &middot; 포럼&middot;행사</div></div>
+      <div class="floor-cell foreign"><div class="cell-name">외국인 체험센터</div><div class="cell-area">500㎡</div></div>
+      <div class="floor-cell" style="background:var(--bg-3);border:1px dashed var(--line)"><div class="cell-name" style="color:var(--fg-3)">로비&middot;동선</div><div class="cell-area">2,358㎡</div></div>
+    </div>
+  </div>
+
+  <h3 class="sub">면적 배분 요약</h3>
+  <table>
+    <thead><tr><th>영역</th><th>면적</th><th>비율</th><th>법적 근거</th></tr></thead>
+    <tbody>
+      <tr><td><strong>전시&middot;체험 뮤지엄</strong></td><td>2,000㎡</td><td>22.5%</td><td>문화집회시설 유지 (기재변경)</td></tr>
+      <tr><td><strong>F&amp;B (레스토랑+다원+쿠킹)</strong></td><td>1,000㎡</td><td>11.3%</td><td>시행령 제7조 "전통다원"</td></tr>
+      <tr><td><strong>상품 판매 (편집숍+브랜드)</strong></td><td>800㎡</td><td>9.0%</td><td>시행령 제7조 "전통문화 상품"</td></tr>
+      <tr><td><strong>명상&middot;웰니스 센터</strong></td><td>500㎡</td><td>5.6%</td><td>시행령 제7조 "신도 편의시설"</td></tr>
+      <tr><td><strong>대관홀</strong></td><td>1,500㎡</td><td>16.9%</td><td>집회장 기존 용도 유지</td></tr>
+      <tr><td><strong>외국인 체험센터</strong></td><td>500㎡</td><td>5.6%</td><td>포교 목적</td></tr>
+      <tr><td style="color:var(--fg-3)">로비&middot;동선&middot;부대</td><td>2,568㎡</td><td>29.0%</td><td>&mdash;</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">예상 수익 시뮬레이션</h3>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">전시 입장료</div><div class="kpi-value">21<span class="kpi-unit">억</span></div><div class="kpi-sub">15,000원 &times; 400명/일</div></div>
+    <div class="kpi"><div class="kpi-label">사찰음식 레스토랑</div><div class="kpi-value">25<span class="kpi-unit">억</span></div><div class="kpi-sub">70,000원 &times; 120석/일</div></div>
+    <div class="kpi"><div class="kpi-label">전통다원+쿠킹</div><div class="kpi-value">16.5<span class="kpi-unit">억</span></div><div class="kpi-sub">다원 10.5억 + 쿠킹 6억</div></div>
+    <div class="kpi"><div class="kpi-label">편집숍+브랜드</div><div class="kpi-value">9.6<span class="kpi-unit">억</span></div><div class="kpi-sub">편집숍 6억 + 오리지널 3.6억</div></div>
+  </div>
+  <div class="kpi-grid kpi-grid-3">
+    <div class="kpi"><div class="kpi-label">명상 프로그램</div><div class="kpi-value">4.8<span class="kpi-unit">억</span></div></div>
+    <div class="kpi"><div class="kpi-label">대관+기업</div><div class="kpi-value">6<span class="kpi-unit">억</span></div></div>
+    <div class="kpi"><div class="kpi-label">외국인 체험</div><div class="kpi-value">9<span class="kpi-unit">억</span></div></div>
+  </div>
+
+  <div class="hero-number">
+    <div style="font-size:12px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:12px">낙관적 시나리오 합계 (정상운영 3년차~)</div>
+    <div class="value">약 92<span class="unit">억원/년</span></div>
+    <div class="sub">보수적 시나리오: 약 46~55억원 (50~60%) &nbsp;|&nbsp; 운영비 차감 전 매출액 기준</div>
+  </div>
+</section>
+
+<!-- SECTION 10: Prerequisites -->
+<section class="sec" id="s10">
+  <div class="sec-head">
+    <div><div class="eyebrow">10 &middot; Prerequisites</div><h2>실행을 위한 <em>선결 과제</em></h2></div>
+    <div class="no">유권해석 = 천장</div>
+  </div>
+  <p class="sec-desc">유권해석이 사업의 천장을 결정한다.</p>
+
+  <h3 class="sub">법적 선결 과제 (최우선)</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>문체부 종무실 유권해석 요청</h4>
+        <p>"전통다원" 범위(사찰음식 파인다이닝 포함?), "전통문화 관련 상품" 범위(현대적 재해석?), "신도 편의시설" 범위(유료 명상, 기업 워크숍?) 확정</p>
+        <div class="step-target">대상: 문화체육관광부 종무실</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>조계종 총무원 사전 동의</h4>
+        <p>사업 방향에 대한 종단 차원의 지지 확보</p>
+        <div class="step-target">대상: 대한불교조계종 총무원</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>서울시 보존구역 행위 허가 사전상담</h4>
+        <p>전통사찰법 제9조의2 의제허가 가능 범위 확인</p>
+        <div class="step-target">대상: 서울시 문화체육관광국</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>강남구청 용도변경 사전상담</h4>
+        <p>복합 용도(전시+F&amp;B+판매) 신고 절차 확인</p>
+        <div class="step-target">대상: 강남구청 건축과</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>역사공원 시설 분류 사전협의</h4>
+        <p>판매시설의 공원시설 해당 여부</p>
+        <div class="step-target">대상: 서울시 공원녹지과</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub">유권해석 시나리오별 사업 규모</h3>
+
+  <div class="interpretation">
+    <div class="interp-card narrow">
+      <div class="interp-label">유권해석 좁음</div>
+      <div class="interp-value">20~30<span class="interp-unit">억</span></div>
+      <div class="interp-desc">전시 + 소규모 다원 + 기념품 수준</div>
+    </div>
+    <div class="interp-card mid">
+      <div class="interp-label">유권해석 중간</div>
+      <div class="interp-value">40~60<span class="interp-unit">억</span></div>
+      <div class="interp-desc">전통차 다원 + 불교용품 + 전시 + 명상</div>
+    </div>
+    <div class="interp-card wide">
+      <div class="interp-label">유권해석 넓음 (발우공양 수준)</div>
+      <div class="interp-value">70~90<span class="interp-unit">억</span></div>
+      <div class="interp-desc">사찰음식 파인다이닝 + 편집숍 + 기업 프로그램</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>따라서 문체부 유권해석 요청이 이 프로젝트의 가장 중요한 첫 번째 액션이다.</strong><br>이 해석이 사업계획서의 수익 천장을 결정하며, 모든 후속 의사결정(리모델링 범위, 투자비, 운영 모델)의 기준이 된다.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">PROJECT RENT</div>
+  <div class="meta">봉은문화회관 공간활용 통합 제언 &middot; 2026.05.21 &middot; CONFIDENTIAL</div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+/* Scroll reveal */
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.sec').forEach(function(s){ io.observe(s); });
+
+/* Nav highlight */
+var navLinks = document.querySelectorAll('.nav a');
+var secs = document.querySelectorAll('.sec');
+window.addEventListener('scroll', function(){
+  var y = window.scrollY + 200;
+  secs.forEach(function(s, i){
+    if(s.offsetTop <= y && s.offsetTop + s.offsetHeight > y){
+      navLinks.forEach(function(l){ l.classList.remove('active'); });
+      if(navLinks[i]) navLinks[i].classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>

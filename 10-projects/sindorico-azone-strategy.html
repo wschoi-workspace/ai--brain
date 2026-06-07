@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>신도리코 A존 — 운영 전략 제안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A;
+  --bg-2: #111;
+  --bg-3: #222;
+  --fg: #F5F0EB;
+  --fg-2: #C9C2BA;
+  --fg-3: #7A7570;
+  --line: #333;
+  --line-2: #2a2a2a;
+  --accent: #6C5CE7;
+  --accent-light: #A29BFE;
+  --accent-subtle: rgba(108,92,231,.08);
+  --warm: #E9DCC8;
+  --rust: #B86C4A;
+  --green: #8FA37E;
+  --blue: #6F8AA3;
+  --amber: #D9A34B;
+  --red: #E17055;
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--fg-2);
+  font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { font-weight: 500; text-wrap: balance; color: var(--fg); }
+
+/* ── Cover ── */
+.cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 100px 120px;
+  max-width: 1440px;
+  margin: 0 auto;
+  position: relative;
+}
+.cover .eyebrow {
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+.cover h1 {
+  font-size: 108px;
+  font-weight: 200;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--fg);
+  margin-bottom: 32px;
+}
+.cover h1 span { color: var(--accent); }
+.cover .subtitle {
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--fg-2);
+  max-width: 640px;
+  line-height: 1.6;
+  margin-bottom: 48px;
+}
+.cover-meta {
+  display: flex;
+  gap: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line-2);
+}
+.cover-meta .item { }
+.cover-meta .label {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.cover-meta .value {
+  font-size: 14px;
+  color: var(--fg);
+  font-weight: 400;
+}
+
+/* ── Sections ── */
+.sec {
+  padding: 100px 120px 120px;
+  max-width: 1440px;
+  margin: 0 auto;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
+}
+.sec.animate { opacity: 0; transform: translateY(30px); }
+.sec.animate.visible { opacity: 1; transform: translateY(0); }
+
+.sec-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line-2);
+  margin-bottom: 50px;
+}
+.sec-head .eyebrow {
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+.sec-head h2 {
+  font-size: 52px;
+  font-weight: 300;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+.sec-head .no {
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: var(--fg-3);
+}
+
+/* ── Core Logic Diagram ── */
+.core-logic {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 40px 0;
+}
+.logic-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+.logic-node {
+  flex: 1;
+  padding: 28px 24px;
+  border: 1px solid var(--line-2);
+  position: relative;
+}
+.logic-node .node-label {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.logic-node h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.logic-node p {
+  font-size: 13px;
+  color: var(--fg-2);
+  line-height: 1.6;
+}
+.logic-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+}
+.logic-arrow svg { width: 24px; height: 24px; }
+.logic-arrow svg path { fill: var(--accent); }
+
+/* ── KPI ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 24px 0;
+}
+.kpi-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.kpi {
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  padding: 24px;
+  text-align: center;
+  transition: border-color var(--duration-base) var(--ease-out);
+}
+.kpi:hover { border-color: var(--accent); }
+.kpi .kpi-label {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.kpi .kpi-value {
+  font-size: 42px;
+  font-weight: 200;
+  color: var(--accent);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.kpi .kpi-unit {
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--fg-2);
+}
+.kpi .kpi-sub {
+  font-size: 13px;
+  color: var(--fg-3);
+  margin-top: 6px;
+}
+
+/* ── Cards ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin: 24px 0;
+}
+.card {
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  padding: 28px;
+  transition: border-color var(--duration-base) var(--ease-out),
+              transform var(--duration-base) var(--ease-out);
+}
+.card:hover {
+  border-color: var(--fg-3);
+  transform: translateY(-2px);
+}
+.card .card-label {
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.card h4 {
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.card p {
+  font-size: 15px;
+  color: var(--fg-2);
+  line-height: 1.65;
+}
+.card ul {
+  list-style: none;
+  margin-top: 12px;
+}
+.card ul li {
+  font-size: 15px;
+  color: var(--fg-2);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line-2);
+  padding-left: 14px;
+  position: relative;
+}
+.card ul li:last-child { border-bottom: none; }
+.card ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
+  transform: translateY(-50%);
+}
+
+/* ── Callout ── */
+.callout {
+  background: rgba(108,92,231,.08);
+  border-left: 3px solid var(--accent);
+  padding: 24px 28px;
+  margin: 24px 0;
+}
+.callout p { color: var(--fg-2); font-size: 16px; margin: 0; line-height: 1.7; }
+.callout strong { color: var(--accent-light); }
+
+/* ── Flow Diagram ── */
+.flow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  margin: 40px 0;
+  position: relative;
+}
+.flow-step {
+  padding: 24px 18px;
+  text-align: center;
+  border: 1px solid var(--line-2);
+  position: relative;
+}
+.flow-step::after {
+  content: '\2192';
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  z-index: 1;
+}
+.flow-step:last-child::after { display: none; }
+.flow-step .step-num {
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 auto 12px;
+}
+.flow-step h4 {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.flow-step p {
+  font-size: 11px;
+  color: var(--fg-3);
+  line-height: 1.5;
+}
+
+/* ── Revenue Model ── */
+.revenue-model {
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr;
+  gap: 0;
+  align-items: center;
+  margin: 40px 0;
+}
+.revenue-block {
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  padding: 32px;
+}
+.revenue-block h3 {
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.revenue-block ul {
+  list-style: none;
+}
+.revenue-block ul li {
+  font-size: 15px;
+  color: var(--fg-2);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.revenue-block ul li:last-child { border-bottom: none; }
+.revenue-block ul li strong { color: var(--fg); font-weight: 500; }
+.revenue-plus {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 200;
+  color: var(--accent);
+}
+
+/* ── Sub heading ── */
+h3.sub {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--fg);
+  margin: 40px 0 16px;
+  letter-spacing: -0.01em;
+}
+h3.sub::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 18px;
+  background: var(--accent);
+  margin-right: 12px;
+  vertical-align: text-bottom;
+}
+
+/* ── Summary Table ── */
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+}
+.summary-table th {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  text-align: left;
+  padding: 10px 16px 14px;
+  font-weight: 400;
+  border-bottom: 1px solid var(--line-2);
+}
+.summary-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
+  color: var(--fg-2);
+  font-size: 15px;
+}
+.summary-table td:first-child {
+  color: var(--fg);
+  font-weight: 500;
+}
+.summary-table .highlight {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ── Floor Plan ── */
+.floor-plan {
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  padding: 32px;
+  margin: 24px 0;
+}
+.floor-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-transform: uppercase;
+  padding: 8px 14px;
+  background: rgba(108,92,231,.08);
+  border: 1px solid rgba(108,92,231,.15);
+  display: inline-block;
+  margin-bottom: 16px;
+}
+.floor-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.floor-cell {
+  padding: 18px 14px;
+  text-align: center;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid var(--line-2);
+}
+.floor-cell.popup { background: rgba(108,92,231,.05); border-color: rgba(108,92,231,.2); }
+.floor-cell.cafe { background: rgba(143,163,126,.06); border-color: rgba(143,163,126,.25); }
+.floor-cell .cell-name { font-size: 14px; font-weight: 500; color: var(--fg); }
+.floor-cell .cell-type { font-size: 12px; color: var(--fg-3); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.1em; }
+.floor-legend {
+  display: flex;
+  gap: 24px;
+  margin-top: 12px;
+}
+.floor-legend .leg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--fg-3);
+}
+.floor-legend .leg-dot {
+  width: 10px;
+  height: 10px;
+  border: 1px solid;
+}
+.floor-legend .leg-dot.popup-dot { background: rgba(108,92,231,.15); border-color: rgba(108,92,231,.4); }
+.floor-legend .leg-dot.cafe-dot { background: rgba(143,163,126,.15); border-color: rgba(143,163,126,.4); }
+
+/* ── Badge ── */
+.badge-info {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  background: rgba(108,92,231,.08);
+  color: var(--accent-light);
+  border: 1px solid rgba(108,92,231,.2);
+}
+
+/* ── Steps ── */
+.steps { margin: 24px 0; }
+.step {
+  display: flex;
+  gap: 18px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.step:last-child { border-bottom: none; }
+.step-num {
+  width: 36px;
+  height: 36px;
+  background: var(--accent);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.step-content h4 { font-size: 18px; font-weight: 500; color: var(--fg); margin: 0 0 6px; }
+.step-content p { font-size: 15px; color: var(--fg-2); margin: 0; }
+
+/* ── Footer ── */
+footer {
+  padding: 80px 120px 60px;
+  border-top: 1px solid var(--line-2);
+  max-width: 1440px;
+  margin: 80px auto 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+footer .logo {
+  font-size: 13px;
+  letter-spacing: 0.4em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+footer .meta {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--fg-3);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+  .cover { padding: 80px 60px; }
+  .cover h1 { font-size: 48px; }
+  .sec { padding: 80px 60px; }
+  .sec-head h2 { font-size: 32px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .card-grid { grid-template-columns: 1fr; }
+  .flow { grid-template-columns: 1fr; }
+  .flow-step::after { display: none; }
+  .revenue-model { grid-template-columns: 1fr; }
+  .revenue-plus { padding: 16px 0; }
+  .floor-grid { grid-template-columns: repeat(3, 1fr); }
+  footer { padding: 60px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sec { opacity: 1; transform: none; transition: none; }
+}
+
+@media print {
+  .sec { opacity: 1; transform: none; }
+  body { background: #fff; color: #333; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ COVER ═══ -->
+<section class="cover">
+  <div class="eyebrow">Sindorico Building &middot; A-Zone Strategy</div>
+  <h1>1층을 <span>플랫폼</span>으로<br>건물을 <span>미디어</span>로</h1>
+  <p class="subtitle">
+    A존은 수익 공간이 아니라 활성화 엔진입니다.<br>
+    소규모 브랜드 팝업 플랫폼으로 운영하여<br>
+    건물 전체의 광고 가치와 상징성을 끌어올리는 전략.
+  </p>
+  <div class="cover-meta">
+    <div class="item">
+      <div class="label">Project</div>
+      <div class="value">신도리코 A존 운영 전략</div>
+    </div>
+    <div class="item">
+      <div class="label">Approach</div>
+      <div class="value">플랫폼형 공간 운영</div>
+    </div>
+    <div class="item">
+      <div class="label">Date</div>
+      <div class="value">2026. 06</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 01. SITUATION ═══ -->
+<section class="sec" id="situation">
+  <div class="sec-head">
+    <div>
+      <div class="eyebrow">Situation Analysis</div>
+      <h2>현재 상황 진단</h2>
+    </div>
+    <div class="no">01</div>
+  </div>
+
+  <div class="kpi-grid kpi-grid-3">
+    <div class="kpi">
+      <div class="kpi-label">Space Scale</div>
+      <div class="kpi-value">4<span class="kpi-unit">~5블럭</span></div>
+      <div class="kpi-sub">비교적 소규모 공간</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Traffic</div>
+      <div class="kpi-value"><span class="kpi-unit" style="font-size:20px;">초기 형성</span></div>
+      <div class="kpi-sub">강한 트래픽 미확보 단계</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Opportunity</div>
+      <div class="kpi-value"><span class="kpi-unit" style="font-size:20px;">공간 세분화</span></div>
+      <div class="kpi-sub">유연한 블럭별 분리 가능</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>핵심 판단:</strong> 단기 임대 수익 중심 접근보다, 지속적 활성화와 이벤트 발생을 통해 공간의 존재감을 키워가는 방향이 효과적. 대형 테넌트 1개 유치가 아닌, <strong>소규모 브랜드 유입 플랫폼</strong> 구조가 적합합니다.</p>
+  </div>
+</section>
+
+<!-- ═══ 02. CORE LOGIC ═══ -->
+<section class="sec" id="core-logic">
+  <div class="sec-head">
+    <div>
+      <div class="eyebrow">Core Logic</div>
+      <h2>핵심 전략 구조</h2>
+    </div>
+    <div class="no">02</div>
+  </div>
+
+  <p style="color:var(--fg-2); margin-bottom: 32px;">
+    A존의 전략은 단일 공식으로 요약됩니다.
+  </p>
+
+  <div class="callout" style="text-align: center; padding: 40px 28px;">
+    <p style="font-size: 22px; font-weight: 300; color: var(--fg); letter-spacing: -0.02em;">
+      <strong style="color: var(--accent-light);">1층 활성화</strong> &rarr;
+      거리 노출 증가 &rarr;
+      건물 인지도 상승 &rarr;
+      <strong style="color: var(--accent-light);">광고 매체 가치 상승</strong>
+    </p>
+  </div>
+
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 40px;">
+    <div class="card">
+      <div class="card-label">Wrong Approach</div>
+      <h4 style="color: var(--red);">임대 수익 극대화</h4>
+      <ul>
+        <li>대형 테넌트 1곳 유치</li>
+        <li>높은 고정 임대료 설정</li>
+        <li>공실 리스크 집중</li>
+        <li>콘텐츠 교체 불가</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color: var(--accent);">
+      <div class="card-label">Right Approach</div>
+      <h4 style="color: var(--accent-light);">플랫폼형 활성화</h4>
+      <ul>
+        <li>소규모 브랜드 팝업 플랫폼</li>
+        <li>유연한 블럭 단위 운영</li>
+        <li>리스크 분산 + 지속 노출</li>
+        <li>콘텐츠 지속 교체</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 03. SPACE PLAN ═══ -->
+<section class="sec" id="space">
+  <div class="sec-head">
+    <div>
+      <div class="eyebrow">Space Strategy</div>
+      <h2>공간 운영 설계</h2>
+    </div>
+    <div class="no">03</div>
+  </div>
+
+  <h3 class="sub">블럭별 가변형 운영</h3>
+
+  <div class="floor-plan">
+    <div class="floor-label">A-Zone Floor Plan (Concept)</div>
+    <div class="floor-grid">
+      <div class="floor-cell popup">
+        <div class="cell-name">Block 1</div>
+        <div class="cell-type">Popup</div>
+      </div>
+      <div class="floor-cell popup">
+        <div class="cell-name">Block 2</div>
+        <div class="cell-type">Popup</div>
+      </div>
+      <div class="floor-cell popup">
+        <div class="cell-name">Block 3</div>
+        <div class="cell-type">Popup</div>
+      </div>
+      <div class="floor-cell popup">
+        <div class="cell-name">Block 4</div>
+        <div class="cell-type">Popup / Event</div>
+      </div>
+      <div class="floor-cell cafe">
+        <div class="cell-name">Block 5</div>
+        <div class="cell-type">Cafe (Always-on)</div>
+      </div>
+    </div>
+    <div class="floor-legend">
+      <div class="leg"><div class="leg-dot popup-dot"></div> 가변형 팝업 블럭</div>
+      <div class="leg"><div class="leg-dot cafe-dot"></div> 상시 운영 카페 (근린생활시설)</div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-label">Popup Blocks</div>
+      <h4>가변형 팝업 블럭 (4칸)</h4>
+      <ul>
+        <li>가변형 파티션으로 분리/합체</li>
+        <li>브랜드 규모에 따라 1~4칸 조절</li>
+        <li>단기 팝업 및 이벤트 대응</li>
+        <li>낮은 진입 비용 → 소규모 브랜드 유입</li>
+        <li>지속적 콘텐츠 교체로 공간 활성화</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-label">Always-On Cafe</div>
+      <h4>상시 운영 카페 (1칸)</h4>
+      <ul>
+        <li>공간의 기본 온도와 분위기 유지</li>
+        <li>기본 체류감 형성 + 조명 유지</li>
+        <li>공실감 최소화 (안전장치)</li>
+        <li>팝업 행사 시 유연하게 전환 가능</li>
+        <li>수익보다 분위기 유지 역할</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>설계 원칙:</strong> 작은 브랜드들은 대형 상권 진입 부담이 크기 때문에, 비교적 낮은 진입 비용과 유연한 운영이 가능한 공간에 대한 니즈가 높습니다. A존은 단순 임대가 아닌 <strong>"브랜드 테스트 및 마케팅 플랫폼"</strong>으로 접근합니다.</p>
+  </div>
+</section>
+
+<!-- ═══ 04. REVENUE ═══ -->
+<section class="sec" id="revenue">
+  <div class="sec-head">
+    <div>
+      <div class="eyebrow">Revenue Structure</div>
+      <h2>수익 구조</h2>
+    </div>
+    <div class="no">04</div>
+  </div>
+
+  <div class="revenue-model">
+    <div class="revenue-block">
+      <h3>Layer 1 &middot; 공간 운영 수익</h3>
+      <ul>
+        <li><strong>소규모 브랜드 팝업</strong> 대관</li>
+        <li><strong>단기 이벤트</strong> 운영</li>
+        <li><strong>브랜드 마케팅</strong> 협업</li>
+        <li><strong>체험형 콘텐츠</strong> 운영</li>
+      </ul>
+      <div style="margin-top: 16px;">
+        <span class="badge-info">±0 수준 운영</span>
+      </div>
+    </div>
+    <div class="revenue-plus">+</div>
+    <div class="revenue-block" style="border-color: var(--accent);">
+      <h3>Layer 2 &middot; 광고 수익 (Core)</h3>
+      <ul>
+        <li><strong>건물 상부 광고 매체</strong> 수익</li>
+        <li>1층 활성화 → <strong>유동인구 증가</strong></li>
+        <li>공간 인지도 → <strong>광고판 가치 상승</strong></li>
+        <li>장기적 <strong>건물 브랜딩</strong> 효과</li>
+      </ul>
+      <div style="margin-top: 16px;">
+        <span class="badge-info">안정적 수익원</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 32px;">
+    <p><strong>수익 공식:</strong> 1층 공간 자체에서 큰 수익을 만드는 것이 아니라, 1층을 지속적으로 활성화시키는 플랫폼으로 운영하여 <strong>건물 전체의 광고 가치와 상징성</strong>을 높이는 구조입니다.</p>
+  </div>
+</section>
+
+<!-- ═══ 05. P&L ESTIMATE ═══ -->
+<section class="sec" id="pnl">
+  <div class="sec-head">
+    <div>
+      <div class="eyebrow">Revenue Estimate</div>
+      <h2>옥외광고 예상 손익</h2>
+    </div>
+    <div class="no">05</div>
+  </div>
+
+  <p style="color:var(--fg-2); margin-bottom: 16px;">
+    성수이로22길10 (천지사 부근) 건물 상부 <strong style="color:var(--fg);">15m &times; 2m (30㎡) 현수막 광고</strong> 기준.<br>
+    성수동 옥외광고 실거래 ㎡당 노출가치 역산 기반 추정. 가동률 60% 적용.
+  </p>
+
+  <div class="callout" style="margin-bottom: 40px;">
+    <p><strong>시세 근거:</strong> 서울숲 초입 외벽광고(~20㎡) 월 1,200만원 = ㎡당 60만원, 도어투성수 외벽(~50㎡) 월 ~5,000만원 = ㎡당 100만원. 광고주가 지불하는 것은 매체 소재가 아니라 <strong>위치와 노출면적의 가치</strong>입니다. 천지사 부근은 연무장길 핵심에서 약간 벗어나 ㎡당 40~60만원 적용.</p>
+  </div>
+
+  <h3 class="sub">시나리오별 광고 수익</h3>
+
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th style="width:22%;">시나리오</th>
+        <th style="width:20%;">월 광고 단가</th>
+        <th style="width:14%;">가동률</th>
+        <th style="width:22%;">월 매출</th>
+        <th style="width:22%;">연 매출</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Conservative</td>
+        <td>1,200만원</td>
+        <td>60%</td>
+        <td>720만원</td>
+        <td class="highlight">8,640만원</td>
+      </tr>
+      <tr style="background: rgba(108,92,231,.04);">
+        <td><strong style="color:var(--accent-light);">Base Case</strong></td>
+        <td>1,500만원</td>
+        <td>60%</td>
+        <td>900만원</td>
+        <td class="highlight" style="font-size:17px;">1.08억원</td>
+      </tr>
+      <tr>
+        <td>Optimistic</td>
+        <td>1,800만원</td>
+        <td>60%</td>
+        <td>1,080만원</td>
+        <td class="highlight">1.30억원</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">월간 운영비용</h3>
+
+  <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="kpi">
+      <div class="kpi-label">유지보수</div>
+      <div class="kpi-value" style="font-size:28px;">10<span class="kpi-unit">만원</span></div>
+      <div class="kpi-sub">프레임 점검·교체</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">보험</div>
+      <div class="kpi-value" style="font-size:28px;">5<span class="kpi-unit">만원</span></div>
+      <div class="kpi-sub">배상책임보험</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">허가·점검</div>
+      <div class="kpi-value" style="font-size:28px;">5<span class="kpi-unit">만원</span></div>
+      <div class="kpi-sub">월 할산</div>
+    </div>
+    <div class="kpi" style="border-color: var(--accent);">
+      <div class="kpi-label">합계</div>
+      <div class="kpi-value" style="font-size:28px;">~20<span class="kpi-unit">만원</span></div>
+      <div class="kpi-sub">전기료 없음</div>
+    </div>
+  </div>
+
+  <h3 class="sub">예상 손익 (Base Case)</h3>
+
+  <div style="display:grid; grid-template-columns: 1fr 80px 1fr 80px 1fr; align-items:center; margin: 32px 0;">
+    <div class="kpi" style="border-color: var(--green);">
+      <div class="kpi-label">월 매출</div>
+      <div class="kpi-value" style="color:var(--green);">900<span class="kpi-unit">만원</span></div>
+    </div>
+    <div style="text-align:center; font-size:24px; color:var(--fg-3);">&minus;</div>
+    <div class="kpi">
+      <div class="kpi-label">월 운영비</div>
+      <div class="kpi-value" style="color:var(--red);">20<span class="kpi-unit">만원</span></div>
+    </div>
+    <div style="text-align:center; font-size:24px; color:var(--fg-3);">=</div>
+    <div class="kpi" style="border-color: var(--accent);">
+      <div class="kpi-label">월 순수익</div>
+      <div class="kpi-value">880<span class="kpi-unit">만원</span></div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0;">
+    <div class="kpi" style="border-color: var(--accent); padding: 32px;">
+      <div class="kpi-label">연간 순수익</div>
+      <div class="kpi-value" style="font-size:48px;">1.06<span class="kpi-unit">억원</span></div>
+      <div class="kpi-sub">Base Case 기준</div>
+    </div>
+    <div class="kpi" style="padding: 32px;">
+      <div class="kpi-label">초기 설치비</div>
+      <div class="kpi-value" style="font-size:36px;">500<span class="kpi-unit">만원</span></div>
+      <div class="kpi-sub">프레임 구조물 설치</div>
+    </div>
+    <div class="kpi" style="border-color: var(--green); padding: 32px;">
+      <div class="kpi-label">투자 회수</div>
+      <div class="kpi-value" style="font-size:48px; color:var(--green);">0.6<span class="kpi-unit">개월</span></div>
+      <div class="kpi-sub">약 3주 이내</div>
+    </div>
+  </div>
+
+  <div class="callout" style="background: rgba(143,163,126,.06); border-left-color: var(--green);">
+    <p><strong style="color:var(--green);">핵심:</strong> 현수막 광고만으로도 <strong style="color:var(--green);">연 8,600만~1.3억원</strong> 수익이 가능하며, 초기 투자비가 극히 낮아 리스크 부담 없이 즉시 실행 가능합니다. 1층 A존 활성화로 유동인구가 증가하면 광고 단가 상승 + 가동률 개선의 <strong style="color:var(--green);">이중 레버리지</strong>가 작동합니다.</p>
+  </div>
+
+  <h3 class="sub" style="margin-top:48px;">유의사항</h3>
+  <div class="card" style="margin-top:16px;">
+    <ul>
+      <li>15m &times; 2m (30㎡)는 서울시 벽면이용간판 규정(8㎡) 초과 — <strong style="color:var(--amber);">옥상간판 또는 특수광고물 별도 허가 필요</strong></li>
+      <li>성동구청 도시경관과 사전 협의 권장 (구 심의위원회 심의 대상)</li>
+      <li>실제 단가는 노출 방향, 교통량, 가시거리에 따라 변동</li>
+      <li>향후 LED 전환 시 수익 3~4배 스케일업 가능 (업그레이드 경로 확보)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ 06. EXECUTION ═══ -->
+<section class="sec" id="execution">
+  <div class="sec-head">
+    <div>
+      <div class="eyebrow">Execution Plan</div>
+      <h2>실행 로드맵</h2>
+    </div>
+    <div class="no">06</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>공간 인프라 구축</h4>
+        <p>블럭별 가변형 파티션 설계 + 기본 전기/조명/마감 세팅. 카페 블럭(1칸) 상시 운영 환경 조성. 최소 인프라 중심 투자.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>초기 브랜드 유치</h4>
+        <p>소규모 브랜드 대상 낮은 진입 비용의 팝업 프로그램 런칭. 1~2칸 단위 단기(2주~1개월) 팝업으로 콘텐츠 사이클 형성.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>콘텐츠 순환 안정화</h4>
+        <p>지속적 팝업 교체를 통해 공간 활성화 + 지역 이벤트 거점화. 유동인구 데이터 축적.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>광고 매체 가치 연동</h4>
+        <p>1층 활성화 데이터를 기반으로 건물 상부 광고 매체 가치를 제고하여 안정적 수익 구조 완성.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 06. EXPECTED ═══ -->
+<section class="sec" id="expected">
+  <div class="sec-head">
+    <div>
+      <div class="eyebrow">Expected Impact</div>
+      <h2>기대 효과</h2>
+    </div>
+    <div class="no">07</div>
+  </div>
+
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th style="width:30%;">영역</th>
+        <th style="width:40%;">기대 효과</th>
+        <th style="width:30%;">핵심 메커니즘</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>공간 활성화</td>
+        <td>소규모 브랜드 지속 유입 + 콘텐츠 순환</td>
+        <td class="highlight">공실감 제로</td>
+      </tr>
+      <tr>
+        <td>지역 거점화</td>
+        <td>이벤트 중심 공간으로 지역 내 포지셔닝</td>
+        <td class="highlight">반복 방문 유도</td>
+      </tr>
+      <tr>
+        <td>건물 인지도</td>
+        <td>1층 활성화 → 거리 노출 → 인지도 상승</td>
+        <td class="highlight">광고 가치 상승</td>
+      </tr>
+      <tr>
+        <td>광고 수익</td>
+        <td>상부 광고 매체 가치 동반 상승</td>
+        <td class="highlight">안정적 수익원</td>
+      </tr>
+      <tr>
+        <td>건물 브랜딩</td>
+        <td>장기적 관점의 건물 전체 가치 상승</td>
+        <td class="highlight">자산 가치 제고</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout" style="background: rgba(143,163,126,.06); border-left-color: var(--green); margin-top: 32px;">
+    <p style="text-align: center; font-size: 16px; font-weight: 400; color: var(--fg);">
+      A존은 <strong style="color: var(--green);">"수익 공간"</strong>이 아니라
+      <strong style="color: var(--green);">"활성화 엔진"</strong>입니다.<br>
+      1층이 살아야, 건물 전체가 삽니다.
+    </p>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="logo">Project Rent</div>
+  <div class="meta">Confidential &middot; 2026</div>
+</footer>
+
+<!-- ═══ Edit Panel ═══ -->
+<div class="edit-panel" id="editPanel">
+  <button id="btnEdit" onclick="toggleEdit()">EDIT</button>
+  <button id="btnSave" onclick="saveHTML()" style="display:none;">SAVE HTML</button>
+  <button id="btnReset" onclick="resetAll()" style="display:none;">RESET</button>
+</div>
+
+<div id="toast"></div>
+
+<style>
+.edit-panel {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  display: flex;
+  gap: 8px;
+  z-index: 9999;
+}
+.edit-panel button {
+  background: rgba(20,20,20,.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line-2);
+  color: var(--fg-3);
+  padding: 10px 16px;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--duration-base) var(--ease-out);
+}
+.edit-panel button:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+.edit-panel button.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+body.editing [contenteditable="true"] {
+  outline: 1px dashed rgba(108,92,231,.4);
+  outline-offset: 4px;
+}
+body.editing [contenteditable="true"]:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: 4px;
+}
+#toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: rgba(20,20,20,.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--accent);
+  color: var(--fg);
+  padding: 12px 20px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--duration-base) var(--ease-out),
+              transform var(--duration-base) var(--ease-out);
+  pointer-events: none;
+  z-index: 9999;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+@media print {
+  .edit-panel, #toast { display: none; }
+}
+body.capturing .edit-panel, body.capturing #toast { display: none !important; }
+</style>
+
+<!-- ═══ Scripts ═══ -->
+<script>
+/* Scroll Reveal */
+const secs = document.querySelectorAll('.sec');
+secs.forEach(s => s.classList.add('animate'));
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+}, { threshold: 0.12 });
+secs.forEach(s => io.observe(s));
+
+/* Edit Mode */
+let isEditing = false;
+const editableSelector = 'h1, h2, h3, h4, p, td, li, .value, .kpi-value, .kpi-sub, .kpi-label, .eyebrow, .subtitle, .no';
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function toggleEdit() {
+  isEditing = !isEditing;
+  const btn = document.getElementById('btnEdit');
+  const btnSave = document.getElementById('btnSave');
+  const btnReset = document.getElementById('btnReset');
+
+  if (isEditing) {
+    document.body.classList.add('editing');
+    btn.classList.add('active');
+    btn.textContent = 'EDITING';
+    btnSave.style.display = '';
+    btnReset.style.display = '';
+    document.querySelectorAll(editableSelector).forEach(el => {
+      el.setAttribute('contenteditable', 'true');
+    });
+    showToast('Edit mode on — click any text to edit');
+  } else {
+    document.body.classList.remove('editing');
+    btn.classList.remove('active');
+    btn.textContent = 'EDIT';
+    btnSave.style.display = 'none';
+    btnReset.style.display = 'none';
+    document.querySelectorAll('[contenteditable]').forEach(el => {
+      el.removeAttribute('contenteditable');
+    });
+    showToast('Edit mode off');
+  }
+}
+
+/* Auto-save to localStorage */
+let saveTimer;
+document.addEventListener('input', (e) => {
+  if (!isEditing) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    localStorage.setItem('sindorico-azone-draft', document.querySelector('body').innerHTML);
+    showToast('Auto-saved');
+  }, 400);
+});
+
+/* Restore from localStorage */
+(function restore() {
+  const saved = localStorage.getItem('sindorico-azone-draft');
+  if (saved) {
+    document.querySelector('body').innerHTML = saved;
+    showToast('Restored from draft');
+  }
+})();
+
+/* Save clean HTML */
+function saveHTML() {
+  // Turn off edit mode first
+  document.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  document.body.classList.remove('editing');
+  document.body.classList.add('capturing');
+
+  const clone = document.documentElement.cloneNode(true);
+  // Remove edit panel and toast from clone
+  clone.querySelectorAll('.edit-panel, #toast').forEach(el => el.remove());
+  // Remove capturing class
+  clone.querySelector('body').classList.remove('capturing');
+
+  const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sindorico-azone-strategy-edited.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  document.body.classList.remove('capturing');
+  showToast('HTML downloaded');
+}
+
+/* Reset */
+function resetAll() {
+  if (confirm('모든 편집 내용을 초기화하시겠습니까?')) {
+    localStorage.removeItem('sindorico-azone-draft');
+    location.reload();
+  }
+}
+</script>
+</body>
+</html>

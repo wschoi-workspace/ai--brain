@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세스크멘슬 토픽×감성 심층 분석 | RXR</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Pretendard Variable',system-ui,sans-serif; background:#f8f8fc; color:#1a1a1a; line-height:1.6; }
+  .container { max-width:1200px; margin:0 auto; padding:40px 32px; }
+  h1 { font-size:30px; font-weight:900; letter-spacing:-1px; margin-bottom:8px; }
+  .subtitle { font-size:14px; color:#666; margin-bottom:40px; }
+  .date-badge { display:inline-block; background:#6666FF; color:#fff; padding:3px 12px; border-radius:20px; font-size:12px; font-weight:700; margin-bottom:16px; }
+  h2 { font-size:21px; font-weight:800; letter-spacing:-0.5px; color:#1a1a1a; margin:44px 0 18px; padding-bottom:8px; border-bottom:2px solid #6666FF; }
+  h3 { font-size:16px; font-weight:700; color:#333; margin:24px 0 10px; }
+
+  .card { background:#fff; border-radius:14px; padding:28px; box-shadow:0 2px 12px rgba(0,0,0,0.06); margin-bottom:20px; }
+  .card h4 { font-size:15px; font-weight:800; color:#6666FF; margin-bottom:12px; }
+  .card p, .card li { font-size:14px; color:#444; line-height:1.7; }
+  .card ul { padding-left:20px; margin-top:8px; }
+  .card li { margin-bottom:6px; }
+  .card li strong { color:#1a1a1a; }
+
+  table { width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.06); margin-bottom:20px; }
+  th { background:#f4f3ff; padding:12px 14px; text-align:left; font-size:13px; font-weight:700; color:#555; border-bottom:2px solid #e8e6ff; }
+  td { padding:10px 14px; font-size:13px; border-bottom:1px solid #f0f0f0; }
+  tr:last-child td { border-bottom:none; }
+  .metric { font-weight:700; color:#333; white-space:nowrap; }
+  .best { color:#6666FF; font-weight:800; }
+  .worst { color:#FF6B6B; font-weight:700; }
+  .highlight-row { background:#f9f8ff; }
+
+  .bar-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .bar-label { width:100px; font-size:13px; font-weight:600; color:#555; text-align:right; flex-shrink:0; }
+  .bar-track { flex:1; display:flex; height:26px; border-radius:6px; overflow:hidden; gap:1px; }
+  .seg { display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; min-width:20px; }
+  .seg.pos { background:#6666FF; }
+  .seg.mix { background:#FFB347; }
+  .seg.neu { background:#BDB4FF; }
+  .seg.neg { background:#FF6B6B; }
+  .bar-pct { width:50px; font-size:13px; font-weight:800; color:#6666FF; text-align:right; flex-shrink:0; }
+
+  .legend { display:flex; gap:16px; margin:10px 0 20px; flex-wrap:wrap; }
+  .legend-item { display:flex; align-items:center; gap:5px; font-size:12px; color:#666; }
+  .legend-dot { width:10px; height:10px; border-radius:3px; }
+
+  .note { font-size:13px; color:#888; background:#fafafa; padding:14px 18px; border-radius:8px; margin:16px 0; border-left:3px solid #6666FF; }
+  .note strong { color:#6666FF; }
+
+  .kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+  .kpi { background:#fff; border-radius:10px; padding:16px; text-align:center; box-shadow:0 1px 6px rgba(0,0,0,0.05); }
+  .kpi .num { font-size:28px; font-weight:900; color:#1a1a1a; }
+  .kpi .lbl { font-size:11px; color:#888; margin-top:2px; }
+
+  .flow-diagram { background:#fff; border-radius:14px; padding:32px; box-shadow:0 2px 12px rgba(0,0,0,0.06); margin:24px 0; text-align:center; }
+  .flow-row { display:flex; align-items:center; justify-content:center; gap:8px; margin:12px 0; flex-wrap:wrap; }
+  .flow-box { padding:10px 18px; border-radius:8px; font-size:14px; font-weight:700; }
+  .flow-arrow { font-size:20px; color:#999; }
+  .flow-xesc { background:#F4F3FF; color:#6666FF; border:2px solid #6666FF; }
+  .flow-maison { background:#FFF0F0; color:#FF6B6B; border:2px solid #FF6B6B; }
+  .flow-salt { background:#E6FAF2; color:#20C997; border:2px solid #20C997; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- RXR Header -->
+<div style="display:flex;align-items:center;gap:10px;margin:0 0 20px 0;padding:0;background:transparent;border:none;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  <strong style="font-size:19px;color:#1a1a1a;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+  <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+  <strong style="font-size:13px;color:#6666FF;font-weight:700;letter-spacing:-0.1px;white-space:nowrap;">Project Rent</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+</div>
+
+<span class="date-badge">2026-06-07</span>
+<h1>세스크멘슬 토픽×감성<br>심층 분석 리포트</h1>
+<p class="subtitle">긍정률 3pp 격차의 구조적 원인과 "와인 페어링 독점 포지션"의 해부</p>
+
+<!-- ==================== Section 1 ==================== -->
+<h2>1. 긍정률 격차의 정체 — "맛" 때문이 아니다</h2>
+
+<div class="kpi-strip">
+  <div class="kpi">
+    <div class="num" style="color:#6666FF;">39%</div>
+    <div class="lbl">세스크멘슬 긍정률</div>
+  </div>
+  <div class="kpi">
+    <div class="num" style="color:#FF6B6B;">42%</div>
+    <div class="lbl">메종조 긍정률</div>
+  </div>
+  <div class="kpi">
+    <div class="num" style="color:#20C997;">42%</div>
+    <div class="lbl">소금집 긍정률</div>
+  </div>
+  <div class="kpi">
+    <div class="num">-3pp</div>
+    <div class="lbl">세스크멘슬 격차</div>
+  </div>
+</div>
+
+<h3>토픽별 긍정률 3-Way 비교</h3>
+<table>
+  <tr>
+    <th>토픽</th><th>세스크멘슬</th><th>메종조</th><th>소금집</th><th>해석</th>
+  </tr>
+  <tr>
+    <td class="metric">맛/품질</td>
+    <td>48.7%</td>
+    <td>50.0%</td>
+    <td>49.7%</td>
+    <td><strong>3브랜드 거의 동일</strong> — 맛이 긍정률 격차의 원인이 아님</td>
+  </tr>
+  <tr class="highlight-row">
+    <td class="metric">와인/페어링</td>
+    <td class="best">50.0%</td>
+    <td>43.3%</td>
+    <td>56.2%</td>
+    <td>세스크멘슬이 메종조보다 +6.7pp 높음</td>
+  </tr>
+  <tr class="highlight-row">
+    <td class="metric">위치/접근성</td>
+    <td class="worst">24.4%</td>
+    <td>23.3%</td>
+    <td>37.5%</td>
+    <td>3브랜드 모두 낮지만, 세스크멘슬의 <strong>토픽 비중이 26%</strong>로 전체 희석</td>
+  </tr>
+  <tr>
+    <td class="metric">메뉴/제품</td>
+    <td>31.8%</td>
+    <td>30.8%</td>
+    <td>32.3%</td>
+    <td>3브랜드 동일 수준</td>
+  </tr>
+  <tr class="highlight-row">
+    <td class="metric">공간/분위기</td>
+    <td class="worst">16.7%</td>
+    <td class="best">61.5%</td>
+    <td>50.0%</td>
+    <td><strong>-44.9pp 격차</strong> — 세스크멘슬의 결정적 약점</td>
+  </tr>
+</table>
+
+<!-- ==================== Section 2 ==================== -->
+<h2>2. 범인 분석 — 긍정률을 끌어내리는 두 토픽</h2>
+
+<div class="card">
+  <h4>범인 #1: 위치/접근성 (26% 비중, 긍정률 24%)</h4>
+  <p>세스크멘슬 리뷰의 26%가 "위치/접근성" 토픽인데, 이 토픽의 긍정률은 24%에 불과합니다. 메종조(17%)와 소금집(7%)보다 이 토픽 비중이 월등히 높아 전체 긍정률을 구조적으로 희석시킵니다.</p>
+  <ul>
+    <li><strong>부정 리뷰 5건 모두 "웨이팅" 언급</strong> — 성수동 핫플의 구조적 숙명</li>
+    <li>날씨(2건), 예약(2건), 줄(1건) 키워드 동시 출현</li>
+    <li>"맛은 좋은데 웨이팅이 너무 길어서..." → 혼합/부정 분류</li>
+  </ul>
+  <p style="margin-top:12px;color:#6666FF;font-weight:700;">시사점: 웨이팅 관리(캐치테이블 최적화, 대기 경험 설계)가 긍정률 개선의 가장 빠른 레버</p>
+</div>
+
+<div class="card">
+  <h4>범인 #2: 공간/분위기 (7% 비중, 긍정률 16.7%)</h4>
+  <p>12건 중 8건(67%)이 <strong>"혼합"</strong> 감성. "분위기 좋은데 좁다/시끄럽다" 구조.</p>
+  <ul>
+    <li>메종조: 비스트로 공간 넓음 → 공간 긍정률 <strong>61.5%</strong></li>
+    <li>소금집: 델리+카페 공간 → 공간 긍정률 <strong>50.0%</strong></li>
+    <li>세스크멘슬: 성수 1층 소규모 매장 → <strong>16.7%</strong></li>
+  </ul>
+  <p style="margin-top:12px;color:#6666FF;font-weight:700;">시사점: 물리적 공간 한계는 단기 해결이 어려움. "좁지만 그래서 특별한" 내러티브로 전환하거나, 야장/테라스 경험을 차별 포인트화</p>
+</div>
+
+<!-- ==================== Section 3 ==================== -->
+<h2>3. 왜 세스크멘슬만 "와인/페어링"이 1위 토픽인가</h2>
+
+<h3>3-1. 결정적 수치: 와인 키워드 출현율</h3>
+<table>
+  <tr>
+    <th>지표</th><th>세스크멘슬</th><th>메종조</th><th>소금집</th>
+  </tr>
+  <tr>
+    <td class="metric">전체 리뷰 중 "와인" 언급</td>
+    <td class="best">66% (114/174)</td>
+    <td>43% (77/178)</td>
+    <td>9% (117/1,234)</td>
+  </tr>
+  <tr>
+    <td class="metric">전체 리뷰 중 "콜키지" 언급</td>
+    <td class="best">32% (56/174)</td>
+    <td>4% (7/178)</td>
+    <td>1% (16/1,234)</td>
+  </tr>
+  <tr>
+    <td class="metric">와인 토픽 내 긍정률</td>
+    <td>50.0%</td>
+    <td>43.3%</td>
+    <td class="best">56.2%</td>
+  </tr>
+</table>
+
+<h3>3-2. 구조적 원인 3가지</h3>
+
+<div class="card">
+  <h4>원인 1: 콜키지 프리 — 방문 동기 자체가 됨</h4>
+  <p>세스크멘슬 리뷰의 <strong>32%</strong>가 "콜키지"를 직접 언급합니다. 메종조(4%)의 <strong>8배</strong>. 콜키지 프리는 단순 부가 서비스가 아니라, 사람들이 세스크멘슬을 선택하는 <strong>핵심 방문 동기</strong>가 되었습니다.</p>
+</div>
+
+<div class="card">
+  <h4>원인 2: "샤퀴테리 = 안주" 프레이밍</h4>
+  <p>와인 토픽 리뷰에서 <strong>"안주" 키워드가 59%</strong> 출현. 사람들은 세스크멘슬을 "맛집"이 아니라 <strong>"와인 마시러 가는 곳"</strong>으로 인식하고, 샤퀴테리를 "안주"로 위치시키고 있습니다.</p>
+</div>
+
+<div class="card">
+  <h4>원인 3: 맛 경험이 와인 맥락 안에서 소비됨</h4>
+  <p>맛/품질 토픽으로 분류된 리뷰에서도 <strong>64%가 "와인"을 동시 언급</strong>. "이 소시지가 와인이랑 진짜 잘 맞아"처럼 맛의 칭찬조차 와인 페어링 맥락 안에서 이루어집니다.</p>
+  <ul>
+    <li>와인 토픽 리뷰에서 맛 키워드 동시 출현: "맛있" 74%, "맛이" 46%, "풍미" 22%</li>
+    <li>맛과 와인이 분리되지 않고 <strong>하나의 경험으로 융합</strong>되어 인식됨</li>
+  </ul>
+</div>
+
+<h3>3-3. 인식 구조 비교 — 경험의 중심축이 다르다</h3>
+
+<div class="flow-diagram">
+  <p style="font-size:13px;color:#888;margin-bottom:16px;">각 브랜드의 소비자 경험 인식 구조</p>
+
+  <div class="flow-row">
+    <div class="flow-box flow-maison">메종조</div>
+    <div class="flow-arrow">:</div>
+    <div class="flow-box" style="background:#FFE0E0;color:#FF6B6B;border:1px solid #FF6B6B;font-size:18px;">맛</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="background:#fff;color:#999;border:1px solid #ddd;">(곁들여) 와인</div>
+    <div style="margin-left:12px;font-size:13px;color:#888;">= 맛 중심, 와인은 보조</div>
+  </div>
+
+  <div class="flow-row">
+    <div class="flow-box flow-xesc">세스크멘슬</div>
+    <div class="flow-arrow">:</div>
+    <div class="flow-box" style="background:#E8E6FF;color:#6666FF;border:1px solid #6666FF;font-size:18px;">와인</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="background:#fff;color:#999;border:1px solid #ddd;">(함께) 샤퀴테리</div>
+    <div style="margin-left:12px;font-size:13px;color:#888;">= 와인 경험 중심, 음식은 페어링</div>
+  </div>
+
+  <div class="flow-row">
+    <div class="flow-box flow-salt">소금집</div>
+    <div class="flow-arrow">:</div>
+    <div class="flow-box" style="background:#D4F5E9;color:#20C997;border:1px solid #20C997;font-size:18px;">제품</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="background:#fff;color:#999;border:1px solid #ddd;">(구매) 다양한 라인업</div>
+    <div style="margin-left:12px;font-size:13px;color:#888;">= 제품 탐색 중심, 쇼핑 경험</div>
+  </div>
+</div>
+
+<!-- ==================== Section 4 ==================== -->
+<h2>4. 토픽별 RQL×Auth 교차 분석</h2>
+
+<table>
+  <tr>
+    <th>토픽</th><th>건수</th><th>긍정률</th><th>Auth</th><th>Clout</th><th>RQL</th><th>특이점</th>
+  </tr>
+  <tr class="highlight-row">
+    <td class="metric">와인/페어링</td>
+    <td>46건 (1위)</td>
+    <td class="best">50.0%</td>
+    <td>74.8</td>
+    <td class="best">60.3</td>
+    <td>1.22</td>
+    <td>Clout 최고 — "가보라" 추천 강도 최강</td>
+  </tr>
+  <tr>
+    <td class="metric">위치/접근성</td>
+    <td>45건 (2위)</td>
+    <td class="worst">24.4%</td>
+    <td>70.2</td>
+    <td>52.1</td>
+    <td>0.96</td>
+    <td>긍정률 최저, RQL도 가장 낮음</td>
+  </tr>
+  <tr>
+    <td class="metric">맛/품질</td>
+    <td>39건 (3위)</td>
+    <td>48.7%</td>
+    <td class="best">76.8</td>
+    <td>58.7</td>
+    <td class="best">1.44</td>
+    <td>Auth·RQL 최고 — 가장 깊이 있는 리뷰</td>
+  </tr>
+  <tr>
+    <td class="metric">메뉴/제품</td>
+    <td>22건 (4위)</td>
+    <td>31.8%</td>
+    <td>76.4</td>
+    <td>58.2</td>
+    <td>1.23</td>
+    <td>혼합 41% — "뭘 시킬지" 탐색형</td>
+  </tr>
+  <tr>
+    <td class="metric">공간/분위기</td>
+    <td>12건 (5위)</td>
+    <td class="worst">16.7%</td>
+    <td>74.4</td>
+    <td>47.1</td>
+    <td>1.29</td>
+    <td>혼합 67%, Clout 최저 — 추천 주저</td>
+  </tr>
+  <tr>
+    <td class="metric">서비스/경험</td>
+    <td>6건</td>
+    <td>50.0%</td>
+    <td>56.2</td>
+    <td>57.5</td>
+    <td>1.37</td>
+    <td>Auth 낮음 — 표면적 언급 많음</td>
+  </tr>
+  <tr>
+    <td class="metric">셰프/스토리</td>
+    <td>2건</td>
+    <td>50.0%</td>
+    <td class="best">83.5</td>
+    <td>55.0</td>
+    <td class="best">1.75</td>
+    <td>Auth·RQL 압도적 최고 but 단 2건</td>
+  </tr>
+</table>
+
+<div class="note">
+  <strong>핵심 발견:</strong> 셰프/스토리 토픽은 Auth 83.5 + RQL 1.75로 <strong>가장 깊고 진정성 있는 리뷰</strong>를 생산하지만, 단 2건(1%). 이 토픽이 활성화되면 브랜드 전체의 Auth와 리뷰 깊이가 상승할 잠재력이 크다.
+</div>
+
+<!-- ==================== Section 5 ==================== -->
+<h2>5. 전략적 시사점 — 컨셉빌딩을 위한 질문</h2>
+
+<div class="card">
+  <h4>현재 소비자 인식 구조의 기회와 리스크</h4>
+  <table style="box-shadow:none;margin-top:12px;">
+    <tr><th style="width:100px;">관점</th><th>기회</th><th>리스크</th></tr>
+    <tr>
+      <td class="metric">와인 페어링<br>독점 포지션</td>
+      <td>한국 샤퀴테리 브랜드 중 유일. 경쟁사가 쉽게 침범 못하는 영역. Clout 60.3으로 "추천 전환"이 실제로 작동.</td>
+      <td>김정현 셰프의 10년 수련이 "와인 안주집"으로 격하. 음식 자체의 가치가 종속적 위치.</td>
+    </tr>
+    <tr>
+      <td class="metric">셰프 스토리<br>미활용 자산</td>
+      <td>Auth 83.5 + RQL 1.75 — 가장 깊은 리뷰 생산. 콘텐츠화 시 브랜드 깊이 강화.</td>
+      <td>현재 1%(2건)로 자발적 확산 안 됨. 정통성 스토리는 "알면 좋지만 퍼뜨리진 않는" 카테고리.</td>
+    </tr>
+    <tr>
+      <td class="metric">공간 경험<br>약점</td>
+      <td>웨이팅+공간 약점 해결 시 긍정률 +3~5pp 개선 가능 (경쟁사 수준 도달).</td>
+      <td>물리적 확장 없이는 구조적 해결 어려움. 2호점 or 리뉴얼 필요.</td>
+    </tr>
+  </table>
+</div>
+
+<div class="card" style="border-left:4px solid #6666FF;">
+  <h4>컨셉빌딩 핵심 질문</h4>
+  <p style="font-size:18px;font-weight:800;color:#1a1a1a;margin:16px 0;line-height:1.5;">
+    "와인과 함께하는 유럽식 다이닝 경험"을 <strong>강화</strong>할 것인가,<br>
+    "셰프의 크래프트"를 중심으로 <strong>재조정</strong>할 것인가?
+  </p>
+  <ul>
+    <li><strong>강화 시나리오</strong>: 와인 바 정체성 ← 콜키지 프리 강화, 와인 큐레이션, 페어링 메뉴 → "한국 최고의 샤퀴테리 와인 바"</li>
+    <li><strong>재조정 시나리오</strong>: 셰프 크래프트 정체성 ← 셰프 스토리 콘텐츠, 제조 과정 공개, 마스터 클래스 → "10년 장인의 유럽 정통 샤퀴테리"</li>
+    <li><strong>통합 시나리오</strong>: 두 축을 연결 ← "장인이 만든 샤퀴테리를 최적의 와인과 즐기는 경험" → 크래프트가 와인 경험의 품격을 올리는 구조</li>
+  </ul>
+</div>
+
+</div><!-- /container -->
+
+<!-- RXR Footer -->
+<footer style="max-width:1200px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#fafafa;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #eee;line-height:1.7;">
+    <p style="margin:0 0 4px;">본 분석은 공개 SNS 데이터에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:#F4F3FF;padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;letter-spacing:-0.3px;">💠 RXR SNS Analysis Solution</div>
+    <p style="margin:0;color:#333;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">『프로젝트 렌트(Project Rent)』</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 SNS 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+      본 리포트에 포함된 분석 프레임, 지표 체계, 용어 정의, 산출 로직 일체는 프로젝트 렌트의 독자 기술이며,
+      무단 복제·인용·역공학·재사용을 엄격히 금합니다.
+    </p>
+  </div>
+  <div style="background:#fafafa;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">
+    📧 <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#999;font-size:11px;">© Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>

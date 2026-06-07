@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>라이브 데모 시나리오 — 사장님, 매출분석 3분이면 됩니다</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5A4BD1;
+    --primary-light: #A29BFE;
+    --primary-subtle: #EDE9FE;
+    --black: #1A1A2E;
+    --dark-gray: #4A4A68;
+    --mid-gray: #7F7F9E;
+    --light-gray: #E8E8F0;
+    --off-white: #F7F7FB;
+    --success: #00B894;
+    --warning: #FDCB6E;
+    --danger: #E17055;
+    --info: #74B9FF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    color: var(--black);
+    background: var(--off-white);
+    line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    padding: 60px 40px;
+    text-align: center;
+  }
+  .header .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+  .header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .header .subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    opacity: 0.85;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* ── Container ── */
+  .container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── Meta info ── */
+  .meta-bar {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+    padding: 20px 24px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--dark-gray);
+  }
+  .meta-item strong {
+    color: var(--black);
+    font-weight: 600;
+  }
+
+  /* ── Act Sections ── */
+  .act {
+    margin-bottom: 48px;
+  }
+  .act-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .act-number {
+    width: 48px;
+    height: 48px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .act-title-group h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--black);
+  }
+  .act-title-group .act-time {
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(108,92,231,0.05);
+  }
+  .card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: var(--black);
+  }
+  .card h3 .step-badge {
+    display: inline-block;
+    background: var(--primary-subtle);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  /* ── Script (강사 대본) ── */
+  .script {
+    background: var(--primary-subtle);
+    border-left: 4px solid var(--primary);
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--black);
+  }
+  .script::before {
+    content: '🎤 강사 멘트';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  /* ── Prompt box ── */
+  .prompt-box {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 14px 0;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    position: relative;
+  }
+  .prompt-box::before {
+    content: '$ Claude Code 프롬프트';
+    display: block;
+    font-size: 11px;
+    color: var(--primary-light);
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-family: 'Pretendard Variable', sans-serif;
+    letter-spacing: 0.5px;
+  }
+  .prompt-box .prompt-text {
+    color: #a6e3a1;
+  }
+
+  /* ── Result preview ── */
+  .result-preview {
+    background: var(--off-white);
+    border: 1px dashed var(--light-gray);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  .result-preview::before {
+    content: '예상 결과';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mid-gray);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .result-preview .num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .result-preview .label {
+    font-size: 12px;
+    color: var(--mid-gray);
+    font-weight: 500;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin: 12px 0;
+  }
+  .result-cell {
+    text-align: center;
+    padding: 12px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--light-gray);
+  }
+
+  /* ── Timing indicator ── */
+  .timing {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary-subtle);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+
+  /* ── Comparison table ── */
+  .comparison-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--light-gray);
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .comparison-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .comparison-table th:first-child { width: 28%; }
+  .comparison-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--light-gray);
+    vertical-align: top;
+  }
+  .comparison-table tr:last-child td { border-bottom: none; }
+  .comparison-table tr:nth-child(even) { background: var(--off-white); }
+  .comparison-table .old {
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .comparison-table .new {
+    color: var(--success);
+    font-weight: 700;
+  }
+
+  /* ── Key insight box ── */
+  .insight-box {
+    background: linear-gradient(135deg, var(--primary-subtle) 0%, #fff 100%);
+    border: 2px solid var(--primary-light);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 20px 0;
+    text-align: center;
+  }
+  .insight-box .insight-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+  .insight-box .insight-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.4;
+  }
+
+  /* ── Note/Tip ── */
+  .note {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: #FFF8E1;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 13px;
+    color: #5D4E37;
+    line-height: 1.5;
+  }
+  .note-icon { font-size: 18px; flex-shrink: 0; }
+
+  .danger-note {
+    background: #FFF0ED;
+    color: #7A3425;
+  }
+
+  /* ── Checklist ── */
+  .checklist {
+    list-style: none;
+    margin: 12px 0;
+  }
+  .checklist li {
+    padding: 8px 0;
+    padding-left: 28px;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .checklist li::before {
+    content: '☐';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-size: 16px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 12px;
+    color: var(--mid-gray);
+    border-top: 1px solid var(--light-gray);
+    margin-top: 40px;
+  }
+
+  /* ── Timeline dots ── */
+  .timeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin: 24px 0;
+  }
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--light-gray);
+  }
+  .timeline-dot.active {
+    background: var(--primary);
+    width: 32px;
+    border-radius: 5px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .header { padding: 40px 20px; }
+    .header h1 { font-size: 26px; }
+    .meta-bar { flex-direction: column; gap: 12px; }
+    .card { padding: 20px; }
+    .result-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ HEADER ═══════════════════════════════════════ -->
+<div class="header">
+  <div class="badge">LIVE DEMO SCENARIO v1.0</div>
+  <h1>사장님, 매출분석<br>3분이면 됩니다</h1>
+  <p class="subtitle">소상공인 AI 교육 — 라이브 데모 강사용 시나리오<br>데이터: 뉴믹스커피 성수점 2월 매출 (1,957건)</p>
+</div>
+
+<div class="container">
+
+<!-- ── Meta ── -->
+<div class="meta-bar">
+  <div class="meta-item"><strong>총 소요시간:</strong> 10분</div>
+  <div class="meta-item"><strong>구조:</strong> 3막 (공감 → 충격 → 전환)</div>
+  <div class="meta-item"><strong>도구:</strong> Claude Code Desktop</div>
+  <div class="meta-item"><strong>데이터:</strong> newmix_sales_seongsu_2602.csv</div>
+</div>
+
+<!-- ═══════════════════════════════════════ 사전준비 ═══════════════════════════════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number" style="background: var(--dark-gray);">0</div>
+    <div class="act-title-group">
+      <h2>사전 준비 체크리스트</h2>
+      <span class="act-time">데모 시작 전 반드시 확인</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <ul class="checklist">
+      <li>Claude Code Desktop 실행 + 로그인 상태 확인</li>
+      <li>CSV 파일 바탕화면 또는 접근 쉬운 위치에 준비</li>
+      <li>화면 공유 or 프로젝터 연결 확인</li>
+      <li>폰트 크기 키우기 (청중이 뒤에서도 읽을 수 있도록)</li>
+      <li>인터넷 연결 상태 확인 (백업: 모바일 핫스팟)</li>
+      <li><strong>리허설 1회</strong> — 아래 프롬프트 3개를 실제로 돌려보고 결과 확인</li>
+    </ul>
+
+    <div class="note danger-note">
+      <span class="note-icon">⚠</span>
+      <div><strong>플랜 B:</strong> 인터넷 끊기면? 사전에 리허설한 결과를 스크린샷으로 준비해둘 것. "라이브인 척" 하지 말고, 솔직하게 "미리 돌려본 결과입니다" 하는 게 신뢰가 더 높음.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════ 1막 ═══════════════════════════════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number">1</div>
+    <div class="act-title-group">
+      <h2>공감 — "사장님, 이거 하시죠?"</h2>
+      <span class="act-time">2분</span>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-dot active"></div>
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot"></div>
+  </div>
+
+  <div class="card">
+    <h3>청중의 고통을 건드린다</h3>
+
+    <div class="script">
+      여기 계신 분들, 매달 매출 정리 하시죠?<br><br>
+      엑셀 열어서... 합계 내고... 뭐가 잘 팔렸나 보고... 전월 대비 어떤지 비교하고...<br><br>
+      이거 한 번 하면 <strong>최소 2-3시간</strong>이에요. 일요일 밤에 하시는 분도 계시죠.<br><br>
+      근데 중요하긴 한데, <strong>사장님 본업은 이게 아니잖아요.</strong>
+    </div>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>연출 포인트:</strong> 여기서 잠깐 멈추고 청중을 봅니다. "여기 계신 분 중에 매달 매출 분석 <strong>정기적으로</strong> 하시는 분?" 하고 손 들어보라고 합니다. <strong>손 안 드는 게 정상입니다.</strong> "안 하시는 거 맞죠. 귀찮으니까. 근데 해야 되는 건 아시잖아요." — 이 한 마디에 공감이 완성됩니다.</div>
+    </div>
+
+    <div class="script">
+      자, 오늘 제가 보여드릴 건 딱 하나예요.<br><br>
+      <strong>"이 귀찮은 걸, 3분 만에 끝내는 방법."</strong><br><br>
+      어려운 기술 아닙니다. 프로그래밍 아닙니다. 한국어 할 줄 알면 됩니다.
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════ 2막 ═══════════════════════════════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number">2</div>
+    <div class="act-title-group">
+      <h2>충격 — 라이브 데모</h2>
+      <span class="act-time">5분</span>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot active"></div>
+    <div class="timeline-dot"></div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 1</span> 데이터 투입</h3>
+    <div class="timing">⏱ 30초</div>
+
+    <div class="script">
+      자, 이게 실제 카페 매출 데이터예요. 뉴믹스커피라고, 성수동에 있는 카페입니다.<br>
+      2월 한 달 매출, <strong>주문 약 2,000건</strong>이에요.<br><br>
+      이걸 그냥 여기에 던져볼게요.
+    </div>
+
+    <p style="font-size:14px; color:var(--dark-gray); margin-top:12px;"><strong>행동:</strong> CSV 파일을 Claude Code 대화창에 드래그하거나 경로를 입력합니다.</p>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>연출 포인트:</strong> "파일을 넣는 것" 자체를 천천히 보여주세요. 이게 전부라는 걸 강조. 엑셀 열 필요도 없다는 것.</div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 2</span> 첫 번째 질문 — 매출 요약</h3>
+    <div class="timing">⏱ 60초</div>
+
+    <div class="prompt-box">
+      <span class="prompt-text">이번 달 매출 분석해줘. 총매출, 일평균, 카테고리별 매출, 베스트셀러 TOP 5 알려줘</span>
+    </div>
+
+    <div class="script">
+      프롬프트 엔지니어링 같은 거 없어요. 그냥 사장님이 궁금한 걸 물어보면 됩니다.
+    </div>
+
+    <div class="result-preview">
+      <div class="result-grid">
+        <div class="result-cell">
+          <span class="num">9,900만</span>
+          <span class="label">총매출</span>
+        </div>
+        <div class="result-cell">
+          <span class="num">412만</span>
+          <span class="label">일평균 매출</span>
+        </div>
+        <div class="result-cell">
+          <span class="num">1,957건</span>
+          <span class="label">총 주문수</span>
+        </div>
+        <div class="result-cell">
+          <span class="num">50,587원</span>
+          <span class="label">객단가</span>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <p style="font-size:13px; font-weight:600; color:var(--dark-gray); margin-bottom:8px;">카테고리별 매출</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <span style="background:var(--primary); color:#fff; padding:4px 14px; border-radius:20px; font-size:13px; font-weight:600;">커피포 82.0%</span>
+          <span style="background:var(--primary-light); color:#fff; padding:4px 14px; border-radius:20px; font-size:13px; font-weight:600;">MD상품 11.7%</span>
+          <span style="background:var(--info); color:#fff; padding:4px 14px; border-radius:20px; font-size:13px; font-weight:600;">스낵 6.3%</span>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <p style="font-size:13px; font-weight:600; color:var(--dark-gray); margin-bottom:8px;">베스트셀러 TOP 5</p>
+        <ol style="font-size:13px; padding-left:20px; color:var(--dark-gray); line-height:1.8;">
+          <li>오리지날 커피포 10T — 1,730만원</li>
+          <li>볶은쌀 커피포 10T — 1,006만원</li>
+          <li>바나나우유맛 커피포 — 798만원</li>
+          <li>군밤맛 커피포 — 747만원</li>
+          <li>말차라떼맛 커피포 — 617만원</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="script">
+      지금 <strong>2천 줄짜리 엑셀을 30초 만에 분석</strong>했어요.<br>
+      사장님이 직접 하시면 — 열 정렬하고, 필터 걸고, 합계 내고 — 한 시간은 걸리죠.
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 3</span> 두 번째 질문 — 숨겨진 인사이트</h3>
+    <div class="timing">⏱ 60초</div>
+
+    <div class="prompt-box">
+      <span class="prompt-text">외국인 고객 비중이 어떻게 돼? 국적별로 뭘 많이 사는지, 객단가 차이도 알려줘</span>
+    </div>
+
+    <div class="result-preview">
+      <div style="margin-bottom:16px;">
+        <p style="font-size:13px; font-weight:600; color:var(--dark-gray); margin-bottom:12px;">국적별 매출 비중 & 객단가</p>
+        <table style="width:100%; font-size:13px; border-collapse:collapse;">
+          <tr style="border-bottom:1px solid var(--light-gray);">
+            <td style="padding:8px 0; font-weight:700; color:var(--primary);">🇯🇵 일본</td>
+            <td style="padding:8px;">3,510만 (35.5%)</td>
+            <td style="padding:8px;">605건</td>
+            <td style="padding:8px; font-weight:700;">객단가 58,013원</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--light-gray);">
+            <td style="padding:8px 0; font-weight:700; color:var(--primary);">🇹🇼 대만</td>
+            <td style="padding:8px;">1,272만 (12.9%)</td>
+            <td style="padding:8px;">232건</td>
+            <td style="padding:8px; font-weight:700;">객단가 54,837원</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--light-gray);">
+            <td style="padding:8px 0; font-weight:700;">🇰🇷 한국</td>
+            <td style="padding:8px;">1,252만 (12.6%)</td>
+            <td style="padding:8px;">439건</td>
+            <td style="padding:8px; font-weight:700; color:var(--danger);">객단가 28,515원</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0; font-weight:700; color:var(--primary);">🇺🇸 미국</td>
+            <td style="padding:8px;">951만 (9.6%)</td>
+            <td style="padding:8px;">155건</td>
+            <td style="padding:8px; font-weight:700; color:var(--success);">객단가 61,365원</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="script">
+      보이시죠? 이 카페는 <strong>매출의 87%가 외국인</strong>이에요.<br><br>
+      그리고 일본 고객 객단가가 58,000원인데, 한국 고객은 28,000원이에요. <strong>두 배 차이.</strong><br><br>
+      이걸 알면 뭘 해야 할까요? — 일본어 POP를 더 만들거나, 일본인 선호 상품을 앞에 배치하거나.<br><br>
+      <strong>이런 판단이 가능하려면 데이터를 봐야 하는데, 그동안 못 본 거예요. 귀찮아서.</strong><br>
+      AI가 해주니까 이제 볼 수 있는 겁니다.
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 4</span> 세 번째 질문 — 보고서 자동 생성</h3>
+    <div class="timing">⏱ 60초</div>
+
+    <div class="prompt-box">
+      <span class="prompt-text">이걸 1페이지 보고서로 만들어줘. 핵심 숫자 3개, 차트, 다음 달 해야 할 일 3개 포함해서</span>
+    </div>
+
+    <div class="script">
+      마지막이에요. "보고서 만들어줘" 한 마디.<br><br>
+      사장님이 회계사한테 보여줄 자료도 되고, 직원한테 공유할 자료도 되고,<br>
+      프랜차이즈 본사에 제출할 월간 보고서도 이걸로 끝이에요.
+    </div>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>연출 포인트:</strong> 결과가 나오면 잠깐 멈춥니다. 청중이 스크린을 읽을 시간을 줍니다. 반응이 나올 겁니다. "와" 또는 웅성거림. 그때까지 기다립니다. <strong>이 침묵이 가장 강력한 설득입니다.</strong></div>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">강사 클로징 멘트</div>
+      <div class="insight-text">
+        자, 여기까지 총 3분.<br>
+        사장님이 일요일 밤에 3시간 하던 걸,<br>
+        <span style="color:var(--primary);">3분에 끝냈습니다.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════ 3막 ═══════════════════════════════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number">3</div>
+    <div class="act-title-group">
+      <h2>전환 — "그래서 뭐가 달라지나요?"</h2>
+      <span class="act-time">3분</span>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot active"></div>
+  </div>
+
+  <div class="card">
+    <h3>Before / After 비교</h3>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>업무</th>
+          <th>예전 방식</th>
+          <th>AI 방식</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>매출 정리</strong></td>
+          <td class="old">엑셀 2-3시간</td>
+          <td class="new">3분</td>
+        </tr>
+        <tr>
+          <td><strong>고객 분석</strong></td>
+          <td class="old">안 함 (못 함)</td>
+          <td class="new">질문만 하면 됨</td>
+        </tr>
+        <tr>
+          <td><strong>보고서</strong></td>
+          <td class="old">만들 줄 모름</td>
+          <td class="new">자동 생성</td>
+        </tr>
+        <tr>
+          <td><strong>분석 빈도</strong></td>
+          <td class="old">월 1회 (or 안 함)</td>
+          <td class="new">매일 가능</td>
+        </tr>
+        <tr>
+          <td><strong>필요 스킬</strong></td>
+          <td class="old">피벗테이블, 함수, 차트</td>
+          <td class="new">한국어</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>핵심 메시지 전달</h3>
+
+    <div class="script">
+      중요한 건 이겁니다.<br><br>
+      방금 본 건 "시간 절약"이 아니에요. <strong>진짜 변화는 이겁니다:</strong><br><br>
+      매달 1번 하던 매출 분석을, <strong>이제 매일 할 수 있어요.</strong><br><br>
+      매일 분석하는 사장님과, 감으로 하는 사장님.<br>
+      <strong>1년 후에 누가 더 잘할까요?</strong>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">이 교육의 한 줄 메시지</div>
+      <div class="insight-text">
+        AI를 배워야 하는 이유는<br>
+        어려워서가 아니라,<br>
+        <span style="color:var(--primary);">이걸 안 하면 손해니까.</span>
+      </div>
+    </div>
+
+    <div class="script">
+      그리고 한 가지 더 말씀드릴게요.<br><br>
+      지금 이렇게 일하는 사장님이 <strong>아직 5%도 안 됩니다.</strong><br>
+      오늘 배우시면, 여러분이 그 5%가 되는 겁니다.<br><br>
+      나머지 95%가 깨달았을 때는 이미 늦습니다.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>다음 실습으로 연결</h3>
+
+    <div class="script">
+      자, 이제 직접 해보실 차례입니다.<br><br>
+      준비한 샘플 데이터로 — 지금 제가 한 거 똑같이 따라해보세요.<br>
+      파일 넣고, "매출 분석해줘" 한 마디. 그게 전부입니다.
+    </div>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>전환 포인트:</strong> 여기서 바이브코딩 실습 트랙으로 자연스럽게 연결. 데모에서 "와" 한 에너지가 살아있을 때 바로 실습으로 가야 합니다. 시간 지나면 "나중에 해봐야지" 모드로 빠져요.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════ 부록 ═══════════════════════════════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number" style="background: var(--dark-gray);">+</div>
+    <div class="act-title-group">
+      <h2>부록 — 확장 데모 옵션</h2>
+      <span class="act-time">시간 여유 시 추가</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>옵션 A: 전월 비교 (1분 추가)</h3>
+    <div class="prompt-box">
+      <span class="prompt-text">1월 매출 데이터도 있어. 1월 대비 2월이 어떻게 변했는지 비교해줘</span>
+    </div>
+    <div class="result-preview">
+      <div class="result-grid">
+        <div class="result-cell">
+          <span class="num" style="font-size:22px;">6,721만</span>
+          <span class="label">1월 매출</span>
+        </div>
+        <div class="result-cell">
+          <span class="num" style="font-size:22px;">9,900만</span>
+          <span class="label">2월 매출</span>
+        </div>
+        <div class="result-cell">
+          <span class="num" style="font-size:22px; color:var(--success);">+47.3%</span>
+          <span class="label">성장률</span>
+        </div>
+        <div class="result-cell">
+          <span class="num" style="font-size:22px; color:var(--success);">+59.6%</span>
+          <span class="label">일평균 성장</span>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:13px; color:var(--dark-gray); margin-top:12px;"><strong>임팩트:</strong> "파일 하나 더 던지면 전월 비교도 자동으로 됩니다. 추세가 보이기 시작해요."</p>
+  </div>
+
+  <div class="card">
+    <h3>옵션 B: 시간대별 분석 (1분 추가)</h3>
+    <div class="prompt-box">
+      <span class="prompt-text">시간대별 매출 분포 보여줘. 언제가 피크야?</span>
+    </div>
+    <div class="result-preview">
+      <p style="font-size:13px; margin-bottom:12px;"><strong>피크 타임:</strong> 오후 2시 (1,767만원) → 인력 배치, 재고 준비에 활용</p>
+      <div style="display:flex; align-items:flex-end; gap:4px; height:100px; margin-top:12px;">
+        <div style="flex:1; background:var(--primary-subtle); height:30%; border-radius:4px 4px 0 0;" title="11시"></div>
+        <div style="flex:1; background:var(--primary-light); height:55%; border-radius:4px 4px 0 0;" title="12시"></div>
+        <div style="flex:1; background:var(--primary); height:88%; border-radius:4px 4px 0 0;" title="13시"></div>
+        <div style="flex:1; background:var(--primary-dark); height:100%; border-radius:4px 4px 0 0;" title="14시"></div>
+        <div style="flex:1; background:var(--primary); height:90%; border-radius:4px 4px 0 0;" title="15시"></div>
+        <div style="flex:1; background:var(--primary-light); height:70%; border-radius:4px 4px 0 0;" title="16시"></div>
+        <div style="flex:1; background:var(--primary-light); height:65%; border-radius:4px 4px 0 0;" title="17시"></div>
+        <div style="flex:1; background:var(--primary-subtle); height:35%; border-radius:4px 4px 0 0;" title="18시"></div>
+        <div style="flex:1; background:var(--primary-subtle); height:20%; border-radius:4px 4px 0 0;" title="19시"></div>
+      </div>
+      <div style="display:flex; gap:4px; font-size:10px; color:var(--mid-gray); margin-top:4px;">
+        <span style="flex:1; text-align:center;">11</span>
+        <span style="flex:1; text-align:center;">12</span>
+        <span style="flex:1; text-align:center;">13</span>
+        <span style="flex:1; text-align:center;">14</span>
+        <span style="flex:1; text-align:center;">15</span>
+        <span style="flex:1; text-align:center;">16</span>
+        <span style="flex:1; text-align:center;">17</span>
+        <span style="flex:1; text-align:center;">18</span>
+        <span style="flex:1; text-align:center;">19</span>
+      </div>
+    </div>
+    <p style="font-size:13px; color:var(--dark-gray); margin-top:12px;"><strong>임팩트:</strong> "오후 2시가 피크인 걸 알면, 그 시간에 직원을 더 배치하거나, 그 시간 전에 진열을 바꾸거나. 데이터가 있으면 판단이 달라집니다."</p>
+  </div>
+
+  <div class="card">
+    <h3>옵션 C: "이거 다른 업무에도 되나요?" (청중 질문 대비)</h3>
+    <p style="font-size:14px; color:var(--dark-gray); line-height:1.7;">
+      청중이 가장 많이 하는 질문입니다. 준비된 답변:
+    </p>
+    <div class="script">
+      됩니다. 예를 들면:<br><br>
+      <strong>• 손익 계산</strong> — "이번 달 재료비, 인건비, 임대료 넣으면 순이익이 얼마야?"<br>
+      <strong>• 인사 관리</strong> — "직원 계약 만료일 정리해줘. 다음 달에 갱신해야 하는 사람 누구야?"<br>
+      <strong>• 관공서 문서</strong> — "사업자등록증 내용으로 소상공인 지원금 신청서 초안 만들어줘"<br>
+      <strong>• 견적서</strong> — "이 단가표로 견적서 만들어줘. 부가세 별도로"<br><br>
+      핵심은 같아요. <strong>파일 + 한국어 질문 = 결과.</strong>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════ FOOTER ═══════════════════════════════════════ -->
+<div class="footer">
+  <p><strong>Do Better Things — AI 업무전환(AX) 교육 프로그램</strong></p>
+  <p style="margin-top:6px;">강사용 시나리오 | 데이터: 뉴믹스커피 샘플 | 2026.05 작성</p>
+  <p style="margin-top:4px; font-size:11px;">이 문서는 교육 목적으로 제작되었습니다. 실제 매출 데이터는 교육용 샘플입니다.</p>
+</div>
+
+</div><!-- /container -->
+</body>
+</html>

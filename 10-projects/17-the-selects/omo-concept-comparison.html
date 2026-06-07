@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>더셀렉츠 OMO 컨셉 강화 — 3가지 제안 비교</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', -apple-system, sans-serif; background: #F7F7FB; color: #1A1A2E; line-height: 1.7; font-size: 15px; }
+  .container { max-width: 1080px; margin: 0 auto; padding: 40px 24px; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #1A1A2E 0%, #2D2B55 100%); color: white; padding: 48px 40px; border-radius: 16px; margin-bottom: 32px; position: relative; overflow: hidden; }
+  .header::after { content: ''; position: absolute; top: -80px; right: -80px; width: 240px; height: 240px; background: rgba(108,92,231,0.15); border-radius: 50%; }
+  .header::before { content: ''; position: absolute; bottom: -40px; left: -40px; width: 160px; height: 160px; background: rgba(108,92,231,0.08); border-radius: 50%; }
+  .header .badge { display: inline-block; background: #6C5CE7; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 16px; text-transform: uppercase; }
+  .header h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; position: relative; }
+  .header .sub { font-size: 15px; opacity: 0.7; margin-bottom: 20px; }
+  .header .meta { display: flex; gap: 20px; font-size: 12px; opacity: 0.5; flex-wrap: wrap; }
+
+  /* Page Label */
+  .page-label { text-align: center; font-size: 11px; font-weight: 700; color: #7F7F9E; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+
+  /* Section */
+  .section { background: white; border-radius: 12px; padding: 32px; margin-bottom: 24px; border: 1px solid #E8E8F0; }
+  .section h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .section h3 { font-size: 16px; font-weight: 700; color: #4A4A68; margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #EDE9FE; }
+  .section h4 { font-size: 14px; font-weight: 700; color: #5A4BD1; margin: 16px 0 8px; }
+  .num-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #6C5CE7; color: white; border-radius: 8px; font-size: 14px; font-weight: 700; }
+
+  /* Comparison Matrix */
+  .matrix { width: 100%; border-collapse: separate; border-spacing: 0; margin: 16px 0; font-size: 13px; border-radius: 12px; overflow: hidden; border: 1px solid #E8E8F0; }
+  .matrix th { background: #1A1A2E; color: white; padding: 12px 14px; text-align: center; font-weight: 600; font-size: 12px; letter-spacing: 0.5px; }
+  .matrix th:first-child { text-align: left; width: 160px; }
+  .matrix td { padding: 12px 14px; border-bottom: 1px solid #E8E8F0; vertical-align: top; text-align: center; }
+  .matrix td:first-child { text-align: left; font-weight: 600; color: #4A4A68; background: #F7F7FB; }
+  .matrix tr:last-child td { border-bottom: none; }
+  .matrix .col-a { background: rgba(108,92,231,0.04); }
+  .matrix .col-b { background: rgba(0,184,148,0.04); }
+  .matrix .col-c { background: rgba(116,185,255,0.04); }
+  .matrix .th-a { background: #6C5CE7 !important; }
+  .matrix .th-b { background: #00B894 !important; }
+  .matrix .th-c { background: #2D8CF0 !important; }
+
+  /* Score Bar */
+  .score-bar { display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .score-bar .bar { height: 8px; border-radius: 4px; }
+  .score-bar .bar.a { background: #6C5CE7; }
+  .score-bar .bar.b { background: #00B894; }
+  .score-bar .bar.c { background: #2D8CF0; }
+  .score-bar .val { font-size: 12px; font-weight: 700; }
+
+  /* Verdict Card */
+  .verdict { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .verdict-card { border-radius: 12px; padding: 24px; text-align: center; border: 2px solid; position: relative; }
+  .verdict-card.a { border-color: #6C5CE7; background: linear-gradient(180deg, #EDE9FE 0%, white 100%); }
+  .verdict-card.b { border-color: #00B894; background: linear-gradient(180deg, #E8F5E9 0%, white 100%); }
+  .verdict-card.c { border-color: #2D8CF0; background: linear-gradient(180deg, #E3F2FD 0%, white 100%); }
+  .verdict-card .rank { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #1A1A2E; color: white; font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 12px; }
+  .verdict-card .win-pct { font-size: 36px; font-weight: 800; margin: 12px 0 4px; }
+  .verdict-card.a .win-pct { color: #6C5CE7; }
+  .verdict-card.b .win-pct { color: #00B894; }
+  .verdict-card.c .win-pct { color: #2D8CF0; }
+  .verdict-card .label { font-size: 12px; color: #7F7F9E; }
+  .verdict-card .name { font-size: 14px; font-weight: 700; margin-top: 8px; }
+
+  /* Concept Card */
+  .concept-header { padding: 32px; border-radius: 16px; color: white; margin-bottom: 24px; position: relative; overflow: hidden; }
+  .concept-header.a { background: linear-gradient(135deg, #6C5CE7 0%, #5A4BD1 100%); }
+  .concept-header.b { background: linear-gradient(135deg, #00B894 0%, #00997B 100%); }
+  .concept-header.c { background: linear-gradient(135deg, #2D8CF0 0%, #1A6FC4 100%); }
+  .concept-header::after { content: ''; position: absolute; top: -50px; right: -50px; width: 180px; height: 180px; background: rgba(255,255,255,0.06); border-radius: 50%; }
+  .concept-header .concept-num { font-size: 12px; font-weight: 700; letter-spacing: 2px; opacity: 0.6; text-transform: uppercase; }
+  .concept-header h2 { font-size: 24px; font-weight: 800; margin: 8px 0; border: none; padding: 0; }
+  .concept-header .hero { font-size: 16px; opacity: 0.85; font-style: italic; }
+
+  /* Pros/Cons */
+  .proscons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .pros, .cons { border-radius: 10px; padding: 20px; }
+  .pros { background: #E8F5E9; border: 1px solid #C8E6C9; }
+  .cons { background: #FFF3E0; border: 1px solid #FFE0B2; }
+  .pros h4, .cons h4 { margin: 0 0 10px; font-size: 13px; }
+  .pros h4 { color: #2E7D32; }
+  .cons h4 { color: #E65100; }
+  .pros ul, .cons ul { padding-left: 18px; font-size: 13px; }
+  .pros li { color: #1B5E20; margin-bottom: 4px; }
+  .cons li { color: #BF360C; margin-bottom: 4px; }
+
+  /* Score Table */
+  .score-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+  .score-table th { background: #F7F7FB; padding: 8px 12px; text-align: left; font-weight: 600; color: #7F7F9E; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #E8E8F0; }
+  .score-table td { padding: 8px 12px; border-bottom: 1px solid #E8E8F0; }
+  .score-table tr:hover td { background: #F7F7FB; }
+
+  /* Flow */
+  .flow-box { background: #1A1A2E; color: white; border-radius: 12px; padding: 28px; margin: 16px 0; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 2; white-space: pre-wrap; }
+
+  /* Integration */
+  .integration { background: linear-gradient(135deg, #1A1A2E 0%, #2D2B55 100%); color: white; border-radius: 16px; padding: 36px; margin: 24px 0; text-align: center; }
+  .integration h3 { color: white; border: none; font-size: 18px; margin-bottom: 20px; }
+  .integration .hero-statement { font-size: 20px; font-weight: 700; line-height: 1.6; color: #A29BFE; margin: 24px 0; padding: 20px; background: rgba(108,92,231,0.15); border-radius: 12px; border: 1px solid rgba(108,92,231,0.3); }
+
+  /* Tags */
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+  .tag.high { background: #E8F5E9; color: #2E7D32; }
+  .tag.mid { background: #FFF8E1; color: #F57F17; }
+  .tag.low { background: #FFEBEE; color: #C62828; }
+  .tag.purple { background: #EDE9FE; color: #5A4BD1; }
+  .tag.green { background: #E8F5E9; color: #00B894; }
+  .tag.blue { background: #E3F2FD; color: #2D8CF0; }
+
+  /* KPI Grid */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+  .kpi-box { background: #F7F7FB; border-radius: 10px; padding: 16px; text-align: center; border: 1px solid #E8E8F0; }
+  .kpi-box .kpi-label { font-size: 11px; color: #7F7F9E; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-box .kpi-value { font-size: 20px; font-weight: 800; margin: 4px 0; }
+  .kpi-box.a .kpi-value { color: #6C5CE7; }
+  .kpi-box.b .kpi-value { color: #00B894; }
+  .kpi-box.c .kpi-value { color: #2D8CF0; }
+
+  /* Divider */
+  .page-break { border: none; border-top: 3px solid #EDE9FE; margin: 40px 0; }
+
+  .footer { text-align: center; padding: 32px; color: #7F7F9E; font-size: 12px; }
+
+  @media (max-width: 768px) {
+    .verdict, .proscons, .kpi-grid { grid-template-columns: 1fr; }
+    .header, .concept-header { padding: 28px 20px; }
+    .section { padding: 24px 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">OMO CONCEPT COMPARISON</div>
+    <h1>더셀렉츠 글로벌 팝업스토어 — 컨셉 강화 3안 비교</h1>
+    <div class="sub">OMO(Online Merges with Offline) 관점의 전략 고도화</div>
+    <div class="meta">
+      <span>발주처: KOCCA</span>
+      <span>예산: 18.2억</span>
+      <span>기존 컨셉: "매장을 미디어로 운용합니다"</span>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 1: 비교 요약 ========== -->
+  <div class="page-label">PAGE 1 — EXECUTIVE COMPARISON</div>
+
+  <div class="section">
+    <h2><span class="num-badge">0</span> 3안 비교 매트릭스</h2>
+
+    <table class="matrix">
+      <tr>
+        <th></th>
+        <th class="th-a">컨셉 A<br>경험 자산화</th>
+        <th class="th-b">컨셉 B<br>2거점 동시 바이럴</th>
+        <th class="th-c">컨셉 C<br>D2C 전환 파이프라인</th>
+      </tr>
+      <tr>
+        <td>한 줄 정의</td>
+        <td class="col-a">팝업은 끝나도<br><strong>팬덤은 남는다</strong></td>
+        <td class="col-b">도쿄와 파리가<br><strong>동시에 반응한다</strong></td>
+        <td class="col-c">파르코에서 입은 옷이<br><strong>온라인에서 팔린다</strong></td>
+      </tr>
+      <tr>
+        <td>OMO 핵심 메커니즘</td>
+        <td class="col-a">경험 → 디지털 자산<br>(Content Factory)</td>
+        <td class="col-b">2거점 크로스 바이럴<br>(Campaign Arc)</td>
+        <td class="col-c">오프라인 → 온라인<br>D2C 전환 (Pipeline)</td>
+      </tr>
+      <tr>
+        <td>Hero Statement</td>
+        <td class="col-a" style="font-style:italic;font-size:12px;">"3주의 팝업이 끝나면,<br>16개 브랜드의 글로벌<br>디지털 쇼룸이 시작됩니다"</td>
+        <td class="col-b" style="font-style:italic;font-size:12px;">"도쿄에서 시작된 K-패션이<br>파리에서 완성되는<br>글로벌 캠페인 아크"</td>
+        <td class="col-c" style="font-style:italic;font-size:12px;">"18.2억 투자의 진짜 ROI는<br>매출이 아니라 16개 브랜드의<br>글로벌 D2C 고객 기반"</td>
+      </tr>
+      <tr>
+        <td>콘진원 JTBD 직격</td>
+        <td class="col-a"><span class="tag purple">Emotional</span><br>"사업 종료 후에도 남는 것"</td>
+        <td class="col-b"><span class="tag green">Social</span><br>"세계가 동시에 반응"</td>
+        <td class="col-c"><span class="tag blue">Functional</span><br>"투자 대비 최대 수익"</td>
+      </tr>
+      <tr>
+        <td>핵심 배점 대응</td>
+        <td class="col-a"><strong>사업이해도 20점</strong><br>+ 사회적가치 14점</td>
+        <td class="col-b"><strong>홍보마케팅 ~15점</strong><br>+ 사업이해도 20점</td>
+        <td class="col-c"><strong>수행능력 30점</strong><br>+ 추진방안 15점</td>
+      </tr>
+      <tr>
+        <td>추가 예산 필요</td>
+        <td class="col-a"><span class="tag high">최소</span><br>QR+콘텐츠SOP만</td>
+        <td class="col-b"><span class="tag mid">중간</span><br>크로스기획+앰배서더</td>
+        <td class="col-c"><span class="tag mid">중간</span><br>CRM+NUGU연동</td>
+      </tr>
+      <tr>
+        <td>실현 난이도</td>
+        <td class="col-a"><strong>★★★★☆</strong><br>쉬움</td>
+        <td class="col-b"><strong>★★★☆☆</strong><br>보통</td>
+        <td class="col-c"><strong>★★★☆☆</strong><br>보통</td>
+      </tr>
+      <tr>
+        <td>경쟁사 모방 가능성</td>
+        <td class="col-a"><span class="tag high">낮음</span><br>RXR IP 필요</td>
+        <td class="col-b"><span class="tag mid">중간</span><br>기획력 의존</td>
+        <td class="col-c"><span class="tag high">낮음</span><br>시스템 구축 필요</td>
+      </tr>
+      <tr>
+        <td>기존 전략 시너지</td>
+        <td class="col-a">RXR 성과측정과<br>직접 연결</td>
+        <td class="col-b">Le Project P<br>네이티브 역량 극대화</td>
+        <td class="col-c">리테일 미디어<br>MaaS 관점 완성</td>
+      </tr>
+    </table>
+
+    <h3>배점 대응력 비교</h3>
+    <table class="score-table">
+      <tr>
+        <th>평가 항목</th>
+        <th>배점</th>
+        <th>컨셉 A</th>
+        <th>컨셉 B</th>
+        <th>컨셉 C</th>
+      </tr>
+      <tr>
+        <td>수행능력·전문성</td>
+        <td><strong>30점</strong></td>
+        <td>★★★☆ 간접 기여</td>
+        <td>★★★☆ 간접 기여</td>
+        <td><strong>★★★★★ 직격</strong> (측정·증명 역량)</td>
+      </tr>
+      <tr>
+        <td>사업이해도+전략</td>
+        <td><strong>20점</strong></td>
+        <td><strong>★★★★★ 직격</strong> (지속가능성 이해)</td>
+        <td><strong>★★★★☆</strong> (글로벌 시각)</td>
+        <td>★★★★☆ (ROI 관점)</td>
+      </tr>
+      <tr>
+        <td>추진방안</td>
+        <td>15점</td>
+        <td>★★★☆ 보통</td>
+        <td>★★★★☆ (크로스 SOP)</td>
+        <td><strong>★★★★★ 직격</strong> (파이프라인 구체성)</td>
+      </tr>
+      <tr>
+        <td>홍보·마케팅</td>
+        <td>~15점</td>
+        <td>★★★★☆ (콘텐츠 전략)</td>
+        <td><strong>★★★★★ 직격</strong> (글로벌 바이럴)</td>
+        <td>★★★★☆ (전환 중심)</td>
+      </tr>
+      <tr>
+        <td>사회적가치·안전</td>
+        <td>14점</td>
+        <td><strong>★★★★☆</strong> (브랜드 인큐베이션)</td>
+        <td>★★★☆ 보통</td>
+        <td>★★★☆ 보통</td>
+      </tr>
+      <tr style="background:#EDE9FE;">
+        <td><strong>총 배점 대응력</strong></td>
+        <td><strong>90점</strong></td>
+        <td><strong>75/90</strong></td>
+        <td><strong>73/90</strong></td>
+        <td><strong>78/90</strong></td>
+      </tr>
+    </table>
+
+    <h3>수주 가능성 판정</h3>
+    <div class="verdict">
+      <div class="verdict-card a">
+        <div class="rank">SAFE BET</div>
+        <div class="win-pct">Medium-High</div>
+        <div class="label">수주 가능성</div>
+        <div class="name">컨셉 A: 경험 자산화</div>
+        <p style="font-size:12px;color:#7F7F9E;margin-top:8px;">리스크 최소, 실현 확실<br>기존 전략과 가장 자연스러운 통합</p>
+      </div>
+      <div class="verdict-card b">
+        <div class="rank">HIGH IMPACT</div>
+        <div class="win-pct">Medium</div>
+        <div class="label">수주 가능성</div>
+        <div class="name">컨셉 B: 2거점 바이럴</div>
+        <p style="font-size:12px;color:#7F7F9E;margin-top:8px;">임팩트 최대, 실행 변수 있음<br>심사위원 기억에 가장 남는 안</p>
+      </div>
+      <div class="verdict-card c">
+        <div class="rank">STRATEGIC</div>
+        <div class="win-pct">Medium-High</div>
+        <div class="label">수주 가능성</div>
+        <div class="name">컨셉 C: D2C 파이프라인</div>
+        <p style="font-size:12px;color:#7F7F9E;margin-top:8px;">ROI 설득력 최강<br>수행능력 30점 최대 득점</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- ========== PAGE 2: 컨셉 A ========== -->
+  <div class="page-label">PAGE 2 — CONCEPT A</div>
+
+  <div class="concept-header a">
+    <div class="concept-num">Concept A — Experience Asset</div>
+    <h2>"팝업은 끝나도, 팬덤은 남는다"</h2>
+    <div class="hero">3주의 팝업이 끝나면, 16개 브랜드의 글로벌 디지털 쇼룸이 시작됩니다</div>
+  </div>
+
+  <div class="section">
+    <h3>핵심 메커니즘: 경험 → 콘텐츠 → 영구 자산</h3>
+    <div class="flow-box">팝업 매장 (물리적 경험)
+  ↓  현장 콘텐츠 팩토리 (브랜드 다큐, 숏폼, 인터뷰)
+  ↓  실시간 SNS 유통 (KOL 콜라보 콘텐츠)
+  ↓  방문객 QR → 브랜드 디지털 쇼룸 연결
+  ↓  팝업 종료 후에도 디지털 쇼룸 유지
+  ↓  후속 6개월: 콘텐츠 재생산 + 온라인 전환 추적
+  ↓  RXR "디지털 잔존 효과 리포트" 납품</div>
+
+    <h3>기존 전략 대비 변화</h3>
+    <table class="score-table">
+      <tr><th>영역</th><th>기존</th><th>컨셉 A 강화</th></tr>
+      <tr><td>팝업 매장</td><td>미디어 공간</td><td><strong>콘텐츠 팩토리</strong> — 현장에서 브랜드 다큐 실시간 제작</td></tr>
+      <tr><td>KOL 시딩</td><td>방문 → 1회 포스팅</td><td>브랜드 × KOL <strong>콜라보 시리즈</strong> — 팝업 후에도 재생산</td></tr>
+      <tr><td>방문객</td><td>구매 후 종료</td><td>QR → <strong>브랜드 디지털 쇼룸</strong> → 후속 구매 가능</td></tr>
+      <tr><td>성과 보고</td><td>매출 + 방문객 수</td><td><strong>디지털 잔존 효과</strong> 추가 (조회수, 팔로워↑, 후속 전환)</td></tr>
+      <tr><td>사업 종료 후</td><td>리포트 제출 → 끝</td><td><strong>16개 디지털 쇼룸</strong>이 남아 2027 시즌의 출발점이 됨</td></tr>
+    </table>
+
+    <h3>핵심 KPI</h3>
+    <div class="kpi-grid">
+      <div class="kpi-box a"><div class="kpi-label">콘텐츠 생산</div><div class="kpi-value">200+종</div><div style="font-size:11px;color:#7F7F9E;">브랜드별 12종 × 16 + 다큐 4편</div></div>
+      <div class="kpi-box a"><div class="kpi-label">디지털 잔존 효과</div><div class="kpi-value">+6개월</div><div style="font-size:11px;color:#7F7F9E;">팝업 종료 후 콘텐츠 재생 기간</div></div>
+      <div class="kpi-box a"><div class="kpi-label">디지털 쇼룸</div><div class="kpi-value">16개</div><div style="font-size:11px;color:#7F7F9E;">브랜드별 영구 쇼룸 구축</div></div>
+      <div class="kpi-box a"><div class="kpi-label">팔로워 증가</div><div class="kpi-value">300%↑</div><div style="font-size:11px;color:#7F7F9E;">참여 브랜드 평균 SNS 팔로워</div></div>
+    </div>
+
+    <h3>장단점</h3>
+    <div class="proscons">
+      <div class="pros">
+        <h4>강점 (Pros)</h4>
+        <ul>
+          <li>기존 RXR IP와 <strong>즉시 연결</strong> — 추가 개발 불필요</li>
+          <li>추가 비용 <strong>최소</strong> (QR 인프라 + 콘텐츠 SOP만)</li>
+          <li>콘진원의 최대 약점인 <strong>"지속가능성"에 직격</strong></li>
+          <li>경쟁사가 따라하려면 <strong>RXR 같은 측정 IP가 필요</strong></li>
+          <li>"사업 종료 후에도 남는 것"이라는 서사가 <strong>정부사업 성과관리 니즈</strong>에 부합</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>약점 (Cons)</h4>
+        <ul>
+          <li>심사위원에게 <strong>"새롭다"는 인상은 약할 수 있음</strong></li>
+          <li>디지털 쇼룸의 <strong>실제 후속 전환율을 사전에 증명하기 어려움</strong></li>
+          <li>홍보마케팅 배점(~15점)에는 <strong>간접 기여</strong> 수준</li>
+          <li>브랜드들이 <strong>자체 디지털 쇼룸 운영 의사</strong>가 있어야 함</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>배점 대응 전략</h3>
+    <table class="score-table">
+      <tr><th>평가 항목</th><th>배점</th><th>컨셉 A 대응 포인트</th><th>예상 득점</th></tr>
+      <tr><td>수행능력·전문성</td><td>30</td><td>RXR 디지털 잔존 효과 측정 = "다른 제안사에 없는 IP"</td><td>24~27</td></tr>
+      <tr><td>사업이해도+전략</td><td>20</td><td>"팝업을 넘어 글로벌 인프라 구축"이라는 상위 비전 제시</td><td><strong>17~19</strong></td></tr>
+      <tr><td>추진방안</td><td>15</td><td>콘텐츠 팩토리 SOP + 디지털 쇼룸 구축 로드맵</td><td>11~13</td></tr>
+      <tr><td>홍보마케팅</td><td>~15</td><td>KOL 콜라보 시리즈 = 기존 시딩의 업그레이드</td><td>11~13</td></tr>
+      <tr><td>사회적가치</td><td>14</td><td>신생 디자이너 글로벌 디지털 인프라 = 인큐베이션</td><td><strong>11~13</strong></td></tr>
+      <tr style="background:#EDE9FE;"><td><strong>합계</strong></td><td><strong>90</strong></td><td></td><td><strong>74~85</strong></td></tr>
+    </table>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- ========== PAGE 3: 컨셉 B ========== -->
+  <div class="page-label">PAGE 3 — CONCEPT B</div>
+
+  <div class="concept-header b">
+    <div class="concept-num">Concept B — Global Campaign Arc</div>
+    <h2>"도쿄와 파리가 동시에 반응하는 순간"</h2>
+    <div class="hero">더셀렉츠는 도쿄에서 시작해 파리에서 완성되는 글로벌 캠페인 아크입니다</div>
+  </div>
+
+  <div class="section">
+    <h3>핵심 메커니즘: 2거점 크로스 바이럴 아크</h3>
+    <div class="flow-box">Phase 1 — BUILD-UP (도쿄, 9~10월)
+  도쿄 릴레이 1~3회차 콘텐츠 → "K-패션이 파르코를 점령 중" 서사
+  #TheSelectsTokyo 해시태그 빌드업
+  ↓
+Phase 2 — GRAND MOMENT (파리, 10월)
+  갤러리 라파예트 오프닝 = "캠페인 클라이맥스"
+  글로벌 앰배서더 1인이 도쿄→파리를 잇는 "여정" 콘텐츠
+  한불수교 140주년 + 패션위크 타이밍
+  #TheSelectsParis × #TheSelectsTokyo 크로스 바이럴
+  ↓
+Phase 3 — ECHO (도쿄, 11~2월)
+  파리의 성공이 도쿄 릴레이 4~11회차의 화제성을 끌어올림
+  "파리가 인정한 K-패션, 도쿄에서 계속됩니다" 서사
+  ↓
+Result: 16개 브랜드 × 2도시 = "글로벌 브랜드" 인식 형성</div>
+
+    <h3>기존 전략 대비 변화</h3>
+    <table class="score-table">
+      <tr><th>영역</th><th>기존</th><th>컨셉 B 강화</th></tr>
+      <tr><td>도쿄·파리 관계</td><td>각각 독립 운영</td><td><strong>Build-up → Grand Moment → Echo</strong> 3막 구조</td></tr>
+      <tr><td>SNS 전략</td><td>각 현지 KOL 별도</td><td><strong>#TheSelectsTokyo × #TheSelectsParis</strong> 크로스 해시태그</td></tr>
+      <tr><td>앰배서더</td><td>각 거점별</td><td><strong>글로벌 1인</strong> (양 도시 출현) + 현지 KOL</td></tr>
+      <tr><td>타이밍</td><td>순차적</td><td>파리 오프닝을 <strong>"그랜드 모먼트"</strong>로 → 도쿄가 빌드업</td></tr>
+      <tr><td>서사</td><td>도쿄 팝업 + 파리 팝업</td><td><strong>"K-패션의 세계 정복"</strong>이라는 하나의 캠페인 아크</td></tr>
+    </table>
+
+    <h3>핵심 KPI</h3>
+    <div class="kpi-grid">
+      <div class="kpi-box b"><div class="kpi-label">글로벌 미디어</div><div class="kpi-value">50건+</div><div style="font-size:11px;color:#7F7F9E;">크로스 바이럴로 30→50건</div></div>
+      <div class="kpi-box b"><div class="kpi-label">크로스 해시태그</div><div class="kpi-value">5,000건</div><div style="font-size:11px;color:#7F7F9E;">#TheSelects 글로벌 합산</div></div>
+      <div class="kpi-box b"><div class="kpi-label">앰배서더 리치</div><div class="kpi-value">2,000만</div><div style="font-size:11px;color:#7F7F9E;">글로벌 1인 + 현지 KOL 합산</div></div>
+      <div class="kpi-box b"><div class="kpi-label">Grand Moment EMV</div><div class="kpi-value">15억+</div><div style="font-size:11px;color:#7F7F9E;">파리 오프닝 단독 미디어 가치</div></div>
+    </div>
+
+    <h3>장단점</h3>
+    <div class="proscons">
+      <div class="pros">
+        <h4>강점 (Pros)</h4>
+        <ul>
+          <li>심사위원에게 <strong>"이 팀은 스케일이 다르다"</strong>는 인상</li>
+          <li>콘진원 Social Job <strong>"세계가 동시에 반응"</strong>에 직격</li>
+          <li>Le Project P + 일본 파트너의 <strong>"네이티브 양축"</strong> 역량 극대화</li>
+          <li>한불수교 140주년 + 파리 패션위크 <strong>메가 타이밍 활용</strong></li>
+          <li>경쟁 제안서가 <strong>절대 제시하지 못할 스토리 구조</strong></li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>약점 (Cons)</h4>
+        <ul>
+          <li>글로벌 앰배서더 <strong>캐스팅 불확실성</strong> (제안 시점에 확정 어려움)</li>
+          <li>도쿄·파리 <strong>콘텐츠 타이밍 조율 복잡도</strong> 증가</li>
+          <li>2거점 크로스 기획 경험을 <strong>실적으로 증명하기 어려움</strong></li>
+          <li>수행능력 30점에는 <strong>직접 기여도가 낮음</strong></li>
+          <li>"비전은 좋은데 <strong>실행할 수 있나?"</strong>라는 의문 방어 필요</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>배점 대응 전략</h3>
+    <table class="score-table">
+      <tr><th>평가 항목</th><th>배점</th><th>컨셉 B 대응 포인트</th><th>예상 득점</th></tr>
+      <tr><td>수행능력·전문성</td><td>30</td><td>Le Project P 파리 실적 + 양 현지 법인 = 네이티브 증명</td><td>22~26</td></tr>
+      <tr><td>사업이해도+전략</td><td>20</td><td>"2거점을 하나의 캠페인으로" = 정책 비전과 일치</td><td><strong>16~19</strong></td></tr>
+      <tr><td>추진방안</td><td>15</td><td>Build-up→Grand Moment→Echo 3막 SOP 구체적 제시</td><td>12~14</td></tr>
+      <tr><td>홍보마케팅</td><td>~15</td><td>크로스 바이럴 + 앰배서더 = <strong>이 항목 최고 득점</strong></td><td><strong>13~15</strong></td></tr>
+      <tr><td>사회적가치</td><td>14</td><td>K-패션 국가 브랜딩 기여</td><td>9~11</td></tr>
+      <tr style="background:#E8F5E9;"><td><strong>합계</strong></td><td><strong>90</strong></td><td></td><td><strong>72~85</strong></td></tr>
+    </table>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- ========== PAGE 4: 컨셉 C ========== -->
+  <div class="page-label">PAGE 4 — CONCEPT C</div>
+
+  <div class="concept-header c">
+    <div class="concept-num">Concept C — D2C Conversion Pipeline</div>
+    <h2>"파르코에서 입은 옷이 온라인에서 팔린다"</h2>
+    <div class="hero">18.2억 투자의 진짜 ROI는 매출이 아니라, 16개 브랜드의 글로벌 D2C 고객 기반입니다</div>
+  </div>
+
+  <div class="section">
+    <h3>핵심 메커니즘: 오프라인 경험 → 온라인 전환 파이프라인</h3>
+    <div class="flow-box">오프라인 (파르코 / 라파예트)
+  ↓  매장 체험 + 피팅
+  ↓  QR → 브랜드 온라인몰 / NUGU 연결 (사이즈·컬러 저장)
+  ↓
+  ├→ 즉시 전환: 현장 구매 (기존)
+  ├→ 지연 전환: 귀가 후 온라인 구매 (Showrooming)
+  ├→ 확산 전환: 방문객의 SNS → 팔로워가 온라인 구매
+  └→ 리텐션: CRM 데이터 → 신상품 알림 → 재구매
+  ↓
+통합 ROI = 현장 매출 + 온라인 후속 매출 + EMV + 고객 DB 가치
+  ↓
+2027 시즌: 축적된 고객 DB로 시작 → D2C J커브</div>
+
+    <h3>기존 전략 대비 변화</h3>
+    <table class="score-table">
+      <tr><th>영역</th><th>기존</th><th>컨셉 C 강화</th></tr>
+      <tr><td>매출 구조</td><td>오프라인 매출 = 전부</td><td>오프라인 + <strong>온라인 후속 매출</strong> (6개월 추적)</td></tr>
+      <tr><td>고객 데이터</td><td>POS 매출 데이터만</td><td><strong>고객 프로파일 CRM</strong> (QR 회원가입 → 브랜드별)</td></tr>
+      <tr><td>NUGU 연동</td><td>O4O 가능성 언급만</td><td><strong>실시간 연동</strong> — 매장 피팅 → NUGU 장바구니 자동 전송</td></tr>
+      <tr><td>ROI 산출</td><td>직접 매출 ÷ 예산</td><td><strong>통합 ROI</strong> = 직접+온라인+EMV+DB가치</td></tr>
+      <tr><td>사업 종료 후</td><td>리포트 제출</td><td><strong>고객 DB</strong>가 2027 시즌의 마케팅 자산으로 이관</td></tr>
+    </table>
+
+    <h3>핵심 KPI</h3>
+    <div class="kpi-grid">
+      <div class="kpi-box c"><div class="kpi-label">통합 매출</div><div class="kpi-value">50~70억</div><div style="font-size:11px;color:#7F7F9E;">현장 37~48 + 온라인 후속 13~22</div></div>
+      <div class="kpi-box c"><div class="kpi-label">고객 DB</div><div class="kpi-value">5,000+명</div><div style="font-size:11px;color:#7F7F9E;">QR 회원가입 기반 글로벌 CRM</div></div>
+      <div class="kpi-box c"><div class="kpi-label">통합 ROI</div><div class="kpi-value">3.5~4.5배</div><div style="font-size:11px;color:#7F7F9E;">직접ROI 2.0 → 통합ROI 3.5+</div></div>
+      <div class="kpi-box c"><div class="kpi-label">온라인 전환율</div><div class="kpi-value">8~12%</div><div style="font-size:11px;color:#7F7F9E;">오프라인 방문객 → 온라인 구매</div></div>
+    </div>
+
+    <h3>장단점</h3>
+    <div class="proscons">
+      <div class="pros">
+        <h4>강점 (Pros)</h4>
+        <ul>
+          <li><strong>ROI 설득력 최강</strong> — "18.2억으로 50~70억 + 고객 DB"</li>
+          <li>수행능력 30점의 핵심인 <strong>"측정·증명 역량"</strong>에 직격</li>
+          <li>콘진원 Functional Job <strong>"투자 대비 최대 수익"</strong>에 부합</li>
+          <li>리테일 미디어(MaaS) 관점을 <strong>커머스까지 완성</strong></li>
+          <li>경쟁사는 <strong>시스템 구축이 필요</strong>하므로 모방 어려움</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>약점 (Cons)</h4>
+        <ul>
+          <li>NUGU 연동 등 <strong>기술 파트너 사전 합의</strong> 필요</li>
+          <li>더현대 글로벌 POS와 <strong>데이터 공유 협의</strong> 필요</li>
+          <li>온라인 전환율 8~12%의 <strong>사전 벤치마크가 부족</strong></li>
+          <li>브랜드 자체몰이 <strong>해외 결제/배송 인프라</strong>가 있어야 함</li>
+          <li>홍보마케팅 배점에는 <strong>직접 기여도 보통</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>배점 대응 전략</h3>
+    <table class="score-table">
+      <tr><th>평가 항목</th><th>배점</th><th>컨셉 C 대응 포인트</th><th>예상 득점</th></tr>
+      <tr><td>수행능력·전문성</td><td>30</td><td>OMO 파이프라인 + RXR 통합측정 = <strong>최고 득점 가능</strong></td><td><strong>26~29</strong></td></tr>
+      <tr><td>사업이해도+전략</td><td>20</td><td>"팝업을 D2C 인프라로" = 차별화된 사업 이해</td><td>15~18</td></tr>
+      <tr><td>추진방안</td><td>15</td><td>QR→CRM→NUGU 연동 파이프라인 = 구체적 실행 계획</td><td><strong>13~15</strong></td></tr>
+      <tr><td>홍보마케팅</td><td>~15</td><td>전환 중심 마케팅 (퍼포먼스 관점)</td><td>10~13</td></tr>
+      <tr><td>사회적가치</td><td>14</td><td>신생 브랜드 D2C 고객 기반 = 자생력 강화</td><td>9~11</td></tr>
+      <tr style="background:#E3F2FD;"><td><strong>합계</strong></td><td><strong>90</strong></td><td></td><td><strong>73~86</strong></td></tr>
+    </table>
+  </div>
+
+  <hr class="page-break">
+
+  <!-- ========== PAGE 5: 통합 제안 ========== -->
+  <div class="page-label">PAGE 5 — INTEGRATED RECOMMENDATION</div>
+
+  <div class="section">
+    <h2><span class="num-badge">★</span> 최종 권고: A+B+C 통합</h2>
+
+    <p style="font-size:15px;color:#4A4A68;margin-bottom:20px;">3가지 컨셉은 독립된 대안이 아니라, <strong>하나의 OMO 순환 구조</strong>에서 각각 다른 역할을 담당합니다. 통합 시 모든 배점 영역에서 최대 득점이 가능합니다.</p>
+
+    <div class="flow-box" style="text-align:center;">[컨셉 B] 도쿄·파리 크로스 바이럴 → 글로벌 화제성 극대화
+        ↓
+[컨셉 A] 그 화제의 경험을 디지털 자산으로 영구 전환
+        ↓
+[컨셉 C] 디지털 자산이 온라인 D2C 매출로 전환
+        ↓
+[순환] 고객 데이터가 2027 시즌 마케팅의 출발점</div>
+
+    <div class="integration">
+      <h3 style="border:none;">통합 Hero Statement</h3>
+      <div class="hero-statement">
+        "매장을 미디어로 운용하고,<br>
+        미디어를 팬덤으로,<br>
+        팬덤을 매출로 전환합니다."
+      </div>
+      <p style="font-size:14px;opacity:0.7;">
+        RETAIL MEDIA (공간→콘텐츠) × GLOBAL ARC (도쿄→파리) × D2C PIPELINE (경험→구매)
+      </p>
+    </div>
+
+    <h3>통합 시 배점 대응력</h3>
+    <table class="score-table">
+      <tr><th>평가 항목</th><th>배점</th><th>통합 대응</th><th>예상 득점</th></tr>
+      <tr><td>수행능력·전문성</td><td>30</td><td>D2C 파이프라인(C) + RXR 측정(A) + 양 현지 법인(B)</td><td><strong>27~29</strong></td></tr>
+      <tr><td>사업이해도+전략</td><td>20</td><td>"팝업→인프라" 비전(A) + "글로벌 캠페인 아크"(B)</td><td><strong>18~20</strong></td></tr>
+      <tr><td>추진방안</td><td>15</td><td>3막 SOP(B) + 콘텐츠팩토리(A) + QR→CRM(C)</td><td><strong>13~15</strong></td></tr>
+      <tr><td>홍보마케팅</td><td>~15</td><td>크로스 바이럴(B) + 콜라보 시리즈(A)</td><td><strong>13~15</strong></td></tr>
+      <tr><td>사회적가치</td><td>14</td><td>디지털 쇼룸 인큐베이션(A) + D2C 자생력(C)</td><td><strong>11~13</strong></td></tr>
+      <tr style="background:linear-gradient(90deg,#EDE9FE,#E8F5E9,#E3F2FD);"><td><strong>통합 합계</strong></td><td><strong>90</strong></td><td></td><td><strong>82~92</strong></td></tr>
+    </table>
+
+    <h3>제안서 반영 시 지면 배분 (15p 기준)</h3>
+    <table class="score-table">
+      <tr><th>페이지</th><th>내용</th><th>주도 컨셉</th></tr>
+      <tr><td>p.1</td><td>표지 + Hero Statement</td><td>통합</td></tr>
+      <tr><td>p.2</td><td>기대효과 1-Pager (4-Layer + 통합 ROI)</td><td><span class="tag blue">C</span></td></tr>
+      <tr><td>p.3~4</td><td>3대 리스크 × 3사 매칭 + 컨소시엄 실적</td><td>기존</td></tr>
+      <tr><td>p.5~6</td><td>사업이해도: JTBD 재정의 + "팝업→글로벌 인프라" 비전</td><td><span class="tag purple">A</span></td></tr>
+      <tr><td>p.7~8</td><td>캠페인 아크: Build-up→Grand Moment→Echo 3막</td><td><span class="tag green">B</span></td></tr>
+      <tr><td>p.9~10</td><td>OMO 파이프라인: 매장→콘텐츠→D2C→CRM 순환</td><td><span class="tag blue">C</span></td></tr>
+      <tr><td>p.11~12</td><td>도쿄 11회 릴레이 SOP + 파리 3주 운영 계획</td><td>기존 + <span class="tag green">B</span></td></tr>
+      <tr><td>p.13</td><td>홍보마케팅: KOL 콜라보 시리즈 + 크로스 바이럴</td><td><span class="tag purple">A</span> + <span class="tag green">B</span></td></tr>
+      <tr><td>p.14</td><td>RXR 성과측정 + 디지털 잔존 효과 리포트 체계</td><td><span class="tag purple">A</span></td></tr>
+      <tr><td>p.15</td><td>인력·조직 + 안전관리 + 사회적가치</td><td>기존</td></tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    <p>더셀렉츠 글로벌 팝업스토어 — OMO 컨셉 강화 3안 비교 | Do Better Things AX</p>
+    <p style="margin-top:4px;opacity:0.5;">프레임워크: gov-strategy-framework.md (OMO + JTBD + 4-Layer Impact)</p>
+  </div>
+
+</div>
+</body>
+</html>

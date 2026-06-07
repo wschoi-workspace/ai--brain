@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>라이브 데모 시나리오 — 사장님, 직원관리 엑셀 이제 그만</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5A4BD1;
+    --primary-light: #A29BFE;
+    --primary-subtle: #EDE9FE;
+    --black: #1A1A2E;
+    --dark-gray: #4A4A68;
+    --mid-gray: #7F7F9E;
+    --light-gray: #E8E8F0;
+    --off-white: #F7F7FB;
+    --success: #00B894;
+    --warning: #FDCB6E;
+    --danger: #E17055;
+    --info: #74B9FF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    color: var(--black);
+    background: var(--off-white);
+    line-height: 1.6;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #2d3436 0%, var(--black) 100%);
+    color: #fff;
+    padding: 60px 40px;
+    text-align: center;
+  }
+  .header .badge {
+    display: inline-block;
+    background: rgba(108,92,231,0.35);
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+  .header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .header .subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    opacity: 0.85;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  .meta-bar {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+    padding: 20px 24px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--dark-gray);
+  }
+  .meta-item strong {
+    color: var(--black);
+    font-weight: 600;
+  }
+
+  .act {
+    margin-bottom: 48px;
+  }
+  .act-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .act-number {
+    width: 48px;
+    height: 48px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .act-title-group h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--black);
+  }
+  .act-title-group .act-time {
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(108,92,231,0.05);
+  }
+  .card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: var(--black);
+  }
+  .card h3 .step-badge {
+    display: inline-block;
+    background: var(--primary-subtle);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  .script {
+    background: var(--primary-subtle);
+    border-left: 4px solid var(--primary);
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--black);
+  }
+  .script::before {
+    content: '🎤 강사 멘트';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .prompt-box {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 14px 0;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .prompt-box::before {
+    content: '$ Claude Code 프롬프트';
+    display: block;
+    font-size: 11px;
+    color: var(--primary-light);
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-family: 'Pretendard Variable', sans-serif;
+    letter-spacing: 0.5px;
+  }
+  .prompt-box .prompt-text {
+    color: #a6e3a1;
+  }
+
+  .result-preview {
+    background: var(--off-white);
+    border: 1px dashed var(--light-gray);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  .result-preview::before {
+    content: '예상 결과';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mid-gray);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .result-preview .num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .result-preview .label {
+    font-size: 12px;
+    color: var(--mid-gray);
+    font-weight: 500;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin: 12px 0;
+  }
+  .result-cell {
+    text-align: center;
+    padding: 12px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--light-gray);
+  }
+
+  .timing {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary-subtle);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--light-gray);
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .comparison-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .comparison-table th:first-child { width: 28%; }
+  .comparison-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--light-gray);
+    vertical-align: top;
+  }
+  .comparison-table tr:last-child td { border-bottom: none; }
+  .comparison-table tr:nth-child(even) { background: var(--off-white); }
+  .comparison-table .old { color: var(--danger); font-weight: 600; }
+  .comparison-table .new { color: var(--success); font-weight: 700; }
+
+  .insight-box {
+    background: linear-gradient(135deg, var(--primary-subtle) 0%, #fff 100%);
+    border: 2px solid var(--primary-light);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 20px 0;
+    text-align: center;
+  }
+  .insight-box .insight-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+  .insight-box .insight-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.4;
+  }
+
+  .note {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: #FFF8E1;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 13px;
+    color: #5D4E37;
+    line-height: 1.5;
+  }
+  .note-icon { font-size: 18px; flex-shrink: 0; }
+
+  .danger-note { background: #FFF0ED; color: #7A3425; }
+
+  .alert-card {
+    border-left: 4px solid var(--danger);
+    background: #FFF5F3;
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 14px 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .alert-card .alert-title {
+    font-weight: 700;
+    color: var(--danger);
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .alert-card .alert-body {
+    color: var(--black);
+  }
+
+  .warning-card {
+    border-left: 4px solid var(--warning);
+    background: #FFFCF0;
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 14px 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .warning-card .alert-title {
+    font-weight: 700;
+    color: #B8860B;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .ok-card {
+    border-left: 4px solid var(--success);
+    background: #F0FFF8;
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 14px 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .ok-card .alert-title {
+    font-weight: 700;
+    color: var(--success);
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .timeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin: 24px 0;
+  }
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--light-gray);
+  }
+  .timeline-dot.active {
+    background: var(--primary);
+    width: 32px;
+    border-radius: 5px;
+  }
+
+  .checklist {
+    list-style: none;
+    margin: 12px 0;
+  }
+  .checklist li {
+    padding: 8px 0;
+    padding-left: 28px;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .checklist li::before {
+    content: '☐';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-size: 16px;
+  }
+
+  .hr-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--light-gray);
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .hr-table th {
+    background: var(--off-white);
+    color: var(--dark-gray);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    border-bottom: 1px solid var(--light-gray);
+  }
+  .hr-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--light-gray);
+  }
+  .hr-table tr:last-child td { border-bottom: none; }
+  .hr-table .urgent { color: var(--danger); font-weight: 700; }
+  .hr-table .warning { color: #B8860B; font-weight: 600; }
+  .hr-table .ok { color: var(--success); font-weight: 600; }
+
+  .footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 12px;
+    color: var(--mid-gray);
+    border-top: 1px solid var(--light-gray);
+    margin-top: 40px;
+  }
+
+  @media (max-width: 640px) {
+    .header { padding: 40px 20px; }
+    .header h1 { font-size: 26px; }
+    .meta-bar { flex-direction: column; gap: 12px; }
+    .card { padding: 20px; }
+    .result-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<div class="header">
+  <div class="badge">LIVE DEMO SCENARIO v1.0 — HR편</div>
+  <h1>사장님, 직원관리<br>엑셀 이제 그만</h1>
+  <p class="subtitle">소상공인 AI 교육 — 라이브 데모 강사용 시나리오<br>데이터: 2개 법인 14명 재직자 + 계약 이력 + 갱신 캘린더</p>
+</div>
+
+<div class="container">
+
+<!-- ── Meta ── -->
+<div class="meta-bar">
+  <div class="meta-item"><strong>총 소요시간:</strong> 10분</div>
+  <div class="meta-item"><strong>구조:</strong> 3막 (공감 → 충격 → 전환)</div>
+  <div class="meta-item"><strong>도구:</strong> Claude Code Desktop</div>
+  <div class="meta-item"><strong>데이터:</strong> 직원 명부 CSV (14명)</div>
+</div>
+
+
+<!-- ═══════════════ 사전준비 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number" style="background: var(--dark-gray);">0</div>
+    <div class="act-title-group">
+      <h2>사전 준비 체크리스트</h2>
+      <span class="act-time">데모 시작 전 반드시 확인</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <ul class="checklist">
+      <li>Claude Code Desktop 실행 + 로그인 상태 확인</li>
+      <li>HR 샘플 CSV 4개 파일 준비 (재직자, 갱신캘린더, 수습시점, 과거계약)</li>
+      <li>화면 공유 or 프로젝터 연결 확인</li>
+      <li>폰트 크기 키우기 (청중이 뒤에서도 읽을 수 있도록)</li>
+      <li><strong>리허설 1회</strong> — 아래 프롬프트를 실제로 돌려보고 결과 확인</li>
+      <li><strong>개인정보 주의</strong> — 실제 직원 데이터 대신 <strong>교육용 가상 데이터</strong> 사용할 것</li>
+    </ul>
+
+    <div class="note danger-note">
+      <span class="note-icon">⚠</span>
+      <div><strong>중요:</strong> 데모에 실제 직원 이름·연봉을 노출하면 안 됩니다. 교육용 가상 데이터(같은 구조, 다른 이름·숫자)를 반드시 사전 준비하세요. 구조만 동일하면 AI 결과는 같습니다.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ 1막: 공감 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number">1</div>
+    <div class="act-title-group">
+      <h2>공감 — "이거, 사장님이 직접 하고 계시죠?"</h2>
+      <span class="act-time">2분</span>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-dot active"></div>
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot"></div>
+  </div>
+
+  <div class="card">
+    <h3>사장님의 진짜 고통을 건드린다</h3>
+
+    <div class="script">
+      여기 직원 고용하고 계신 분?<br><br>
+      그러면 이런 거 하시죠. 계약서 만료일 기억하기, 수습 끝나는 날 체크하기, 급여 계산하기, 4대보험 신고하기...<br><br>
+      근데 솔직히 — <strong>이거 관리하는 엑셀 파일이 있긴 한데, 마지막으로 업데이트한 게 언제인지 기억 안 나시죠?</strong>
+    </div>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>연출 포인트:</strong> 여기서 살짝 웃으면서. "사실 저도 그랬거든요." 청중이 웃을 겁니다. 공감 완성. 그 다음: "그리고 진짜 무서운 건 — <strong>계약 만료일을 까먹는 거예요.</strong> 자동 갱신 조항이 없으면, 하루 지나면 무기계약 전환될 수도 있어요."</div>
+    </div>
+
+    <div class="script">
+      직원 10명만 되어도 — 계약 시작일, 수습 만료일, 갱신일, 연차 기산일, 급여 세부내역...<br>
+      이걸 엑셀로 관리하면 <strong>반드시 빠지는 게 생겨요.</strong><br><br>
+      오늘 보여드릴 건 — <strong>"직원 관리 엑셀, AI가 대신 읽고 알려주는 방법"</strong>이에요.
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ 2막: 충격 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number">2</div>
+    <div class="act-title-group">
+      <h2>충격 — 라이브 데모</h2>
+      <span class="act-time">5분</span>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot active"></div>
+    <div class="timeline-dot"></div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 1</span> 데이터 투입</h3>
+    <div class="timing">⏱ 30초</div>
+
+    <div class="script">
+      자, 이게 실제 회사 직원 명부예요. 2개 법인, 직원 14명.<br>
+      이름, 직무, 연봉, 입사일, 계약유형, 수습 여부... 이런 게 다 들어있어요.<br><br>
+      이걸 그냥 여기에 넣어볼게요.
+    </div>
+
+    <p style="font-size:14px; color:var(--dark-gray); margin-top:12px;"><strong>행동:</strong> CSV 파일(재직자 명부)을 Claude Code에 투입합니다.</p>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>연출 포인트:</strong> "엑셀 안 열어요. 피벗테이블 안 만들어요. 그냥 파일 넣고 물어보는 겁니다." — 이 한 마디가 청중의 기대를 설정합니다.</div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 2</span> 첫 번째 질문 — 인력 현황 대시보드</h3>
+    <div class="timing">⏱ 60초</div>
+
+    <div class="prompt-box">
+      <span class="prompt-text">우리 회사 인력 현황 정리해줘. 법인별 인원수, 계약유형별 분포, 총 인건비, 평균 연봉 알려줘</span>
+    </div>
+
+    <div class="result-preview">
+      <div class="result-grid">
+        <div class="result-cell">
+          <span class="num">14명</span>
+          <span class="label">총 재직자</span>
+        </div>
+        <div class="result-cell">
+          <span class="num">5.1억</span>
+          <span class="label">연간 총 인건비</span>
+        </div>
+        <div class="result-cell">
+          <span class="num">4,330만</span>
+          <span class="label">월 급여 총액</span>
+        </div>
+        <div class="result-cell">
+          <span class="num">3,643만</span>
+          <span class="label">평균 연봉</span>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <p style="font-size:13px; font-weight:600; color:var(--dark-gray); margin-bottom:8px;">법인별 인원</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+          <span style="background:var(--primary); color:#fff; padding:4px 14px; border-radius:20px; font-size:13px; font-weight:600;">프로젝트렌트 R — 4명</span>
+          <span style="background:var(--primary-light); color:#fff; padding:4px 14px; border-radius:20px; font-size:13px; font-weight:600;">필라멘트앤코 F — 10명</span>
+        </div>
+        <p style="font-size:13px; font-weight:600; color:var(--dark-gray); margin-bottom:8px;">계약유형별</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <span style="background:var(--warning); color:#5D4E37; padding:4px 14px; border-radius:20px; font-size:13px; font-weight:600;">1년 기간제 5명</span>
+          <span style="background:var(--success); color:#fff; padding:4px 14px; border-radius:20px; font-size:13px; font-weight:600;">무기한 정규직 4명</span>
+          <span style="background:var(--info); color:#fff; padding:4px 14px; border-radius:20px; font-size:13px; font-weight:600;">위임계약(임원) 2명</span>
+          <span style="background:var(--mid-gray); color:#fff; padding:4px 14px; border-radius:20px; font-size:13px; font-weight:600;">스톡옵션 포함 1명</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="script">
+      지금 14명분 데이터를 <strong>30초 만에 정리</strong>했어요.<br>
+      법인별, 계약유형별, 총 인건비까지. 사장님이 직접 하시면 — 엑셀 필터 걸고, 합계 내고, 분류하고 — 한 시간입니다.
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 3</span> 두 번째 질문 — "놓치면 큰일 나는 것"</h3>
+    <div class="timing">⏱ 90초</div>
+
+    <div class="prompt-box">
+      <span class="prompt-text">앞으로 6개월 이내에 계약 갱신이나 수습 평가해야 하는 직원 정리해줘. 긴급한 순서대로. 날짜 놓치면 안 되는 것 위주로</span>
+    </div>
+
+    <div class="result-preview">
+      <p style="font-size:14px; font-weight:700; color:var(--black); margin-bottom:14px;">리스크 캘린더 (2026년 5~10월)</p>
+
+      <div class="alert-card">
+        <div class="alert-title">긴급 — 이번 달 (5월)</div>
+        <div class="alert-body">
+          <strong>양은정</strong> (R, 매장/운영관리) — 수습 3개월 만료: <strong>2026-05-19 (오늘)</strong><br>
+          → 정식 채용 여부 확정 필요. 수습 만료 전 서면 통보 의무
+        </div>
+      </div>
+
+      <div class="warning-card">
+        <div class="alert-title">주의 — 다음 달 (6월)</div>
+        <div class="alert-body">
+          <strong>양지혜, 조나연, 배성원</strong> — 입사 3개월 시점: <strong>2026-06-03</strong><br>
+          <strong>백지원</strong> — 수습 만료: <strong>2026-06-17</strong><br>
+          <strong>정예은</strong> — 수습 만료: <strong>2026-06-18</strong><br>
+          <strong>김도영</strong> — 입사 3개월: <strong>2026-06-23</strong><br>
+          → 6월에 <strong>6명의 평가/확인이 집중</strong>. 미리 평가 기준 정리 필요
+        </div>
+      </div>
+
+      <div class="ok-card">
+        <div class="alert-title">예정 — 2027년 2~3월 (기간제 만료 집중)</div>
+        <div class="alert-body">
+          7명의 1년 기간제 계약이 <strong>2027년 2~3월에 집중 만료</strong><br>
+          → 2026년 9월부터 갱신 여부 검토 시작 권장<br>
+          → 배성원: 6개월 전 재협의 조항 (2026-09-03경)
+        </div>
+      </div>
+    </div>
+
+    <div class="script">
+      여기서 잠깐 멈출게요.<br><br>
+      방금 AI가 알려준 거 보이시죠? <strong>"양은정 수습 만료가 오늘입니다."</strong><br><br>
+      이걸 까먹으면 어떻게 될까요? — 수습 종료 통보를 안 하면, 자동으로 본계약으로 넘어갈 수도 있어요.<br>
+      그리고 <strong>6월에 6명이 동시에 평가 시점</strong>이라는 것도 — 엑셀만 보고 있으면 놓쳐요.<br><br>
+      <strong>사장님이 이걸 머리로 기억하고 계셨어요? 아니면 달력에 적어두셨어요?</strong><br>
+      AI한테 물어보면 30초에 나옵니다. 매주 월요일마다 물어보면 — 절대 안 놓쳐요.
+    </div>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>청중 반응 포인트:</strong> "놓치면 큰일 나는 것"을 AI가 먼저 짚어주는 장면에서 반응이 나옵니다. 이게 이 데모의 <strong>하이라이트</strong>입니다. 단순 정리가 아니라 "위험을 미리 알려주는 비서" — 이 프레임이 핵심.</div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 4</span> 세 번째 질문 — 근로계약서 초안</h3>
+    <div class="timing">⏱ 60초</div>
+
+    <div class="prompt-box">
+      <span class="prompt-text">양은정 수습이 끝나면 정식 1년 기간제로 전환할 건데, 근로계약서 초안 만들어줘. 연봉 2,800만원, 근무시간 09-17시, 식대 20만원 별도</span>
+    </div>
+
+    <div class="script">
+      이게 진짜 소상공인한테 중요한 거예요.<br><br>
+      계약서 양식? 네이버에서 찾아서 수정하고... 맞는지 모르겠고... 노무사한테 물어보면 상담비 나가고...<br><br>
+      AI한테 <strong>조건만 말하면 초안이 나옵니다.</strong><br>
+      물론 최종 검토는 전문가한테 받으세요. 근데 초안 만드는 데 드는 2시간은 아낍니다.
+    </div>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>반드시 강조:</strong> "AI가 만든 계약서를 그대로 쓰라는 게 아닙니다. <strong>초안을 만들고, 전문가 검토를 받으세요.</strong> 중요한 건 — 초안 만드는 데 2시간 쓸 필요가 없다는 거예요. 그 2시간에 사장님은 매장에서 더 중요한 일을 하시면 됩니다."</div>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">강사 클로징 멘트</div>
+      <div class="insight-text">
+        현황 파악 30초, 리스크 알림 30초, 계약서 초안 1분.<br>
+        <span style="color:var(--primary);">사장님의 HR 담당 비서가 생긴 겁니다.</span><br>
+        월급은 0원.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ 3막: 전환 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number">3</div>
+    <div class="act-title-group">
+      <h2>전환 — "사장님한테 비서가 생긴 겁니다"</h2>
+      <span class="act-time">3분</span>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot active"></div>
+  </div>
+
+  <div class="card">
+    <h3>Before / After 비교</h3>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>업무</th>
+          <th>예전 방식</th>
+          <th>AI 방식</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>인력 현황 파악</strong></td>
+          <td class="old">엑셀 열어서 세기 30분</td>
+          <td class="new">물어보면 30초</td>
+        </tr>
+        <tr>
+          <td><strong>계약 만료 관리</strong></td>
+          <td class="old">머리로 기억 or 잊음</td>
+          <td class="new">리스크 캘린더 자동</td>
+        </tr>
+        <tr>
+          <td><strong>수습 평가 시점</strong></td>
+          <td class="old">까먹고 넘어감</td>
+          <td class="new">"이번 주 확인할 것" 알림</td>
+        </tr>
+        <tr>
+          <td><strong>근로계약서</strong></td>
+          <td class="old">네이버 양식 + 수정 2시간</td>
+          <td class="new">조건만 말하면 초안 1분</td>
+        </tr>
+        <tr>
+          <td><strong>급여 시뮬레이션</strong></td>
+          <td class="old">노무사 상담 or 감으로</td>
+          <td class="new">"연봉 3천이면 실수령 얼마야?"</td>
+        </tr>
+        <tr>
+          <td><strong>필요 스킬</strong></td>
+          <td class="old">노무 지식, 엑셀, 법률 검색</td>
+          <td class="new">한국어</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>핵심 메시지 전달</h3>
+
+    <div class="script">
+      직원 관리가 어려운 이유는 — 일이 복잡해서가 아니에요.<br><br>
+      <strong>내 본업이 아닌데 안 하면 안 되고, 실수하면 법적 문제가 생기고, 도와줄 사람은 없고.</strong><br><br>
+      AI는 이 세 가지를 다 해결해요.<br>
+      — 귀찮은 정리는 자동으로<br>
+      — 놓치면 안 되는 건 미리 알려주고<br>
+      — 문서 초안은 바로 만들어주고<br><br>
+      <strong>사장님이 노무사가 될 필요 없어요. AI한테 물어보면 됩니다.</strong>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">이 데모의 한 줄 메시지</div>
+      <div class="insight-text">
+        직원 5명 이상이면<br>
+        <span style="color:var(--primary);">AI 비서가 노무사 상담비보다 쌉니다.</span><br>
+        그리고 24시간 대기합니다.
+      </div>
+    </div>
+
+    <div class="script">
+      매출 분석도 그렇고, 인사 관리도 그렇고 — 패턴은 같아요.<br><br>
+      <strong>파일 넣고, 한국어로 물어보고, 결과 받기.</strong><br><br>
+      이 패턴 하나만 익히면, 사장님의 "잡일"이 절반으로 줄어요.<br>
+      그 시간에 — 고객 만나고, 매장 보고, 진짜 중요한 일 하세요.
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ 부록 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number" style="background: var(--dark-gray);">+</div>
+    <div class="act-title-group">
+      <h2>부록 — 확장 데모 옵션</h2>
+      <span class="act-time">시간 여유 시 추가</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>옵션 A: 급여 시뮬레이션 (1분 추가)</h3>
+    <div class="prompt-box">
+      <span class="prompt-text">신규 직원 채용하려는데, 연봉 3,000만원이면 회사가 실제로 부담하는 총비용이 얼마야? 4대보험 사업자 부담분 포함해서. 그리고 직원 실수령액도 알려줘</span>
+    </div>
+    <div class="result-preview">
+      <div class="result-grid">
+        <div class="result-cell">
+          <span class="num" style="font-size:22px;">3,000만</span>
+          <span class="label">연봉 (세전)</span>
+        </div>
+        <div class="result-cell">
+          <span class="num" style="font-size:22px;">~3,270만</span>
+          <span class="label">회사 실부담 (4대보험 포함)</span>
+        </div>
+        <div class="result-cell">
+          <span class="num" style="font-size:22px;">~224만</span>
+          <span class="label">직원 월 실수령</span>
+        </div>
+        <div class="result-cell">
+          <span class="num" style="font-size:22px;">~272만</span>
+          <span class="label">회사 월 부담</span>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:13px; color:var(--dark-gray); margin-top:12px;"><strong>임팩트:</strong> "채용 전에 이걸 미리 계산할 수 있으면, 면접 전에 예산을 확정할 수 있어요. 감으로 채용하다가 인건비 터지는 걸 막는 거예요."</p>
+  </div>
+
+  <div class="card">
+    <h3>옵션 B: 연차 현황 정리 (1분 추가)</h3>
+    <div class="prompt-box">
+      <span class="prompt-text">직원별 입사일 기준으로 올해 발생하는 연차 일수 정리해줘. 1년 미만은 월차 기준으로</span>
+    </div>
+    <p style="font-size:13px; color:var(--dark-gray); margin-top:12px;"><strong>임팩트:</strong> "직원이 '저 연차 며칠 남았어요?' 하면 바로 답할 수 있어요. 이것도 AI한테 물어보면 됩니다."</p>
+  </div>
+
+  <div class="card">
+    <h3>옵션 C: 관공서 문서 작성 (1분 추가)</h3>
+    <div class="prompt-box">
+      <span class="prompt-text">소상공인 고용안정장려금 신청하려는데, 직원 명부 기반으로 신청서 초안 만들어줘</span>
+    </div>
+    <p style="font-size:13px; color:var(--dark-gray); margin-top:12px;"><strong>임팩트:</strong> "정부 지원금 신청, 양식 찾는 것부터 피곤하죠. 조건만 말하면 초안이 나옵니다. 빈칸 채우는 건 AI가 더 빨라요."</p>
+  </div>
+
+  <div class="card">
+    <h3>옵션 D: "이거 법적으로 맞아요?" 대비 (청중 질문)</h3>
+
+    <div class="script">
+      이거 항상 나오는 질문이에요. "AI가 만든 계약서, 법적으로 문제없어요?"<br><br>
+      솔직하게 말씀드릴게요. <strong>AI가 만든 문서를 그대로 쓰면 안 됩니다.</strong><br><br>
+      근데 생각해보세요 — <strong>지금 사장님이 네이버에서 찾은 양식을 그대로 쓰고 계시잖아요.</strong><br>
+      그것보다는 AI가 우리 회사 조건에 맞춰서 만들어준 초안이 더 정확해요.<br><br>
+      노무사한테 "이거 검토해주세요" 하고 가져가면 —<br>
+      상담 시간이 반으로 줄어요. 비용도 줄고요.<br><br>
+      <strong>AI는 노무사를 대체하는 게 아니라, 노무사와의 소통을 효율적으로 만드는 겁니다.</strong>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ 데모 연결 가이드 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number" style="background: var(--info);">→</div>
+    <div class="act-title-group">
+      <h2>매출분석 데모와 연결하기</h2>
+      <span class="act-time">전환 멘트</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>두 데모를 이어서 하는 경우</h3>
+
+    <div class="script">
+      방금 매출 분석, 직원 관리 — 두 가지를 보셨어요.<br><br>
+      패턴이 보이시죠? 전부 똑같아요.<br><br>
+      <strong>① 파일을 넣는다</strong><br>
+      <strong>② 한국어로 물어본다</strong><br>
+      <strong>③ 결과를 받는다</strong><br><br>
+      매출이든, 인사든, 세금이든, 견적이든 — <strong>이 패턴 하나면 됩니다.</strong><br><br>
+      여러분이 오늘 배울 건 AI 기술이 아니에요.<br>
+      <strong>"물어보는 습관"</strong>이에요.
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">교육 전체를 관통하는 한 줄</div>
+      <div class="insight-text">
+        AI 시대에 가장 중요한 스킬은<br>
+        <span style="color:var(--primary);">"이것도 물어볼 수 있지 않을까?"</span><br>
+        라고 생각하는 것입니다.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<div class="footer">
+  <p><strong>Do Better Things — AI 업무전환(AX) 교육 프로그램</strong></p>
+  <p style="margin-top:6px;">강사용 시나리오 (HR편) | 데이터: 교육용 HR 샘플 | 2026.05 작성</p>
+  <p style="margin-top:4px; font-size:11px;">이 문서는 교육 목적으로 제작되었습니다. 실제 인사 데이터는 교육용 샘플로 대체하여 사용하세요.</p>
+</div>
+
+</div><!-- /container -->
+</body>
+</html>

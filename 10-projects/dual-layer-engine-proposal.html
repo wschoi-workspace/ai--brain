@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이중 계층 분석 엔진 — Glow Cycle</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5A4BD1;
+    --primary-light: #A29BFE;
+    --primary-subtle: #EDE9FE;
+    --black: #1A1A2E;
+    --dark-gray: #4A4A68;
+    --mid-gray: #7F7F9E;
+    --light-gray: #E8E8F0;
+    --off-white: #F7F7FB;
+    --white: #FFFFFF;
+    --success: #00B894;
+    --warning: #FDCB6E;
+    --danger: #E17055;
+    --info: #74B9FF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+    background: var(--white);
+    color: var(--black);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    width: 960px;
+    margin: 0 auto;
+    padding: 52px 60px 40px;
+  }
+
+  /* ── Header ── */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--primary);
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary);
+    background: var(--primary-subtle);
+    padding: 5px 12px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .page-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--black);
+    line-height: 1.15;
+  }
+  .page-title span {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--dark-gray);
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* ── Section ── */
+  .section { margin-bottom: 32px; }
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* ── Comparison Table ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .compare-table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid var(--light-gray);
+  }
+  .compare-table th:first-child { color: var(--mid-gray); width: 44%; }
+  .compare-table th:last-child { color: var(--primary); }
+  .compare-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--light-gray);
+    line-height: 1.55;
+    color: var(--dark-gray);
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table td:last-child { color: var(--black); font-weight: 500; }
+  .hl { color: var(--primary-dark); font-weight: 700; }
+  .stat-red { color: var(--danger); font-weight: 700; }
+
+  /* ── Engine Diagram ── */
+  .engine-wrap {
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .engine-layers {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .layer-box {
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+  }
+  .layer-surface {
+    background: var(--primary-subtle);
+    border: 1.5px solid var(--primary-light);
+  }
+  .layer-psyche {
+    background: linear-gradient(135deg, var(--primary-subtle) 0%, #f0e6ff 100%);
+    border: 1.5px solid var(--primary);
+  }
+  .layer-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    min-width: 100px;
+  }
+  .layer-desc {
+    font-size: 12.5px;
+    color: var(--dark-gray);
+    line-height: 1.45;
+  }
+  .layer-question {
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 600;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .cross-arrow-v {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    gap: 6px;
+  }
+  .cross-arrow-v::before, .cross-arrow-v::after {
+    content: '';
+    height: 1px;
+    width: 40px;
+    background: var(--primary-light);
+  }
+
+  /* Refinement strip */
+  .refine-strip {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    min-width: 130px;
+    padding: 12px 14px;
+    background: var(--off-white);
+    border-radius: 10px;
+    border: 1px solid var(--light-gray);
+  }
+  .refine-strip .strip-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 4px;
+  }
+  .refine-step-mini {
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    line-height: 1.3;
+    font-weight: 500;
+  }
+  .rs-1 { background: #f0e6ff; color: var(--primary-dark); }
+  .rs-2 { background: var(--primary-subtle); color: var(--primary-dark); }
+  .rs-3 { background: var(--primary-light); color: var(--white); }
+  .rs-final {
+    background: var(--primary);
+    color: var(--white);
+    font-weight: 700;
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--light-gray);
+    margin: 32px 0;
+  }
+
+  /* ── Key Message ── */
+  .key-message {
+    background: var(--primary-subtle);
+    border-left: 4px solid var(--primary);
+    border-radius: 0 10px 10px 0;
+    padding: 18px 24px;
+    margin-bottom: 24px;
+  }
+  .key-message .main {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .key-message .sub {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--dark-gray);
+    line-height: 1.7;
+  }
+  .key-message .sub strong { color: var(--primary-dark); }
+
+  /* ── Domain Table ── */
+  .domain-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .domain-table th {
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 11.5px;
+    letter-spacing: 0.4px;
+    border-bottom: 2px solid var(--light-gray);
+    text-align: left;
+  }
+  .domain-table th:first-child { color: var(--mid-gray); }
+  .domain-table th:nth-child(2) { color: var(--primary-light); text-align: center; width: 36px; }
+  .domain-table th:last-child { color: var(--primary); }
+  .domain-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--light-gray);
+    color: var(--dark-gray);
+    line-height: 1.45;
+  }
+  .domain-table td:nth-child(2) {
+    text-align: center;
+    color: var(--primary-light);
+    font-size: 15px;
+  }
+  .domain-table td:last-child { color: var(--black); font-weight: 500; }
+  .domain-table tr:last-child td { border-bottom: none; }
+
+  /* ── Bottom Callouts ── */
+  .callouts {
+    display: flex;
+    gap: 14px;
+  }
+  .callout {
+    flex: 1;
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .callout-primary {
+    background: var(--primary);
+    color: var(--white);
+  }
+  .callout-primary .ct { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .callout-primary .cb { font-size: 12px; line-height: 1.65; opacity: 0.93; }
+  .callout-light {
+    background: var(--off-white);
+    border: 1.5px solid var(--light-gray);
+  }
+  .callout-light .ct { font-size: 13px; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px; }
+  .callout-light .cb { font-size: 12px; color: var(--dark-gray); line-height: 1.65; }
+
+  /* ── Footer ── */
+  .page-footer {
+    margin-top: 28px;
+    padding-top: 12px;
+    border-top: 1px solid var(--light-gray);
+    font-size: 11px;
+    color: var(--mid-gray);
+    display: flex;
+    justify-content: space-between;
+  }
+  .page-footer strong { color: var(--primary); font-weight: 600; }
+
+  @media print {
+    .page { padding: 36px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <span class="badge">GLOW CYCLE</span>
+    <div class="page-title">
+      이중 계층 분석 엔진
+      <span>Dual-Layer Analysis Engine — 경험 중심 개발을 위한 AI 해석 구조</span>
+    </div>
+  </div>
+
+  <!-- Section 1: 비교 -->
+  <div class="section">
+    <div class="section-label">01 &nbsp; 기존 분석의 한계 vs 이중 계층 분석</div>
+    <table class="compare-table">
+      <thead>
+        <tr><th>기존 분석 도구</th><th>이중 계층 분석 엔진</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>"무엇을 말했는가" — 키워드 빈도, 감성 점수</td>
+          <td><span class="hl">"왜 그렇게 말했는가"</span> — 심리 동기, 확신도, 진정성</td>
+        </tr>
+        <tr>
+          <td>수집된 데이터 전수 분석</td>
+          <td><span class="hl">다단 정제</span> → "진짜 반응"만 선별 후 분석</td>
+        </tr>
+        <tr>
+          <td>긍정률 50% → "고객 반응 좋음"</td>
+          <td>정제 후 <span class="stat-red">38%</span> — 과장 긍정 77건 탈락, 전략이 달라짐</td>
+        </tr>
+        <tr>
+          <td>Say ≠ Do 괴리 미식별</td>
+          <td><span class="hl">Say-Do Gap 교차 검증</span> → 괴리의 원인까지 진단</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 2: 엔진 구조 -->
+  <div class="section">
+    <div class="section-label">02 &nbsp; 엔진 구조</div>
+    <div class="engine-wrap">
+      <div class="engine-layers">
+        <div class="layer-box layer-surface">
+          <div class="layer-label">표현 계층</div>
+          <div class="layer-desc">토픽 분류 · 감성 극성 · 키워드 클러스터링</div>
+          <div class="layer-question">"무엇이 화제인가"</div>
+        </div>
+        <div class="cross-arrow-v">교차 분석</div>
+        <div class="layer-box layer-psyche">
+          <div class="layer-label">심층 심리 계층</div>
+          <div class="layer-desc">심리 신뢰성 · 발언 강도 · 정보 갱신성</div>
+          <div class="layer-question">"진짜 경험인가"</div>
+        </div>
+      </div>
+      <div class="refine-strip">
+        <div class="strip-title">다단 정제 절차</div>
+        <div class="refine-step-mini rs-1">1단계 · 노이즈 제거</div>
+        <div class="refine-step-mini rs-2">2단계 · 의도 분류</div>
+        <div class="refine-step-mini rs-3">3단계 · 심도 등급</div>
+        <div class="refine-step-mini rs-final">유효 204건 / 384건</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Section 3: 왜 유효한가 -->
+  <div class="section">
+    <div class="section-label">03 &nbsp; 왜 이 엔진이 AVP 경험 개발에 유효한가</div>
+
+    <div class="key-message">
+      <div class="main">차량 데이터만으로는 "현상"만 보입니다.</div>
+      <div class="sub">
+        수동전환율 31%, 재활성화율 18% — 이건 로그가 알려줍니다.<br>
+        <strong>왜 전환했는지</strong> — 공포인지, 불신인지, 습관인지 — 는 로그에 없습니다.<br>
+        이중 계층 분석이 VoC에서 "왜"를 추출하고, 차량 로그와 교차 검증하여 경험 가설을 확정합니다.
+      </div>
+    </div>
+
+    <table class="domain-table">
+      <thead>
+        <tr><th>기 검증 (브랜드 분석)</th><th></th><th>차량 경험 분석 (확장)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>SNS 리뷰 · VoC</td><td>→</td><td>차량 VoC · 품질 VOQ · 딜러 피드백</td></tr>
+        <tr><td>구매 / 재방문 행동 데이터</td><td>→</td><td>기능 활성화율 · 사용 로그 · OTA 적용률</td></tr>
+        <tr><td>이벤트 전후 인식 변화 추적</td><td>→</td><td>OTA 업데이트 전후 경험 변화 측정</td></tr>
+        <tr><td>협찬 / 과장 리뷰 필터링</td><td>→</td><td>딜러 유도 · 보상 프로그램 리뷰 필터링</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callouts">
+      <div class="callout callout-primary">
+        <div class="ct">제로베이스 개발이 아닙니다</div>
+        <div class="cb">핵심 분석 로직은 유지하고,<br>입력 데이터와 도메인 사전만<br>차량 특화로 세팅합니다.</div>
+      </div>
+      <div class="callout callout-light">
+        <div class="ct">차량 데이터는 현대차가 공급</div>
+        <div class="cb">CAN 신호, 주행 로그, VoC 데이터를<br>현대차에서 직접 제공하는 조건으로<br>프로젝트가 진행됩니다.</div>
+      </div>
+      <div class="callout callout-light">
+        <div class="ct">Say-Do Gap 교차 검증</div>
+        <div class="cb">고객이 "좋다"고 말한 기능의<br>실제 사용률을 로그로 대조하여<br>경험 가설의 타당성을 확정합니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="page-footer">
+    <div><strong>CONFIDENTIAL</strong> &nbsp;—&nbsp; 이중 계층 분석 엔진은 특허 출원이 완료된 독자 분석 구조입니다.</div>
+    <div>Glow Cycle &nbsp;|&nbsp; AVP 경험 중심 통합 개발 플랫폼</div>
+  </div>
+
+</div>
+
+</body>
+</html>

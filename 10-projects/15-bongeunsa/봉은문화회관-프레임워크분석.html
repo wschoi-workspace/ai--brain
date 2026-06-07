@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봉은문화회관 보고서 — 프레임워크 분석</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{
+  --bg:#1A1A1A;--bg-2:#111;--bg-3:#222;
+  --fg:#F5F0EB;--fg-2:#C9C2BA;--fg-3:#7A7570;
+  --line:#333;--line-2:#2a2a2a;
+  --accent:#6C5CE7;--accent-light:#A29BFE;--accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E;--blue:#6F8AA3;--amber:#D9A34B;--red:#E17055;
+  --duration-base:250ms;--ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.nav{position:fixed;top:50%;left:30px;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:10;font-size:9px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color .15s;padding:2px 0}
+.nav a:hover{color:var(--accent)}
+.sec{padding:100px 120px 120px;max-width:1440px;margin:0 auto;position:relative}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:8px}
+.sec-head h2 em{font-style:normal;color:var(--accent)}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.7;max-width:820px;margin-bottom:40px}
+h3.sub{font-size:18px;font-weight:500;color:var(--fg);margin:40px 0 16px;letter-spacing:-0.01em}
+h3.sub::before{content:'';display:inline-block;width:3px;height:18px;background:var(--accent);margin-right:12px;vertical-align:text-bottom}
+table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:12px 14px;font-weight:400;border-bottom:1px solid var(--line-2)}
+tbody td{padding:12px 14px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+.badge{display:inline-block;padding:3px 10px;font-size:10px;letter-spacing:.1em;font-weight:400}
+.badge-accent{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.badge-green{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-amber{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-red{background:rgba(225,112,85,.1);color:var(--red)}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}
+.card-grid-2{grid-template-columns:repeat(2,1fr)}
+.card-grid-4{grid-template-columns:repeat(4,1fr)}
+.card-grid-5{grid-template-columns:repeat(5,1fr)}
+.card{background:var(--bg-3);border:1px solid var(--line-2);padding:24px;transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out)}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card h4{font-size:14px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:12px;color:var(--fg-2);margin-bottom:4px}
+.card .tag{display:inline-block;padding:2px 8px;background:var(--accent-subtle);color:var(--accent-light);font-size:9px;letter-spacing:.15em;margin-top:8px;border:1px solid rgba(108,92,231,.15)}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:24px 28px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:24px;text-align:center}
+.kpi:hover{border-color:var(--accent)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:36px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi .kpi-unit{font-size:16px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px}
+.flow{display:flex;gap:0;margin:24px 0;align-items:stretch;flex-wrap:wrap}
+.flow-step{flex:1;min-width:100px;background:var(--bg-3);border:1px solid var(--line-2);padding:18px 12px;text-align:center;position:relative}
+.flow-step:not(:last-child)::after{content:'';position:absolute;right:-8px;top:50%;transform:translateY(-50%);width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:8px solid var(--accent);z-index:2}
+.flow-step .step-no{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.flow-step .step-name{font-size:12px;font-weight:500;color:var(--fg)}
+.flow-step .step-desc{font-size:10px;color:var(--fg-3);margin-top:4px}
+.law-diagram{background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:24px 0}
+.law-layer{border:1px solid var(--line-2);padding:20px;margin:12px 0;position:relative}
+.law-layer.outer{border-color:var(--green);background:rgba(143,163,126,.03)}
+.law-layer.mid{border-color:var(--amber);background:rgba(217,163,75,.03);margin:12px}
+.law-layer.inner{border-color:var(--red);background:rgba(225,112,85,.03);margin:12px}
+.law-layer-label{position:absolute;top:-9px;left:16px;background:var(--bg-2);padding:0 8px;font-size:10px;letter-spacing:.2em;font-weight:400;text-transform:uppercase}
+.law-layer.outer .law-layer-label{color:var(--green)}
+.law-layer.mid .law-layer-label{color:var(--amber)}
+.law-layer.inner .law-layer-label{color:var(--red)}
+.law-layer p{font-size:13px;color:var(--fg-2);margin:4px 0}
+.law-core{text-align:center;padding:16px;background:var(--accent-subtle);border:1px solid rgba(108,92,231,.2);margin-top:14px}
+.law-core p{color:var(--accent-light);font-weight:500;font-size:13px;margin:0}
+.interpretation{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}
+.interp-card{padding:28px;text-align:center;border:1px solid var(--line-2)}
+.interp-card.narrow{background:rgba(225,112,85,.04);border-color:rgba(225,112,85,.2)}
+.interp-card.mid{background:rgba(217,163,75,.04);border-color:rgba(217,163,75,.2)}
+.interp-card.wide{background:rgba(143,163,126,.04);border-color:rgba(143,163,126,.2)}
+.interp-card .interp-label{font-size:10px;letter-spacing:.25em;text-transform:uppercase;margin-bottom:10px}
+.interp-card.narrow .interp-label{color:var(--red)}
+.interp-card.mid .interp-label{color:var(--amber)}
+.interp-card.wide .interp-label{color:var(--green)}
+.interp-card .interp-value{font-size:36px;font-weight:200;color:var(--fg);letter-spacing:-0.02em}
+.interp-card .interp-unit{font-size:16px;font-weight:300}
+.interp-card .interp-desc{font-size:12px;color:var(--fg-3);margin-top:10px}
+#cover{padding-top:180px;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:40px}
+.cover-title{font-size:72px;font-weight:200;letter-spacing:-0.04em;line-height:.95;margin-bottom:24px}
+.cover-title em{font-style:normal;color:var(--accent-light)}
+.cover-sub{font-size:18px;color:var(--fg-2);line-height:1.6;max-width:820px;margin-bottom:60px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:32px;max-width:900px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+footer{padding:80px 120px 60px;border-top:1px solid var(--line-2);max-width:1440px;margin:80px auto 0;display:flex;justify-content:space-between;align-items:baseline}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg)}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+@media(max-width:1200px){.sec{padding:80px 60px}.cover-title{font-size:48px}.sec-head h2{font-size:32px}.card-grid,.card-grid-4,.card-grid-5{grid-template-columns:1fr 1fr}.kpi-grid,.kpi-grid-3{grid-template-columns:1fr 1fr}.flow{flex-wrap:wrap}.flow-step::after{display:none}.cover-meta{grid-template-columns:repeat(2,1fr)}.interpretation{grid-template-columns:1fr}.nav{display:none}}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+
+<nav class="nav">
+  <a href="#cover">Cover</a>
+  <a href="#s1">Architecture</a>
+  <a href="#s2">Logic</a>
+  <a href="#s3">Persuasion</a>
+  <a href="#s4">Impact</a>
+  <a href="#s5">Audit</a>
+  <a href="#s6">Next</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">Bongeunsa Report &mdash; Framework Analysis</div>
+  <h1 class="cover-title">봉은문화회관 보고서<br><em>프레임워크 분석</em></h1>
+  <p class="cover-sub">10개 섹션 통합 제언 보고서의 구조 로직, 설득 메커니즘,<br>법적 프레임워크 활용 전략, 비즈니스 임팩트 구조 해부</p>
+  <dl class="cover-meta">
+    <div><dt>Project</dt><dd>봉은문화센터 활용전략 수립</dd></div>
+    <div><dt>Area</dt><dd>8,868㎡ (1F+2F)</dd></div>
+    <div><dt>Contract</dt><dd>5,000만원 / 90일</dd></div>
+    <div><dt>By</dt><dd>PROJECT RENT</dd></div>
+  </dl>
+</section>
+
+<!-- 1. 전체 아키텍처 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">01 &middot; Architecture</div><h2>10개 섹션 <em>구조 아키텍처</em></h2></div>
+    <div class="no">10 Sections &middot; Scroll Magazine</div>
+  </div>
+  <p class="sec-desc">보고서는 의사결정자의 사고 흐름을 따라 배치된다: "법적으로 뭘 할 수 있나" &rarr; "구체적으로 뭘 하면 되나" &rarr; "진짜 되는 거 맞나" &rarr; "지금 뭘 해야 하나".</p>
+
+  <table>
+    <thead><tr><th>섹션</th><th>역할</th><th>의사결정자 심리</th><th>설득 전략</th></tr></thead>
+    <tbody>
+      <tr><td><strong>S1</strong> 법적 프레임워크</td><td>제약 조건 = 경쟁 해자</td><td>"대체 뭘 할 수 있는 거야?"</td><td>Reframing: 제약 &rarr; 차별화</td></tr>
+      <tr><td><strong>S2</strong> 법적 허용 매트릭스</td><td>가능/불가능 시각적 정리</td><td>"한눈에 보여줘"</td><td>3법 교차 판정으로 신뢰 구축</td></tr>
+      <tr><td><strong>S3~7</strong> 5대 제언 (F&amp;B·뮤지엄·숍·웰니스·대관)</td><td>구체적 실행 방향 + 레퍼런스</td><td>"근거 있는 안인가?"</td><td>케이스 15건으로 사회적 증거</td></tr>
+      <tr><td><strong>S8</strong> 종교시설 상업화 케이스</td><td>선례 기반 의사결정 지원</td><td>"다른 데선 어떻게 했어?"</td><td>교회 vs 사찰 비교로 설득</td></tr>
+      <tr><td><strong>S9</strong> 통합 공간 배치</td><td>면적 배분 + 수익 시뮬레이션</td><td>"그래서 얼마 벌어?"</td><td>92억 앵커링 + 3단 시나리오</td></tr>
+      <tr><td><strong>S10</strong> 선결 과제</td><td>첫 번째 액션 명시</td><td>"지금 당장 뭘 해야 해?"</td><td>유권해석 = 천장 결정</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">정보 흐름 구조</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="step-no">Block 1</div><div class="step-name">법적 제약</div><div class="step-desc">S1~2</div></div>
+    <div class="flow-step"><div class="step-no">Block 2</div><div class="step-name">5대 기회</div><div class="step-desc">S3~7</div></div>
+    <div class="flow-step"><div class="step-no">Block 3</div><div class="step-name">선례 증거</div><div class="step-desc">S8</div></div>
+    <div class="flow-step"><div class="step-no">Block 4</div><div class="step-name">수익 모델</div><div class="step-desc">S9</div></div>
+    <div class="flow-step"><div class="step-no">Block 5</div><div class="step-name">첫 액션</div><div class="step-desc">S10</div></div>
+  </div>
+</section>
+
+<!-- 2. 핵심 로직 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">02 &middot; Core Logic</div><h2>핵심 설계 <em>로직 3가지</em></h2></div>
+    <div class="no">Constraint &rarr; Moat &rarr; Revenue</div>
+  </div>
+
+  <h3 class="sub">Logic 1: 제약의 재해석 (Constraint Reframing)</h3>
+  <p style="color:var(--fg-2);margin-bottom:16px">이 보고서의 가장 강력한 논리적 장치. "전통사찰법 때문에 못 한다"를 "전통사찰법 덕분에 아무도 못 따라한다"로 뒤집는다.</p>
+
+  <div class="law-diagram">
+    <div class="law-layer outer">
+      <span class="law-layer-label">건축법 (유연)</span>
+      <p>용도변경 = 신고. 절차는 쉽다</p>
+      <div class="law-layer mid">
+        <span class="law-layer-label">도시공원법 (중간)</span>
+        <p>전시·F&amp;B 가능, 독립 판매시설 위험</p>
+        <div class="law-layer inner">
+          <span class="law-layer-label">전통사찰법 (제약적)</span>
+          <p>보존구역 내 영업행위 <strong>원칙 금지</strong></p>
+          <div class="law-core">
+            <p>이 제약 = 경쟁 해자(moat)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>관통 인사이트:</strong> "강남 한복판에서 1,200년 사찰이 직접 운영하는 프리미엄 문화공간"은 어떤 상업시설도 흉내낼 수 없는 포지셔닝이다. 제약이 곧 차별화.</p>
+  </div>
+
+  <h3 class="sub">Logic 2: 3법 교차 매트릭스 (Legal Cross-Check)</h3>
+  <p style="color:var(--fg-2);margin-bottom:16px">건축법 &times; 전통사찰법 &times; 도시공원법의 3자 교차 판정. 각 활용 방안에 대해 3법 모두 OK여야 "가능". 하나라도 NO면 "불가".</p>
+
+  <div class="card-grid card-grid-5">
+    <div class="card" style="text-align:center;padding:16px;border-top:3px solid var(--green)">
+      <h4 style="font-size:11px">F&amp;B</h4>
+      <p style="font-size:10px">전통다원 &middot; 사찰음식</p>
+      <div class="tag">3법 모두 OK</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;border-top:3px solid var(--green)">
+      <h4 style="font-size:11px">뮤지엄</h4>
+      <p style="font-size:10px">전시 &middot; 체험</p>
+      <div class="tag">3법 모두 OK</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;border-top:3px solid var(--amber)">
+      <h4 style="font-size:11px">편집숍</h4>
+      <p style="font-size:10px">전통문화 상품</p>
+      <div class="tag">조건부</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;border-top:3px solid var(--green)">
+      <h4 style="font-size:11px">웰니스</h4>
+      <p style="font-size:10px">명상 &middot; 수행</p>
+      <div class="tag">3법 모두 OK</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;border-top:3px solid var(--green)">
+      <h4 style="font-size:11px">대관</h4>
+      <p style="font-size:10px">포럼 &middot; 기업</p>
+      <div class="tag">기존 용도 유지</div>
+    </div>
+  </div>
+
+  <h3 class="sub">Logic 3: 유권해석이 천장을 결정한다 (Revenue Ceiling)</h3>
+  <p style="color:var(--fg-2);margin-bottom:16px">보고서의 마지막이 "지금 당장 문체부 유권해석을 요청하라"로 끝나는 이유. 해석 범위에 따라 연매출이 20억~90억까지 달라진다.</p>
+
+  <div class="interpretation">
+    <div class="interp-card narrow">
+      <div class="interp-label">유권해석 좁음</div>
+      <div class="interp-value">20~30<span class="interp-unit">억</span></div>
+      <div class="interp-desc">전시 + 소규모 다원 + 기념품</div>
+    </div>
+    <div class="interp-card mid">
+      <div class="interp-label">유권해석 중간</div>
+      <div class="interp-value">40~60<span class="interp-unit">억</span></div>
+      <div class="interp-desc">다원 + 불교용품 + 전시 + 명상</div>
+    </div>
+    <div class="interp-card wide">
+      <div class="interp-label">유권해석 넓음</div>
+      <div class="interp-value">70~90<span class="interp-unit">억</span></div>
+      <div class="interp-desc">파인다이닝 + 편집숍 + 기업 프로그램</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. 설득 메커니즘 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">03 &middot; Persuasion Mechanics</div><h2>설득 <em>메커니즘</em> 해부</h2></div>
+    <div class="no">SCQA + Cialdini + Anchoring</div>
+  </div>
+
+  <h3 class="sub">SCQA 구조</h3>
+  <table>
+    <thead><tr><th>요소</th><th>섹션</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td><strong>S</strong> Situation</td><td>S1</td><td>봉은문화회관은 3개 법이 동시에 적용되는 특수 공간. 3년 공실, 누적 기회비용 ~126억</td></tr>
+      <tr><td><strong>C</strong> Complication</td><td>S1~2</td><td>전통사찰법이 모든 상업 활동의 상위 규제. 일반 카페·음식점·소매 전부 불가</td></tr>
+      <tr><td><strong>Q</strong> Question</td><td>(암시)</td><td>이 제약 안에서 연 42억 baseline을 넘기는 수익을 만들 수 있는가?</td></tr>
+      <tr><td><strong>A</strong> Answer</td><td>S3~9</td><td>5대 영역 &times; 15개 레퍼런스 &times; 통합 배치 = 92억/년 (낙관)</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">Cialdini 6원칙 매핑</h3>
+  <table>
+    <thead><tr><th>원칙</th><th>적용 섹션</th><th>구현 방법</th></tr></thead>
+    <tbody>
+      <tr><td><strong>권위</strong></td><td>S3~7</td><td>미쉐린 1스타(발우공양), 아르떼뮤지엄 240억 매출, 헤르조그 &amp; 드 뫼론(송은) — 최고 레퍼런스만 선별</td></tr>
+      <tr><td><strong>사회적 증거</strong></td><td>S8</td><td>명동성당 1898(20개 매장), 사랑의교회, 새문안교회 — "종교시설 상업화는 이미 사회적으로 수용됨"</td></tr>
+      <tr><td><strong>희소성</strong></td><td>S1, S9</td><td>"강남 한복판에서 1,200년 사찰이 직접 운영" — 어떤 상업시설도 흉내 불가</td></tr>
+      <tr><td><strong>일관성</strong></td><td>S1 &rarr; S10</td><td>"제약 = 차별화" 인사이트가 S1(도입), S2(매트릭스), S9(배치), S10(결론)에 4회 반복</td></tr>
+      <tr><td><strong>호감</strong></td><td>S9</td><td>"봉은 1,200" 네이밍, 컬러 코딩 배치도 — 감각적 구체성</td></tr>
+      <tr><td><strong>앵커링</strong></td><td>S9</td><td>92억(낙관)을 먼저 제시하고, 46~55억(보수적)을 뒤에 → 보수적 수치도 크게 느껴짐</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">레퍼런스 전략: 15건의 실재 케이스</h3>
+  <p style="color:var(--fg-2);margin-bottom:16px">5대 영역 각 3건씩, 모든 케이스가 실재하는 공간. "~처럼 하겠다"가 아니라 "이미 이렇게 하고 있다".</p>
+  <div class="card-grid card-grid-5">
+    <div class="card" style="padding:14px">
+      <h4 style="font-size:11px;color:var(--accent-light)">F&amp;B (3건)</h4>
+      <p style="font-size:10px">발우공양 (미쉐린)</p>
+      <p style="font-size:10px">산촌 (40년)</p>
+      <p style="font-size:10px">경인미술관 전통다원</p>
+    </div>
+    <div class="card" style="padding:14px">
+      <h4 style="font-size:11px;color:var(--accent-light)">뮤지엄 (3건)</h4>
+      <p style="font-size:10px">아르떼뮤지엄 (240억)</p>
+      <p style="font-size:10px">문화역 서울 284</p>
+      <p style="font-size:10px">그라운드시소</p>
+    </div>
+    <div class="card" style="padding:14px">
+      <h4 style="font-size:11px;color:var(--accent-light)">편집숍 (3건)</h4>
+      <p style="font-size:10px">MMCA 뮤지엄숍</p>
+      <p style="font-size:10px">승소몰 (조계종)</p>
+      <p style="font-size:10px">1898+ (명동성당)</p>
+    </div>
+    <div class="card" style="padding:14px">
+      <h4 style="font-size:11px;color:var(--accent-light)">웰니스 (3건)</h4>
+      <p style="font-size:10px">힐리언스 선마을</p>
+      <p style="font-size:10px">마인드풀코리아 SIY</p>
+      <p style="font-size:10px">봉은사 템플스테이</p>
+    </div>
+    <div class="card" style="padding:14px">
+      <h4 style="font-size:11px;color:var(--accent-light)">대관 (3건)</h4>
+      <p style="font-size:10px">코엑스 별마당</p>
+      <p style="font-size:10px">송은 (H&amp;dM)</p>
+      <p style="font-size:10px">사랑의교회</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4. 비즈니스 임팩트 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">04 &middot; Business Impact</div><h2>비즈니스 <em>임팩트 구조</em></h2></div>
+    <div class="no">S9 &middot; Revenue Simulation</div>
+  </div>
+
+  <h3 class="sub">수익 구조 (낙관 기준)</h3>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">전시 입장료</div><div class="kpi-value">21<span class="kpi-unit">억</span></div><div class="kpi-sub">15,000원 &times; 400명/일</div></div>
+    <div class="kpi"><div class="kpi-label">사찰음식</div><div class="kpi-value">25<span class="kpi-unit">억</span></div><div class="kpi-sub">70,000원 &times; 120석/일</div></div>
+    <div class="kpi"><div class="kpi-label">다원+쿠킹</div><div class="kpi-value">16.5<span class="kpi-unit">억</span></div><div class="kpi-sub">다원 10.5 + 쿠킹 6</div></div>
+    <div class="kpi"><div class="kpi-label">편집숍+브랜드</div><div class="kpi-value">9.6<span class="kpi-unit">억</span></div><div class="kpi-sub">편집숍 6 + 오리지널 3.6</div></div>
+  </div>
+  <div class="kpi-grid kpi-grid-3">
+    <div class="kpi"><div class="kpi-label">명상 프로그램</div><div class="kpi-value">4.8<span class="kpi-unit">억</span></div></div>
+    <div class="kpi"><div class="kpi-label">대관+기업</div><div class="kpi-value">6<span class="kpi-unit">억</span></div></div>
+    <div class="kpi"><div class="kpi-label">외국인 체험</div><div class="kpi-value">9<span class="kpi-unit">억</span></div></div>
+  </div>
+
+  <h3 class="sub">공간 배분 논리</h3>
+  <table>
+    <thead><tr><th>영역</th><th>면적</th><th>비율</th><th>법적 근거</th><th>수익 기여</th></tr></thead>
+    <tbody>
+      <tr><td><strong>전시·뮤지엄</strong></td><td>2,000㎡</td><td>22.5%</td><td>문화집회시설 유지</td><td>21억 (23%)</td></tr>
+      <tr><td><strong>F&amp;B</strong></td><td>1,000㎡</td><td>11.3%</td><td>시행령 제7조</td><td>41.5억 (45%)</td></tr>
+      <tr><td><strong>상품 판매</strong></td><td>800㎡</td><td>9.0%</td><td>시행령 제7조</td><td>9.6억 (10%)</td></tr>
+      <tr><td><strong>명상·웰니스</strong></td><td>500㎡</td><td>5.6%</td><td>신도 편의시설</td><td>4.8억 (5%)</td></tr>
+      <tr><td><strong>대관홀</strong></td><td>1,500㎡</td><td>16.9%</td><td>기존 용도</td><td>6억 (7%)</td></tr>
+      <tr><td><strong>외국인 체험</strong></td><td>500㎡</td><td>5.6%</td><td>포교 목적</td><td>9억 (10%)</td></tr>
+      <tr><td style="color:var(--fg-3)">로비·동선</td><td>2,568㎡</td><td>29.0%</td><td>&mdash;</td><td>&mdash;</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout-warn callout">
+    <p><strong>핵심 발견: F&amp;B가 게임체인저.</strong> 면적의 11%를 차지하면서 수익의 45%를 만든다 (41.5억/92억). F&amp;B 없이는 baseline(42억/년) 달성이 불가능. 유권해석에서 "전통다원 = 사찰음식 파인다이닝 포함"을 확보해야 하는 이유.</p>
+  </div>
+</section>
+
+<!-- 5. 프레임워크 감사 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">05 &middot; Framework Audit</div><h2>프레임워크 <em>적용 평가</em></h2></div>
+    <div class="no">7-Step + gov-strategy</div>
+  </div>
+  <p class="sec-desc">이 보고서는 정부사업 입찰 제안서가 아니라 봉은사 내부 의사결정용 컨설팅 보고서다. 7단계 입찰 로직이 아닌 컨설팅 프레임워크 관점에서 평가한다.</p>
+
+  <h3 class="sub">적용된 프레임워크 요소</h3>
+  <table>
+    <thead><tr><th>프레임워크</th><th>적용 수준</th><th>적용 방법</th><th>효과</th></tr></thead>
+    <tbody>
+      <tr><td><strong>SCQA</strong></td><td><span class="badge badge-green">완벽</span></td><td>S(3년 공실) → C(3법 제약) → Q(baseline 초과 가능?) → A(5대 영역 92억)</td><td>의사결정자가 10초 만에 보고서 흐름 파악</td></tr>
+      <tr><td><strong>Constraint Reframing</strong></td><td><span class="badge badge-green">완벽</span></td><td>"제약 = 차별화 = 경쟁 해자" 인사이트를 S1에서 선언, 4회 반복</td><td>부정적 전제를 긍정적 기회로 180도 전환</td></tr>
+      <tr><td><strong>Legal Cross-Check</strong></td><td><span class="badge badge-green">완벽</span></td><td>건축법 &times; 전통사찰법 &times; 도시공원법 3자 교차 매트릭스</td><td>10개 활용 방향별 가능/불가 한눈에 판단</td></tr>
+      <tr><td><strong>Case-Based Reasoning</strong></td><td><span class="badge badge-green">완벽</span></td><td>5대 영역 &times; 3건 = 15건 실재 케이스, 각각 시사점 명시</td><td>"이미 되고 있다"는 사회적 증거 15개</td></tr>
+      <tr><td><strong>Revenue Anchoring</strong></td><td><span class="badge badge-green">우수</span></td><td>92억(낙관) → 46~55억(보수적) → 유권해석 3단 시나리오</td><td>보수적 수치도 크게 느껴지는 앵커링</td></tr>
+      <tr><td><strong>Decision Forcing</strong></td><td><span class="badge badge-green">완벽</span></td><td>"문체부 유권해석 = 첫 번째 액션"으로 마무리</td><td>보고서가 끝나면 바로 행동에 옮길 수 있음</td></tr>
+      <tr><td><strong>Scenario Planning</strong></td><td><span class="badge badge-green">우수</span></td><td>유권해석 좁음/중간/넓음 3단 시나리오별 매출 범위</td><td>어떤 결과가 나와도 대응 가능한 구조</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">보완 가능한 영역</h3>
+  <table>
+    <thead><tr><th>영역</th><th>현재</th><th>보완 방향</th><th>우선순위</th></tr></thead>
+    <tbody>
+      <tr><td><strong>투자비 분석</strong></td><td>수익만 있고 비용 구조 미포함</td><td>리모델링 + 전시 콘텐츠 + 초기 운영비 산출 → ROI 계산</td><td><span class="badge badge-red">높음</span></td></tr>
+      <tr><td><strong>운영 모델 비교</strong></td><td>"직영이 법적으로 안전" 1줄</td><td>직영 vs 위탁 vs 하이브리드 3안 비교 매트릭스</td><td><span class="badge badge-red">높음</span></td></tr>
+      <tr><td><strong>경쟁 분석</strong></td><td>대안 없음 (독점 공간)</td><td>강남 유사 문화공간(송은·코엑스·KCDF)과의 포지셔닝 비교</td><td><span class="badge badge-amber">중간</span></td></tr>
+      <tr><td><strong>수익 근거 상세화</strong></td><td>"400명/일" 등 가정 수준</td><td>벤치마크 근거(아르떼뮤지엄 일평균 등) 1:1 매핑</td><td><span class="badge badge-amber">중간</span></td></tr>
+      <tr><td><strong>리스크 분석</strong></td><td>법적 리스크만 상세</td><td>운영 리스크(인력, 계절성, 관광 변동) 추가</td><td><span class="badge badge-accent">낮음</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 6. Next Steps -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">06 &middot; Next Steps</div><h2>보고서 다음 <em>단계 로드맵</em></h2></div>
+    <div class="no">Phase 2 &rarr; Phase 3</div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card" style="border-top:3px solid var(--red)">
+      <h4>Phase 2: 유권해석 확보</h4>
+      <p>문체부 종무실 유권해석 요청서 작성·제출</p>
+      <p>조계종 총무원 사전 동의</p>
+      <p>서울시·강남구 사전상담</p>
+      <p style="margin-top:12px"><span class="badge badge-red">최우선 &middot; 즉시</span></p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--amber)">
+      <h4>Phase 3: 마스터플랜</h4>
+      <p>유권해석 결과 기반 사업 규모 확정</p>
+      <p>공간 활용 대안 3안 + 비교분석</p>
+      <p>5개년 수지분석, 투자비 산정</p>
+      <p style="margin-top:12px"><span class="badge badge-amber">유권해석 후</span></p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--green)">
+      <h4>Phase 4: 실행</h4>
+      <p>운영 모델(직영/위탁/하이브리드) 확정</p>
+      <p>리모델링 설계·시공</p>
+      <p>단계적 오픈 (A→B→C)</p>
+      <p style="margin-top:12px"><span class="badge badge-green">마스터플랜 승인 후</span></p>
+    </div>
+  </div>
+
+  <div class="callout-success callout" style="margin-top:40px">
+    <p><strong>이 보고서의 성공 기준:</strong> 봉은사 의사결정자(주지스님, 총무원)가 이 보고서를 읽고 "문체부 유권해석 요청을 하겠다"고 결정하면, 보고서의 목적은 달성된 것이다. 보고서는 "모든 것을 결정하는" 문서가 아니라 "첫 번째 액션을 유발하는" 문서다.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="logo">PROJECT RENT</div>
+  <div class="meta">봉은문화회관 프레임워크 분석 &middot; 2026.06.03 &middot; INTERNAL</div>
+</footer>
+
+</body>
+</html>

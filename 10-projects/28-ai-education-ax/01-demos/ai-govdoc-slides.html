@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관공서 서류, AI가 써드립니다 — 슬라이드</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5A4BD1;
+    --primary-light: #A29BFE;
+    --primary-subtle: #EDE9FE;
+    --black: #1A1A2E;
+    --dark-gray: #4A4A68;
+    --mid-gray: #7F7F9E;
+    --light-gray: #E8E8F0;
+    --off-white: #F7F7FB;
+    --accent-neg: #7F7F9E; /* mid-gray — 이전/부정 */
+    --accent-pos: #6C5CE7; /* primary — 이후/긍정 */
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    color: var(--black);
+  }
+
+  /* ── Slide Container ── */
+  .deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    background: #fff;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── Slide Variants ── */
+  .slide--cover {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--black) 100%);
+    color: #fff;
+    text-align: center;
+  }
+  .slide--dark {
+    background: var(--black);
+    color: #fff;
+    text-align: center;
+  }
+  .slide--accent {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    text-align: center;
+  }
+  .slide--subtle {
+    background: var(--off-white);
+  }
+
+  /* ── Typography ── */
+  .slide-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 8px 24px;
+    border-radius: 24px;
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+  }
+  .slide--subtle .slide-badge,
+  .slide:not(.slide--cover):not(.slide--dark):not(.slide--accent) .slide-badge {
+    background: var(--primary-subtle);
+    color: var(--primary);
+  }
+
+  .slide-title {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+  }
+  .slide-title .highlight {
+    color: var(--primary-light);
+  }
+  .slide:not(.slide--cover):not(.slide--dark):not(.slide--accent) .slide-title .highlight {
+    color: var(--primary);
+  }
+
+  .slide-subtitle {
+    font-size: 22px;
+    font-weight: 400;
+    opacity: 0.85;
+    line-height: 1.5;
+    max-width: 700px;
+  }
+
+  .slide-section {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .slide--dark .slide-section,
+  .slide--accent .slide-section,
+  .slide--cover .slide-section {
+    color: var(--primary-light);
+  }
+
+  .slide-body {
+    font-size: 20px;
+    line-height: 1.7;
+    color: var(--dark-gray);
+    max-width: 800px;
+    text-align: left;
+    width: 100%;
+  }
+
+  /* ── Pain Grid ── */
+  .pain-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 40px;
+    width: 100%;
+    max-width: 1000px;
+  }
+  .pain-card {
+    flex: 1;
+    min-width: 150px;
+    max-width: 180px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 28px 16px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .slide:not(.slide--dark):not(.slide--cover):not(.slide--accent) .pain-card {
+    background: #fff;
+    border: 1px solid var(--light-gray);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .pain-emoji { font-size: 36px; display: block; margin-bottom: 12px; }
+  .pain-text { font-size: 15px; font-weight: 600; line-height: 1.4; }
+  .pain-time { font-size: 13px; color: var(--mid-gray); font-weight: 700; margin-top: 6px; }
+  .slide--dark .pain-time { color: var(--primary-light); }
+
+  /* ── Prompt Box ── */
+  .prompt {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border-radius: 16px;
+    padding: 28px 36px;
+    margin: 24px 0;
+    font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
+    font-size: 18px;
+    line-height: 1.7;
+    text-align: left;
+    max-width: 820px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .prompt::before {
+    content: '$ Claude Code';
+    display: block;
+    font-size: 12px;
+    color: var(--primary-light);
+    font-weight: 600;
+    margin-bottom: 14px;
+    font-family: 'Pretendard Variable', sans-serif;
+    letter-spacing: 1px;
+  }
+  .prompt .cmd { color: #a6e3a1; }
+
+  /* ── Document Preview ── */
+  .doc-frame {
+    background: #fff;
+    border-radius: 12px;
+    padding: 36px 40px;
+    max-width: 700px;
+    width: 100%;
+    text-align: left;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    border: 1px solid var(--light-gray);
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--dark-gray);
+    max-height: 72vh;
+    overflow-y: auto;
+  }
+  .doc-frame-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--primary);
+  }
+  .doc-section-title {
+    font-weight: 700;
+    color: var(--black);
+    margin-top: 18px;
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
+  .doc-field {
+    display: flex;
+    gap: 12px;
+    padding: 4px 0;
+    font-size: 14px;
+  }
+  .doc-label {
+    color: var(--mid-gray);
+    min-width: 100px;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  .doc-value { color: var(--black); font-weight: 500; }
+  .doc-hl {
+    background: var(--primary-subtle);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .doc-fade {
+    text-align: center;
+    padding: 18px;
+    color: var(--mid-gray);
+    font-size: 13px;
+    font-style: italic;
+    border-top: 1px dashed var(--light-gray);
+    margin-top: 18px;
+  }
+
+  /* ── Result Table ── */
+  .result-table {
+    width: 100%;
+    max-width: 820px;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--light-gray);
+    font-size: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .result-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .result-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--light-gray);
+    background: #fff;
+  }
+  .result-table tr:last-child td { border-bottom: none; }
+  .result-table tr:nth-child(even) td { background: var(--off-white); }
+  .result-table .old { color: var(--mid-gray); font-weight: 600; text-decoration: line-through; }
+  .result-table .new { color: var(--primary); font-weight: 700; }
+
+  /* ── Support Table ── */
+  .support-table {
+    width: 100%;
+    max-width: 860px;
+    border-collapse: collapse;
+    font-size: 16px;
+    margin-top: 20px;
+  }
+  .support-table th {
+    padding: 14px 16px;
+    text-align: left;
+    color: var(--primary);
+    font-weight: 700;
+    border-bottom: 2px solid var(--primary);
+    font-size: 14px;
+  }
+  .support-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--light-gray);
+    font-size: 15px;
+  }
+  .support-table .deadline-urgent { color: var(--primary-dark); font-weight: 700; }
+  .support-table .deadline-soon { color: var(--dark-gray); font-weight: 600; }
+  .support-table .deadline-open { color: var(--primary); font-weight: 600; }
+
+  /* ── Budget Table ── */
+  .budget-table {
+    width: 100%;
+    max-width: 520px;
+    border-collapse: collapse;
+    font-size: 16px;
+    margin: 16px auto 0;
+  }
+  .budget-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--light-gray);
+  }
+  .budget-table td:last-child { text-align: right; font-weight: 600; }
+  .budget-table .total-row td {
+    border-top: 2px solid var(--primary);
+    font-weight: 700;
+    padding-top: 14px;
+  }
+  .budget-table .gov-row td { color: var(--primary); font-weight: 700; }
+  .budget-table .self-row td { color: var(--primary); font-weight: 800; font-size: 18px; }
+
+  /* ── KPI Row ── */
+  .kpi-row {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    margin: 32px 0;
+    flex-wrap: wrap;
+  }
+  .kpi-card {
+    text-align: center;
+    padding: 24px 32px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--light-gray);
+    min-width: 160px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .kpi-num {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--primary);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .kpi-label {
+    font-size: 13px;
+    color: var(--mid-gray);
+    font-weight: 500;
+  }
+
+  /* ── Big Quote ── */
+  .big-quote {
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1.3;
+    text-align: center;
+    max-width: 780px;
+  }
+  .big-quote .accent {
+    color: var(--primary);
+  }
+  .slide--dark .big-quote .accent,
+  .slide--accent .big-quote .accent {
+    color: var(--primary-light);
+  }
+
+  /* ── Step indicator ── */
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 14px;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 20px;
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed;
+    bottom: 24px;
+    right: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 100;
+  }
+  .nav-counter {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Pretendard Variable', sans-serif;
+  }
+  .slide:not(.slide--dark):not(.slide--cover):not(.slide--accent) ~ .nav .nav-counter {
+    color: var(--mid-gray);
+  }
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── Speaker Notes Toggle ── */
+  .speaker-note {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(30,30,46,0.95);
+    color: #cdd6f4;
+    padding: 20px 40px;
+    font-size: 15px;
+    line-height: 1.6;
+    max-height: 30vh;
+    overflow-y: auto;
+    z-index: 200;
+    backdrop-filter: blur(12px);
+  }
+  .speaker-note::before {
+    content: '강사 노트 (N키로 토글)';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary-light);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .speaker-note.visible { display: block; }
+
+  /* ── Progress Bar ── */
+  .progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--primary);
+    transition: width 0.3s ease;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="deck" id="deck">
+
+<!-- ═══════ 01. COVER ═══════ -->
+<div class="slide slide--cover active" data-note="관공서 서류 좋아하시는 분? 아무도 없죠. 양식 찾는 데 30분, 뭘 써야 하나 고민 1시간, 다 쓰고도 '이게 맞나?' 불안... 오늘 이 고통을 끝내는 방법 보여드리겠습니다.">
+  <div class="slide-badge">AI 업무전환(AX) 교육 — LIVE DEMO</div>
+  <h1 class="slide-title">사장님, 관공서 서류<br><span class="highlight">AI가 써드립니다</span></h1>
+  <p class="slide-subtitle">"양식 찾기 → 뭘 써야 하지 → 이게 맞나"<br>이 고통을 끝내는 방법</p>
+</div>
+
+<!-- ═══════ 02. PAIN POINTS ═══════ -->
+<div class="slide slide--dark" data-note="관공서 서류의 5대 고통. 하나하나 짚으면서 청중 고개 끄덕이게 합니다. '소상공인 정책자금 신청서 쓰셔본 분? 사업계획서 A4 두 장 쓰라는데 뭘 쓰라는 건지 감도 안 오죠.'">
+  <div class="slide-section">관공서 서류의 진짜 문제</div>
+  <h1 class="slide-title" style="font-size:40px; margin-bottom:12px;">5대 <span class="highlight">고통</span></h1>
+  <div class="pain-row">
+    <div class="pain-card">
+      <span class="pain-emoji">📋</span>
+      <span class="pain-text">양식이<br>어디 있지?</span>
+      <div class="pain-time">검색만 30분</div>
+    </div>
+    <div class="pain-card">
+      <span class="pain-emoji">😵</span>
+      <span class="pain-text">뭘 써야<br>하는 거지?</span>
+      <div class="pain-time">항목마다 멈춤</div>
+    </div>
+    <div class="pain-card">
+      <span class="pain-emoji">🤔</span>
+      <span class="pain-text">이게 맞는<br>건지 모르겠음</span>
+      <div class="pain-time">불안한 채로 제출</div>
+    </div>
+    <div class="pain-card">
+      <span class="pain-emoji">🔄</span>
+      <span class="pain-text">보완 요청<br>다시 작성</span>
+      <div class="pain-time">또 반나절</div>
+    </div>
+    <div class="pain-card">
+      <span class="pain-emoji">💸</span>
+      <span class="pain-text">전문가 맡기면<br>비용 부담</span>
+      <div class="pain-time">건당 10~50만원</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 03. TRANSITION ═══════ -->
+<div class="slide slide--accent" data-note="'사업자등록증 하나만 있으면 됩니다. 양식 찾을 필요 없고, 뭘 써야 하나 고민할 필요 없습니다.' 여기서 자연스럽게 화면 전환 → Claude Code 열기.">
+  <div class="slide-section">오늘 보여드릴 것</div>
+  <h1 class="big-quote" style="font-size:42px;">
+    사업자등록증 <span class="accent">하나</span>만 있으면<br>
+    AI가 서류 초안을 써줍니다
+  </h1>
+  <p class="slide-subtitle" style="margin-top:32px;">양식 찾을 필요 없음 · 뭘 써야 하나 고민 없음 · 한국어면 충분</p>
+</div>
+
+<!-- ═══════ 04. STEP 1 — 정보 투입 ═══════ -->
+<div class="slide slide--subtle" data-note="사업자등록증 사진을 넣어도 되고, 이렇게 텍스트로 쳐도 됩니다. AI가 알아서 이해해요. 입력 방식이 자유롭다는 걸 강조.">
+  <div class="step-num">1</div>
+  <div class="slide-section">STEP 1 — 사업 정보 투입</div>
+  <h1 class="slide-title" style="font-size:36px;">사업자등록증 하나면 됩니다</h1>
+  <div class="prompt">
+    <span class="cmd">우리 회사 정보야.<br>
+- 상호: 로스팅하우스 성수점<br>
+- 업종: 커피 음료 판매 / 소매<br>
+- 사업자등록번호: 123-45-67890<br>
+- 대표자: 김민수<br>
+- 개업일: 2024년 3월 1일<br>
+- 소재지: 서울 성동구 성수이로 88, 1층<br>
+- 직원: 3명 (정규직 1, 아르바이트 2)<br>
+- 월 매출: 평균 4,000만원대</span>
+  </div>
+</div>
+
+<!-- ═══════ 05. STEP 2 — 프롬프트 ═══════ -->
+<div class="slide slide--subtle" data-note="프롬프트를 입력하는 장면. 이때 천천히 타이핑하면서 '사업 정보만 넣었는데 신청서가 나옵니다' 강조.">
+  <div class="step-num">2</div>
+  <div class="slide-section">STEP 2 — 지원금 신청서 자동 생성</div>
+  <h1 class="slide-title" style="font-size:34px;">한 문장이면 됩니다</h1>
+  <div class="prompt">
+    <span class="cmd">소상공인 경영안정자금 신청하려고 해.<br>위 사업 정보 기반으로 신청서 초안 작성해줘.<br>사업 개요, 자금 용도, 상환 계획 포함해서</span>
+  </div>
+</div>
+
+<!-- ═══════ 06. STEP 2 — 결과 ═══════ -->
+<div class="slide" data-note="문서가 쫙 나오는 장면. 여기서 잠깐 멈추고 청중이 읽을 시간을 줍니다. '사업 정보만 넣었는데 양식에 맞춰서 자동으로 채워줬어요. 영업 2년 3개월차도 자동 계산. 사장님이 직접 쓰면 반나절. 지금 1분.' 이 침묵이 가장 강력한 설득.">
+  <div class="doc-frame">
+    <div class="doc-frame-title">소상공인 경영안정자금 지원 신청서</div>
+    <div class="doc-section-title">1. 신청인 정보</div>
+    <div class="doc-field"><span class="doc-label">상호명</span><span class="doc-value">로스팅하우스 성수점</span></div>
+    <div class="doc-field"><span class="doc-label">대표자</span><span class="doc-value">김민수</span></div>
+    <div class="doc-field"><span class="doc-label">사업자번호</span><span class="doc-value">123-45-67890</span></div>
+    <div class="doc-field"><span class="doc-label">업종</span><span class="doc-value">커피 음료 판매 / 소매업</span></div>
+    <div class="doc-field"><span class="doc-label">개업일</span><span class="doc-value">2024년 3월 1일 <span class="doc-hl">영업 2년 3개월차</span></span></div>
+    <div class="doc-field"><span class="doc-label">종업원 수</span><span class="doc-value">3명 (정규직 1, 단시간 2)</span></div>
+    <div class="doc-section-title">2. 사업 개요 및 현황</div>
+    <p style="font-size:14px; color:var(--dark-gray);">본 사업장은 서울 성수동 소재 커피 전문점으로, 한국 전통 믹스커피를 문화 콘텐츠로 재해석한 특색 있는 매장을 운영하고 있습니다. 월 평균 매출 약 4,000만원 수준이며, 인바운드 외국인 관광객 비중이 높아 계절 변동성이 존재합니다.</p>
+    <div class="doc-section-title">3. 자금 용도</div>
+    <p style="font-size:14px; color:var(--dark-gray);">① 원자재 선구매 및 재고 확보 — 800만원<br>② 매장 리뉴얼 및 편의시설 확충 — 700만원<br>③ 직원 추가 채용 및 교육 — 500만원<br><strong>합계: 2,000만원</strong></p>
+    <div class="doc-fade">... 이하 상환 계획 등 자동 생성 (총 2페이지)</div>
+  </div>
+</div>
+
+<!-- ═══════ 06-B. 공공양식 자동 작성 ═══════ -->
+<div class="slide" data-note="'이건 실제 공공양식이에요. 관공서에서 쓰는 진짜 서식. AI가 이 양식에 맞춰서 자동으로 채워넣은 겁니다. 상호, 사업자번호, 대표자, 소재지, 계좌... 전부 아까 넣은 정보 기반으로.' 여기서 포인트: 양식을 찾아 헤맬 필요가 없다는 것. 내용을 뭘 써야 하나 고민할 필요가 없다는 것.">
+  <div style="width:100%; max-width:680px; background:#fff; border:2px solid var(--black); border-radius:4px; padding:0; font-size:13px; line-height:1.6; color:var(--black); max-height:88vh; overflow-y:auto; box-shadow:0 4px 24px rgba(0,0,0,0.1);">
+    <!-- 양식 헤더 -->
+    <div style="text-align:center; padding:24px 28px 16px; border-bottom:2px solid var(--black);">
+      <div style="font-size:20px; font-weight:800; letter-spacing:3px;">소상공인 경영안정자금 지원 신청서</div>
+      <div style="font-size:11px; color:var(--mid-gray); margin-top:4px;">(희망드림)</div>
+    </div>
+    <!-- 신청인 현황 테이블 -->
+    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+      <tr>
+        <td rowspan="5" style="width:14%; border:1px solid var(--dark-gray); text-align:center; font-weight:700; background:var(--off-white); padding:8px; vertical-align:middle; writing-mode:vertical-rl; letter-spacing:6px;">신청인<br>현 황</td>
+        <td style="width:16%; border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">상 호</td>
+        <td style="width:28%; border:1px solid var(--dark-gray); padding:8px; color:var(--primary); font-weight:700;">로스팅하우스 성수점</td>
+        <td style="width:16%; border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">사업자등록번호</td>
+        <td style="width:26%; border:1px solid var(--dark-gray); padding:8px; color:var(--primary); font-weight:700;">123-45-67890</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">대표자 성명</td>
+        <td style="border:1px solid var(--dark-gray); padding:8px; color:var(--primary); font-weight:700;">김민수</td>
+        <td style="border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">연락처</td>
+        <td style="border:1px solid var(--dark-gray); padding:8px; color:var(--primary); font-weight:700;">010-1234-5678</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">영업장 소재지</td>
+        <td colspan="3" style="border:1px solid var(--dark-gray); padding:8px; color:var(--primary); font-weight:700;">서울특별시 성동구 성수이로 88, 1층</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px; font-size:11px; line-height:1.3;">경영안정자금 수령<br>(대표자 명의)</td>
+        <td style="border:1px solid var(--dark-gray); padding:8px;"><span style="font-size:11px; color:var(--mid-gray);">은행명</span> <span style="color:var(--primary); font-weight:700;">국민은행</span></td>
+        <td style="border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">계좌번호</td>
+        <td style="border:1px solid var(--dark-gray); padding:8px; color:var(--primary); font-weight:700;">123-456-789012</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">과세유형</td>
+        <td style="border:1px solid var(--dark-gray); padding:8px;"><span style="color:var(--primary); font-weight:700;">&#9745;</span>일반과세자</td>
+        <td style="border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">지원종류</td>
+        <td style="border:1px solid var(--dark-gray); padding:8px;"><span style="color:var(--primary); font-weight:700;">&#9745;</span>중점지원</td>
+      </tr>
+    </table>
+    <!-- 하단 정보 -->
+    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+      <tr>
+        <td style="width:30%; border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">① 사업자등록일</td>
+        <td style="width:20%; border:1px solid var(--dark-gray); padding:8px; color:var(--primary); font-weight:700;">2024.03.01</td>
+        <td style="width:30%; border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">② 사업자 휴·폐업일</td>
+        <td style="width:20%; border:1px solid var(--dark-gray); padding:8px; color:var(--mid-gray);">해당없음</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">③ 상시 근로자수</td>
+        <td style="border:1px solid var(--dark-gray); padding:8px; color:var(--primary); font-weight:700;">3명</td>
+        <td style="border:1px solid var(--dark-gray); text-align:center; font-weight:600; background:var(--off-white); padding:8px;">④ 연 매출액</td>
+        <td style="border:1px solid var(--dark-gray); padding:8px; color:var(--primary); font-weight:700;">약 4.8억원</td>
+      </tr>
+    </table>
+    <!-- 확인 사항 -->
+    <div style="padding:14px 20px; border:1px solid var(--dark-gray); border-top:none; font-size:12px; line-height:1.7; color:var(--dark-gray);">
+      <span style="color:var(--primary); font-weight:700;">&#9745;</span> <strong>제외업종 여부 확인</strong> : 본인은 소상공인 경영안정자금 지원 제외업종에 해당하지 않음을 확인합니다.<br>
+      <span style="color:var(--primary); font-weight:700;">&#9745;</span> <strong>환수조치 확인</strong> : 신청내용 및 증빙자료 일체가 사실이며, 부정 수급 시 환수 등의 조치에 이의를 제기하지 않겠습니다.
+    </div>
+    <!-- 서명란 -->
+    <div style="padding:18px 20px; text-align:center; font-size:13px; border:1px solid var(--dark-gray); border-top:none;">
+      위와 같이 소상공인 경영안정자금을 신청합니다.<br>
+      <span style="font-weight:600; margin-top:8px; display:inline-block;">2026년 &nbsp; 5월 &nbsp; 20일</span><br>
+      <span style="margin-top:6px; display:inline-block;">신청인(사업주) &nbsp; <span style="color:var(--primary); font-weight:800; font-size:16px;">김민수</span> &nbsp; (서명)</span>
+    </div>
+    <!-- AI 자동입력 표시 -->
+    <div style="padding:10px 20px; background:var(--primary-subtle); text-align:center; font-size:11px; font-weight:700; color:var(--primary); letter-spacing:0.5px;">
+      ▲ 청보라 글씨 = AI가 자동으로 채운 항목 &nbsp;|&nbsp; 사업 정보 입력 한 번으로 전체 완성
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 07. IMPACT 1 ═══════ -->
+<div class="slide slide--dark" data-note="숫자 임팩트. '사장님이 직접 쓰면 반나절. AI는 1분.' 잠깐 멈춤.">
+  <div class="slide-section">방금 일어난 일</div>
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <span class="kpi-num">1분</span>
+      <span class="kpi-label">신청서 완성</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num" style="color:var(--mid-gray); text-decoration:line-through; font-size:32px;">반나절</span>
+      <span class="kpi-label">직접 쓰면</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num" style="font-size:32px;">자동 계산</span>
+      <span class="kpi-label">영업 기간, 직원 분류</span>
+    </div>
+  </div>
+  <p class="slide-subtitle" style="margin-top:36px; text-align:center;">사업 정보만 넣었는데 — 양식에 맞춰서, 문장까지, 자동으로.</p>
+</div>
+
+<!-- ═══════ 08. STEP 3 — 지원사업 조회 ═══════ -->
+<div class="slide slide--subtle" data-note="'사장님, 이거 아셨어요? 고용촉진장려금 — 직원 한 명 뽑으면 1년간 월 60만원. 직원 3명이니까 다음 채용 때 신청하면 720만원. 이런 걸 몰라서 못 받는 게 대부분.'">
+  <div class="step-num">3</div>
+  <div class="slide-section">STEP 3 — "우리가 받을 수 있는 돈이 있어?"</div>
+  <div class="prompt" style="margin-bottom:28px;">
+    <span class="cmd">우리 같은 성수동 카페가 신청할 수 있는<br>정부 지원사업 뭐가 있어? 소상공인 대상으로</span>
+  </div>
+  <table class="support-table">
+    <tr>
+      <th>지원사업</th>
+      <th>지원 내용</th>
+      <th>마감</th>
+    </tr>
+    <tr>
+      <td style="font-weight:600;">소상공인 경영안정자금</td>
+      <td>최대 7,000만원 저금리 대출</td>
+      <td class="deadline-urgent">연중 수시</td>
+    </tr>
+    <tr>
+      <td style="font-weight:600;">스마트상점 기술보급</td>
+      <td>키오스크·POS 등 최대 400만원</td>
+      <td class="deadline-soon">6월 말</td>
+    </tr>
+    <tr>
+      <td style="font-weight:600;">고용촉진장려금</td>
+      <td>신규 채용 시 <strong>월 60만원 × 12개월</strong></td>
+      <td class="deadline-urgent">채용 후 신청</td>
+    </tr>
+    <tr>
+      <td style="font-weight:600;">서울시 자영업자 역량강화</td>
+      <td>교육비 + 컨설팅 지원</td>
+      <td class="deadline-open">상반기 모집 중</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ═══════ 09. MONEY SHOCK ═══════ -->
+<div class="slide slide--accent" data-note="이 슬라이드에서 잠깐 멈춤. '몰라서, 귀찮아서 못 받는 돈이 1년에 수백만 원입니다.'">
+  <div class="slide-section">지금까지 놓친 돈</div>
+  <h1 class="big-quote">
+    고용장려금 <span class="accent">720만원</span><br>
+    스마트상점 <span class="accent">400만원</span><br>
+    경영안정자금 <span class="accent">7,000만원</span>
+  </h1>
+  <p class="slide-subtitle" style="margin-top:36px;">몰라서 못 받고, 귀찮아서 안 쓰고, 어려워서 포기했던 돈.</p>
+</div>
+
+<!-- ═══════ 10. STEP 4 — 사업계획서 ═══════ -->
+<div class="slide slide--subtle" data-note="'AI가 아까 넣은 데이터를 기억하고 있어요. 외국인 87%도 자동 반영, 피크타임도 반영. 사업계획서 보통 이틀 걸리는데 1분이었습니다.'">
+  <div class="step-num">4</div>
+  <div class="slide-section">STEP 4 — 사업계획서 자동 생성</div>
+  <div class="prompt" style="margin-bottom:24px;">
+    <span class="cmd">스마트상점 기술보급사업 신청할 건데<br>키오스크 도입 사업계획서 초안 2페이지로 만들어줘</span>
+  </div>
+  <div class="doc-frame" style="max-height:55vh;">
+    <div class="doc-frame-title">스마트상점 기술보급사업 — 사업계획서</div>
+    <div class="doc-section-title">1. 사업 개요</div>
+    <p style="font-size:14px; color:var(--dark-gray);">로스팅하우스 성수점은 외국인 관광객 비중이 전체 매출의 약 <span class="doc-hl">87%</span>를 차지하는 특수 입지의 커피 전문점입니다. 다국어 키오스크 도입으로 주문 오류 감소 및 피크타임 회전율 개선을 목표로 합니다.</p>
+    <div class="doc-section-title">2. 기대 효과</div>
+    <p style="font-size:14px; color:var(--dark-gray);">
+      ① 다국어 주문 → 오류 <span class="doc-hl">50% 감소</span><br>
+      ② 피크타임(13~15시) 대기 5분→2분 → 일매출 <span class="doc-hl">15% 증가</span><br>
+      ③ 직원 업무 부하 감소 → 고객 응대 품질 향상
+    </p>
+    <div class="doc-section-title">3. 예산 계획</div>
+    <table class="budget-table">
+      <tr><td>키오스크 단말기 (1대)</td><td>280만원</td></tr>
+      <tr><td>다국어 메뉴 시스템</td><td>60만원</td></tr>
+      <tr><td>설치 및 교육</td><td>40만원</td></tr>
+      <tr class="total-row"><td>합계</td><td style="color:var(--primary);">380만원</td></tr>
+      <tr class="gov-row"><td>정부 지원금 (최대)</td><td>-400만원</td></tr>
+      <tr class="self-row"><td>자부담</td><td>0원</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════ 11. IMPACT 2 ═══════ -->
+<div class="slide slide--dark" data-note="'신청서 1분, 지원사업 조회 30초, 사업계획서 1분. 사장님의 행정 담당자가 생긴 겁니다. 정부 지원 제도까지 알고 있는. 월급 0원.'">
+  <div class="slide-section">3번의 질문, 총 3분</div>
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <span class="kpi-num">1분</span>
+      <span class="kpi-label">지원금 신청서</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">30초</span>
+      <span class="kpi-label">지원사업 조회</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">1분</span>
+      <span class="kpi-label">사업계획서</span>
+    </div>
+  </div>
+  <h1 class="big-quote" style="font-size:36px; margin-top:32px;">
+    사장님의 <span class="accent">행정 담당자</span>가 생긴 겁니다<br>
+    <span style="font-size:24px; font-weight:400; opacity:0.7;">정부 지원 제도까지 알고 있는. 월급 0원.</span>
+  </h1>
+</div>
+
+<!-- ═══════ 12. BEFORE / AFTER ═══════ -->
+<div class="slide slide--subtle" data-note="비교표. 하나씩 짚어주면서 '양식 찾기 30분 → 한 마디, 내용 작성 2시간 → 1분, 사업계획서 이틀 → 자동 생성...'">
+  <div class="slide-section">Before → After</div>
+  <h1 class="slide-title" style="font-size:32px; text-align:center; margin-bottom:28px;">같은 업무, 다른 세계</h1>
+  <table class="result-table">
+    <tr><th style="width:25%;">업무</th><th>예전 방식</th><th>AI 방식</th></tr>
+    <tr><td><strong>양식 찾기</strong></td><td class="old">정부24에서 30분 헤매기</td><td class="new">"신청서 만들어줘"</td></tr>
+    <tr><td><strong>내용 작성</strong></td><td class="old">뭘 써야 할지 모름 — 2시간</td><td class="new">조건만 말하면 1분</td></tr>
+    <tr><td><strong>사업계획서</strong></td><td class="old">이틀 끙끙 or 포기</td><td class="new">데이터 기반 자동 생성</td></tr>
+    <tr><td><strong>지원사업 파악</strong></td><td class="old">몰라서 놓침</td><td class="new">"맞는 거 뭐 있어?"</td></tr>
+    <tr><td><strong>전문가 의뢰</strong></td><td class="old">건당 10~50만원</td><td class="new">초안 AI → 검토만 전문가</td></tr>
+  </table>
+</div>
+
+<!-- ═══════ 13. KEY MESSAGE ═══════ -->
+<div class="slide slide--dark" data-note="'관공서 서류의 진짜 문제는 어려워서가 아닙니다. 귀찮아서 안 하는 겁니다. 귀찮아서 안 하면 — 받을 수 있는 돈을 못 받아요.'">
+  <div class="slide-section">핵심</div>
+  <h1 class="big-quote">
+    어려워서 못 하는 게 아닙니다<br>
+    <span class="accent">귀찮아서 안 하는 겁니다</span>
+  </h1>
+  <p class="slide-subtitle" style="margin-top:32px; text-align:center;">
+    귀찮아서 안 하면 — 받을 수 있는 돈을 못 받습니다.<br>
+    <strong>1년에 수백만 원.</strong>
+  </p>
+</div>
+
+<!-- ═══════ 14. CLOSING ═══════ -->
+<div class="slide slide--accent" data-note="마무리. '세 가지 데모 전부 패턴이 같죠? 정보 넣고, 물어보고, 받는다. AI를 배우면 귀찮아서 포기했던 돈을 다시 받을 수 있습니다. 자, 이제 직접 해볼 시간입니다.'">
+  <div class="slide-section">결론</div>
+  <h1 class="big-quote" style="font-size:40px; margin-bottom:40px;">
+    AI를 배우면<br>
+    <span class="accent">귀찮아서 포기했던 돈을<br>다시 받을 수 있습니다</span>
+  </h1>
+  <div style="display:flex; gap:40px; justify-content:center; margin-top:8px;">
+    <div style="text-align:center;">
+      <div style="font-size:48px; font-weight:800;">①</div>
+      <div style="font-size:17px; font-weight:600; margin-top:8px;">정보를 넣는다</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:48px; font-weight:800;">②</div>
+      <div style="font-size:17px; font-weight:600; margin-top:8px;">한국어로 묻는다</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:48px; font-weight:800;">③</div>
+      <div style="font-size:17px; font-weight:600; margin-top:8px;">결과를 받는다</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 15. END ═══════ -->
+<div class="slide slide--cover" data-note="실습으로 전환. '자, 이제 직접 해볼 시간입니다.'">
+  <div class="slide-badge">LIVE DEMO COMPLETE</div>
+  <h1 class="slide-title" style="font-size:48px;">이제 직접 해보세요</h1>
+  <p class="slide-subtitle">파일 넣고, 물어보고, 받는다.<br>5분이면 됩니다.</p>
+  <p style="margin-top:40px; font-size:14px; opacity:0.5;">Do Better Things — AI 업무전환(AX) 교육</p>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div class="nav">
+  <span class="nav-counter" id="counter">1 / 15</span>
+  <button class="nav-btn" onclick="prev()" aria-label="이전">◂</button>
+  <button class="nav-btn" onclick="next()" aria-label="다음">▸</button>
+</div>
+
+<!-- Speaker Notes -->
+<div class="speaker-note" id="speakerNote"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const speakerNote = document.getElementById('speakerNote');
+  let current = 0;
+  let notesVisible = false;
+
+  function show(idx) {
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    current = idx;
+    counter.textContent = `${idx + 1} / ${slides.length}`;
+    progress.style.width = `${((idx + 1) / slides.length) * 100}%`;
+
+    // Update speaker note
+    const note = slides[idx].getAttribute('data-note') || '';
+    speakerNote.innerHTML = note;
+  }
+
+  function next() { if (current < slides.length - 1) show(current + 1); }
+  function prev() { if (current > 0) show(current - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { e.preventDefault(); show(0); }
+    if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+    if (e.key === 'n' || e.key === 'N') {
+      notesVisible = !notesVisible;
+      speakerNote.classList.toggle('visible', notesVisible);
+    }
+    if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diff) > 50) { diff < 0 ? next() : prev(); }
+  });
+
+  show(0);
+</script>
+</body>
+</html>

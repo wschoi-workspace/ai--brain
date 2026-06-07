@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>라이브 데모 시나리오 — 사장님, 관공서 서류 AI가 써드립니다</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5A4BD1;
+    --primary-light: #A29BFE;
+    --primary-subtle: #EDE9FE;
+    --black: #1A1A2E;
+    --dark-gray: #4A4A68;
+    --mid-gray: #7F7F9E;
+    --light-gray: #E8E8F0;
+    --off-white: #F7F7FB;
+    --success: #00B894;
+    --warning: #FDCB6E;
+    --danger: #E17055;
+    --info: #74B9FF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    color: var(--black);
+    background: var(--off-white);
+    line-height: 1.6;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #0984e3 0%, #2d3436 100%);
+    color: #fff;
+    padding: 60px 40px;
+    text-align: center;
+  }
+  .header .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+  .header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .header .subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    opacity: 0.85;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  .container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  .meta-bar {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+    padding: 20px 24px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--dark-gray);
+  }
+  .meta-item strong {
+    color: var(--black);
+    font-weight: 600;
+  }
+
+  .act {
+    margin-bottom: 48px;
+  }
+  .act-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .act-number {
+    width: 48px;
+    height: 48px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .act-title-group h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--black);
+  }
+  .act-title-group .act-time {
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(108,92,231,0.05);
+  }
+  .card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: var(--black);
+  }
+  .card h3 .step-badge {
+    display: inline-block;
+    background: var(--primary-subtle);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  .script {
+    background: var(--primary-subtle);
+    border-left: 4px solid var(--primary);
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--black);
+  }
+  .script::before {
+    content: '🎤 강사 멘트';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .prompt-box {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 14px 0;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .prompt-box::before {
+    content: '$ Claude Code 프롬프트';
+    display: block;
+    font-size: 11px;
+    color: var(--primary-light);
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-family: 'Pretendard Variable', sans-serif;
+    letter-spacing: 0.5px;
+  }
+  .prompt-box .prompt-text {
+    color: #a6e3a1;
+  }
+
+  .result-preview {
+    background: var(--off-white);
+    border: 1px dashed var(--light-gray);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  .result-preview::before {
+    content: '예상 결과';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mid-gray);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .result-preview .num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .result-preview .label {
+    font-size: 12px;
+    color: var(--mid-gray);
+    font-weight: 500;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin: 12px 0;
+  }
+  .result-cell {
+    text-align: center;
+    padding: 12px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--light-gray);
+  }
+
+  .timing {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary-subtle);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--light-gray);
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .comparison-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .comparison-table th:first-child { width: 28%; }
+  .comparison-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--light-gray);
+    vertical-align: top;
+  }
+  .comparison-table tr:last-child td { border-bottom: none; }
+  .comparison-table tr:nth-child(even) { background: var(--off-white); }
+  .comparison-table .old { color: var(--danger); font-weight: 600; }
+  .comparison-table .new { color: var(--success); font-weight: 700; }
+
+  .insight-box {
+    background: linear-gradient(135deg, var(--primary-subtle) 0%, #fff 100%);
+    border: 2px solid var(--primary-light);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 20px 0;
+    text-align: center;
+  }
+  .insight-box .insight-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+  .insight-box .insight-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.4;
+  }
+
+  .note {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: #FFF8E1;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 13px;
+    color: #5D4E37;
+    line-height: 1.5;
+  }
+  .note-icon { font-size: 18px; flex-shrink: 0; }
+  .danger-note { background: #FFF0ED; color: #7A3425; }
+
+  .checklist {
+    list-style: none;
+    margin: 12px 0;
+  }
+  .checklist li {
+    padding: 8px 0;
+    padding-left: 28px;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .checklist li::before {
+    content: '☐';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-size: 16px;
+  }
+
+  .doc-preview {
+    background: #fff;
+    border: 1px solid var(--light-gray);
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin: 14px 0;
+    font-size: 13px;
+    line-height: 1.8;
+    font-family: 'Pretendard Variable', sans-serif;
+    position: relative;
+  }
+  .doc-preview::before {
+    content: '생성된 문서 미리보기';
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mid-gray);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--light-gray);
+  }
+  .doc-preview .doc-title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+  }
+  .doc-preview .doc-section {
+    font-weight: 700;
+    color: var(--dark-gray);
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .doc-preview .doc-field {
+    display: flex;
+    gap: 8px;
+    padding: 4px 0;
+  }
+  .doc-preview .doc-label {
+    color: var(--mid-gray);
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+  .doc-preview .doc-value {
+    color: var(--black);
+    font-weight: 500;
+  }
+  .doc-preview .doc-highlight {
+    background: var(--primary-subtle);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .doc-blur {
+    position: relative;
+  }
+  .doc-blur::after {
+    content: '... 이하 자동 생성 (총 2페이지)';
+    display: block;
+    text-align: center;
+    padding: 16px;
+    color: var(--mid-gray);
+    font-size: 12px;
+    font-style: italic;
+    border-top: 1px dashed var(--light-gray);
+    margin-top: 14px;
+  }
+
+  .pain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .pain-item {
+    background: var(--off-white);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--light-gray);
+  }
+  .pain-item .pain-emoji {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .pain-item .pain-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dark-gray);
+    line-height: 1.4;
+  }
+  .pain-item .pain-time {
+    font-size: 12px;
+    color: var(--danger);
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  .timeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin: 24px 0;
+  }
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--light-gray);
+  }
+  .timeline-dot.active {
+    background: var(--primary);
+    width: 32px;
+    border-radius: 5px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 12px;
+    color: var(--mid-gray);
+    border-top: 1px solid var(--light-gray);
+    margin-top: 40px;
+  }
+
+  @media (max-width: 640px) {
+    .header { padding: 40px 20px; }
+    .header h1 { font-size: 26px; }
+    .meta-bar { flex-direction: column; gap: 12px; }
+    .card { padding: 20px; }
+    .result-grid { grid-template-columns: repeat(2, 1fr); }
+    .pain-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<div class="header">
+  <div class="badge">LIVE DEMO SCENARIO v1.0 — 관공서 문서편</div>
+  <h1>사장님, 관공서 서류<br>AI가 써드립니다</h1>
+  <p class="subtitle">소상공인 AI 교육 — 라이브 데모 강사용 시나리오<br>"양식 찾기 → 뭘 써야 하지 → 이게 맞나" 이 고통을 끝내는 방법</p>
+</div>
+
+<div class="container">
+
+<!-- ── Meta ── -->
+<div class="meta-bar">
+  <div class="meta-item"><strong>총 소요시간:</strong> 10분</div>
+  <div class="meta-item"><strong>구조:</strong> 3막 (공감 → 충격 → 전환)</div>
+  <div class="meta-item"><strong>도구:</strong> Claude Code Desktop</div>
+  <div class="meta-item"><strong>준비물:</strong> 사업자등록증 사본 (교육용 가상)</div>
+</div>
+
+
+<!-- ═══════════════ 사전준비 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number" style="background: var(--dark-gray);">0</div>
+    <div class="act-title-group">
+      <h2>사전 준비 체크리스트</h2>
+      <span class="act-time">데모 시작 전 반드시 확인</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <ul class="checklist">
+      <li>Claude Code Desktop 실행 + 로그인 상태 확인</li>
+      <li><strong>교육용 가상 사업자등록증</strong> 준비 (이미지 or 텍스트)</li>
+      <li>화면 공유 or 프로젝터 연결 확인</li>
+      <li>폰트 크기 키우기</li>
+      <li><strong>리허설 1회</strong> — 프롬프트 3개 실제 돌려보고 결과 길이·품질 확인</li>
+    </ul>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>데모 팁:</strong> 관공서 문서 데모는 "결과물의 완성도"가 임팩트입니다. 매출 데모처럼 숫자가 빠르게 나오는 게 아니라, <strong>문서가 쫙 나오는 장면</strong>이 핵심. 결과가 충분히 길게 나올 수 있도록 프롬프트에 구체적 조건을 넣어야 합니다.</div>
+    </div>
+
+    <div class="note danger-note">
+      <span class="note-icon">⚠</span>
+      <div><strong>개인정보 주의:</strong> 실제 사업자등록번호, 대표자 주민등록번호 등은 절대 노출 금지. 교육용 가상 데이터를 준비하세요. 숫자 구조만 동일하면 AI 결과는 같습니다.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ 1막: 공감 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number">1</div>
+    <div class="act-title-group">
+      <h2>공감 — "이 고통, 다 겪어보셨죠?"</h2>
+      <span class="act-time">2분</span>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-dot active"></div>
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot"></div>
+  </div>
+
+  <div class="card">
+    <h3>관공서 서류의 5대 고통</h3>
+
+    <div class="pain-grid">
+      <div class="pain-item">
+        <span class="pain-emoji">📋</span>
+        <span class="pain-text">양식이 어디 있는지<br>모르겠음</span>
+        <span class="pain-time">검색만 30분</span>
+      </div>
+      <div class="pain-item">
+        <span class="pain-emoji">😵</span>
+        <span class="pain-text">뭘 써야 하는지<br>모르겠음</span>
+        <span class="pain-time">항목마다 멈춤</span>
+      </div>
+      <div class="pain-item">
+        <span class="pain-emoji">🤔</span>
+        <span class="pain-text">이게 맞는 건지<br>확신이 없음</span>
+        <span class="pain-time">불안한 채로 제출</span>
+      </div>
+      <div class="pain-item">
+        <span class="pain-emoji">🔄</span>
+        <span class="pain-text">보완 요청 와서<br>다시 작성</span>
+        <span class="pain-time">또 반나절</span>
+      </div>
+      <div class="pain-item">
+        <span class="pain-emoji">💸</span>
+        <span class="pain-text">세무사/노무사한테<br>맡기면 비용</span>
+        <span class="pain-time">건당 10~50만원</span>
+      </div>
+    </div>
+
+    <div class="script">
+      관공서 서류 좋아하시는 분? 아무도 없죠.<br><br>
+      양식 찾는 데 30분, 뭘 써야 하나 고민하는 데 1시간, 다 쓰고 나서도 "이게 맞나?" 불안하고...<br><br>
+      세무사한테 맡기면 편한데 — <strong>간단한 서류 하나에 10만원 내기엔 아깝고.</strong><br><br>
+      그래서 결국 — <strong>밤에 혼자 끙끙대면서 하시죠.</strong>
+    </div>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>연출 포인트:</strong> 여기서 구체적 예시를 하나 던집니다. "소상공인 정책자금 신청서 쓰셔본 분? 사업계획서를 A4 두 장 이상 쓰라고 하는데 — 뭘 쓰라는 건지 감도 안 오죠." 고개 끄덕이면 성공.</div>
+    </div>
+
+    <div class="script">
+      오늘 보여드릴 건 — <strong>사업자등록증 하나만 있으면, AI가 서류 초안을 써주는 방법</strong>이에요.<br>
+      양식 찾을 필요 없고, 뭘 써야 하나 고민할 필요 없습니다.
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ 2막: 충격 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number">2</div>
+    <div class="act-title-group">
+      <h2>충격 — 라이브 데모</h2>
+      <span class="act-time">5분</span>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot active"></div>
+    <div class="timeline-dot"></div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 1</span> 사업 정보 투입</h3>
+    <div class="timing">⏱ 30초</div>
+
+    <div class="script">
+      자, 먼저 AI한테 우리 회사가 뭐 하는 곳인지 알려줘야겠죠.<br>
+      사업자등록증 사진 한 장이면 됩니다. 아니면 그냥 말로 해도 돼요.
+    </div>
+
+    <div class="prompt-box">
+      <span class="prompt-text">우리 회사 정보야.<br>
+- 상호: 뉴믹스커피 성수점<br>
+- 업종: 커피 음료 판매 / 소매<br>
+- 사업자등록번호: 123-45-67890<br>
+- 대표자: 홍길동<br>
+- 개업일: 2024년 3월 1일<br>
+- 소재지: 서울 성동구 성수이로 88, 1층<br>
+- 직원: 3명 (정규직 1명, 아르바이트 2명)<br>
+- 월 매출: 평균 4,000만원대</span>
+    </div>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div><strong>연출 포인트:</strong> "사업자등록증 사진을 넣어도 되고, 이렇게 말로 쳐도 됩니다. AI가 알아서 이해해요." — 입력 방식이 자유롭다는 걸 강조. 사진 OCR도 되고, 텍스트도 되고.</div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 2</span> 첫 번째 질문 — 소상공인 지원금 신청서</h3>
+    <div class="timing">⏱ 90초</div>
+
+    <div class="prompt-box">
+      <span class="prompt-text">소상공인 경영안정자금 신청하려고 해. 위 사업 정보 기반으로 신청서 초안 작성해줘. 사업 개요, 자금 용도, 상환 계획 포함해서</span>
+    </div>
+
+    <div class="doc-preview">
+      <div class="doc-title">소상공인 경영안정자금 지원 신청서</div>
+
+      <div class="doc-section">1. 신청인 정보</div>
+      <div class="doc-field">
+        <span class="doc-label">상호명</span>
+        <span class="doc-value">뉴믹스커피 성수점</span>
+      </div>
+      <div class="doc-field">
+        <span class="doc-label">대표자</span>
+        <span class="doc-value">홍길동</span>
+      </div>
+      <div class="doc-field">
+        <span class="doc-label">사업자번호</span>
+        <span class="doc-value">123-45-67890</span>
+      </div>
+      <div class="doc-field">
+        <span class="doc-label">업종</span>
+        <span class="doc-value">커피 음료 판매 / 소매업</span>
+      </div>
+      <div class="doc-field">
+        <span class="doc-label">개업일</span>
+        <span class="doc-value">2024년 3월 1일 <span class="doc-highlight">영업 2년 3개월차</span></span>
+      </div>
+      <div class="doc-field">
+        <span class="doc-label">종업원 수</span>
+        <span class="doc-value">3명 (정규직 1, 단시간 2)</span>
+      </div>
+
+      <div class="doc-section">2. 사업 개요 및 현황</div>
+      <p style="font-size:13px; color:var(--dark-gray); line-height:1.8; margin:6px 0;">
+        본 사업장은 서울 성수동 소재 커피 전문점으로, 한국 전통 믹스커피를 문화 콘텐츠로 재해석한 특색 있는 매장을 운영하고 있습니다. 월 평균 매출 약 4,000만원 수준이며, 인바운드 외국인 관광객 비중이 높아 계절 변동성이 존재합니다. 개업 이후 안정적 성장세를 유지하고 있으나, 원자재 가격 상승 및 임대료 인상에 대응하기 위한 운영자금이 필요한 상황입니다.
+      </p>
+
+      <div class="doc-section">3. 자금 용도</div>
+      <p style="font-size:13px; color:var(--dark-gray); line-height:1.8; margin:6px 0;">
+        ① 원자재 선구매 및 재고 확보 (벚꽃 시즌 대비) — 800만원<br>
+        ② 매장 내부 리뉴얼 및 관광객 편의시설 확충 — 700만원<br>
+        ③ 직원 추가 채용 및 교육 비용 — 500만원<br>
+        <strong>합계: 2,000만원</strong>
+      </p>
+
+      <div class="doc-blur"></div>
+    </div>
+
+    <div class="script">
+      보이시죠? 제가 <strong>사업 정보만 넣었는데</strong> — 신청서 양식에 맞춰서 자동으로 채워줬어요.<br><br>
+      "사업 개요"도 써줬고, "자금 용도"도 구체적으로 나눠줬어요.<br>
+      심지어 개업일에서 <strong>"영업 2년 3개월차"도 자동 계산</strong>해줬습니다.<br><br>
+      사장님이 직접 쓰시면 — 양식 찾고, 뭘 쓸지 고민하고, 문장 다듬고 — <strong>반나절이에요.</strong><br>
+      지금 1분 걸렸습니다.
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 3</span> 두 번째 질문 — "이거 더 있어?"</h3>
+    <div class="timing">⏱ 60초</div>
+
+    <div class="prompt-box">
+      <span class="prompt-text">우리 같은 성수동 카페가 신청할 수 있는 정부 지원사업 뭐가 있어? 소상공인 대상으로. 조건이랑 신청 마감일도 알려줘</span>
+    </div>
+
+    <div class="result-preview">
+      <p style="font-size:14px; font-weight:700; color:var(--black); margin-bottom:14px;">신청 가능한 주요 지원사업 (2026년 기준)</p>
+
+      <table style="width:100%; font-size:13px; border-collapse:collapse;">
+        <tr style="border-bottom:2px solid var(--primary);">
+          <th style="padding:10px 8px; text-align:left; color:var(--primary); font-weight:700;">지원사업</th>
+          <th style="padding:10px 8px; text-align:left; color:var(--primary); font-weight:700;">지원 내용</th>
+          <th style="padding:10px 8px; text-align:left; color:var(--primary); font-weight:700;">마감</th>
+        </tr>
+        <tr style="border-bottom:1px solid var(--light-gray);">
+          <td style="padding:10px 8px; font-weight:600;">소상공인 경영안정자금</td>
+          <td style="padding:10px 8px;">최대 7,000만원 저금리 대출</td>
+          <td style="padding:10px 8px; color:var(--danger); font-weight:600;">연중 수시</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--light-gray);">
+          <td style="padding:10px 8px; font-weight:600;">스마트상점 기술보급</td>
+          <td style="padding:10px 8px;">키오스크·POS 등 최대 400만원</td>
+          <td style="padding:10px 8px; color:var(--warning); font-weight:600;">6월 말</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--light-gray);">
+          <td style="padding:10px 8px; font-weight:600;">고용촉진장려금</td>
+          <td style="padding:10px 8px;">신규 채용 시 월 60만원×12개월</td>
+          <td style="padding:10px 8px; color:var(--danger); font-weight:600;">채용 후 신청</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--light-gray);">
+          <td style="padding:10px 8px; font-weight:600;">서울시 자영업자 역량강화</td>
+          <td style="padding:10px 8px;">교육비 + 컨설팅 지원</td>
+          <td style="padding:10px 8px; color:var(--success); font-weight:600;">상반기 모집 중</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 8px; font-weight:600;">소상공인 재기지원</td>
+          <td style="padding:10px 8px;">경영 위기 시 컨설팅 + 자금</td>
+          <td style="padding:10px 8px;">연중 수시</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="script">
+      사장님, 이거 아셨어요? <strong>고용촉진장려금</strong> — 직원 한 명 새로 뽑으면 1년간 <strong>월 60만원</strong> 나오는 거예요.<br>
+      직원 3명 계시니까, 다음에 한 명 더 뽑으실 때 이거 신청하시면 720만원이에요.<br><br>
+      <strong>이런 걸 몰라서 못 받는 경우가 대부분이에요.</strong><br>
+      AI한테 "우리 조건에 맞는 지원사업 뭐 있어?" 하고 물어보면 — 이렇게 정리해줍니다.
+    </div>
+
+    <div class="note danger-note">
+      <span class="note-icon">⚠</span>
+      <div><strong>강사 유의:</strong> AI가 알려주는 지원사업 목록은 <strong>참고용</strong>입니다. 정확한 자격 요건과 마감일은 반드시 소상공인진흥공단(sbiz.or.kr) 등 공식 사이트에서 확인해야 합니다. 이 점을 반드시 말씀하세요. "AI가 길을 알려주고, 확인은 공식 사이트에서."</div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="card">
+    <h3><span class="step-badge">STEP 4</span> 세 번째 질문 — 사업계획서 초안</h3>
+    <div class="timing">⏱ 60초</div>
+
+    <div class="prompt-box">
+      <span class="prompt-text">스마트상점 기술보급사업 신청하려면 사업계획서가 필요하대. 우리 매장에 키오스크 도입하는 걸로 사업계획서 초안 2페이지로 만들어줘. 도입 이유, 기대 효과, 예산 계획 포함해서</span>
+    </div>
+
+    <div class="doc-preview">
+      <div class="doc-title">스마트상점 기술보급사업 — 사업계획서</div>
+
+      <div class="doc-section">1. 사업 개요</div>
+      <p style="font-size:13px; color:var(--dark-gray); line-height:1.8; margin:6px 0;">
+        뉴믹스커피 성수점은 외국인 관광객 비중이 전체 매출의 약 87%를 차지하는 특수 입지의 커피 전문점입니다. 현재 수기 주문 방식으로 운영 중이나, 언어 장벽으로 인한 주문 오류와 피크 타임(13~15시) 대기 시간이 고객 경험을 저해하고 있어, 다국어 지원 키오스크 도입을 통해 이를 해결하고자 합니다.
+      </p>
+
+      <div class="doc-section">2. 도입 목적 및 기대 효과</div>
+      <p style="font-size:13px; color:var(--dark-gray); line-height:1.8; margin:6px 0;">
+        <strong>① 다국어 주문 지원</strong> — 일본어·영어·중국어 메뉴 자동 표시 → 주문 오류 <span class="doc-highlight">50% 감소</span> 예상<br>
+        <strong>② 피크 타임 회전율 개선</strong> — 오후 2시 기준 평균 대기 시간 5분→2분 → 일매출 <span class="doc-highlight">15% 증가</span> 기대<br>
+        <strong>③ 직원 업무 부하 감소</strong> — 주문 접수 자동화 → 직원은 제조·고객응대에 집중
+      </p>
+
+      <div class="doc-section">3. 예산 계획</div>
+      <table style="width:100%; font-size:13px; border-collapse:collapse; margin:8px 0;">
+        <tr style="border-bottom:1px solid var(--light-gray);">
+          <td style="padding:6px 0;">키오스크 단말기 (1대)</td>
+          <td style="padding:6px 0; text-align:right; font-weight:600;">280만원</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--light-gray);">
+          <td style="padding:6px 0;">다국어 메뉴 시스템 구축</td>
+          <td style="padding:6px 0; text-align:right; font-weight:600;">60만원</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--light-gray);">
+          <td style="padding:6px 0;">설치 및 교육</td>
+          <td style="padding:6px 0; text-align:right; font-weight:600;">40만원</td>
+        </tr>
+        <tr style="border-top:2px solid var(--primary);">
+          <td style="padding:8px 0; font-weight:700;">합계</td>
+          <td style="padding:8px 0; text-align:right; font-weight:700; color:var(--primary);">380만원</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0; color:var(--success); font-weight:600;">정부 지원금 (최대)</td>
+          <td style="padding:6px 0; text-align:right; color:var(--success); font-weight:700;">-400만원</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0; font-weight:700;">자부담</td>
+          <td style="padding:6px 0; text-align:right; font-weight:700; color:var(--success);">0원</td>
+        </tr>
+      </table>
+
+      <div class="doc-blur"></div>
+    </div>
+
+    <div class="script">
+      이거 보이시죠?<br><br>
+      AI가 아까 제가 넣은 매출 데이터를 기억하고 있어요. <strong>"외국인 비중 87%"도 자동으로 끌어왔고,</strong> "피크 타임 13~15시"도 반영했어요.<br><br>
+      그리고 예산 계획까지 — 정부 지원금 400만원이면 <strong>자부담 0원</strong>으로 도입 가능하다는 것까지 계산해줬어요.<br><br>
+      <strong>사업계획서 쓰는 데 보통 이틀 걸리거든요. 지금 1분이었습니다.</strong>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">강사 클로징 멘트</div>
+      <div class="insight-text">
+        신청서 1분, 지원사업 조회 30초, 사업계획서 1분.<br>
+        <span style="color:var(--primary);">사장님의 행정 담당자가 생긴 겁니다.</span><br>
+        그것도 정부 지원 제도까지 알고 있는.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ 3막: 전환 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number">3</div>
+    <div class="act-title-group">
+      <h2>전환 — "몰라서 못 받는 돈이 있습니다"</h2>
+      <span class="act-time">3분</span>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot"></div>
+    <div class="timeline-dot active"></div>
+  </div>
+
+  <div class="card">
+    <h3>Before / After 비교</h3>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>업무</th>
+          <th>예전 방식</th>
+          <th>AI 방식</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>양식 찾기</strong></td>
+          <td class="old">정부24, 소진공 사이트 30분 헤매기</td>
+          <td class="new">"이거 신청서 만들어줘"</td>
+        </tr>
+        <tr>
+          <td><strong>내용 작성</strong></td>
+          <td class="old">뭘 써야 할지 모르겠음 2시간</td>
+          <td class="new">조건만 말하면 초안 1분</td>
+        </tr>
+        <tr>
+          <td><strong>사업계획서</strong></td>
+          <td class="old">이틀 끙끙 or 포기</td>
+          <td class="new">데이터 기반 자동 생성</td>
+        </tr>
+        <tr>
+          <td><strong>지원사업 파악</strong></td>
+          <td class="old">몰라서 놓침</td>
+          <td class="new">"우리 조건에 맞는 거 뭐 있어?"</td>
+        </tr>
+        <tr>
+          <td><strong>보완 요청</strong></td>
+          <td class="old">처음부터 다시 반나절</td>
+          <td class="new">"여기 수정해줘" 10초</td>
+        </tr>
+        <tr>
+          <td><strong>전문가 의뢰</strong></td>
+          <td class="old">건당 10~50만원</td>
+          <td class="new">초안 AI → 최종 검토만 전문가</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>핵심 메시지 전달</h3>
+
+    <div class="script">
+      관공서 서류의 진짜 문제는 뭘까요?<br><br>
+      <strong>어려워서가 아닙니다. 귀찮아서 안 하는 겁니다.</strong><br><br>
+      귀찮아서 안 하면 뭐가 생기냐 — <strong>받을 수 있는 돈을 못 받아요.</strong><br><br>
+      고용장려금 연 720만원, 스마트상점 400만원, 경영안정자금...<br>
+      <strong>몰라서, 귀찮아서 못 받는 돈이 1년에 수백만 원입니다.</strong>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">이 데모의 한 줄 메시지</div>
+      <div class="insight-text">
+        AI를 배우면<br>
+        <span style="color:var(--primary);">귀찮아서 포기했던 돈을<br>다시 받을 수 있습니다.</span>
+      </div>
+    </div>
+
+    <div class="script">
+      세 가지 데모를 보셨어요. 매출 분석, 직원 관리, 관공서 서류.<br><br>
+      전부 패턴이 같죠?<br>
+      <strong>① 정보를 넣는다 ② 한국어로 물어본다 ③ 결과를 받는다</strong><br><br>
+      이 세 가지를 기억하시면 — 오늘부터 사장님의 "잡일"이 바뀝니다.<br><br>
+      자, 이제 직접 해볼 시간입니다.
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ 부록 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number" style="background: var(--dark-gray);">+</div>
+    <div class="act-title-group">
+      <h2>부록 — 확장 데모 옵션</h2>
+      <span class="act-time">시간 여유 시 추가</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>옵션 A: 임대차계약 검토 (1분 추가)</h3>
+    <div class="prompt-box">
+      <span class="prompt-text">임대차 계약 갱신하려는데, 기존 계약서 조건이 이래. [조건 입력] 갱신 시 사장님 입장에서 확인해야 할 포인트랑 주의사항 정리해줘</span>
+    </div>
+    <p style="font-size:13px; color:var(--dark-gray); margin-top:12px;"><strong>임팩트:</strong> "상가 임대차 갱신할 때 — 5% 인상 상한 적용 여부, 권리금 회수 보장, 묵시적 갱신... 이런 거 AI한테 물어보면 체크리스트로 나옵니다. 변호사 상담 전에 미리 알고 가세요."</p>
+  </div>
+
+  <div class="card">
+    <h3>옵션 B: 세금 신고 준비 (1분 추가)</h3>
+    <div class="prompt-box">
+      <span class="prompt-text">부가세 신고 준비해야 하는데, 이번 분기 매출이 이 정도야. [매출 CSV 투입] 부가세 예상 금액이랑 준비해야 할 서류 목록 알려줘</span>
+    </div>
+    <p style="font-size:13px; color:var(--dark-gray); margin-top:12px;"><strong>임팩트:</strong> "매출 데이터 + 사업 정보 → 부가세 예상 금액 자동 산출. 세무사한테 가기 전에 '대충 얼마 나오겠구나' 미리 알 수 있어요."</p>
+  </div>
+
+  <div class="card">
+    <h3>옵션 C: 사고/민원 대응 문서 (1분 추가)</h3>
+    <div class="prompt-box">
+      <span class="prompt-text">매장에서 고객이 미끄러져서 다쳤어. 보험 접수하려는데 사고 경위서 초안 만들어줘. 일시: 5월 15일 오후 3시, 장소: 매장 입구, 상황: 비 온 날 바닥이 젖어서 미끄러짐</span>
+    </div>
+    <p style="font-size:13px; color:var(--dark-gray); margin-top:12px;"><strong>임팩트:</strong> "갑자기 사고 나면 머리가 하얘지잖아요. 경위서 양식? 뭘 써야 하는지? AI한테 상황만 말하면 됩니다. 보험사 제출용 경위서가 바로 나옵니다."</p>
+  </div>
+
+  <div class="card">
+    <h3>옵션 D: "AI가 쓴 서류, 관공서에서 받아줘요?" (청중 질문 대비)</h3>
+
+    <div class="script">
+      이거 항상 나오는 질문이에요. 좋은 질문입니다.<br><br>
+      답은 간단해요. <strong>관공서는 "누가 썼는지"를 보는 게 아니라 "내용이 맞는지"를 봐요.</strong><br><br>
+      AI가 쓴 초안이든 사장님이 직접 쓴 거든 — 내용이 정확하면 문제없어요.<br><br>
+      다만 두 가지만 꼭 확인하세요:<br>
+      <strong>① 숫자 — 매출액, 직원 수, 사업자번호 같은 팩트가 맞는지</strong><br>
+      <strong>② 자격 요건 — 지원 대상 조건에 실제로 해당하는지</strong><br><br>
+      AI는 문장을 써주는 거고, <strong>숫자 확인과 자격 판단은 사장님 몫</strong>이에요.<br>
+      이건 세무사한테 맡겨도 마찬가지에요. 결국 최종 확인은 사장님이 해야 하거든요.<br><br>
+      차이는 — <strong>초안 만드는 데 반나절 쓸 거냐, 1분 쓸 거냐</strong>입니다.
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ 3개 데모 연결 가이드 ═══════════════ -->
+<div class="act">
+  <div class="act-header">
+    <div class="act-number" style="background: var(--info);">→</div>
+    <div class="act-title-group">
+      <h2>3개 데모 통합 운영 가이드</h2>
+      <span class="act-time">전체 구성 참고</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>추천 데모 순서 (30분 기준)</h3>
+
+    <table style="width:100%; font-size:14px; border-collapse:collapse; margin:14px 0;">
+      <tr style="border-bottom:2px solid var(--primary);">
+        <th style="padding:12px 8px; text-align:left; color:var(--primary); width:25%;">순서</th>
+        <th style="padding:12px 8px; text-align:left; color:var(--primary);">데모</th>
+        <th style="padding:12px 8px; text-align:left; color:var(--primary); width:15%;">시간</th>
+        <th style="padding:12px 8px; text-align:left; color:var(--primary); width:28%;">핵심 감정</th>
+      </tr>
+      <tr style="border-bottom:1px solid var(--light-gray);">
+        <td style="padding:12px 8px; font-weight:700;">1. 매출분석</td>
+        <td style="padding:12px 8px;">숫자가 쫙 나오는 속도감</td>
+        <td style="padding:12px 8px;">10분</td>
+        <td style="padding:12px 8px;"><strong>"와, 빠르다"</strong></td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--light-gray);">
+        <td style="padding:12px 8px; font-weight:700;">2. 인사관리</td>
+        <td style="padding:12px 8px;">놓칠 뻔한 리스크 알림</td>
+        <td style="padding:12px 8px;">10분</td>
+        <td style="padding:12px 8px;"><strong>"어, 이거 몰랐는데"</strong></td>
+      </tr>
+      <tr>
+        <td style="padding:12px 8px; font-weight:700;">3. 관공서 서류</td>
+        <td style="padding:12px 8px;">문서가 완성되어 나오는 충격</td>
+        <td style="padding:12px 8px;">10분</td>
+        <td style="padding:12px 8px;"><strong>"이걸 이렇게 쉽게?"</strong></td>
+      </tr>
+    </table>
+
+    <div class="note">
+      <span class="note-icon">💡</span>
+      <div>
+        <strong>설계 의도:</strong> 세 데모가 감정 곡선을 다르게 찍습니다.<br>
+        <strong>1번</strong>(매출) = 속도 충격 → <strong>2번</strong>(HR) = "놓칠 뻔" 공포 → <strong>3번</strong>(서류) = "이 쉬운 걸 왜 안 했지" 후회<br><br>
+        이 순서로 가면 마지막에 자연스럽게 <strong>"나도 해봐야겠다"</strong>가 됩니다.
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">3개 데모를 관통하는 결론</div>
+      <div class="insight-text">
+        매출도, 직원도, 서류도 — 전부 같은 패턴.<br>
+        <span style="color:var(--primary);">파일 넣고, 물어보고, 받는다.</span><br><br>
+        <span style="font-size:16px; font-weight:400; color:var(--dark-gray);">
+          여러분이 오늘 배우는 건 AI 기술이 아닙니다.<br>
+          <strong>"물어보는 습관"</strong>입니다.
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<div class="footer">
+  <p><strong>Do Better Things — AI 업무전환(AX) 교육 프로그램</strong></p>
+  <p style="margin-top:6px;">강사용 시나리오 (관공서 서류편) | 2026.05 작성</p>
+  <p style="margin-top:4px; font-size:11px;">이 문서는 교육 목적으로 제작되었습니다. 사업자 정보는 교육용 가상 데이터입니다.</p>
+</div>
+
+</div><!-- /container -->
+</body>
+</html>
