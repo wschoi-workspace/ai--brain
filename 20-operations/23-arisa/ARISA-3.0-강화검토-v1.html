@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISA 3.0 — 강화 검토 (멀티채널 · 조직 사고 트래킹)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root{
+    --bg:#1A1A1A; --bg-2:#111; --bg-3:#222; --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+    --line:#333; --line-2:#2a2a2a; --accent:#6C5CE7; --accent-light:#A29BFE;
+    --green:#8FA37E; --amber:#D9A34B; --red:#E17055; --blue:#6F8AA3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+    background:#000;color:var(--fg);font-weight:300;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;overflow:hidden;}
+  .deck{height:100vh;width:100vw;}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);padding:54px 80px 72px;}
+  .slide.active{display:flex;}
+  .slide.peak{background:var(--bg-2);}
+  .slide.cover{background:var(--bg-2);justify-content:center;}
+  .slide-head{flex-shrink:0;}
+  .sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px;border-bottom:1px solid var(--line-2);margin-bottom:24px;}
+  .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;font-weight:400;}
+  h2{font-size:38px;font-weight:500;letter-spacing:-.025em;line-height:1.18;color:var(--fg);text-wrap:balance;}
+  h2 .ac{color:var(--accent);}
+  .sub{font-size:15px;font-weight:300;line-height:1.7;color:var(--fg-2);margin-top:14px;max-width:70ch;}
+  .sub b{color:var(--fg);font-weight:500;}
+  .slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;}
+  .slide-footer{position:absolute;bottom:28px;left:80px;right:80px;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;border-top:1px solid var(--line-2);padding-top:12px;}
+  .cover h1{font-size:92px;font-weight:200;letter-spacing:-.04em;line-height:.95;color:var(--fg);}
+  .cover h1 .v{color:var(--accent);font-weight:300;}
+  .cover .slogan{font-size:21px;font-weight:300;color:var(--fg-2);margin-top:26px;line-height:1.5;}
+  .cover .slogan b{color:var(--fg);font-weight:500;}
+  .cover .quote{font-size:14px;color:var(--fg-3);margin-top:20px;max-width:62ch;line-height:1.6;}
+  .cover .meta{position:absolute;bottom:50px;left:80px;font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;}
+  ul.pts{list-style:none;}
+  ul.pts li{font-size:15.5px;font-weight:300;line-height:1.55;color:var(--fg-2);padding:8px 0 8px 22px;position:relative;}
+  ul.pts li::before{content:"—";position:absolute;left:0;color:var(--fg-3);}
+  ul.pts li b{color:var(--fg);font-weight:500;}
+  .grid{display:grid;gap:14px;margin-top:6px;}
+  .g3{grid-template-columns:repeat(3,1fr);} .g4{grid-template-columns:repeat(4,1fr);} .g2{grid-template-columns:repeat(2,1fr);}
+  .card{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;}
+  .card .cl{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px;}
+  .card .cv{font-size:15px;font-weight:300;line-height:1.55;color:var(--fg-2);} .card .cv b{color:var(--fg);font-weight:500;}
+  .card .val{font-size:12px;color:var(--green);margin-top:11px;padding-top:10px;border-top:1px solid var(--line-2);}
+  .card.acc{border-color:var(--accent);}
+  .card .cl.ac{color:var(--accent-light);}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center;}
+  .kpi .v{font-size:32px;font-weight:200;line-height:1.1;letter-spacing:-.02em;color:var(--fg);}
+  .kpi .v.am{color:var(--amber);} .kpi .v.gr{color:var(--green);} .kpi .v.ac{color:var(--accent-light);}
+  .kpi .l{font-size:11px;color:var(--fg-3);margin-top:8px;line-height:1.4;}
+  .chain{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .chain.c3{grid-template-columns:repeat(3,1fr);}
+  .lk{background:var(--bg-3);border:1px solid var(--line-2);padding:16px 15px;}
+  .lk .s{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;}
+  .lk .x{font-size:14px;font-weight:300;color:var(--fg-2);margin-top:7px;line-height:1.45;} .lk .x b{color:var(--fg);font-weight:500;}
+  .lk.end{border-color:rgba(225,112,85,.4);} .lk.end .x{color:var(--red);}
+  .lk.go{border-color:rgba(143,163,126,.45);} .lk.go .x b{color:var(--green);}
+  .lk.acc{border-color:var(--accent);} .lk.acc .x b{color:var(--accent-light);}
+  .steps{display:grid;gap:10px;}
+  .stp{background:var(--bg-3);border:1px solid var(--line-2);padding:16px 15px;}
+  .stp .n{font-size:11px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;}
+  .stp .t{font-size:14px;font-weight:300;color:var(--fg-2);margin-top:7px;line-height:1.45;} .stp .t b{color:var(--fg);font-weight:500;}
+  table.u{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px;}
+  table.u th{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:9px 12px 11px;font-weight:400;border-bottom:1px solid var(--line-2);}
+  table.u td{padding:10px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);font-weight:300;vertical-align:top;}
+  table.u td:first-child{color:var(--fg);font-weight:500;white-space:nowrap;}
+  table.u .gap{color:var(--amber);} table.u .ok{color:var(--green);}
+  .tag{display:inline-block;font-size:10px;letter-spacing:.05em;padding:2px 7px;border:1px solid var(--line);border-radius:2px;color:var(--fg-3);}
+  .tag.lo{color:var(--green);border-color:rgba(143,163,126,.4);}
+  .tag.mi{color:var(--amber);border-color:rgba(217,163,75,.4);}
+  .tag.hi{color:var(--red);border-color:rgba(225,112,85,.4);}
+  .pos{position:relative;height:286px;background:var(--bg-3);border:1px solid var(--line-2);margin-top:6px;}
+  .pos .ax{position:absolute;left:20px;right:20px;bottom:36px;border-top:1px dashed var(--line);}
+  .pos .ay{position:absolute;top:18px;bottom:18px;left:50%;border-left:1px dashed var(--line);}
+  .pos .lb{position:absolute;font-size:10px;letter-spacing:.12em;color:var(--fg-3);text-transform:uppercase;}
+  .pos .dot{position:absolute;transform:translate(-50%,50%);text-align:center;width:130px;}
+  .pos .dot .d{width:9px;height:9px;border-radius:50%;background:var(--fg-3);margin:0 auto 6px;}
+  .pos .dot .nm{font-size:11.5px;color:var(--fg-3);font-weight:300;line-height:1.3;}
+  .pos .dot.us .d{width:14px;height:14px;background:var(--accent);}
+  .pos .dot.us .nm{color:var(--accent-light);font-weight:500;}
+  .note{font-size:11px;color:var(--amber);margin-top:13px;}
+  .note.src{color:var(--fg-3);}
+  .ph{color:var(--amber);}
+  .flow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:stretch;}
+  .flow .col{background:var(--bg-3);border:1px solid var(--line-2);padding:18px 16px;}
+  .flow .col.acc{border-color:var(--accent);}
+  .flow .col .h{font-size:12px;letter-spacing:.12em;color:var(--accent-light);text-transform:uppercase;margin-bottom:11px;font-weight:500;}
+  .flow .col .h.g3c{color:var(--fg-3);}
+  .flow .col p{font-size:13.5px;color:var(--fg-2);line-height:1.5;font-weight:300;margin-bottom:7px;} .flow .col p b{color:var(--fg);font-weight:500;}
+  .flow .col .mini{font-size:11px;color:var(--fg-3);margin-top:9px;padding-top:9px;border-top:1px solid var(--line-2);line-height:1.4;}
+  @media(max-width:1000px){.slide{padding:34px 26px 60px;}.cover h1{font-size:50px;}h2{font-size:25px;}.g3,.g4,.g2,.chain,.chain.c3,.kpis,.steps,.flow{grid-template-columns:1fr!important;}.slide-footer{left:26px;right:26px;}.pos .dot{width:104px;}}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 1 Cover -->
+<section class="slide cover active">
+  <h1>ARISA <span class="v">3.0</span></h1>
+  <p class="slogan"><b>멀티채널을 모아 조직의 사고를 트래킹하고, 질문으로 성장시키는 구조</b><br>강화 검토 — 개념을 실행 레벨로</p>
+  <p class="quote">"개념은 확립됐다. 이제 묻는다 — 흩어진 커뮤니케이션을 어떻게 한 곳에 모아, 조직이 어떻게 배우는지를 측정할 것인가."</p>
+  <div class="meta">By Project Rent · 3.0 Review v1 · 2026-06</div>
+</section>
+
+<!-- 2 Governing Thought -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Governing Thought</span><span class="eyebrow">02</span></div>
+    <h2>3.0의 정의는 끝났다. 비어 있는 건 <span class="ac">'무엇을 모아 무엇을 잴까'</span>다</h2>
+    <p class="sub">ARISA 3.0 = 조직의 학습 속도를 측정·가속하는 <b>Organizational Learning OS</b>. KPI는 업무 완료율이 아니라 <b>조직의 학습 속도</b>. — 이 정의는 SSOT에 확립됐다(<code>DEFINITION.md:287–309</code>). 남은 과제는 단 하나: <b>멀티채널 수집 → 사고 트래킹 → 측정·성장</b>의 실행 구조.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card"><div class="cl">선언된 것 ✓</div><div class="cv">5대 진화 · KPI 전환 · "조직 성장 시장" 신설</div></div>
+      <div class="card"><div class="cl">비어 있는 것</div><div class="cv"><b>채널 통합 · 측정 지표 · 저장 구조</b> — 전부 개념만</div></div>
+      <div class="card acc"><div class="cl ac">이 문서의 질문</div><div class="cv">검증된 패턴으로 <b>어떻게 실행 레벨</b>로 내릴 것인가</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>02 / 14</span></div>
+</section>
+
+<!-- 3 진단 ① 멀티채널 공백 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">진단 ① — 멀티채널 공백</span><span class="eyebrow">03</span></div>
+    <h2>조직의 사고는 <span class="ac">네 곳</span>에서 흐르는데, ARISA는 <span class="ac">한 곳</span>만 듣는다</h2>
+    <p class="sub">"모든 채널을 모은다"가 3.0의 전제다. 그러나 현재 입력은 텔레그램 일일보고와 본인 음성메모뿐 — 회의·메일은 계획만 있고 수집되지 않는다(<code>DEFINITION.md:215–218</code>).</p>
+  </div>
+  <div class="slide-body">
+    <div class="chain">
+      <div class="lk go"><div class="s">수집 중 ✓</div><div class="x"><b>텔레그램</b> 직원 일일보고 (MVP1 가동)</div></div>
+      <div class="lk go"><div class="s">수집 중 ✓</div><div class="x"><b>음성메모</b> 본인 한정 (second-brain)</div></div>
+      <div class="lk end"><div class="s">공백 ✗</div><div class="x"><b>Gmail / GWS</b> 메일 지시·보고 미수집</div></div>
+      <div class="lk end"><div class="s">공백 ✗</div><div class="x"><b>회의록 / 음성</b> meeting_note 흡수 미착수</div></div>
+    </div>
+    <p class="note">→ 채널 어댑터(<code>ingest/</code>)로 공통 포맷 정규화 후 큐 투입 — 설계는 DEFINITION에 한 줄로만 존재. 이걸 실제 파이프라인으로.</p>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>03 / 14</span></div>
+</section>
+
+<!-- 4 진단 ② 측정 부재 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">진단 ② — 측정 부재</span><span class="eyebrow">04</span></div>
+    <h2>5대 진화는 모두 <span class="ac">'무엇을 어떻게 잴지'</span>가 비어 있다</h2>
+    <p class="sub">3.0의 KPI는 '조직 학습 속도'다. 그런데 그 어떤 진화 기능도 점수화·지도화 방법이 정의돼 있지 않다 — 전부 정성 서술(<code>DEFINITION.md:297–302</code>).</p>
+  </div>
+  <div class="slide-body">
+    <table class="u">
+      <tr><th>5대 진화</th><th>현재 상태</th><th>비어 있는 것</th></tr>
+      <tr><td>① 질문 기반 보고</td><td>질문 프롬프트 개념만</td><td class="gap">질문 수준을 어떻게 점수화?</td></tr>
+      <tr><td>② 성장 해상도</td><td>Growth 6지표 JSON 구조만</td><td class="gap">계산 로직 · 시계열 누적 미구현</td></tr>
+      <tr><td>③ Define Cost (오해지도)</td><td>"이해를 되묻는다" 서술만</td><td class="gap">이해 차이를 무엇으로 측정?</td></tr>
+      <tr><td>④ 집단지성 지도</td><td>Monthly 확장 개념만</td><td class="gap">수집·집계할 데이터 소스 없음</td></tr>
+      <tr><td>⑤ AI 코치</td><td>질문→실행→재정의 루프 개념</td><td class="gap">루프 상태 추적 구조 없음</td></tr>
+    </table>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>04 / 14</span></div>
+</section>
+
+<!-- 5 진단 ③ 저장 구조 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">진단 ③ — 저장 구조 미정</span><span class="eyebrow">05</span></div>
+    <h2>"ARISA의 진짜 자산"이라 부른 데이터가 <span class="ac">시트의 행(行)</span>에 갇혀 있다</h2>
+    <p class="sub">Thinking Data Log = ARISA의 진짜 자산(<code>DEFINITION.md:345</code>). 그러나 실제 저장은 구글시트 행과 mem0 보조 인덱스뿐 — <b>시간축도 관계도 추적할 수 없는 평면 구조</b>.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card"><div class="cl">지금 · 구글시트</div><div class="cv">행 단위 누적. 검색·집계는 되지만 <b>"누가 언제 무엇을 어떻게 이해했나"</b>의 관계가 없다</div></div>
+      <div class="card"><div class="cl">지금 · mem0</div><div class="cv">직원별 재부상 보조 인덱스. <b>의미 검색은 되나</b> 시간 변화·오해를 못 잡는다</div></div>
+      <div class="card acc"><div class="cl ac">3.0이 필요로 하는 것</div><div class="cv"><b>시간축(언제) + 관계(누가·무엇과)</b>를 가진 저장 구조 = 지식그래프</div></div>
+    </div>
+    <p class="note">→ "오해지도·학습속도"는 본질적으로 <b>관계·시간</b> 질문이다. 평면 시트로는 구조적으로 답할 수 없다.</p>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>05 / 14</span></div>
+</section>
+
+<!-- 6 강화 프레임 3레이어 -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">강화 프레임</span><span class="eyebrow">06</span></div>
+    <h2>세 갭을 <span class="ac">수집 → 트래킹 → 성장</span> 한 줄기로 잇는다</h2>
+    <p class="sub">진단의 세 공백(채널·측정·저장)은 사실 하나의 파이프라인의 세 단계다. 시장에서 검증된 패턴을 각 레이어에 매핑한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="flow">
+      <div class="col"><div class="h">레이어 1 — 수집</div><p>흩어진 채널을 <b>한 포맷</b>으로</p><p>텔레그램·Gmail·회의록 → <b>ingest 어댑터</b></p><div class="mini">레퍼런스: Matterbridge · Unipile</div></div>
+      <div class="col acc"><div class="h">레이어 2 — 트래킹</div><p>사고를 <b>시간·관계</b>로 저장</p><p>지식그래프로 <b>오해지도 · 집단지성</b></p><div class="mini">레퍼런스: Graphiti · ONA(NetworkX)</div></div>
+      <div class="col"><div class="h">레이어 3 — 성장</div><p>질문으로 <b>측정·코칭</b></p><p>AI 코치 루프 + <b>학습 속도 KPI</b></p><div class="mini">레퍼런스: BetterUp · 코치 루프</div></div>
+    </div>
+    <p class="note src">각 레이어는 독립 도입 가능 — 레이어1만으로도 즉시 가치(채널 통합), 레이어2·3은 측정 기능을 점진 활성화.</p>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>06 / 14</span></div>
+</section>
+
+<!-- 7 레이어1 수집 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">레이어 1 — 멀티채널 수집</span><span class="eyebrow">07</span></div>
+    <h2>채널마다 봇을 짜지 않는다 — <span class="ac">하나의 어댑터</span>로 정규화한다</h2>
+    <p class="sub">정석은 실시간 웹훅으로 받아 <b>공통 스키마(누가·언제·무엇·유형)</b>로 변환해 큐에 넣는 것. 채널별 파편 통합을 직접 짜기보다 검증된 허브를 둔다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g2" style="margin-bottom:12px">
+      <div class="card"><div class="cl">옵션 A — Matterbridge <span class="tag lo">OSS · Apache-2.0</span></div><div class="cv">20+ 채널 양방향 브릿지(Go). <b>self-host</b>, REST/webhook. 텔레그램·메일·메신저를 한 허브로 → Python 데몬이 수집. <b>비용 0 · 데이터 주권 유지</b></div></div>
+      <div class="card"><div class="cl">옵션 B — Unipile <span class="tag mi">상용 API</span></div><div class="cv">Gmail·Telegram·메신저를 <b>단일 스키마</b>로. 통합 2일 내 가능하나 <b>외부 의존·과금</b>. 조직 내부 데이터엔 A 우선.</div></div>
+    </div>
+    <div class="chain">
+      <div class="lk"><div class="s">채널</div><div class="x">텔레그램 · Gmail · 회의록/음성</div></div>
+      <div class="lk"><div class="s">허브</div><div class="x">Matterbridge / 웹훅 수신</div></div>
+      <div class="lk acc"><div class="s">어댑터</div><div class="x"><b>ingest/</b> 공통 포맷 정규화</div></div>
+      <div class="lk go"><div class="s">큐</div><div class="x"><b>5개 엔진</b>으로 투입</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>07 / 14</span></div>
+</section>
+
+<!-- 8 레이어2 트래킹 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">레이어 2 — 조직 사고 트래킹</span><span class="eyebrow">08</span></div>
+    <h2>오해지도와 집단지성은 <span class="ac">지식그래프</span>에서만 그려진다</h2>
+    <p class="sub">Graphiti(MIT) = <b>bi-temporal 지식그래프</b>. 각 사실에 <code>valid_at / invalid_at</code> 시간축 → "예전엔 A로 이해했는데 지금은 B로 배웠다"를 추적. mem0(단기·개인) 위에 Graphiti(장기·조직)를 얹는 2층 구조. MCP 서버 제공으로 Claude와 직접 연동.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card"><div class="cl">③ 오해지도 (Define Cost)</div><div class="cv">같은 지시 → 직원별 이해를 <b>노드</b>로, 차이를 <b>엣지</b>로. "어디서 어긋나는가"가 그래프로 보인다</div></div>
+      <div class="card"><div class="cl">④ 집단지성 지도</div><div class="cv">회의·보고·기획을 엮어 <b>"이번 달 가장 많이 고민한 문제"</b>를 관계망으로 집계</div></div>
+      <div class="card"><div class="cl">+ 조직망 분석(ONA)</div><div class="cv">NetworkX <span class="tag lo">OSS</span>로 <b>누가 지식 허브인가 · 정보가 어디서 막히나</b> (선택·경량)</div></div>
+    </div>
+    <p class="note src">근거: 관계·다중추론 질의에서 GraphRAG는 벡터 검색 대비 최대 <b>3.4배 정확</b>(16.7%→56.2%, FalkorDB·Diffbot 벤치마크) · 단 단순 문서검색은 벡터 우위 → <b>하이브리드</b>가 정답. <span style="color:var(--fg-3)">출처: falkordb.com 벤치마크</span></p>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>08 / 14</span></div>
+</section>
+
+<!-- 9 레이어3 성장 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">레이어 3 — 교육 · 질문 · 성장</span><span class="eyebrow">09</span></div>
+    <h2>강의가 아니라 <span class="ac">루프</span>다 — 질문 → 실행 → 피드백 → 재정의</h2>
+    <p class="sub">성장은 강사가 아니라 코치에게서 나온다(<code>DEFINITION.md:302</code>). 시장 레퍼런스 BetterUp = "업무 흐름 내 즉시 코칭 + 개인·조직 동시 추적". ARISA는 보고를 인터페이스로 이 루프를 돌린다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="steps" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+      <div class="stp"><div class="n">질문</div><div class="t">"브랜드란 무엇이라 생각하나요?" <b>해상도를 끌어올리는 질문</b></div></div>
+      <div class="stp"><div class="n">실행</div><div class="t">직원이 답·업무로 <b>사고를 드러냄</b></div></div>
+      <div class="stp"><div class="n">피드백</div><div class="t">답변 수준 분석 → <b>6지표 점수화</b></div></div>
+      <div class="stp"><div class="n">재정의</div><div class="t">다음 질문 생성 → <b>루프 누적</b></div></div>
+    </div>
+    <ul class="pts">
+      <li>거울(2.0)이 신뢰를 만든 위에서만 코치(3.0)가 작동한다 — "감시·교육"이 아니라 "내 말을 정리해주는 AI"</li>
+      <li>fidelity 원칙(추측 금지·원문 보존)을 코치 루프에도 적용 — 질문은 캐묻되 <b>Mirror 80% 균형</b> 유지</li>
+    </ul>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>09 / 14</span></div>
+</section>
+
+<!-- 10 측정 설계 -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">측정 설계 — 초안 지표</span><span class="eyebrow">10</span></div>
+    <h2>'조직 학습 속도'를 <span class="ac">실제로 잴 수 있는 숫자</span>로 내린다</h2>
+    <p class="sub">KPI를 선언만 하면 슬로건이다. 무엇을 어떻게 계산할지 초안을 제안한다 — 확정은 실측 후.</p>
+  </div>
+  <div class="slide-body">
+    <table class="u">
+      <tr><th>측정축</th><th>정의</th><th>제안 산식 (초안)</th></tr>
+      <tr><td>Thinking Resolution</td><td>같은 사실을 얼마나 또렷이 보는가</td><td>clarity·evidence·structure 6지표 점수의 <b>시계열 기울기</b></td></tr>
+      <tr><td>Define Cost</td><td>지시 → 이해의 의미 거리</td><td>지시문 vs 직원 이해문의 <b>임베딩 코사인 거리</b> 평균</td></tr>
+      <tr><td>조직 학습 속도</td><td>같은 실패를 반복하지 않는 속도</td><td>동일 유형 이슈의 <b>재발 간격 ↑</b> + 해상도 상승률</td></tr>
+      <tr><td>질문 수준</td><td>보고가 답이 아닌 질문이 되는 정도</td><td>보고 내 <b>질문/단언 비율</b> · 질문 추상도 등급</td></tr>
+    </table>
+    <p class="note">⚠ 산식은 설계 초안 — 직원 12명 1~2주 실데이터로 캘리브레이션 후 확정. 임계값은 실측 기반.</p>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>10 / 14</span></div>
+</section>
+
+<!-- 11 기술 노선 비교 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">기술 노선 비교 — 의사결정 항목</span><span class="eyebrow">11</span></div>
+    <h2>그래프를 <span class="ac">보조로 둘까, 본체로 올릴까</span> — fidelity가 가른다</h2>
+    <p class="sub">핵심 긴장: 지식그래프의 LLM 자동 추출은 ARISA의 <b>원문 보존·추측 금지</b> 철학과 충돌할 수 있다(과거 Letta를 같은 이유로 기각). 두 노선의 전제를 병기한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g2">
+      <div class="card"><div class="cl">노선 1 — 보존 우선 <span class="tag lo">보수 · 저위험</span></div><div class="cv">원문은 파일·시트에 <b>그대로</b>, Graphiti는 재부상·관계탐색 <b>보조 인덱스</b>로만.</div><div class="val">+ fidelity 철학 유지 · 즉시 도입 · 롤백 쉬움<br><span style="color:var(--amber)">− 오해지도·학습속도 본격 구현엔 한계</span></div></div>
+      <div class="card"><div class="cl">노선 2 — Graphiti 본격 <span class="tag mi">강력 · 검증 필요</span></div><div class="cv">bi-temporal 그래프를 조직 메모리 <b>1차 저장소</b>로 격상, 오해지도·학습속도 본격 구현.</div><div class="val" style="color:var(--amber)">+ 측정 기능의 잠재력 최대<br>− LLM 추출이 추측금지와 충돌 → <b>fidelity 게이트 필수</b></div></div>
+    </div>
+    <p class="note">권고: <b>노선1로 시작 → 측정 본격화 시 노선2 부분 도입(hybrid)</b>. 전제 = 원문 raw는 어느 노선이든 항상 보존. <span class="ph">최종 노선 = 이번 결정 대상</span></p>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>11 / 14</span></div>
+</section>
+
+<!-- 12 시장 포지셔닝 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">시장 포지셔닝</span><span class="eyebrow">12</span></div>
+    <h2>검색·에이전트·코칭과 <span class="ac">정면으로 싸우지 않는다</span></h2>
+    <p class="sub">Glean·Guru는 검색, Dust는 에이전트 자동화, BetterUp은 개인 코칭. ARISA만 <b>'조직'이 '학습'하는</b> 우상단에 선다 — 해자는 축적된 Thinking Data Log.</p>
+  </div>
+  <div class="slide-body">
+    <div class="pos">
+      <div class="ax"></div><div class="ay"></div>
+      <div class="lb" style="left:50%;top:12px;transform:translateX(-50%)">학습 · 성장 ↑</div>
+      <div class="lb" style="left:50%;bottom:14px;transform:translateX(-50%)">검색 · 기록 ↓</div>
+      <div class="lb" style="left:24px;bottom:42px">개인 ←</div>
+      <div class="lb" style="right:24px;bottom:42px">→ 조직</div>
+      <div class="dot" style="left:24%;bottom:30%"><div class="d"></div><div class="nm">노션·문서<br>(기록)</div></div>
+      <div class="dot" style="left:74%;bottom:34%"><div class="d"></div><div class="nm">Glean·Guru<br>(조직 검색)</div></div>
+      <div class="dot" style="left:60%;bottom:24%"><div class="d"></div><div class="nm">Dust<br>(에이전트)</div></div>
+      <div class="dot" style="left:26%;bottom:74%"><div class="d"></div><div class="nm">BetterUp<br>(개인 코칭)</div></div>
+      <div class="dot us" style="left:78%;bottom:84%"><div class="d"></div><div class="nm">ARISA 3.0<br>조직 학습 OS</div></div>
+    </div>
+    <p class="note src">2026 트렌드 정합: Learning Velocity(학습 속도 = 경쟁력) · Transactive Memory(누가 무엇을 아는가) · GraphRAG 하이브리드 채택 확산.</p>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>12 / 14</span></div>
+</section>
+
+<!-- 13 참고 스택 표 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">참고 스택 · 서비스</span><span class="eyebrow">13</span></div>
+    <h2>실행 레벨로 내릴 때 <span class="ac">차용할 검증된 부품들</span></h2>
+    <p class="sub">현재 스택(텔레그램 봇 · 구글시트 · mem0 · Python 3.11 launchd)에 얹을 수 있는 OSS 중심. 라이선스·역할·통합 난이도.</p>
+  </div>
+  <div class="slide-body">
+    <table class="u">
+      <tr><th>레이어</th><th>도구</th><th>라이선스</th><th>역할</th><th>통합</th></tr>
+      <tr><td>수집</td><td>Matterbridge</td><td class="ok">Apache-2.0</td><td>20+ 채널 webhook 허브</td><td><span class="tag mi">중</span></td></tr>
+      <tr><td>수집(대안)</td><td>Unipile</td><td class="gap">상용</td><td>Gmail·메신저 단일 API</td><td><span class="tag lo">하·과금</span></td></tr>
+      <tr><td>단기 메모리</td><td>mem0</td><td class="ok">Apache-2.0</td><td>개인 재부상 (채택됨)</td><td><span class="tag lo">하</span></td></tr>
+      <tr><td>조직 지식그래프</td><td>Graphiti</td><td class="ok">MIT</td><td>bi-temporal · MCP 서버</td><td><span class="tag lo">하</span></td></tr>
+      <tr><td>그래프 DB</td><td>FalkorDB / Neo4j</td><td class="ok">OSS</td><td>Graphiti 백엔드</td><td><span class="tag mi">중</span></td></tr>
+      <tr><td>조직망 분석</td><td>NetworkX</td><td class="ok">BSD</td><td>ONA 경량 (선택)</td><td><span class="tag mi">중</span></td></tr>
+      <tr><td>코치 오케스트레이션</td><td>LangGraph / CrewAI</td><td class="ok">MIT</td><td>질문·코치 루프 상태기계</td><td><span class="tag mi">중</span></td></tr>
+    </table>
+  </div>
+  <div class="slide-footer"><span>ARISA 3.0 · Review</span><span>13 / 14</span></div>
+</section>
+
+<!-- 14 로드맵 + 의사결정 -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">로드맵 · 다음 의사결정</span><span class="eyebrow">14</span></div>
+    <h2>2.0 거울 위에 <span class="ac">채널 → 그래프 → 코치</span>를 순서대로 얹는다</h2>
+    <p class="sub">데이터 먼저, 측정은 나중. 각 단계는 독립 가치를 내며, 다음 단계의 토대가 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card acc"><div class="cl ac">Now · 2.0</div><div class="cv">텔레그램 거울 + fidelity 보정 <b>가동 중</b></div></div>
+      <div class="card"><div class="cl">단계 1 · 수집</div><div class="cv">Gmail·회의록 <b>ingest 어댑터</b> + Thinking Data Log 파일 누적</div></div>
+      <div class="card"><div class="cl">단계 2 · 트래킹</div><div class="cv">Graphiti <b>보조 인덱스</b> 도입 → 오해지도 PoC</div></div>
+      <div class="card"><div class="cl">단계 3 · 성장</div><div class="cv">AI 코치 루프 + <b>6지표·학습속도</b> 측정</div></div>
+    </div>
+    <ul class="pts">
+      <li><b>이번 결정 ①</b> 기술 노선 — 보존 우선(1) vs Graphiti 본격(2), 또는 hybrid 시점</li>
+      <li><b>이번 결정 ②</b> 채널 우선순위 — Gmail 먼저 vs 회의록 먼저</li>
+      <li><b>이번 결정 ③</b> 측정 지표 4종 산식 확정 + 1~2주 실데이터 캘리브레이션 착수 여부</li>
+    </ul>
+  </div>
+  <div class="slide-footer"><span>by Project Rent</span><span>14 / 14</span></div>
+</section>
+
+</div>
+<script>
+  const s=[...document.querySelectorAll('.slide')];let i=0;
+  const show=n=>{i=Math.max(0,Math.min(s.length-1,n));s.forEach((x,k)=>x.classList.toggle('active',k===i));};
+  document.addEventListener('keydown',e=>{if(['ArrowRight','ArrowDown',' '].includes(e.key)){show(i+1);e.preventDefault();}if(['ArrowLeft','ArrowUp'].includes(e.key)){show(i-1);e.preventDefault();}if(e.key==='Home')show(0);if(e.key==='End')show(s.length-1);});
+  document.addEventListener('click',e=>show(e.clientX/innerWidth>0.5?i+1:i-1));
+  show(0);
+</script>
+</body>
+</html>

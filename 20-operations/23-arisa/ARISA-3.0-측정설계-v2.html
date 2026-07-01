@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISA 3.0 — 측정설계 v2 (사고 해상도 재정의)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root{
+    --bg:#1A1A1A; --bg-2:#141414; --bg-3:#222; --bg-4:#1e1e1e; --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+    --line:#333; --line-2:#2a2a2a; --accent:#6C5CE7; --accent-light:#A29BFE;
+    --green:#8FA37E; --amber:#D9A34B; --red:#E17055; --blue:#6F8AA3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+    background:var(--bg);color:var(--fg);font-weight:300;letter-spacing:-.01em;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  code{font-family:'SF Mono',ui-monospace,monospace;font-size:.86em;color:var(--accent-light);background:rgba(108,92,231,.1);padding:1px 5px;border-radius:3px;}
+  .wrap{max-width:1080px;margin:0 auto;padding:60px 56px 120px;}
+  header.top{border-bottom:1px solid var(--line-2);padding-bottom:34px;margin-bottom:48px;}
+  .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;font-weight:400;}
+  h1{font-size:44px;font-weight:300;letter-spacing:-.035em;line-height:1.12;margin:18px 0 0;}
+  h1 .ac{color:var(--accent);}
+  .lead{font-size:16px;font-weight:300;line-height:1.7;color:var(--fg-2);margin-top:20px;max-width:80ch;}
+  .lead b{color:var(--fg);font-weight:500;}
+  .v1note{font-size:12.5px;color:var(--fg-3);margin-top:16px;border-left:2px solid var(--line);padding-left:14px;line-height:1.6;}
+  section{margin-bottom:56px;}
+  h2.sec{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);font-weight:500;
+    padding-bottom:13px;border-bottom:1px solid var(--line-2);margin-bottom:22px;display:flex;justify-content:space-between;align-items:baseline;}
+  h2.sec .no{color:var(--fg-3);font-size:11px;}
+  h3{font-size:22px;font-weight:400;letter-spacing:-.02em;margin-bottom:6px;}
+  .sub{font-size:14.5px;color:var(--fg-2);line-height:1.7;max-width:82ch;}
+  .sub b{color:var(--fg);font-weight:500;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px;}
+  th{font-size:10px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:10px 11px 12px;font-weight:400;border-bottom:1px solid var(--line);}
+  td{padding:10px 11px;border-bottom:1px solid var(--line-2);color:var(--fg-2);font-weight:300;vertical-align:top;}
+  td:first-child{color:var(--fg);font-weight:500;}
+  .ok{color:var(--green);} .gap{color:var(--amber);} .no{color:var(--red);} .mut{color:var(--fg-3);}
+  .c{text-align:center;}
+  .req{color:var(--accent-light);font-weight:600;} .opt{color:var(--fg-3);} .non{color:var(--line);}
+  .pill{display:inline-block;font-size:10px;letter-spacing:.04em;padding:2px 9px;border-radius:3px;font-weight:500;white-space:nowrap;}
+  .pill.go{color:var(--green);background:rgba(143,163,126,.13);border:1px solid rgba(143,163,126,.35);}
+  .pill.add{color:var(--amber);background:rgba(217,163,75,.12);border:1px solid rgba(217,163,75,.35);}
+  .pill.par{color:var(--blue);background:rgba(111,138,163,.13);border:1px solid rgba(111,138,163,.35);}
+  .pill.new{color:var(--accent-light);background:rgba(108,92,231,.13);border:1px solid rgba(108,92,231,.4);}
+  .formula{font-family:'SF Mono',ui-monospace,monospace;font-size:13px;color:var(--accent-light);
+    background:var(--bg-2);border:1px solid var(--line-2);padding:14px 16px;border-radius:4px;margin:8px 0;line-height:1.6;overflow-x:auto;}
+  .formula .cm{color:var(--fg-3);}
+  .metric{background:var(--bg-4);border:1px solid var(--line-2);border-left:3px solid var(--accent);padding:26px 30px;margin-bottom:18px;}
+  .metric .mh{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px;}
+  .metric .mh .num{font-size:12px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:6px;}
+  .row{display:grid;grid-template-columns:130px 1fr;gap:4px 20px;padding:11px 0;border-top:1px solid var(--line-2);font-size:14px;}
+  .row:first-of-type{border-top:none;}
+  .row .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);padding-top:2px;}
+  .row .vv{color:var(--fg-2);line-height:1.65;} .row .vv b{color:var(--fg);font-weight:500;}
+  .rubric{font-size:13px;color:var(--fg-2);margin-top:4px;}
+  .rubric .lv{display:grid;grid-template-columns:42px 1fr;gap:12px;padding:5px 0;}
+  .rubric .lv .s{color:var(--fg-3);font-weight:600;text-align:right;}
+  .fid{font-size:12.5px;color:var(--amber);background:rgba(217,163,75,.07);border:1px solid rgba(217,163,75,.2);padding:12px 15px;border-radius:4px;margin-top:14px;line-height:1.65;}
+  .fid b{color:var(--amber);}
+  .callout{background:var(--bg-3);border:1px solid var(--line-2);padding:22px 26px;border-radius:5px;margin-top:8px;}
+  .callout.acc{border-color:var(--accent);}
+  .callout h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:10px;}
+  ul.pts{list-style:none;margin-top:4px;}
+  ul.pts li{font-size:14px;color:var(--fg-2);line-height:1.6;padding:7px 0 7px 20px;position:relative;}
+  ul.pts li::before{content:"—";position:absolute;left:0;color:var(--fg-3);}
+  ul.pts li b{color:var(--fg);font-weight:500;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px;}
+  .box{background:var(--bg-3);border:1px solid var(--line-2);padding:18px 20px;}
+  .box .bl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-3);margin-bottom:9px;}
+  .box .bv{font-size:14px;color:var(--fg-2);line-height:1.6;} .box .bv b{color:var(--fg);font-weight:500;}
+  .tl{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px;}
+  .tl .ph{background:var(--bg-3);border:1px solid var(--line-2);padding:18px 16px;}
+  .tl .ph .w{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent-light);font-weight:500;margin-bottom:9px;}
+  .tl .ph p{font-size:13px;color:var(--fg-2);line-height:1.55;}
+  .foot{margin-top:80px;padding-top:24px;border-top:1px solid var(--line-2);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--fg-3);display:flex;justify-content:space-between;}
+  @media(max-width:760px){.wrap{padding:36px 22px 80px;}h1{font-size:30px;}.row{grid-template-columns:1fr;}.tl,.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">ARISA 3.0 · 측정설계 v2 · 2026-06-20</div>
+  <h1>해상도는 <span class="ac">'요소를 얼마나·얼마나 깊게'</span> 채웠는가다 — 업무의 무게에 맞게</h1>
+  <p class="lead">v1은 해상도를 추상 6지표 평균으로 봤다. v2는 사용자 관점으로 다시 정의한다: <b>좋은 보고 = 그 업무가 요구하는 구성요소가, 업무의 중요성·난이도에 맞게, 구체적이고 핵심이 명확하게 채워진 것.</b> 즉 해상도 = <b>커버리지(요소 충족) × 깊이(구체성)</b>를 <b>중요도·난이도로 가중</b>해 <b>기대 대비 상대값</b>으로 잰다.</p>
+  <p class="v1note">v1 대비 변경: 지표 ①(Thinking Resolution) 전면 재작성. 요소 사전·유형별 기대셋·가중 모델 신설. 기존 6지표는 <b>폐기가 아니라 흡수</b>(요소별 깊이 채점의 하위 렌즈로 재배치). 지표 ②③④·캘리브레이션은 v1 유지·정합 패치. 산출물 비교 보존: <code>ARISA-3.0-측정설계-v1.html</code>.</p>
+</header>
+
+<!-- 0. 현 구조 진단 -->
+<section>
+  <h2 class="sec"><span>0 · 현 채점 구조의 한계 — 왜 다시 쓰는가</span><span class="no">진단</span></h2>
+  <p class="sub">탐색 결과(<code>daily-report-bot.py</code>), 현재 보고 품질 판정은 사용자 철학과 이미 같은 방향이지만, 결정적 차원이 빠져 있다.</p>
+  <div class="grid2" style="margin-top:14px">
+    <div class="box"><div class="bl">이미 맞는 것 ✓</div><div class="bv">completion_check의 판정선 = <b>"제3자가 이 보고만 보고 다음 액션·의사결정을 할 수 있는가"</b>(<code>:239</code>). 이게 곧 사용자의 "핵심이 명확할수록".</div></div>
+    <div class="box" style="border-color:rgba(217,163,75,.35)"><div class="bl" style="color:var(--amber)">빠진 것 — v2가 채움</div><div class="bv"><b>① 충분/부족 이진 판정만</b>(연속 점수·깊이 없음) <b>② 중요도·난이도 가중 전무</b> <b>③ 보고유형 분기 없음</b>(daily 단일 흐름, Engine A 미구현 <code>:188</code>).</div></div>
+  </div>
+</section>
+
+<!-- 1. 요소 사전 -->
+<section>
+  <h2 class="sec"><span>1 · 보고 요소 사전 (Element Dictionary)</span><span class="no">신설</span></h2>
+  <p class="sub">사용자가 제시한 12요소를 정규화하고, 현재 7섹션(<code>format_report_for_employee:641</code>)과 통합한다. 현재 daily 보고는 이 사전의 <b>부분집합</b>일 뿐 — project·planning 보고에서 나머지가 채워진다.</p>
+  <table>
+    <tr><th>요소</th><th>정의 (무엇을 담나)</th><th>현재 7섹션</th><th>깊이 0→3 핵심 갈림</th></tr>
+    <tr><td>현황(Status)</td><td>프로젝트가 지금 어디에 있는가</td><td class="no">없음(Engine D)</td><td>"진행중" → 단계·완료율·최근변화 명시</td></tr>
+    <tr><td>목적(Why)</td><td>이 일을 왜 하는가</td><td class="gap">Outcome 일부</td><td>막연 → 상위 목표와의 연결 명시</td></tr>
+    <tr><td>문제(Problem)</td><td>무엇이 막혀/걸려 있는가</td><td class="gap">Blocker</td><td>"어렵다" → 원인·범위·영향 구체화</td></tr>
+    <tr><td>해결방향(Approach)</td><td>어떻게 풀 것인가</td><td class="gap">Process</td><td>"열심히" → 선택지·근거·결정 명시</td></tr>
+    <tr><td>산출물(Output)</td><td>무엇을 만들었나</td><td class="ok">Output ✓</td><td>업무명 동어반복 → 구체 결과물·링크</td></tr>
+    <tr><td>예상결과·의미(Outcome)</td><td>그게 만든 변화</td><td class="ok">Outcome ✓</td><td>"잘됨" → 무엇이 어떻게 달라졌나</td></tr>
+    <tr><td>일정(Timeline)</td><td>언제까지·다음 언제</td><td class="gap">Next/Tomorrow</td><td>"곧" → 날짜·마일스톤</td></tr>
+    <tr><td>리스크(Risk)</td><td>틀어질 수 있는 것</td><td class="gap">Blocker 의존</td><td>누락 → 발생가능성·대비책</td></tr>
+    <tr><td>요청(Support)</td><td>받아야 할 지원</td><td class="ok">Support ✓</td><td>"도와주세요" → 누가·무엇을·언제</td></tr>
+    <tr><td>의사결정(Decision)</td><td>윗선이 정해줘야 할 것</td><td class="ok">Decision ✓</td><td>모호 → 선택지+추천+기한</td></tr>
+    <tr><td>예산(Budget)</td><td>비용·자원</td><td class="no">없음</td><td>누락 → 금액·항목·근거</td></tr>
+    <tr><td>기대효과(Impact)</td><td>성공 시 얻는 것</td><td class="gap">Outcome 일부</td><td>막연 → 정량·정성 기대치</td></tr>
+    <tr><td>실행계획(Next)</td><td>이후 액션 순서</td><td class="ok">Next ✓</td><td>"진행" → 단계별 액션·담당</td></tr>
+    <tr><td>회고(Reflection)</td><td>잘된/부족/보완점</td><td class="ok">Reflection ✓</td><td>형식적 → 구체 관찰 1개 이상</td></tr>
+  </table>
+  <p class="fid" style="color:var(--accent-light);background:rgba(108,92,231,.07);border-color:rgba(108,92,231,.25)"><b style="color:var(--accent-light)">읽는 법:</b> 깊이 0~3은 모든 요소에 공통 적용되는 구체성 눈금이다. 0=요소 비거나 형식적, 3=구체 디테일+핵심 명확. 각 요소 행의 "0→3 핵심 갈림"이 그 요소의 채점 앵커가 된다.</p>
+</section>
+
+<!-- 2. 유형별 기대셋 -->
+<section>
+  <h2 class="sec"><span>2 · 보고유형별 기대 요소셋 — 무게에 맞는 기대</span><span class="no">신설 · 과잉보고 1차 방지</span></h2>
+  <p class="sub">모든 보고가 14요소를 다 채울 필요는 없다. <b>보고 유형이 먼저 기대를 좁힌다</b>(Engine A 6유형 분기 <code>DEFINITION:116</code>와 연결). daily는 핵심만, project·planning은 풀세트. <span class="req">●필수</span> <span class="opt">○선택</span> <span class="non">— 불요</span></p>
+  <table>
+    <tr><th>요소 \ 유형</th><th class="c">daily<br>일일</th><th class="c">weekly<br>주간</th><th class="c">project<br>프로젝트</th><th class="c">decision<br>의사결정</th><th class="c">planning<br>기획</th><th class="c">research<br>리서치</th></tr>
+    <tr><td>산출물·의미</td><td class="c req">●</td><td class="c req">●</td><td class="c req">●</td><td class="c opt">○</td><td class="c req">●</td><td class="c req">●</td></tr>
+    <tr><td>문제·해결방향</td><td class="c req">●</td><td class="c req">●</td><td class="c req">●</td><td class="c req">●</td><td class="c req">●</td><td class="c req">●</td></tr>
+    <tr><td>일정</td><td class="c opt">○</td><td class="c req">●</td><td class="c req">●</td><td class="c opt">○</td><td class="c req">●</td><td class="c opt">○</td></tr>
+    <tr><td>리스크</td><td class="c non">—</td><td class="c opt">○</td><td class="c req">●</td><td class="c req">●</td><td class="c req">●</td><td class="c opt">○</td></tr>
+    <tr><td>요청·의사결정</td><td class="c opt">○</td><td class="c opt">○</td><td class="c req">●</td><td class="c req">●</td><td class="c req">●</td><td class="c opt">○</td></tr>
+    <tr><td>현황·목적</td><td class="c non">—</td><td class="c req">●</td><td class="c req">●</td><td class="c opt">○</td><td class="c req">●</td><td class="c opt">○</td></tr>
+    <tr><td>예산·기대효과</td><td class="c non">—</td><td class="c non">—</td><td class="c opt">○</td><td class="c req">●</td><td class="c req">●</td><td class="c non">—</td></tr>
+    <tr><td>실행계획</td><td class="c opt">○</td><td class="c req">●</td><td class="c req">●</td><td class="c req">●</td><td class="c req">●</td><td class="c opt">○</td></tr>
+  </table>
+  <p class="sub mut" style="margin-top:12px;font-size:13px">→ daily는 사실상 현행 7섹션 경량 그대로. 사용자의 12요소 풀세트는 project·decision·planning에서 작동 — 일일보고에 과한 기대를 강요하지 않는다.</p>
+</section>
+
+<!-- 3. 중요도·난이도 가중 -->
+<section>
+  <h2 class="sec"><span>3 · 중요도·난이도 가중 — 기대 깊이를 동적으로</span><span class="no">신설 · 직원표시+ARISA보정</span></h2>
+  <p class="sub">유형이 "어떤 요소"를 정하면, 중요도·난이도가 "얼마나 깊게"를 정한다. 같은 project라도 사소한 건과 회사 명운이 걸린 건의 기대 깊이는 다르다.</p>
+  <div class="grid2">
+    <div class="box"><div class="bl">입력 — 직원 자가표시</div><div class="bv">보고 시 업무에 <b>중요도 H/M/L · 난이도 H/M/L</b> 라이트 태그(2탭). 현재 <code>core_indices</code>(GPT가 복잡/시간 추천 <code>:224</code>)를 명시 태그로 승격.</div></div>
+    <div class="box"><div class="bl">보정 — ARISA</div><div class="bv">내용 근거로 상·하향. 불일치 시 되묻기: <b>"이 업무를 핵심으로 봐도 될까요?"</b> fidelity 사실확인 게이트와 동일 메커니즘 — 추측 단정 금지.</div></div>
+  </div>
+  <div class="formula" style="margin-top:16px">
+expected_depth(요소) = base(유형) × w(중요도) × w(난이도)   <span class="cm">// 기대 깊이</span>
+   w(H)=1.0 · w(M)=0.7 · w(L)=0.4    <span class="cm">// 중요·고난도일수록 더 깊이 기대, 더 많은 요소 활성</span>
+저중요·저난도 → 기대셋 자동 축소(선택요소 비활성) = <span class="cm">과잉보고 2차 방지</span>
+  </div>
+  <p class="fid"><b>fidelity 균형:</b> 가중은 "더 캐묻기"를 정당화하는 장치가 아니다. 중요·고난도일 때만 깊이를 더 기대하고, 사소한 업무엔 <b>기대를 낮춰 질문을 줄인다</b>(질문 폭탄 금지·Mirror 80% 보존). 가중의 1차 목적은 채점 정밀화가 아니라 <b>"어디에 사고를 더 쓸지" 신호</b>.</p>
+</section>
+
+<!-- 4. 해상도 2축 산식 -->
+<section>
+  <h2 class="sec"><span>4 · 해상도 2축 산식 — 지표 ① 전면 재작성</span><span class="no">6지표 흡수</span></h2>
+  <div class="metric">
+    <div class="mh"><div><div class="num">지표 ① · Thinking Resolution</div><h3>기대한 만큼, 기대한 깊이로 채워졌는가</h3></div><span class="pill go">즉시 측정(태그 제외)</span></div>
+    <div class="row"><div class="k">Coverage<br>(완전성)</div><div class="vv">해당 유형·중요도의 <b>기대 요소</b> 중 실제 채워진 비율(가중)
+      <div class="formula">coverage = Σ(채워진 요소 × 요소가중) / Σ(기대 요소 × 요소가중)</div></div></div>
+    <div class="row"><div class="k">Depth<br>(구체성·핵심)</div><div class="vv">채워진 요소별 <b>구체성 0~3</b> 평균. §1 요소 사전의 "0→3 갈림"이 앵커. 핵심 요소(리스크·의사결정 등) 가중
+      <div class="formula">depth = Σ(요소깊이 0~3 × 요소가중) / Σ(채워진 요소 × 요소가중)</div></div></div>
+    <div class="row"><div class="k">해상도</div><div class="vv"><b>기대 대비 상대값</b> — 절대점 비교 금지
+      <div class="formula">resolution = (coverage × depth) / expected_depth   <span class="cm">// §3 expected_depth로 정규화</span></div></div></div>
+    <div class="row"><div class="k">6지표 흡수</div><div class="vv">기존 <code>clarity/evidence/structure/output_q/outcome_q/decision_q</code>는 폐기 아님 → <b>요소별 Depth를 채점하는 하위 렌즈</b>로 재배치:
+      <div class="rubric">
+        <div class="lv"><span class="s">전역</span><span><b>clarity·structure·evidence</b> = 모든 요소의 깊이 0~3 판정 기준</span></div>
+        <div class="lv"><span class="s">국소</span><span><b>output_q</b>→산출물 요소 · <b>outcome_q</b>→의미/기대효과 · <b>decision_q</b>→의사결정 요소</span></div>
+      </div></div></div>
+    <div class="row"><div class="k">출력</div><div class="vv">직원별 요소 커버리지 맵 + 깊이 레이더 + <b>4주 해상도 기울기(=성장률)</b>. 대표는 추세만, 일별 점수 비노출</div></div>
+    <div class="fid"><b>fidelity:</b> 채점은 항상 <code>raw</code> 원문 기준(정리본 채점 금지=순환오류). 근거 불충분 시 추측 채점 금지(<code>null</code>). 점수는 평가가 아니라 <b>관찰</b> — 직원에겐 점수 대신 거울(정리본)만.</div>
+  </div>
+</section>
+
+<!-- 5. Engine B 통합 -->
+<section>
+  <h2 class="sec"><span>5 · Engine B(Completion) 통합 — 측정 = 교육</span><span class="no">신설</span></h2>
+  <p class="sub">같은 요소 사전을 <b>채점(측정)과 질문생성(교육)</b>이 공유한다. 측정에서 비거나 얕은 요소가 곧 ARISA가 물을 항목이 된다.</p>
+  <table>
+    <tr><th>현재(이진)</th><th>v2 추가 차원</th></tr>
+    <tr><td>공란·더미·동어반복·추상어 탐지(<code>_rule_based_gaps:543</code> / <code>completion_check:559</code>)</td><td class="gap"><b>요소 누락 × 중요도 가중</b> — 중요·고난도인데 리스크·일정·의사결정이 비면 우선 질문. 저중요 업무엔 묻지 않음</td></tr>
+    <tr><td>충분/부족 단정</td><td class="gap">얕은 요소(깊이 0~1)를 <b>"한 단계 더"</b> 유도하는 질문(해당 요소의 0→3 갈림 사용)</td></tr>
+  </table>
+  <p class="fid"><b>제약 유지:</b> 최대 3질문 · Mirror 80% · 추측 금지. 가중 덕에 질문이 <b>중요 업무에 집중</b>되어, 캐묻되 폭탄이 되지 않는다. — 측정 루브릭과 질문이 한 사전을 공유하므로 "재는 것"이 곧 "가르치는 것".</p>
+</section>
+
+<!-- 6. 나머지 지표 정합 -->
+<section>
+  <h2 class="sec"><span>6 · 지표 ②③④ — v1 유지 · 정합 패치</span><span class="no">요약</span></h2>
+  <div class="grid2">
+    <div class="box"><div class="bl"><span class="pill go" style="margin-right:6px">즉시</span>② 조직 학습 속도</div><div class="bv">issues 임베딩 클러스터 <b>재발 간격↑</b> + reflection.next 약속–이행. <b>패치:</b> 반복 실패를 요소별(리스크·해결방향)로도 분해 → 어느 요소가 반복 취약한지.</div></div>
+    <div class="box"><div class="bl"><span class="pill add" style="margin-right:6px">추가수집</span>③ Define Cost</div><div class="bv">지시문↔이해문 임베딩 코사인 거리. <b>패치:</b> 이해문을 요소 단위로 비교(지시의 어느 요소가 가장 오해되나).</div></div>
+    <div class="box"><div class="bl"><span class="pill par" style="margin-right:6px">전환 선행</span>④ 질문 수준</div><div class="bv">질문/단언 비율·질문 등급(사실<해석<재정의). <b>패치:</b> 보고 양식 질문 섹션을 요소 사전과 연결(어느 요소에서 질문이 나오나).</div></div>
+    <div class="box" style="border-color:var(--accent)"><div class="bl" style="color:var(--accent-light)">§ 수집 역산 패치</div><div class="bv">L1 어댑터 추가 수집 항목 확정: <b>① 보고유형 태그 ② 중요도·난이도 자가표시</b> — 둘 다 직원 입력 1탭, 봇 프롬프트 추가로 즉시 가능.</div></div>
+  </div>
+</section>
+
+<!-- 7. 캘리브레이션 -->
+<section>
+  <h2 class="sec"><span>7 · 캘리브레이션 — 12명 × 1~2주</span><span class="no">v1 패치</span></h2>
+  <div class="tl">
+    <div class="ph"><div class="w">주 0 · 앵커링</div><p>R이사 이상본 7건 + <b>유형 다양 샘플</b>로 요소별 깊이 0~3 루브릭 + 유형별 기대셋 기준점 고정</p></div>
+    <div class="ph"><div class="w">주 1~2 · 채점</div><p>12명 실보고에 Coverage·Depth 적용 → 직원·유형별 <b>기대셋·가중 보정</b>, 해상도 baseline 산정</p></div>
+    <div class="ph"><div class="w">튜닝</div><p>가중 w(H/M/L) 값·핵심요소 가중·질문 발화 임계 보정. 직원 자가표시 vs ARISA 보정 일치율 점검</p></div>
+    <div class="ph"><div class="w">산출</div><p>요소 사전 v1 확정 + 유형별 기대셋 표 + 직원 baseline → 측정·질문 공용 엔진</p></div>
+  </div>
+  <div class="fid" style="margin-top:18px"><b>fidelity 게이트(공통):</b> 모든 채점·가중은 <code>raw</code> 기준, 추측 금지(<code>null</code>). 가중은 통제 수단이 아니라 사고 배분 신호. 노선2(Graphiti 본격) 채택 시 이 사전·게이트가 자동추출의 스키마·안전장치가 된다.</div>
+</section>
+
+<!-- 결론 -->
+<section>
+  <div class="callout acc">
+    <h4>v2가 확정하는 것 · 남기는 결정</h4>
+    <ul class="pts">
+      <li><b>해상도 재정의 완료:</b> 추상 6지표 평균 → <b>커버리지 × 깊이 ÷ 기대깊이</b>, 유형별 기대셋 + 중요도·난이도 가중. 6지표는 깊이 채점 렌즈로 흡수</li>
+      <li><b>측정=교육 일원화:</b> 요소 사전 하나를 채점과 Completion 질문이 공유 → 재는 순간 가르친다</li>
+      <li><b>신규 수집 2개로 충분:</b> 보고유형 태그 + 중요도·난이도 자가표시(둘 다 1탭, 봇 프롬프트 추가). 나머지는 기존 필드로 계산</li>
+      <li><b>남는 결정 1:</b> 요소 사전·유형 기대셋을 <b>봇 프롬프트(STRUCTURE/COMPLETION)에 실제 반영</b>할지 → Yes면 다음 산출물 = 프롬프트 개정 스펙 + 자가표시 UI 1탭</li>
+      <li><b>남는 결정 2:</b> 가중치 w(H/M/L) 초기값을 지금 12명 데이터로 캘리브레이션 착수할지</li>
+    </ul>
+  </div>
+</section>
+
+<div class="foot"><span>ARISA 3.0 · 측정설계 v2</span><span>by Project Rent</span></div>
+
+</div>
+</body>
+</html>

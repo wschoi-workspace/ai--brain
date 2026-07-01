@@ -46,6 +46,12 @@ DAILY_SHEET = os.environ.get("DAILY_REPORT_SHEET_ID", "")
 BASKET_SHEET = os.environ.get("BASKET_REPORT_SHEET_ID", "")
 MANAGER_BOT_TOKEN = os.environ.get("DAILY_REPORT_MANAGER_BOT_TOKEN", "")
 MANAGER_CHAT_ID = os.environ.get("DAILY_REPORT_MANAGER_CHAT_ID", "")
+# 팀 리더 알림은 직원봇으로 발신(리더는 직원봇에 연결됨 — 관리자봇 미접속).
+LEADER_BOT_TOKEN = os.environ.get("DAILY_REPORT_BOT_TOKEN", "")
+# ⚠️ 임시: ts.net이 한국 통신사 DNS에서 안 풀려 Cloudflare quick tunnel URL로 교체(2026-06-30).
+# quick tunnel URL은 재시작 시 변경됨 → named tunnel 고정 도메인 확보 후 이 상수만 교체.
+# (.env의 DASHBOARD_BASE_URL이 있으면 그것 우선 — named 전환 시 .env로 관리)
+DASHBOARD_BASE_URL = os.environ.get("DASHBOARD_BASE_URL", "https://crossword-international-comparative-operations.trycloudflare.com")
 
 TEAM_ORDER = ["경영", "사업기획", "공간팀", "기획팀", "운영팀", "감사"]
 NAME_ALIASES = {
@@ -260,15 +266,21 @@ def pick_top5(items: list[dict]) -> list[dict]:
     return top[:5]
 
 
-def build_brief_data(target: str) -> dict:
-    day = fetch_day(target)
+def _weekday_kr(target: str) -> str:
+    return ["월", "화", "수", "목", "금", "토", "일"][datetime.strptime(target, "%Y-%m-%d").weekday()]
+
+
+def build_brief_data(target: str, day: dict | None = None) -> dict:
+    """대표 전체 Brief. day(fetch_day 결과)를 받으면 gws 재호출을 피한다."""
+    if day is None:
+        day = fetch_day(target)
     blocks = [_emp_block(nm, d) for nm, d in day.items()]
     items = engine_d(blocks)
     unmatched = sorted({nm for nm in day if nm not in BY_NAME})
     counts = {c: sum(1 for it in items if it["category"] == c) for c in CAT_META}
     return {
         "date": target,
-        "weekday": ["월", "화", "수", "목", "금", "토", "일"][datetime.strptime(target, "%Y-%m-%d").weekday()],
+        "weekday": _weekday_kr(target),
         "active_people": len([nm for nm, d in day.items() if (d["raw"] or d["core"] or d["basket"])]),
         "items": items,
         "top5": pick_top5(items),
@@ -276,6 +288,38 @@ def build_brief_data(target: str) -> dict:
         "unmatched": unmatched,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
+
+
+def build_team_brief_data(target: str, team: str, day: dict) -> dict:
+    """팀 스코프 Brief — 그 팀 직원 보고만 Engine D로. 보고 0건이면 LLM 호출 skip."""
+    tday = {nm: d for nm, d in day.items() if d.get("team") == team}
+    blocks = [_emp_block(nm, d) for nm, d in tday.items()]
+    items = engine_d(blocks) if blocks else []
+    counts = {c: sum(1 for it in items if it["category"] == c) for c in CAT_META}
+    return {
+        "date": target,
+        "team": team,
+        "weekday": _weekday_kr(target),
+        "active_people": len([nm for nm, d in tday.items() if (d["raw"] or d["core"] or d["basket"])]),
+        "items": items,
+        "top5": pick_top5(items),
+        "counts": counts,
+        "unmatched": [],  # 팀 brief는 팀 필터라 매칭된 직원만 — 미매칭 경고 불필요
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+    }
+
+
+def team_leads() -> dict:
+    """team_leads 매핑(팀→리더이름). 팀 Brief 생성·알림의 대상 출처."""
+    return EMP.get("team_leads", {})
+
+
+def leader_chat_ids(team: str) -> list:
+    """해당 팀 리더의 텔레그램 chat_id(직원봇). 미연결이면 빈 목록."""
+    leader = team_leads().get(team)
+    if not leader:
+        return []
+    return [tid for tid, nm in EMP.get("by_telegram_id", {}).items() if nm == leader]
 
 
 # ─── HTML 렌더 ───
@@ -300,6 +344,23 @@ def _item_card(it: dict) -> str:
 
 
 def render_brief_html(data: dict) -> str:
+    # 대표 전체 Brief vs 팀 리더 Brief 분기 (data["team"] 유무)
+    team = data.get("team")
+    is_team = bool(team)
+    TITLE = f"{team} 팀 Brief · {data['date']}" if is_team else f"대표 Daily Brief · {data['date']}"
+    GATE_H2 = f"{_esc(team)} 팀 Brief" if is_team else "대표 Daily Brief"
+    GATE_SUB = f'{_esc(data["date"])} · {_esc(team)} 팀 리더' if is_team else f'{_esc(data["date"])} · 대표 전용'
+    H1 = f"{_esc(team)} 팀이 오늘 봐야 할 것" if is_team else "오늘 대표가 봐야 할 것"
+    SESS_KEY = "team_brief_sess" if is_team else "brief_sess"
+    TEAM_JS = json.dumps(team or "", ensure_ascii=False)
+    if is_team:
+        JS_CAN = "(d.admin || (d.lead_teams||[]).indexOf(TEAM)>=0)"
+        JS_SESS_CAN = "(sess.admin || (sess.lead_teams||[]).indexOf(TEAM)>=0)"
+        JS_DENY = "이 팀 리더 전용 화면입니다"
+    else:
+        JS_CAN = "d.admin"
+        JS_SESS_CAN = "sess.admin"
+        JS_DENY = "대표 전용 화면입니다"
     # TOP5 히어로
     hero = []
     for it in data["top5"]:
@@ -328,7 +389,7 @@ def render_brief_html(data: dict) -> str:
 
     return f'''<!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대표 Daily Brief · {_esc(data["date"])}</title>
+<title>{_esc(TITLE)}</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <style>
 :root{{--bg:#1A1A1A;--bg-2:#202020;--bg-3:#262626;--fg:#F5F0EB;--muted:#8A857E;--line:#333;
@@ -375,8 +436,8 @@ footer{{margin-top:44px;color:var(--muted);font-size:11px;text-align:center;bord
 </style></head>
 <body>
 <div id="login-gate"><div id="login-box">
-  <h2>대표 Daily Brief</h2>
-  <div class="lg-sub">{_esc(data["date"])} · 대표 전용</div>
+  <h2>{GATE_H2}</h2>
+  <div class="lg-sub">{GATE_SUB}</div>
   <input id="lg-id" placeholder="이름" autocomplete="username">
   <input id="lg-pin" type="password" placeholder="PIN" autocomplete="current-password">
   <button id="lg-btn">로그인</button>
@@ -384,7 +445,7 @@ footer{{margin-top:44px;color:var(--muted);font-size:11px;text-align:center;bord
 </div></div>
 <div id="whoami" style="display:none"></div>
 <div id="content" style="display:none"><div class="wrap">
-<header><h1>오늘 대표가 봐야 할 것</h1><div class="sub">{_esc(data["date"])} ({_esc(data["weekday"])}) · 생성 {_esc(data["generated_at"])}</div></header>
+<header><h1>{H1}</h1><div class="sub">{_esc(data["date"])} ({_esc(data["weekday"])}) · 생성 {_esc(data["generated_at"])}</div></header>
 {unmatched}
 <div class="statbar">
   <div class="stat"><b>{cnt["decision"]}</b><small>결정</small></div>
@@ -400,22 +461,23 @@ footer{{margin-top:44px;color:var(--muted);font-size:11px;text-align:center;bord
 </div></div>
 <script>
 (function(){{
+  var TEAM={TEAM_JS};
   var gate=document.getElementById('login-gate'), content=document.getElementById('content'), who=document.getElementById('whoami');
   function enter(s){{
     gate.style.display='none'; content.style.display='block'; who.style.display='block';
     who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-out">로그아웃</a>';
-    document.getElementById('lg-out').onclick=function(){{ localStorage.removeItem('brief_sess'); location.reload(); }};
+    document.getElementById('lg-out').onclick=function(){{ localStorage.removeItem('{SESS_KEY}'); location.reload(); }};
   }}
-  var sess=null; try{{ sess=JSON.parse(localStorage.getItem('brief_sess')||'null'); }}catch(e){{}}
-  if(sess && sess.admin) enter(sess);
+  var sess=null; try{{ sess=JSON.parse(localStorage.getItem('{SESS_KEY}')||'null'); }}catch(e){{}}
+  if(sess && {JS_SESS_CAN}) enter(sess);
   function doLogin(){{
     var id=document.getElementById('lg-id').value.trim(), pin=document.getElementById('lg-pin').value.trim();
     var err=document.getElementById('login-err'); err.textContent='';
     fetch('/api/login',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id:id,pin:pin}})}})
       .then(function(r){{return r.json();}})
       .then(function(d){{
-        if(d.ok && d.admin){{ localStorage.setItem('brief_sess',JSON.stringify(d)); enter(d); }}
-        else if(d.ok && !d.admin){{ err.textContent='대표 전용 화면입니다'; }}
+        if(d.ok && {JS_CAN}){{ localStorage.setItem('{SESS_KEY}',JSON.stringify(d)); enter(d); }}
+        else if(d.ok){{ err.textContent='{JS_DENY}'; }}
         else {{ err.textContent=d.error||'로그인 실패'; }}
       }})
       .catch(function(){{ err.textContent='서버 연결 실패 (대시보드 서버 경유로 열어주세요)'; }});
@@ -455,7 +517,7 @@ def _telegram_brief(data: dict):
             msg += f"• [{lab}] {it['title']}\n"
     else:
         msg += "\n오늘 들어온 보고 없음\n"
-    msg += "\n📄 https://macbookair.tail7739de.ts.net/brief"
+    msg += f"\n📄 {DASHBOARD_BASE_URL}/dashboard"
     try:
         import urllib.request
         url = f"https://api.telegram.org/bot{MANAGER_BOT_TOKEN}/sendMessage"
@@ -467,6 +529,47 @@ def _telegram_brief(data: dict):
         print(f"⚠️ 텔레그램 전송 실패: {e}")
 
 
+def _telegram_team_brief(data: dict, chat_ids: list):
+    """팀 리더에게 자기 팀 Brief 요약 + 팀 대시보드 링크 발송(직원봇)."""
+    if not (LEADER_BOT_TOKEN and chat_ids):
+        return
+    import urllib.parse, urllib.request
+    team = data["team"]
+    c = data["counts"]
+    msg = (f"👥 {team} 팀 Brief {data['date']}({data['weekday']})\n"
+           f"결정 {c['decision']} · 개입 {c['intervention']} · 리스크 {c['risk']} "
+           f"· 프로젝트 {c['project']} · 성장 {c['growth']}\n")
+    if data["top5"]:
+        msg += "\n오늘 봐야 할 것:\n"
+        for it in data["top5"]:
+            lab = CAT_META[it["category"]][0].split(" ")[0]
+            msg += f"• [{lab}] {it['title']}\n"
+    else:
+        msg += "\n오늘 들어온 팀 보고 없음\n"
+    link = f"{DASHBOARD_BASE_URL}/team?team=" + urllib.parse.quote(team)
+    msg += f"\n📄 {link}"
+    for cid in chat_ids:
+        try:
+            url = f"https://api.telegram.org/bot{LEADER_BOT_TOKEN}/sendMessage"
+            body = json.dumps({"chat_id": cid, "text": msg}).encode()
+            req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+            urllib.request.urlopen(req, timeout=20)
+            print(f"✅ [{team}] 리더 텔레그램 전송 (chat={cid})")
+        except Exception as e:
+            print(f"⚠️ [{team}] 리더 전송 실패: {e}")
+
+
+def save_team_brief(data: dict) -> Path:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    team = data["team"]
+    html_path = OUT_DIR / f"daily-brief-{data['date']}-{team}.html"
+    json_path = OUT_DIR / f"daily-brief-{data['date']}-{team}.json"
+    html_path.write_text(render_brief_html(data), encoding="utf-8")
+    json_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"✅ [{team}] {html_path.name} (항목 {len(data['items'])}, TOP5 {len(data['top5'])}, 보고 {data['active_people']})")
+    return html_path
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"), help="YYYY-MM-DD (기본 오늘)")
@@ -474,9 +577,17 @@ def main():
     ap.add_argument("--no-telegram", action="store_true")
     args = ap.parse_args()
     print(f"브리프 날짜: {args.date}")
-    data = build_brief_data(args.date)
+    day = fetch_day(args.date)  # 1회 수집 → 대표·팀 brief 공용(gws 재호출 0)
+    data = build_brief_data(args.date, day)
     print(f"추출 항목: {len(data['items'])}건 (TOP5 {len(data['top5'])}) · 보고인원 {data['active_people']} · 미매칭 {len(data['unmatched'])}")
     save_and_notify(data, args.open, args.no_telegram)
+
+    # ─── 팀 리더 Brief (team_leads 각 팀) ───
+    for team in team_leads():
+        tdata = build_team_brief_data(args.date, team, day)
+        save_team_brief(tdata)
+        if not args.no_telegram:
+            _telegram_team_brief(tdata, leader_chat_ids(team))
 
 
 if __name__ == "__main__":

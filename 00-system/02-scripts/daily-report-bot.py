@@ -380,18 +380,49 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE, st
     return step  # 현재 단계 유지!
 
 
-def send_to_manager(message: str) -> bool:
-    """관리자 텔레그램으로 전송."""
+def _tg_send(token: str, chat_id, message: str) -> bool:
+    """임의의 봇 토큰·chat_id로 텔레그램 메시지 전송 (raw API)."""
     import urllib.request
-    url = f"https://api.telegram.org/bot{MANAGER_BOT_TOKEN}/sendMessage"
-    data = json.dumps({"chat_id": MANAGER_CHAT_ID, "text": message}).encode()
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    data = json.dumps({"chat_id": chat_id, "text": message}).encode()
     req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
     try:
         urllib.request.urlopen(req)
         return True
     except Exception as e:
-        logger.error(f"Manager send error: {e}")
+        logger.error(f"tg send error (chat={chat_id}): {e}")
         return False
+
+
+def send_to_manager(message: str) -> bool:
+    """관리자(대표) 텔레그램으로 전송 (관리자봇)."""
+    return _tg_send(MANAGER_BOT_TOKEN, MANAGER_CHAT_ID, message)
+
+
+def team_leader_chat_ids(team: str, reporter_name: str) -> list:
+    """해당 팀 리더의 telegram_id 목록 (보고자 본인·미연결 리더 제외).
+
+    명부 team_leads(팀→리더이름) → by_telegram_id 역조회로 리더 chat_id 확보.
+    리더가 봇에 미연결이면 빈 목록(자동 skip). 리더가 곧 보고자면 중복 방지로 제외.
+    """
+    d = load_employees()
+    leader_name = d.get("team_leads", {}).get((team or "").strip())
+    if not leader_name or leader_name == reporter_name:
+        return []
+    return [tid for tid, nm in d.get("by_telegram_id", {}).items() if nm == leader_name]
+
+
+def share_to_team_leader(report: dict, manager_msg: str) -> int:
+    """팀원 일일보고 정리본을 해당 팀 리더에게 직원봇으로 공유. 전송 성공 건수 반환."""
+    team = report.get("team", "")
+    leader_ids = team_leader_chat_ids(team, report.get("name", ""))
+    sent = 0
+    for lid in leader_ids:
+        share = f"👥 [팀원 일일보고 공유 · {team}]\n\n{manager_msg}"
+        # 리더는 직원봇(BOT_TOKEN)에 연결돼 있으므로 직원봇으로 발신
+        if _tg_send(BOT_TOKEN, lid, share):
+            sent += 1
+    return sent
 
 
 def save_to_sheet(report_data: dict) -> bool:
@@ -738,8 +769,9 @@ async def finalize_and_send(
     # 1) 직원 본인에게 정리본 + Reflection 회신 (거울 학습 루프 — MVP1 핵심)
     await update.message.reply_text(employee_msg)
 
-    # 2) 관리자 전송 + 시트 저장
+    # 2) 관리자(대표) 전송 + 팀 리더 공유 + 시트 저장
     sent = send_to_manager(manager_msg)
+    leader_sent = share_to_team_leader(report, manager_msg)
     saved = save_to_sheet(report)
 
     status_lines = ["\n✅ 업무보고 완료!"]
@@ -749,6 +781,8 @@ async def finalize_and_send(
     if report.get("attachments"):
         status_lines.append(f"📎 첨부 산출물 {len(report['attachments'])}건 함께 전송됨")
     status_lines.append("📨 팀장님께 전송 완료!" if sent else "⚠️ 팀장님 전송 실패 (나중에 재시도)")
+    if leader_sent:
+        status_lines.append(f"👥 팀 리더께도 공유됨 ({leader_sent}명)")
     status_lines.append("💾 구글시트 저장 완료!" if saved else "⚠️ 시트 저장 실패")
     status_lines.append("\n수고하셨어요! 내일도 화이팅 💪")
 

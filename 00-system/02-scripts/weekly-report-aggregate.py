@@ -16,6 +16,7 @@ import os
 import sys
 import json
 import html
+import copy
 import argparse
 import subprocess
 from datetime import datetime, timedelta, date
@@ -417,6 +418,28 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
     }
 
 
+def slice_team_data(data: dict, team: str) -> dict:
+    """전체 대시보드 데이터를 팀 스코프로 슬라이스(LLM 재호출 0 — 이미 계산된 결과 필터)."""
+    d = copy.deepcopy(data)
+    d["team"] = team
+    d["teams"] = [t for t in data["teams"] if t["team"] == team]
+    d["persons"] = [p for p in data["persons"] if p["team"] == team]
+    d["unmatched_names"] = []  # 팀 스코프 — 미매칭 경고 생략
+    persons = d["persons"]
+    team_obj = d["teams"][0] if d["teams"] else None
+    d["summary"] = {
+        "total_reports": sum(p["task_count"] for p in persons),
+        "avg_completion": team_obj["completion_rate"] if team_obj else None,
+        "active_people": len(persons),
+        "open_decisions": sum(len(p["open_decisions"]) for p in persons),
+    }
+    return d
+
+
+def team_leads() -> dict:
+    return EMP.get("team_leads", {})
+
+
 # ─── HTML 렌더 ───
 def _esc(s) -> str:
     return html.escape(str(s or ""))
@@ -483,6 +506,25 @@ def _chips(items, cls="chip") -> str:
 
 def render_html(data: dict) -> str:
     w = data["week"]; s = data["summary"]
+    # 대표 전체 주간 vs 팀 리더 주간 분기 (data["team"] 유무)
+    team = data.get("team")
+    is_team = bool(team)
+    TITLE = f"{team} 팀 주간 · {w['label']}" if is_team else f"주간 업무 대시보드 · {w['label']}"
+    H1 = f"{_esc(team)} 팀 주간 대시보드" if is_team else "주간 업무 대시보드"
+    GATE_H2 = f"{_esc(team)} 팀 주간" if is_team else "주간 업무 대시보드"
+    GATE_SUB = f'{_esc(w["label"])} · {_esc(team)} 팀 리더' if is_team else f'{_esc(w["label"])} · 로그인'
+    SESS_KEY = "team_weekly_sess" if is_team else "weekly_sess"
+    TEAM_JS = json.dumps(team or "", ensure_ascii=False)
+    if is_team:
+        JS_CAN = "(d.admin || (d.lead_teams||[]).indexOf(TEAM)>=0)"
+        JS_SESS_CAN = "(sess.admin || (sess.lead_teams||[]).indexOf(TEAM)>=0)"
+        JS_GROWTH = "(s.admin || (s.lead_teams||[]).indexOf(TEAM)>=0)"
+        JS_DENY = "이 팀 리더 전용 화면입니다"
+    else:
+        JS_CAN = "d.ok"
+        JS_SESS_CAN = "sess.name"
+        JS_GROWTH = "s.admin"
+        JS_DENY = "로그인 실패"
     # 파트 카드
     team_cards = []
     for t in data["teams"]:
@@ -521,7 +563,7 @@ def render_html(data: dict) -> str:
     avg = "N/A" if s["avg_completion"] is None else f'{s["avg_completion"]}%'
     return f'''<!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>주간 업무 대시보드 · {_esc(w["label"])}</title>
+<title>{_esc(TITLE)}</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <style>
 :root{{--bg:#1A1A1A;--bg-2:#202020;--bg-3:#262626;--fg:#F5F0EB;--muted:#8A857E;--line:#333;
@@ -593,8 +635,8 @@ body.is-admin .growth{{display:block}}
 <body>
 <div id="login-gate">
   <div id="login-box">
-    <h2>주간 업무 대시보드</h2>
-    <div class="lg-sub">{_esc(w["label"])} · 로그인</div>
+    <h2>{GATE_H2}</h2>
+    <div class="lg-sub">{GATE_SUB}</div>
     <input id="lg-id" placeholder="이름 (예: 최원석)" autocomplete="username">
     <input id="lg-pin" type="password" placeholder="PIN" autocomplete="current-password">
     <button id="lg-btn">로그인</button>
@@ -603,7 +645,7 @@ body.is-admin .growth{{display:block}}
 </div>
 <div id="whoami" style="display:none"></div>
 <div id="content" style="display:none"><div class="wrap">
-<header><h1>주간 업무 대시보드</h1><div class="sub">{_esc(w["label"])} · {_esc(w["range"])}</div></header>
+<header><h1>{H1}</h1><div class="sub">{_esc(w["label"])} · {_esc(w["range"])}</div></header>
 {unmatched}
 <div class="statbar">
   <div class="stat"><b>{s["total_reports"]}</b><small>총 보고 건수</small></div>
@@ -617,22 +659,28 @@ body.is-admin .growth{{display:block}}
 </div></div>
 <script>
 (function(){{
+  var TEAM={TEAM_JS};
   var gate=document.getElementById('login-gate'), content=document.getElementById('content'), who=document.getElementById('whoami');
   function enter(s){{
     gate.style.display='none'; content.style.display='block';
     who.style.display='block';
-    who.innerHTML = s.name+' ('+(s.role||'')+')'+(s.admin?' · 성장지표 ON':'')+' <a id="lg-out">로그아웃</a>';
-    if(s.admin) document.body.classList.add('is-admin');
-    document.getElementById('lg-out').onclick=function(){{ localStorage.removeItem('weekly_sess'); location.reload(); }};
+    var growth=({JS_GROWTH});
+    who.innerHTML = s.name+' ('+(s.role||'')+')'+(growth?' · 성장지표 ON':'')+' <a id="lg-out">로그아웃</a>';
+    if(growth) document.body.classList.add('is-admin');
+    document.getElementById('lg-out').onclick=function(){{ localStorage.removeItem('{SESS_KEY}'); location.reload(); }};
   }}
-  var sess=null; try{{ sess=JSON.parse(localStorage.getItem('weekly_sess')||'null'); }}catch(e){{}}
-  if(sess && sess.name) enter(sess);
+  var sess=null; try{{ sess=JSON.parse(localStorage.getItem('{SESS_KEY}')||'null'); }}catch(e){{}}
+  if(sess && {JS_SESS_CAN}) enter(sess);
   function doLogin(){{
     var id=document.getElementById('lg-id').value.trim(), pin=document.getElementById('lg-pin').value.trim();
     var err=document.getElementById('login-err'); err.textContent='';
     fetch('/api/login',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id:id,pin:pin}})}})
       .then(function(r){{return r.json();}})
-      .then(function(d){{ if(d.ok){{ localStorage.setItem('weekly_sess',JSON.stringify(d)); enter(d); }} else {{ err.textContent=d.error||'로그인 실패'; }} }})
+      .then(function(d){{
+        if(d.ok && {JS_CAN}){{ localStorage.setItem('{SESS_KEY}',JSON.stringify(d)); enter(d); }}
+        else if(d.ok){{ err.textContent='{JS_DENY}'; }}
+        else {{ err.textContent=d.error||'로그인 실패'; }}
+      }})
       .catch(function(){{ err.textContent='서버 연결 실패 (대시보드 서버 경유로 열어주세요)'; }});
   }}
   document.getElementById('lg-btn').onclick=doLogin;
@@ -672,7 +720,8 @@ def _telegram_summary(data: dict, html_path: Path):
            f"• 활성 {s['active_people']}명 · 미해결 의사결정 {s['open_decisions']}건\n")
     if top_blockers:
         msg += "\n🔔 공통 블로커\n" + "\n".join(f"– {b}" for b in top_blockers[:3])
-    msg += f"\n\n📄 {html_path}"
+    # 폰에서 열리는 원격 URL(Tailscale). 로컬 파일 경로는 모바일에서 안 열림.
+    msg += "\n\n📄 https://macbookair.tail7739de.ts.net/dashboard"
     try:
         import urllib.request
         url = f"https://api.telegram.org/bot{MANAGER_BOT_TOKEN}/sendMessage"
@@ -696,6 +745,16 @@ def main():
     print(f"집계: {data['summary']['total_reports']}건 · {data['summary']['active_people']}명 "
           f"· 미매칭 {len(data['unmatched_names'])}")
     save_and_notify(data, args.open, args.no_telegram)
+
+    # ─── 팀별 주간(리더용) — slice_team_data로 LLM 재호출 0 ───
+    w = data["week"]
+    _dt = datetime.strptime(w["start"], "%Y-%m-%d")
+    yw = f'{_dt.isocalendar().year}-W{_dt.isocalendar().week:02d}'
+    for team in team_leads():
+        tdata = slice_team_data(data, team)
+        tpath = OUT_DIR / f"weekly-report-{yw}-{team}.html"
+        tpath.write_text(render_html(tdata), encoding="utf-8")
+        print(f"✅ [{team}] {tpath.name} (인원 {tdata['summary']['active_people']}, 보고 {tdata['summary']['total_reports']})")
 
 
 if __name__ == "__main__":

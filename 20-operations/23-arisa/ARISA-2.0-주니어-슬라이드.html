@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISA 2.0 — 쉽게 이해하기</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  :root{
+    --accent:#6C5CE7; --accent-deep:#4B3FC4; --accent-soft:#EFEDFC;
+    --ink:#1A1A2E; --ink-2:#55556E; --ink-3:#9A9AB2; --line:#E8E8F2;
+    --paper:#FBFBFE;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{font-family:'Pretendard',sans-serif; background:#0E0E1C; color:var(--ink);
+    -webkit-font-smoothing:antialiased; overflow:hidden;}
+
+  .deck{height:100vh; width:100vw;}
+  .slide{
+    position:absolute; inset:0; display:none;
+    padding:84px 96px; flex-direction:column;
+    background:var(--paper);
+  }
+  .slide.active{display:flex;}
+
+  /* 공통 헤더/바디 (slide-head 상단, slide-body 아래정렬) */
+  .head{flex:0 0 auto;}
+  .kicker{display:inline-block; font-size:18px; font-weight:700; letter-spacing:.04em;
+    color:var(--accent); background:var(--accent-soft); padding:8px 18px; border-radius:999px;}
+  .body{flex:1 1 auto; display:flex; flex-direction:column; justify-content:flex-end; padding-bottom:8px;}
+
+  h1{font-size:72px; line-height:1.18; letter-spacing:-.03em; font-weight:800;}
+  h2{font-size:54px; line-height:1.22; letter-spacing:-.03em; font-weight:800;}
+  .sub{font-size:26px; color:var(--ink-2); font-weight:500; margin-top:24px; line-height:1.5;}
+  .sub b{color:var(--accent-deep);}
+  em{font-style:normal; color:var(--accent);}
+  .big{font-size:30px; line-height:1.55; color:var(--ink-2); font-weight:500;}
+  .big b{color:var(--ink);}
+
+  /* 다크 슬라이드 */
+  .slide.dark{background:linear-gradient(140deg,#1A1633,#2A2155 60%,#4B3FC4);}
+  .slide.dark h1,.slide.dark h2{color:#fff;}
+  .slide.dark .sub{color:#C9C6EC;}
+  .slide.dark .sub b{color:#fff;}
+  .slide.dark em{color:#B9AEFF;}
+  .slide.dark .kicker{background:rgba(255,255,255,.14); color:#fff;}
+
+  /* 페이지 번호 + 진행바 */
+  .pageno{position:absolute; bottom:34px; right:48px; font-size:15px; color:var(--ink-3); font-weight:600;}
+  .slide.dark .pageno{color:rgba(255,255,255,.5);}
+  .brandtag{position:absolute; bottom:34px; left:96px; font-size:15px; color:var(--ink-3); font-weight:600; letter-spacing:.02em;}
+  .slide.dark .brandtag{color:rgba(255,255,255,.5);}
+
+  /* 카드/스텝 */
+  .row{display:flex; gap:22px; margin-top:8px;}
+  .card{flex:1; background:#fff; border:1.5px solid var(--line); border-radius:22px; padding:32px 30px;}
+  .slide.dark .card{background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.16);}
+  .card .num{font-size:20px; font-weight:800; color:var(--accent); }
+  .slide.dark .card .num{color:#B9AEFF;}
+  .card .t{font-size:30px; font-weight:800; margin:8px 0 10px;}
+  .slide.dark .card .t{color:#fff;}
+  .card .d{font-size:20px; color:var(--ink-2); line-height:1.5;}
+  .slide.dark .card .d{color:#C9C6EC;}
+  .card .ex{margin-top:16px; font-size:18px; color:var(--accent-deep); background:var(--accent-soft);
+    padding:12px 16px; border-radius:12px; line-height:1.45;}
+  .slide.dark .card .ex{color:#E6E2FF; background:rgba(255,255,255,.1);}
+
+  .arrow{display:flex; align-items:center; font-size:34px; color:var(--ink-3); font-weight:800;}
+
+  /* 비율 막대 (80/15/5) */
+  .bar{display:flex; height:90px; border-radius:18px; overflow:hidden; margin-top:8px; font-weight:800; color:#fff;}
+  .bar .seg{display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.25;}
+  .bar .m{background:var(--accent);} .bar .r{background:#9B8BF2;} .bar .c{background:#C9C2F5; color:var(--accent-deep);}
+  .bar .seg .pct{font-size:30px;} .bar .seg .lb{font-size:17px; font-weight:600; opacity:.95;}
+
+  .twolist{display:flex; gap:24px; margin-top:8px;}
+  .twolist .col{flex:1; background:#fff; border:1.5px solid var(--line); border-radius:22px; padding:34px 32px;}
+  .twolist .col h3{font-size:30px; font-weight:800; margin-bottom:6px;}
+  .twolist .col .who{font-size:18px; color:var(--accent); font-weight:700;}
+  .twolist .col p{font-size:21px; color:var(--ink-2); margin-top:18px; line-height:1.5;}
+
+  .three{display:flex; gap:20px; margin-top:8px;}
+  .three .t{flex:1; border-radius:22px; padding:30px 26px; background:#fff; border:1.5px solid var(--line);}
+  .three .t .when{font-size:22px; font-weight:800; color:var(--accent);}
+  .three .t .what{font-size:24px; font-weight:700; margin-top:10px; line-height:1.35;}
+  .three .t .det{font-size:18px; color:var(--ink-2); margin-top:12px; line-height:1.45;}
+
+  .hint{position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+    font-size:13px; color:rgba(255,255,255,.0); pointer-events:none;}
+
+  /* 채팅 말풍선 (사용법) */
+  .chat{display:flex; flex-direction:column; gap:14px; margin-top:6px;}
+  .msg{padding:16px 22px; border-radius:20px; font-size:21px; line-height:1.5; max-width:74%;}
+  .msg .lb{display:block; font-size:13px; font-weight:700; opacity:.55; margin-bottom:5px; letter-spacing:.02em;}
+  .msg.me{align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:6px;}
+  .msg.bot{align-self:flex-start; background:#fff; border:1.5px solid var(--line); border-bottom-left-radius:6px; color:var(--ink);}
+  .msg.bot .lb{color:var(--accent);}
+  .msg.note{align-self:center; background:var(--accent-soft); color:var(--accent-deep); font-size:18px; font-weight:600; max-width:84%; text-align:center; border-radius:14px;}
+
+  /* STEP 배지 */
+  .step{display:inline-flex; align-items:center; gap:10px; font-size:20px; font-weight:800; color:var(--accent); margin-bottom:6px;}
+  .step .no{display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background:var(--accent); color:#fff; font-size:19px;}
+
+  /* 결과 7섹션 미니 카드 */
+  .result{background:#fff; border:1.5px solid var(--line); border-radius:20px; padding:26px 30px; margin-top:6px;}
+  .result .title{font-size:22px; font-weight:800; color:var(--accent-deep); margin-bottom:14px;}
+  .result .line{font-size:20px; color:var(--ink-2); margin:7px 0; line-height:1.45;}
+  .result .line b{color:var(--ink);}
+  .result .refl{margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); font-size:19px; color:var(--accent-deep);}
+
+  /* BAD → GOOD 비교 */
+  .compare{display:flex; gap:22px; margin-top:8px; align-items:stretch;}
+  .compare .box{flex:1; border-radius:22px; padding:28px 30px; border:1.5px solid var(--line); background:#fff;}
+  .compare .box.bad{border-color:#E7B7AE; background:#FCF3F1;}
+  .compare .box.good{border-color:var(--accent); background:var(--accent-soft);}
+  .compare .lead{font-size:16px; font-weight:700; color:var(--ink-3); margin-bottom:10px; letter-spacing:.02em;}
+  .compare .tag{display:inline-block; font-size:15px; font-weight:800; padding:5px 14px; border-radius:999px; margin-bottom:14px;}
+  .compare .box.bad .tag{background:#F2C5BC; color:#B5472F;}
+  .compare .box.good .tag{background:var(--accent); color:#fff;}
+  .compare .q{font-size:20px; line-height:1.55; color:var(--ink); font-weight:500;}
+  .compare .q.dim{color:var(--ink-2);}
+  .compare .q b{color:var(--accent-deep);}
+  .compare .mid{display:flex; align-items:center; font-size:30px; color:var(--ink-3); font-weight:800;}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1 표지 -->
+  <section class="slide dark active">
+    <div class="head"><span class="kicker">ARISA 2.0 · 쉽게 이해하기</span></div>
+    <div class="body">
+      <h1>ARISA는<br>업무보고 봇이 <em>아닙니다.</em></h1>
+      <p class="sub">ARISA는 <b>내 생각을 비춰주는 거울</b>입니다.<br>보고는 목적이 아니라, 생각을 정리하는 도구예요.</p>
+    </div>
+    <div class="brandtag">by Project Rent</div>
+    <div class="pageno">01 / 21</div>
+  </section>
+
+  <!-- 2 문제 -->
+  <section class="slide">
+    <div class="head"><span class="kicker">왜 필요할까?</span></div>
+    <div class="body">
+      <h2>지금 우리 보고는<br>대부분 “<em>한 일 목록</em>”이에요.</h2>
+      <p class="big" style="margin-top:28px">
+        “경쟁사 조사함 · 회의 참석 · 자료 정리함”<br>
+        <b>→ 그런데 뭘 발견했는지, 그게 왜 중요한지는 빠져 있어요.</b>
+      </p>
+    </div>
+    <div class="brandtag">ARISA 2.0</div>
+    <div class="pageno">02 / 21</div>
+  </section>
+
+  <!-- 3 핵심 개념: 거울 -->
+  <section class="slide dark">
+    <div class="head"><span class="kicker">핵심 개념</span></div>
+    <div class="body">
+      <h2>ARISA는 <em>시험관</em>이 아니라<br><em>거울</em>입니다.</h2>
+      <p class="sub">틀렸다고 고치지 않아요. 그냥 <b>당신의 생각을 또렷하게 비춰</b>줄 뿐.<br>
+        그러면 스스로 “아, 내가 이런 생각을 하고 있었구나” 하고 알게 돼요.</p>
+    </div>
+    <div class="brandtag">교정(X) → 가시화(O)</div>
+    <div class="pageno">03 / 21</div>
+  </section>
+
+  <!-- 4 좋은 보고 3요소 (가장 중요) -->
+  <section class="slide">
+    <div class="head"><span class="kicker">⭐ 가장 중요한 것 — 좋은 보고의 3요소</span></div>
+    <div class="body">
+      <div class="row">
+        <div class="card">
+          <div class="num">1</div><div class="t">한 일</div>
+          <div class="d">내가 무엇을 했나</div>
+          <div class="ex">운영 매뉴얼을 다시 정리했다</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="card">
+          <div class="num">2 · Output</div><div class="t">만든 것</div>
+          <div class="d">그래서 무엇을 생산했나</div>
+          <div class="ex">‘PM 관점·결과 중심’으로 재구조화한 매뉴얼</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="card" style="border-color:var(--accent);">
+          <div class="num">3 · Outcome</div><div class="t">달라진 것</div>
+          <div class="d">그래서 무엇이 바뀌었나</div>
+          <div class="ex">누가·언제·무엇을 하는지 <b>책임이 명확</b>해졌다</div>
+        </div>
+      </div>
+      <p class="big" style="margin-top:30px"><b>‘했다’로 끝내지 말고, ‘그래서 뭐가 달라졌나’까지.</b></p>
+    </div>
+    <div class="brandtag">Task → Output → Outcome</div>
+    <div class="pageno">04 / 21</div>
+  </section>
+
+  <!-- 5 + 대표가 볼 두 가지 -->
+  <section class="slide">
+    <div class="head"><span class="kicker">여기에 두 가지만 더</span></div>
+    <div class="body">
+      <div class="twolist">
+        <div class="col" style="border-color:var(--accent);">
+          <div class="who">🟥 윗사람에게</div>
+          <h3>필요한 결정</h3>
+          <p>“대표님/팀장님이 <b>무엇을 정해주면</b> 제가 다음으로 갈 수 있어요.”</p>
+        </div>
+        <div class="col">
+          <div class="who">🟦 내가 필요한 것</div>
+          <h3>필요한 지원</h3>
+          <p>“이걸 하려면 <b>이런 도움·자료</b>가 필요해요.” (막힌 것과는 다름)</p>
+        </div>
+      </div>
+      <p class="big" style="margin-top:28px">이 둘이 있으면 <b>대표는 ‘그래서 내가 뭘 하면 되지?’</b>를 바로 알아요.</p>
+    </div>
+    <div class="brandtag">Decision · Support</div>
+    <div class="pageno">05 / 21</div>
+  </section>
+
+  <!-- 6 ARISA가 일하는 법 (80/15/5) -->
+  <section class="slide dark">
+    <div class="head"><span class="kicker">ARISA가 일하는 방식</span></div>
+    <div class="body">
+      <h2>대부분 <em>정리</em>해주고,<br>아주 가끔만 <em>질문</em>해요.</h2>
+      <div class="bar">
+        <div class="seg m" style="flex:80"><span class="pct">80%</span><span class="lb">거울 · 정리</span></div>
+        <div class="seg r" style="flex:15"><span class="pct">15%</span><span class="lb">살짝 질문</span></div>
+        <div class="seg c" style="flex:5"><span class="pct">5%</span><span class="lb">코칭</span></div>
+      </div>
+      <p class="sub" style="margin-top:26px">질문은 <b>하루 최대 3개</b>. 부족한 부분만 콕 짚어요.<br>“또 질문해?” 하는 피로 없이, 자연스럽게 좋은 보고를 배우게 됩니다.</p>
+    </div>
+    <div class="brandtag">Mirror 80 · Reflector 15 · Coach 5</div>
+    <div class="pageno">06 / 21</div>
+  </section>
+
+  <!-- 7 두 사용자 -->
+  <section class="slide">
+    <div class="head"><span class="kicker">누가 쓰나요?</span></div>
+    <div class="body">
+      <div class="twolist">
+        <div class="col">
+          <div class="who">직원</div>
+          <h3>좋은 보고를 배운다</h3>
+          <p>내 말이 어떻게 정리되는지 매일 보면서, <b>생각하는 법</b>이 늘어요.</p>
+        </div>
+        <div class="col" style="border-color:var(--accent);">
+          <div class="who">대표 · 팀장</div>
+          <h3>조직을 한눈에 본다</h3>
+          <p>보고가 아니라 <b>“오늘 뭘 결정해야 하나”</b>를 본다.</p>
+        </div>
+      </div>
+      <p class="big" style="margin-top:28px">직원은 <b>사고를 정리</b>하고, 대표는 <b>조직을 읽어요.</b></p>
+    </div>
+    <div class="brandtag">Employee · Executive</div>
+    <div class="pageno">07 / 21</div>
+  </section>
+
+  <!-- 8 세 시간축 -->
+  <section class="slide">
+    <div class="head"><span class="kicker">세 개의 시간으로 쌓여요</span></div>
+    <div class="body">
+      <div class="three">
+        <div class="t"><div class="when">오늘 (Daily)</div><div class="what">좋은 보고</div><div class="det">오늘 한 일을 또렷하게 정리</div></div>
+        <div class="t"><div class="when">이번 주 (Weekly)</div><div class="what">맥락과 성장</div><div class="det">내가 이번 주 뭘 했는지 보임</div></div>
+        <div class="t" style="border-color:var(--accent);"><div class="when">이번 달 (Monthly)</div><div class="what">성장 기록</div><div class="det">한 달 쌓이면 ‘성장 데이터’가 됨</div></div>
+      </div>
+      <p class="big" style="margin-top:30px">하루는 <b>보고</b>지만, 한 달이 쌓이면 <b>나의 성장 기록</b>이 됩니다.</p>
+    </div>
+    <div class="brandtag">Daily · Weekly · Monthly</div>
+    <div class="pageno">08 / 21</div>
+  </section>
+
+  <!-- 9 마무리 -->
+  <section class="slide dark">
+    <div class="head"><span class="kicker">한 줄로 기억하기</span></div>
+    <div class="body">
+      <h2>생각이 쌓이면,<br>성장은 <em>저절로</em> 따라와요.</h2>
+      <p class="sub">ARISA는 가르치려 들지 않아요. 그저 거울처럼 비춰줄 뿐.<br>
+        <b>지금은 텔레그램 일일보고부터 시작했어요.</b> (거울이 작동 중 ✓)</p>
+    </div>
+    <div class="brandtag">ARISA 2.0 · by Project Rent</div>
+    <div class="pageno">09 / 21</div>
+  </section>
+
+  <!-- 10 사용법 섹션 표지 -->
+  <section class="slide dark">
+    <div class="head"><span class="kicker">이제, 직접 써볼까요?</span></div>
+    <div class="body">
+      <h1>텔레그램으로<br><em>3분</em>이면 끝나요.</h1>
+      <p class="sub">앱 따로 없어요. <b>평소 쓰는 텔레그램에서 대화하듯</b> 보고하면<br>ARISA가 알아서 정리해줍니다.</p>
+    </div>
+    <div class="brandtag">사용법 · How to use</div>
+    <div class="pageno">10 / 21</div>
+  </section>
+
+  <!-- 11 STEP 1 시작 -->
+  <section class="slide">
+    <div class="head"><span class="step"><span class="no">1</span> 보고 시작하기</span></div>
+    <div class="body">
+      <div class="chat">
+        <div class="msg me"><span class="lb">나</span>/report</div>
+        <div class="msg bot"><span class="lb">ARISA</span>업무 보고를 시작할게요! 먼저 이름 / 팀 / 역할을 알려주세요 🙂</div>
+        <div class="msg me"><span class="lb">나</span>Emma / 기획팀 / 기획자</div>
+      </div>
+      <p class="big" style="margin-top:24px">봇에게 <b>/report</b> 만 보내면 시작. 이름·팀은 처음 한 번만.</p>
+    </div>
+    <div class="brandtag">STEP 1</div>
+    <div class="pageno">11 / 21</div>
+  </section>
+
+  <!-- 12 STEP 2 오늘 한 일 나열 -->
+  <section class="slide">
+    <div class="head"><span class="step"><span class="no">2</span> 오늘 한 일을 그냥 쭉 말해요</span></div>
+    <div class="body">
+      <div class="chat">
+        <div class="msg me"><span class="lb">나</span>회의록 보고 기획안 만들어 대표님께 드렸고, 매뉴얼을 ‘PM 관점·결과 중심’으로 다시 짰어요. 냅킨매거진 인스타 3개 컨셉 재기획하고 부산커피위크 리뷰, 카드뉴스 구조화도 했어요.</div>
+        <div class="msg bot"><span class="lb">ARISA</span>정리하면요 👇<br>① 회의록 기반 기획안 작성·제출 [기획]<br>② 매뉴얼 PM·결과중심 재구조화 [기획]<br>③ 냅킨매거진 인스타 3개 컨셉 재기획 [기획]<br>④ 부산커피위크 리뷰 · 카드뉴스 구조화 [실행]<br>맞으면 ‘맞아’라고 해주세요!</div>
+        <div class="msg me"><span class="lb">나</span>맞아</div>
+      </div>
+      <p class="big" style="margin-top:20px"><b>순서·형식 신경 안 써도 돼요.</b> 쏟아내면 ARISA가 분류·정리합니다.</p>
+    </div>
+    <div class="brandtag">STEP 2</div>
+    <div class="pageno">12 / 21</div>
+  </section>
+
+  <!-- 13 STEP 3 ARISA의 질문 -->
+  <section class="slide dark">
+    <div class="head"><span class="step" style="color:#fff"><span class="no" style="background:#fff;color:var(--accent-deep)">3</span> ARISA가 1~3개만 물어봐요</span></div>
+    <div class="body">
+      <div class="chat">
+        <div class="msg bot"><span class="lb">ARISA</span>거의 다 됐어요! 두 가지만요 🙂<br>① 매뉴얼을 PM 관점으로 다시 짰는데, <b>그래서 무엇이 나아졌나요?</b><br>② 대표님께 드린 기획안, <b>무엇을 결정</b>해주시면 다음으로 갈 수 있나요?</div>
+        <div class="msg me"><span class="lb">나</span>매뉴얼은 ‘누가 언제 뭘 하는지’ 책임이 명확해졌어요. 기획안은 냅킨매거진 인스타 방향을 확정해주시면 돼요.</div>
+        <div class="msg note">생각 안 나면 ‘패스’라고 해도 괜찮아요</div>
+      </div>
+      <p class="sub" style="margin-top:22px">‘했다’까지만 적힌 보고에서 <b>빠진 의미·결정</b>만 콕 짚어요. <b>하루 최대 3개.</b></p>
+    </div>
+    <div class="brandtag">STEP 3 · 거울이 비추는 순간</div>
+    <div class="pageno">13 / 21</div>
+  </section>
+
+  <!-- 14 STEP 4 결과 -->
+  <section class="slide">
+    <div class="head"><span class="step"><span class="no">4</span> 정리본이 ‘나에게’ 와요</span></div>
+    <div class="body">
+      <div class="result">
+        <div class="title">🪞 ARISA가 정리한 오늘의 보고 — Emma (기획팀) · 06-12</div>
+        <div class="line"><b>한 일</b> · 운영 매뉴얼을 ‘PM 관점·결과 중심’으로 재구조화</div>
+        <div class="line"><b>만든 것(Output)</b> · 재구조화된 운영 매뉴얼</div>
+        <div class="line"><b>달라진 것(Outcome)</b> · 누가·언제·무엇을 하는지 책임이 명확해짐</div>
+        <div class="line"><b>필요한 결정</b> · 냅킨매거진 인스타 방향 확정 (대표)</div>
+        <div class="line"><b>다음 할 일</b> · (월) 지혜님과 부산커피위크 매뉴얼 미팅 · 나리팀장 가이드 제작</div>
+        <div class="refl">👍 실행량 많고 산출물이 분명함 · ➡️ 다음엔 업무마다 ‘그래서 달라진 점’ 한 줄씩</div>
+      </div>
+      <p class="big" style="margin-top:18px">관리자에게만 가는 게 아니라 <b>나도 똑같이 받아요.</b> 이게 핵심이에요.</p>
+    </div>
+    <div class="brandtag">STEP 4 · 내 말이 이렇게 정리되는구나</div>
+    <div class="pageno">14 / 21</div>
+  </section>
+
+  <!-- 15 마무리 팁 -->
+  <section class="slide dark">
+    <div class="head"><span class="kicker">딱 이것만 기억하세요</span></div>
+    <div class="body">
+      <h2>완벽하게 안 써도 돼요.<br>ARISA가 <em>도와줘요.</em></h2>
+      <p class="sub">보고할 때 이 두 가지만 떠올리면 충분합니다 👇<br><br>
+        <b>“그래서 내가 뭘 발견했지?”</b> &nbsp;·&nbsp; <b>“그래서 뭐가 달라졌지?”</b><br>
+        나머지는 ARISA가 정리하고, 매일 보다 보면 저절로 늘어요.</p>
+    </div>
+    <div class="brandtag">ARISA 2.0 · by Project Rent</div>
+    <div class="pageno">15 / 21</div>
+  </section>
+
+  <!-- 16 PART 2 디바이더 -->
+  <section class="slide dark">
+    <div class="head"><span class="kicker">PART 2 · 심화</span></div>
+    <div class="body">
+      <h1>좋은 보고는<br>어떻게 <em>만들어지나</em>요?</h1>
+      <p class="sub">개념은 충분히 봤어요. 이제 ARISA가 어떻게 일하는지,<br>그리고 <b>‘좋은 보고’가 실제로 어떤 모습인지</b> 예시로 익혀볼게요.</p>
+    </div>
+    <div class="brandtag">PART 2 · The Craft of Reporting</div>
+    <div class="pageno">16 / 21</div>
+  </section>
+
+  <!-- 17 ARISA가 일하는 법 -->
+  <section class="slide">
+    <div class="head"><span class="kicker">ARISA가 일하는 법</span></div>
+    <div class="body">
+      <div class="row">
+        <div class="card">
+          <div class="num">STEP A</div><div class="t">그대로 받기</div>
+          <div class="d">당신이 말한 <b>원문 그대로</b> 저장해요. 손대지 않아요.</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="card">
+          <div class="num">STEP B · 질문</div><div class="t">부족한 곳만</div>
+          <div class="d">빠진 부분이 있으면 <b>최대 3개만</b> 콕 짚어 물어요.</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="card" style="border-color:var(--accent);">
+          <div class="num">STEP C · 정리</div><div class="t">구조로 비추기</div>
+          <div class="d">한 일·만든 것·달라진 것으로 <b>구조화</b>해 돌려줘요.</div>
+        </div>
+      </div>
+      <p class="big" style="margin-top:30px">고치는 게 아니라 <b>비추는 거예요.</b> 80%는 정리, 15%만 질문, 5%만 코칭.</p>
+    </div>
+    <div class="brandtag">받기 → 질문(Engine B) → 구조화(Engine C)</div>
+    <div class="pageno">17 / 21</div>
+  </section>
+
+  <!-- 18 제3자 재현가능성 -->
+  <section class="slide dark">
+    <div class="head"><span class="kicker">좋은 보고의 단 하나의 기준</span></div>
+    <div class="body">
+      <h2>“제3자가 이 보고만 보고<br><em>다음 행동</em>을 할 수 있는가?”</h2>
+      <p class="sub">내가 옆에 없어도, 이 보고만으로 누군가 <b>다음 액션이나 결정</b>을 할 수 있다면<br>그게 좋은 보고예요. 못 한다면 — 무언가 빠진 거예요.</p>
+    </div>
+    <div class="brandtag">기준 · 제3자 재현가능성</div>
+    <div class="pageno">18 / 21</div>
+  </section>
+
+  <!-- 19 ARISA 3원칙 (fidelity) -->
+  <section class="slide">
+    <div class="head"><span class="kicker">ARISA가 지키는 3원칙</span></div>
+    <div class="body">
+      <div class="three">
+        <div class="t"><div class="when">원칙 1</div><div class="what">축약하지 않아요</div><div class="det">정리는 ‘짧게’가 아니라 <b>또렷하게</b>. 핵심을 빼지 않아요.</div></div>
+        <div class="t"><div class="when">원칙 2</div><div class="what">지어내지 않아요</div><div class="det">당신이 말 안 한 건 <b>비워둬요</b>. 추측으로 채우지 않아요.</div></div>
+        <div class="t" style="border-color:var(--accent);"><div class="when">원칙 3</div><div class="what">원문을 남겨요</div><div class="det">당신의 <b>말 그대로</b>도 함께 보관해요. 나중에 대조하도록.</div></div>
+      </div>
+      <p class="big" style="margin-top:30px">그래서 ARISA의 정리는 <b>믿을 수 있어요.</b> 왜곡 없는 거울이니까요.</p>
+    </div>
+    <div class="brandtag">구조화≠축약 · 추측금지 · 원문보존</div>
+    <div class="pageno">19 / 21</div>
+  </section>
+
+  <!-- 20 BAD → GOOD ① 서술 -->
+  <section class="slide">
+    <div class="head"><span class="kicker">예시 ① — ‘했다’를 넘어서</span></div>
+    <div class="body">
+      <div class="compare">
+        <div class="box bad">
+          <span class="tag">BAD</span>
+          <div class="lead">막연한 보고</div>
+          <div class="q dim">“경쟁사 조사하고,<br>자료 정리했어요.”</div>
+          <p class="big" style="font-size:18px; margin-top:16px; color:var(--ink-2)">→ 뭘 발견했는지, 그래서 뭐가 달라졌는지 알 수 없어요.</p>
+        </div>
+        <div class="mid">→</div>
+        <div class="box good">
+          <span class="tag">GOOD</span>
+          <div class="lead">재현 가능한 보고</div>
+          <div class="q">“경쟁사 5곳을 가격·톤·후기로 <b>비교표</b>를 만들었어요(만든 것).<br>우리만 ‘가격 중간 · 톤 고급’ 빈자리가 보였고(발견),<br>그래서 다음 캠페인 방향을 거기로 좁혔어요(<b>달라진 것</b>).”</div>
+        </div>
+      </div>
+      <p class="big" style="margin-top:24px"><b>한 일 → 만든 것 → 달라진 것.</b> 이 세 박자만 있으면 돼요.</p>
+    </div>
+    <div class="brandtag">예시 ① · Task → Output → Outcome</div>
+    <div class="pageno">20 / 21</div>
+  </section>
+
+  <!-- 21 BAD → GOOD ② 결정 + 클로징 -->
+  <section class="slide">
+    <div class="head"><span class="kicker">예시 ② — 결정을 끌어내는 보고</span></div>
+    <div class="body">
+      <div class="compare">
+        <div class="box bad">
+          <span class="tag">BAD</span>
+          <div class="lead">모호한 요청</div>
+          <div class="q dim">“매장 건은 검토가<br>좀 필요할 것 같아요.”</div>
+          <p class="big" style="font-size:18px; margin-top:16px; color:var(--ink-2)">→ 무엇을, 누가, 어떻게 정해야 하는지 안 보여요.</p>
+        </div>
+        <div class="mid">→</div>
+        <div class="box good">
+          <span class="tag">GOOD</span>
+          <div class="lead">결정을 끌어내는 보고</div>
+          <div class="q">“지하 공간을 <b>A안(전체 활용)</b>·<b>B안(절반만)</b>으로 정리했어요.<br>비용·회수기간은 표로 첨부했고(만든 것),<br>대표님이 <b>A/B 중 하나만 정해주시면</b> 다음 설계로 갑니다(필요한 결정).”</div>
+        </div>
+      </div>
+      <p class="big" style="margin-top:24px">완벽하게 말 안 해도 괜찮아요. <b>ARISA가 3개만 묻고, 핵심은 솔직한 원문이에요.</b></p>
+    </div>
+    <div class="brandtag">예시 ② · Decision Needed</div>
+    <div class="pageno">21 / 21</div>
+  </section>
+
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  function show(n){
+    i = Math.max(0, Math.min(slides.length-1, n));
+    slides.forEach((s,idx)=>s.classList.toggle('active', idx===i));
+  }
+  document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){ show(i+1); e.preventDefault(); }
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ show(i-1); e.preventDefault(); }
+    if(e.key==='Home'){ show(0); } if(e.key==='End'){ show(slides.length-1); }
+  });
+  document.addEventListener('click', e=>{
+    const x = e.clientX / window.innerWidth;
+    show(x > 0.5 ? i+1 : i-1);
+  });
+  show(0);
+</script>
+</body>
+</html>

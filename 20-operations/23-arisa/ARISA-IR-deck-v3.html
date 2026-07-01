@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISA — IR Deck v3 (R Design System)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root{
+    --bg:#1A1A1A; --bg-2:#111; --bg-3:#222; --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+    --line:#333; --line-2:#2a2a2a; --accent:#6C5CE7; --accent-light:#A29BFE;
+    --green:#8FA37E; --amber:#D9A34B; --red:#E17055; --blue:#6F8AA3;
+    --ease:cubic-bezier(.2,.8,.2,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+    background:#000;color:var(--fg);font-weight:300;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;overflow:hidden;}
+  .deck{height:100vh;width:100vw;}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;
+    background:var(--bg);padding:60px 80px 78px;}
+  .slide.active{display:flex;}
+  .slide.peak{background:var(--bg-2);}
+  .slide.cover{background:var(--bg-2);justify-content:center;}
+
+  /* head */
+  .slide-head{flex-shrink:0;}
+  .sec-head{display:flex;justify-content:space-between;align-items:baseline;
+    padding-bottom:18px;border-bottom:1px solid var(--line-2);margin-bottom:26px;}
+  .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;font-weight:400;}
+  h2{font-size:40px;font-weight:500;letter-spacing:-.025em;line-height:1.18;color:var(--fg);text-wrap:balance;}
+  h2 .ac{color:var(--accent);}
+  .sub{font-size:15px;font-weight:300;line-height:1.7;color:var(--fg-2);margin-top:16px;max-width:62ch;}
+  .sub b{color:var(--fg);font-weight:500;}
+
+  .slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;}
+  .slide-footer{position:absolute;bottom:30px;left:80px;right:80px;display:flex;justify-content:space-between;
+    font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;border-top:1px solid var(--line-2);padding-top:13px;}
+
+  /* cover */
+  .cover h1{font-size:104px;font-weight:200;letter-spacing:-.04em;line-height:.95;color:var(--fg);}
+  .cover .slogan{font-size:22px;font-weight:300;color:var(--fg-2);margin-top:28px;line-height:1.5;}
+  .cover .slogan b{color:var(--fg);font-weight:500;}
+  .cover .quote{font-size:14px;color:var(--fg-3);margin-top:22px;letter-spacing:.01em;}
+  .cover .meta{position:absolute;bottom:50px;left:80px;font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;}
+
+  /* lists */
+  ul.pts{list-style:none;}
+  ul.pts li{font-size:16px;font-weight:300;line-height:1.6;color:var(--fg-2);padding:9px 0 9px 22px;position:relative;}
+  ul.pts li::before{content:"—";position:absolute;left:0;color:var(--fg-3);}
+  ul.pts li b{color:var(--fg);font-weight:500;}
+
+  /* cards (bg-3, 직각, 절제) */
+  .grid{display:grid;gap:14px;margin-top:6px;}
+  .g3{grid-template-columns:repeat(3,1fr);} .g4{grid-template-columns:repeat(4,1fr);} .g2{grid-template-columns:repeat(2,1fr);}
+  .card{background:var(--bg-3);border:1px solid var(--line-2);padding:24px;}
+  .card .cl{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px;}
+  .card .cv{font-size:16px;font-weight:300;line-height:1.55;color:var(--fg-2);} .card .cv b{color:var(--fg);font-weight:500;}
+  .card .val{font-size:12px;color:var(--green);margin-top:12px;padding-top:11px;border-top:1px solid var(--line-2);letter-spacing:.01em;}
+
+  /* KPI / hero numbers */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:24px;text-align:center;}
+  .kpi .v{font-size:36px;font-weight:200;line-height:1.1;letter-spacing:-.02em;color:var(--fg);}
+  .kpi .v.ac{color:var(--accent);} .kpi .v.am{color:var(--amber);}
+  .kpi .l{font-size:11px;color:var(--fg-3);margin-top:8px;line-height:1.4;}
+
+  /* problem chain */
+  .chain{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+  .lk{background:var(--bg-3);border:1px solid var(--line-2);padding:18px 16px;}
+  .lk .s{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;}
+  .lk .x{font-size:15px;font-weight:300;color:var(--fg-2);margin-top:8px;line-height:1.45;}
+  .lk.end{border-color:rgba(225,112,85,.4);} .lk.end .x{color:var(--red);}
+
+  /* steps (experience) */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .stp{background:var(--bg-3);border:1px solid var(--line-2);padding:18px 16px;}
+  .stp .n{font-size:11px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;}
+  .stp .t{font-size:15px;font-weight:300;color:var(--fg-2);margin-top:7px;line-height:1.45;} .stp .t b{color:var(--fg);font-weight:500;}
+
+  /* callout */
+  .callout{background:rgba(108,92,231,.08);border-left:3px solid var(--accent);padding:18px 22px;margin-top:16px;}
+  .callout p{font-size:15px;color:var(--fg-2);line-height:1.6;} .callout strong{color:var(--accent-light);font-weight:500;}
+
+  /* table */
+  table.u{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px;}
+  table.u th{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:10px 12px 13px;font-weight:400;border-bottom:1px solid var(--line-2);}
+  table.u td{padding:12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);font-weight:300;}
+  table.u td:first-child{color:var(--fg);font-weight:500;}
+
+  /* positioning map */
+  .pos{position:relative;height:300px;background:var(--bg-3);border:1px solid var(--line-2);margin-top:6px;}
+  .pos .ax{position:absolute;left:20px;right:20px;bottom:34px;border-top:1px dashed var(--line);}
+  .pos .ay{position:absolute;top:18px;bottom:18px;left:54px;border-left:1px dashed var(--line);}
+  .pos .lb{position:absolute;font-size:10px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;}
+  .pos .dot{position:absolute;transform:translate(-50%,50%);text-align:center;}
+  .pos .dot .d{width:9px;height:9px;border-radius:50%;background:var(--fg-3);margin:0 auto 6px;}
+  .pos .dot .nm{font-size:12px;color:var(--fg-3);font-weight:300;}
+  .pos .dot.us .d{width:14px;height:14px;background:var(--accent);}
+  .pos .dot.us .nm{color:var(--accent-light);font-weight:500;}
+
+  .note{font-size:11px;color:var(--amber);letter-spacing:.02em;margin-top:14px;}
+  .ph{color:var(--amber);}
+
+  @media(max-width:1000px){.slide{padding:36px 28px 64px;}.cover h1{font-size:54px;}h2{font-size:26px;}.g3,.g4,.g2,.chain,.steps,.kpis{grid-template-columns:1fr;}.slide-footer{left:28px;right:28px;}}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 1 Cover -->
+<section class="slide cover active">
+  <h1>ARISA</h1>
+  <p class="slogan"><b>조직의 학습 속도를 측정·가속하는 운영체제</b><br>Organizational Learning Operating System</p>
+  <p class="quote">"좋은 직원을 뽑는 시대는 끝났다. 좋은 직원을 더 빠르게 성장시키는 조직이 승리한다."</p>
+  <div class="meta">By Project Rent · IR Deck v3</div>
+</section>
+
+<!-- 2 Big Shift -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Why Now — Big Shift</span><span class="eyebrow">02</span></div>
+    <h2>경쟁력의 축이 노동 → 정보 → <span class="ac">학습 속도</span>로 이동했다</h2>
+    <p class="sub">AI 도구는 폭증했지만 조직이 <b>배우는 방식</b>은 산업시대에 멈춰 있다. 바뀌어야 할 것은 도구가 아니라 운영체제다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card"><div class="cl">산업시대</div><div class="cv"><b>노동</b><br>얼마나 많이 일하나</div></div>
+      <div class="card"><div class="cl">정보시대</div><div class="cv"><b>정보</b><br>얼마나 많이 아나</div></div>
+      <div class="card"><div class="cl">AI 시대</div><div class="cv"><b>학습 속도</b><br>얼마나 빨리 배우나</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>02 / 19</span></div>
+</section>
+
+<!-- 3 Problem -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Problem</span><span class="eyebrow">03</span></div>
+    <h2>조직은 능력이 아니라 <span class="ac">사고가 전달되지 않아서</span> 성장하지 못한다</h2>
+    <p class="sub">매출·업무량·출근은 측정해도 — 질문 수준·사고 성장·조직 이해도는 어느 회사도 측정하지 못한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="chain">
+      <div class="lk"><div class="s">현상</div><div class="x">보고가 '한 일 나열'에 그친다</div></div>
+      <div class="lk"><div class="s">원인</div><div class="x">대표→팀장→실무자→실행, 이해가 매 단계 어긋난다</div></div>
+      <div class="lk"><div class="s">구조</div><div class="x">이 Define Cost(오해 비용)를 아무도 측정 못 한다</div></div>
+      <div class="lk end"><div class="s">결과</div><div class="x">교육해도 성장은 느리고, 같은 학습이 반복된다</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>03 / 19</span></div>
+</section>
+
+<!-- 4 Stakes -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">The Stakes — 방치의 대가</span><span class="eyebrow">04</span></div>
+    <h2>측정하지 못하는 비용이 가장 비싼 비용이다</h2>
+    <p class="sub">조직이 커질수록 Define Cost는 기하급수로 늘지만, 비용으로 잡히지 않으니 아무도 손대지 않는다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="kpis">
+      <div class="kpi"><div class="v am">3–12개월</div><div class="l">신입 1명 적응 기간 (사고 전달 지연)</div></div>
+      <div class="kpi"><div class="v am">[확인]</div><div class="l">반복 학습·재작업 시간 비용</div></div>
+      <div class="kpi"><div class="v am">[확인]</div><div class="l">지시 오해로 인한 의사결정 지연</div></div>
+    </div>
+    <p class="note">⚠ 정량 수치 = 확인 필요 — 내부 실측/벤치마크로 산정</p>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>04 / 19</span></div>
+</section>
+
+<!-- 5 Why Now -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Why Now</span><span class="eyebrow">05</span></div>
+    <h2>지금이 유일한 타이밍인 세 가지 이유</h2>
+    <p class="sub">기술·시장·행동이 처음으로 동시에 정렬됐다. 먼저 데이터를 쌓는 쪽이 카테고리를 가진다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card"><div class="cl">기술</div><div class="cv">LLM이 비로소 <b>'사고를 구조화'</b>할 수준 도달 — 보고를 번역·해석 가능</div></div>
+      <div class="card"><div class="cl">시장</div><div class="cv">모두 'AI 도입'은 했지만 <b>'AI 시대 조직 운영'</b>은 미해결</div></div>
+      <div class="card"><div class="cl">행동</div><div class="cv">직원은 이미 텔레그램·챗으로 <b>매일 소통</b> — 새 행동 강요 없이 데이터 수집</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>05 / 19</span></div>
+</section>
+
+<!-- 6 Solution -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Solution</span><span class="eyebrow">06</span></div>
+    <h2>ARISA는 보고를 인터페이스로 조직의 사고를 운영한다</h2>
+    <p class="sub">ARISA는 업무보고 봇이 아니다. 직원의 사고를 번역·구조화해 스스로 자신의 사고를 보게(거울) 만들고, 대표는 그 데이터로 조직의 상태와 학습 속도를 읽는다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card"><div class="cl">직원에게</div><div class="cv">좋은 보고 → 좋은 사고 <b>(반복 노출로 성장)</b></div></div>
+      <div class="card"><div class="cl">대표에게</div><div class="cv">흩어진 보고 → <b>의사결정 가능한 인사이트</b></div></div>
+      <div class="card"><div class="cl">조직에게</div><div class="cv">매일의 사고가 <b>학습 데이터로 축적</b></div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>06 / 19</span></div>
+</section>
+
+<!-- 7 Service Concept -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Service Concept</span><span class="eyebrow">07</span></div>
+    <h2>하나의 시스템에 세 시스템이 결합된다</h2>
+    <p class="sub">세 시스템을 잇는 단 하나의 개념 — <span style="color:var(--accent-light)">사고 해상도(Thinking Resolution)</span>. 흐릿한 보고를 또렷한 사고로 끌어올린다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card"><div class="cl">① Reporting</div><div class="cv">보고를 구조화해 <b>좋은 보고</b>를 만든다</div><div class="val">→ 사고가 또렷해진다</div></div>
+      <div class="card"><div class="cl">② Decision Support</div><div class="cv">대표가 결정할 것을 <b>정리·정렬</b>한다</div><div class="val">→ 결정이 빨라진다</div></div>
+      <div class="card"><div class="cl">③ Org. Growth</div><div class="cv">성장 패턴을 <b>축적·측정</b>한다</div><div class="val">→ 학습이 가속된다</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>07 / 19</span></div>
+</section>
+
+<!-- 8 How it works -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">How It Works — 구성요소</span><span class="eyebrow">08</span></div>
+    <h2>입력(Telegram) → 5개 엔진 → 직원 피드백 + 대표 인사이트</h2>
+    <p class="sub">엔진은 fidelity 규칙(추측 금지·원문 보존)으로 작동 — 거울이 왜곡되지 않는다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g4" style="margin-bottom:12px">
+      <div class="card"><div class="cl">A · Parser</div><div class="cv">직원·프로젝트·보고유형 식별</div></div>
+      <div class="card"><div class="cl">B · Completion</div><div class="cv">부족분만 질문(거울)·더미 차단</div></div>
+      <div class="card"><div class="cl">C · Structuring</div><div class="cv">Task·Output·Outcome·Decision·Reflection</div></div>
+      <div class="card"><div class="cl">D · Decision</div><div class="cv">대표용 의사결정 추출·정렬</div></div>
+    </div>
+    <div class="grid g2">
+      <div class="card"><div class="cl">E · Growth</div><div class="cv">사고 성장 6지표 축적</div></div>
+      <div class="card"><div class="cl">데이터 적층</div><div class="cv">모든 결과가 <b>Thinking Data Log</b>로 쌓여 Weekly·Monthly·3.0 측정의 원천 (화면보다 데이터 먼저)</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>08 / 19</span></div>
+</section>
+
+<!-- 9 직원 가치 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Value — 직원 경험</span><span class="eyebrow">09</span></div>
+    <h2>직원은 질문받지 않아도 좋은 보고를 체득한다</h2>
+  </div>
+  <div class="slide-body">
+    <div class="steps" style="margin-bottom:18px">
+      <div class="stp"><div class="n">Step 1</div><div class="t">평소처럼 보고</div></div>
+      <div class="stp"><div class="n">Step 2</div><div class="t">빠진 핵심만 <b>≤3개 질문</b></div></div>
+      <div class="stp"><div class="n">Step 3</div><div class="t">7섹션 정리본 + Reflection을 <b>본인도</b> 받음</div></div>
+      <div class="stp"><div class="n">Step 4</div><div class="t">"내 말이 이렇게 정리되는구나" 반복 학습</div></div>
+    </div>
+    <ul class="pts">
+      <li>성장은 강요가 아니라 거울 앞에서 일어난다 → <b>도입 저항이 낮다</b></li>
+      <li>좋은 보고 = 좋은 사고. 직원의 문제 정의·의사결정 능력이 함께 큰다</li>
+    </ul>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>09 / 19</span></div>
+</section>
+
+<!-- 10 대표 가치 -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Value — 대표 경험</span><span class="eyebrow">10</span></div>
+    <h2>대표는 보고가 아니라 조직을 본다</h2>
+    <p class="sub">한 달이 지나면 ARISA는 업무 기록이 아니라 조직 성장 데이터베이스가 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card"><div class="cl">Daily Executive Brief</div><div class="cv">오늘 필요한 <b>의사결정 TOP</b> · 프로젝트 상태 · 직원 지원 필요</div><div class="val">→ "오늘 뭘 결정하지?"가 한눈에</div></div>
+      <div class="card"><div class="cl">오해 지도 · Define Cost</div><div class="cv">지시가 <b>어디서 어긋나는지</b> 가시화</div><div class="val">→ 처음 보이는 커뮤니케이션 비용</div></div>
+      <div class="card"><div class="cl">성장 데이터베이스</div><div class="cv">성장·정체·지원 필요를 <b>축적</b></div><div class="val">→ 매달 조직 평가 자동화</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>10 / 19</span></div>
+</section>
+
+<!-- 11 3 time axes -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Product — 3 시간축</span><span class="eyebrow">11</span></div>
+    <h2>같은 데이터가 세 가지 시간으로 가치를 만든다</h2>
+    <p class="sub">하루는 보고지만, 한 달이 쌓이면 조직의 학습 곡선이 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card"><div class="cl">Daily</div><div class="cv">좋은 보고 · 좋은 의사결정</div></div>
+      <div class="card"><div class="cl">Weekly</div><div class="cv">프로젝트 이해 · 맥락 · 성장 피드백</div></div>
+      <div class="card"><div class="cl">Monthly</div><div class="cv">조직 학습 · 성장 분석 · 패턴</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>11 / 19</span></div>
+</section>
+
+<!-- 12 Moat -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Moat — 해자</span><span class="eyebrow">12</span></div>
+    <h2>기능은 복제돼도 <span class="ac">축적된 조직 사고</span>는 복제되지 않는다</h2>
+    <p class="sub">먼저 데이터를 쌓는 쪽이 이긴다. ARISA는 이미 실조직에서 데이터를 쌓는 중이다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card"><div class="cl">데이터 자산</div><div class="cv"><b>Thinking Data Log</b> — 쓸수록 깊어지는 조직별 사고 기록</div></div>
+      <div class="card"><div class="cl">측정 불가의 측정</div><div class="cv"><b>Define Cost·해상도</b>를 수치화 — 누구도 못 하던 것</div></div>
+      <div class="card"><div class="cl">철학적 기반</div><div class="cv"><b>거울 철학·CFD</b> — 관점은 카피 불가</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>12 / 19</span></div>
+</section>
+
+<!-- 13 Competition -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Competition — 포지셔닝</span><span class="eyebrow">13</span></div>
+    <h2>업무 툴 시장이 아니라 조직 성장 시장에 홀로 선다</h2>
+    <p class="sub">1·2·3세대는 모두 '업무'를 다룬다. ARISA만 '조직의 학습'을 다룬다 — 경쟁자가 아직 없다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="pos">
+      <div class="ax"></div><div class="ay"></div>
+      <div class="lb" style="left:60px;top:14px">조직 성장·학습 ↑</div>
+      <div class="lb" style="right:20px;bottom:14px">자동화 →</div>
+      <div class="dot" style="left:26%;bottom:26%"><div class="d"></div><div class="nm">노션·문서 (1세대)</div></div>
+      <div class="dot" style="left:46%;bottom:32%"><div class="d"></div><div class="nm">아사나·지라 (2세대)</div></div>
+      <div class="dot" style="left:66%;bottom:40%"><div class="d"></div><div class="nm">Zapier·AI Agent (3세대)</div></div>
+      <div class="dot us" style="left:80%;bottom:82%"><div class="d"></div><div class="nm">ARISA · 학습 OS (4세대)</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>13 / 19</span></div>
+</section>
+
+<!-- 14 Market -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Market</span><span class="eyebrow">14</span></div>
+    <h2>HR테크·교육·협업툴이 만나는 교집합 시장을 연다</h2>
+    <p class="sub">인접 시장(HR테크·LMS·협업툴·조직문화 진단)의 교집합을 새 카테고리로 묶는다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="kpis">
+      <div class="kpi"><div class="v am">TAM</div><div class="l">조직 학습·HR테크·협업 SaaS 전체</div></div>
+      <div class="kpi"><div class="v am">SAM</div><div class="l">국내 지식노동 조직 (AI 도입기)</div></div>
+      <div class="kpi"><div class="v am">SOM</div><div class="l">키노트 채널 도달 C-Level 조직</div></div>
+    </div>
+    <p class="note">⚠ TAM/SAM/SOM 수치 = 확인 필요 — 시장 데이터 리서치로 산정</p>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>14 / 19</span></div>
+</section>
+
+<!-- 15 BM + Unit Econ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Business Model · Unit Economics</span><span class="eyebrow">15</span></div>
+    <h2>컨설팅이 입구, <span class="ac">구독</span>이 본체</h2>
+    <p class="sub">키노트(인지) → Diagnostic Workshop(진단·유료) → ARISA 구독. 강연·진단 매출이 제품 도입의 영업비용을 상쇄 → 낮은 실질 CAC.</p>
+  </div>
+  <div class="slide-body">
+    <table class="u">
+      <tr><th>지표</th><th>의미</th><th>목표 / 현황</th></tr>
+      <tr><td>ARPA</td><td>조직당 구독 단가</td><td class="ph">확인 필요</td></tr>
+      <tr><td>CAC</td><td>키노트 → 구독 전환 비용</td><td class="ph">확인 필요</td></tr>
+      <tr><td>NRR</td><td>순매출 유지율 (데이터 축적 → 락인)</td><td class="ph">목표 110%+</td></tr>
+      <tr><td>Payback</td><td>CAC 회수 기간</td><td class="ph">확인 필요</td></tr>
+    </table>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>15 / 19</span></div>
+</section>
+
+<!-- 16 GTM -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Go-To-Market</span><span class="eyebrow">16</span></div>
+    <h2>제품을 팔지 않는다. 미래를 팔고 솔루션으로 착지시킨다</h2>
+    <p class="sub">영업이 아니라 관점으로 들어오므로 초기 신뢰·전환율이 높다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="steps" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+      <div class="stp"><div class="n">인지</div><div class="t"><b>시그니처 키노트</b><br>"AI와 일하는 미래"</div></div>
+      <div class="stp"><div class="n">확신</div><div class="t">"우리 조직은?"<br>Diagnostic Workshop</div></div>
+      <div class="stp"><div class="n">도입</div><div class="t">ARISA 파일럿 → <b>구독 전환</b></div></div>
+    </div>
+    <ul class="pts">
+      <li>프로젝트렌트의 기존 <b>C-Level 강연·컨설팅 네트워크</b>를 그대로 유입 채널로</li>
+    </ul>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>16 / 19</span></div>
+</section>
+
+<!-- 17 Roadmap -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Roadmap</span><span class="eyebrow">17</span></div>
+    <h2>데이터 먼저, 화면은 나중 · 2.0 → 3.0</h2>
+    <p class="sub">2.0에서 Thinking Data를 쌓고, 3.0에서 그 데이터로 조직 학습을 측정한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3">
+      <div class="card" style="border-color:var(--accent)"><div class="cl" style="color:var(--accent-light)">Now · 2.0 거울</div><div class="cv">일일보고 거울 + fidelity 보정 + 직원명부<br><b>내부 가동 중</b></div></div>
+      <div class="card"><div class="cl">Next · 2.x</div><div class="cv">Decision Engine + 대표 Brief<br>Weekly / Monthly 리포트</div></div>
+      <div class="card"><div class="cl">3.0 Learning OS</div><div class="cv">질문보고·해상도·오해지도·집단지성·AI코치<br><b>KPI = 조직 학습 속도</b></div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>17 / 19</span></div>
+</section>
+
+<!-- 18 Traction + Team -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Traction · Team</span><span class="eyebrow">18</span></div>
+    <h2>이미 실조직에서 돌고 있다</h2>
+  </div>
+  <div class="slide-body">
+    <div class="grid g2">
+      <div class="card"><div class="cl">Traction</div><div class="cv">ARISA 2.0 MVP1 <b>상시 가동</b>(launchd)<br>직원 12명 명부 연동·인사마스터 정합<br>fidelity 보고 품질 루프 완성</div><div class="val" style="color:var(--amber)">사용량·시간절감·만족도 = 확인 필요</div></div>
+      <div class="card"><div class="cl">Team</div><div class="cv"><b>최원석 · 프로젝트렌트</b><br>공간·브랜드·AX 컨설팅, "미래를 판" 실적<br>C-Level 강연 네트워크 + 실조직 운영</div><div class="val" style="color:var(--amber)">개발·데이터 인력 = 확인 필요</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ARISA · Learning OS</span><span>18 / 19</span></div>
+</section>
+
+<!-- 19 Vision + Ask -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Vision · The Ask</span><span class="eyebrow">19</span></div>
+    <h2>조직의 <span class="ac">Collective Intelligence</span>를 만든다</h2>
+    <p class="sub">대표의 사고가 조직 자산이 되고, 조직 전체가 계속 배우고 정렬되는 구조.</p>
+  </div>
+  <div class="slide-body">
+    <ul class="pts">
+      <li>투자: <span class="ph">금액 · 라운드 · 밸류 (확인 필요)</span> — 3.0 개발 · 데이터 파이프라인 · 초기 GTM</li>
+      <li>파트너십: 파일럿 C-Level 조직 · 강연 채널 · 데이터 협력</li>
+      <li>Contact: <span class="ph">담당 · 연락처 (확인 필요)</span></li>
+    </ul>
+  </div>
+  <div class="slide-footer"><span>by Project Rent</span><span>19 / 19</span></div>
+</section>
+
+</div>
+<script>
+  const s=[...document.querySelectorAll('.slide')];let i=0;
+  const show=n=>{i=Math.max(0,Math.min(s.length-1,n));s.forEach((x,k)=>x.classList.toggle('active',k===i));};
+  document.addEventListener('keydown',e=>{if(['ArrowRight','ArrowDown',' '].includes(e.key)){show(i+1);e.preventDefault();}if(['ArrowLeft','ArrowUp'].includes(e.key)){show(i-1);e.preventDefault();}if(e.key==='Home')show(0);if(e.key==='End')show(s.length-1);});
+  document.addEventListener('click',e=>show(e.clientX/innerWidth>0.5?i+1:i-1));
+  show(0);
+</script>
+</body>
+</html>

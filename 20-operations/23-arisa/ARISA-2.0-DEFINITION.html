@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISA 2.0 — 정의와 설계</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  :root{
+    --accent:#6C5CE7; --accent-soft:#EceaFB; --accent-deep:#4B3FC4;
+    --ink:#1A1A2E; --ink-2:#4A4A63; --ink-3:#8A8AA0;
+    --line:#E8E8F0; --bg:#FBFBFE; --card:#FFFFFF; --warn:#E8505B; --info:#3A86FF;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Pretendard',-apple-system,sans-serif; color:var(--ink);
+    background:var(--bg); line-height:1.7; font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .layout{display:grid; grid-template-columns:264px 1fr; max-width:1280px; margin:0 auto;}
+
+  /* 좌측 목차 */
+  nav.toc{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    padding:36px 22px; border-right:1px solid var(--line); background:var(--card);
+  }
+  nav.toc .brand{font-weight:800; font-size:18px; letter-spacing:-.02em; color:var(--accent-deep);}
+  nav.toc .brand small{display:block; font-weight:500; font-size:11px; color:var(--ink-3); margin-top:4px; letter-spacing:.04em;}
+  nav.toc a{
+    display:block; color:var(--ink-2); text-decoration:none; font-size:13.5px;
+    padding:7px 10px; border-radius:8px; margin-top:2px; transition:.15s;
+  }
+  nav.toc a:hover{background:var(--accent-soft); color:var(--accent-deep);}
+  nav.toc a.part{font-weight:600; margin-top:8px;}
+  nav.toc hr{border:none; border-top:1px solid var(--line); margin:18px 0;}
+
+  main{padding:56px 60px 120px; max-width:880px;}
+
+  /* 표지 */
+  .hero{margin-bottom:64px;}
+  .hero .kicker{display:inline-block; font-size:12px; font-weight:700; letter-spacing:.08em;
+    color:var(--accent); background:var(--accent-soft); padding:6px 12px; border-radius:999px;}
+  .hero h1{font-size:40px; line-height:1.25; letter-spacing:-.03em; margin:22px 0 18px; font-weight:800;}
+  .hero h1 em{font-style:normal; color:var(--accent);}
+  .hero .sub{font-size:15px; color:var(--ink-2);}
+  .hero .sub b{color:var(--ink);}
+  .hero .meta{margin-top:20px; font-size:13px; color:var(--ink-3);}
+
+  .callout{
+    background:linear-gradient(135deg,#6C5CE7,#8B7CF0); color:#fff;
+    border-radius:var(--radius); padding:28px 30px; margin:30px 0; font-size:16.5px; line-height:1.65;
+    box-shadow:0 12px 30px -12px rgba(108,92,231,.5);
+  }
+  .callout strong{font-weight:800;}
+
+  section{margin:52px 0; scroll-margin-top:24px;}
+  section > h2{font-size:13px; font-weight:700; letter-spacing:.06em; color:var(--accent);
+    text-transform:uppercase; margin-bottom:6px;}
+  section > h3.title{font-size:26px; font-weight:800; letter-spacing:-.02em; margin-bottom:20px; color:var(--ink);}
+  h4{font-size:17px; font-weight:700; margin:24px 0 10px; color:var(--ink);}
+  p{margin:12px 0; color:var(--ink-2);}
+  p strong, li strong{color:var(--ink);}
+  ul,ol{margin:12px 0 12px 4px; padding-left:20px;}
+  li{margin:7px 0; color:var(--ink-2);}
+
+  table{width:100%; border-collapse:collapse; margin:18px 0; font-size:14px;}
+  th,td{text-align:left; padding:11px 13px; border-bottom:1px solid var(--line); vertical-align:top;}
+  th{background:var(--accent-soft); color:var(--accent-deep); font-weight:700; font-size:13px;}
+  td:first-child{font-weight:600; color:var(--ink); white-space:nowrap;}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:22px 24px; margin:16px 0;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+
+  pre{background:#1A1A2E; color:#E8E8F5; border-radius:12px; padding:18px 20px; overflow-x:auto;
+    font-size:12.5px; line-height:1.6; margin:16px 0; font-family:'SF Mono',ui-monospace,monospace;}
+  code{font-family:'SF Mono',ui-monospace,monospace; font-size:.9em; background:var(--accent-soft);
+    color:var(--accent-deep); padding:1px 6px; border-radius:5px;}
+  pre code{background:none; color:inherit; padding:0;}
+
+  .pill{display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; margin-right:4px;}
+  .pill.done{background:#E3F6EC; color:#1B7A47;}
+  .pill.next{background:#FBEFD6; color:#9A6B12;}
+  .pill.mirror{background:var(--accent-soft); color:var(--accent-deep);}
+
+  .principle{border-left:3px solid var(--accent); padding:4px 0 4px 18px; margin:18px 0;}
+  .principle b{display:block; color:var(--ink); font-size:16px; margin-bottom:3px;}
+
+  .flow{background:#13132A; color:#C9C9E8; border-radius:14px; padding:24px; font-size:13px;
+    line-height:1.9; font-family:'SF Mono',ui-monospace,monospace; white-space:pre; overflow-x:auto; margin:18px 0;}
+  .flow .hl{color:#A99CFF; font-weight:700;}
+
+  footer{margin-top:80px; padding-top:24px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-3);}
+
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;}
+    nav.toc{display:none;}
+    main{padding:36px 22px 80px;}
+    .hero h1{font-size:30px;}
+    .grid2{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="toc">
+    <div class="brand">ARISA 2.0<small>COGNITIVE OPERATIONS SYSTEM</small></div>
+    <hr>
+    <a class="part" href="#p0">0 · 프로젝트 정체</a>
+    <a class="part" href="#p1">1 · 철학</a>
+    <a class="part" href="#p2">2 · 해결하려는 문제</a>
+    <a class="part" href="#p3">3 · 5개 엔진</a>
+    <a class="part" href="#p4">4 · 2개 모드</a>
+    <a class="part" href="#p5">5 · 3개 시간축</a>
+    <a class="part" href="#p6">6 · 산출물 카탈로그</a>
+    <a class="part" href="#p7">7 · 아키텍처</a>
+    <a class="part" href="#p8">8 · 데이터 구조</a>
+    <a class="part" href="#p9">9 · MVP 로드맵</a>
+    <a class="part" href="#p10">10 · 구현 현황</a>
+    <a class="part" href="#p11">11 · ARISA 3.0 (Learning OS)</a>
+    <hr>
+    <a href="#a">부록 A · 사고프레임 계승</a>
+    <a href="#b">부록 B · 용어집</a>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <span class="kicker">PRODUCT DEFINITION · 정의와 설계</span>
+      <h1>ARISA는 업무보고 시스템이 아니다.<br><em>조직의 사고를 운영하는 시스템이다.</em></h1>
+      <p class="sub"><b>Adaptive Resolution &amp; Insight System Assistant</b> — 직원의 사고를 번역·구조화하여 스스로 자신의 사고를 보게 만드는 <b>Cognitive Reflection System</b>. 보고는 목적이 아니라 인터페이스다.</p>
+      <p class="meta">최종 정리 2026-06-13 · 단일 기준(Single Source of Truth) · by Project Rent</p>
+    </div>
+
+    <div class="callout">
+      이 문서를 <strong>"보고 정리 시스템"으로 이해하는 순간 설계는 실패한다.</strong> ARISA는 직원의 생각을 번역하는 거울이고, 대표가 조직을 읽는 창이며, 그 둘을 잇는 <strong>사고 번역 엔진</strong>이다. 모든 기술 결정은 아래 철학을 먼저 내면화한 뒤 내린다.
+    </div>
+
+    <section id="p0">
+      <h2>Part 0</h2><h3 class="title">프로젝트 정체</h3>
+      <table>
+        <tr><td>명칭</td><td><b>ARISA 2.0</b> — Adaptive Resolution &amp; Insight System Assistant</td></tr>
+        <tr><td>분류</td><td>Cognitive Operations System (조직 사고 운영 시스템)</td></tr>
+        <tr><td>한 줄 정의</td><td>Daily·Weekly·Monthly <b>세 개의 시간축</b>으로 직원의 사고를 구조화하고, 대표의 의사결정을 지원하며, 조직의 학습을 축적하는 시스템</td></tr>
+        <tr><td>핵심 명제</td><td>"보고는 목적이 아니라 <b>인터페이스</b>다."</td></tr>
+        <tr><td>구성 결합</td><td>Reporting + Decision Support + Organizational Growth</td></tr>
+        <tr><td>연결 개념</td><td><b>사고 해상도(Thinking Resolution)</b> — 같은 사실을 얼마나 또렷하게 보는가</td></tr>
+      </table>
+    </section>
+
+    <section id="p1">
+      <h2>Part 1</h2><h3 class="title">철학 — 개발 불변 원칙</h3>
+      <p>이 원칙들은 기능보다 우선한다. 기능이 원칙과 충돌하면 기능을 버린다.</p>
+      <div class="principle"><b>1. 성장 코치가 아니라 사고의 거울이다.</b>교정하지 않고 가시화한다. "아, 내가 이런 얘길 하고 있었구나"를 깨닫게 하는 것이 1차 목적. 성장은 거울 앞에서 스스로 일어난다.</div>
+      <div class="principle"><b>2. 처리 순서는 Report → Interpretation → Reflection → Coaching.</b>성장은 출발점이 아니라 결과물이다. 처음부터 코치가 되면 피로를 부른다. 질문 폭탄 금지.</div>
+      <div class="principle"><b>3. 3계층 비중 — Mirror 80 / Reflector 15 / Coach 5.</b>번역(80%) · 생각하게 만드는 질문 1~2개(15%) · 원할 때만 깊은 코칭(5%).</div>
+      <div class="principle"><b>4. 업무량이 아니라 Output·Outcome을 추적한다.</b>"얼마나 오래"가 아니라 "무엇을 생산했고 무엇이 달라졌으며 어떤 의사결정을 가능하게 했는가".</div>
+      <div class="principle"><b>5. 목표 순서 — 좋은 보고(1차) → 좋은 의사결정(2차) → 좋은 성장(3차).</b></div>
+      <div class="principle"><b>6. 진짜 자산은 화면이 아니라 직원별 Thinking Data Log다.</b>완성형 SaaS·대시보드를 먼저 만들지 않는다. 데이터가 쌓이는 구조부터.</div>
+    </section>
+
+    <section id="p2">
+      <h2>Part 2</h2><h3 class="title">해결하려는 문제 — 현재 보고의 5대 결함</h3>
+      <table>
+        <tr><th>#</th><th>결함</th><th>증상</th><th>예시</th></tr>
+        <tr><td>1</td><td>나열 중심</td><td>왜 했는지가 없다</td><td>"조사 완료 / 회의 참석 / 자료 정리"</td></tr>
+        <tr><td>2</td><td>Output 없음</td><td>무엇을 생산했는지 모른다</td><td>"조사함" → 분류표·가설이 없다</td></tr>
+        <tr><td>3</td><td>Outcome 없음</td><td>그래서 무엇이 달라졌나</td><td>변화를 설명 못 한다</td></tr>
+        <tr><td>4</td><td>Decision 없음</td><td>대표가 뭘 결정해야 하나</td><td>의사결정 포인트가 안 보인다</td></tr>
+        <tr><td>5</td><td>성장 미축적</td><td>무엇이 늘고 무엇이 반복 부족한지</td><td>직원 성장이 기록 안 됨</td></tr>
+      </table>
+    </section>
+
+    <section id="p3">
+      <h2>Part 3</h2><h3 class="title">시스템 구조 — 5개 엔진</h3>
+      <div class="flow"><span class="hl">직원 입력</span>
+  → A. Input Parser
+  → <span class="hl">B. Report Completion</span>  (부족하면 질문)
+  → <span class="hl">C. Report Structuring</span> (7섹션)
+  → D. Decision Engine    (대표용)
+  → E. Growth Engine      (직원 성장)</div>
+
+      <h4>Engine A — Input Parser</h4>
+      <p>직원/대표 식별, 프로젝트 추출, 보고 유형 분류: <code>daily_report</code> · <code>meeting_note</code> · <code>research_report</code> · <code>decision_request</code> · <code>support_request</code> · <code>weekly_update</code></p>
+
+      <h4>Engine B — Report Completion <span class="pill mirror">가장 중요</span></h4>
+      <p>보고가 "좋은 보고"인지 7기준으로 검사하고 <b>부족한 부분만</b> 질문한다.</p>
+      <ul>
+        <li>7기준: Task / Output / Outcome / Decision Needed / Support Needed / Blocker / Next</li>
+        <li>질문 상한: <b>Daily ≤ 3 · Weekly ≤ 5 · Monthly ≤ 7</b> (피로 최소화)</li>
+        <li>충분하면 질문 0개로 통과. 코칭·평가·지적 금지, 사고를 비추는 질문만.</li>
+      </ul>
+
+      <h4>Engine C — Report Structuring</h4>
+      <p>보완 답변까지 반영해 최종 <b>7섹션</b> 보고를 생성한다.</p>
+      <ol>
+        <li><b>Task</b> — 오늘 한 일</li>
+        <li><b>Output</b> — 생산한 결과물</li>
+        <li><b>Outcome</b> — 그 결과물이 만든 변화·의미</li>
+        <li><b>Decision Needed</b> — 대표·팀장이 결정할 것</li>
+        <li><b>Support Needed</b> — 필요한 지원</li>
+        <li><b>Next Action</b> — 다음 액션</li>
+        <li><b>ARISA Reflection</b> — 잘된 점 / 부족한 점 / 다음 보완점 <em>(평가가 아닌 관찰)</em></li>
+      </ol>
+
+      <div class="grid2">
+        <div class="card">
+          <h4 style="margin-top:0">Engine D — Decision Engine</h4>
+          <p style="font-size:14px">대표가 무엇을 결정해야 하는지 추출·정렬.</p>
+<pre><code>{ "project": "넵킨",
+  "decision_type": "positioning",
+  "decision_needed": "정보형/캐릭터형 결정",
+  "urgency": "high",
+  "owner": "최원석",
+  "source_employee": "정예인" }</code></pre>
+        </div>
+        <div class="card">
+          <h4 style="margin-top:0">Engine E — Growth Engine</h4>
+          <p style="font-size:14px">직원 사고 성장 6지표 축적.</p>
+<pre><code>{ "employee": "정예인",
+  "clarity": 3, "evidence": 2,
+  "structure": 3, "output_quality": 3,
+  "outcome_quality": 2,
+  "decision_thinking": 2,
+  "growth_note": "의미·의사결정 연결 약함" }</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="p4">
+      <h2>Part 4</h2><h3 class="title">사용자 구조 — 2개 모드</h3>
+      <table>
+        <tr><th></th><th>Employee Mode</th><th>Executive Mode</th></tr>
+        <tr><td>목표</td><td>좋은 보고 · 좋은 사고</td><td>좋은 판단 · 좋은 개입</td></tr>
+        <tr><td>채널</td><td>Telegram</td><td>(MVP) Markdown → (이후) 대시보드</td></tr>
+        <tr><td>기능</td><td>일일보고·회의록·리서치 정리 + 품질 피드백</td><td>Daily Brief / Weekly / Monthly Org Intelligence</td></tr>
+        <tr><td>본질</td><td>개인 사고 코치</td><td>조직을 읽는 창</td></tr>
+      </table>
+      <p>대표는 "보고를 보고 싶은 게 아니라 조직을 보고 싶다." Executive의 첫 화면은 업무 목록이 아니라 <b>"오늘 대표가 봐야 할 것 TOP 5"</b> (Decision / Intervention / Project / Growth / Risk).</p>
+    </section>
+
+    <section id="p5">
+      <h2>Part 5</h2><h3 class="title">시간축 — 3개 레이어</h3>
+      <table>
+        <tr><th>시간축</th><th>목적</th><th>직원 산출</th><th>대표 산출</th></tr>
+        <tr><td>Daily</td><td>좋은 보고·의사결정</td><td>오늘 보고 피드백</td><td>오늘 의사결정 요약</td></tr>
+        <tr><td>Weekly<br>(금요일 자동)</td><td>프로젝트·맥락·성장</td><td>주간 리뷰 + 성장 포인트</td><td>프로젝트별 리뷰 + 개입 우선순위</td></tr>
+        <tr><td>Monthly</td><td>조직 학습·패턴</td><td>성장 리포트</td><td>조직 인텔리전스(패턴·추천 교육)</td></tr>
+      </table>
+      <p>한 달이 지나면 ARISA는 업무 기록이 아니라 <b>조직 성장 데이터베이스</b>가 된다. Monthly는 대표가 매달 하는 조직 평가의 자동화.</p>
+    </section>
+
+    <section id="p6">
+      <h2>Part 6</h2><h3 class="title">산출물 카탈로그</h3>
+      <div class="grid2">
+        <div class="card">
+          <h4 style="margin-top:0">직원용</h4>
+          <p style="font-size:14px"><b>Daily Report</b> — Task/Output/Outcome/Decision/Support/Next/Reflection</p>
+          <p style="font-size:14px"><b>Weekly Review</b> — 이번 주 프로젝트 / Output·Outcome / 부족했던 부분 / 다음 주 집중 / 추천 질문·자료·도서</p>
+          <p style="font-size:14px"><b>Monthly Growth</b> — 강점 / 반복 약점 / 최근 성장 / 추천 학습 / 다음 성장 과제</p>
+        </div>
+        <div class="card">
+          <h4 style="margin-top:0">대표용</h4>
+          <p style="font-size:14px"><b>Daily Executive Brief</b> — 조직 상태 / Decision / Support / Risk / Project / Employee Status</p>
+          <p style="font-size:14px"><b>Weekly Executive Review</b> — 프로젝트별 진행 / 주요 Outcome / 반복 이슈 / 개입 필요</p>
+          <p style="font-size:14px"><b>Monthly Org Intelligence</b> — 조직 성장 / 프로젝트 패턴 / 직원 성장 / 추천 교육·도서·코칭</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="p7">
+      <h2>Part 7</h2><h3 class="title">아키텍처</h3>
+      <h4>파이프라인</h4>
+      <div class="flow">직원 Telegram 입력
+   ↓ <span class="hl">A. Input Parser</span>       (누가/프로젝트/보고유형)
+   ↓ <span class="hl">B. Report Completion</span>  (충분성 검사 → 부족 시 질문)
+   ↓ 직원에게 보완 질문 (Daily ≤3 / Weekly ≤5 / Monthly ≤7)
+   ↓ <span class="hl">C. Report Structuring</span> (7섹션 + Reflection)
+   ↓ Thinking Data 저장 (파일 로그 + 구글시트)
+   ├─ <span class="hl">D. Decision Engine</span>   (대표용 의사결정)
+   └─ <span class="hl">E. Growth Engine</span>     (직원 성장 6지표)
+   ↓
+직원 피드백(거울) + 대표 리포트(Daily/Weekly/Monthly)</div>
+
+      <h4>입력 채널</h4>
+      <ul>
+        <li>현재: 텔레그램 텍스트 / 음성 / 첨부파일(드라이브 업로드)</li>
+        <li>후속: 메일(Gmail), 회의록(<code>meeting_note</code> — arisa-project-memory 흡수)</li>
+        <li>다중 입력은 <code>ingest/</code> 어댑터로 공통 포맷 정규화 후 큐 투입</li>
+      </ul>
+
+      <h4>저장 구조</h4>
+<pre><code>arisa/
+├── memory/
+│   ├── employees/&lt;직원&gt;/        ← Thinking Data Log (daily 누적, growth_log)
+│   ├── projects/&lt;프로젝트&gt;/      ← 결정·전략·진행 (arisa-memory 흡수)
+│   ├── decisions/               ← Decision Engine 출력 누적
+│   └── organization_patterns/   ← Monthly 패턴 분석
+├── outputs/
+│   ├── employee/{daily_feedback,weekly_reviews,monthly_growth}/
+│   └── executive/{daily_briefs,weekly_reviews,monthly_org_reports}/
+├── prompts/                     ← 엔진별 프롬프트
+└── config/employees.json        ← 직원 명부 (user_id↔이름/팀/역할/모드)</code></pre>
+      <p>정형 데이터(시트)와 누적 사고(파일 로그)를 <b>병행</b>한다. 핵심 자산은 후자.</p>
+    </section>
+
+    <section id="p8">
+      <h2>Part 8</h2><h3 class="title">데이터 구조</h3>
+      <ul>
+        <li><b>Thinking Data Log</b> (직원별 누적) — 일자별 7섹션 보고 + Reflection + Growth 6지표가 시간순으로 쌓인다. Weekly·Monthly·3.0 개인화의 원천.</li>
+        <li><b>Decision Log</b> — Engine D의 JSON이 프로젝트·긴급도별 축적 → 대표 Brief 재료.</li>
+        <li><b>Growth Log</b> — Engine E의 JSON이 직원별 축적 → 성장 곡선·반복 약점 탐지.</li>
+      </ul>
+      <div class="card" style="border-left:3px solid var(--accent);"><b>원칙</b> — 화면을 먼저 만들지 않는다. 위 로그가 쌓이는 구조가 먼저다.</div>
+    </section>
+
+    <section id="p9">
+      <h2>Part 9</h2><h3 class="title">MVP 로드맵</h3>
+      <table>
+        <tr><th>MVP</th><th>내용</th><th>상태</th></tr>
+        <tr><td>MVP1</td><td>텔레그램 보고 → Completion 질문 → 7섹션 + <b>직원 회신(거울)</b></td><td><span class="pill done">완료</span></td></tr>
+        <tr><td>MVP2</td><td>최종보고 저장 → 직원 Daily Feedback 정식화</td><td><span class="pill next">예정</span></td></tr>
+        <tr><td>MVP3</td><td>여러 직원 취합 → 대표 Daily Executive Brief</td><td><span class="pill next">예정</span></td></tr>
+        <tr><td>MVP4</td><td>금요일 Weekly Review 자동 생성</td><td><span class="pill next">예정</span></td></tr>
+        <tr><td>MVP5</td><td>직원별 Growth Log 6지표 누적</td><td><span class="pill next">예정</span></td></tr>
+        <tr><td>MVP6</td><td>Monthly Organizational Intelligence Report</td><td><span class="pill next">예정</span></td></tr>
+        <tr><td>후속</td><td>회의록 <code>meeting_note</code> 채널 흡수</td><td><span class="pill next">예정</span></td></tr>
+      </table>
+      <div class="card" style="border-left:3px solid var(--accent);"><b>화면보다 데이터 먼저.</b> MVP1~5는 Markdown/JSON 산출, 대시보드는 데이터가 쌓인 뒤.</div>
+    </section>
+
+    <section id="p10">
+      <h2>Part 10</h2><h3 class="title">현재 구현 현황 <span style="font-size:14px;color:var(--ink-3);font-weight:500">· 2026-06-13</span></h3>
+      <p>ARISA 2.0은 기존 <b>일일업무보고봇을 진화</b>시켜 시작했다. (신규 창조 아님)</p>
+      <h4>MVP1 완료 — <code>daily-report-bot.py</code></h4>
+      <ul>
+        <li><b>Engine B</b>: <code>COMPLETION_CHECK_PROMPT</code> + <code>WAITING_COMPLETION</code> 상태. 부족 시 ≤3개 질문.</li>
+        <li><b>Engine C</b>: <code>STRUCTURE_PROMPT</code>. 업무별 <code>outcome</code> + <code>decision_needed</code>/<code>support_needed</code>/<code>reflection</code>. 7섹션.</li>
+        <li><b>직원 회신(거울)</b>: <code>format_report_for_employee()</code>. 직원 본인에게도 정리본 + Reflection 회신 → 학습 루프.</li>
+        <li><b>시트 확장</b>: 핵심업무 탭 <code>의미(Outcome)</code> 12열, 메타 탭 Decision/Support/Reflection 추가.</li>
+      </ul>
+      <h4>운영</h4>
+      <ul>
+        <li>launchd 영구 등록 <code>com.arisa.daily-report-bot</code> (RunAtLoad+KeepAlive, 재부팅 자동부활).</li>
+        <li>주의: 텔레그램은 토큰당 polling 1개만 허용 — 수동 인스턴스 잔존 시 충돌.</li>
+        <li>구글시트 헤더 신규 컬럼 반영 완료.</li>
+      </ul>
+      <p style="font-size:14px;color:var(--ink-3)"><b>후속 미구현</b>: Engine D(대표 Brief 분리), Engine E(Growth 축적), Weekly/Monthly, 회의록 흡수, Executive 대시보드.</p>
+    </section>
+
+    <section id="p11">
+      <h2>Part 11</h2><h3 class="title">ARISA 3.0 — Organizational Learning OS</h3>
+      <p>3.0은 보고 시스템이 아니라 <b>조직의 학습 속도를 측정·가속하는 운영체제</b>다. SaaS 진화(기록→관리→자동화)의 다음, <b>4세대 = 학습 OS</b>를 지향한다.</p>
+      <div class="callout" style="background:linear-gradient(135deg,#4B3FC4,#6C5CE7);">
+        <strong>KPI 전환 — 3.0의 핵심</strong><br>업무 완료율 ❌ &nbsp;→&nbsp; <strong>조직의 학습 속도 ✅</strong><br>
+        매출·업무량·출근은 측정해도, 질문의 수준·사고의 성장·조직 이해도는 아무도 측정하지 못한다. ARISA 3.0이 그것을 측정한다.
+      </div>
+      <h4>다섯 가지 진화</h4>
+      <ol>
+        <li><b>질문 기반 조직(Question Report)</b> — "오늘 무엇을 했나" → "오늘 발견한 가장 중요한 질문은? / 잘못 이해했던 것은? / 생각이 바뀐 것은?"</li>
+        <li><b>성장 해상도 측정(Thinking Resolution)</b> — 사고 해상도·문제 정의 수준·의사결정 수준 추적 <em>(개인 학습유형: 사례형/질문형/실험형/독서형)</em></li>
+        <li><b>Organizational Define Cost 측정(오해 지도)</b> — 대표 지시→팀장→직원 이해의 차이를 측정해 "어디서 오해가 발생하는가"를 지도화</li>
+        <li><b>집단지성 지도(조직 사고 맵)</b> — 회의·보고·기획·응대 수집 → "이번 달 가장 많이 고민한 문제 / 성장한 영역 / 반복 실패한 영역"</li>
+        <li><b>AI 코치</b> — 강사가 아니라 코치. 정답 대신 <code>질문→실행→피드백→재정의</code> 루프로 성장</li>
+      </ol>
+      <div class="card" style="border-left:3px solid var(--accent);">
+        <b>최종 정의</b> — 조직의 학습 속도를 측정하고, 질문 수준을 향상시키고, 사고 해상도를 높이며, 조직의 <b>Define Cost를 감소</b>시키는 AI 기반 성장 운영체제(Learning OS). 진화 경로: 보고 시스템 → 성장 시스템 → 조직 학습 OS → <b>Collective Intelligence</b>.
+      </div>
+      <p style="margin-top:14px;color:var(--ink-3);font-size:14px"><b>시장 관점</b>: 업무 툴 시장이 아니라 <b>"조직 성장 시장"</b>이라는 새 카테고리. CFD·Define Cost는 뒤에 숨은 철학, ARISA는 그 철학이 시장에 처음 나타나는 상품.</p>
+    </section>
+
+    <section id="a">
+      <h2>부록 A</h2><h3 class="title">기존 ARISA 사고프레임 계승</h3>
+      <p>정량 엔진(보고·의사결정·성장) 아래에는 기존 ARISA GPT의 <b>정성 사고프레임</b>이 깔려 있다. Reflection·Decision의 질문 품질은 여기서 나온다.</p>
+      <ul>
+        <li><b>청취 / 응답 모드</b> — 호출될 때만 말한다. "질문 폭탄 금지"·Mirror 80% 원칙의 뿌리.</li>
+        <li><b>Desire Mapping (5단계)</b> — Signal → Scene → Desire → Decision → Evolution. Outcome·Decision을 욕망 흐름으로 해석.</li>
+        <li><b>Double Layer</b> — Layer A(욕망/브랜드) × Layer B(수익/비즈니스). 보고의 의미를 양면으로.</li>
+        <li><b>패턴 감지</b> — 자산-정체성 역설 / 아키텍처 갈림길 / 데이터→질문 전환 / 설명 과잉 / 공간=미디어.</li>
+        <li><b>데이터→질문 전환</b>은 2.0 핵심 동작과 정확히 일치: 데이터를 해석으로 닫지 말고 "강화할 것인가, 재조정할 것인가"의 <b>선택적 질문</b>으로 전환.</li>
+      </ul>
+      <div class="card" style="border-left:3px solid var(--accent);">2.0은 이 프레임을 "정량 파이프라인"으로 제품화한 것이며, 프레임 자체를 대체하지 않는다.</div>
+    </section>
+
+    <section id="b">
+      <h2>부록 B</h2><h3 class="title">용어집</h3>
+      <table>
+        <tr><td>Output</td><td>생산한 결과물 (예: 경쟁사 분류표, 설문 구조)</td></tr>
+        <tr><td>Outcome</td><td>그 결과물이 만든 변화·의미 (예: 포지셔닝 방향 후보 확보)</td></tr>
+        <tr><td>Decision Needed</td><td>대표·팀장이 내려줘야 할 의사결정</td></tr>
+        <tr><td>Support Needed</td><td>진행에 필요한 지원 (≠ 막힌 것 = Blocker)</td></tr>
+        <tr><td>Reflection</td><td>보고 품질에 대한 <em>관찰</em>(평가 아님): 잘된 점/부족한 점/다음 보완점</td></tr>
+        <tr><td>Thinking Resolution</td><td>사고 해상도. 같은 사실을 얼마나 또렷하게 보는가 (3.0 핵심 측정축)</td></tr>
+        <tr><td>Define Cost</td><td>조직 내 지시·사고 전달 시 발생하는 오해·재학습 비용. 낮출수록 학습 속도↑ (CFD에서 옴, 시장엔 비노출)</td></tr>
+        <tr><td>조직 학습 속도</td><td>3.0의 핵심 KPI. 업무 완료율을 대체하는 측정 기준</td></tr>
+        <tr><td>Thinking Data Log</td><td>직원별로 누적되는 사고 기록. ARISA의 진짜 자산</td></tr>
+        <tr><td>Mirror / Reflector / Coach</td><td>ARISA의 3계층(80/15/5): 번역 / 질문 / 코칭</td></tr>
+        <tr><td>Cognitive Operations System</td><td>조직의 사고를 운영하는 시스템 — ARISA 2.0의 정체</td></tr>
+        <tr><td>Organizational Learning OS</td><td>조직 학습을 측정·가속하는 운영체제 — ARISA 3.0의 정체</td></tr>
+      </table>
+    </section>
+
+    <footer>
+      ARISA 2.0 — Cognitive Operations System · 단일 기준 문서 · by Project Rent · 2026-06-13
+    </footer>
+  </main>
+</div>
+</body>
+</html>

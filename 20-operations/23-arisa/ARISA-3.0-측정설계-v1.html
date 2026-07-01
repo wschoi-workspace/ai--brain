@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISA 3.0 — 측정 설계 (KPI 4지표 실행 스펙)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root{
+    --bg:#1A1A1A; --bg-2:#141414; --bg-3:#222; --bg-4:#1e1e1e; --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+    --line:#333; --line-2:#2a2a2a; --accent:#6C5CE7; --accent-light:#A29BFE;
+    --green:#8FA37E; --amber:#D9A34B; --red:#E17055; --blue:#6F8AA3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+    background:var(--bg);color:var(--fg);font-weight:300;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;line-height:1.6;}
+  code{font-family:'SF Mono',ui-monospace,monospace;font-size:.88em;color:var(--accent-light);background:rgba(108,92,231,.1);padding:1px 5px;border-radius:3px;}
+  .wrap{max-width:1080px;margin:0 auto;padding:60px 56px 120px;}
+  header.top{border-bottom:1px solid var(--line-2);padding-bottom:34px;margin-bottom:48px;}
+  .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;font-weight:400;}
+  h1{font-size:46px;font-weight:300;letter-spacing:-.035em;line-height:1.1;margin:18px 0 0;}
+  h1 .ac{color:var(--accent);}
+  .lead{font-size:16px;font-weight:300;line-height:1.7;color:var(--fg-2);margin-top:20px;max-width:78ch;}
+  .lead b{color:var(--fg);font-weight:500;}
+  section{margin-bottom:56px;}
+  h2.sec{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);font-weight:500;
+    padding-bottom:13px;border-bottom:1px solid var(--line-2);margin-bottom:24px;display:flex;justify-content:space-between;align-items:baseline;}
+  h2.sec .no{color:var(--fg-3);font-size:11px;}
+  h3{font-size:23px;font-weight:400;letter-spacing:-.02em;margin-bottom:6px;}
+  .sub{font-size:14.5px;color:var(--fg-2);line-height:1.7;max-width:80ch;}
+  .sub b{color:var(--fg);font-weight:500;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:14px;}
+  th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:10px 13px 12px;font-weight:400;border-bottom:1px solid var(--line);}
+  td{padding:12px 13px;border-bottom:1px solid var(--line-2);color:var(--fg-2);font-weight:300;vertical-align:top;}
+  td:first-child{color:var(--fg);font-weight:500;}
+  .ok{color:var(--green);} .gap{color:var(--amber);} .no{color:var(--red);}
+  .pill{display:inline-block;font-size:10px;letter-spacing:.05em;padding:2px 9px;border-radius:3px;font-weight:500;white-space:nowrap;}
+  .pill.go{color:var(--green);background:rgba(143,163,126,.13);border:1px solid rgba(143,163,126,.35);}
+  .pill.add{color:var(--amber);background:rgba(217,163,75,.12);border:1px solid rgba(217,163,75,.35);}
+  .pill.par{color:var(--blue);background:rgba(111,138,163,.13);border:1px solid rgba(111,138,163,.35);}
+  .metric{background:var(--bg-4);border:1px solid var(--line-2);border-left:3px solid var(--accent);padding:28px 30px;margin-bottom:18px;}
+  .metric.add{border-left-color:var(--amber);}
+  .metric.par{border-left-color:var(--blue);}
+  .metric .mh{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px;}
+  .metric .mh .num{font-size:12px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:6px;}
+  .row{display:grid;grid-template-columns:120px 1fr;gap:4px 20px;padding:11px 0;border-top:1px solid var(--line-2);font-size:14px;}
+  .row:first-of-type{border-top:none;}
+  .row .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);padding-top:2px;}
+  .row .v{color:var(--fg-2);line-height:1.65;} .row .v b{color:var(--fg);font-weight:500;}
+  .formula{font-family:'SF Mono',ui-monospace,monospace;font-size:13px;color:var(--accent-light);
+    background:var(--bg-2);border:1px solid var(--line-2);padding:13px 16px;border-radius:4px;margin:4px 0;line-height:1.5;overflow-x:auto;}
+  .rubric{font-size:13px;color:var(--fg-2);}
+  .rubric .lv{display:grid;grid-template-columns:42px 1fr;gap:12px;padding:5px 0;}
+  .rubric .lv .s{color:var(--fg-3);font-weight:500;text-align:right;}
+  .fid{font-size:12.5px;color:var(--amber);background:rgba(217,163,75,.07);border:1px solid rgba(217,163,75,.2);padding:11px 15px;border-radius:4px;margin-top:14px;line-height:1.6;}
+  .fid b{color:var(--amber);}
+  .tl{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px;}
+  .tl .ph{background:var(--bg-3);border:1px solid var(--line-2);padding:18px 16px;}
+  .tl .ph .w{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent-light);font-weight:500;margin-bottom:9px;}
+  .tl .ph p{font-size:13px;color:var(--fg-2);line-height:1.55;}
+  .callout{background:var(--bg-3);border:1px solid var(--line-2);padding:22px 26px;border-radius:5px;margin-top:6px;}
+  .callout.acc{border-color:var(--accent);}
+  .callout h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:10px;}
+  ul.pts{list-style:none;margin-top:6px;}
+  ul.pts li{font-size:14px;color:var(--fg-2);line-height:1.6;padding:7px 0 7px 20px;position:relative;}
+  ul.pts li::before{content:"—";position:absolute;left:0;color:var(--fg-3);}
+  ul.pts li b{color:var(--fg);font-weight:500;}
+  .foot{margin-top:80px;padding-top:24px;border-top:1px solid var(--line-2);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--fg-3);display:flex;justify-content:space-between;}
+  @media(max-width:760px){.wrap{padding:36px 22px 80px;}h1{font-size:32px;}.row{grid-template-columns:1fr;}.tl{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">ARISA 3.0 · 측정 설계 v1 · 2026-06-20</div>
+  <h1>'조직 학습 속도'를 <span class="ac">실제로 잴 수 있는 숫자</span>로 내린다</h1>
+  <p class="lead">3.0의 KPI 4지표는 지금까지 "초안 산식" 한 줄이었다. 이 문서는 각 지표를 <b>현재 봇이 실제로 수집하는 필드에 매핑</b>해 계산 가능한 스펙으로 만든다. 핵심 발견 — 4지표 중 둘은 <b>지금 데이터로 즉시 측정</b>되지만, 둘은 <b>새로운 수집 흐름이 선행</b>돼야 한다. 즉 <b>"무엇을 잴지"가 "무엇을 모을지(=멀티채널 수집 L1의 우선순위)"를 역산한다.</b></p>
+</header>
+
+<!-- 0. 데이터 가용성 매트릭스 -->
+<section>
+  <h2 class="sec"><span>0 · 데이터 가용성 — 봇이 지금 주는 것 vs 지표가 필요한 것</span><span class="no">현황 매핑</span></h2>
+  <p class="sub">일일보고봇(<code>daily-report-bot.py</code>)이 구글시트 3탭에 저장하는 실제 필드를 기준으로, 4지표의 측정 가능성을 판정한다.</p>
+  <table>
+    <tr><th>저장 위치</th><th>현재 수집 필드</th></tr>
+    <tr><td>핵심업무 탭</td><td><code>category · task · status · process(과정) · tools · output(산출물) · outcome(의미) · issues</code></td></tr>
+    <tr><td>메타 탭</td><td><code>tomorrow · improvement · blockers · decision_needed · support_needed · reflection(good/missing/next) · raw(원문)</code></td></tr>
+    <tr><td>mem0</td><td>직원별 핵심업무 누적 (재부상 인덱스)</td></tr>
+  </table>
+  <table style="margin-top:24px">
+    <tr><th>KPI 지표</th><th>필요 입력</th><th>지금 가능?</th><th>판정</th></tr>
+    <tr><td>① Thinking Resolution</td><td>process·output·outcome·issues·reflection·raw</td><td class="ok">충분</td><td><span class="pill go">즉시 측정</span></td></tr>
+    <tr><td>② 조직 학습 속도</td><td>issues·blockers + 시계열 + mem0</td><td class="ok">충분</td><td><span class="pill go">즉시 측정</span></td></tr>
+    <tr><td>③ Define Cost (오해)</td><td><b>지시문 ↔ 직원 이해문 쌍</b></td><td class="no">쌍 미수집</td><td><span class="pill add">추가 수집 필요</span></td></tr>
+    <tr><td>④ 질문 수준</td><td>보고 내 <b>질문</b> 데이터</td><td class="gap">빈약</td><td><span class="pill par">질문보고 전환 선행</span></td></tr>
+  </table>
+  <div class="fid" style="color:var(--accent-light);background:rgba(108,92,231,.07);border-color:rgba(108,92,231,.25)">
+    <b style="color:var(--accent-light)">핵심 인사이트:</b> ③·④가 "추가 수집 필요"라는 사실이 곧 멀티채널 수집(L1)의 <b>우선 수집 대상</b>을 정해준다 — 정식 지시-이해 흐름과 질문 섹션. 측정 설계가 수집 설계를 역산하는 지점이다.
+  </div>
+</section>
+
+<!-- 1. Thinking Resolution -->
+<section>
+  <h2 class="sec"><span>1 · Thinking Resolution — 사고 해상도</span><span class="no">즉시 측정</span></h2>
+  <div class="metric">
+    <div class="mh"><div><div class="num">지표 ①</div><h3>같은 사실을 얼마나 또렷이 보는가</h3></div><span class="pill go">즉시 측정</span></div>
+    <div class="row"><div class="k">입력</div><div class="v">핵심업무 <code>process·output·outcome·issues</code> + <code>reflection</code> — <b>채점 기준은 항상 <code>raw</code>(원문)</b>, 정리본 아님</div></div>
+    <div class="row"><div class="k">산식</div><div class="v">LLM 루브릭 채점으로 6지표 각 0~3점 (현재 JSON 구조만 있고 채점 로직 미구현)
+      <div class="formula">resolution = mean(clarity, evidence, structure, output_q, outcome_q, decision_q)  // 0~3</div></div></div>
+    <div class="row"><div class="k">루브릭 예<br>(clarity)</div><div class="v"><div class="rubric">
+      <div class="lv"><span class="s">0</span><span>모호어만 — "열심히 했다 / 잘 진행 중"</span></div>
+      <div class="lv"><span class="s">1</span><span>대상은 있으나 추상 — "경쟁사를 봤다"</span></div>
+      <div class="lv"><span class="s">2</span><span>구체 대상+행위 — "29CM 3개 브랜드 가격대 정리"</span></div>
+      <div class="lv"><span class="s">3</span><span>대상+근거+함의 — "…정리, 우리가 중가에 빈자리 확인"</span></div>
+    </div></div></div>
+    <div class="row"><div class="k">정규화</div><div class="v">직원별 <b>baseline 대비 변화</b>로 본다(절대점수 비교 금지) — 주간 이동평균, 4주 <b>기울기 = 성장률</b></div></div>
+    <div class="row"><div class="k">출력</div><div class="v">직원별 6지표 레이더 + 해상도 시계열. 대표는 <b>추세(기울기)만</b>, 일별 점수 비노출</div></div>
+    <div class="fid"><b>fidelity:</b> 점수는 평가가 아니라 <b>관찰</b>. 직원에게는 점수 대신 거울(정리본)만 비추고, 추측 채점 금지(근거 불충분 시 <code>null</code>). 채점은 원문 기준 — 정리본을 채점하면 ARISA가 ARISA를 채점하는 순환오류.</div>
+  </div>
+</section>
+
+<!-- 2. 학습 속도 -->
+<section>
+  <h2 class="sec"><span>2 · 조직 학습 속도 — 반복하지 않는 속도</span><span class="no">즉시 측정</span></h2>
+  <div class="metric">
+    <div class="mh"><div><div class="num">지표 ②</div><h3>같은 실패를 다시 하지 않게 되는 속도</h3></div><span class="pill go">즉시 측정</span></div>
+    <div class="row"><div class="k">입력</div><div class="v"><code>issues · blockers</code> + 시계열 + <code>reflection.next</code>(다음 보완점) + mem0 누적</div></div>
+    <div class="row"><div class="k">산식</div><div class="v">이슈를 임베딩 후 클러스터링 → <b>동일 유형 클러스터의 재발 간격(일)</b>. 간격↑ = 학습됨
+      <div class="formula">learning_velocity = Δ(동일유형 이슈 재발 간격)  ·  신규/반복 이슈 비율</div></div></div>
+    <div class="row"><div class="k">보조축</div><div class="v"><b>약속–이행 추적</b>: <code>reflection.next</code>에 적은 보완점이 다음 보고에서 실제 해소됐는가 (의도→행동 폐루프)</div></div>
+    <div class="row"><div class="k">윈도우</div><div class="v">월 단위 클러스터 재발맵 — 조직 전체 <b>"반복 실패 영역" 히트맵</b></div></div>
+    <div class="row"><div class="k">출력</div><div class="v">조직 반복실패 히트맵 + 직원별 재발간격 추세. 집단지성 지도(3.0 진화 ④)의 1차 입력</div></div>
+    <div class="fid"><b>주의:</b> 이슈 표현이 매번 달라 클러스터링 정확도가 관건 — 동일유형 판정 <b>코사인 임계값</b>을 캘리브레이션(§5)에서 튜닝. 표현만 다른 같은 문제를 놓치면 "학습됐다"는 거짓 신호.</div>
+  </div>
+</section>
+
+<!-- 3. Define Cost -->
+<section>
+  <h2 class="sec"><span>3 · Define Cost — 오해 거리</span><span class="no">추가 수집 필요</span></h2>
+  <div class="metric add">
+    <div class="mh"><div><div class="num">지표 ③</div><h3>지시가 전달되며 벌어지는 의미의 거리</h3></div><span class="pill add">추가 수집 필요</span></div>
+    <div class="row"><div class="k">측정 공백</div><div class="v"><b>현재 봇은 직원의 '한 일 보고'만 받는다.</b> 대표 지시 ↔ 그 지시를 받은 직원의 이해, 이 <b>쌍(pair)이 수집되지 않는다.</b> → 오해 거리를 잴 원재료 자체가 없음</div></div>
+    <div class="row"><div class="k">필요한<br>새 흐름</div><div class="v">① 대표/팀장이 <b>지시 등록</b>(텍스트) → ② 지시 받은 직원에게 <b>"이 지시를 어떻게 이해했나요?"</b> 1문 → ③ 두 문장의 의미 거리 측정</div></div>
+    <div class="row"><div class="k">산식</div><div class="v"><div class="formula">define_cost = 1 − cos( emb(지시문), emb(이해문) )      // 0=완전일치 … 1=완전오해
+누적거리 = Σ 단계별 거리  (대표→팀장→직원, 전파 감쇠)</div></div></div>
+    <div class="row"><div class="k">출력</div><div class="v">지시별 오해 점수 + <b>조직 오해지도</b> — 어느 단계·누구에서 거리가 벌어지는가(3.0 진화 ③)</div></div>
+    <div class="row"><div class="k">단계 도입</div><div class="v"><b>1단계(약):</b> 일일보고의 <code>decision_needed</code>·지시 언급에서 약하게 추출 → <b>2단계(정식):</b> 지시-이해 전용 흐름. 멀티채널(메일·회의 지시)과 직결</div></div>
+    <div class="fid"><b>fidelity:</b> 거리가 크다고 <b>직원 탓이 아니다</b> — 지시 자체의 모호성일 수 있다. 오해지도는 양방향 관찰(지시 명료성 ↔ 이해 정확성)로 읽어야 하며, 책임 귀속 도구가 아니라 <b>커뮤니케이션 비용 가시화</b> 도구다.</div>
+  </div>
+</section>
+
+<!-- 4. 질문 수준 -->
+<section>
+  <h2 class="sec"><span>4 · 질문 수준 — 답에서 질문으로</span><span class="no">질문보고 전환 선행</span></h2>
+  <div class="metric par">
+    <div class="mh"><div><div class="num">지표 ④</div><h3>보고가 '한 일'이 아니라 '질문'이 되는 정도</h3></div><span class="pill par">부분 가능</span></div>
+    <div class="row"><div class="k">측정 공백</div><div class="v">현재 일일보고는 <b>"한 일" 중심</b>이라 질문 데이터가 빈약. <code>raw</code>에서 의문문·불확실 표현 비율은 약하게 가능하나 신호가 약함</div></div>
+    <div class="row"><div class="k">선행 작업</div><div class="v">보고 양식에 <b>질문 섹션</b> 추가 — DEFINITION 진화 ①: <b>"오늘 발견한 가장 중요한 질문 / 잘못 이해했던 것 / 생각이 바뀐 것"</b></div></div>
+    <div class="row"><div class="k">산식</div><div class="v">질문 수 / 보고 단위 + <b>질문 추상도 등급</b> (LLM 분류)
+      <div class="formula">사실확인 질문 < 해석 질문 < 재정의 질문      // 등급이 올라갈수록 사고 성숙</div></div></div>
+    <div class="row"><div class="k">출력</div><div class="v">직원별 질문 등급 분포 + 조직 <b>질문 성숙도</b> 추세 (시간이 갈수록 상위 등급 비율↑가 목표)</div></div>
+    <div class="fid"><b>설계 메모:</b> 이 지표는 측정이자 동시에 <b>개입</b>이다 — 질문 섹션을 두는 순간 직원은 "질문하는 보고"를 학습한다. 측정 도구가 곧 교육 도구가 되는 3.0의 전형.</div>
+  </div>
+</section>
+
+<!-- 5. 수집 요건 역산 -->
+<section>
+  <h2 class="sec"><span>5 · 수집 요건 역산 — 측정이 정의한 수집 스펙</span><span class="no">L1로 연결</span></h2>
+  <p class="sub">위 4지표가 요구하는 데이터를 거꾸로 모으면, 그것이 곧 멀티채널 수집(L1) 어댑터가 채워야 할 필드가 된다.</p>
+  <table>
+    <tr><th>지표</th><th>필요 데이터</th><th>지금 있나</th><th>추가 수집 액션</th></tr>
+    <tr><td>① 해상도</td><td>process·output·outcome·raw</td><td class="ok">있음</td><td>없음 — 채점 로직만 구현</td></tr>
+    <tr><td>② 학습속도</td><td>issues 시계열·reflection.next</td><td class="ok">있음</td><td>없음 — 클러스터링만 구현</td></tr>
+    <tr><td>③ Define Cost</td><td>지시문 ↔ 이해문 쌍</td><td class="no">없음</td><td class="gap"><b>지시 등록 + 이해 확인 흐름 신설</b> (메일·회의 지시 포함)</td></tr>
+    <tr><td>④ 질문수준</td><td>보고 내 질문</td><td class="gap">빈약</td><td class="gap"><b>보고 양식에 질문 섹션 추가</b></td></tr>
+  </table>
+  <div class="callout acc" style="margin-top:24px">
+    <h4>→ 다음 수집(L1)의 우선순위가 자동으로 정해진다</h4>
+    <ul class="pts">
+      <li><b>최우선:</b> 보고 양식 질문 섹션 — 봇 프롬프트 한 단계 추가, 비용 거의 0, 즉시 ④ 활성화</li>
+      <li><b>그다음:</b> 지시-이해 쌍 흐름 — 대표/팀장 지시를 텔레그램·<b>Gmail·회의록</b>에서 받아 등록 → ③ 오해지도의 원재료. 멀티채널 수집의 첫 정당화 사유</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 6. 캘리브레이션 플랜 -->
+<section>
+  <h2 class="sec"><span>6 · 캘리브레이션 플랜 — 12명 × 1~2주</span><span class="no">실데이터 튜닝</span></h2>
+  <p class="sub">산식은 설계 초안이다. 직원 12명의 실제 보고에 돌려 임계값·정규점을 잡아야 비로소 '잴 수 있는' 지표가 된다.</p>
+  <div class="tl">
+    <div class="ph"><div class="w">주 0 · 앵커링</div><p>R이사 이상본 7건(before=구어 raw / after=정리본)으로 6지표 루브릭 0~3 <b>기준점 고정</b>. fidelity 1차 구현 때 쓴 데이터 재활용</p></div>
+    <div class="ph"><div class="w">주 1~2 · 채점</div><p>12명 실보고에 ①해상도 ②학습속도 채점 적용 → 점수 분포·이상치 확인, 직원별 <b>baseline</b> 산정</p></div>
+    <div class="ph"><div class="w">튜닝</div><p>이슈 클러스터 <b>코사인 임계값</b>, 해상도 정상범위, 채점 신뢰도(LLM 일관성) 보정</p></div>
+    <div class="ph"><div class="w">산출</div><p>지표별 정상범위·이상치 기준 + 직원 baseline 표 → 측정 엔진 v1 확정</p></div>
+  </div>
+  <div class="fid" style="margin-top:20px"><b>fidelity 게이트(전 단계 공통):</b> 모든 채점·거리 계산은 <code>raw</code> 원문 기준. 근거 불충분 시 추측 금지(<code>null</code> 처리). 점수는 직원 통제 수단이 아니라 거울의 해상도 눈금 — 노선2(Graphiti 본격) 채택 시 이 게이트가 LLM 자동추출의 안전장치가 된다.</div>
+</section>
+
+<!-- 결론 -->
+<section>
+  <div class="callout acc">
+    <h4>이 설계가 확정하는 것 · 남기는 결정</h4>
+    <ul class="pts">
+      <li><b>즉시 착수 가능:</b> ①해상도 ②학습속도 — 데이터가 이미 있다. 채점·클러스터링 로직 구현 + 주0~2 캘리브레이션</li>
+      <li><b>수집 선행 필요:</b> ④질문 섹션(저비용·최우선) → ③지시-이해 흐름(멀티채널 L1의 첫 정당화)</li>
+      <li><b>남는 결정 1:</b> 캘리브레이션을 지금 12명으로 착수할지(2.0 데이터 위에서) — Yes면 다음 산출물 = 채점 루브릭 6지표 전체 정의서</li>
+      <li><b>남는 결정 2:</b> 질문 섹션을 일일보고 양식에 바로 넣을지(봇 프롬프트 수정) — 측정 ④와 교육을 동시에 켜는 가장 싼 한 수</li>
+    </ul>
+  </div>
+</section>
+
+<div class="foot"><span>ARISA 3.0 · 측정 설계 v1</span><span>by Project Rent</span></div>
+
+</div>
+</body>
+</html>

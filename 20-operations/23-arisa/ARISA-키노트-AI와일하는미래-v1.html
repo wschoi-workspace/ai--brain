@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI와 일하는 미래 — 시그니처 키노트</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  :root{
+    --accent:#6C5CE7; --accent-deep:#4B3FC4; --accent-soft:#EFEDFC; --accent-lo:#B9AEFF;
+    --ink:#14142A; --ink-2:#55556E; --ink-3:#9A9AB2; --line:#E8E8F2; --paper:#FBFBFE;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{font-family:'Pretendard',sans-serif; background:#080814; color:#fff;
+    -webkit-font-smoothing:antialiased; overflow:hidden;}
+
+  .deck{height:100vh; width:100vw;}
+  .slide{position:absolute; inset:0; display:none; padding:92px 104px; flex-direction:column;
+    background:linear-gradient(155deg,#13102A 0%,#1C1740 55%,#2A2168 100%);}
+  .slide.active{display:flex;}
+  .slide.light{background:var(--paper); color:var(--ink);}
+  .slide.solid{background:linear-gradient(150deg,#4B3FC4,#6C5CE7);}
+
+  /* head 상단 / body 아래정렬 */
+  .head{flex:0 0 auto;}
+  .act{display:inline-block; font-size:17px; font-weight:800; letter-spacing:.14em;
+    color:#fff; background:rgba(255,255,255,.13); padding:8px 18px; border-radius:999px;}
+  .slide.light .act{color:var(--accent-deep); background:var(--accent-soft);}
+  .body{flex:1 1 auto; display:flex; flex-direction:column; justify-content:flex-end; padding-bottom:10px;}
+
+  h1{font-size:76px; line-height:1.15; letter-spacing:-.035em; font-weight:800;}
+  h2{font-size:50px; line-height:1.24; letter-spacing:-.03em; font-weight:800;}
+  .q{font-size:42px; line-height:1.4; letter-spacing:-.02em; font-weight:700;}
+  .q .dim{color:var(--accent-lo);}
+  .sub{font-size:25px; color:#C9C6EC; font-weight:500; margin-top:26px; line-height:1.55;}
+  .sub b{color:#fff;}
+  .slide.light .sub{color:var(--ink-2);} .slide.light .sub b{color:var(--accent-deep);}
+  em{font-style:normal; color:var(--accent-lo);} .slide.light em{color:var(--accent);}
+  .lead{font-size:20px; font-weight:700; letter-spacing:.02em; color:var(--accent-lo); margin-bottom:18px;}
+  .slide.light .lead{color:var(--accent);}
+
+  .qlist{list-style:none; margin-top:6px;}
+  .qlist li{font-size:32px; line-height:1.5; font-weight:600; padding:14px 0; border-bottom:1px solid rgba(255,255,255,.1);}
+  .qlist li:last-child{border:none;}
+  .slide.light .qlist li{border-color:var(--line);}
+  .qlist .hl{color:var(--accent-lo);} .slide.light .qlist .hl{color:var(--accent);}
+
+  /* 3단 진화/대조 */
+  .evo{display:flex; gap:18px; margin-top:8px; align-items:stretch;}
+  .evo .col{flex:1; border-radius:20px; padding:30px 26px; background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.14);}
+  .evo .col.now{background:var(--accent); border-color:var(--accent);}
+  .evo .col .era{font-size:18px; font-weight:700; color:var(--accent-lo); margin-bottom:10px;}
+  .evo .col.now .era{color:#fff;}
+  .evo .col .val{font-size:30px; font-weight:800;}
+  .evo .arrow{display:flex; align-items:center; font-size:30px; color:var(--ink-3); font-weight:800;}
+
+  .vs{display:flex; gap:24px; margin-top:8px;}
+  .vs .box{flex:1; border-radius:20px; padding:30px 30px;}
+  .vs .box.old{background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.14);}
+  .vs .box.new{background:var(--accent); }
+  .vs .lb{font-size:17px; font-weight:800; letter-spacing:.03em; margin-bottom:14px; color:var(--accent-lo);}
+  .vs .box.new .lb{color:#fff;}
+  .vs .it{font-size:24px; font-weight:600; line-height:1.5; opacity:.92;}
+
+  .flow{font-size:26px; font-weight:700; line-height:1.7; margin-top:10px;}
+  .flow .a{color:var(--accent-lo);} .slide.light .flow .a{color:var(--accent);}
+
+  .pageno{position:absolute; bottom:38px; right:54px; font-size:15px; color:rgba(255,255,255,.45); font-weight:600;}
+  .slide.light .pageno{color:var(--ink-3);}
+  .brandtag{position:absolute; bottom:38px; left:104px; font-size:15px; color:rgba(255,255,255,.45); font-weight:600; letter-spacing:.02em;}
+  .slide.light .brandtag{color:var(--ink-3);}
+
+  .big-final{font-size:60px; line-height:1.3; letter-spacing:-.03em; font-weight:800;}
+
+  @media (max-width:900px){
+    .slide{padding:44px 26px;} h1{font-size:38px;} h2{font-size:30px;} .q{font-size:26px;}
+    .qlist li{font-size:21px;} .evo,.vs{flex-direction:column;} .big-final{font-size:34px;}
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 0 표지 -->
+  <section class="slide active">
+    <div class="head"><span class="act">SIGNATURE KEYNOTE</span></div>
+    <div class="body">
+      <h1>AI와 일하는 <em>미래</em></h1>
+      <p class="sub"><b>좋은 직원을 뽑는 시대는 끝났다.</b><br>좋은 직원을 더 빠르게 <b>성장시키는 조직</b>이 승리한다.</p>
+    </div>
+    <div class="brandtag">by Project Rent</div>
+    <div class="pageno">00</div>
+  </section>
+
+  <!-- ============ ACT 1 ============ -->
+  <section class="slide">
+    <div class="head"><span class="act">ACT 1 · 우리는 왜 점점 더 힘들어지는가</span></div>
+    <div class="body">
+      <p class="lead">오프닝 — 세 가지 역설</p>
+      <ul class="qlist">
+        <li>더 많은 <span class="hl">정보</span>를 가졌는데, 왜 일은 더 어려워졌을까?</li>
+        <li>더 좋은 <span class="hl">툴</span>이 많은데, 왜 소통은 더 어려워졌을까?</li>
+        <li>더 많은 <span class="hl">교육</span>을 하는데, 왜 성장은 더 느려졌을까?</li>
+      </ul>
+    </div>
+    <div class="brandtag">"맞는데…?"</div>
+    <div class="pageno">01</div>
+  </section>
+
+  <section class="slide solid">
+    <div class="head"><span class="act">ACT 1</span></div>
+    <div class="body">
+      <h2>도구는 늘었지만,<br>조직이 <em>배우는 방식</em>은 그대로다.</h2>
+      <p class="sub">문제는 'AI를 쓰느냐'가 아니다.<br>조직이 산업시대 방식으로 일하고 있다는 것이다.</p>
+    </div>
+    <div class="brandtag">by Project Rent</div>
+    <div class="pageno">02</div>
+  </section>
+
+  <!-- ============ ACT 2 ============ -->
+  <section class="slide light">
+    <div class="head"><span class="act">ACT 2 · 좋은 직원을 뽑는 것보다 어려운 문제</span></div>
+    <div class="body">
+      <p class="q">신입 한 명이 조직에 적응하는 데<br><em>얼마나</em> 걸립니까? <span class="dim">3개월? 6개월? 1년?</span></p>
+      <p class="sub">그리고 — <b>왜 그렇게 오래 걸릴까요?</b></p>
+    </div>
+    <div class="brandtag">대부분 "능력 문제"라고 생각한다</div>
+    <div class="pageno">03</div>
+  </section>
+
+  <section class="slide">
+    <div class="head"><span class="act">ACT 2 · 뒤집기</span></div>
+    <div class="body">
+      <h2>문제는 능력이 아니다.<br><em>조직의 사고가 전달되지 않는 것</em>이다.</h2>
+      <p class="flow" style="margin-top:24px">대표가 이해한 것 <span class="a">↓</span> 팀장이 이해한 것 <span class="a">↓</span> 실무자가 이해한 것 <span class="a">↓</span> 실제 실행된 것</p>
+      <p class="sub">— 네 개가 <b>전부 다르다.</b></p>
+    </div>
+    <div class="brandtag">Define Cost</div>
+    <div class="pageno">04</div>
+  </section>
+
+  <section class="slide solid">
+    <div class="head"><span class="act">ACT 2 · 핵심</span></div>
+    <div class="body">
+      <h2>조직은 능력이 부족해서가 아니라,<br><em>커뮤니케이션 비용</em> 때문에<br>성장하지 못한다.</h2>
+      <p class="sub">이 보이지 않는 비용이, 가장 비싼 비용이다.</p>
+    </div>
+    <div class="brandtag">by Project Rent</div>
+    <div class="pageno">05</div>
+  </section>
+
+  <!-- ============ ACT 3 ============ -->
+  <section class="slide light">
+    <div class="head"><span class="act">ACT 3 · AI는 자동화 기술이 아니다</span></div>
+    <div class="body">
+      <div class="vs">
+        <div class="box old">
+          <div class="lb">사람들이 생각하는 AI</div>
+          <div class="it">회의록<br>보고서<br>요약·자동화</div>
+        </div>
+        <div class="box new">
+          <div class="lb">실제 중요한 변화</div>
+          <div class="it">회의를 <b>이해</b>하는 것<br>사고를 <b>정렬</b>하는 것<br>정보가 아니라 <b>이해</b></div>
+        </div>
+      </div>
+      <p class="sub">회의록을 만드는 게 아니라, <b>회의를 이해하게 만드는 것</b>이 중요하다.</p>
+    </div>
+    <div class="brandtag">강의의 첫 번째 전환점</div>
+    <div class="pageno">06</div>
+  </section>
+
+  <!-- ============ ACT 4 ============ -->
+  <section class="slide">
+    <div class="head"><span class="act">ACT 4 · 미래 조직의 경쟁력</span></div>
+    <div class="body">
+      <div class="evo">
+        <div class="col"><div class="era">산업시대</div><div class="val">노동</div></div>
+        <div class="arrow">→</div>
+        <div class="col"><div class="era">정보시대</div><div class="val">정보</div></div>
+        <div class="arrow">→</div>
+        <div class="col now"><div class="era">AI 시대</div><div class="val">학습 속도</div></div>
+      </div>
+      <p class="q" style="margin-top:34px">누가 더 <span class="dim">많이 아는가</span>가 아니라,<br>누가 더 <em>빨리 배우는 조직</em>인가.</p>
+    </div>
+    <div class="brandtag">ACT 4</div>
+    <div class="pageno">07</div>
+  </section>
+
+  <section class="slide">
+    <div class="head"><span class="act">ACT 4 · 사례</span></div>
+    <div class="body">
+      <h2>프로젝트렌트는 왜 모든 직원에게<br><em>GPT · Claude · ARISA · Miranda</em>를 붙였는가?</h2>
+      <p class="sub">사람을 대체하기 위해서가 아니다.<br><b>AI는 사람을 대체하지 않는다 — 학습 속도를 증폭시킨다.</b></p>
+    </div>
+    <div class="brandtag">by Project Rent</div>
+    <div class="pageno">08</div>
+  </section>
+
+  <!-- ============ ACT 5 ============ -->
+  <section class="slide solid">
+    <div class="head"><span class="act">ACT 5 · AI 시대의 조직 운영체제</span></div>
+    <div class="body">
+      <p class="lead">상상해 봅시다 — 만약</p>
+      <ul class="qlist">
+        <li>신입이 <b>24시간</b> 질문할 수 있고</li>
+        <li>회사의 사고방식을 스스로 <b>학습</b>하고</li>
+        <li>좋은 질문을 <b>훈련</b>받고, 생각이 <b>구조화</b>된다면?</li>
+      </ul>
+    </div>
+    <div class="brandtag">제품 소개가 아니라, 미래 시나리오</div>
+    <div class="pageno">09</div>
+  </section>
+
+  <section class="slide">
+    <div class="head"><span class="act">ACT 5</span></div>
+    <div class="body">
+      <p class="q">만약 우리 조직 전체가<br><em>계속 배우고, 계속 성장하고, 계속 정렬되는</em><br>구조가 가능하다면?</p>
+      <p class="sub">그것이 — <b>AI 시대의 조직 운영체제</b>입니다.</p>
+    </div>
+    <div class="brandtag">ACT 5</div>
+    <div class="pageno">10</div>
+  </section>
+
+  <section class="slide solid">
+    <div class="head"><span class="act">ACT 5 · 결론</span></div>
+    <div class="body">
+      <p class="big-final">좋은 직원을 뽑는 시대는 끝났다.<br>좋은 직원을 더 빠르게<br><em>성장시키는 조직</em>이 승리한다.</p>
+    </div>
+    <div class="brandtag">by Project Rent</div>
+    <div class="pageno">11</div>
+  </section>
+
+  <!-- ============ 클로징 깔때기 ============ -->
+  <section class="slide light">
+    <div class="head"><span class="act">그렇다면 — 우리 조직은?</span></div>
+    <div class="body">
+      <p class="lead">Diagnostic Workshop · 조직 진단</p>
+      <ul class="qlist">
+        <li>우리 조직의 가장 큰 <span class="hl">커뮤니케이션 비용</span>은 어디에 있는가?</li>
+        <li>어디서 <span class="hl">사고가 단절</span>되는가?</li>
+        <li>어디서 <span class="hl">같은 학습</span>이 반복되는가?</li>
+        <li>어디서 <span class="hl">성장 속도</span>가 멈추는가?</li>
+      </ul>
+    </div>
+    <div class="brandtag">강의 → 문제 발견 → 진단 → 솔루션</div>
+    <div class="pageno">12</div>
+  </section>
+
+  <section class="slide">
+    <div class="head"><span class="act">그 질문에 대한 첫 번째 실행 답안</span></div>
+    <div class="body">
+      <h1>ARISA</h1>
+      <p class="sub">조직의 <b>학습 속도</b>를 측정하고, 질문 수준을 높이며,<br>사고 해상도를 끌어올리는 <b>조직 성장 운영체제</b>.<br><br>
+        시장에는 AI 툴을 파는 사람은 많지만,<br><b>"AI 시대에 조직이 어떻게 진화해야 하는가"</b>를 말하는 사람은 아직 없다.</p>
+    </div>
+    <div class="brandtag">업무 툴 시장이 아니라, 조직 성장 시장</div>
+    <div class="pageno">13</div>
+  </section>
+
+  <section class="slide solid">
+    <div class="body" style="justify-content:center; text-align:center; align-items:center;">
+      <h2 style="font-size:40px">AI와 일하는 미래</h2>
+      <p class="sub" style="margin-top:18px">감사합니다.</p>
+    </div>
+    <div class="brandtag">by Project Rent</div>
+    <div class="pageno">14</div>
+  </section>
+
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  function show(n){ i=Math.max(0,Math.min(slides.length-1,n)); slides.forEach((s,x)=>s.classList.toggle('active',x===i)); }
+  document.addEventListener('keydown', e=>{
+    if(['ArrowRight','ArrowDown',' '].includes(e.key)){ show(i+1); e.preventDefault(); }
+    if(['ArrowLeft','ArrowUp'].includes(e.key)){ show(i-1); e.preventDefault(); }
+    if(e.key==='Home') show(0); if(e.key==='End') show(slides.length-1);
+  });
+  document.addEventListener('click', e=> show(e.clientX/window.innerWidth>0.5 ? i+1 : i-1));
+  show(0);
+</script>
+</body>
+</html>

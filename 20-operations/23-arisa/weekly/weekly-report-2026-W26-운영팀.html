@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>운영팀 팀 주간 · 2026년 W26</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{--bg:#1A1A1A;--bg-2:#202020;--bg-3:#262626;--fg:#F5F0EB;--muted:#8A857E;--line:#333;
+--accent:#6C5CE7;--green:#8FA37E;--amber:#D9A34B;--red:#E17055}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans-serif;
+font-weight:300;line-height:1.5;padding:32px 20px 64px}
+.wrap{max-width:1100px;margin:0 auto}
+header{margin-bottom:24px}
+header h1{font-weight:600;font-size:26px;letter-spacing:-.02em}
+header .sub{color:var(--muted);margin-top:4px;font-size:14px}
+.statbar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0 32px}
+.stat{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:16px}
+.stat b{font-size:28px;font-weight:600;color:var(--accent)}
+.stat small{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+h2.sec{font-size:14px;font-weight:600;color:var(--muted);text-transform:uppercase;
+letter-spacing:.08em;margin:32px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.card{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:18px}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.card-h h3{font-size:16px;font-weight:600}
+.team-tag{font-size:11px;color:var(--accent);font-weight:400;margin-left:4px}
+.muted{color:var(--muted);font-size:12px}
+.donut-wrap{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.donut-c{fill:var(--fg);font-size:18px;font-weight:600}
+.donut-empty{display:flex;align-items:center;justify-content:center;color:var(--muted);border:2px dashed var(--line);border-radius:50%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px;color:var(--muted)}
+.lg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.row{display:flex;gap:10px;margin:8px 0;font-size:13px;align-items:flex-start}
+.row .k{color:var(--muted);min-width:80px;flex-shrink:0;font-size:12px;padding-top:2px}
+.vals{display:flex;flex-wrap:wrap;gap:4px}
+.bar{flex:1;background:var(--bg-3);border-radius:6px;height:18px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px}
+.bar-lbl{position:absolute;right:8px;top:0;font-size:11px;line-height:18px}
+.bar-na{font-size:11px;color:var(--muted);line-height:18px;padding-left:8px}
+.chip{background:var(--bg-3);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:12px}
+.badge{border-radius:6px;padding:2px 8px;font-size:12px}
+.badge-amber{background:rgba(217,163,75,.15);color:var(--amber);border:1px solid rgba(217,163,75,.3)}
+.dec{list-style:none;flex:1}
+.dec li{font-size:12px;padding:3px 0;border-bottom:1px solid var(--line)}
+.dec li:last-child{border:0}
+.growth{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.growth-h{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.collecting{color:var(--accent);background:rgba(108,92,231,.12);border-radius:4px;padding:1px 6px;font-size:10px}
+.reso{font-weight:600;font-size:15px;margin-left:6px}
+.reso-sub{display:block;font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:0}
+.gauges{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.gz{background:var(--bg-3);border-radius:8px;padding:8px 4px;text-align:center}
+.gz b{font-size:16px;font-weight:600;color:var(--accent)}
+.gz small{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+.gz-na b{color:var(--line)}
+.warn{background:rgba(217,163,75,.1);border:1px solid rgba(217,163,75,.3);color:var(--amber);
+border-radius:8px;padding:10px 14px;font-size:13px;margin:16px 0}
+footer{margin-top:40px;color:var(--muted);font-size:11px;text-align:center;border-top:1px solid var(--line);padding-top:16px}
+/* 성장지표는 대표(admin)만 — 직원 로그인 시 숨김(측정설계 v2) */
+.growth{display:none}
+body.is-admin .growth{display:block}
+/* 로그인 게이트 */
+#login-gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
+#login-box{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:38px 40px;width:330px;text-align:center}
+#login-box h2{font-size:19px;font-weight:600;margin-bottom:6px}
+#login-box .lg-sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+#login-box input{width:100%;background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:12px 14px;color:var(--fg);font-size:14px;margin-bottom:10px;font-family:inherit}
+#login-box button{width:100%;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px}
+#login-err{color:var(--red);font-size:12px;margin-top:12px;min-height:16px}
+#whoami{position:fixed;top:14px;right:18px;font-size:12px;color:var(--muted);z-index:50}
+#whoami a{color:var(--accent);cursor:pointer;margin-left:8px}
+</style></head>
+<body>
+<div id="login-gate">
+  <div id="login-box">
+    <h2>운영팀 팀 주간</h2>
+    <div class="lg-sub">2026년 W26 · 운영팀 팀 리더</div>
+    <input id="lg-id" placeholder="이름 (예: 최원석)" autocomplete="username">
+    <input id="lg-pin" type="password" placeholder="PIN" autocomplete="current-password">
+    <button id="lg-btn">로그인</button>
+    <div id="login-err"></div>
+  </div>
+</div>
+<div id="whoami" style="display:none"></div>
+<div id="content" style="display:none"><div class="wrap">
+<header><h1>운영팀 팀 주간 대시보드</h1><div class="sub">2026년 W26 · 06/22–06/28</div></header>
+
+<div class="statbar">
+  <div class="stat"><b>44</b><small>총 보고 건수</small></div>
+  <div class="stat"><b>50%</b><small>평균 완료율</small></div>
+  <div class="stat"><b>1</b><small>활성 인원</small></div>
+  <div class="stat"><b>1</b><small>미해결 의사결정</small></div>
+</div>
+<h2 class="sec">파트별</h2><div class="grid">
+        <div class="card team-card">
+          <div class="card-h"><h3>운영팀</h3><span class="muted">1명 활성 · 44건 (인당 44.0)</span></div>
+          <div class="donut-wrap"><svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#6C5CE7" stroke-width="12" stroke-dasharray="97.7 141.1" stroke-dashoffset="-0.0" transform="rotate(-90 46.0 46.0)"/><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#A29BFE" stroke-width="12" stroke-dasharray="59.7 179.1" stroke-dashoffset="-97.7" transform="rotate(-90 46.0 46.0)"/><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#6F8AA3" stroke-width="12" stroke-dasharray="38.0 200.8" stroke-dashoffset="-157.4" transform="rotate(-90 46.0 46.0)"/><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#8FA37E" stroke-width="12" stroke-dasharray="32.6 206.2" stroke-dashoffset="-195.3" transform="rotate(-90 46.0 46.0)"/><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#D9A34B" stroke-width="12" stroke-dasharray="5.4 233.3" stroke-dashoffset="-227.9" transform="rotate(-90 46.0 46.0)"/><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#E17055" stroke-width="12" stroke-dasharray="5.4 233.3" stroke-dashoffset="-233.3" transform="rotate(-90 46.0 46.0)"/><text x="46.0" y="51.0" text-anchor="middle" class="donut-c">44</text></svg><div class="legend"><span class="lg"><i style="background:#6C5CE7"></i>관리 18</span> <span class="lg"><i style="background:#A29BFE"></i>실행 11</span> <span class="lg"><i style="background:#6F8AA3"></i>커뮤니케이션 7</span> <span class="lg"><i style="background:#8FA37E"></i>기타 6</span> <span class="lg"><i style="background:#D9A34B"></i>기획 1</span> <span class="lg"><i style="background:#E17055"></i>리서치 1</span></div></div>
+          <div class="row"><span class="k">완료율</span><div class="bar"><div class="bar-fill" style="width:50%;background:var(--amber)"></div><span class="bar-lbl">50%</span></div></div>
+          <div class="row"><span class="k">공통 블로커</span><div class="vals"><span class="muted">공통 블로커 없음</span></div></div>
+          <div class="row"><span class="k">도구</span><div class="vals"><span class="chip">클로드</span><span class="chip">엑셀</span></div></div>
+        </div></div>
+<h2 class="sec">개인별</h2><div class="grid">
+        <div class="card person-card">
+          <div class="card-h"><h3>양은정 <span class="team-tag">운영팀</span></h3><span class="muted">44건</span></div>
+          <div class="donut-wrap"><svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#6C5CE7" stroke-width="12" stroke-dasharray="97.7 141.1" stroke-dashoffset="-0.0" transform="rotate(-90 46.0 46.0)"/><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#A29BFE" stroke-width="12" stroke-dasharray="59.7 179.1" stroke-dashoffset="-97.7" transform="rotate(-90 46.0 46.0)"/><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#6F8AA3" stroke-width="12" stroke-dasharray="38.0 200.8" stroke-dashoffset="-157.4" transform="rotate(-90 46.0 46.0)"/><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#8FA37E" stroke-width="12" stroke-dasharray="32.6 206.2" stroke-dashoffset="-195.3" transform="rotate(-90 46.0 46.0)"/><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#D9A34B" stroke-width="12" stroke-dasharray="5.4 233.3" stroke-dashoffset="-227.9" transform="rotate(-90 46.0 46.0)"/><circle cx="46.0" cy="46.0" r="38.0" fill="none" stroke="#E17055" stroke-width="12" stroke-dasharray="5.4 233.3" stroke-dashoffset="-233.3" transform="rotate(-90 46.0 46.0)"/><text x="46.0" y="51.0" text-anchor="middle" class="donut-c">44</text></svg><div class="legend"><span class="lg"><i style="background:#6C5CE7"></i>관리 18</span> <span class="lg"><i style="background:#A29BFE"></i>실행 11</span> <span class="lg"><i style="background:#6F8AA3"></i>커뮤니케이션 7</span> <span class="lg"><i style="background:#8FA37E"></i>기타 6</span> <span class="lg"><i style="background:#D9A34B"></i>기획 1</span> <span class="lg"><i style="background:#E17055"></i>리서치 1</span></div></div>
+          <div class="row"><span class="k">완료율</span><div class="bar"><div class="bar-fill" style="width:50%;background:var(--amber)"></div><span class="bar-lbl">50%</span></div></div>
+          <div class="row"><span class="k">도구</span><div class="vals"><span class="chip">클로드</span><span class="chip">엑셀</span></div></div>
+          <div class="row"><span class="k">반복 블로커</span><div class="vals"><span class="badge badge-amber">런칭 일정 딜레이 고민</span><span class="badge badge-amber">이것도 정리</span><span class="badge badge-amber">-인터넷 및 CCTV 해지 관련 추가 보고
+
+지하 1층, 2층, 3층 인터넷 해지 진행 예정이며, 해지 관련</span><span class="badge badge-amber">크림커피 드립백 50개 택배 발송 완료. 운송장은 내일 발급 예정. 관리실에 전기세 관련 메일 요청 완료. </span></div></div>
+          <div class="row"><span class="k">미해결 의사결정</span><ul class="dec"><li>유플러스 해지 관련</li></ul></div>
+          <div class="growth"><div class="growth-h">ARISA 사고 해상도 <span class="reso" style="color:var(--red)">8%</span><span class="reso-sub">커버리지 12% · 깊이 2.0/3</span></div><div class="gauges"><div class="gz"><b>2</b><small>명확성</small></div><div class="gz"><b>2</b><small>근거</small></div><div class="gz"><b>2</b><small>구조</small></div><div class="gz"><b>2</b><small>산출물</small></div><div class="gz"><b>0</b><small>의미</small></div><div class="gz"><b>0</b><small>의사결정</small></div></div></div>
+        </div></div>
+<footer>Generated by weekly-report-aggregate.py · 2026-06-30 18:59 · by Project Rent</footer>
+</div></div>
+<script>
+(function(){
+  var TEAM="운영팀";
+  var gate=document.getElementById('login-gate'), content=document.getElementById('content'), who=document.getElementById('whoami');
+  function enter(s){
+    gate.style.display='none'; content.style.display='block';
+    who.style.display='block';
+    var growth=((s.admin || (s.lead_teams||[]).indexOf(TEAM)>=0));
+    who.innerHTML = s.name+' ('+(s.role||'')+')'+(growth?' · 성장지표 ON':'')+' <a id="lg-out">로그아웃</a>';
+    if(growth) document.body.classList.add('is-admin');
+    document.getElementById('lg-out').onclick=function(){ localStorage.removeItem('team_weekly_sess'); location.reload(); };
+  }
+  var sess=null; try{ sess=JSON.parse(localStorage.getItem('team_weekly_sess')||'null'); }catch(e){}
+  if(sess && (sess.admin || (sess.lead_teams||[]).indexOf(TEAM)>=0)) enter(sess);
+  function doLogin(){
+    var id=document.getElementById('lg-id').value.trim(), pin=document.getElementById('lg-pin').value.trim();
+    var err=document.getElementById('login-err'); err.textContent='';
+    fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,pin:pin})})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.ok && (d.admin || (d.lead_teams||[]).indexOf(TEAM)>=0)){ localStorage.setItem('team_weekly_sess',JSON.stringify(d)); enter(d); }
+        else if(d.ok){ err.textContent='이 팀 리더 전용 화면입니다'; }
+        else { err.textContent=d.error||'로그인 실패'; }
+      })
+      .catch(function(){ err.textContent='서버 연결 실패 (대시보드 서버 경유로 열어주세요)'; });
+  }
+  document.getElementById('lg-btn').onclick=doLogin;
+  document.getElementById('lg-pin').addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+})();
+</script>
+</body></html>
