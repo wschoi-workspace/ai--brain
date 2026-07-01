@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Basket 주간 매장 인사이트 — launchd 주간 자동생성 + 대표 결재큐 텔레그램 push
+  설치:
+    cp 00-system/02-scripts/com.basket.weekly-insight.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.basket.weekly-insight.plist
+  매주 월요일 09:00 직전 7일 리뷰 → insights/weekly-insight-YYMMDD.html + 대표 텔레그램.
+  (.env에 BASKET_REPORT_SHEET_ID·BASKET_MANAGER_CHAT_ID·BASKET_BOT_TOKEN·OPENAI_API_KEY 필요)
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.basket.weekly-insight</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/choi_ai/do-better-workspace/20-operations/24-second-brain/.venv311/bin/python</string>
+        <string>-u</string>
+        <string>/Users/choi_ai/do-better-workspace/00-system/02-scripts/basket-weekly-insight.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/choi_ai/do-better-workspace</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/choi_ai/.npm-global/bin:/Users/choi_ai/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key><integer>1</integer>
+        <key>Hour</key><integer>9</integer>
+        <key>Minute</key><integer>0</integer>
+    </dict>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/tmp/basket-weekly-insight.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/basket-weekly-insight.log</string>
+</dict>
+</plist>

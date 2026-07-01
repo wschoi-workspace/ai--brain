@@ -128,5 +128,49 @@ pkill -9 -f 'daily-report-bot.py|bot.py|basket-ops-bot.py|telegram_bot.py'
 - 맥미니 봇에 문제 시: 맥미니 bootout → 노트북에서 다시 bootstrap(코드/데이터 노트북에 그대로 남아있음). 데이터(.mem0)는 양쪽 복사본이라 안전.
 
 ---
+## 🔍 감사 보완 (2026-07-01) — 누락 3서비스 + 대시보드 완전 이전
+전수 감사에서 발견. 이관 안 하면 조용히 죽는 것들 + 분산 위험.
+
+### Phase 2 추가 — AirDrop (노트북 바탕화면 `arisa-missing/` 폴더, PLACEMENT.txt 동봉)
+git 미포함이라 clone에 안 옴 → AirDrop 필수:
+- 스크립트: `send-newsletter.sh`·`send-newsletter.py`(→newsletter/)·`morning-sb-todos.py`(→02-scripts/)
+- 상태파일: `delivery-status.json`·`sent-log.json`(→newsletter/)·`send-state`(→onboarding-daily/**`.send-state`** 점 복원, 진도 2/8)
+
+### Phase 4 추가 — plist 3 (com.dobetter.*)
+- `com.dobetter.morning-telegram`(매일 08:00, morning-telegram.sh) — ⚠️ **Claude CLI 의존**(`~/.npm-global/bin/claude`로 `/morning` 스킬 headless 실행). 맥미니에서 실제 동작 **검증 필수**(안 되면 morning만 노트북 잔류/대안).
+- `com.dobetter.ax-newsletter`(매주 월 09:00) · `com.dobetter.ax-newsletter-purge`(매일 04:30)
+- bootstrap 루프에 `~/Library/LaunchAgents/com.dobetter.*.plist` 추가. 노트북에선 이 3개도 bootout.
+
+### Phase 5-B — 대시보드 완전 이전 (분산 해결, 최우선)
+**이유**: aggregator(daily-brief/weekly, 맥미니)가 HTML을 맥미니 `20-operations/23-arisa/{brief,weekly}/`에 생성. dashboard-server가 노트북이면 **경로 불일치로 새 Brief 못 봄**. → 대시보드도 맥미니여야.
+1. 맥미니 `dashboard-server` 포트 확인(맥미니 세션 8780 언급).
+2. 맥미니에서 `cloudflared tunnel --url http://localhost:<포트>` → 새 URL.
+3. 맥미니 `.env`에 `DASHBOARD_BASE_URL=<새 URL>`.
+4. **노트북 종료**: `launchctl bootout gui/$(id -u)/com.projectrent.dashboard` + cloudflared quick tunnel `pkill -f "cloudflared tunnel --url"` + `com.arisa.caffeinate` bootout.
+5. **리더 3 + 대표에게 새 맥미니 URL 재발송**.
+
+## 🔧 보완 (2026-07-01) — 주간분장 시스템 추가
+
+### 변경된 파일 (이관 시 최신 git pull 필요)
+- `00-system/02-scripts/daily-report-bot.py` — `/assign` ConversationHandler 추가 (주간분장 간편 등록)
+- `00-system/02-scripts/shared/gws.py` — `values_update()` 추가 (시트 셀 덮어쓰기)
+- `00-system/02-scripts/weekly-report-aggregate.py` — 분장 fetch + 보고 매칭 + 달성률 + 시트 상태 자동 업데이트
+- `00-system/02-scripts/morning-telegram.sh` — 프롬프트에 '주간분장' 탭 읽기 추가
+
+### 구글시트 '주간분장' 탭
+- `DAILY_REPORT_SHEET_ID` 시트에 '주간분장' 탭이 필요 (첫 실행 시 자동 생성 — `/주간분장` 스킬 또는 `/assign` 봇이 헤더 행 append)
+- 컬럼: 주차|팀|항목번호|업무내용|담당자|마감|우선순위|상태|등록일|소스
+- 별도 생성 작업 불필요 (gws append가 탭 없으면 에러→스킬이 헤더 삽입)
+
+### Phase 7 검증 추가
+- `/assign` 테스트: 텔레그램에서 `/assign 기획팀 테스트 업무 @양지혜 ~수요일` → 시트 '주간분장' 탭 행 확인
+- 주간 대시보드 수동 실행 시 `--no-telegram` 옵션으로 분장 달성률 게이지 렌더링 확인
+- `/morning` 실행 시 주간분장 현황이 체크리스트에 포함되는지 확인
+
+### 이관 영향 없음
+- `/주간분장` Claude 스킬(`.claude/skills/주간분장/SKILL.md`)은 Claude Code 세션에서 실행 — launchd 무관
+- 신규 plist 없음 (기존 daily-report-bot plist가 `/assign` 포함)
+
 ## 미해결/확인 필요
 - 맥미니 사용자명(경로 치환 여부) · gws 재인증 · users.json git 포함 여부 · basket-onboarding/zero-server 스크립트 경로(plist에서 확인) · arisa venv 정확한 requirements(repo 내 requirements.txt 확인)
+- **morning-telegram Claude CLI headless 실행 가능 여부**(맥미니) · **arisa-employees.json ↔ users.json 정합**(팀 리더 입장) · **weekly `_telegram_summary` ts.net→DASHBOARD_BASE_URL 상수화**(월요일 발송 전)

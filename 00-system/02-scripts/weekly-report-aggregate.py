@@ -143,6 +143,79 @@ def fetch_daily() -> dict:
     }
 
 
+def fetch_assignments(week_label: str) -> list[dict]:
+    """주간분장 탭에서 해당 주차 항목 fetch → dict 리스트.
+    컬럼: 주차(0)|팀(1)|항목번호(2)|업무내용(3)|담당자(4)|마감(5)|우선순위(6)|상태(7)|등록일(8)|소스(9)
+    """
+    rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:J5000")
+    items = []
+    for r in rows:
+        r = r + [""] * (10 - len(r))
+        if (r[0] or "").strip() != week_label:
+            continue
+        items.append({
+            "week": r[0], "team": (r[1] or "").strip(),
+            "item_no": r[2], "task": (r[3] or "").strip(),
+            "assignee": (r[4] or "").strip(), "deadline": r[5],
+            "priority": (r[6] or "일반").strip(),
+            "status": (r[7] or "미착수").strip(),
+            "registered": r[8], "source": r[9],
+        })
+    return items
+
+
+def match_assignments_to_daily(assignments: list[dict], records: list[dict]) -> list[dict]:
+    """분장 항목 vs 일일보고 업무를 키워드 매칭하여 상태 추정.
+    매칭 로직: 분장 업무 키워드가 일일보고 task에 2개 이상 포함 → 진행중/완료로 업데이트.
+    """
+    import re
+    for a in assignments:
+        if a["status"] == "완료":
+            continue
+        # 분장 업무에서 핵심 키워드 추출 (2자 이상 단어)
+        words = [w for w in re.split(r'[\s/·,\-]+', a["task"]) if len(w) >= 2]
+        if not words:
+            continue
+        matched_tasks = []
+        for r in records:
+            if r["source"] not in WORK_SRC:
+                continue
+            # 담당자 매칭(있으면 우선 필터)
+            if a["assignee"] and a["assignee"] != "팀":
+                if r["name"] != a["assignee"]:
+                    continue
+            # 키워드 매칭
+            rtask = r.get("task", "")
+            hits = sum(1 for w in words if w in rtask)
+            if hits >= min(2, len(words)):
+                matched_tasks.append(r)
+        if matched_tasks:
+            has_done = any("완료" in (r.get("status") or "") for r in matched_tasks)
+            a["status"] = "완료" if has_done else "진행중"
+    return assignments
+
+
+def update_assignment_status_in_sheet(assignments: list[dict]) -> int:
+    """시트 '주간분장' 탭의 상태 컬럼(H열)을 매칭 결과로 업데이트."""
+    rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:J5000")
+    updated = 0
+    for a in assignments:
+        if a["status"] in ("미착수",):
+            continue
+        for i, r in enumerate(rows):
+            r = r + [""] * (10 - len(r))
+            if (r[0] or "").strip() == a["week"] and (r[3] or "").strip() == a["task"]:
+                if (r[7] or "").strip() != a["status"]:
+                    row_num = i + 2  # 1-indexed header
+                    _gws.values_update(
+                        DAILY_SHEET, f"주간분장!H{row_num}",
+                        [[a["status"]]], timeout=10,
+                    )
+                    updated += 1
+                break
+    return updated
+
+
 def fetch_basket() -> list[list]:
     return _gws_values_get(BASKET_SHEET, "일일보고!A2:O5000")
 
@@ -405,6 +478,31 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
 
     _, avg_comp = _completion(wk)
     total_decisions = sum(len(p["open_decisions"]) for p in persons)
+
+    # ─── 주간분장 ↔ 일일보고 교차 매칭 ───
+    week_label = f"W{week_start.isocalendar().week:02d}"
+    assignments = fetch_assignments(week_label)
+    if assignments:
+        assignments = match_assignments_to_daily(assignments, wk)
+        updated = update_assignment_status_in_sheet(assignments)
+        if updated:
+            sys.stderr.write(f"[assign] {updated}건 상태 업데이트\n")
+    # 팀별 분장 달성률 계산
+    assign_by_team = defaultdict(list)
+    for a in assignments:
+        assign_by_team[a["team"]].append(a)
+    for t in teams:
+        t_assigns = assign_by_team.get(t["team"], [])
+        if t_assigns:
+            done = sum(1 for a in t_assigns if a["status"] == "완료")
+            t["assignment_total"] = len(t_assigns)
+            t["assignment_done"] = done
+            t["assignment_rate"] = round(done / len(t_assigns) * 100)
+        else:
+            t["assignment_total"] = 0
+            t["assignment_done"] = 0
+            t["assignment_rate"] = None
+
     return {
         "week": {"start": ws, "end": we,
                  "label": f"{week_start.isocalendar().year}년 W{week_start.isocalendar().week:02d}",
@@ -413,6 +511,7 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
                     "avg_completion": avg_comp, "active_people": len(by_person),
                     "open_decisions": total_decisions},
         "teams": teams, "persons": persons,
+        "assignments": assignments,
         "unmatched_names": unmatched,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
@@ -424,6 +523,7 @@ def slice_team_data(data: dict, team: str) -> dict:
     d["team"] = team
     d["teams"] = [t for t in data["teams"] if t["team"] == team]
     d["persons"] = [p for p in data["persons"] if p["team"] == team]
+    d["assignments"] = [a for a in data.get("assignments", []) if a.get("team") == team]
     d["unmatched_names"] = []  # 팀 스코프 — 미매칭 경고 생략
     persons = d["persons"]
     team_obj = d["teams"][0] if d["teams"] else None
@@ -531,10 +631,16 @@ def render_html(data: dict) -> str:
         comp = "N/A" if t["completion_rate"] is None else f'{t["completion_rate"]}%'
         cb = "".join(f'<span class="badge badge-amber">{_esc(v)} ·{n}명</span>'
                      for v, n in t["common_blockers"]) or '<span class="muted">공통 블로커 없음</span>'
+        # 분장 달성률 게이지
+        assign_row = ""
+        if t.get("assignment_total", 0) > 0:
+            ar = t["assignment_rate"]
+            assign_row = f'<div class="row"><span class="k">분장 달성</span>{_comp_bar(ar)}<span class="muted" style="margin-left:8px">{t["assignment_done"]}/{t["assignment_total"]}</span></div>'
         team_cards.append(f'''
         <div class="card team-card">
           <div class="card-h"><h3>{_esc(t["team"])}</h3><span class="muted">{len(t["active_members"])}명 활성 · {t["task_count"]}건 (인당 {t["per_capita"]})</span></div>
           <div class="donut-wrap">{_donut(t["categories"])}</div>
+          {assign_row}
           <div class="row"><span class="k">완료율</span>{_comp_bar(t["completion_rate"])}</div>
           <div class="row"><span class="k">공통 블로커</span><div class="vals">{cb}</div></div>
           <div class="row"><span class="k">도구</span><div class="vals">{_chips(t["tools"])}</div></div>

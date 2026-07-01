@@ -57,3 +57,27 @@ def append_to_sheet(sheet_id: str, range_str: str, row: list,
     except Exception as e:  # noqa: BLE001
         logger.error(f"sheet append error: {e}")
         return False
+
+
+def values_update(sheet_id: str, rng: str, values: list[list],
+                  value_input_option: str = "RAW", timeout: int = 15) -> bool:
+    """시트 특정 범위 덮어쓰기 (분장 상태 업데이트 등)."""
+    if not sheet_id:
+        logger.warning("values_update: sheet_id 미설정 — 건너뜀")
+        return False
+    try:
+        r = subprocess.run([
+            "gws", "sheets", "spreadsheets", "values", "update",
+            "--params", json.dumps({
+                "spreadsheetId": sheet_id, "range": rng,
+                "valueInputOption": value_input_option,
+            }),
+            "--json", json.dumps({"values": values}),
+        ], capture_output=True, timeout=timeout, text=True)
+        if r.returncode != 0:
+            logger.error(f"sheet update fail: {r.stderr[:300]}")
+            return False
+        return True
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"sheet update error: {e}")
+        return False

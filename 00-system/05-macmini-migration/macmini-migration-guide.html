@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>do-better-workspace 맥미니 이관 런북</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+  :root{--bg:#0E0B1A;--panel:#171327;--panel2:#1F1A33;--line:#2C2542;--txt:#EDEBF5;--sub:#B4B0C6;--mut:#6F6A86;--acc:#6C5CE7;--acc2:#8B7BFF;--acc-soft:rgba(108,92,231,.12);--green:#27C093;--amber:#F2B53C;--rose:#FF6B9D;--am:#4DA3FF}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Pretendard',-apple-system,sans-serif;line-height:1.62;-webkit-font-smoothing:antialiased;padding:0 0 90px;font-size:15px}
+  .wrap{max-width:980px;margin:0 auto;padding:0 24px}
+  code,kbd{font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:12.6px;background:rgba(255,255,255,.05);padding:1px 5px;border-radius:5px}
+  header.hero{padding:50px 0 28px;border-bottom:1px solid var(--line);background:radial-gradient(1000px 320px at 16% -10%,var(--acc-soft),transparent)}
+  .eyebrow{color:var(--acc2);font-weight:700;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:29px;font-weight:800;line-height:1.3;margin:11px 0;letter-spacing:-.02em}
+  h1 .hl{color:var(--acc2)}
+  .lede{color:var(--sub);font-size:14.5px;max-width:740px}
+  .meta{margin-top:15px;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{background:var(--panel2);border:1px solid var(--line);color:var(--sub);font-size:11.5px;padding:5px 11px;border-radius:999px}
+  section{margin:34px 0}
+  h2{font-size:19px;font-weight:800;margin:8px 0 6px;display:flex;align-items:center;gap:10px}
+  h2 .num{color:var(--acc2);font-size:13px;font-weight:700;background:var(--acc-soft);border:1px solid var(--acc);min-width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+  .sub{color:var(--mut);font-size:12.8px;margin-bottom:12px}
+  .phase{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0}
+  .where{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 9px;border-radius:6px;margin-bottom:8px}
+  .w-old{background:rgba(242,181,60,.13);color:var(--amber);border:1px solid var(--amber)}
+  .w-new{background:rgba(39,192,147,.13);color:var(--green);border:1px solid var(--green)}
+  .w-both{background:var(--acc-soft);color:var(--acc2);border:1px solid var(--acc)}
+  .phase h3{font-size:15.5px;font-weight:800;margin-bottom:6px}
+  pre{background:#0A0814;border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-x:auto;margin:9px 0;color:#D6D2E6;font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-all}
+  pre .c{color:var(--mut)}
+  ul,ol{margin:7px 0 7px 20px;color:var(--sub);font-size:13.6px} li{margin:4px 0}
+  b{color:var(--txt)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+  th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{color:var(--mut);font-weight:700;font-size:11.5px} td b{color:var(--txt)}
+  .warn{background:rgba(255,107,157,.07);border:1px solid var(--rose);border-radius:10px;padding:12px 16px;color:var(--sub);font-size:12.8px;margin:12px 0}
+  .warn b{color:var(--rose)}
+  .ok{background:rgba(39,192,147,.06);border:1px solid var(--green);border-radius:10px;padding:12px 16px;color:var(--sub);font-size:12.8px;margin:12px 0}
+  .ok b{color:var(--green)}
+  footer{margin-top:46px;padding-top:18px;border-top:1px solid var(--line);color:var(--mut);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Project Rent · do-better-workspace · 인프라 이관</div>
+  <h1><span class="hl">맥미니 이관</span> 런북 — 슬립 없는 상시가동으로</h1>
+  <p class="lede">맥북(슬립 시 봇·자동화 중단) → 맥미니(상시가동)로 워크스페이스 전체 자동화를 옮긴다. 봇 중복가동만 피하면 안전하다. 보류했던 <b>웹앱 배포(경영 뷰+빈제출 가드)</b>도 맥미니에서 ws.choi로 한 번에 처리.</p>
+  <div class="meta"><span class="chip">launchd 16잡</span><span class="chip">레포 2개</span><span class="chip">CLI 5종</span><span class="chip">by Project Rent</span></div>
+</div></header>
+
+<div class="wrap">
+
+<section>
+<h2><span class="num">0</span>이동 대상 한눈에</h2>
+<table>
+  <thead><tr><th style="width:24%">항목</th><th style="width:40%">내용</th><th>이동 방식</th></tr></thead>
+  <tbody>
+    <tr><td><b>워크스페이스</b></td><td><code>~/do-better-workspace</code> (git: ai--brain)</td><td>git clone</td></tr>
+    <tr><td><b>ARISA 레포</b></td><td><code>~/arisa-project-memory</code> (git)</td><td>git clone</td></tr>
+    <tr><td><b>시크릿 .env</b></td><td>16키(OpenAI·봇토큰·시트ID·네이버·버퍼)</td><td>번들 AirDrop(깃 제외)</td></tr>
+    <tr><td><b>CLI 인증</b></td><td>gws(.config/gws)·tgcli(세션)·clasp(.clasprc)</td><td>번들 복사 + 필요시 재인증</td></tr>
+    <tr><td><b>gws 바이너리</b></td><td>npm 패키지 아님 — 단독 바이너리</td><td>번들 복사</td></tr>
+    <tr><td><b>launchd 16잡</b></td><td>basket3·arisa7·dobetter3·projectrent3</td><td>번들 복사 → 로드</td></tr>
+    <tr><td><b>venv311</b></td><td>Python3.11 + 9개 의존성</td><td>uv 재생성(requirements)</td></tr>
+    <tr><td><b>런타임</b></td><td>node·uv·npm CLI(clasp·tgcli·claude·netlify)</td><td>bootstrap 설치</td></tr>
+  </tbody>
+</table>
+<div class="warn"><b>대전제:</b> 맥미니 사용자명을 <b>choi_ai</b>로 만들면 plist 절대경로(<code>/Users/choi_ai/…</code>)가 그대로 맞는다. 다르면 bootstrap이 자동 <code>sed</code> 치환하지만, 같게 두는 게 가장 안전.</div>
+</section>
+
+<section>
+<h2><span class="num">1</span>기존 맥 — 시크릿 번들 생성</h2>
+<div class="phase"><span class="where w-old">기존 맥북</span>
+<h3>깃에 없는 것(시크릿·인증·plist)을 한 묶음으로</h3>
+<pre>bash ~/do-better-workspace/00-system/05-macmini-migration/transfer-bundle.sh
+<span class="c"># → ~/Desktop/basket-migration-bundle.tar.gz 생성</span></pre>
+<ul><li>생성된 번들을 <b>맥미니로 AirDrop</b></li>
+<li>⚠️ API키·봇토큰 포함 — <b>이관 끝나면 양쪽에서 삭제</b></li></ul>
+</div>
+</section>
+
+<section>
+<h2><span class="num">2</span>맥미니 — 부트스트랩</h2>
+<div class="phase"><span class="where w-new">맥미니</span>
+<h3>런타임·레포·venv·인증·plist 일괄</h3>
+<pre>git clone https://github.com/wschoi-workspace/ai--brain.git ~/do-better-workspace
+bash ~/do-better-workspace/00-system/05-macmini-migration/macmini-bootstrap.sh ~/Downloads/basket-migration-bundle.tar.gz</pre>
+<ul><li>Xcode CLT·Homebrew·node·uv → npm CLI → 레포2개 → venv재생성 → 번들(.env·인증·gws·plist) 배치까지 자동</li>
+<li>중간에 Homebrew/Xcode 설치 팝업이 뜨면 승인</li></ul>
+</div>
+</section>
+
+<section>
+<h2><span class="num">3</span>맥미니 — 슬립 방지(상시가동 핵심)</h2>
+<div class="phase"><span class="where w-new">맥미니</span>
+<pre>sudo pmset -a sleep 0 disablesleep 1 displaysleep 0 womp 1
+<span class="c"># sleep 0=시스템 잠들지 않음 / womp 1=Wake on LAN / 뚜껑 없는 맥미니라 클램쉘 이슈 없음</span>
+pmset -g | grep -iE "sleep|womp"   <span class="c"># sleep 0 확인</span></pre>
+<div class="ok"><b>이게 이관의 진짜 목적.</b> 맥미니는 뚜껑이 없어 caffeinate 없이도 pmset만으로 24/7 가동. 봇·주간인사이트가 더는 안 끊긴다.</div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">4</span>맥미니 — 인증 검증/재로그인</h2>
+<div class="phase"><span class="where w-new">맥미니</span>
+<h3>번들로 옮긴 인증이 살아있는지 확인, 만료면 재로그인</h3>
+<pre>gws auth status            <span class="c"># 구글 — 만료면: gws auth login</span>
+tgcli auth status          <span class="c"># 텔레그램 — 만료면: tgcli 재인증(api_id/hash+코드)</span>
+clasp login                <span class="c"># ⚠️ Apps Script — invalid_rapt였으니 ws.choi로 새로 로그인 권장</span></pre>
+<div class="warn"><b>clasp는 반드시 ws.choi@project-rent.com(스크립트 소유자)로.</b> 그래야 다음 Phase 6 웹앱 배포가 권한오류 없이 된다.</div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">5</span>컷오버 — 기존 맥 정지 → 맥미니 로드</h2>
+<div class="phase"><span class="where w-old">기존 맥북</span>
+<h3>① 먼저 기존 맥 잡 전부 내리기(봇 중복 방지)</h3>
+<pre>bash ~/do-better-workspace/00-system/05-macmini-migration/oldmac-teardown.sh
+<span class="c"># 16잡 unload + 남은 봇 프로세스 확인</span></pre>
+</div>
+<div class="phase"><span class="where w-new">맥미니</span>
+<h3>② 그다음 맥미니에서 로드</h3>
+<pre>for L in $(ls ~/Library/LaunchAgents/com.{basket,arisa,dobetter,projectrent}.*.plist); do launchctl load "$L"; done
+launchctl list | grep -iE "basket|arisa|dobetter|projectrent"</pre>
+</div>
+<div class="warn"><b>순서 엄수:</b> 텔레그램 봇은 한 기기에서만 폴링해야 한다(두 곳 동시 = getUpdates 충돌·중복발송). <b>기존 맥 teardown → 맥미니 load</b> 순서로.</div>
+</section>
+
+<section>
+<h2><span class="num">6</span>맥미니 — 보류했던 웹앱 배포(경영 뷰+빈제출 가드)</h2>
+<div class="phase"><span class="where w-new">맥미니</span>
+<h3>ws.choi clasp로 push + 재배포 → 운영 URL 그대로 새 코드 반영</h3>
+<pre><span class="c"># 클론본에 최신 gs/index.html 이미 포함(이번에 커밋). staging으로 복사 후 push</span>
+mkdir -p /tmp/basket-clasp && cd /tmp/basket-clasp
+cp ~/do-better-workspace/00-system/02-scripts/basket-report-webapp.gs Code.gs
+cp ~/do-better-workspace/10-projects/30-basket-report-webapp/index.html index.html
+<span class="c"># .clasp.json(scriptId) 없으면 생성: echo '{"scriptId":"1BuZNwVkuqCv-tpKIjjRtyFOiSSCM-9Suc5zqHjRjC4ropd-FWUKbzHwp"}' > .clasp.json</span>
+clasp push --force
+clasp create-deployment -i AKfycbxagxA-BXfGAYQEK7Ye4lUQb4MWDZvH3vOqGlIi_5uY6S8iSKiV12sU_afbusKuVwV7GA -d "v3 경영뷰+빈제출가드"</pre>
+<ul><li>운영 URL(<code>…/AKfycbxag…/exec</code>)은 그대로, 새 버전만 반영</li>
+<li>이미 에디터에 붙여넣어 저장한 상태라, clasp push가 안 되면 <b>에디터 → 배포 관리 → @1 편집 → 새 버전</b>으로도 가능(ws.choi 계정이면 권한오류 없음)</li></ul>
+</div>
+</section>
+
+<section>
+<h2><span class="num">7</span>맥미니 — 전체 검증</h2>
+<div class="phase"><span class="where w-both">맥미니 + 브라우저</span>
+<ul>
+<li><b>봇</b>: 텔레그램에서 <code>/todo</code> → 오늘 체크리스트 응답 / 일일보고 자유서술 → 12섹션 정리</li>
+<li><b>주간 인사이트</b>: <code>~/do-better-workspace/20-operations/24-second-brain/.venv311/bin/python ~/do-better-workspace/00-system/02-scripts/basket-weekly-insight.py --dry-run</code> → HTML 생성 확인</li>
+<li><b>웹앱</b>: 운영 URL 로그인 → 대표(zxcv102324!)로 <b>📈 경영 뷰</b> 버튼 보이는지 / 빈 보고 제출 시 <b>"보고 내용이 비어 있습니다"</b> 차단되는지</li>
+<li><b>중복 없음</b>: 기존 맥에서 <code>ps aux | grep basket-ops-bot</code> → 없어야 정상(맥미니에서만)</li>
+<li><b>로그</b>: <code>tail -f /tmp/basket-ops-bot.log</code> → getUpdates 200 반복</li>
+</ul>
+<div class="ok"><b>완료 기준:</b> 봇·주간인사이트·웹앱(경영뷰+가드) 모두 맥미니에서 동작 + 기존 맥엔 워크스페이스 잡 0개 + pmset sleep 0.</div>
+</div>
+</section>
+
+<section>
+<h2><span class="num">8</span>마무리 — 잊지 말 것</h2>
+<ul>
+<li>🔐 양쪽에서 <code>basket-migration-bundle.tar.gz</code> 삭제(시크릿 포함)</li>
+<li>📌 직원(양은정·김준호)에겐 영향 없음 — 운영 URL·봇 동일(서버만 이동). 단 이관 중 잠깐 봇 무응답 가능 → 컷오버는 영업시간 외 권장</li>
+<li>🖥 기존 맥북은 백업/예비로. 다시 봇 돌리지 말 것(중복)</li>
+<li>🔁 이후 코드 변경은 맥미니에서 <code>git pull</code> + 해당 잡 restart</li>
+</ul>
+</section>
+
+<footer>
+do-better-workspace 맥미니 이관 런북 · 2026-06-27 · by Project Rent<br>
+동봉 스크립트: transfer-bundle.sh(기존맥) · macmini-bootstrap.sh(맥미니) · oldmac-teardown.sh(컷오버) · requirements-venv311.txt
+</footer>
+</div>
+</body>
+</html>

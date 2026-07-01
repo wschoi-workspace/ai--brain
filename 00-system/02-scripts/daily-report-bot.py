@@ -182,6 +182,13 @@ def register_telegram_id(uid, name: str) -> None:
     MTG_CONFIRM,
 ) = range(100, 103)
 
+# /assign 대화 상태
+(
+    ASSIGN_TEAM,
+    ASSIGN_CONTENT,
+    ASSIGN_CONFIRM,
+) = range(200, 203)
+
 # 회의 프로젝트 경로
 _MEETING_PROJECTS_DIR = Path(__file__).resolve().parents[2] / "20-operations" / "23-arisa" / "meeting-projects"
 _MEETING_TEMPLATE_DIR = _MEETING_PROJECTS_DIR / "_template"
@@ -805,6 +812,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "오늘 하신 일을 편하게 얘기해주시면\n"
         "깔끔하게 정리해서 팀장님께 보내드릴게요.\n\n"
         "/report — 업무 보고 시작\n"
+        "/assign — 업무분장 추가 (대표 전용)\n"
         "/cancel — 취소"
     )
 
@@ -1423,6 +1431,207 @@ async def cancel_meeting(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     return ConversationHandler.END
 
 
+# === /assign 핸들러 (주간 업무분장 간편 추가) ===
+
+_ASSIGN_TEAMS = ["기획팀", "공간팀", "사업기획", "운영팀", "경영"]
+
+ASSIGN_PARSE_PROMPT = """주간 업무분장 항목을 파싱해라. 입력에서 팀/업무내용/담당자/마감을 추출.
+담당자는 이름만(님 제거). 마감은 요일이면 이번 주 날짜(YYYY-MM-DD)로 변환.
+우선순위: "최우선"/"긴급"/"!!" → "최우선", "참고"/"FYI" → "참고", 나머지 → "일반".
+
+오늘 날짜: {today}
+
+반드시 JSON만 출력:
+{{"team": "팀명", "task": "업무내용", "assignee": "담당자이름 또는 빈문자열", "deadline": "YYYY-MM-DD 또는 빈문자열", "priority": "최우선|일반|참고"}}"""
+
+
+def _week_label() -> str:
+    """현재 ISO 주차 라벨 (W27 등)."""
+    now = datetime.now()
+    return f"W{now.isocalendar().week:02d}"
+
+
+def save_assignment_to_sheet(team: str, task: str, assignee: str,
+                              deadline: str, priority: str) -> bool:
+    """주간분장 탭에 1행 등록."""
+    row = [
+        _week_label(), team, "", task, assignee or "팀",
+        deadline, priority, "미착수",
+        datetime.now().strftime("%Y-%m-%d"), "bot",
+    ]
+    return _gws.append_to_sheet(
+        SHEET_ID, "주간분장!A1", row,
+        value_input_option="RAW", timeout=15,
+    )
+
+
+async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """업무분장 간편 추가 — 대표 전용."""
+    uid = update.effective_user.id
+    if uid not in _MEETING_ALLOWED:
+        await update.message.reply_text("업무분장 등록은 대표 전용입니다.")
+        return ConversationHandler.END
+
+    text = (update.message.text or "").strip()
+    # 원라인 모드: /assign 기획팀 CJ 시안 수정 @지혜님 ~수요일
+    args = text.split(None, 1)
+    if len(args) > 1 and args[1].strip():
+        oneline = args[1].strip()
+        context.user_data["assign"] = {"raw": oneline}
+        await update.message.reply_text("파싱 중... ⏳")
+        parsed = call_gpt(
+            ASSIGN_PARSE_PROMPT.format(today=datetime.now().strftime("%Y-%m-%d")),
+            oneline,
+        )
+        if parsed and parsed.get("task"):
+            context.user_data["assign"]["parsed"] = parsed
+            team = parsed.get("team", "")
+            assignee = parsed.get("assignee", "")
+            deadline = parsed.get("deadline", "")
+            priority = parsed.get("priority", "일반")
+            # 담당자 명부 매칭
+            if assignee:
+                emp = match_employee(assignee)
+                if emp:
+                    assignee = emp["name"]
+                    if not team:
+                        team = emp.get("team", "")
+            context.user_data["assign"]["parsed"]["team"] = team
+            context.user_data["assign"]["parsed"]["assignee"] = assignee
+            await update.message.reply_text(
+                f"✅ 파싱 결과:\n"
+                f"  팀: {team}\n"
+                f"  업무: {parsed['task']}\n"
+                f"  담당: {assignee or '팀'}\n"
+                f"  마감: {deadline or '미정'}\n"
+                f"  우선순위: {priority}\n\n"
+                f"맞으면 '확인', 수정하려면 내용을 다시 입력하세요."
+            )
+            return ASSIGN_CONFIRM
+
+    # 대화형 모드
+    context.user_data["assign"] = {}
+    lines = ["어떤 팀에 배정하시겠어요?\n"]
+    for i, t in enumerate(_ASSIGN_TEAMS, 1):
+        lines.append(f"{i}. {t}")
+    await update.message.reply_text("\n".join(lines))
+    return ASSIGN_TEAM
+
+
+async def assign_team(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """팀 선택."""
+    text = update.message.text.strip()
+    team = None
+    if text.isdigit():
+        idx = int(text) - 1
+        if 0 <= idx < len(_ASSIGN_TEAMS):
+            team = _ASSIGN_TEAMS[idx]
+    else:
+        for t in _ASSIGN_TEAMS:
+            if text in t or t in text:
+                team = t
+                break
+    if not team:
+        await update.message.reply_text("팀을 다시 선택해주세요. (번호 또는 팀명)")
+        return ASSIGN_TEAM
+
+    context.user_data["assign"]["team"] = team
+    await update.message.reply_text(
+        f"'{team}' 선택.\n\n"
+        "업무 내용을 입력해주세요.\n"
+        "예) CJ 시안 수정 @양지혜 ~수요일 (최우선)"
+    )
+    return ASSIGN_CONTENT
+
+
+async def assign_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """업무 내용 파싱."""
+    text = update.message.text.strip()
+    team = context.user_data["assign"].get("team", "")
+    context.user_data["assign"]["raw"] = text
+
+    parsed = call_gpt(
+        ASSIGN_PARSE_PROMPT.format(today=datetime.now().strftime("%Y-%m-%d")),
+        f"팀: {team}\n내용: {text}",
+    )
+    if not parsed or not parsed.get("task"):
+        parsed = {"team": team, "task": text, "assignee": "", "deadline": "", "priority": "일반"}
+
+    parsed["team"] = parsed.get("team") or team
+    # 담당자 명부 매칭
+    assignee = parsed.get("assignee", "")
+    if assignee:
+        emp = match_employee(assignee)
+        if emp:
+            parsed["assignee"] = emp["name"]
+
+    context.user_data["assign"]["parsed"] = parsed
+    await update.message.reply_text(
+        f"✅ 파싱 결과:\n"
+        f"  팀: {parsed['team']}\n"
+        f"  업무: {parsed['task']}\n"
+        f"  담당: {parsed.get('assignee') or '팀'}\n"
+        f"  마감: {parsed.get('deadline') or '미정'}\n"
+        f"  우선순위: {parsed.get('priority', '일반')}\n\n"
+        f"맞으면 '확인', 수정하려면 내용을 다시 입력하세요."
+    )
+    return ASSIGN_CONFIRM
+
+
+async def assign_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """확인 → 시트 등록."""
+    text = update.message.text.strip()
+
+    if text.lower() not in ("확인", "맞아", "네", "ㅇㅇ", "응", "ok", "ㅇ", "맞음"):
+        # 재파싱
+        context.user_data["assign"]["raw"] = text
+        team = context.user_data["assign"].get("team", "")
+        parsed = call_gpt(
+            ASSIGN_PARSE_PROMPT.format(today=datetime.now().strftime("%Y-%m-%d")),
+            f"팀: {team}\n내용: {text}",
+        )
+        if parsed and parsed.get("task"):
+            parsed["team"] = parsed.get("team") or team
+            assignee = parsed.get("assignee", "")
+            if assignee:
+                emp = match_employee(assignee)
+                if emp:
+                    parsed["assignee"] = emp["name"]
+            context.user_data["assign"]["parsed"] = parsed
+            await update.message.reply_text(
+                f"수정 파싱:\n"
+                f"  팀: {parsed['team']} | 업무: {parsed['task']}\n"
+                f"  담당: {parsed.get('assignee') or '팀'} | 마감: {parsed.get('deadline') or '미정'}\n"
+                f"맞으면 '확인'"
+            )
+            return ASSIGN_CONFIRM
+        await update.message.reply_text("파싱 실패. 다시 입력해주세요.")
+        return ASSIGN_CONFIRM
+
+    p = context.user_data["assign"].get("parsed", {})
+    ok = save_assignment_to_sheet(
+        p.get("team", ""), p.get("task", ""),
+        p.get("assignee", ""), p.get("deadline", ""),
+        p.get("priority", "일반"),
+    )
+    if ok:
+        await update.message.reply_text(
+            f"✅ 등록 완료!\n"
+            f"  [{p.get('team','')}] {p.get('task','')} — {p.get('assignee','') or '팀'}\n\n"
+            f"추가 등록: /assign\n전체 분장: /주간분장 (Claude)"
+        )
+    else:
+        await update.message.reply_text("⚠️ 시트 등록 실패. 잠시 후 다시 시도해주세요.")
+    context.user_data.pop("assign", None)
+    return ConversationHandler.END
+
+
+async def cancel_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    context.user_data.pop("assign", None)
+    await update.message.reply_text("업무분장 등록을 취소했습니다.")
+    return ConversationHandler.END
+
+
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     """핸들러 내부에서 발생한 모든 예외를 잡아 로깅하고, 가능하면 사용자에게 안내한다.
 
@@ -1540,6 +1749,25 @@ def main() -> None:
         logger.info("Meeting Engine loaded (6-report)")
     else:
         logger.warning("Meeting Engine not available — /meeting disabled")
+
+    # /assign — 주간 업무분장 간편 추가 (대표 전용)
+    assign_conv = ConversationHandler(
+        entry_points=[CommandHandler("assign", cmd_assign)],
+        states={
+            ASSIGN_TEAM: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, assign_team),
+            ],
+            ASSIGN_CONTENT: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, assign_content),
+            ],
+            ASSIGN_CONFIRM: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, assign_confirm),
+            ],
+        },
+        fallbacks=[CommandHandler("cancel", cancel_assign)],
+    )
+    app.add_handler(assign_conv)
+    logger.info("/assign handler registered (weekly assignment)")
 
     app.add_error_handler(error_handler)  # 핸들러 예외 안전망 (보고 유실 방지)
 
