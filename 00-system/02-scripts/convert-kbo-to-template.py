@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pathlib import Path
 # -*- coding: utf-8 -*-
 """KBO 팝업 간트(상세) 엑셀 → project-master 대시보드 표준 포맷으로 변환.
 입력: ~/Downloads/KBO_팝업_간트차트_v2_상세.xlsx
@@ -10,8 +11,8 @@ import openpyxl
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
-SRC="/Users/choi_ai/Downloads/KBO_팝업_간트차트_v2_상세.xlsx"
-OUT="/Users/choi_ai/do-better-workspace/00-system/01-templates/KBO_팝업_변환.xlsx"
+SRC=str(Path.home()/"Downloads")+"/KBO_팝업_간트차트_v2_상세.xlsx"
+OUT=str(Path.home()/"do-better-workspace")+"/00-system/01-templates/KBO_팝업_변환.xlsx"
 TODAY=dt.date(2026,6,23)
 YEAR=2026
 ACCENT="6C5CE7"; ACCENT_D="5A4BD1"; REQ_FILL="EDE9FE"; LINE="D9D5E8"

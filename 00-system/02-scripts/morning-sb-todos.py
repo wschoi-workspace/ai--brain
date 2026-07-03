@@ -15,7 +15,7 @@ import re
 import sys
 from pathlib import Path
 
-INBOX = Path("/Users/choi_ai/do-better-workspace/20-operations/24-second-brain/00_inbox")
+INBOX = Path.home() / "do-better-workspace/20-operations/24-second-brain/00_inbox"
 
 
 def parse_frontmatter(text: str) -> dict:

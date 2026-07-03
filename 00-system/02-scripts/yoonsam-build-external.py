@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+from pathlib import Path
 """윤선생 통합 허브 → 외부 공유본 + 잠금본 빌더.
 v3 용어변환 + 부록(스크립트·경로) 삭제 + 하부인덱스/네비바 제거 + CONFIDENTIAL 워터마크 + base64 잠금(비번·30일)."""
 import re, base64, datetime, os
-K="/Users/choi_ai/do-better-workspace/30-knowledge/"
+K=str(Path.home()/"do-better-workspace"/"30-knowledge")+"/"
 src=open(K+"rxr-analysis-윤선생-심화-통합-20260618.html",encoding="utf-8").read()
 h=src
 
