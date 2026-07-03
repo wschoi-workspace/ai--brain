@@ -56,9 +56,10 @@ CHECKLIST_PATH = WORKSPACE / "20-operations" / "25-basket-ops-manual" / "basket-
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 # ARISA 공유 코어 (Phase 1) — 토큰 마스킹·gws·명부 배관 단일 출처
-sys.path.insert(0, "/Users/choi_ai/do-better-workspace/00-system/02-scripts")
+sys.path.insert(0, "/Users/server-mini/do-better-workspace/00-system/02-scripts")
 from shared.logging import TokenRedactingFilter  # noqa: E402
 from shared import gws as _gws  # noqa: E402
+from shared import report_queue as _rq  # noqa: E402
 from shared.employee import load_employees as _load_emp  # noqa: E402
 for _h in logging.getLogger().handlers:
     _h.addFilter(TokenRedactingFilter())  # 기존엔 필터 없어 토큰 평문 노출 — 보안 개선
@@ -167,9 +168,18 @@ def gpt_structure(text: str, prev: dict | None = None) -> dict:
         logger.error(f"GPT structure error: {e}")
         return (prev or {}) | {"notes": text, "clarify": []}
 
+def _basket_append(tab: str, row: list, dedup_cols: list, author: str = "") -> bool:
+    """append + 실패 시 로컬 큐 보관(백필 배치가 자동 재시도). 유실 방지 단일 경로."""
+    ok, kind = _gws.append_to_sheet_ex(SHEET_ID, f"{tab}!A1", row,
+                                       value_input_option="USER_ENTERED", timeout=20)
+    if not ok:
+        key = f"{datetime.now().strftime('%Y-%m-%d')}|{author or STORE_ID}"
+        _rq.enqueue([_rq.make_entry("basket", SHEET_ID, f"{tab}!A1", row, key,
+                                    dedup_cols, vio="USER_ENTERED", last_error=kind)])
+    return ok
+
 def append_sheet(row: list) -> bool:
-    return _gws.append_to_sheet(SHEET_ID, f"{SHEET_TAB}!A1", row,
-                                value_input_option="USER_ENTERED", timeout=20)
+    return _basket_append(SHEET_TAB, row, [1, 2, 14], author=str(row[2]) if len(row) > 2 else "")
 
 def build_row(d: dict, author: str) -> list:
     now = datetime.now()
@@ -263,10 +273,13 @@ async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     # 대표에게 일일보고 요약 푸시
     if MANAGER_ID:
         try:
-            await ctx.bot.send_message(chat_id=MANAGER_ID, text=daily_summary(d, author), parse_mode="Markdown")
+            summary = daily_summary(d, author)
+            if not ok:
+                summary += "\n⚠️ 시트 저장 실패 → 로컬 큐 보관, 자동 재시도 예정"
+            await ctx.bot.send_message(chat_id=MANAGER_ID, text=summary, parse_mode="Markdown")
         except Exception as e:
             logger.error(f"manager summary fail: {e}")
-    msg = "✅ 일일보고 등록 완료." + ("" if ok else " (⚠️ 시트 저장 실패 — 관리자 확인 필요)")
+    msg = "✅ 일일보고 등록 완료." + ("" if ok else " (⚠️ 시트 저장 지연 — 자동 재시도 예정, 다시 보내실 필요 없어요)")
     if MANAGER_ID:
         msg += "\n📤 요약을 대표에게 전달했습니다."
     await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
@@ -277,8 +290,7 @@ async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 def append_progress(author: str, text: str) -> bool:
     now = datetime.now()
     row = [STORE_ID, now.strftime("%y%m%d"), now.strftime("%H:%M"), author, text]
-    return _gws.append_to_sheet(SHEET_ID, f"{PROGRESS_TAB}!A1", row,
-                                value_input_option="USER_ENTERED", timeout=20)
+    return _basket_append(PROGRESS_TAB, row, [1, 2, 3], author=author)
 
 async def cmd_jot(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     text = (update.message.text or "").partition(" ")[2].strip()
@@ -287,15 +299,14 @@ async def cmd_jot(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
     author = _author(update)
     ok = append_progress(author, text)
-    await update.message.reply_text("📝 진행 기록됨" + ("" if ok else " (⚠️ 시트 저장 실패)"))
+    await update.message.reply_text("📝 진행 기록됨" + ("" if ok else " (⚠️ 시트 저장 지연 — 자동 재시도 예정)"))
 
 
 # ---- /todo (요일별 체크리스트) ----
 def log_todo(ko: str, author: str, incomplete: str) -> bool:
     now = datetime.now()
     row = [now.strftime("%y%m%d"), ko, author, incomplete, now.strftime("%H:%M")]
-    return _gws.append_to_sheet(SHEET_ID, f"{TODO_TAB}!A1", row,
-                                value_input_option="USER_ENTERED", timeout=20)
+    return _basket_append(TODO_TAB, row, [0, 2, 4], author=author)
 
 async def cmd_todo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ko = WEEKDAY_KO[datetime.now().weekday()]
@@ -318,7 +329,7 @@ async def recv_todo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ok = log_todo(ko, author, incomplete)
     msg = "✅ 체크 완료 기록." if not incomplete else "✅ 기록 완료 — 미완료/이슈 접수했습니다."
     if not ok:
-        msg += " (⚠️ 시트 저장 실패)"
+        msg += " (⚠️ 시트 저장 지연 — 자동 재시도 예정)"
     # 미완료에 이슈가 있으면 매니저에 알림
     if incomplete and MANAGER_ID:
         try:

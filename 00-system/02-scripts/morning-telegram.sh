@@ -5,13 +5,13 @@
 set -euo pipefail
 
 # ── 설정 ──
-WORKSPACE="/Users/choi_ai/do-better-workspace"
+WORKSPACE="/Users/server-mini/do-better-workspace"
 # 토큰 하드코딩 제거 — .env의 DAILY_REPORT_MANAGER_BOT_TOKEN(@brocallmebot)에서 직접 추출
 # (process substitution/소싱 대신 grep+cut — launchd 환경에서도 결정론적)
 BOT_TOKEN=""
 [ -f "$WORKSPACE/.env" ] && BOT_TOKEN="$(grep -E '^DAILY_REPORT_MANAGER_BOT_TOKEN=' "$WORKSPACE/.env" | head -1 | cut -d= -f2-)"
 CHAT_ID="8123576679"
-CLAUDE="/Users/choi_ai/.npm-global/bin/claude"
+CLAUDE="/Users/server-mini/.local/bin/claude"
 LOG_DIR="$WORKSPACE/40-personal/41-daily/logs"
 LOG_FILE="$LOG_DIR/morning-telegram-$(date +%Y-%m-%d).log"
 
@@ -22,7 +22,7 @@ exec > "$LOG_FILE" 2>&1
 echo "[$(date)] morning-telegram 시작"
 
 # ── PATH 설정 (launchd 환경에서 필요) ──
-export PATH="/usr/local/bin:/usr/bin:/bin:/Users/choi_ai/.npm-global/bin:$PATH"
+export PATH="/usr/local/bin:/usr/bin:/bin:/Users/server-mini/.npm-global/bin:$PATH"
 
 # ── Claude CLI로 /morning 실행 + 텔레그램 체크리스트 생성 ──
 cd "$WORKSPACE"
