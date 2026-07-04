@@ -100,7 +100,7 @@ def main():
         alert_throttled(
             f"⚠️ 보고 백필 대기 중 · 큐 {len(pending)}건\n"
             f"구글시트 접근 실패(gws 인증 장애 의심) — 복구되면 자동 백필됩니다.\n"
-            f"→ 서버에서 `gws auth login --full` 재인증 필요할 수 있습니다.")
+            f"→ 서버에서 `gws auth login --services drive,sheets,gmail,calendar,docs,slides,tasks` 재인증 필요할 수 있습니다.")
         return
 
     tab_cache: dict = {}

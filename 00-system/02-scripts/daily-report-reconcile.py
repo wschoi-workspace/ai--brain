@@ -103,7 +103,7 @@ def main():
     else:
         msg = (f"⚠️ 일일보고 아침 재확인 실패 · {date}\n"
                f"구글시트 읽기 실패(gws 인증 장애 재발 의심).\n"
-               f"→ 서버에서 `gws auth login --full` 재인증이 필요합니다.")
+               f"→ 서버에서 `gws auth login --services drive,sheets,gmail,calendar,docs,slides,tasks` 재인증이 필요합니다.")
 
     print(msg)
 

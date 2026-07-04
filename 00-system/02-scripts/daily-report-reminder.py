@@ -84,7 +84,7 @@ def main():
     if meta_rows is None or core_rows is None:
         alert = (f"⚠️ 일일보고 리마인더 중단 · {today} {hour}시\n"
                  f"구글시트 읽기 실패(gws 인증 장애 의심)로 미보고자 DM을 보내지 않았습니다.\n"
-                 f"→ 서버에서 `gws auth login --full` 재인증이 필요합니다.")
+                 f"→ 서버에서 `gws auth login --services drive,sheets,gmail,calendar,docs,slides,tasks` 재인증이 필요합니다.")
         print(alert)
         if "--dry" not in sys.argv and MGR_TOKEN and MGR_CHAT:
             try:
