@@ -42,6 +42,7 @@ from telegram.ext import (
     MessageHandler,
     filters,
     ContextTypes,
+    PicklePersistence,
 )
 
 # ARISA 직원 메모리 레이어(mem0) — 보조. import 실패해도 봇은 정상 동작.
@@ -135,6 +136,10 @@ def register_subscriber(chat_id) -> bool:
         return False
 # 텔레그램에서 받은 파일을 잠시 내려받을 임시 폴더
 ATTACH_TMP_DIR = Path("/tmp/daily-report-attachments")
+
+# 대화 상태 영속화 — 진행 중 보고가 봇 재시작/크래시에도 살아남게(휘발 방지)
+PERSIST_FILE = Path(__file__).resolve().parent / ".bot-state" / "daily-report-persistence.pkl"
+PERSIST_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -419,7 +424,7 @@ async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE, st
         step=step,
         step_question=step_q,
     )
-    answer = call_gpt_text(prompt, text)
+    answer = await asyncio.to_thread(call_gpt_text, prompt, text)
     await update.message.reply_text(answer)
     return step  # 현재 단계 유지!
 
@@ -658,7 +663,6 @@ def _report_digest(report: dict) -> str:
 
 def _norm(s: str) -> str:
     """공백 제거 정규화 (동어반복·더미 비교용)."""
-    import re
     return re.sub(r"\s+", "", s or "")
 
 
@@ -1009,7 +1013,7 @@ async def receive_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     context.user_data.setdefault("raw_log", []).append(f"[업무 나열] {text}")
     await update.message.reply_text("정리하고 있어요... ⏳")
 
-    result = call_gpt(CATEGORIZE_PROMPT, text)
+    result = await asyncio.to_thread(call_gpt, CATEGORIZE_PROMPT, text)
     if not result or "tasks" not in result:
         await update.message.reply_text(
             "죄송해요, 정리가 잘 안 됐어요 😅\n다시 한번 업무를 나열해주세요!"
@@ -1034,14 +1038,14 @@ async def receive_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
 async def receive_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
+    low = text.lower()
+    confirm_kw = ("맞아", "확인", "네", "ㅇㅇ", "응", "ok", "ㅇ", "맞음", "넵")
 
-    # 의도 판단
-    intent = detect_intent(text)
-
-    if intent == "question":
+    # 확인 키워드면 GPT 의도판단 생략(비용·지연↓). 아니면 to_thread로 판단(질문이면 답변).
+    if low not in confirm_kw and await asyncio.to_thread(detect_intent, text) == "question":
         return await handle_question(update, context, WAITING_CONFIRM)
 
-    if text.lower() in ("맞아", "확인", "네", "ㅇㅇ", "응", "ok", "ㅇ", "맞음", "넵"):
+    if low in confirm_kw:
         suggested = context.user_data.get("suggested_core", [0])
         all_tasks = context.user_data.get("all_tasks", [])
         if suggested and all_tasks:
@@ -1065,7 +1069,7 @@ async def receive_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     else:
         # 수정/추가 처리
         original = "\n".join([t["task"] for t in context.user_data.get("all_tasks", [])])
-        result = call_gpt(CATEGORIZE_PROMPT, f"기존 업무:\n{original}\n\n수정/추가 사항:\n{text}")
+        result = await asyncio.to_thread(call_gpt, CATEGORIZE_PROMPT, f"기존 업무:\n{original}\n\n수정/추가 사항:\n{text}")
         if result and "tasks" in result:
             context.user_data["all_tasks"] = result["tasks"]
             context.user_data["suggested_core"] = result.get("suggested_core", [0])
@@ -1083,8 +1087,8 @@ async def receive_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def receive_drilldown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
 
-    # 의도 판단
-    intent = detect_intent(text)
+    # 의도 판단(블로킹 GPT는 to_thread로 오프로딩)
+    intent = await asyncio.to_thread(detect_intent, text)
 
     if intent == "question":
         return await handle_question(update, context, WAITING_DRILLDOWN)
@@ -1095,7 +1099,7 @@ async def receive_drilldown(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     task_name = all_tasks[core_indices[current_idx]]["task"] if core_indices[current_idx] < len(all_tasks) else ""
     context.user_data.setdefault("raw_log", []).append(f"[상세: {task_name}] {text}")
-    detail = call_gpt(DRILLDOWN_PROMPT, f"업무: {task_name}\n상세 설명: {text}")
+    detail = await asyncio.to_thread(call_gpt, DRILLDOWN_PROMPT, f"업무: {task_name}\n상세 설명: {text}")
 
     if detail:
         context.user_data.setdefault("core_details", []).append({
@@ -1123,16 +1127,14 @@ async def receive_drilldown(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 async def receive_issues(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
+    low = text.lower()
 
-    # 의도 판단
-    intent = detect_intent(text)
-
-    if intent == "question":
-        return await handle_question(update, context, WAITING_ISSUES)
-
-    if text.lower() in ("없어", "없음", "없었어", "없었어요", "ㄴㄴ", "노", "no"):
-        context.user_data["blockers"] = ""
+    if low in ("없어", "없음", "없었어", "없었어요", "ㄴㄴ", "노", "no"):
+        context.user_data["blockers"] = ""  # 키워드 답변 → GPT 생략
     else:
+        # 키워드가 아니면 의도판단(질문이면 답하고 단계 유지)
+        if await asyncio.to_thread(detect_intent, text) == "question":
+            return await handle_question(update, context, WAITING_ISSUES)
         context.user_data["blockers"] = text
 
     await update.message.reply_text(
@@ -1144,16 +1146,13 @@ async def receive_issues(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def receive_tomorrow(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
+    low = text.lower()
 
-    # 의도 판단
-    intent = detect_intent(text)
-
-    if intent == "question":
-        return await handle_question(update, context, WAITING_TOMORROW)
-
-    if text.lower() in ("없어", "없음", "없었어", "ㄴㄴ"):
-        context.user_data["tomorrow"] = ""
+    if low in ("없어", "없음", "없었어", "ㄴㄴ"):
+        context.user_data["tomorrow"] = ""  # 키워드 답변 → GPT 생략
     else:
+        if await asyncio.to_thread(detect_intent, text) == "question":
+            return await handle_question(update, context, WAITING_TOMORROW)
         context.user_data["tomorrow"] = text
 
     # 3.0 질문보고: 직원이 스스로 던지는 '오늘의 질문' 하나
@@ -1169,11 +1168,14 @@ async def receive_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     """3.0 질문보고: 직원의 '오늘의 질문' 1개 수집 → Engine B(최대 1개 보완질문) → 정리."""
     text = update.message.text.strip()
 
-    # 보고 도중 되묻는 질문이면 답해주고 같은 단계 유지
-    if detect_intent(text) == "question":
+    low = text.lower()
+    kw = ("없어", "없음", "없었어", "ㄴㄴ", "패스", "스킵", "pass", "skip")
+
+    # 키워드가 아닐 때만 의도판단(질문이면 답하고 단계 유지) — 키워드면 GPT 생략
+    if low not in kw and await asyncio.to_thread(detect_intent, text) == "question":
         return await handle_question(update, context, WAITING_QUESTION)
 
-    if text.lower() in ("없어", "없음", "없었어", "ㄴㄴ", "패스", "스킵", "pass", "skip"):
+    if low in kw:
         context.user_data["key_question"] = ""
     else:
         context.user_data["key_question"] = text
@@ -1185,7 +1187,7 @@ async def receive_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     # Engine B: 보고가 충분한지 거울로 비춰보고, 부족하면 '가장 중요한 단 하나'만 질문
     await update.message.reply_text("오늘 보고를 정리하고 있어요... ⏳")
-    questions = completion_check(report)
+    questions = await asyncio.to_thread(completion_check, report)
 
     if not questions:
         # 충분 → 바로 마무리 (피로 최소화)
@@ -1205,8 +1207,11 @@ async def receive_completion(update: Update, context: ContextTypes.DEFAULT_TYPE)
     """Engine B 보완 질문에 대한 답변 → Engine C로 최종 정리 후 전송."""
     text = update.message.text.strip()
 
-    # 보고 도중 되묻는 질문이면 답해주고 같은 단계 유지
-    if detect_intent(text) == "question":
+    low = text.lower()
+    kw = ("패스", "스킵", "없어", "없음", "pass", "skip")
+
+    # 키워드가 아닐 때만 의도판단(질문이면 답하고 단계 유지)
+    if low not in kw and await asyncio.to_thread(detect_intent, text) == "question":
         return await handle_question(update, context, WAITING_COMPLETION)
 
     report = context.user_data.get("pending_report")
@@ -1214,7 +1219,7 @@ async def receive_completion(update: Update, context: ContextTypes.DEFAULT_TYPE)
         # 안전장치: 세션이 유실되면 재조립
         report = assemble_report(context.user_data)
 
-    answers = "" if text.lower() in ("패스", "스킵", "없어", "없음", "pass", "skip") else text
+    answers = "" if low in kw else text
     if answers:  # fidelity: 보완 답변도 원문 보존
         report["raw"] = (report.get("raw", "") + f"\n[보완답변] {answers}").strip()
     await update.message.reply_text("반영해서 정리할게요... ⏳")
@@ -1474,7 +1479,6 @@ async def mtg_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         "(GPT 6회 호출, 1~3분 소요)"
     )
 
-    import asyncio
     try:
         result = await asyncio.to_thread(
             meeting_engine.process_all_reports,
@@ -1587,7 +1591,8 @@ async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         oneline = args[1].strip()
         context.user_data["assign"] = {"raw": oneline}
         await update.message.reply_text("파싱 중... ⏳")
-        parsed = call_gpt(
+        parsed = await asyncio.to_thread(
+            call_gpt,
             ASSIGN_PARSE_PROMPT.format(today=datetime.now().strftime("%Y-%m-%d")),
             oneline,
         )
@@ -1658,7 +1663,8 @@ async def assign_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     team = context.user_data["assign"].get("team", "")
     context.user_data["assign"]["raw"] = text
 
-    parsed = call_gpt(
+    parsed = await asyncio.to_thread(
+        call_gpt,
         ASSIGN_PARSE_PROMPT.format(today=datetime.now().strftime("%Y-%m-%d")),
         f"팀: {team}\n내용: {text}",
     )
@@ -1694,7 +1700,8 @@ async def assign_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         # 재파싱
         context.user_data["assign"]["raw"] = text
         team = context.user_data["assign"].get("team", "")
-        parsed = call_gpt(
+        parsed = await asyncio.to_thread(
+            call_gpt,
             ASSIGN_PARSE_PROMPT.format(today=datetime.now().strftime("%Y-%m-%d")),
             f"팀: {team}\n내용: {text}",
         )
@@ -1811,6 +1818,7 @@ def main() -> None:
         .get_updates_connect_timeout(30.0)
         .get_updates_read_timeout(30.0)
         .concurrent_updates(True)  # 사용자별 업데이트 동시 처리 — 한 명의 지연이 전체를 막지 않게
+        .persistence(PicklePersistence(filepath=str(PERSIST_FILE)))  # 대화상태 디스크 영속화
         .build()
     )
 
@@ -1830,6 +1838,8 @@ def main() -> None:
             WAITING_COMPLETION: [file_handler, MessageHandler(filters.TEXT & ~filters.COMMAND, receive_completion)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
+        name="report_conv",
+        persistent=True,  # 진행 중 보고 상태를 재시작에도 보존
     )
 
     app.add_handler(CommandHandler("start", cmd_start))
