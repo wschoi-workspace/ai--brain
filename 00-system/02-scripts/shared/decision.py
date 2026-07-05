@@ -66,6 +66,46 @@ def save_decision_log(report: dict, owner: str = DEFAULT_OWNER) -> bool:
         return False
 
 
+def close_decision(logged_at: str, resolution: str = "", closed_by: str = DEFAULT_OWNER) -> bool:
+    """결정을 해결(close)한다. logged_at로 대상 식별 → status를 resolved로 변경.
+
+    ARISA 2.0 Decision Window에서 유일한 close 화면으로 호출됨.
+    JSONL 전체를 읽어 해당 항목을 수정 후 재기록(append-only 깨짐 — 항목 수가 적어 허용).
+    """
+    if not _LOG_PATH.exists():
+        return False
+    lines = _LOG_PATH.read_text(encoding="utf-8").splitlines()
+    found = False
+    updated: list[str] = []
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            e = json.loads(line)
+        except Exception:
+            updated.append(line)
+            continue
+        if e.get("logged_at") == logged_at and e.get("status", "open") == "open":
+            e["status"] = "resolved"
+            e["resolution"] = resolution
+            e["closed_by"] = closed_by
+            e["closed_at"] = datetime.now().isoformat(timespec="seconds")
+            found = True
+        updated.append(json.dumps(e, ensure_ascii=False))
+    if not found:
+        return False
+    try:
+        with _lock_decision:
+            _LOG_PATH.write_text("\n".join(updated) + "\n", encoding="utf-8")
+        return True
+    except Exception:
+        return False
+
+
+_lock_decision = __import__("threading").Lock()
+
+
 def load_open_decisions(max_age_days: int = 14, today: str | None = None) -> list[dict]:
     """미해결(status=open) 결정을 최신순으로 반환. carry-over(이월)용.
 

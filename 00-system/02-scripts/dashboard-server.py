@@ -11,6 +11,8 @@ PM이 수정하면 서버에 저장되어 대표·팀원 모두 같은 데이터
 import json, os, re, threading, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, quote
+from urllib.request import urlopen, Request
+from urllib.error import URLError
 from pathlib import Path
 
 # .env 로드(WEEKLY_KEY 등 — 환경 미설정 시 do-better-workspace/.env에서 보충)
@@ -37,11 +39,14 @@ WEEKLY_KEY = os.environ.get("WEEKLY_KEY", "")
 BRIEF_DIR = Path(os.environ.get("BRIEF_DIR") or (_WS / "20-operations" / "23-arisa" / "brief"))
 # 팀 리더 판정 출처 — arisa-employees.json의 team_leads(팀→리더이름) 역매핑.
 EMP_PATH = Path(__file__).resolve().parent / "arisa-employees.json"
+# ARISA 2.0 리버스 프록시 — /arisa2/* → localhost:ARISA2_PORT
+ARISA2_PORT = int(os.environ.get("ARISA2_PORT", "8787"))
+ARISA2_UPSTREAM = f"http://127.0.0.1:{ARISA2_PORT}"
 _lock = threading.Lock()
 
-# /dashboard — 대표 전용 통합 셸: 로그인 1회 후 탭[오늘 Brief / 이번 주]을 iframe으로 전환.
-# iframe 격리라 두 대시보드 CSS 충돌 없음. 통합 로그인이 brief_sess/weekly_sess를 미리 세팅해
-# 각 iframe(/brief·/weekly)이 게이트를 자동 통과(깜빡임 최소). aggregator·/api/login 무수정.
+# /dashboard — 대표 전용 통합 셸: 로그인 1회 후 탭[오늘 Brief / 이번 주 / Decision Window]을 iframe으로 전환.
+# iframe 격리라 대시보드 CSS 충돌 없음. 통합 로그인이 brief_sess/weekly_sess를 미리 세팅해
+# 각 iframe(/brief·/weekly·/arisa2/)이 게이트를 자동 통과(깜빡임 최소). aggregator·/api/login 무수정.
 DASHBOARD_SHELL = """<!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ARISA 대시보드</title>
@@ -67,6 +72,9 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
 #tabs .who a{color:var(--accent);cursor:pointer;margin-left:8px}
 .frame{flex:1;border:0;width:100%;display:none;background:var(--bg)}
 .frame.on{display:block}
+#arisa2-status{font-size:11px;color:var(--muted);margin-left:6px}
+#arisa2-status.ok{color:#00b894}
+#arisa2-status.err{color:var(--red)}
 </style></head>
 <body>
 <div id="login-gate"><div id="login-box">
@@ -81,46 +89,58 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
   <div id="tabs">
     <button class="tab on" data-t="brief">오늘 Brief</button>
     <button class="tab" data-t="weekly">이번 주</button>
+    <button class="tab" data-t="decision">Decision Window</button>
+    <span id="arisa2-status"></span>
     <select id="scope-sel" style="display:none"></select>
     <span class="who" id="who"></span>
   </div>
   <iframe class="frame on" id="f-brief"></iframe>
   <iframe class="frame" id="f-weekly"></iframe>
+  <iframe class="frame" id="f-decision"></iframe>
 </div>
 <script>
 (function(){
   var gate=document.getElementById('login-gate'), shell=document.getElementById('shell'), who=document.getElementById('who');
   var sel=document.getElementById('scope-sel');
-  var fb=document.getElementById('f-brief'), fw=document.getElementById('f-weekly'), loaded={brief:false,weekly:false}, curScope='';
+  var fb=document.getElementById('f-brief'), fw=document.getElementById('f-weekly'), fd=document.getElementById('f-decision');
+  var a2s=document.getElementById('arisa2-status');
+  var loaded={brief:false,weekly:false,decision:false}, curScope='';
   function srcFor(t){
+    if(t==='decision') return '/arisa2/';
     if(curScope===''){ return t==='brief' ? '/brief' : '/weekly'; }
     return (t==='brief' ? '/team-brief?team=' : '/team-weekly?team=') + encodeURIComponent(curScope);
   }
   function showTab(t){
     document.querySelectorAll('.tab').forEach(function(b){ b.classList.toggle('on', b.dataset.t===t); });
-    fb.classList.toggle('on', t==='brief'); fw.classList.toggle('on', t==='weekly');
+    fb.classList.toggle('on', t==='brief'); fw.classList.toggle('on', t==='weekly'); fd.classList.toggle('on', t==='decision');
     if(t==='weekly' && !loaded.weekly){ fw.src=srcFor('weekly'); loaded.weekly=true; }
+    if(t==='decision' && !loaded.decision){ fd.src=srcFor('decision'); loaded.decision=true; }
   }
   function loadScope(scope){
-    curScope=scope; loaded={brief:false,weekly:false};
+    curScope=scope; loaded={brief:false,weekly:false,decision:false};
     fb.src=srcFor('brief'); loaded.brief=true;
-    fw.src='about:blank';
+    fw.src='about:blank'; fd.src='about:blank';
     showTab('brief');
+  }
+  function checkArisa2(){
+    fetch('/arisa2/api/health',{method:'GET'}).then(function(r){
+      a2s.textContent=r.ok?'ARISA 2.0 ON':'ARISA 2.0 OFF';
+      a2s.className=r.ok?'ok':'err';
+    }).catch(function(){ a2s.textContent='ARISA 2.0 OFF'; a2s.className='err'; });
   }
   function enter(s){
     var j=JSON.stringify(s);
-    // 전체(brief/weekly) + 팀(team_*) iframe 모두 자동 입장 — 대표는 admin이라 팀 화면도 통과
     ['brief_sess','weekly_sess','team_brief_sess','team_weekly_sess'].forEach(function(k){ localStorage.setItem(k,j); });
     gate.style.display='none'; shell.style.display='flex';
     who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-out">로그아웃</a>';
     document.getElementById('lg-out').onclick=function(){ ['arisa_sess','brief_sess','weekly_sess','team_brief_sess','team_weekly_sess'].forEach(function(k){localStorage.removeItem(k);}); location.reload(); };
-    // 파트별 드롭다운: 전체 + 담당 팀(대표는 전체 팀)
     if(s.lead_teams && s.lead_teams.length){
       sel.style.display='inline-block'; sel.innerHTML='<option value="">전체</option>';
       s.lead_teams.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
       sel.onchange=function(){ loadScope(sel.value); };
     } else { sel.style.display='none'; }
     loadScope('');
+    checkArisa2();
   }
   document.querySelectorAll('.tab').forEach(function(b){ b.onclick=function(){ showTab(b.dataset.t); }; });
   var sess=null; try{ sess=JSON.parse(localStorage.getItem('arisa_sess')||'null'); }catch(e){}
@@ -320,6 +340,37 @@ class H(BaseHTTPRequestHandler):
     server_version = "PRDashboard/1.0"
     def log_message(self, *a): pass
 
+    def _proxy_arisa2(self, method="GET"):
+        """리버스 프록시: /arisa2/* → ARISA2_UPSTREAM (stdlib only)."""
+        # /arisa2/foo → /foo 로 변환 (/arisa2 자체는 / 로)
+        upstream_path = self.path[len("/arisa2"):] or "/"
+        url = ARISA2_UPSTREAM + upstream_path
+        body = None
+        if method in ("POST", "PUT", "PATCH"):
+            n = int(self.headers.get("Content-Length", 0) or 0)
+            body = self.rfile.read(n) if n else b""
+        headers = {}
+        ct = self.headers.get("Content-Type")
+        if ct:
+            headers["Content-Type"] = ct
+        try:
+            req = Request(url, data=body, headers=headers, method=method)
+            with urlopen(req, timeout=30) as resp:
+                resp_body = resp.read()
+                self.send_response(resp.status)
+                self.send_header("Content-Type", resp.headers.get("Content-Type", "application/octet-stream"))
+                self.send_header("Content-Length", str(len(resp_body)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(resp_body)
+        except URLError:
+            err = b'{"ok":false,"error":"ARISA 2.0 unavailable"}'
+            self.send_response(502)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(err)))
+            self.end_headers()
+            self.wfile.write(err)
+
     def _send(self, code, body, ctype="application/json; charset=utf-8"):
         data = body if isinstance(body, (bytes, bytearray)) else json.dumps(body, ensure_ascii=False).encode("utf-8")
         self.send_response(code)
@@ -337,6 +388,8 @@ class H(BaseHTTPRequestHandler):
 
     def do_GET(self):
         u = urlparse(self.path); path = u.path; q = parse_qs(u.query)
+        if path.startswith("/arisa2"):
+            return self._proxy_arisa2("GET")
         if path in ("/", "/index.html"):
             try:
                 html = HTML.read_text(encoding="utf-8")
@@ -467,6 +520,8 @@ class H(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if path.startswith("/arisa2"):
+            return self._proxy_arisa2("POST")
         b = self._body()
         if path == "/api/login":
             uid = b.get("id", ""); pin = b.get("pin", "")
