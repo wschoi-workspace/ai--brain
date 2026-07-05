@@ -81,6 +81,7 @@ URG_RANK = {"high": 0, "mid": 1, "low": 2}
 sys.path.insert(0, str(SCRIPTS))
 from shared.employee import load_employees as _load_emp
 from shared import normalize as _N, gws as _gws
+from shared.decision import load_open_decisions as _load_open_decisions
 
 
 def load_employees() -> dict:
@@ -266,6 +267,34 @@ def pick_top5(items: list[dict]) -> list[dict]:
     return top[:5]
 
 
+def _carried_decision_items(target: str) -> list[dict]:
+    """어제 이전의 미해결(open) 결정을 브리프 item으로 이월.
+
+    오늘자(age 0) 결정은 engine_d가 시트에서 이미 뽑으므로 제외 → 중복 매칭 불필요.
+    age≥1(어제 이전에 올라왔는데 아직 안 정해진 것)만 이월해 "어제 결정이 오늘 사라짐"을 막는다.
+    urgency는 봇 축적(high/medium/low)을 브리프 체계(high/mid/low)로 매핑.
+    """
+    urg_map = {"high": "high", "medium": "mid", "low": "low"}
+    carried = []
+    for e in _load_open_decisions(today=target):
+        age = e.get("age_days", 0)
+        if age < 1:
+            continue  # 오늘 결정은 engine_d(시트) 담당
+        rel = (e.get("related_output") or "").strip()
+        carried.append({
+            "category": "decision",
+            "title": (e.get("decision_needed") or "").strip(),
+            "detail": f"{age}일째 미결" + (f" · {rel}" if rel else ""),
+            "urgency": urg_map.get(e.get("urgency"), "mid"),
+            "source_employee": (e.get("source_employee") or "").strip(),
+            "project": (e.get("project") or "").strip() or None,
+            "related": rel,
+            "carried": True,
+            "age_days": age,
+        })
+    return carried
+
+
 def _weekday_kr(target: str) -> str:
     return ["월", "화", "수", "목", "금", "토", "일"][datetime.strptime(target, "%Y-%m-%d").weekday()]
 
@@ -276,6 +305,7 @@ def build_brief_data(target: str, day: dict | None = None) -> dict:
         day = fetch_day(target)
     blocks = [_emp_block(nm, d) for nm, d in day.items()]
     items = engine_d(blocks)
+    items += _carried_decision_items(target)  # 과거 미결(open) 결정 이월 — 정해질 때까지 노출
     unmatched = sorted({nm for nm in day if nm not in BY_NAME})
     counts = {c: sum(1 for it in items if it["category"] == c) for c in CAT_META}
     return {
