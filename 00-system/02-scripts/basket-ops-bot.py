@@ -4,13 +4,13 @@ basket-ops-bot.py — Basket 운영팀 일일업무 보고 봇 (전용)
 
 흐름(혼합 입력):
   운영자가 텔레그램에 자유롭게 보고 입력
-   → OpenAI가 12섹션으로 구조화 + 부족/모호한 핵심만 되물음(최대 2개)
+   → OpenAI가 11섹션으로 구조화 + 부족/모호한 핵심만 되물음(최대 2개)
    → 운영자 보완 → 요약 확인
    → 구글 시트(일일보고 리스트)에 1행 append
    → 승인·결재 필요 건(③송금·승인 / ⑤장비 견적·AS / ⑩입점)은 매니저에게 별도 강조 전송
 
 기존 daily-report-bot.py 패턴 재사용: python-telegram-bot · OpenAI · gws CLI Sheets append.
-구글 시트 컬럼 순서 = basket-업무보고-양식.xlsx '일일보고(리스트)'와 동일(13열).
+구글 시트 컬럼 순서 = basket-업무보고-양식.xlsx '일일보고(리스트)'와 동일(15열: store_id·날짜·작성자·매출·지출·③~⑪·업로드시각).
 
 필요 .env:
   BASKET_BOT_TOKEN            전용 텔레그램 봇 토큰(@BotFather)
@@ -80,7 +80,7 @@ def _author(update) -> str:
         return "운영자"
     return _emp_by_tid(u.id) or u.full_name or "운영자"
 
-# 12섹션 (시트 컬럼 순서와 매핑)
+# 11섹션 (시트 컬럼 순서와 매핑)
 SECTIONS = [
     ("sales",      "매출"),
     ("jichul",     "③ 지출 총합"),
@@ -190,12 +190,21 @@ def build_row(d: dict, author: str) -> list:
         now.strftime("%H:%M"),
     ]
 
+def _md(s) -> str:
+    """레거시 Markdown 안전 이스케이프(동적 텍스트용) — 사용자/LLM 내용의 _ * ` [ 로 인한
+    Telegram 400(파싱 실패→메시지 조용히 유실)을 방지. 정적 볼드 라벨은 이스케이프하지 않는다."""
+    s = str(s or "")
+    for ch in ("\\", "_", "*", "`", "["):
+        s = s.replace(ch, "\\" + ch)
+    return s
+
+
 def summary_text(d: dict, author: str) -> str:
-    lines = [f"📋 *{datetime.now():%y%m%d} 일일보고* — {author}", ""]
+    lines = [f"📋 *{datetime.now():%y%m%d} 일일보고* — {_md(author)}", ""]
     for key, label in SECTIONS:
         v = (d.get(key) or "").strip()
         if v:
-            lines.append(f"*{label}*\n{v}")
+            lines.append(f"*{label}*\n{_md(v)}")
     return "\n".join(lines) if len(lines) > 2 else "내용이 비어 있습니다."
 
 def _trunc(s: str, n: int) -> str:
@@ -204,17 +213,17 @@ def _trunc(s: str, n: int) -> str:
 
 def daily_summary(d: dict, author: str) -> str:
     """제출 완료 → 대표 푸시용 일일보고 요약 (매출·결재필요·업무·특이)."""
-    L = [f"🧺 *Basket 일일보고* {datetime.now():%y%m%d} · {author}", ""]
+    L = [f"🧺 *Basket 일일보고* {datetime.now():%y%m%d} · {_md(author)}", ""]
     if (d.get("sales") or "").strip():
         sales = d["sales"].strip()
-        L.append("💰 매출 " + sales + ("원" if sales[-1:].isdigit() else ""))
-    appr = [f"• {label}: {d.get(key).strip()}" for key, label in APPROVAL_KEYS.items() if (d.get(key) or "").strip()]
+        L.append("💰 매출 " + _md(sales) + ("원" if sales[-1:].isdigit() else ""))
+    appr = [f"• {label}: {_md(d.get(key).strip())}" for key, label in APPROVAL_KEYS.items() if (d.get(key) or "").strip()]
     if appr:
         L += ["", "🔔 *결재 필요*"] + appr
     if (d.get("worklog") or "").strip():
-        L += ["", "📌 *업무*\n" + _trunc(d["worklog"], 240)]
+        L += ["", "📌 *업무*\n" + _md(_trunc(d["worklog"], 240))]
     if (d.get("notes") or "").strip():
-        L.append("📍 *특이*\n" + _trunc(d["notes"], 180))
+        L.append("📍 *특이*\n" + _md(_trunc(d["notes"], 180)))
     return "\n".join(L)
 
 
@@ -260,6 +269,9 @@ async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if "다시" in choice:
         await update.message.reply_text("다시 적어 주세요.", reply_markup=ReplyKeyboardRemove())
         return WAITING_REPORT
+    # 확인 버튼("✅ 등록")이 아닌 자유 텍스트는 '수정 의도'로 보고 새 내용으로 재구조화(옛 구조 저장 방지)
+    if not ("등록" in choice or "✅" in choice or choice.lower() in ("ok", "확인", "저장", "네", "넵", "응")):
+        return await recv_report(update, ctx)
     d = ctx.user_data["d"]; author = ctx.user_data.get("author", "운영자")
     # 빈 행 가드: 실제 보고 섹션이 전부 비거나(빈 입력·GPT 구조화 실패) 무의미 토큰뿐이면 저장하지 않는다.
     _TRIVIAL = {"기록완료", "완료", "끝", "기록", "없음", "없습니다", "done", "ok", "오케이", "넵", "네"}

@@ -32,7 +32,8 @@ SUMMARY_CC = [x.strip() for x in os.environ.get("DAILY_REPORT_SUMMARY_CC", "").s
 EMP = json.loads((SCRIPTS / "arisa-employees.json").read_text(encoding="utf-8"))
 BY_NAME = EMP.get("by_name", {})
 TARGETS = [nm for tid, nm in EMP.get("by_telegram_id", {}).items() if nm != "최원석"]  # 보고 대상(대표 제외)
-ALIAS = {"yang eun jung": "양은정", "준호 김": "김준호", "bro callme": "최원석"}
+sys.path.insert(0, str(SCRIPTS))
+from shared.normalize import normalize_name  # noqa: E402  이름 정규화 단일출처(별칭·오염제거)
 
 
 def gws_get(sid, rng):
@@ -50,11 +51,7 @@ def gws_get(sid, rng):
 
 
 def norm(s):
-    s = (s or "").strip()
-    for n in BY_NAME:
-        if n.replace(" ", "").lower() == s.replace(" ", "").lower():
-            return n
-    return ALIAS.get(s.lower(), s)
+    return normalize_name(s, BY_NAME)
 
 
 def _tg(token, chat, text):

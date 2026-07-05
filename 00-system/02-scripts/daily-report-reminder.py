@@ -31,7 +31,8 @@ BY_NAME = EMP.get("by_name", {})
 BY_TID = EMP.get("by_telegram_id", {})
 NAME2TID = {n: t for t, n in BY_TID.items()}
 TARGETS = [nm for tid, nm in BY_TID.items() if nm != "최원석"]  # 대표·퇴사자(명부에서 이미 제거) 제외
-ALIAS = {"yang eun jung": "양은정", "준호 김": "김준호", "bro callme": "최원석"}
+sys.path.insert(0, str(SCRIPTS))
+from shared.normalize import normalize_name  # noqa: E402  이름 정규화 단일출처(별칭·오염제거)
 
 
 def gws_get(sid, rng, retries=3, timeout=40):
@@ -50,11 +51,7 @@ def gws_get(sid, rng, retries=3, timeout=40):
 
 
 def norm(s):
-    s = (s or "").strip()
-    for n in BY_NAME:
-        if n.replace(" ", "").lower() == s.replace(" ", "").lower():
-            return n
-    return ALIAS.get(s.lower(), s)
+    return normalize_name(s, BY_NAME)
 
 
 def send_dm(tid, text):
