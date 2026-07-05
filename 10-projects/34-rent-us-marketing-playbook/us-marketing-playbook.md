@@ -41,7 +41,7 @@
 **Retail Media**:
 - 미국 2025년 **$58.79B** → 2026년 **$69.33B**(+18%, eMarketer). 증가분의 89%+를 Amazon·Walmart가 흡수 — https://www.emarketer.com/chart/c/354785/us-retail-media-ad-spending-will-near-70-billion-2026-354785
 - 글로벌 2025년 **$176.9B**(GroupM, 전체 광고비의 15.9%) — 사상 처음 TV 총매출 추월.
-- **In-store retail media는 미국 2025년 약 $0.58B로 초기 단계**. 소매 매출의 80%+가 오프라인에서 발생하는데 retail media 지출의 ~90%는 온라인 → **"측정 가능한 오프라인 미디어"의 구조적 공백 = People Counting 기반 포지셔닝 기회** — https://www.emarketer.com/content/faq-on-in-store-retail-media--closing-gap-between-demand-execution
+- **In-store retail media는 미국 2025년 $0.5B+ 수준으로 초기 단계**〔수정: 기존 "약 $0.58B"→"$0.5B+", eMarketer 공개 표현은 "2025년 $5억 초과" — 정확값 공개 출처 미확인〕. 소매 매출의 80%+가 오프라인에서 발생하는데 retail media 지출의 ~99%는 온라인〔수정: 기존 ~90%→~99%, eMarketer 원문 "99% of retail media ad dollars go towards online channels" — 공백 논거가 오히려 강화됨〕 → **"측정 가능한 오프라인 미디어"의 구조적 공백 = People Counting 기반 포지셔닝 기회** — https://www.emarketer.com/content/faq-on-in-store-retail-media--closing-gap-between-demand-execution
 
 ### 4.2 주요 경쟁사 (LA 거점 여부 포함)
 
@@ -50,13 +50,13 @@
 | **Leap** | RaaS 운영사(직접 경쟁) | 브랜드 대신 매장 개설·운영. 2025.1 $20M 조달+흑자 전환, 누적 $198M, 12개 Tier-1 시장 100+ 매장 | ○ (LA 포함) |
 | NVE Experience Agency | experiential 에이전시 | 데이터드리븐 체험 마케팅+이벤트 프로덕션, 자체 애널리틱스 | ◎ LA 본사 |
 | Giant Spoon | experiential 에이전시 | 브랜드 유니버스형 대형 활성화(HBO SXSW 등), ~120명 | ◎ LA+NY |
-| MKG | experiential 에이전시 | Google·Netflix·Target 파트너, 팝업숍 전문 명시 | ○ NY+LA |
+| MKG | experiential 에이전시 | Google·Netflix·Meta 파트너〔수정: Target→Meta, Target은 독립 출처 미확인〕, 팝업숍 전문 명시 | ○ NY+LA |
 | BMF | experiential 에이전시 | 체험 기반 통합(스폰서십·인플루언서·데이터) | ○ NY 본사+LA |
 | Superfly | 이벤트 프로덕션 | 2026.1 Range Sports에 인수 — 경쟁 구도 변동 | △ |
-| Peerspace | 공간 마켓플레이스 | 시간 단위 대여 4만+ 공간. **LA 팝업 리테일 300+, 시간당 평균 $137~289** | ◎ |
-| Storefront | 공간 마켓플레이스 | 글로벌 단기 리테일 공간. PopUp Immo 인수 후 운영 지속 [확인필요] | ○ |
+| Peerspace | 공간 마켓플레이스 | 시간 단위 대여 4만+ 공간. **LA 팝업 리테일 300+, 시간당 평균 $126(소형 ~$137·대형 ~$289 기준값)**〔수정: 기존 "평균 $137~289"→평균 $126, $137/$289는 소형/대형 기준값 — 근거 https://www.peerspace.com/venues/los-angeles--ca/pop-up-retail-space〕 | ◎ |
+| Storefront | 공간 마켓플레이스 | 글로벌 단기 리테일 공간. 2016년 PopUp Immo에 인수(합병)돼 Storefront 브랜드로 운영 지속〔수정: 인수 방향 정정 — Storefront가 인수한 것이 아니라 PopUp Immo가 Storefront를 인수, 근거 https://www.crunchbase.com/acquisition/popup-immo-2-acquires-storefront--fdd49090〕 | ○ |
 | Splacer | 공간 마켓플레이스 | P2P 모델, NYC·LA·마이애미·SF | ○ |
-| BrandBox (Macerich) | 몰 기반 팝업(실패 사례) | 2018 출시→확장 실패, 사실상 종료 [확인필요] — "공간만 파는 모델의 한계" 논거 | ✕ |
+| BrandBox (Macerich) | 몰 기반 팝업(실패 사례) | 2018 출시→2019년 이후 확장·운영 공개 소식 부재 [확인필요 — '종료' 확정 출처 미발견] — "공간만 파는 모델의 한계" 논거 | ✕ |
 | We're Magnetic | (제외) | 2020.8 폐업(COVID) | ✕ |
 
 시사점: 직접 경쟁자는 에이전시가 아니라 **Leap**. BrandBox 실패·We're Magnetic 폐업은 "공간/이벤트 단품 모델의 한계 vs 측정·운영 통합 모델" 논거로 활용.
@@ -71,62 +71,62 @@
 ### 5.1 TCPA — SMS 마케팅
 - 마케팅 문자는 **사전 서면 명시 동의(Prior Express Written Consent)** 필수(웹폼·키워드 옵트인 등 문서화 요건) — https://activeprospect.com/blog/tcpa-text-messages/
 - 법정 손해배상 **문자 1건당 $500, 고의 시 최대 $1,500**, 집단소송 가능·총액 상한 없음(무동의 1만 건 = 이론상 $5M~15M 노출) — https://www.termsfeed.com/blog/tcpa-compliance/
-- FCC one-to-one consent 룰은 **2025.1 제11항소법원 무효화(IMC v. FCC) → 2025.9 공식 폐기** — 종전 서면동의 기준 적용 — https://www.wiley.law/alert-UPDATE-11th-Circuit-Vacates-FCCs-One-to-One-TCPA-Consent-Rule
-- 신규 opt-out 룰(2025.4.11 발효): 소비자는 "합리적인 어떤 방식으로든" 철회 가능, 10영업일 내 처리 의무.
+- FCC one-to-one consent 룰은 **2025.1.24 제11항소법원 무효화(IMC v. FCC) → FCC 2025.7.14 삭제 명령 채택, 2025.8.29 연방관보 게재·발효로 공식 폐기**〔수정: 기존 "2025.9 공식 폐기"→2025.7.14 명령·2025.8.29 발효(90 FR 42137), 근거 https://www.fcc.gov/document/fcc-removes-one-one-consent-rule-nullified-court-decision〕 — 종전 서면동의 기준 적용 — https://www.wiley.law/alert-UPDATE-11th-Circuit-Vacates-FCCs-One-to-One-TCPA-Consent-Rule
+- 신규 opt-out 룰(2025.4.11 발효): 소비자는 "합리적인 어떤 방식으로든" 철회 가능, 10영업일 내 처리 의무(일부 철회 범위 조항은 2026.4.11로 1년 유예).
 
 ### 5.2 CAN-SPAM — 이메일
 - 요건: 허위 헤더·기만적 제목 금지, 광고 명시, 실제 우편주소, 옵트아웃 제공+10영업일 내 처리.
-- 벌금: **이메일 1건당 최대 $53,088**(2025.1.17 인플레 조정) — https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business
+- 벌금: **이메일 1건당 최대 $53,088**(2025.1.17 인플레 조정; 2026년 연례 조정은 정부 셧다운으로 취소돼 — OMB M-26-11 — $53,088 유지) — https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business
 
 ### 5.3 CCPA/CPRA — 캘리포니아 개인정보
-- 적용(3중 1): 연매출 **$26,625,000 초과**(2025.1 CPI 조정) / 연 10만+ 소비자 정보 매매·공유 / 매출 50%+가 개인정보 판매 — https://cppa.ca.gov/regulations/cpi_adjustment.html
+- 적용(3중 1): 연매출 **$26,625,000 초과**(2025.1 CPI 조정 — 격년 조정으로 차기는 2027.1) / 연 10만+ 소비자·가구 정보 매매·공유 / 매출 50%+가 개인정보 판매 — https://cppa.ca.gov/regulations/cpi_adjustment.html
 - 의무: 수집 시점 고지(notice at collection), 알 권리·삭제권·옵트아웃. 벌금 건당 최대 $2,663(고의·아동 $7,988).
 - **People Counting·OMO 데이터 수집 시 매장 내 고지문+프라이버시 정책이 필수 설계 항목.**
 
 ### 5.4 LA OOH·사이니지·뮤럴
-- **Wild posting(LAMC §28.04)**: 공공 시설물 부착 금지 — 벌금 1회 $100→2회 $250→3회 $500+제거비, 연 3회 초과 시 경범죄 기소 — https://codelibrary.amlegal.com/codes/los_angeles/latest/lamc/0-0-0-128154
+- **Wild posting(LAMC §28.04)**: 공공 시설물 부착 금지 — 행정벌금 1회 최대 $100→2회 $250→3회 $500+제거비, 달력연도 내 4회차 위반부터(=연 3회 초과) 경범죄 기소 — https://codelibrary.amlegal.com/codes/los_angeles/latest/lamc/0-0-0-128154
 - LA시는 **off-site 상업 광고물 신규 설치 전면 금지**(LAMC 14.4.4, 사인 디스트릭트 등 예외만).
 - **뮤럴(Ord. 182706)**: "Original Art Mural"은 상업 메시지·로고 일절 불포함해야 등록 가능 — 브랜드 뮤럴 광고는 사실상 '사인'으로 분류돼 금지 저촉. 합법 경로는 사유지 허가 위치 wild posting·기존 월스케이프 인벤토리 임대 — https://culture.lacity.gov/murals
 
 ### 5.5 FTC 인도스먼트·리뷰
 - 2023.6 Endorsement Guides 개정: material connection 공개 의무 강화, #ad는 clear & conspicuous.
-- **2024 Fake Review Final Rule(2024.10.21 발효)**: 가짜 리뷰·리뷰 매수·소셜 지표 조작 등 금지 — **civil penalty 건당 최대 $51,744**(2025년 조정 ~$53,088 [추정]) — https://www.ftc.gov/news-events/news/press-releases/2024/08/federal-trade-commission-announces-final-rule-banning-fake-reviews-testimonials
+- **2024 Fake Review Final Rule(2024.10.21 발효)**: 가짜 리뷰·리뷰 매수·소셜 지표 조작 등 금지 — **civil penalty 건당 최대 $53,088**(2025.1.17 조정 확정, 2026년 조정 취소로 유지)〔수정: 기존 "~$53,088 [추정]"→확정값 승격, 근거 https://www.ftc.gov/news-events/news/press-releases/2025/02/ftc-publishes-inflation-adjusted-civil-penalty-amounts-2025〕 — https://www.ftc.gov/news-events/news/press-releases/2024/08/federal-trade-commission-announces-final-rule-banning-fake-reviews-testimonials
 - → 한국식 침투 바이럴·구매 유도 체험단은 미국 이식 불가(센터피스 A·B 카테고리 참조).
 
 ### 5.6 LA 팝업 운영 인허가 실무
 - **BTRC**(LA시 Business Tax Registration Certificate): 단기 사업도 등록 의무 — https://finance.lacity.gov/business-registration-process
-- **CA Seller's Permit**(CDTFA): 물품 판매 시 필수. 90일 이내 단기 판매는 temporary seller's permit(무료, 3~5영업일) — https://business.lacity.gov/plan-business/register-your-business/sellers-permit
+- **CA Seller's Permit**(CDTFA): 물품 판매 시 필수. 90일 이내 단기 판매는 temporary seller's permit(무료, 온라인 등록 시 당일 발급 가능)〔수정: 기존 "3~5영업일"→당일 발급 가능, 근거 https://cdtfa.ca.gov/industry/temporary-sellers/〕 — https://business.lacity.gov/plan-business/register-your-business/sellers-permit
 - **F&B 취급 시**: LA County Public Health 임시 식품시설(TFF) 허가+식품안전 인증.
 - 조닝/임시사용: 부지별 상이 [확인필요 — LADBS/City Planning 확인], 이벤트성 운영은 special event/temporary use 승인 필요 가능.
 
 ## 6. 신규 솔루션 — 미국식 팝업 CRM 스택
 
-**가설 검증 결론: 미국 팝업 현장의 표준 플레이는 QR→Email/SMS 캡처→CRM이 맞다.** TCPA상 마케팅 SMS는 사전 서면 명시 동의가 필수라 현장 구두 수집이 불가능하고, QR→폼→더블옵트인(확인 문자 YES 회신) 구조가 사실상 강제된다 — https://www.infobip.com/blog/tcpa-compliance-sms
+**가설 검증 결론: 미국 팝업 현장의 표준 플레이는 QR→Email/SMS 캡처→CRM이 맞다.** TCPA상 마케팅 SMS는 사전 서면 명시 동의가 필수라 현장 구두 수집이 불가능하고, QR→폼→더블옵트인(확인 문자 YES 회신)이 캐리어·플랫폼(CTIA) 요건상 사실상 표준이다〔수정: "법이 강제"→"법정 요건은 서면동의, 더블옵트인은 캐리어 관행상 표준"으로 정밀화〕 — https://www.infobip.com/blog/tcpa-compliance-sms
 
 ### 6.1 QR + Email/SMS 캡처 → CRM
 | 도구 | 가격 | 평가 |
 |---|---|---|
 | **Klaviyo** | 무료(250프로필)~Email $20/월(500프로필)~$400/월(25,000). Email+SMS $35/월~. SMS $0.009~0.015/건 [추정] — https://www.klaviyo.com/pricing | D2C 표준. 팝업 QR 사인업 폼+자동화 내장 — 기본값 |
 | Attentive | RFQ — 연간 중앙값 ~$40K, 미드마켓 월 $3K~10K [추정] | 엔터프라이즈급. 초기 진출엔 과함 |
-| Postscript | Starter $0/월(최소 $49 지출, SMS $0.015/건)~Pro $500/월(SMS $0.007/건) — https://postscript.io/pricing | Shopify 전용 |
+| Postscript | Starter $0/월(최소 $49 지출, SMS 정가 $0.015/건·현행 인하가 $0.009)~Professional $500/월(SMS $0.007/건) — https://postscript.io/pricing | Shopify 전용 |
 | Mailchimp | Essentials $13/월~. SMS는 애드온 크레딧 | 저가 진입용, 팝업 CRM 코어로는 비추 |
 
 ### 6.2 RSVP/사전예약 기반 수요 예측
-- **Luma**: 무료(무제한 이벤트, 유료티켓 시 5%) / Plus $59/월(수수료 0%) — 캘린더 구독 = 재방문 CRM 효과. **LA 팝업에 가장 적합** — https://luma.com/pricing
-- Eventbrite: 무료 이벤트 $0, 유료 3.7%+$1.79/티켓 — 최대 디스커버리 채널 — https://www.eventbrite.com/organizer/pricing/
+- **Luma**: 무료(무제한 이벤트, 유료티켓 시 5%) / Plus $59/월(연납 기준, 수수료 0%) — 캘린더 구독 = 재방문 CRM 효과. **LA 팝업에 가장 적합** — https://luma.com/pricing
+- Eventbrite: 무료 이벤트 $0, 유료 3.7%+$1.79/티켓+결제 2.9%/주문 — 최대 디스커버리 채널 — https://www.eventbrite.com/organizer/pricing/
 - Partiful: 무료(Gen-Z 소셜 RSVP 강자, 티켓 수수료 비공개 [확인필요]) / Posh: 10%+$0.99/티켓(나이트라이프 특화).
 
 ### 6.3 Digital Passport/스탬프
-- **PassKit**(Apple/Google Wallet 패스 발급 API): 최소 $39.50/월, 초과분 개당 $0.045→볼륨 시 $0.0005 — **자체 디지털 패스포트 셀프빌드 시 원가 개당 1센트 미만** — https://passkit.com/pricing/
+- **PassKit**(Apple/Google Wallet 패스 발급 API): 최소 $39.50/월, 초과분 개당 $0.045→볼륨 시 $0.0005 — **자체 디지털 패스포트 셀프빌드 시 볼륨(5만 개+) 기준 원가 개당 1센트 미만**(소량 2,500개 이하는 개당 $0.045) — https://passkit.com/pricing/
 - Stamp Me(디지털 펀치카드): Lite $49/월~Elite $199/월 — https://www.stampme.com/pricing
 - Bandwango(DMO용 패스포트/트레일 엔진): RFQ — 관광청 대상만 있고 **브랜드 팝업용은 공백**.
 
 ### 6.4 NFC 경험
-- NFC 태그(NTAG213): 벌크 개당 $0.10~1.00. NFC/RFID 웨어러블: Tyvek $0.10~0.50, 실리콘 $1~3(MOQ 5,000 시 $0.38~0.52) — 브레이슬릿 = 입장+스탬프+리드캡처 통합 매체 — https://www.rfidhy.com/rfid-wristband-pricing-us-market-2025-cost-breakdown/
+- NFC 태그(NTAG213): 벌크 개당 $0.10~1.00. NFC/RFID 웨어러블: Tyvek $0.10~0.50 [확인필요 — 인용 출처에 단가 부재], 실리콘 $1~3(MOQ 5,000 시 $0.38~0.52) — 브레이슬릿 = 입장+스탬프+리드캡처 통합 매체 — https://www.rfidhy.com/rfid-wristband-pricing-us-market-2025-cost-breakdown/ · https://www.atlasrfidstore.com/nfc-tags
 - Flowcode(QR 분석): 무료~Pro Plus $25/월~Growth $250/월 / Popl(현장 리드 캡처): Pro $7.99/월~.
 
 ### 6.5 로열티/리텐션
-- Smile.io: Free~$999/월(투명 가격, 월 단위 해지) — https://smile.io/pricing / TapMango(태블릿 키오스크+SMS): RFQ, 실질 월 $239~400 [추정] / Yotpo: 대부분 RFQ.
+- Smile.io: Free~$999/월(투명 가격, 월 단위 해지 — 단 최상위 Plus $999는 연납) — https://smile.io/pricing / TapMango(태블릿 키오스크+SMS): RFQ, 실질 월 $239~400 [추정] / Yotpo: 대부분 RFQ.
 
 ### 6.6 Cultural Engagement Score — 경쟁 공백 확인
 - 기존 유사물: Forrester BX Index(컨설팅 인덱스), Rival/Reach3 BXP(모바일 설문 기반), AnyRoad(엔터프라이즈 RFQ), 에이전시 부속 측정(Imagination XPKit 등).
@@ -151,7 +151,7 @@
 4. **CRM (신규 매출층)** — 한국에 없던 레이어. 미국 팝업의 표준 플레이인 QR→Email/SMS 캡처→포스트 이벤트 너처링을 패키지에 내장(섹션 6 스택). 팝업이 끝나도 고객 리스트가 남는다는 것이 클라이언트 설득 포인트. TCPA 준수 설계 자체가 상품 가치.
 5. **Community (록인)** — 반복 방문·멤버십·로컬 커뮤니티(뉴스레터·Discord·이벤트 시리즈)로 브랜드의 LA 로컬 자산화. 프로젝트렌트 자체도 동일 전략으로 자사 미디어(Rent IG의 LA 버전 + 로컬 뉴스레터)를 키워 한국의 "렌트 계정 + 파워페이지 네트워크" 포지션을 LA에서 재구축.
 
-**가격 구조 시사점**: 한국 대비 미디어·인건비 3~7배 구조이므로, 마진은 채널 재판매가 아니라 (3) Data와 (4) CRM — 자사 IP·소프트웨어 레이어 — 에서 나온다. 채널 집행은 패스스루+수수료 모델로 전환.
+**가격 구조 시사점**: 한국 대비 미디어·인건비 약 2~7배(물량형 체험단은 5~24배) 구조이므로, 마진은 채널 재판매가 아니라 (3) Data와 (4) CRM — 자사 IP·소프트웨어 레이어 — 에서 나온다. 채널 집행은 패스스루+수수료 모델로 전환.
 
 **순서의 의미**: Experience로 계약을 열고, Engagement로 차별화하고, Data로 증명하고, CRM으로 반복 매출을 만들고, Community로 이탈을 막는다. 각 단이 다음 단의 영업 근거가 된다.
 

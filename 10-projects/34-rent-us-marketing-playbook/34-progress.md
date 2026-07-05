@@ -15,6 +15,18 @@ Economy에서 더 강한 무기.
 
 ## 작업 로그
 
+### 2026-07-06
+- [x] **최종검증(B) 완료** — 병렬 검증 에이전트 11기(A~H 8기 + 플레이북 섹션4/5/6 3기)로
+  두 파일 전 수치를 인용 출처 URL 직접 대조(WebFetch, 부재 시 WebSearch 재삼각검증).
+  결과: **검증 337건 / 수정 31건 / 플래그(강등·출처보강) 30건** → 전부 인라인 반영(`〔수정〕` 마커 37개),
+  잔존 구값 grep 재대조 통과. 상세: `research/verification-report.md`
+- 주요 정정: 파워페이지 갭 3~7배→약 2~7배 · 체험단 갭 5~20배→약 5~24배 · retail media 온라인 비중 90%→99%(논거 강화) ·
+  Storefront 인수 방향 반대(PopUp Immo가 인수) · Peerspace 평균 $126 · Business Wire 초과단가 $195 고정 ·
+  FCC one-to-one 폐기 2025.8.29 발효 · seller's permit 당일 발급 · Posh 10%+$0.99 통일
+- 확정 사실: FTC 가짜리뷰·CAN-SPAM 벌금 $53,088은 2026년 조정 취소(OMB M-26-11, 셧다운)로 현행 유지 —
+  [추정] 태그 확정 승격. Leap·PQ Media·eMarketer·Dor 앵커·LAMC 벌금은 원출처 전부 일치
+- ⚠️ 환율: 문서 기준 ₩1,400/USD vs 2026-07 시장환율 ~₩1,530 — 집행 시 USD 예산 ~10% 보수 적용 필요(헤더에 명기)
+
 ### 2026-07-05
 - [x] 기획 확정(플랜 승인): 목적=US 플레이북 / 형태=md+HTML 덱 / 범위=4영역 전부
 - [x] 원본 PDF 2종 추출 → `source/` 편입
@@ -43,6 +55,6 @@ Economy에서 더 강한 무기.
 ## 액션 아이템
 - [ ] (사용자) 센터피스 표 리뷰 → 섹션 0~3·8 방향 확정 → HTML 덱 지시
 - [ ] RFQ 견적 요청 리스트 발송 검토: Secret Media Network(Fever)·The Infatuation·LA Times Studios·Intersection(LA Metro)·JCDecaux(LAX)·Captivate·Attentive·Placer.ai (리드타임 2~4주)
-- [ ] [확인필요] 태그 항목 재검증: Business Wire 내셔널 단가($760/775), Tock·Yelp GM 신구 가격, Partiful 티켓 수수료, Storefront 인수 시점, BrandBox 종료 여부
+- [x] [확인필요] 태그 항목 재검증(2026-07-06 최종검증 B에서 처리): Business Wire 내셔널은 출처 간 상이로 [추정] 유지(초과단가는 $195 확정), Yelp GM 월납 $159 확정, Storefront는 PopUp Immo가 2016 인수로 확정 — 잔여: Tock 신구가·Partiful 수수료·BrandBox 종료 여부(공개 출처 부재로 [확인필요] 유지)
 - [ ] 환율 기준 확정(문서는 ₩1,400/USD [추정] 사용)
 - [ ] 무인 실행 인프라: 브랜치 전환 충돌 방지(전용 worktree 운용) 결정
