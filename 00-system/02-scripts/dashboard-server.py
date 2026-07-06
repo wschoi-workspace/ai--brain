@@ -12,7 +12,7 @@ import json, os, re, threading, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, quote
 from urllib.request import urlopen, Request
-from urllib.error import URLError
+from urllib.error import URLError, HTTPError
 from pathlib import Path
 
 # .env 로드(WEEKLY_KEY 등 — 환경 미설정 시 do-better-workspace/.env에서 보충)
@@ -309,6 +309,15 @@ class H(BaseHTTPRequestHandler):
                 self.send_header("Cache-Control", "no-store")
                 self.end_headers()
                 self.wfile.write(resp_body)
+        except HTTPError as e:
+            # upstream이 4xx/5xx를 반환해도 상태·본문 그대로 전달(401 인증게이트 = 서버 살아있음)
+            resp_body = e.read()
+            self.send_response(e.code)
+            self.send_header("Content-Type", e.headers.get("Content-Type", "application/json; charset=utf-8"))
+            self.send_header("Content-Length", str(len(resp_body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(resp_body)
         except URLError:
             err = b'{"ok":false,"error":"ARISA 2.0 unavailable"}'
             self.send_response(502)
