@@ -10,4 +10,5 @@
   gws       — values_get(읽기), append_to_sheet(쓰기)
   llm       — LLMClient(call_json / call_text, 재시도 내장)
   telegram  — create_telegram_app, safe_error_handler
+  decision  — save_decision_log (Engine D: Decision Log 축적)
 """

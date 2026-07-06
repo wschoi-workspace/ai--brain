@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Master — 검증용 프로토타입 v0.1</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111111; --bg-3:#222222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --accent:#6C5CE7; --accent-dk:#5A4BD1; --accent-lt:#A29BFE; --accent-sub:#2A2540;
+  --warm:#E9DCC8; --rust:#B86C4A; --green:#8FA37E;
+  --line:#333333; --line-2:#2A2A2A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--fg);
+  font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.app{display:grid;grid-template-columns:var(--left-w,420px) 7px 1fr;height:100vh}
+.app.collapsed{grid-template-columns:0 0 1fr}
+.app.collapsed .left,.app.collapsed .splitter{display:none}
+.splitter{background:var(--line-2);cursor:col-resize;position:relative;transition:background .1s;z-index:5}
+.splitter:hover,.splitter.drag{background:var(--accent)}
+.splitter::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:3px;height:34px;background:var(--fg-3);border-radius:3px}
+.splitter:hover::after,.splitter.drag::after{background:#fff}
+
+/* ── Header bar (full width) ── */
+.topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;border-bottom:1px solid var(--line);background:var(--bg-2)}
+.topbar .brand{display:flex;align-items:baseline;gap:12px}
+.topbar .label{font-size:10px;letter-spacing:.18em;color:var(--accent-lt);font-weight:600;text-transform:uppercase}
+.topbar h1{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.topbar .ver{font-size:10px;color:var(--fg-3);border:1px solid var(--line);border-radius:4px;padding:2px 6px}
+.toolbar{display:flex;gap:8px}
+.btn{font-family:inherit;font-size:11px;font-weight:600;color:var(--fg-2);background:var(--bg-3);
+  border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer;transition:.12s}
+.btn:hover{border-color:var(--accent);color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-dk)}
+
+.app{grid-template-rows:auto 1fr}
+.panel{overflow-y:auto;height:100%}
+.panel::-webkit-scrollbar{width:8px}
+.panel::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+
+/* ── LEFT : input ── */
+.left{border-right:1px solid var(--line);background:var(--bg-2);padding:18px}
+.section-h{display:flex;align-items:center;gap:8px;margin:22px 0 12px;cursor:pointer;user-select:none}
+.section-h:first-child{margin-top:0}
+.section-h .num{font-size:10px;letter-spacing:.1em;color:var(--accent-lt);font-weight:700;
+  background:var(--accent-sub);border-radius:4px;padding:2px 6px}
+.section-h .t{font-size:12px;font-weight:700;letter-spacing:.02em}
+.section-h .chev{margin-left:auto;color:var(--fg-3);font-size:11px;transition:.15s}
+.section-h.collapsed .chev{transform:rotate(-90deg)}
+.fields.collapsed{display:none}
+
+.field{margin-bottom:11px}
+.field label{display:block;font-size:10.5px;color:var(--fg-3);margin-bottom:4px;letter-spacing:.02em}
+.field label .req{color:var(--accent-lt);margin-left:2px}
+.field input,.field select,.field textarea{width:100%;font-family:inherit;font-size:12px;
+  background:var(--bg-3);border:1px solid var(--line);border-radius:6px;color:var(--fg);
+  padding:8px 10px;outline:none;transition:.12s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{resize:vertical;min-height:42px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.hint{font-size:9.5px;color:var(--fg-3);margin-top:3px;font-style:italic}
+
+/* task editor */
+.task-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+.task-tbl th{font-size:9px;color:var(--fg-3);text-align:left;font-weight:600;
+  padding:5px 6px;border-bottom:1px solid var(--line);letter-spacing:.04em}
+.task-tbl td{padding:3px 4px;border-bottom:1px solid var(--line-2)}
+.task-tbl input,.task-tbl select{width:100%;background:transparent;border:1px solid transparent;
+  border-radius:4px;color:var(--fg);font-family:inherit;font-size:11px;padding:4px 5px}
+.task-tbl input:focus,.task-tbl select:focus{background:var(--bg-3);border-color:var(--accent)}
+.task-tbl select{background:var(--bg-2)}
+.task-tbl .del{color:var(--fg-3);cursor:pointer;text-align:center;font-size:13px}
+.task-tbl .del:hover{color:var(--rust)}
+.div-cell{font-weight:700;font-size:9px}
+.add-task{margin-top:8px;width:100%;font-size:11px;border-style:dashed}
+
+/* ── RIGHT : dashboard ── */
+.right{padding:22px 26px;background:var(--bg)}
+.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.card{background:var(--bg-3);border:1px solid var(--line-2);border-radius:10px;padding:15px 16px}
+.card .k{font-size:9.5px;letter-spacing:.1em;color:var(--fg-3);text-transform:uppercase;font-weight:600}
+.card .v{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:6px;line-height:1}
+.card .v small{font-size:12px;font-weight:600;color:var(--fg-3);letter-spacing:0}
+.card .sub{font-size:10px;color:var(--fg-3);margin-top:5px}
+
+.health{grid-column:span 1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+.badge{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;
+  padding:7px 14px;border-radius:8px;margin-top:6px}
+.badge .dot{width:9px;height:9px;border-radius:50%}
+.b-green{background:rgba(143,163,126,.16);color:var(--green)}
+.b-green .dot{background:var(--green)}
+.b-yellow{background:rgba(233,220,200,.14);color:var(--warm)}
+.b-yellow .dot{background:var(--warm)}
+.b-red{background:rgba(184,108,74,.18);color:var(--rust)}
+.b-red .dot{background:var(--rust)}
+
+.section-title{font-size:11px;letter-spacing:.12em;color:var(--accent-lt);font-weight:700;
+  text-transform:uppercase;margin:24px 0 12px;display:flex;align-items:center;gap:10px}
+.section-title::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* division bars */
+.divbars{display:grid;grid-template-columns:1fr 1fr;gap:12px 26px}
+.divbar .row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}
+.divbar .row .nm{font-weight:600}
+.divbar .row .pc{color:var(--fg-3);font-weight:700}
+.track{height:7px;background:var(--bg-2);border-radius:4px;overflow:hidden}
+.fill{height:100%;border-radius:4px;background:var(--accent);transition:width .3s}
+
+/* ── project brief summary ── */
+.brief-sum{background:var(--bg-3);border:1px solid var(--line-2);border-radius:12px;padding:18px 20px}
+.brief-sum .bs-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.brief-sum .bs-name{font-size:18px;font-weight:800;letter-spacing:-.01em;color:var(--fg)}
+.brief-sum .bs-code{font-size:10px;color:var(--fg-3);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.brief-sum .bs-status{font-size:10px;font-weight:700;padding:2px 9px;border-radius:5px;background:var(--accent-sub);color:var(--accent-lt)}
+.brief-sum .bs-meta{font-size:11px;color:var(--fg-3);margin-bottom:6px;display:flex;gap:8px 16px;flex-wrap:wrap}
+.brief-sum .bs-meta b{color:var(--fg-2);font-weight:600}
+.brief-sum .bs-block{margin-top:13px}
+.brief-sum .lab{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-lt);font-weight:700;margin-bottom:4px}
+.brief-sum .val{font-size:12px;color:var(--fg-2);line-height:1.65}
+.brief-sum .bs-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px 26px;margin-top:13px}
+.brief-sum .bs-empty{color:var(--fg-3);font-size:11px}
+
+/* ── gantt v2 : milestone-style weekly timeline ── */
+.g-summary{font-size:12px;color:var(--fg-2);line-height:1.6;margin-bottom:14px}
+.g-summary b{color:var(--fg)}
+.g-summary .crit{color:#fff;background:var(--accent);font-weight:700;padding:1px 8px;border-radius:5px}
+.ng{border:1px solid var(--line-2);border-radius:12px;background:var(--bg-3);overflow:hidden}
+.ng-scroll{overflow-x:auto}
+.ng-inner{min-width:960px}
+.ng-row{display:flex;align-items:stretch;border-bottom:1px solid var(--line-2)}
+.ng-row:last-child{border-bottom:none}
+.ng-head{background:var(--bg-2)}
+.ng-label{flex:0 0 196px;width:196px;padding:9px 14px;display:flex;flex-direction:column;
+  justify-content:center;gap:3px;border-right:1px solid var(--line)}
+.ng-head .ng-label{font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase;font-weight:700}
+.ng-label .tk{font-size:11.5px;font-weight:600;color:var(--fg);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;display:flex;align-items:center;gap:7px}
+.ng-label .tk .dv{width:9px;height:9px;border-radius:3px;flex:0 0 auto}
+.ng-label .ow{font-size:9px;color:var(--fg-3);padding-left:16px}
+.ng-track{position:relative;flex:1;display:flex;min-height:42px}
+.ng-wk{flex:1 0 60px;border-right:1px solid var(--line-2)}
+.ng-wk:last-child{border-right:none}
+.ng-wk.now{background:rgba(108,92,231,.10)}
+.ng-head .ng-track{min-height:auto}
+.ng-head .ng-wk{padding:9px 0 9px;text-align:center}
+.ng-head .ng-wk .w{font-size:10px;font-weight:700;color:var(--fg-2)}
+.ng-head .ng-wk .d{font-size:9px;color:var(--fg-3);margin-top:2px}
+.ng-head .ng-wk.now{background:rgba(108,92,231,.18)}
+.ng-head .ng-wk.now .w{color:#fff}
+.ng-head .ng-wk.now .d{color:var(--accent-lt)}
+.ng-bar{position:absolute;top:50%;transform:translateY(-50%);height:25px;border-radius:7px;
+  display:flex;align-items:center;padding:0 10px;font-size:10.5px;font-weight:600;
+  white-space:nowrap;overflow:hidden;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.ng-bar .br-date{opacity:.8;font-weight:500;margin-left:7px;font-size:9.5px}
+.ng-bar.ghost{background:transparent!important;border:1.5px dashed var(--fg-3);box-shadow:none}
+.ng-bar.delayed{outline:2px solid var(--rust);outline-offset:1px}
+.ng-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;
+  z-index:3;border:3px solid var(--bg-3);box-shadow:0 0 0 1px rgba(255,255,255,.15)}
+.ng-mlabel{position:absolute;top:calc(50% + 13px);transform:translateX(-50%);font-size:9px;
+  color:var(--fg-2);white-space:nowrap;text-align:center;line-height:1.3;font-weight:600}
+.ng-empty{padding:22px;color:var(--fg-3);font-size:11px}
+/* 그룹/드릴다운 */
+.ng-row.ng-team{cursor:pointer;background:rgba(255,255,255,.018)}
+.ng-row.ng-team:hover{background:rgba(108,92,231,.09)}
+.ng-team .ng-label .tk{font-size:12px}
+.ng-team .ng-label b{color:var(--fg);font-weight:700}
+.ng-caret{color:var(--fg-3);font-size:9px;width:11px;flex:0 0 auto;display:inline-block}
+.ng-cnt{font-size:9px;font-weight:700;color:var(--fg-3);background:var(--bg-2);border:1px solid var(--line);
+  border-radius:9px;padding:0 7px;margin-left:auto;flex:0 0 auto}
+.ng-row.ng-cat{cursor:pointer}
+.ng-row.ng-cat:hover{background:rgba(255,255,255,.025)}
+.ng-cat .ng-label .tk,.ng-detail .ng-label .tk{font-size:11px;color:var(--fg-2);font-weight:500}
+.ng-sub{color:var(--fg-3);margin-right:6px;flex:0 0 auto}
+.ng-label.sub{flex:0 0 196px;width:196px;padding-left:24px}
+.ng-detail .ng-track,.ng-cat .ng-track{min-height:34px}
+.ng-act{color:var(--accent-lt);cursor:pointer;font-weight:700;text-decoration:underline}
+.ng-act:hover{color:#fff}
+
+/* ── input-burden meter (validation hero) ── */
+.burden{position:sticky;bottom:0;margin-top:24px;background:var(--bg-3);border:1px solid var(--accent-sub);
+  border-radius:10px;padding:14px 16px}
+.burden h3{font-size:10px;letter-spacing:.12em;color:var(--accent-lt);text-transform:uppercase;margin-bottom:10px}
+.burden .meters{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:10px}
+.burden .m .lab{display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px;color:var(--fg-2)}
+.burden .m .lab b{color:var(--fg)}
+.burden .verdict{font-size:10.5px;line-height:1.6;color:var(--fg-2);padding-top:10px;border-top:1px solid var(--line-2)}
+.burden .verdict b{color:var(--accent-lt)}
+
+.note{font-size:10px;color:var(--fg-3);line-height:1.6;margin-top:14px;padding:12px 14px;
+  background:var(--bg-2);border-left:2px solid var(--accent);border-radius:0 6px 6px 0}
+.note b{color:var(--fg-2)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:9.5px;color:var(--fg-3);margin:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+</style>
+<script>window.EMBEDDED_PROJECT={"brief": {"name": "CJ온스타일 × KBO 올스타전 Moving Stadium Shop — 팀별 상세 간트차트 (v2)", "code": "KBO-2026-ASG", "client": "CJ온스타일 / KBO", "status": "In Progress", "type": "브랜드 팝업 / 행사 운영", "location": "잠실 제2주차장 (예정)", "start": "2026-06-23", "end": "2026-07-13", "dday": "2026-07-10", "opPeriod": "행사 7/10(금)·7/11(토) 잠실 제2주차장 · 세팅 7/9 · 06.23 내부미팅 반영본 · 일정 06/23~07/13   |   막대=업무기간  ★=행사일  ◆=세팅일(7/9)  우선'상'=빨강", "summary": "CJ온스타일 × KBO 올스타전 Moving Stadium Shop — 팀별 상세 간트차트 (v2) — 행사 7/10(금)·7/11(토) 잠실 제2주차장 · 세팅 7/9 · 06.23 내부미팅 반영본 · 일정 06/23~07/13   |   막대=업무기간  ★=행사일  ◆=세팅일(7/9)  우선'상'=빨강. 잠실 올스타전 연계 브랜드 팝업 운영 (06/23~07/13, 총 74개 업무 / 5개 팀).", "goal": "올스타전 현장 팝업으로 브랜드 경험·굿즈 판매·SNS 확산 극대화", "critical": "바코드·단가표 확보 / 부지·전기 인입 확정 / 반입·철거 동선 / SNS 폴리시", "risk": "확정필요·리스크 13건 (대부분 미확정) — 별도 시트 참조"}, "tasks": [{"division": "전팀", "category": "공통", "task": "전체 킥오프", "owner": "전팀", "start": "2026-06-23", "end": "2026-06-25", "status": "In Progress", "priority": "High", "progress": ""}, {"division": "전팀", "category": "리뷰", "task": "사후 리뷰", "owner": "전팀", "start": "2026-07-12", "end": "2026-07-13", "status": "Not Started", "priority": "Mid", "progress": ""}, {"division": "사업팀", "category": "권리/계약", "task": "권리/승인 항목 정리", "owner": "성원", "start": "2026-06-23", "end": "2026-06-25", "status": "In Progress", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "상품/데이터", "task": "품목·단가표 문서화 확보", "owner": "성원", "start": "2026-06-23", "end": "2026-06-26", "status": "In Progress", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "결제", "task": "바코드 넘버 확보(POS 등록)", "owner": "성원", "start": "2026-06-23", "end": "2026-06-26", "status": "In Progress", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "홍보/권리", "task": "SNS 마케팅 폴리시 확정", "owner": "성원", "start": "2026-06-23", "end": "2026-06-26", "status": "In Progress", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "정산/권리", "task": "로스율 반품정책 CJ 협의", "owner": "성원", "start": "2026-06-23", "end": "2026-07-01", "status": "In Progress", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "제작", "task": "제작사 견적 비교", "owner": "성원", "start": "2026-06-26", "end": "2026-06-28", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "예산", "task": "예산 및 목표 매출 작성", "owner": "성원", "start": "2026-06-26", "end": "2026-06-28", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "예산", "task": "일자별 SKU·매출목표 확정", "owner": "성원", "start": "2026-06-26", "end": "2026-07-01", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "이벤트", "task": "1초가입·컵투표 이벤트 승인", "owner": "성원", "start": "2026-06-26", "end": "2026-07-04", "status": "Not Started", "priority": "Mid", "progress": ""}, {"division": "사업팀", "category": "제작", "task": "굿즈 제작 발주", "owner": "성원", "start": "2026-06-29", "end": "2026-07-01", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "정산", "task": "정산 구조 확정", "owner": "성원", "start": "2026-06-29", "end": "2026-07-01", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "결제", "task": "토스 POS 렌탈·신청", "owner": "성원", "start": "2026-06-29", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "콘텐츠", "task": "게시물 최종검수 체계", "owner": "성원", "start": "2026-06-29", "end": "2026-07-06", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "권리/계약", "task": "권리 사용 문구 검수", "owner": "성원", "start": "2026-07-02", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "제작", "task": "납품 일정 재확인", "owner": "성원", "start": "2026-07-05", "end": "2026-07-07", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "입고", "task": "상품 입고 확인", "owner": "성원", "start": "2026-07-08", "end": "2026-07-10", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "현장", "task": "1일차 현장 이슈 대응", "owner": "성원", "start": "2026-07-10", "end": "2026-07-10", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "현장", "task": "2일차 현장 이슈 대응", "owner": "성원", "start": "2026-07-11", "end": "2026-07-11", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "사업팀", "category": "정산", "task": "최종 매출 정산", "owner": "성원", "start": "2026-07-12", "end": "2026-07-13", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "공간", "task": "설치 가능 위치 확인", "owner": "지혜·예진", "start": "2026-06-23", "end": "2026-06-25", "status": "In Progress", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "공간", "task": "렌탈 집기 2차 리스트업", "owner": "지혜·예진", "start": "2026-06-24", "end": "2026-06-26", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "제작", "task": "프로토타입 월(Wall) 전달", "owner": "지혜·예진", "start": "2026-06-25", "end": "2026-06-25", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "공간", "task": "부스 레이아웃 1차", "owner": "지혜·예진", "start": "2026-06-26", "end": "2026-06-28", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "VMD", "task": "VMD 소기물·POP 리스트업", "owner": "지인", "start": "2026-06-26", "end": "2026-07-01", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "공간", "task": "사인물 제작 파일 확정", "owner": "지혜·예진", "start": "2026-06-29", "end": "2026-07-01", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "제작", "task": "하드웨어 구조 도장 전 검증", "owner": "지혜·예진", "start": "2026-06-29", "end": "2026-07-01", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "공간", "task": "현수막 전개도·여유치수 설계", "owner": "지혜·예진", "start": "2026-06-29", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "설치", "task": "7/9 현장 진입시간 확정", "owner": "지혜·예진", "start": "2026-06-29", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "제작", "task": "월 최종발주·수령", "owner": "지혜·예진", "start": "2026-06-29", "end": "2026-07-08", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "공간", "task": "집기 렌탈 확정", "owner": "지혜·예진", "start": "2026-07-02", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "설치", "task": "설치 업체 일정 조율", "owner": "지혜·예진", "start": "2026-07-02", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "공간", "task": "대형 마그넷·릴타이 백업 확보", "owner": "지혜·예진", "start": "2026-07-02", "end": "2026-07-07", "status": "Not Started", "priority": "Mid", "progress": ""}, {"division": "공간팀", "category": "설치", "task": "설치 체크리스트 작성", "owner": "지혜·예진", "start": "2026-07-05", "end": "2026-07-07", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "설치", "task": "7/9 입고·세팅 작업순서 설계", "owner": "지혜·예진", "start": "2026-07-05", "end": "2026-07-09", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "설치", "task": "부스 설치", "owner": "지혜·예진", "start": "2026-07-08", "end": "2026-07-10", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "설치", "task": "7/9 야간 마감·보안", "owner": "지혜·예진", "start": "2026-07-09", "end": "2026-07-09", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "철거", "task": "7/10 철거·원상복구 계획", "owner": "지혜·예진", "start": "2026-07-10", "end": "2026-07-10", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "공간팀", "category": "철거", "task": "철거 및 원상복구", "owner": "지혜·예진", "start": "2026-07-11", "end": "2026-07-12", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "운영", "task": "운영 시간 초안", "owner": "운영팀", "start": "2026-06-23", "end": "2026-06-25", "status": "In Progress", "priority": "Mid", "progress": ""}, {"division": "운영팀", "category": "운영", "task": "판매 프로세스 설계", "owner": "운영팀", "start": "2026-06-26", "end": "2026-06-28", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "인력", "task": "리드급 인력 1명 확보", "owner": "영관", "start": "2026-06-26", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "운영", "task": "운영 매뉴얼 작성", "owner": "운영팀", "start": "2026-06-29", "end": "2026-07-01", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "CS", "task": "CS 기준 작성", "owner": "운영팀", "start": "2026-06-29", "end": "2026-07-01", "status": "Not Started", "priority": "Mid", "progress": ""}, {"division": "운영팀", "category": "CS", "task": "현장 CS 매뉴얼(CJ 정책)", "owner": "운영팀", "start": "2026-06-29", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "결제", "task": "POS 바코드 자동카운팅 설계", "owner": "운영팀", "start": "2026-06-29", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "설치", "task": "현장 네트워크망 확보", "owner": "운영팀", "start": "2026-06-29", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "설치", "task": "전기 컨디션·릴선 확보", "owner": "운영팀", "start": "2026-06-29", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "인력", "task": "일반 스텝 5명 채용", "owner": "운영팀", "start": "2026-06-29", "end": "2026-07-07", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "인력", "task": "인력 배치표 작성", "owner": "운영팀", "start": "2026-07-02", "end": "2026-07-04", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "인력", "task": "피크타임 추가 인력 배치", "owner": "운영팀", "start": "2026-07-02", "end": "2026-07-07", "status": "Not Started", "priority": "Mid", "progress": ""}, {"division": "운영팀", "category": "정산", "task": "매출·재고 연동 일일마감 시트", "owner": "운영팀", "start": "2026-07-02", "end": "2026-07-07", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "인력", "task": "스태프 교육", "owner": "운영팀", "start": "2026-07-05", "end": "2026-07-07", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "결제", "task": "결제 테스트", "owner": "운영팀", "start": "2026-07-05", "end": "2026-07-07", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "재고", "task": "재고표/정산표 준비", "owner": "운영팀", "start": "2026-07-05", "end": "2026-07-07", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "현장", "task": "혹서기 케어 용품·담당지정", "owner": "운영팀", "start": "2026-07-05", "end": "2026-07-09", "status": "Not Started", "priority": "Mid", "progress": ""}, {"division": "운영팀", "category": "현장", "task": "우천 백업·우산 확보", "owner": "운영팀", "start": "2026-07-05", "end": "2026-07-09", "status": "Not Started", "priority": "Mid", "progress": ""}, {"division": "운영팀", "category": "재고", "task": "일자별 재고 분리", "owner": "운영팀", "start": "2026-07-08", "end": "2026-07-10", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "운영", "task": "오픈 전 브리핑", "owner": "운영팀", "start": "2026-07-08", "end": "2026-07-10", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "이벤트", "task": "1초가입·컵투표 운영세팅", "owner": "운영팀", "start": "2026-07-08", "end": "2026-07-10", "status": "Not Started", "priority": "Mid", "progress": ""}, {"division": "운영팀", "category": "현장", "task": "1일차 팝업 운영", "owner": "운영팀", "start": "2026-07-10", "end": "2026-07-10", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "정산", "task": "1일차 마감 정산", "owner": "운영팀", "start": "2026-07-10", "end": "2026-07-10", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "현장", "task": "2일차 팝업 운영", "owner": "운영팀", "start": "2026-07-11", "end": "2026-07-11", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "운영팀", "category": "정산", "task": "최종 재고 및 CS 정리", "owner": "운영팀", "start": "2026-07-12", "end": "2026-07-13", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "기획팀", "category": "기획", "task": "팝업 콘셉트 초안", "owner": "기획팀", "start": "2026-06-23", "end": "2026-06-25", "status": "In Progress", "priority": "High", "progress": ""}, {"division": "기획팀", "category": "상품", "task": "상품 카테고리 초안", "owner": "기획팀", "start": "2026-06-23", "end": "2026-06-25", "status": "In Progress", "priority": "High", "progress": ""}, {"division": "기획팀", "category": "기획", "task": "최종 콘셉트 확정", "owner": "기획팀", "start": "2026-06-26", "end": "2026-06-28", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "기획팀", "category": "상품", "task": "상품 라인업 확정", "owner": "기획팀", "start": "2026-06-26", "end": "2026-06-28", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "기획팀", "category": "콘텐츠", "task": "현장 문구 작성", "owner": "기획팀", "start": "2026-06-29", "end": "2026-07-01", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "기획팀", "category": "홍보", "task": "SNS 사전 홍보 시작", "owner": "기획팀", "start": "2026-07-02", "end": "2026-07-04", "status": "Not Started", "priority": "Mid", "progress": ""}, {"division": "기획팀", "category": "이벤트", "task": "이벤트 운영안 확정", "owner": "기획팀", "start": "2026-07-02", "end": "2026-07-04", "status": "Not Started", "priority": "Mid", "progress": ""}, {"division": "기획팀", "category": "콘텐츠", "task": "현장 게시물 최종 검수", "owner": "기획팀", "start": "2026-07-05", "end": "2026-07-07", "status": "Not Started", "priority": "High", "progress": ""}, {"division": "기획팀", "category": "홍보", "task": "현장 콘텐츠 촬영", "owner": "기획팀", "start": "2026-07-11", "end": "2026-07-11", "status": "Not Started", "priority": "Mid", "progress": ""}], "issues": [{"issue": "잠실 제2주차장 구체 부지·면적", "division": "부지/현장", "status": "Open"}, {"issue": "전기 인입 위치·용량·케이블 동선", "division": "부지/현장", "status": "Open"}, {"issue": "7/9 차량 반입·7/10~11 철거 차량 동선", "division": "부지/현장", "status": "Open"}, {"issue": "9일 현장 진입 가능 '시각'", "division": "부지/현장", "status": "Open"}, {"issue": "인파 통제 협조·안전요원 범위(경기 −3h)", "division": "안전/통제", "status": "Open"}, {"issue": "품목·단가 엑셀 + 바코드 넘버 문서", "division": "상품/데이터", "status": "Open"}, {"issue": "일자별 SKU·매출목표", "division": "상품/데이터", "status": "Open"}, {"issue": "로스율 2~3% 반품·책임 정책", "division": "정산/권리", "status": "Open"}, {"issue": "SNS 마케팅 폴리시(단독게시 가능 여부)", "division": "마케팅", "status": "Open"}, {"issue": "게시물 최종 검수자 지정 + 최종검수", "division": "마케팅", "status": "Open"}, {"issue": "1초 회원가입·컵투표 이벤트 CJ 확답", "division": "이벤트", "status": "Open"}, {"issue": "행사 종료 공식시간 → +30분 철거 시작", "division": "철거", "status": "Open"}, {"issue": "구조물(현수막·사인) 폐기 여부·차기행사 유무", "division": "철거", "status": "Open"}]};</script>
+</head>
+<body>
+<div class="app">
+  <!-- TOP -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="label">Project Rent · Operating OS</span>
+      <h1>프로젝트 마스터 시트</h1>
+      <span class="ver">KBO 팝업 미리보기 · 데이터 내장</span>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="collapse-btn" onclick="toggleLeft()">◀ 입력 접기</button>
+      <button class="btn primary" onclick="importXlsx()">📊 엑셀 불러오기</button>
+      <button class="btn" onclick="loadSample()">샘플 불러오기</button>
+      <button class="btn" onclick="resetAll()">비우기</button>
+      <button class="btn" onclick="importJSON()">JSON 가져오기</button>
+      <button class="btn primary" onclick="exportJSON()">JSON 내보내기</button>
+    </div>
+  </div>
+
+  <!-- LEFT INPUT -->
+  <div class="left panel">
+    <!-- 01 BRIEF : 필수 -->
+    <div class="section-h" onclick="toggleSec(this)">
+      <span class="num">01 · 필수</span><span class="t">Project Brief — 핵심</span><span class="chev">▾</span>
+    </div>
+    <div class="fields" id="brief-core">
+      <div class="field"><label>Project Name <span class="req">★</span></label><input data-k="name" placeholder="예: 봉은사 구 웨딩홀 리뉴얼"></div>
+      <div class="field-row">
+        <div class="field"><label>Project Code <span class="req">★</span></label><input data-k="code" placeholder="PR-2026-15"></div>
+        <div class="field"><label>Client <span class="req">★</span></label><input data-k="client" placeholder="봉은사"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>PM <span class="req">★</span></label><input data-k="pm" placeholder="최원석"></div>
+        <div class="field"><label>Status <span class="req">★</span></label>
+          <select data-k="status"><option>Not Started</option><option>In Progress</option><option>On Track</option><option>At Risk</option><option>Done</option><option>Hold</option></select></div>
+      </div>
+      <div class="field-row3">
+        <div class="field"><label>Start <span class="req">★</span></label><input type="date" data-k="start"></div>
+        <div class="field"><label>End <span class="req">★</span></label><input type="date" data-k="end"></div>
+        <div class="field"><label>D-Day <span class="req">★</span></label><input type="date" data-k="dday"></div>
+      </div>
+      <p class="hint">★ 7개만 채우면 대시보드와 간트가 그려집니다. 나머지는 선택입니다.</p>
+    </div>
+
+    <!-- 01 BRIEF : 선택 -->
+    <div class="section-h collapsed" onclick="toggleSec(this)">
+      <span class="num">01 · 선택</span><span class="t">Project Brief — 상세</span><span class="chev">▾</span>
+    </div>
+    <div class="fields collapsed" id="brief-extra">
+      <div class="field-row">
+        <div class="field"><label>Project Type</label><input data-k="type" placeholder="공간 리뉴얼 / 운영"></div>
+        <div class="field"><label>Location</label><input data-k="location" placeholder="서울 강남구"></div>
+      </div>
+      <div class="field"><label>Operation Period</label><input data-k="opPeriod" placeholder="상시 / 2026.12 ~"></div>
+      <div class="field"><label>Project Summary</label><textarea data-k="summary"></textarea></div>
+      <div class="field"><label>Project Goal</label><textarea data-k="goal"></textarea></div>
+      <div class="field"><label>Client Requirements</label><textarea data-k="req"></textarea></div>
+      <div class="field"><label>Success KPI</label><textarea data-k="kpi"></textarea></div>
+      <div class="field"><label>Critical Check Points</label><textarea data-k="critical"></textarea></div>
+      <div class="field"><label>Risk &amp; Notice</label><textarea data-k="risk"></textarea></div>
+    </div>
+
+    <!-- TIMELINE TASKS -->
+    <div class="section-h" onclick="toggleSec(this)">
+      <span class="num">02 · 입력</span><span class="t">Master Timeline — 업무</span><span class="chev">▾</span>
+    </div>
+    <div class="fields" id="tasks-sec">
+      <p class="hint" style="margin-bottom:6px">Duration · Delay · 진행률 롤업 · Health 는 <b style="color:var(--accent-lt)">자동 계산</b>됩니다 (입력 불필요).</p>
+      <table class="task-tbl">
+        <thead><tr><th style="width:62px">Div</th><th>Task</th><th style="width:58px">Owner</th><th style="width:74px">Start</th><th style="width:74px">End</th><th style="width:78px">Status</th><th style="width:42px">%</th><th style="width:18px"></th></tr></thead>
+        <tbody id="task-body"></tbody>
+      </table>
+      <button class="btn add-task" onclick="addTask()">+ 업무 추가</button>
+    </div>
+
+    <!-- FINANCE (compact) -->
+    <div class="section-h collapsed" onclick="toggleSec(this)">
+      <span class="num">09 · 선택</span><span class="t">Finance — 예산</span><span class="chev">▾</span>
+    </div>
+    <div class="fields collapsed" id="fin-sec">
+      <div class="field-row">
+        <div class="field"><label>총 예산 (만원)</label><input type="number" data-k="budget" placeholder="0"></div>
+        <div class="field"><label>총 집행 (만원)</label><input type="number" data-k="actual" placeholder="0"></div>
+      </div>
+    </div>
+
+    <!-- ISSUES (compact) -->
+    <div class="section-h collapsed" onclick="toggleSec(this)">
+      <span class="num">08 · 선택</span><span class="t">Issue Tracker</span><span class="chev">▾</span>
+    </div>
+    <div class="fields collapsed" id="issue-sec">
+      <table class="task-tbl">
+        <thead><tr><th>Issue</th><th style="width:70px">Div</th><th style="width:78px">Status</th><th style="width:18px"></th></tr></thead>
+        <tbody id="issue-body"></tbody>
+      </table>
+      <button class="btn add-task" onclick="addIssue()">+ 이슈 추가</button>
+    </div>
+
+    <!-- INPUT BURDEN METER -->
+    <div class="burden">
+      <h3>⊕ 입력 부담 지표 — 1차 검증 대상</h3>
+      <div class="meters">
+        <div class="m"><div class="lab"><span>필수 필드</span><span><b id="req-n">0</b>/7</span></div>
+          <div class="track"><div class="fill" id="req-fill" style="background:var(--green)"></div></div></div>
+        <div class="m"><div class="lab"><span>선택 필드</span><span><b id="opt-n">0</b>/11</span></div>
+          <div class="track"><div class="fill" id="opt-fill" style="background:var(--accent-lt)"></div></div></div>
+      </div>
+      <div class="verdict" id="burden-verdict"></div>
+    </div>
+  </div>
+
+  <div class="splitter" id="splitter" title="드래그하여 폭 조절"></div>
+
+  <!-- RIGHT DASHBOARD -->
+  <div class="right panel">
+    <div class="section-title">00 · Dashboard</div>
+    <div class="dash-grid">
+      <div class="card health">
+        <span class="k">Health</span>
+        <span class="badge b-green" id="health-badge"><span class="dot"></span><span id="health-txt">—</span></span>
+        <span class="sub" id="health-why">데이터 입력 시 자동 판정</span>
+      </div>
+      <div class="card"><span class="k">D-Day</span><div class="v" id="dday-v">—</div><span class="sub" id="dday-sub"></span></div>
+      <div class="card"><span class="k">Overall Progress</span><div class="v" id="prog-v">0<small>%</small></div><span class="sub" id="prog-sub"></span></div>
+      <div class="card"><span class="k">Budget 사용률</span><div class="v" id="budget-v">—</div><span class="sub" id="budget-sub"></span></div>
+    </div>
+    <div class="dash-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="card"><span class="k">전체 업무</span><div class="v" id="task-total">0</div></div>
+      <div class="card"><span class="k">완료</span><div class="v" id="task-done" style="color:var(--green)">0</div></div>
+      <div class="card"><span class="k">지연 ⚠</span><div class="v" id="task-delay" style="color:var(--rust)">0</div></div>
+      <div class="card"><span class="k">Open 이슈</span><div class="v" id="issue-open" style="color:var(--warm)">0</div></div>
+    </div>
+
+    <div class="section-title">프로젝트 브리프 · Summary</div>
+    <div id="brief-summary" class="brief-sum"></div>
+
+    <div class="section-title">Division 진행률</div>
+    <div class="divbars" id="divbars"></div>
+
+    <div class="section-title">02 · Master Timeline (자동 간트)</div>
+    <div id="gantt-summary" class="g-summary"></div>
+    <div id="gantt"></div>
+    <div class="legend" id="gantt-legend"></div>
+
+    <div class="note" id="auto-note"></div>
+  </div>
+</div>
+
+<input type="file" id="file-in" accept=".json" style="display:none">
+<input type="file" id="xlsx-in" accept=".xlsx,.xls" style="display:none">
+
+<script>
+// ───────── STATE (Single Source of Truth) ─────────
+const REQ_KEYS=['name','code','client','pm','status','start','end','dday'];
+// status is one field but counted; 7 required slots: name,code,client,pm,start,end,dday (+status implied)
+const REQ_COUNT_KEYS=['name','code','client','pm','start','end','dday'];
+const OPT_KEYS=['type','location','opPeriod','summary','goal','req','kpi','critical','risk','budget','actual'];
+const DEFAULT_DIVISIONS=['Planning','Operation','Space','Business'];
+const DIVISIONS=DEFAULT_DIVISIONS; // 편집기 드롭다운 기본값
+const DIV_COLOR_FIXED={Planning:'#6C5CE7',Operation:'#8FA37E',Space:'#B86C4A',Business:'#A29BFE'};
+const DIV_PALETTE=['#6C5CE7','#8FA37E','#B86C4A','#A29BFE','#5AA9E6','#E6B85A','#D96C9A','#5AD1B0','#C97FD9','#7FB069'];
+// 데이터에 존재하는 팀(Division): 알려진 4개 우선, 그 외는 등장순으로 동적 확장
+function activeDivisions(){
+  const seen=[]; state.tasks.forEach(t=>{ const d=t.division; if(d&&!seen.includes(d)) seen.push(d); });
+  const known=DEFAULT_DIVISIONS.filter(k=>seen.includes(k));
+  const extra=seen.filter(s=>!DEFAULT_DIVISIONS.includes(s));
+  const r=known.concat(extra); return r.length?r:DEFAULT_DIVISIONS;
+}
+let _divColors={};
+function buildDivColors(){ _divColors={}; activeDivisions().forEach((d,i)=>{ _divColors[d]=DIV_COLOR_FIXED[d]||DIV_PALETTE[i%DIV_PALETTE.length]; }); }
+function divColor(d){ return _divColors[d]||DIV_COLOR_FIXED[d]||'#6C5CE7'; }
+function textOn(hex){ const h=String(hex).replace('#',''); const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+  return (0.299*r+0.587*g+0.114*b)>150?'#1A1A1A':'#FFFFFF'; }
+function divOptionList(cur){ const set=[...DEFAULT_DIVISIONS,...activeDivisions()]; if(cur&&!set.includes(cur)) set.push(cur); return [...new Set(set)]; }
+const TODAY=new Date('2026-06-23');
+
+let state={brief:{status:'In Progress'},tasks:[],issues:[]};
+
+// ───────── helpers ─────────
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+function parseD(s){return s? new Date(s+'T00:00:00') : null;}
+function daysBetween(a,b){return Math.round((b-a)/864e5);}
+function fmtDay(d){return (d.getMonth()+1)+'/'+d.getDate();}
+
+// derive status of a task (auto-delay)
+function taskStatus(t){
+  if(t.status==='Done') return 'Done';
+  const end=parseD(t.end);
+  if(end && TODAY>end && t.status!=='Done') return 'Delayed';
+  return t.status||'Not Started';
+}
+const ST_CLASS={Done:'done','In Progress':'prog',Delayed:'delay',Hold:'hold','Not Started':'none'};
+
+// ───────── INPUT BINDING ─────────
+function bindBrief(){
+  $$('[data-k]').forEach(el=>{
+    el.addEventListener('input',()=>{
+      const k=el.dataset.k;
+      state.brief[k]= el.type==='number'? (el.value===''?'':+el.value) : el.value;
+      render();
+    });
+  });
+}
+function syncBriefInputs(){
+  $$('[data-k]').forEach(el=>{ const v=state.brief[el.dataset.k]; if(v!==undefined&&v!=='') el.value=v; });
+}
+
+// ───────── TASK EDITOR ─────────
+function taskRow(t,i){
+  const opts=s=>['Not Started','In Progress','Done','Hold'].map(o=>`<option ${o===s?'selected':''}>${o}</option>`).join('');
+  const divopts=d=>divOptionList(d).map(o=>`<option ${o===d?'selected':''}>${o}</option>`).join('');
+  return `<tr data-i="${i}">
+    <td><select onchange="upTask(${i},'division',this.value)" class="div-cell">${divopts(t.division)}</select></td>
+    <td><input value="${t.task||''}" oninput="upTask(${i},'task',this.value)" placeholder="업무명"></td>
+    <td><input value="${t.owner||''}" oninput="upTask(${i},'owner',this.value)" placeholder="—"></td>
+    <td><input type="date" value="${t.start||''}" oninput="upTask(${i},'start',this.value)"></td>
+    <td><input type="date" value="${t.end||''}" oninput="upTask(${i},'end',this.value)"></td>
+    <td><select onchange="upTask(${i},'status',this.value)">${opts(t.status)}</select></td>
+    <td><input type="number" min="0" max="100" value="${t.progress??''}" oninput="upTask(${i},'progress',this.value===''?'':+this.value)" placeholder="0"></td>
+    <td class="del" onclick="delTask(${i})">×</td>
+  </tr>`;
+}
+function renderTasks(){ $('#task-body').innerHTML=state.tasks.map((t,i)=>taskRow(t,i)).join(''); }
+function addTask(){ state.tasks.push({division:'Planning',task:'',owner:'',start:'',end:'',status:'Not Started',progress:''}); renderTasks(); render(); }
+function upTask(i,k,v){ state.tasks[i][k]=v; render(); if(k==='division') renderTasks(); }
+function delTask(i){ state.tasks.splice(i,1); renderTasks(); render(); }
+
+function issueRow(it,i){
+  const opts=s=>['Open','In Progress','Resolved','Escalated'].map(o=>`<option ${o===s?'selected':''}>${o}</option>`).join('');
+  const divopts=d=>divOptionList(d).map(o=>`<option ${o===d?'selected':''}>${o}</option>`).join('');
+  return `<tr><td><input value="${it.issue||''}" oninput="upIssue(${i},'issue',this.value)" placeholder="이슈"></td>
+    <td><select onchange="upIssue(${i},'division',this.value)">${divopts(it.division)}</select></td>
+    <td><select onchange="upIssue(${i},'status',this.value)">${opts(it.status)}</select></td>
+    <td class="del" onclick="delIssue(${i})">×</td></tr>`;
+}
+function renderIssues(){ $('#issue-body').innerHTML=state.issues.map((it,i)=>issueRow(it,i)).join(''); }
+function addIssue(){ state.issues.push({issue:'',division:'Planning',status:'Open'}); renderIssues(); render(); }
+function upIssue(i,k,v){ state.issues[i][k]=v; render(); }
+function delIssue(i){ state.issues.splice(i,1); renderIssues(); render(); }
+
+// ───────── RENDER DASHBOARD ─────────
+function render(){
+  const b=state.brief, tasks=state.tasks;
+  buildDivColors();
+  // progress rollup
+  const prog = tasks.length? Math.round(tasks.reduce((s,t)=>s+(taskStatus(t)==='Done'?100:(+t.progress||0)),0)/tasks.length):0;
+  const done = tasks.filter(t=>taskStatus(t)==='Done').length;
+  const delayed = tasks.filter(t=>taskStatus(t)==='Delayed').length;
+  const openIssues = state.issues.filter(it=>it.status==='Open'||it.status==='Escalated').length;
+  const escalated = state.issues.filter(it=>it.status==='Escalated').length;
+
+  $('#task-total').textContent=tasks.length;
+  $('#task-done').textContent=done;
+  $('#task-delay').textContent=delayed;
+  $('#issue-open').textContent=openIssues;
+  $('#prog-v').innerHTML=prog+'<small>%</small>';
+  $('#prog-sub').textContent=`${done}/${tasks.length} 완료`;
+
+  // D-Day
+  const dday=parseD(b.dday);
+  if(dday){ const dd=daysBetween(TODAY,dday);
+    $('#dday-v').innerHTML = dd>0? `D-${dd}` : dd===0? 'D-DAY' : `D+${-dd}`;
+    $('#dday-sub').textContent = b.dday;
+  } else { $('#dday-v').textContent='—'; $('#dday-sub').textContent=''; }
+
+  // budget
+  const bud=+b.budget||0, act=+b.actual||0;
+  if(bud>0){ const rate=Math.round(act/bud*100);
+    $('#budget-v').innerHTML=rate+'<small>%</small>';
+    $('#budget-sub').textContent=`잔여 ${(bud-act).toLocaleString()}만`;
+  } else { $('#budget-v').textContent='—'; $('#budget-sub').textContent='예산 미입력'; }
+
+  // HEALTH (multi-factor)
+  let hl='Green', why=[];
+  const ddNum = dday? daysBetween(TODAY,dday): 999;
+  if(delayed>3){hl='Red';why.push(`지연 ${delayed}건`);}
+  else if(delayed>0){hl='Yellow';why.push(`지연 ${delayed}건`);}
+  if(escalated>0){hl='Red';why.push(`에스컬 ${escalated}건`);}
+  else if(openIssues>2){if(hl==='Green')hl='Yellow';why.push(`Open이슈 ${openIssues}`);}
+  if(bud>0&&act>bud){hl='Red';why.push('예산초과');}
+  else if(bud>0&&act/bud>0.9){if(hl==='Green')hl='Yellow';why.push('예산 90%+');}
+  if(ddNum>=0&&ddNum<=14&&prog<80){if(hl!=='Red')hl='Yellow';why.push(`D-${ddNum}·진행 ${prog}%`);}
+  const bd=$('#health-badge'); bd.className='badge '+(hl==='Green'?'b-green':hl==='Yellow'?'b-yellow':'b-red');
+  $('#health-txt').textContent = hl==='Green'?'정상':hl==='Yellow'?'주의':'위험';
+  $('#health-why').textContent = why.length? why.join(' · ') : '리스크 신호 없음';
+
+  // division bars (동적 팀)
+  $('#divbars').innerHTML=activeDivisions().map(d=>{
+    const dt=tasks.filter(t=>t.division===d);
+    const p=dt.length? Math.round(dt.reduce((s,t)=>s+(taskStatus(t)==='Done'?100:(+t.progress||0)),0)/dt.length):0;
+    return `<div class="divbar"><div class="row"><span class="nm">${esc(d)}</span><span class="pc">${p}% · ${dt.length}건</span></div>
+      <div class="track"><div class="fill" style="width:${p}%;background:${divColor(d)}"></div></div></div>`;
+  }).join('');
+
+  renderBriefSummary();
+  renderGantt();
+  renderBurden();
+  renderNote(prog,delayed);
+}
+
+// ───────── GANTT v2 (주차형 마일스톤 타임라인) ─────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function md(d){return (d.getMonth()+1)+'/'+d.getDate();}
+window.__ganttExp = window.__ganttExp || new Set();
+function toggleTeam(name){ const s=window.__ganttExp; s.has(name)?s.delete(name):s.add(name); renderGantt(); }
+function ganttExpandAll(){ (window.__teamList||[]).forEach(t=>window.__ganttExp.add(t)); renderGantt(); }
+function ganttCollapseAll(){ window.__ganttExp.clear(); renderGantt(); }
+function renderGantt(){
+  const host=$('#gantt'), sumEl=$('#gantt-summary'), legEl=$('#gantt-legend');
+  const dated=state.tasks.filter(t=>t.start&&t.end);
+  if(!dated.length){ host.innerHTML='<div class="ng-empty">시작일·종료일이 있는 업무를 입력하면 간트가 그려집니다.</div>'; sumEl.innerHTML=''; legEl.innerHTML=''; return; }
+  const ad=activeDivisions();
+  let min=parseD(dated[0].start), max=parseD(dated[0].end);
+  dated.forEach(t=>{const s=parseD(t.start),e=parseD(t.end); if(s<min)min=s; if(e>max)max=e;});
+  const startMon=new Date(min); startMon.setDate(startMon.getDate()-((startMon.getDay()+6)%7));
+  const nWeeks=Math.max(1,Math.ceil((daysBetween(startMon,max)+1)/7));
+  const totalDays=nWeeks*7;
+  const off=d=>daysBetween(startMon,d);
+  const nowIdx=Math.floor(off(TODAY)/7);
+  let weekCells='';
+  for(let i=0;i<nWeeks;i++){ const wd=new Date(startMon.getTime()+i*7*864e5);
+    weekCells+=`<div class="ng-wk ${i===nowIdx?'now':''}"><div class="w">W${i+1}</div><div class="d">${md(wd)}</div></div>`; }
+  const bgCells=()=>{ let s=''; for(let i=0;i<nWeeks;i++) s+=`<div class="ng-wk ${i===nowIdx?'now':''}"></div>`; return s; };
+  function mergedStatus(list){
+    if(list.some(t=>taskStatus(t)==='Delayed')) return 'Delayed';
+    if(list.every(t=>taskStatus(t)==='Done')) return 'Done';
+    if(list.some(t=>taskStatus(t)==='In Progress')) return 'In Progress';
+    if(list.some(t=>taskStatus(t)==='Hold')) return 'Hold'; return 'Not Started'; }
+  function rng(list){ let a=parseD(list[0].start),b=parseD(list[0].end);
+    list.forEach(t=>{const s=parseD(t.start),e=parseD(t.end); if(s<a)a=s; if(e>b)b=e;}); return [a,b]; }
+  // 막대/마일스톤 inner HTML
+  function barInner(s,e,col,st,label,title,opacity){
+    if(daysBetween(s,e)<=0){ const c=(off(s)+0.5)/totalDays*100;
+      return `<div class="ng-dot" style="left:${c}%;background:${col}" title="${title}"></div><div class="ng-mlabel" style="left:${c}%">${label}<br>${md(s)}</div>`; }
+    const left=off(s)/totalDays*100, width=(daysBetween(s,e)+1)/totalDays*100;
+    const txt=textOn(col), ghost=st==='Not Started';
+    let style=`left:${left}%;width:${width}%;`;
+    if(opacity) style+=`opacity:${opacity};`;
+    if(ghost) style+=`color:var(--fg-3);`;
+    else if(st==='Hold') style+=`background:repeating-linear-gradient(45deg,${col},${col} 7px,rgba(0,0,0,.28) 7px,rgba(0,0,0,.28) 14px);color:${txt};`;
+    else style+=`background:${col};color:${txt};`;
+    const cls='ng-bar'+(ghost?' ghost':'')+(st==='Delayed'?' delayed':'');
+    const icon=st==='Done'?'✓ ':st==='Delayed'?'⚠ ':'';
+    return `<div class="${cls}" style="${style}" title="${title}">${width>=9?`${icon}${label}`:''}</div>`;
+  }
+  // 팀 그룹 빌드
+  window.__teamList=ad.filter(d=>dated.some(t=>t.division===d));
+  const exp=window.__ganttExp;
+  let rows='';
+  window.__teamList.forEach(team=>{
+    const list=dated.filter(t=>t.division===team).sort((a,b)=>parseD(a.start)-parseD(b.start));
+    const col=divColor(team), [ts,te]=rng(list), tst=mergedStatus(list), open=exp.has(team);
+    const safe=esc(team).replace(/'/g,'');
+    rows+=`<div class="ng-row ng-team" onclick="toggleTeam('${safe}')">
+      <div class="ng-label"><div class="tk"><span class="ng-caret">${open?'▾':'▸'}</span><span class="dv" style="background:${col}"></span><b>${esc(team)}</b><span class="ng-cnt">${list.length}</span></div></div>
+      <div class="ng-track">${bgCells()}${barInner(ts,te,col,tst,esc(team),`${esc(team)} · ${list.length}건 · ${md(ts)}~${md(te)}`,0.42)}</div></div>`;
+    if(open){
+      list.forEach(t=>{
+        const s=parseD(t.start),e=parseD(t.end),st=taskStatus(t),dl=`${md(s)}~${md(e)}`;
+        const title=`${esc(t.task)} · ${dl} · ${st}${t.progress!==''&&t.progress!=null?' · '+t.progress+'%':''}`;
+        rows+=`<div class="ng-row ng-detail">
+          <div class="ng-label sub"><div class="tk"><span class="dv" style="background:${col}"></span>${esc(t.task)||'—'}</div>
+            <div class="ow">${esc(t.owner)}${t.progress!==''&&t.progress!=null?' · '+t.progress+'%':''}</div></div>
+          <div class="ng-track">${bgCells()}${barInner(s,e,col,st,`${esc(t.task)}<span class="br-date">${dl}</span>`,title,0)}</div></div>`;
+      });
+    } else {
+      const cats={}; list.forEach(t=>{ const c=t.category||'기타'; (cats[c]=cats[c]||[]).push(t); });
+      Object.keys(cats).forEach(cat=>{
+        const cl=cats[cat], [cs,ce]=rng(cl), cst=mergedStatus(cl), dl=`${md(cs)}~${md(ce)}`;
+        rows+=`<div class="ng-row ng-cat" onclick="toggleTeam('${safe}')">
+          <div class="ng-label sub"><div class="tk"><span class="ng-sub">└</span>${esc(cat)}<span class="ng-cnt">${cl.length}</span></div></div>
+          <div class="ng-track">${bgCells()}${barInner(cs,ce,col,cst,`${esc(cat)} <span class="br-date">${cl.length}건 · ${dl}</span>`,`${esc(team)} › ${esc(cat)} · ${cl.length}건 · ${dl} · ${cst}`,0)}</div></div>`;
+      });
+    }
+  });
+  host.innerHTML=`<div class="ng-scroll"><div class="ng-inner">
+    <div class="ng-row ng-head"><div class="ng-label">TRACK \\ WEEK</div><div class="ng-track">${weekCells}</div></div>
+    ${rows}</div></div>`;
+  const delayed=dated.filter(t=>taskStatus(t)==='Delayed').length;
+  const allOpen=window.__teamList.length>0 && window.__teamList.every(t=>exp.has(t));
+  sumEl.innerHTML=`기간 <b>${md(min)} → ${md(max)}</b> · 총 <b>${nWeeks}주</b> · 현재 <span class="crit">W${nowIdx+1} (${md(TODAY)})</span>`
+    +(delayed?` · <span style="color:var(--rust);font-weight:700">⚠ 지연 ${delayed}건</span>`:'')
+    +` · <a class="ng-act" onclick="${allOpen?'ganttCollapseAll()':'ganttExpandAll()'}">${allOpen?'모두 접기':'모두 펼치기'}</a><span style="color:var(--fg-3);margin-left:6px">팀/카테고리 클릭 = 상세 펼치기</span>`;
+  legEl.innerHTML=activeDivisions().map(d=>`<span><i style="background:${divColor(d)}"></i>${esc(d)}</span>`).join('')
+    +`<span style="margin-left:6px"><i style="background:transparent;border:1.5px dashed var(--fg-3)"></i>Not Started</span>`
+    +`<span><i style="background:var(--bg-3);outline:2px solid var(--rust);outline-offset:-2px"></i>Delayed</span>`
+    +`<span style="color:var(--fg-2)">✓ Done</span>`;
+}
+
+// ───────── INPUT BURDEN ─────────
+function renderBurden(){
+  const reqN=REQ_COUNT_KEYS.filter(k=>state.brief[k]&&state.brief[k]!=='').length;
+  const optN=OPT_KEYS.filter(k=>state.brief[k]!==undefined&&state.brief[k]!==''&&state.brief[k]!==0).length;
+  $('#req-n').textContent=reqN; $('#opt-n').textContent=optN;
+  $('#req-fill').style.width=(reqN/7*100)+'%';
+  $('#opt-fill').style.width=(optN/11*100)+'%';
+  const tasksN=state.tasks.length;
+  let v;
+  if(reqN<7){ v=`<b>필수 ${7-reqN}개 남음.</b> 7개만 채우면 Health·D-Day·Progress·간트가 즉시 떨어집니다. 선택 11개는 안 채워도 대시보드는 완성됩니다.`; }
+  else if(tasksN===0){ v=`<b>필수 완료.</b> 이제 업무(Timeline)만 추가하면 진행률·간트·Division 바가 살아납니다. <b>입력의 무게중심은 Brief가 아니라 Timeline 업무 행</b>입니다 — 검증 포인트.`; }
+  else { v=`Brief ${reqN+optN}개 필드 + 업무 ${tasksN}행으로 전체 대시보드 완성. <b>실무자 실제 입력량 = 업무 ${tasksN}행이 핵심</b>. 필드 개수보다 "업무를 매번 손으로 갱신하는 부담"이 진짜 검증 대상입니다.`; }
+  $('#burden-verdict').innerHTML=v;
+}
+
+function renderNote(prog,delayed){
+  $('#auto-note').innerHTML=`<b>자동 계산된 값 (입력 없이 파생):</b> Overall Progress ${prog}% (업무 진행률 평균) · 지연 ${delayed}건 (종료일 &lt; 오늘 2026-06-23 & 미완료) · Health (지연·이슈·예산·D-Day 다축 판정) · Division 진행률 (디비전별 평균) · 간트 막대 (시작~종료일 자동 배치). &nbsp;→ <b>"무엇을 입력시키고 무엇을 자동화할 것인가"의 경계를 이 화면으로 검증합니다.</b>`;
+}
+
+// ───────── PROJECT BRIEF SUMMARY ─────────
+function renderBriefSummary(){
+  const b=state.brief, el=$('#brief-summary');
+  if(!b.name && !b.summary && !b.goal && !b.client){
+    el.innerHTML='<div class="bs-empty">프로젝트 정보를 입력하거나 엑셀(00_Brief)을 불러오면 요약이 표시됩니다.</div>'; return; }
+  const meta=[];
+  if(b.client) meta.push(`<span><b>클라이언트</b> ${esc(b.client)}</span>`);
+  if(b.pm) meta.push(`<span><b>PM</b> ${esc(b.pm)}</span>`);
+  if(b.type) meta.push(`<span><b>유형</b> ${esc(b.type)}</span>`);
+  if(b.location) meta.push(`<span><b>위치</b> ${esc(b.location)}</span>`);
+  if(b.opPeriod) meta.push(`<span><b>운영</b> ${esc(b.opPeriod)}</span>`);
+  const block=(lab,v)=> v? `<div class="bs-block"><div class="lab">${lab}</div><div class="val">${esc(v)}</div></div>`:'';
+  const cells=[['Client Requirements',b.req],['Success KPI',b.kpi],['Critical Check Points',b.critical],['Risk & Notice',b.risk]].filter(x=>x[1]);
+  const grid=cells.length? `<div class="bs-grid">${cells.map(x=>`<div><div class="lab">${x[0]}</div><div class="val">${esc(x[1])}</div></div>`).join('')}</div>`:'';
+  el.innerHTML=`
+    <div class="bs-head">
+      <span class="bs-name">${esc(b.name)||'(프로젝트명 미입력)'}</span>
+      ${b.code?`<span class="bs-code">${esc(b.code)}</span>`:''}
+      ${b.status?`<span class="bs-status">${esc(b.status)}</span>`:''}
+    </div>
+    ${meta.length?`<div class="bs-meta">${meta.join('')}</div>`:''}
+    ${block('프로젝트 개요',b.summary)}
+    ${block('프로젝트 목표',b.goal)}
+    ${grid}`;
+}
+
+// ───────── JSON I/O ─────────
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=(state.brief.code||'project')+'-master.json'; a.click();
+}
+function importJSON(){ $('#file-in').click(); }
+$('#file-in').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f)return; const r=new FileReader();
+  r.onload=()=>{ try{ state=JSON.parse(r.result); afterLoad(); }catch(err){alert('JSON 파싱 오류: '+err.message);} };
+  r.readAsText(f);
+});
+function afterLoad(){ state.tasks=state.tasks||[]; state.issues=state.issues||[]; state.brief=state.brief||{};
+  syncBriefInputs(); renderTasks(); renderIssues(); render(); }
+function resetAll(){ state={brief:{status:'In Progress'},tasks:[],issues:[]};
+  $$('[data-k]').forEach(el=>{ if(el.dataset.k!=='status') el.value=''; });
+  renderTasks(); renderIssues(); render(); }
+
+// ───────── SAMPLE : 봉은사 구 웨딩홀 리뉴얼 ─────────
+function loadSample(){
+  state={
+    brief:{
+      name:'봉은사 구 웨딩홀 리뉴얼', code:'PR-2026-15', client:'봉은사',
+      pm:'최원석', status:'In Progress', start:'2026-04-01', end:'2026-12-20', dday:'2026-12-20',
+      type:'공간 리뉴얼 / 직영 운영', location:'서울 강남구 봉은사로 531',
+      opPeriod:'2026.12 오픈 ~ 상시', budget:185000, actual:64000,
+      summary:'구 웨딩홀(8,868㎡)을 직영 정신문화 거점으로 전환. 현대적 깊이를 담은 라이프스타일 공간.',
+      goal:'불교의 빈자리 = "현대적 깊이"를 점유하는 직영 라이프스타일 거점 구축',
+      req:'직영 운영 원칙 · 정신문화 콘텐츠 중심 · 종교시설 규제 준수',
+      kpi:'월 방문객 12,000 / 콘텐츠 프로그램 월 8회 / 멤버십 1,500',
+      critical:'인허가 일정 · 시공 우기 회피 · 콘텐츠-공간 동시 오픈',
+      risk:'종교시설 용도 규제, 시공 인허가 지연 리스크'
+    },
+    tasks:[
+      {division:'Planning',task:'브랜드 컨셉 디벨롭',owner:'최원석',start:'2026-04-01',end:'2026-05-10',status:'Done',progress:100},
+      {division:'Planning',task:'콘텐츠 기획(정신문화 프로그램)',owner:'기획팀',start:'2026-05-01',end:'2026-07-15',status:'In Progress',progress:60},
+      {division:'Planning',task:'고객 경험 시나리오 설계',owner:'기획팀',start:'2026-06-15',end:'2026-08-30',status:'Not Started',progress:0},
+      {division:'Operation',task:'직영 운영조직 설계',owner:'운영팀',start:'2026-05-20',end:'2026-07-30',status:'In Progress',progress:35},
+      {division:'Operation',task:'운영 매뉴얼/교육',owner:'운영팀',start:'2026-09-01',end:'2026-11-30',status:'Not Started',progress:0},
+      {division:'Space',task:'실측 · 기존도면 검토',owner:'공간팀',start:'2026-04-05',end:'2026-05-05',status:'Done',progress:100},
+      {division:'Space',task:'기본설계 · 인허가 도면',owner:'공간팀',start:'2026-05-10',end:'2026-06-15',status:'In Progress',progress:75},
+      {division:'Space',task:'실시설계 · 시공',owner:'시공사',start:'2026-07-01',end:'2026-11-20',status:'Not Started',progress:0},
+      {division:'Space',task:'사이니지 · 설치',owner:'공간팀',start:'2026-11-01',end:'2026-12-10',status:'Not Started',progress:0},
+      {division:'Business',task:'견적 · 예산 확정',owner:'최원석',start:'2026-04-10',end:'2026-05-30',status:'In Progress',progress:80},
+      {division:'Business',task:'시공/콘텐츠 계약',owner:'최원석',start:'2026-06-01',end:'2026-07-10',status:'In Progress',progress:40},
+      {division:'Business',task:'클라이언트(봉은사) 커뮤니케이션',owner:'최원석',start:'2026-04-01',end:'2026-12-20',status:'In Progress',progress:45}
+    ],
+    issues:[
+      {issue:'종교시설 용도 인허가 검토 회신 지연',division:'Space',status:'Open'},
+      {issue:'콘텐츠 프로그램 운영 인력 채용 미정',division:'Operation',status:'In Progress'}
+    ]
+  };
+  afterLoad();
+}
+
+// ───────── LAYOUT : resizable splitter + collapse ─────────
+(function(){
+  const sp=$('#splitter'), app=document.querySelector('.app');
+  let dragging=false;
+  sp.addEventListener('mousedown',e=>{dragging=true;sp.classList.add('drag');document.body.style.userSelect='none';e.preventDefault();});
+  window.addEventListener('mousemove',e=>{ if(!dragging)return;
+    const w=Math.max(320,Math.min(900,e.clientX));
+    app.style.setProperty('--left-w',w+'px'); });
+  window.addEventListener('mouseup',()=>{ if(dragging){dragging=false;sp.classList.remove('drag');document.body.style.userSelect='';renderGantt();} });
+})();
+function toggleLeft(){
+  const app=document.querySelector('.app'); app.classList.toggle('collapsed');
+  $('#collapse-btn').textContent = app.classList.contains('collapsed')? '▶ 입력 펼치기' : '◀ 입력 접기';
+  renderGantt();
+}
+
+// ───────── BRIEF 라벨 파싱 (엑셀 00_Brief 시트 import에서 재사용) ─────────
+const BRIEF_LABELS=[
+  ['name',['프로젝트명','프로젝트이름','사업명','과제명','projectname','title']],
+  ['code',['프로젝트코드','코드','관리번호','projectcode']],
+  ['client',['클라이언트','발주처','고객사','발주기관','의뢰처','client']],
+  ['pm',['pm','담당자','담당','프로젝트매니저','책임자','projectmanager']],
+  ['status',['상태','진행상태','status']],
+  ['start',['시작일','시작','착수일','착수','기간시작','start','startdate']],
+  ['end',['종료일','종료','마감','마감일','완료일','기간종료','end','enddate']],
+  ['dday',['디데이','dday','d데이','오픈일','오픈','행사일','개막일']],
+  ['type',['유형','종류','프로젝트유형','사업유형','type','projecttype']],
+  ['location',['위치','장소','주소','소재지','location']],
+  ['opPeriod',['운영기간','operationperiod']],
+  ['summary',['요약','개요','프로젝트개요','사업개요','summary','overview']],
+  ['goal',['목표','목적','프로젝트목표','goal','objective']],
+  ['req',['요구사항','클라이언트요구','요건','requirements','clientrequirements']],
+  ['kpi',['kpi','성과지표','목표지표','핵심지표','successkpi']],
+  ['critical',['체크포인트','크리티컬','중점관리','핵심체크','critical','checkpoint']],
+  ['risk',['리스크','위험','주의','유의사항','risk','notice']],
+  ['budget',['총예산','예산','budget']],
+  ['actual',['총집행','집행','actual']]
+];
+function normLabel(s){return s.toLowerCase().replace(/[\s_·\-:：()\[\]\d.]/g,'').trim();}
+function normDate(v){
+  const m=v.match(/(\d{4})\s*[.\-\/년]\s*(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})/);
+  if(m) return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+  return null;
+}
+function parseBriefText(text){
+  const filled=[], labelMap={};
+  BRIEF_LABELS.forEach(([key,labels])=>labels.forEach(l=>labelMap[normLabel(l)]=key));
+  const sorted=Object.keys(labelMap).sort((a,b)=>b.length-a.length);
+  text.split(/\r?\n/).forEach(raw=>{
+    const line=raw.trim(); if(!line)return;
+    const m=line.match(/^[\s•▪◦\-\*●○■\d.)]*(.{1,28}?)\s*[:：=]\s*(.+)$/);
+    if(!m)return;
+    const labNorm=normLabel(m[1]); if(!labNorm)return; let val=m[2].trim();
+    let key=labelMap[labNorm] || labelMap[sorted.find(l=>labNorm.endsWith(l)||l.endsWith(labNorm))];
+    if(!key)return;
+    if(key==='budget'||key==='actual'){ const num=val.replace(/[^\d.]/g,''); if(!num)return; val=+num; }
+    if(['start','end','dday'].includes(key)){ const d=normDate(val); if(!d)return; val=d; }
+    if(state.brief[key]===undefined||state.brief[key]===''){ state.brief[key]=val; if(!filled.includes(key))filled.push(key); }
+  });
+  return filled;
+}
+
+// ───────── EXCEL IMPORT (Brief + 4 team sheets) ─────────
+function importXlsx(){ $('#xlsx-in').click(); }
+function normDateCell(v){
+  if(v==null||v==='') return '';
+  if(v instanceof Date) return `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2,'0')}-${String(v.getDate()).padStart(2,'0')}`;
+  const d=normDate(String(v)); return d||String(v).trim();
+}
+function readBriefRows(rows){
+  state.brief={};
+  $$('[data-k]').forEach(el=>{ el.value=''; });
+  const lines=rows.filter(r=>r&&r[0]&&!String(r[0]).startsWith('──')&&r[1]!=null&&String(r[1]).trim()!=='')
+    .map(r=>`${r[0]}: ${r[1]}`);
+  const n=parseBriefText(lines.join('\n')).length;
+  if(!state.brief.status) state.brief.status='In Progress';
+  return n;
+}
+function readTeamRows(rows,div){
+  // 점수 기반 헤더 탐지 (제목/안내 행이 '업무'에 오매칭되는 것 방지)
+  const HKEYS=[/task|업무/,/owner|담당/,/start|시작/,/end|종료/,/status|상태/,/progress|진행/];
+  let hi=-1,best=0;
+  for(let i=0;i<Math.min(rows.length,10);i++){
+    const r=(rows[i]||[]).map(c=>String(c||'').toLowerCase());
+    const score=HKEYS.reduce((s,re)=>s+(r.some(c=>re.test(c))?1:0),0);
+    if(score>best){ best=score; hi=i; }
+  }
+  if(hi<0||best<2) return 0;
+  const header=(rows[hi]||[]).map(c=>String(c||'').toLowerCase());
+  const col=re=>header.findIndex(h=>re.test(h));
+  const ci={task:col(/task|업무/),owner:col(/owner|담당/),start:col(/start|시작/),end:col(/end|종료/),
+    status:col(/status|상태/),prog:col(/progress|진행|%/),cat:col(/category|카테고리/),pri:col(/priority|우선/)};
+  let n=0;
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i]||[];
+    const task=ci.task>=0?String(r[ci.task]||'').trim():'';
+    if(!task) continue;
+    state.tasks.push({
+      division:div, category:ci.cat>=0?String(r[ci.cat]||'').trim():'',
+      task, owner:ci.owner>=0?String(r[ci.owner]||'').trim():'',
+      start:ci.start>=0?normDateCell(r[ci.start]):'', end:ci.end>=0?normDateCell(r[ci.end]):'',
+      status:ci.status>=0?(String(r[ci.status]||'').trim()||'Not Started'):'Not Started',
+      priority:ci.pri>=0?String(r[ci.pri]||'').trim():'',
+      progress:ci.prog>=0&&r[ci.prog]!=null&&String(r[ci.prog]).trim()!==''?+String(r[ci.prog]).replace(/[^\d.]/g,''):''
+    });
+    n++;
+  }
+  return n;
+}
+function readIssueRows(rows){
+  let hi=-1; const HK=[/issue|이슈|항목|확정/,/division|구분|팀/,/status|상태/];
+  let best=0;
+  for(let i=0;i<Math.min(rows.length,8);i++){
+    const r=(rows[i]||[]).map(c=>String(c||'').toLowerCase());
+    const sc=HK.reduce((s,re)=>s+(r.some(c=>re.test(c))?1:0),0);
+    if(sc>best){best=sc;hi=i;}
+  }
+  if(hi<0||best<1) return 0;
+  const header=(rows[hi]||[]).map(c=>String(c||'').toLowerCase());
+  const col=re=>header.findIndex(h=>re.test(h));
+  const ci={issue:col(/issue|이슈|항목|확정/),div:col(/division|구분|팀/),status:col(/status|상태/)};
+  let n=0;
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i]||[];
+    const issue=ci.issue>=0?String(r[ci.issue]||'').trim():'';
+    if(!issue) continue;
+    let st=ci.status>=0?String(r[ci.status]||'').trim():'';
+    if(/resolv|해결|확정/i.test(st)) st='Resolved'; else if(/progress|진행/i.test(st)) st='In Progress'; else if(/escal/i.test(st)) st='Escalated'; else st='Open';
+    state.issues.push({issue, division:ci.div>=0?String(r[ci.div]||'').trim():'', status:st});
+    n++;
+  }
+  return n;
+}
+$('#xlsx-in').addEventListener('change',async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  if(typeof XLSX==='undefined'){ alert('엑셀 라이브러리(SheetJS)가 로드되지 않았습니다. 인터넷 연결을 확인하세요.'); return; }
+  let wb;
+  try{ const buf=await f.arrayBuffer(); wb=XLSX.read(buf,{type:'array',cellDates:true}); }
+  catch(err){ alert('엑셀 읽기 오류: '+err.message); return; }
+  let briefN=0, taskN=0, issueN=0, divHit=[];
+  state.tasks=[]; state.issues=[];
+  const KNOWN={planning:'Planning',operation:'Operation',space:'Space',business:'Business'};
+  wb.SheetNames.forEach(sn=>{
+    const low=sn.toLowerCase(), ws=wb.Sheets[sn];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,dateNF:'yyyy-mm-dd'});
+    if(low.includes('brief')){ briefN=readBriefRows(rows); return; }
+    if(low.includes('config')) return;
+    if(low.includes('issue')||low.includes('리스크')||low.includes('확정')||low.includes('이슈')){
+      const c=readIssueRows(rows); if(c) issueN+=c; return; }
+    // 팀 시트: 영문 키워드 매칭 우선, 아니면 시트명(번호 접두 제거)을 팀으로 사용
+    let div=Object.keys(KNOWN).find(k=>low.includes(k));
+    div = div? KNOWN[div] : sn.replace(/^\d+[_\s.\-]*/,'').trim();
+    const c=readTeamRows(rows,div); if(c){taskN+=c; divHit.push(`${div} ${c}`);}
+  });
+  syncBriefInputs(); renderTasks(); renderIssues(); render();
+  $('#xlsx-in').value='';
+  alert(`엑셀 불러오기 완료\n· Brief ${briefN}개 · 팀 업무 ${taskN}건 · 이슈 ${issueN}건\n(${divHit.join(' / ')||'팀 없음'})`);
+});
+
+// init
+bindBrief();
+addTask(); // start with 1 empty row so structure is visible
+if(window.EMBEDDED_PROJECT){ state=window.EMBEDDED_PROJECT; afterLoad(); } // 내장 데이터(미리보기)
+else loadSample(); // 기본: 봉은사 샘플
+</script>
+</body>
+</html>
