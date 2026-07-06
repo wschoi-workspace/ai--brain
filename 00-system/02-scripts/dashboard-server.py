@@ -44,12 +44,15 @@ ARISA2_PORT = int(os.environ.get("ARISA2_PORT", "8787"))
 ARISA2_UPSTREAM = f"http://127.0.0.1:{ARISA2_PORT}"
 _lock = threading.Lock()
 
-# /dashboard — 대표 전용 통합 셸: 로그인 1회 후 탭[오늘 Brief / 이번 주 / Decision Window]을 iframe으로 전환.
-# iframe 격리라 대시보드 CSS 충돌 없음. 통합 로그인이 brief_sess/weekly_sess를 미리 세팅해
-# 각 iframe(/brief·/weekly·/arisa2/)이 게이트를 자동 통과(깜빡임 최소). aggregator·/api/login 무수정.
-DASHBOARD_SHELL = """<!DOCTYPE html>
+# / — 역할 인식 통합 셸: 로그인 1회 후 역할별 탭을 iframe으로 전환.
+#   대표   = [프로젝트 | 오늘 Brief | 이번 주 | Decision Window] + 팀 스코프 드롭다운
+#   리더   = [프로젝트 | 오늘 Brief(팀) | 이번 주(팀)] (2팀 리더는 드롭다운)
+#   직원   = [프로젝트]
+# iframe 격리라 CSS 충돌 없음. 통합 로그인이 pm_sess(포트폴리오)+brief_sess 등 세션키를 미리
+# 세팅해 각 iframe(/projects·/brief·/weekly·/team-*·/arisa2/)이 게이트를 자동 통과.
+UNIFIED_SHELL = """<!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ARISA 대시보드</title>
+<title>Project Rent 대시보드</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <style>
 :root{--bg:#1A1A1A;--bg-2:#202020;--bg-3:#262626;--fg:#F5F0EB;--muted:#8A857E;--line:#333;--accent:#6C5CE7;--red:#E17055}
@@ -78,8 +81,8 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
 </style></head>
 <body>
 <div id="login-gate"><div id="login-box">
-  <h2>ARISA 대시보드</h2>
-  <div class="lg-sub">대표 전용 · 로그인</div>
+  <h2>Project Rent 대시보드</h2>
+  <div class="lg-sub">이름 + PIN (첫 로그인 시 PIN 설정)</div>
   <input id="lg-id" placeholder="이름" autocomplete="username">
   <input id="lg-pin" type="password" placeholder="PIN" autocomplete="current-password">
   <button id="lg-btn">로그인</button>
@@ -87,14 +90,16 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
 </div></div>
 <div id="shell">
   <div id="tabs">
-    <button class="tab on" data-t="brief">오늘 Brief</button>
-    <button class="tab" data-t="weekly">이번 주</button>
-    <button class="tab" data-t="decision">Decision Window</button>
+    <button class="tab on" data-t="projects">프로젝트</button>
+    <button class="tab" data-t="brief" style="display:none">오늘 Brief</button>
+    <button class="tab" data-t="weekly" style="display:none">이번 주</button>
+    <button class="tab" data-t="decision" style="display:none">Decision Window</button>
     <span id="arisa2-status"></span>
     <select id="scope-sel" style="display:none"></select>
     <span class="who" id="who"></span>
   </div>
-  <iframe class="frame on" id="f-brief"></iframe>
+  <iframe class="frame on" id="f-projects"></iframe>
+  <iframe class="frame" id="f-brief"></iframe>
   <iframe class="frame" id="f-weekly"></iframe>
   <iframe class="frame" id="f-decision"></iframe>
 </div>
@@ -102,162 +107,81 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
 (function(){
   var gate=document.getElementById('login-gate'), shell=document.getElementById('shell'), who=document.getElementById('who');
   var sel=document.getElementById('scope-sel');
-  var fb=document.getElementById('f-brief'), fw=document.getElementById('f-weekly'), fd=document.getElementById('f-decision');
+  var frames={projects:document.getElementById('f-projects'),brief:document.getElementById('f-brief'),
+              weekly:document.getElementById('f-weekly'),decision:document.getElementById('f-decision')};
   var a2s=document.getElementById('arisa2-status');
-  var loaded={brief:false,weekly:false,decision:false}, curScope='';
+  var SESS=null, curTab='projects', curScope='', loaded={projects:false,brief:false,weekly:false,decision:false};
+  var SESS_KEYS=['pm_sess','brief_sess','weekly_sess','team_brief_sess','team_weekly_sess'];
+  function tabBtn(t){ return document.querySelector('.tab[data-t="'+t+'"]'); }
   function srcFor(t){
+    if(t==='projects') return '/projects';
     if(t==='decision') return '/arisa2/';
-    if(curScope===''){ return t==='brief' ? '/brief' : '/weekly'; }
+    if(SESS.admin && curScope===''){ return t==='brief' ? '/brief' : '/weekly'; }
     return (t==='brief' ? '/team-brief?team=' : '/team-weekly?team=') + encodeURIComponent(curScope);
   }
   function showTab(t){
+    curTab=t;
     document.querySelectorAll('.tab').forEach(function(b){ b.classList.toggle('on', b.dataset.t===t); });
-    fb.classList.toggle('on', t==='brief'); fw.classList.toggle('on', t==='weekly'); fd.classList.toggle('on', t==='decision');
-    if(t==='weekly' && !loaded.weekly){ fw.src=srcFor('weekly'); loaded.weekly=true; }
-    if(t==='decision' && !loaded.decision){ fd.src=srcFor('decision'); loaded.decision=true; }
+    Object.keys(frames).forEach(function(k){ frames[k].classList.toggle('on', k===t); });
+    if(!loaded[t]){ frames[t].src=srcFor(t); loaded[t]=true; }
   }
   function loadScope(scope){
-    curScope=scope; loaded={brief:false,weekly:false,decision:false};
-    fb.src=srcFor('brief'); loaded.brief=true;
-    fw.src='about:blank'; fd.src='about:blank';
-    showTab('brief');
+    curScope=scope; loaded.brief=false; loaded.weekly=false;
+    frames.brief.src='about:blank'; frames.weekly.src='about:blank';
+    if(curTab==='brief'||curTab==='weekly'){ frames[curTab].src=srcFor(curTab); loaded[curTab]=true; }
   }
   function checkArisa2(){
     fetch('/arisa2/api/health',{method:'GET'}).then(function(r){
-      a2s.textContent=r.ok?'ARISA 2.0 ON':'ARISA 2.0 OFF';
-      a2s.className=r.ok?'ok':'err';
+      var ok=r.status<500; // 401 등 4xx = 서버 살아있음(인증 게이트)
+      a2s.textContent=ok?'ARISA 2.0 ON':'ARISA 2.0 OFF';
+      a2s.className=ok?'ok':'err';
     }).catch(function(){ a2s.textContent='ARISA 2.0 OFF'; a2s.className='err'; });
-  }
-  function enter(s){
-    var j=JSON.stringify(s);
-    ['brief_sess','weekly_sess','team_brief_sess','team_weekly_sess'].forEach(function(k){ localStorage.setItem(k,j); });
-    gate.style.display='none'; shell.style.display='flex';
-    who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-out">로그아웃</a>';
-    document.getElementById('lg-out').onclick=function(){ ['arisa_sess','brief_sess','weekly_sess','team_brief_sess','team_weekly_sess'].forEach(function(k){localStorage.removeItem(k);}); location.reload(); };
-    if(s.lead_teams && s.lead_teams.length){
-      sel.style.display='inline-block'; sel.innerHTML='<option value="">전체</option>';
-      s.lead_teams.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
-      sel.onchange=function(){ loadScope(sel.value); };
-    } else { sel.style.display='none'; }
-    loadScope('');
-    checkArisa2();
-  }
-  document.querySelectorAll('.tab').forEach(function(b){ b.onclick=function(){ showTab(b.dataset.t); }; });
-  var sess=null; try{ sess=JSON.parse(localStorage.getItem('arisa_sess')||'null'); }catch(e){}
-  if(sess && sess.admin) enter(sess);
-  function doLogin(){
-    var id=document.getElementById('lg-id').value.trim(), pin=document.getElementById('lg-pin').value.trim();
-    var err=document.getElementById('login-err'); err.textContent='';
-    fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,pin:pin})})
-      .then(function(r){return r.json();})
-      .then(function(d){
-        if(d.ok && d.admin){ localStorage.setItem('arisa_sess',JSON.stringify(d)); enter(d); }
-        else if(d.ok && !d.admin){ err.textContent='대표 전용 화면입니다'; }
-        else { err.textContent=d.error||'로그인 실패'; }
-      })
-      .catch(function(){ err.textContent='서버 연결 실패'; });
-  }
-  document.getElementById('lg-btn').onclick=doLogin;
-  document.getElementById('lg-pin').addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
-})();
-</script>
-</body></html>"""
-
-# /team — 팀 리더 전용 셸. 로그인 1회 후 (2팀 리더는 드롭다운) 탭[오늘 Brief / 이번 주]을
-# iframe(/team-brief·/team-weekly?team=)으로 전환. lead_teams 없는 사람은 입장 차단.
-TEAM_SHELL = """<!DOCTYPE html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>팀 리더 대시보드</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
-<style>
-:root{--bg:#1A1A1A;--bg-2:#202020;--bg-3:#262626;--fg:#F5F0EB;--muted:#8A857E;--line:#333;--accent:#6C5CE7;--red:#E17055}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans-serif;font-weight:300}
-#login-gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
-#login-box{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:38px 40px;width:330px;text-align:center}
-#login-box h2{font-size:19px;font-weight:600;margin-bottom:6px}
-#login-box .lg-sub{color:var(--muted);font-size:13px;margin-bottom:22px}
-#login-box input{width:100%;background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:12px 14px;color:var(--fg);font-size:14px;margin-bottom:10px;font-family:inherit}
-#login-box button{width:100%;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px}
-#login-err{color:var(--red);font-size:12px;margin-top:12px;min-height:16px}
-#shell{display:none;flex-direction:column;height:100vh}
-#tabs{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--bg-2);align-items:center;flex-shrink:0}
-.tab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 18px;font-size:14px;cursor:pointer;font-family:inherit;font-weight:500}
-.tab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-#team-sel{background:var(--bg-3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit}
-#tabs .who{margin-left:auto;font-size:12px;color:var(--muted)}
-#tabs .who a{color:var(--accent);cursor:pointer;margin-left:8px}
-.frame{flex:1;border:0;width:100%;display:none;background:var(--bg)}
-.frame.on{display:block}
-</style></head>
-<body>
-<div id="login-gate"><div id="login-box">
-  <h2>팀 리더 대시보드</h2>
-  <div class="lg-sub">팀 리더 전용 · 로그인</div>
-  <input id="lg-id" placeholder="이름" autocomplete="username">
-  <input id="lg-pin" type="password" placeholder="PIN (첫 로그인 시 설정)" autocomplete="current-password">
-  <button id="lg-btn">로그인</button>
-  <div id="login-err"></div>
-</div></div>
-<div id="shell">
-  <div id="tabs">
-    <button class="tab on" data-t="brief">오늘 Brief</button>
-    <button class="tab" data-t="weekly">이번 주</button>
-    <select id="team-sel" style="display:none"></select>
-    <span class="who" id="who"></span>
-  </div>
-  <iframe class="frame on" id="f-brief"></iframe>
-  <iframe class="frame" id="f-weekly"></iframe>
-</div>
-<script>
-(function(){
-  var gate=document.getElementById('login-gate'), shell=document.getElementById('shell'), who=document.getElementById('who');
-  var sel=document.getElementById('team-sel');
-  var fb=document.getElementById('f-brief'), fw=document.getElementById('f-weekly');
-  var SESS=null, curTeam=null, loaded={brief:false,weekly:false};
-  function setTeamSess(s){ var j=JSON.stringify(s); localStorage.setItem('team_brief_sess',j); localStorage.setItem('team_weekly_sess',j); }
-  function showTab(t){
-    document.querySelectorAll('.tab').forEach(function(b){ b.classList.toggle('on', b.dataset.t===t); });
-    fb.classList.toggle('on', t==='brief'); fw.classList.toggle('on', t==='weekly');
-    if(t==='weekly' && !loaded.weekly){ fw.src='/team-weekly?team='+encodeURIComponent(curTeam); loaded.weekly=true; }
-  }
-  function loadTeam(t){
-    curTeam=t; loaded={brief:false,weekly:false};
-    fb.src='/team-brief?team='+encodeURIComponent(t); loaded.brief=true;
-    fw.src='about:blank';
-    showTab('brief');
   }
   function changePin(){
     var cur=prompt('현재 PIN을 입력하세요'); if(!cur) return;
     var nw=prompt('새 PIN (4자 이상)'); if(!nw) return;
     fetch('/api/set-pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:SESS.name,pin:cur,new_pin:nw})})
-      .then(function(r){return r.json();}).then(function(d){ alert(d.ok?'PIN이 변경되었습니다':(d.error||'변경 실패')); });
+      .then(function(r){return r.json();}).then(function(d){
+        if(d.ok){ SESS.pin=nw; var j=JSON.stringify(SESS); SESS_KEYS.forEach(function(k){localStorage.setItem(k,j);}); alert('PIN이 변경되었습니다'); }
+        else alert(d.error||'변경 실패');
+      });
   }
   function enter(s){
-    SESS=s; setTeamSess(s);
+    SESS=s; var j=JSON.stringify(s);
+    SESS_KEYS.forEach(function(k){ localStorage.setItem(k,j); });
     gate.style.display='none'; shell.style.display='flex';
     who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-pin-c">PIN변경</a> <a id="lg-out">로그아웃</a>';
-    document.getElementById('lg-out').onclick=function(){ ['team_sess','team_brief_sess','team_weekly_sess'].forEach(function(k){localStorage.removeItem(k);}); location.reload(); };
+    document.getElementById('lg-out').onclick=function(){ SESS_KEYS.forEach(function(k){localStorage.removeItem(k);}); location.reload(); };
     document.getElementById('lg-pin-c').onclick=changePin;
-    if(s.lead_teams.length>1){
-      sel.style.display='inline-block'; sel.innerHTML='';
-      s.lead_teams.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
-      sel.onchange=function(){ loadTeam(sel.value); };
+    var lt=s.lead_teams||[];
+    if(s.admin){
+      tabBtn('brief').style.display=''; tabBtn('weekly').style.display=''; tabBtn('decision').style.display='';
+      sel.style.display='inline-block'; sel.innerHTML='<option value="">전체</option>';
+      lt.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
+      sel.onchange=function(){ loadScope(sel.value); };
+      curScope='';
+      checkArisa2();
+    } else if(lt.length){
+      tabBtn('brief').style.display=''; tabBtn('weekly').style.display='';
+      curScope=lt[0];
+      if(lt.length>1){
+        sel.style.display='inline-block'; sel.innerHTML='';
+        lt.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
+        sel.onchange=function(){ loadScope(sel.value); };
+      } else { sel.style.display='none'; }
     } else { sel.style.display='none'; }
-    loadTeam(s.lead_teams[0]);
+    showTab('projects');
   }
   document.querySelectorAll('.tab').forEach(function(b){ b.onclick=function(){ showTab(b.dataset.t); }; });
-  var sess=null; try{ sess=JSON.parse(localStorage.getItem('team_sess')||'null'); }catch(e){}
-  if(sess && sess.lead_teams && sess.lead_teams.length) enter(sess);
+  var sess=null; try{ sess=JSON.parse(localStorage.getItem('pm_sess')||'null'); }catch(e){}
+  if(sess && sess.name) enter(sess);
   function doLogin(){
     var id=document.getElementById('lg-id').value.trim(), pin=document.getElementById('lg-pin').value.trim();
     var err=document.getElementById('login-err'); err.textContent='';
     fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,pin:pin})})
       .then(function(r){return r.json();})
       .then(function(d){
-        if(d.ok && d.lead_teams && d.lead_teams.length){ localStorage.setItem('team_sess',JSON.stringify(d)); enter(d); if(d.pin_set) err.textContent='PIN이 설정되었습니다'; }
-        else if(d.ok){ err.textContent='팀 리더 전용 화면입니다'; }
+        if(d.ok){ var s=Object.assign({},d,{id:id,pin:pin}); enter(s); if(d.pin_set) alert('PIN이 설정되었습니다'); }
         else { err.textContent=d.error||'로그인 실패'; }
       })
       .catch(function(){ err.textContent='서버 연결 실패'; });
@@ -413,6 +337,10 @@ class H(BaseHTTPRequestHandler):
         if path.startswith("/arisa2"):
             return self._proxy_arisa2("GET")
         if path in ("/", "/index.html"):
+            # 통합 셸 — 로그인 1회, 역할별 탭(프로젝트/Brief/Weekly/Decision)
+            return self._send(200, UNIFIED_SHELL.encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/projects":
+            # 포트폴리오 HTML (구 / 핸들러) — 셸 iframe 또는 직접 접속(자체 로그인)
             try:
                 html = HTML.read_text(encoding="utf-8")
             except Exception:
@@ -420,6 +348,13 @@ class H(BaseHTTPRequestHandler):
             inject = "<script>window.SERVED=true;window.API_BASE='/api';</script>\n</head>"
             html = html.replace("</head>", inject, 1)
             return self._send(200, html.encode("utf-8"), "text/html; charset=utf-8")
+        if path in ("/dashboard", "/team"):
+            # 구 대표/리더 셸 → 통합 셸로 (기존 알림 링크 호환)
+            self.send_response(301)
+            self.send_header("Location", "/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         if path == "/weekly":
             # 로그인은 HTML 내장 JS가 /api/login으로 처리. 성장지표(.growth)는 admin(대표)만
             # CSS로 노출(직원 로그인 시 숨김 — 측정설계 v2). 서버는 최신 HTML만 서빙.
@@ -464,12 +399,6 @@ class H(BaseHTTPRequestHandler):
                    + "".join(btns) + '</div>')
             html = target.read_text(encoding="utf-8").replace("</header>", "</header>" + nav, 1)
             return self._send(200, html.encode("utf-8"), "text/html; charset=utf-8")
-        if path == "/dashboard":
-            # 대표 전용 통합 셸 — 로그인 1회 후 탭(오늘 Brief / 이번 주)을 iframe으로 전환.
-            return self._send(200, DASHBOARD_SHELL.encode("utf-8"), "text/html; charset=utf-8")
-        if path == "/team":
-            # 팀 리더 전용 셸 — lead_teams 기반 입장. (2팀 리더는 드롭다운)
-            return self._send(200, TEAM_SHELL.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/team-brief":
             # 팀 Brief — 로그인은 셸이 처리(team_brief_sess). team별 파일 + 날짜네비.
             team = (q.get("team") or [""])[0]

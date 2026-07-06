@@ -18,8 +18,8 @@ cp "$PLIST_SRC" "$PLIST_DST"
 launchctl unload "$PLIST_DST" 2>/dev/null || true
 launchctl load "$PLIST_DST"
 sleep 2
-echo -n "  dashboard-server: "
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8770/dashboard
+echo -n "  dashboard-server(통합 셸): "
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8770/
 echo ""
 
 echo ""
@@ -45,15 +45,21 @@ else
 fi
 
 echo ""
-echo "=== Phase 3: Tailscale serve 설정 ==="
-echo "  tailscale serve 를 8770으로 설정하려면:"
-echo "    sudo tailscale serve --bg 8770"
+echo "=== Phase 3: Tailscale serve 전환 (443 → 8770) + Funnel off ==="
+echo "  1) 기존 443 프록시(8787) 제거 후 8770으로 교체:"
+echo "     sudo tailscale serve --https=443 off   # 기존 8787 제거(설정돼 있다면)"
+echo "     sudo tailscale serve --bg 8770         # 443 → localhost:8770"
+echo "  2) 외부 인터넷 공개(Funnel) 끄기 — tailnet 전용:"
+echo "     sudo tailscale funnel --https=8443 off"
+echo "     (또는 전체: sudo tailscale funnel reset)"
 echo "  현재 상태:"
 tailscale serve status 2>/dev/null || echo "  (tailscale serve 미설정)"
+tailscale funnel status 2>/dev/null || true
 
 echo ""
 echo "=== 완료 ==="
-echo "단일 URL: https://server-mini-macmini.tail7739de.ts.net/"
-echo "  /dashboard  → 대표 통합 셸 (3탭: Brief / Weekly / Decision Window)"
-echo "  /team       → 팀 리더 셸"
+echo "단일 URL: https://server-mini-macmini.tail7739de.ts.net/  (tailnet 전용)"
+echo "  /           → 통합 셸 (역할별 탭: 프로젝트 / Brief / Weekly / Decision Window)"
+echo "  /projects   → 프로젝트 포트폴리오 (셸 iframe·직접 접속 겸용)"
+echo "  /dashboard·/team → /로 301 리다이렉트 (구 링크 호환)"
 echo "  /arisa2/*   → ARISA 2.0 프록시 (localhost:8787)"

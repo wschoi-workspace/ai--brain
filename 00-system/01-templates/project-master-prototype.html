@@ -1190,6 +1190,7 @@ async function doLogin(){
   $('#login-err').textContent=''; setView('view-portfolio'); await loadPortfolio();
 }
 function logout(){ CURRENT_USER=null; CURRENT_PIN=''; CURRENT_ROLE=''; CURRENT_PROJECT=null;
+  try{ localStorage.removeItem('pm_sess'); }catch(e){}
   $('#login-id').value=''; $('#login-pin').value=''; $('#login-err').textContent='';
   setView('view-login'); const el=$('#login-id'); if(el) el.focus(); }
 
@@ -1279,9 +1280,17 @@ async function saveMembers(){
 applyTheme();
 bindBrief();
 if(window.USERS && Object.keys(window.USERS).length){
-  // 포트폴리오 모드
-  document.body.className='view-login'+(document.body.classList.contains('theme-light')?' theme-light':'');
-  setTimeout(()=>{ const el=$('#login-id'); if(el) el.focus(); },50);
+  // 포트폴리오 모드 — 통합 셸(pm_sess)이 세션을 심어뒀으면 로그인 스킵(iframe 자동 통과)
+  let _ss=null;
+  if(SERVED){ try{ _ss=JSON.parse(localStorage.getItem('pm_sess')||'null'); }catch(e){} }
+  if(_ss && (_ss.name||_ss.id)){
+    CURRENT_USER=_ss.name||_ss.id; CURRENT_PIN=_ss.pin||''; CURRENT_ROLE=_ss.role||'직원';
+    CURRENT_ADMIN=!!_ss.admin; CURRENT_LEAD_TEAMS=_ss.lead_teams||[];
+    setView('view-portfolio'); loadPortfolio();
+  } else {
+    document.body.className='view-login'+(document.body.classList.contains('theme-light')?' theme-light':'');
+    setTimeout(()=>{ const el=$('#login-id'); if(el) el.focus(); },50);
+  }
 } else if(window.EMBEDDED_PROJECT){
   document.body.className='view-detail'+(document.body.classList.contains('theme-light')?' theme-light':'');
   state=window.EMBEDDED_PROJECT; afterLoad();
