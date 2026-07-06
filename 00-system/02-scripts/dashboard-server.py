@@ -193,8 +193,16 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
 </body></html>"""
 
 def load_users():
-    try: return json.loads((DATA/"users.json").read_text(encoding="utf-8")).get("users", {})
-    except Exception: return {}
+    """users.json 로드 — dict 스키마(대시보드)와 list 스키마(ARISA 2.0, symlink 단일화)를 모두 지원."""
+    try:
+        u = json.loads((DATA/"users.json").read_text(encoding="utf-8")).get("users", {})
+    except Exception:
+        return {}
+    if isinstance(u, list):  # ARISA 2.0 스키마: [{name, role(admin/leader/member), team, pin}]
+        return {x["name"]: {"pin": x.get("pin", ""),
+                            "role": "대표" if x.get("role") == "admin" else (x.get("role") or "직원")}
+                for x in u if x.get("name")}
+    return u
 
 def load_projects():
     out = []
@@ -241,16 +249,25 @@ def lead_teams_of(uid):
     return sorted([team for team, leader in tl.items() if leader == uid])
 
 def set_pin(uid, new_pin):
-    """users.json에 PIN 저장(첫 설정/변경). 성공 True."""
+    """users.json에 PIN 저장(첫 설정/변경) — dict/list 스키마 모두 지원. 성공 True."""
     p = DATA / "users.json"
     with _lock:
         try:
             doc = json.loads(p.read_text(encoding="utf-8"))
         except Exception:
             return False
-        if uid not in doc.get("users", {}):
-            return False
-        doc["users"][uid]["pin"] = str(new_pin)
+        users = doc.get("users")
+        if isinstance(users, list):  # ARISA 2.0 스키마
+            for x in users:
+                if x.get("name") == uid:
+                    x["pin"] = str(new_pin)
+                    break
+            else:
+                return False
+        else:
+            if uid not in (users or {}):
+                return False
+            users[uid]["pin"] = str(new_pin)
         p.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
     return True
 

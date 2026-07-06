@@ -29,19 +29,20 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8770/arisa2/api/health
 echo ""
 
 echo ""
-echo "=== Phase 2: users.json symlink ==="
+echo "=== Phase 2: users.json symlink (대시보드 → arisa2 = SSOT) ==="
+# arisa2 data/users.json(11명, list 스키마)이 SSOT — dashboard-server는 list 스키마도 읽음.
 DASHBOARD_USERS="$WS/00-system/01-templates/_data/users.json"
 ARISA2_USERS="$ARISA2/data/users.json"
-if [ -f "$DASHBOARD_USERS" ] && [ -d "$ARISA2/data" ]; then
-  if [ -L "$ARISA2_USERS" ]; then
-    echo "  symlink already exists: $(readlink "$ARISA2_USERS")"
+if [ -f "$ARISA2_USERS" ] && [ ! -L "$ARISA2_USERS" ]; then
+  if [ -L "$DASHBOARD_USERS" ]; then
+    echo "  symlink already exists: $(readlink "$DASHBOARD_USERS")"
   else
-    [ -f "$ARISA2_USERS" ] && mv "$ARISA2_USERS" "$ARISA2_USERS.bak-$(date +%s)"
-    ln -s "$DASHBOARD_USERS" "$ARISA2_USERS"
-    echo "  created symlink: $ARISA2_USERS -> $DASHBOARD_USERS"
+    [ -f "$DASHBOARD_USERS" ] && mv "$DASHBOARD_USERS" "$DASHBOARD_USERS.bak-$(date +%Y%m%d-%H%M%S)"
+    ln -s "$ARISA2_USERS" "$DASHBOARD_USERS"
+    echo "  created symlink: $DASHBOARD_USERS -> $ARISA2_USERS"
   fi
 else
-  echo "  SKIP: users.json or arisa2/data not found"
+  echo "  SKIP: arisa2 users.json(실파일) 없음 — 단일화 건너뜀"
 fi
 
 echo ""

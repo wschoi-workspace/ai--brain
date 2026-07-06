@@ -167,7 +167,12 @@ OUT.write_text(html,encoding="utf-8")
 
 # ── 서버용 시드 데이터(_data) — 기존 프로젝트 파일은 덮어쓰지 않음(PM 수정 보존) ──
 DATA=BASE/"_data"; (DATA/"projects").mkdir(parents=True,exist_ok=True)
-(DATA/"users.json").write_text(json.dumps({"users":USERS,"_employees":list(EMP.keys())},ensure_ascii=False,indent=2),encoding="utf-8")
+# users.json은 최초 1회만 생성 — 운영 중 PIN 자가설정·계정 단일화(symlink→arisa2) 보존
+_UP=DATA/"users.json"
+if _UP.exists() or _UP.is_symlink():
+    print("서버 users.json 존재 — 보존(덮어쓰지 않음)")
+else:
+    _UP.write_text(json.dumps({"users":USERS,"_employees":list(EMP.keys())},ensure_ascii=False,indent=2),encoding="utf-8")
 seeded=0
 for p in SEED:
     f=DATA/"projects"/(re.sub(r"[^A-Za-z0-9가-힣_\-]","_",p["id"])[:80]+".json")
