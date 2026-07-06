@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인식 브리프 가이드 — 우리는 무엇을 파는가</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --green: #8FA37E; --amber: #D9A34B; --red: #E17055; --blue: #6F8AA3;
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300;letter-spacing:-0.01em;line-height:1.7;
+}
+h1,h2,h3,h4{font-weight:500;text-wrap:balance}
+
+/* --- Layout --- */
+.sec{
+  padding:100px 120px 120px;max-width:1440px;margin:0 auto;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out);
+}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sec-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px;
+}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:16px}
+.body{font-size:14px;color:var(--fg-2);line-height:1.7}
+.body strong{color:var(--fg);font-weight:500}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-48{margin-top:48px}
+
+/* --- Cover --- */
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:80px 60px;background:var(--bg-2);
+}
+.cover .eyebrow{margin-bottom:24px}
+.cover h1{font-size:64px;font-weight:200;letter-spacing:-0.03em;line-height:1.1}
+.cover h1 em{font-style:normal;color:var(--accent)}
+.cover .sub{font-size:16px;color:var(--fg-2);margin-top:24px;max-width:600px;font-weight:300}
+.cover .meta{font-size:11px;color:var(--fg-3);letter-spacing:.2em;margin-top:48px;text-transform:uppercase}
+
+/* --- Big Quote --- */
+.big-quote{
+  background:var(--bg-2);padding:80px 120px;text-align:center;
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+}
+.big-quote blockquote{
+  font-size:32px;font-weight:200;letter-spacing:-0.02em;line-height:1.4;
+  color:var(--fg);max-width:800px;margin:0 auto;
+}
+.big-quote blockquote em{font-style:normal;color:var(--accent)}
+.big-quote .attr{font-size:12px;color:var(--fg-3);margin-top:24px;letter-spacing:.15em}
+
+/* --- Principle Card --- */
+.principle{
+  background:rgba(108,92,231,.06);border-left:3px solid var(--accent);
+  padding:28px 32px;margin:24px 0;
+}
+.principle p{font-size:14px;color:var(--fg-2);margin:0;line-height:1.7}
+.principle strong{color:var(--accent-light)}
+
+/* --- Compare --- */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:32px 0}
+.compare-col{padding:32px;border:1px solid var(--line-2)}
+.compare-col.bad{background:rgba(225,112,85,.03);border-color:rgba(225,112,85,.15)}
+.compare-col.good{background:rgba(143,163,126,.03);border-color:rgba(143,163,126,.15)}
+.compare-col h4{font-size:11px;letter-spacing:.25em;text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--line-2)}
+.compare-col.bad h4{color:var(--red)}
+.compare-col.good h4{color:var(--green)}
+.compare-col .item{padding:14px 0;border-bottom:1px solid var(--line-2);font-size:13px;color:var(--fg-2)}
+.compare-col .item:last-child{border-bottom:none}
+.compare-col .item .label{font-size:10px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+
+/* --- Scenario --- */
+.scenario{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:32px;margin:16px 0;
+  transition:border-color var(--duration-base) var(--ease-out);
+}
+.scenario:hover{border-color:var(--fg-3)}
+.scenario .s-label{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:12px}
+.scenario .s-situation{font-size:15px;color:var(--fg);font-weight:500;margin-bottom:16px}
+.scenario .s-dialogue{padding:16px 20px;background:var(--bg-2);border-left:2px solid var(--accent);margin:12px 0}
+.scenario .s-dialogue p{font-size:13px;color:var(--fg-2);margin:6px 0;line-height:1.6}
+.scenario .s-dialogue .speaker{color:var(--fg-3);font-size:11px;letter-spacing:.1em;margin-bottom:2px}
+.scenario .s-dialogue .speaker.rem{color:var(--accent-light)}
+.scenario .s-insight{
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--line-2);
+  font-size:12px;color:var(--fg-3);
+}
+.scenario .s-insight strong{color:var(--green)}
+
+/* --- Steps --- */
+.steps{margin:32px 0}
+.step{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--line-2)}
+.step:last-child{border-bottom:none}
+.step-num{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:500;flex-shrink:0;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.2);
+}
+.step-content h4{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.step-content p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.step-content .example{
+  margin-top:10px;padding:10px 14px;background:var(--bg-3);
+  border-left:2px solid var(--accent);font-size:12px;color:var(--fg-2);
+}
+
+/* --- Grid Cards --- */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card .c-num{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:13px;color:var(--fg-2);line-height:1.6}
+
+/* --- Flow Diagram --- */
+.flow{display:flex;align-items:center;justify-content:center;gap:0;margin:40px 0;flex-wrap:wrap}
+.flow-node{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:20px 24px;
+  text-align:center;min-width:160px;
+}
+.flow-node.active{border-color:var(--accent);background:rgba(108,92,231,.06)}
+.flow-node .f-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:6px}
+.flow-node .f-value{font-size:14px;color:var(--fg);font-weight:500}
+.flow-node.active .f-value{color:var(--accent-light)}
+.flow-arrow{font-size:18px;color:var(--fg-3);padding:0 12px}
+
+/* --- Anti-pattern --- */
+.anti{
+  background:rgba(225,112,85,.04);border:1px solid rgba(225,112,85,.15);
+  padding:24px 28px;margin:16px 0;
+}
+.anti h5{font-size:11px;letter-spacing:.2em;color:var(--red);text-transform:uppercase;margin-bottom:12px}
+.anti p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.anti .fix{
+  margin-top:12px;padding-top:12px;border-top:1px solid rgba(225,112,85,.15);
+  color:var(--green);font-size:12px;
+}
+
+/* --- Callout --- */
+.callout{
+  background:rgba(108,92,231,.08);border-left:3px solid var(--accent);
+  padding:24px 28px;margin:24px 0;
+}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+
+/* --- Footer --- */
+footer{
+  padding:80px 120px 60px;border-top:1px solid var(--line-2);
+  max-width:1440px;margin:80px auto 0;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg-3);text-transform:uppercase}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+
+@media(max-width:1200px){
+  .sec{padding:80px 60px}
+  .cover h1{font-size:40px}
+  .big-quote{padding:60px 40px}
+  .big-quote blockquote{font-size:24px}
+  .compare,.grid-2,.grid-3{grid-template-columns:1fr}
+  .flow{flex-direction:column}
+  .flow-arrow{transform:rotate(90deg);padding:8px 0}
+}
+@media(prefers-reduced-motion:reduce){.sec{opacity:1;transform:none;transition:none}}
+@media print{.sec{opacity:1;transform:none;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- ===== COVER ===== -->
+<section class="cover">
+  <span class="eyebrow">REM OS &middot; Perception Brief Guide</span>
+  <h1>우리는 <em>무엇</em>을 파는가</h1>
+  <p class="sub">상품이 아니라 인식을 판다.<br>인식 브리프는 "고객의 머릿속에 남길 한 문장"을 설계하는 도구다.</p>
+  <p class="meta">Project Rent &middot; 현장팀 교육 자료 &middot; v1.0</p>
+</section>
+
+<!-- ===== 01. 핵심 질문 ===== -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 01 &mdash; Core Question</span>
+      <h2>고객은 뭘 기억하는가</h2>
+    </div>
+    <span class="eyebrow">01</span>
+  </div>
+
+  <p class="body">
+    사람은 수많은 경험을 해도, 결국 <strong>하나의 문장</strong>으로 기억한다.
+  </p>
+
+  <div class="grid-3 mt-32">
+    <div class="card">
+      <div class="c-num">Example 01</div>
+      <h4>"여기 진짜 장인이 만든다"</h4>
+      <p>제품의 스펙이 아니라 "장인성"이라는 인식이 남았다. 이 한 문장이 재방문, 추천, SNS 공유를 만든다.</p>
+    </div>
+    <div class="card">
+      <div class="c-num">Example 02</div>
+      <h4>"이 공간은 감각이 다르다"</h4>
+      <p>인테리어 비용이 아니라 "감각"이라는 인식이 남았다. 사진을 찍고, 태그하고, 친구를 데려온다.</p>
+    </div>
+    <div class="card">
+      <div class="c-num">Example 03</div>
+      <h4>"비싸긴 한데 그만한 이유가 있다"</h4>
+      <p>가격이 아닌 "합리적 프리미엄"이라는 인식. 가격 저항을 넘는 건 할인이 아니라 납득이다.</p>
+    </div>
+  </div>
+
+  <div class="principle mt-32">
+    <p><strong>핵심:</strong> 우리가 통제할 수 있는 건 "고객이 경험하는 것"이다. 통제할 수 없는 건 "고객이 기억하는 것"이다. 하지만 <strong>설계</strong>할 수는 있다. 그게 인식 브리프의 목적이다.</p>
+  </div>
+</section>
+
+<!-- ===== BIG QUOTE ===== -->
+<div class="big-quote">
+  <blockquote>오프라인은 단순 판매 공간이 아니라,<br>사람들의 <em>인식을 설계하는 매체</em>다.</blockquote>
+  <div class="attr">Project Rent &mdash; REM OS</div>
+</div>
+
+<!-- ===== 02. 왜 인식인가 ===== -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 02 &mdash; Why Perception</span>
+      <h2>매출이 아니라 인식을 먼저 설계한다</h2>
+    </div>
+    <span class="eyebrow">02</span>
+  </div>
+
+  <p class="body">
+    "매출을 올려라"는 결과 목표다. 현장에서 실제로 할 수 있는 건 <strong>"고객이 어떤 인식을 갖고 돌아가는가"를 설계하는 것</strong>이다.<br>
+    인식이 바르면 매출은 따라온다. 인식이 틀리면 할인해도 안 온다.
+  </p>
+
+  <div class="flow mt-48">
+    <div class="flow-node">
+      <div class="f-label">우리가 설계</div>
+      <div class="f-value">공간, 설명, 동선</div>
+    </div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node active">
+      <div class="f-label">고객이 경험</div>
+      <div class="f-value">보고, 듣고, 맛보고</div>
+    </div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node active">
+      <div class="f-label">고객이 기억</div>
+      <div class="f-value">"한 문장"</div>
+    </div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-node">
+      <div class="f-label">고객이 행동</div>
+      <div class="f-value">재방문, 추천, 공유</div>
+    </div>
+  </div>
+
+  <div class="compare mt-48">
+    <div class="compare-col bad">
+      <h4>인식 없이 운영할 때</h4>
+      <div class="item">
+        <div class="label">설명</div>
+        "이 제품은 OO산 재료로 만들었고, 가격은 OO원입니다"
+      </div>
+      <div class="item">
+        <div class="label">진열</div>
+        예쁘게 놓았지만 왜 이 순서인지 모름
+      </div>
+      <div class="item">
+        <div class="label">고객 반응</div>
+        "아 네, 감사합니다" (그리고 잊어버림)
+      </div>
+      <div class="item">
+        <div class="label">결과</div>
+        매출은 나왔지만, 다음에 왜 와야 하는지 남지 않음
+      </div>
+    </div>
+    <div class="compare-col good">
+      <h4>인식을 설계하고 운영할 때</h4>
+      <div class="item">
+        <div class="label">설명</div>
+        "셰프가 유럽에서 10년 배운 방식 그대로 여기서 직접 만들어요"
+      </div>
+      <div class="item">
+        <div class="label">진열</div>
+        제조 과정이 보이는 위치 → "장인이 만든다"는 장면 연출
+      </div>
+      <div class="item">
+        <div class="label">고객 반응</div>
+        "와, 진짜 정성스럽다" (사진 찍고, 친구한테 공유)
+      </div>
+      <div class="item">
+        <div class="label">결과</div>
+        "여기 장인이 만든 곳이야" — 이 한 문장이 입소문이 됨
+      </div>
+    </div>
+  </div>
+
+  <div class="callout mt-32">
+    <p>차이는 <strong>"정보를 전달했느냐"</strong> vs <strong>"인식을 남겼느냐"</strong>다. 똑같은 시간, 똑같은 제품인데 고객이 기억하는 게 다르다.</p>
+  </div>
+</section>
+
+<!-- ===== 03. 인식 목표 쓰는 법 ===== -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 03 &mdash; Writing Perception Goals</span>
+      <h2>인식 목표는 이렇게 쓴다</h2>
+    </div>
+    <span class="eyebrow">03</span>
+  </div>
+
+  <p class="body">
+    인식 목표는 <strong>"고객이 돌아가서 친구한테 뭐라고 말하길 원하는가?"</strong>에 대한 답이다.<br>
+    마케팅 용어가 아니라, 실제 사람이 실제로 할 수 있는 말이어야 한다.
+  </p>
+
+  <div class="compare mt-32">
+    <div class="compare-col bad">
+      <h4>이렇게 쓰면 안 된다</h4>
+      <div class="item">
+        <div class="label">모호함</div>
+        "좋은 경험을 제공한다"<br><span style="font-size:11px;color:var(--fg-3)">→ 뭘 해야 할지 모름. 아무 프로젝트에나 붙음.</span>
+      </div>
+      <div class="item">
+        <div class="label">측정 불가</div>
+        "브랜드 인지도를 향상시킨다"<br><span style="font-size:11px;color:var(--fg-3)">→ 현장에서 행동으로 바꿀 수 없음.</span>
+      </div>
+      <div class="item">
+        <div class="label">결과 목표</div>
+        "매출을 극대화한다"<br><span style="font-size:11px;color:var(--fg-3)">→ 인식이 아님. 인식이 바르면 매출은 따라옴.</span>
+      </div>
+      <div class="item">
+        <div class="label">제너릭</div>
+        "차별화된 F&B 경험"<br><span style="font-size:11px;color:var(--fg-3)">→ 모든 식음 브랜드가 이렇게 말함. 차별 안 됨.</span>
+      </div>
+    </div>
+    <div class="compare-col good">
+      <h4>이렇게 써야 한다</h4>
+      <div class="item">
+        <div class="label">구체적 + 장면</div>
+        "여기 진짜 장인이 직접 만든다"<br><span style="font-size:11px;color:var(--fg-3)">→ 설명, 진열, 동선 모두 이 문장을 강화하면 됨.</span>
+      </div>
+      <div class="item">
+        <div class="label">행동 가능</div>
+        "한 번 오면 꼭 사게 된다"<br><span style="font-size:11px;color:var(--fg-3)">→ 시음→설명→구매 동선을 이 흐름으로 설계.</span>
+      </div>
+      <div class="item">
+        <div class="label">감정 + 이유</div>
+        "비싸지만 그만한 이유가 있는 곳"<br><span style="font-size:11px;color:var(--fg-3)">→ 가격 전에 가치를 느끼게 하는 순서 설계.</span>
+      </div>
+      <div class="item">
+        <div class="label">고유함</div>
+        "여기서만 먹을 수 있는 맛이 있다"<br><span style="font-size:11px;color:var(--fg-3)">→ 한정성/독점성이 핵심. 설명에 이 포인트를 넣으면 됨.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="principle mt-32">
+    <p><strong>테스트:</strong> 쓴 문장을 소리 내서 읽어봐라. 친구한테 카톡으로 보낼 수 있는 말인가? 아니면 보고서에나 쓸 말인가? 카톡으로 보낼 수 있으면 좋은 인식 목표다.</p>
+  </div>
+</section>
+
+<!-- ===== 04. 방지선 ===== -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 04 &mdash; Anti-Perception</span>
+      <h2>"남기고 싶은 인식"만큼 "막아야 할 인식"이 중요하다</h2>
+    </div>
+    <span class="eyebrow">04</span>
+  </div>
+
+  <p class="body">
+    인식 브리프에는 <strong>방지선</strong>이 있다. "이 인식만은 절대 남기면 안 된다"는 경계다.<br>
+    왜냐면 잘못된 인식은 한번 형성되면 바꾸기가 매우 어렵기 때문이다.
+  </p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">실제 사례 &mdash; 세스크멘슬</div>
+    <div class="s-situation">문제: "와인 마시는 곳"이라는 인식이 본질을 가리고 있었다</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">데이터</span></p>
+      <p>SNS 리뷰의 66%가 와인을 언급. 맛 리뷰에서도 64%가 와인 동시 언급. 콜키지 언급율 32%.</p>
+    </div>
+    <div class="s-dialogue">
+      <p><span class="speaker">진짜 문제</span></p>
+      <p>세스크멘슬의 본질은 "유럽 10년 수련 장인의 샤퀴테리". 하지만 고객은 "와인 마시러 가는 곳"으로 기억하고 있었다. 가장 강한 자산(와인 페어링)이 브랜드 정체성을 탈취한 것.</p>
+    </div>
+    <div class="s-insight"><strong>교훈:</strong> 인식은 의도하지 않아도 형성된다. 설계하지 않으면, 고객이 알아서 만든 인식이 브랜드를 규정한다.</div>
+  </div>
+
+  <div class="anti mt-24">
+    <h5>방지선이 필요한 전형적 상황들</h5>
+    <p>
+      <strong style="color:var(--red)">"비싸기만 하다"</strong> &mdash; 가격 전에 가치를 느끼게 하는 순서가 없을 때<br>
+      <strong style="color:var(--red)">"뭐 하는 곳인지 모르겠다"</strong> &mdash; 컨셉이 너무 많거나, 설명이 복잡할 때<br>
+      <strong style="color:var(--red)">"사진만 예쁘고 별로"</strong> &mdash; 비주얼에만 집중하고 경험 설계가 없을 때<br>
+      <strong style="color:var(--red)">"직원이 불친절하다"</strong> &mdash; 운영 불안정이 인식으로 직결될 때
+    </p>
+    <div class="fix"><strong>대응:</strong> 방지선에 해당하는 반응이 관찰되면, 일일 복기에서 즉시 공유하고 다음 날 조정한다.</div>
+  </div>
+</section>
+
+<!-- ===== 05. 관찰과 인식의 연결 ===== -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 05 &mdash; Observation = Verification</span>
+      <h2>관찰은 "인식이 전달됐는지" 확인하는 방법이다</h2>
+    </div>
+    <span class="eyebrow">05</span>
+  </div>
+
+  <p class="body">
+    관찰은 그냥 "눈에 보이는 걸 적는 것"이 아니다.<br>
+    <strong>"우리가 의도한 인식이 실제로 고객에게 전달됐는가?"</strong>를 확인하는 것이다.
+  </p>
+
+  <div class="steps mt-32">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>인식 목표를 정한다</h4>
+        <p>"여기 진짜 장인이 만든다"</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>이 인식이 전달되면 고객이 어떤 행동/말을 할까?</h4>
+        <p>"장인", "수제", "정성" 같은 단어를 쓸 것이다. 제조 과정을 사진 찍을 것이다. 선물용으로 추가 구매할 것이다.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>그 행동/말이 실제로 나타나는지 관찰한다</h4>
+        <p>고객이 "장인/수제/정성"을 몇 번 말했는가? 제조 디스플레이 앞에서 사진을 찍었는가? 선물 구매가 있었는가?</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>안 나타나면 → 뭘 바꿔야 하는지 생각한다</h4>
+        <p>"장인" 언급이 없다면? → 설명에서 셰프 스토리를 먼저 꺼내본다. 제조 과정을 더 눈에 띄게 배치한다.</p>
+        <div class="example">이게 바로 "인식 → 관찰 → 조정" 루프다. 매일 반복하면 프로젝트 후반에는 확실히 달라진다.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout mt-32">
+    <p><strong>관찰 포인트 작성 원칙 3가지:</strong><br>
+    1. 인식 목표와 연결시켜라 ("장인성" 목표 → "수제/장인/정성" 언급 관찰)<br>
+    2. 구체적 행동으로 써라 ("만족 관찰" → "설명 후 표정 변화")<br>
+    3. 3~5개로 제한해라 (너무 많으면 아무것도 안 봄)</p>
+  </div>
+</section>
+
+<!-- ===== 06. 설명의 기술 ===== -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 06 &mdash; How to Explain</span>
+      <h2>정보를 전달하지 말고, 인식을 심어라</h2>
+    </div>
+    <span class="eyebrow">06</span>
+  </div>
+
+  <p class="body">
+    같은 제품을 설명하는데, 어떤 멘트는 구매로 이어지고 어떤 멘트는 안 된다.<br>
+    차이는 <strong>"정보"를 전달했느냐, "인식"을 심었느냐</strong>다.
+  </p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">Scenario A &mdash; 정보 전달</div>
+    <div class="s-situation">고객이 제품을 집어 들었다</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">Staff</span></p>
+      <p>"이건 독일식 살라미예요. 100g에 OO원이고, 와인이랑 잘 어울려요."</p>
+      <p><span class="speaker">고객</span></p>
+      <p>"아 네, 감사합니다." (내려놓음)</p>
+    </div>
+    <div class="s-insight"><strong>결과:</strong> 정보는 전달됐다. 하지만 "왜 여기서 사야 하는지" 인식이 없다.</div>
+  </div>
+
+  <div class="scenario mt-16">
+    <div class="s-label">Scenario B &mdash; 인식 설계</div>
+    <div class="s-situation">같은 상황. 고객이 같은 제품을 집어 들었다</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">Staff</span></p>
+      <p>"그거 셰프님이 직접 양평 공장에서 만드신 건데, 독일에서 10년 배운 전통 방식 그대로예요. 숙성만 2개월 걸려요."</p>
+      <p><span class="speaker">고객</span></p>
+      <p>"2개월이요? 와... 시식해볼 수 있어요?"</p>
+    </div>
+    <div class="s-insight"><strong>결과:</strong> "장인이 시간과 정성을 들여 만든다"는 인식이 형성됨. 가격 저항 감소. 시식→구매 전환 가능성 상승.</div>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="card">
+      <div class="c-num">Rule 01</div>
+      <h4>스크립트를 외우지 마라</h4>
+      <p>외운 말은 고객이 바로 안다. 대신 브랜드에서 너한테 가장 인상적인 포인트를 찾아서, 그걸 네 말로 해라. 진심이 담긴 한 마디가 외운 세 문장보다 강하다.</p>
+    </div>
+    <div class="card">
+      <div class="c-num">Rule 02</div>
+      <h4>정보보다 스토리가 먼저</h4>
+      <p>"100g OO원"은 정보. "10년 수련, 2개월 숙성"은 스토리. 스토리가 먼저 오면 가격은 납득이 된다. 정보가 먼저 오면 가격은 저항이 된다.</p>
+    </div>
+    <div class="card">
+      <div class="c-num">Rule 03</div>
+      <h4>반응을 관찰하고 조정해라</h4>
+      <p>같은 설명이 모든 고객에게 통하지 않는다. 반응이 좋았던 멘트는 기록하고, 안 먹힌 멘트는 바꿔봐라. 이게 "작은 실험"이다.</p>
+    </div>
+    <div class="card">
+      <div class="c-num">Rule 04</div>
+      <h4>질문으로 끝내라</h4>
+      <p>설명을 끝내고 "시식해보실래요?" "이건 선물용으로도 좋은데, 관심 있으세요?" 같이 다음 행동을 유도하는 질문으로 마무리.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 07. 작은 실험 ===== -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 07 &mdash; Small Experiments</span>
+      <h2>매일 하나씩 바꿔보는 것이 실험이다</h2>
+    </div>
+    <span class="eyebrow">07</span>
+  </div>
+
+  <p class="body">
+    실험이라고 하면 거창하게 느껴지지만, 실제로는 <strong>아주 작은 변화</strong>다.<br>
+    "오늘은 이 멘트를 먼저 해보자" "오늘은 이 제품을 앞에 놓아보자" — 이 정도면 충분하다.
+  </p>
+
+  <div class="grid-3 mt-32">
+    <div class="card">
+      <div class="c-num">Experiment Type 01</div>
+      <h4>멘트 바꾸기</h4>
+      <p>같은 제품인데 설명 순서나 단어를 바꿔본다.<br><br>
+      <span style="color:var(--fg-3);font-size:12px">예: "독일식 살라미" vs "셰프가 2개월 숙성한 살라미" → 어느 쪽이 시식으로 이어지나?</span></p>
+    </div>
+    <div class="card">
+      <div class="c-num">Experiment Type 02</div>
+      <h4>순서 바꾸기</h4>
+      <p>시음/시식과 설명의 순서를 바꿔본다.<br><br>
+      <span style="color:var(--fg-3);font-size:12px">예: 먼저 맛보게 하고 설명 vs 스토리를 먼저 말하고 맛보게 하기 → 추가 구매율 차이는?</span></p>
+    </div>
+    <div class="card">
+      <div class="c-num">Experiment Type 03</div>
+      <h4>배치 바꾸기</h4>
+      <p>진열 위치나 디스플레이를 바꿔본다.<br><br>
+      <span style="color:var(--fg-3);font-size:12px">예: 제조 과정 사진을 입구에 vs 매대 옆에 → 고객 첫 반응이 달라지나?</span></p>
+    </div>
+  </div>
+
+  <div class="principle mt-32">
+    <p><strong>실험의 3원칙:</strong><br>
+    1. <strong>하나만 바꾼다</strong> &mdash; 동시에 여러 개 바꾸면 뭐 때문인지 모른다<br>
+    2. <strong>비교 가능하게</strong> &mdash; 전후 또는 A/B로 비교할 수 있어야 한다<br>
+    3. <strong>기록한다</strong> &mdash; 바꾼 것, 반응, 느낀 점. 기록 안 하면 실험이 아니라 그냥 변경이다</p>
+  </div>
+</section>
+
+<!-- ===== 08. 복기 ===== -->
+<section class="sec" id="s8">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 08 &mdash; Daily Review</span>
+      <h2>복기는 보고가 아니라 대화다</h2>
+    </div>
+    <span class="eyebrow">08</span>
+  </div>
+
+  <p class="body">
+    하루가 끝나면 REM Bot과 짧게 이야기한다. 5분이면 충분하다.<br>
+    목적은 보고가 아니라, <strong>"오늘 뭘 봤는지"를 말로 꺼내보는 것</strong>이다.<br>
+    말로 꺼내야 정리가 되고, 정리가 되어야 내일 더 잘 본다.
+  </p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">Daily Review Example</div>
+    <div class="s-situation">마감 후, REM Bot과의 대화</div>
+    <div class="s-dialogue">
+      <p><span class="speaker rem">REM</span></p>
+      <p>마감 수고했어! 오늘 가장 기억 남는 고객 반응 있었어?</p>
+      <p><span class="speaker">Staff</span></p>
+      <p>할머니 한 분이 시음하시더니 손녀 선물로 3개 사셨어</p>
+      <p><span class="speaker rem">REM</span></p>
+      <p>오 좋다. 뭐라고 설명했는데 그렇게 반응한 거야?</p>
+      <p><span class="speaker">Staff</span></p>
+      <p>장인이 직접 만든다고 했더니 "정성이 들어갔구나" 하시면서</p>
+      <p><span class="speaker rem">REM</span></p>
+      <p>그거 좋은 포인트다. "장인이 직접" → "정성" 연결이 바로 됐네. 기록해둘게. 내일도 그 멘트 써보고 반응 비교해봐!</p>
+    </div>
+    <div class="s-insight"><strong>포인트:</strong> 이건 평가가 아니다. "뭘 봤는지 같이 이야기하는 것"이다. 좋은 관찰이 축적되면, 팀 전체가 더 잘 보기 시작한다.</div>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="card">
+      <div class="c-num">복기 = 이것</div>
+      <h4>경험을 학습으로 바꾸는 것</h4>
+      <p>"오늘 어떤 멘트가 먹혔지?"<br>"왜 거기서 오래 머물렀을까?"<br>"내일 뭘 바꿔볼까?"<br><br>이 질문들이 반복되면, 같은 시간을 일해도 더 많이 보고 더 많이 배운다.</p>
+    </div>
+    <div class="card">
+      <div class="c-num">복기 ≠ 이것</div>
+      <h4>실적 보고</h4>
+      <p>"오늘 매출 OO만원, 방문자 OO명"<br><br>이건 숫자일 뿐 학습이 아니다. 숫자는 POS가 알아서 기록한다. 현장에서만 볼 수 있는 건 "왜"다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 09. 한 장 요약 ===== -->
+<section class="sec" id="s9">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 09 &mdash; Summary</span>
+      <h2>한 장으로 정리하면</h2>
+    </div>
+    <span class="eyebrow">09</span>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>프로젝트가 시작되면, 인식 목표를 확인한다</h4>
+        <p>"이번에 고객이 뭘 기억하고 돌아가길 원하는가?" — 이 한 문장이 2주간의 나침반.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>그 인식을 강화하는 방향으로 설명하고, 보여주고, 배치한다</h4>
+        <p>정보를 전달하는 게 아니라, 인식을 심는 방향으로. 스토리가 먼저, 가격은 나중에.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>고객 반응을 관찰한다</h4>
+        <p>의도한 인식이 전달됐는지 확인. 어떤 단어를 쓰는지, 어디서 멈추는지, 뭘 찍는지.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>하루 끝나면 짧게 복기한다</h4>
+        <p>5분. "가장 기억 남는 반응은?" "내일 뭘 바꿔볼까?" — 이것만 반복해도 달라진다.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>작은 성공을 기록한다</h4>
+        <p>설명이 먹힌 순간, 고객이 감탄한 순간, 실험이 통한 순간. 이게 쌓이면 팀의 자산이 된다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="principle mt-32">
+    <p><strong>결국 가장 중요한 건 이거다:</strong><br><br>
+    우리는 상품을 파는 게 아니라, <strong>고객의 머릿속에 한 문장을 남기는 일</strong>을 한다.<br>
+    그 한 문장이 좋으면 다시 오고, 추천하고, 사진 찍고, 공유한다.<br>
+    그래서 매일 "그 한 문장이 전달됐는가?"를 확인하는 것이다.</p>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="logo">Project Rent</div>
+  <div class="meta">Perception Brief Guide &middot; 2026.06.09 &middot; v1.0</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.sec').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

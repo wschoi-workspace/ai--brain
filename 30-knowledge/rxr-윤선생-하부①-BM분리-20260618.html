@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>윤선생 하부① BM별 분리 심층 — RXR | Project Rent</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root{--p:#6666FF;--p-deep:#4a3fd6;--p-pale:#F4F3FF;--ink:#1a1a1a;--g900:#222;--g700:#444;--g500:#888;--pos:#22b07d;--neu:#b0b4c0;--neg:#e8506b;--warn:#f5a623;--mint:#23c4a8;--bg:#f6f6fa;--card:#fff;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;background:var(--bg);color:var(--g900);line-height:1.65;-webkit-font-smoothing:antialiased;letter-spacing:-0.2px}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.toolbar{display:none!important}}
+  .toolbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);border-bottom:1px solid #e7e7ee;display:flex;align-items:center;justify-content:space-between;padding:10px 24px}
+  .toolbar .ttl{font-size:13px;font-weight:700;color:var(--p)}
+  .toolbar button{background:var(--p);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer}
+  .hero{background:linear-gradient(135deg,#16161f 0%,#27214d 55%,#4a3fd6 130%);color:#fff;padding:48px 0 42px;margin-bottom:30px}
+  .hero .eyebrow{font-size:12px;letter-spacing:2px;color:#b9b3ff;font-weight:700}
+  .hero h1{font-size:34px;font-weight:900;line-height:1.2;margin:12px 0 14px;letter-spacing:-1px}
+  .hero h1 .hl{color:#a99dff}
+  .hero p.sub{font-size:15.5px;color:#d7d4ee;max-width:780px;font-weight:500}
+  .hero .meta{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+  .hero .meta span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:#efeeff}
+  section{margin-bottom:40px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .sec-num{font-size:13px;font-weight:900;color:var(--p);background:var(--p-pale);border-radius:7px;padding:3px 10px}
+  h2{font-size:24px;font-weight:900;letter-spacing:-.6px}
+  h3{font-size:18px;font-weight:800;margin-bottom:4px}
+  .sec-lead{color:var(--g700);font-size:14.5px;margin:8px 0 20px;max-width:900px}
+  .card{background:var(--card);border:1px solid #ececf2;border-radius:16px;padding:24px 26px;margin-bottom:18px;box-shadow:0 1px 3px rgba(20,20,50,.04)}
+  .grid{display:grid;gap:16px}.g2{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:860px){.g2,.g4{grid-template-columns:1fr}}
+  .card-explain{background:#FFF8E1;border:1px solid #ffe9a8;border-left:4px solid var(--warn);border-radius:10px;padding:13px 16px;font-size:13.4px;color:#6b5418;margin:12px 0;line-height:1.6}
+  .card-explain strong{color:#8a6d10}
+  .warnote{background:#fff4f6;border:1px solid #ffd0da;border-left:4px solid var(--neg);border-radius:10px;padding:13px 18px;font-size:13.5px;color:#8a2438;margin:12px 0;line-height:1.6}
+  .warnote strong{color:#c4233f}
+  table{width:100%;border-collapse:collapse;font-size:13.4px;margin-top:6px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #eee;vertical-align:top}
+  th{background:#faf9ff;color:var(--p-deep);font-weight:800;font-size:12.6px}
+  td.center,th.center{text-align:center}
+  .chip{display:inline-block;border-radius:6px;padding:2px 8px;font-size:11.5px;font-weight:700}
+  .c-pos{background:#e3f7ef;color:#138a5f}.c-neg{background:#fde7ec;color:#c4233f}
+  .conf{display:inline-block;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:800}
+  .conf-q{background:#e3f7ef;color:#138a5f}.conf-d{background:#fff3d6;color:#9a7400}.conf-s{background:#fde7ec;color:#c4233f}
+  .quote{background:#fbfbff;border-left:3px solid var(--p);border-radius:0 8px 8px 0;padding:9px 13px;margin:7px 0;font-size:12.8px;color:var(--g700);line-height:1.5}
+  .quote .y{color:var(--p);font-weight:800;font-size:11.5px}
+  .chartbox{position:relative;height:160px;margin-top:8px}
+  .tag-bm{font-size:11px;font-weight:800;border-radius:5px;padding:2px 8px}
+  .bm-k{background:#e8f0ff;color:#2b5fd6}.bm-b{background:#e7f8f3;color:#0f9b76}.bm-c{background:#f3eefe;color:#6b46c1}.bm-s{background:#fff1e0;color:#c2710c}
+  .pill{display:inline-block;background:var(--p-pale);color:var(--p-deep);border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;margin:2px}
+  ul.clean{list-style:none;padding-left:0}ul.clean li{padding:4px 0 4px 20px;position:relative;font-size:13.5px;color:var(--g700)}ul.clean li:before{content:"▹";position:absolute;left:0;color:var(--p);font-weight:900}
+  .insight{background:linear-gradient(135deg,#1d1b2e,#2c2654);color:#fff;border-radius:14px;padding:20px 22px}
+  .insight .k{font-size:12px;font-weight:700;letter-spacing:1px;color:#a99dff}.insight .v{font-size:16px;font-weight:700;margin-top:6px;line-height:1.5}.insight .d{font-size:13px;color:#cbc8e6;margin-top:7px}
+</style>
+</head>
+<body>
+<div class="toolbar"><span class="ttl">RXR 하부① · BM별 분리 심층 · by Project Rent</span><button onclick="window.print()">PDF로 저장 / 인쇄</button></div>
+
+<div class="hero"><div class="wrap">
+  <div class="eyebrow">RXR 2-LAYER · DRILL-DOWN ① · BM SEPARATION</div>
+  <h1>하부① BM별 분리 심층<br><span class="hl">교실 · 베이직 · 공통 · 영어숲 — 4개의 윤선생</span></h1>
+  <p class="sub">"하나의 윤선생"이 아니다. 방문(교실)·화상(베이직)·브랜드(공통)·학원(영어숲) 4개 BM은 타깃·만족도·약점·메시지가 모두 다르다. 각 BM을 풀 카드(자생비율·감성·토픽Top8·이용자 프로파일·대표인용·차별 메시지)로 분해한다.</p>
+  <div class="meta"><span>🔍 네이버 블로그 자생 정제 풀</span><span>🎯 윤선생 4개 BM</span><span>🗓️ 2026.06.18</span><span>© by Project Rent</span></div>
+</div></div>
+
+<div class="wrap">
+
+<div style="display:flex;align-items:center;gap:10px;margin:18px 0 6px 0;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  <strong style="font-size:19px;color:#1a1a1a;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+  <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+  <strong style="font-size:13px;color:#6666FF;font-weight:700;white-space:nowrap;">Project Rent</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+</div>
+
+<section>
+  <div class="sec-head"><span class="sec-num">개요</span><h2>4개 BM 한눈에</h2></div>
+  <div class="warnote"><strong>데이터 성격</strong> — 네이버 블로그 자생 정제 풀 기반. 멘션 생태계를 가맹 마케팅이 장악(특히 영어숲 89%+)하므로 감성·비율은 시장 여론이 아닌 <b>방향성·정성 신호</b>. 모든 수치 N+신뢰도라벨(🟢정량≥100/🟡방향성50–100/🔴정성&lt;50).</div>
+  <div class="grid g2">
+    <div class="card"><h3>BM별 자생 멘션 분포 <span class="conf conf-q">정량</span></h3><div class="chartbox" style="height:240px"><canvas id="ch_vol"></canvas></div>
+      <div class="card-explain">💡 교실·베이직이 비슷한 규모 — 윤선생은 더 이상 '방문영어 회사'가 아니라 화상까지 양립하는 멀티 BM. "공통"은 상품 미상의 브랜드 회고.</div></div>
+    <div class="card"><h3>BM별 자생 감성 비교 <span class="conf conf-d">방향성</span></h3><div class="chartbox" style="height:240px"><canvas id="ch_senti"></canvas></div>
+      <div class="card-explain">💡 <strong>베이직(화상) 만족도 1위</strong>(부정 10%). "구식 방문영어" 이미지와 달리 가성비·선택권의 화상이 입소문에서 가장 호의적. 교실은 부정 강도가 크고, 영어숲은 자생 표본 자체가 극소(N=24).</div></div>
+  </div>
+</section>
+
+<!-- 교실 -->
+<section>
+  <div class="sec-head"><span class="sec-num">BM ①</span><h2><span class="tag-bm bm-k">교실 · 방문 1:1</span> 관계·편의·전통</h2></div>
+  <div class="grid g2">
+    <div class="card">
+      <p style="font-size:12.5px;color:var(--g500)">자생 N≈60 · 긍40/중42/부18 · 마케팅 잔존 ~80% <span class="conf conf-d">방향성</span></p>
+      <div class="chartbox"><canvas id="ch_k"></canvas></div>
+      <h3 style="margin-top:12px;font-size:15px">이용자 프로파일</h3>
+      <ul class="clean"><li>초1~3 학부모 주축 + 미취학(7세) 시작 다수</li><li>파닉스 무경험 첫 영어 / 어학원·학원 이탈 후 기초 재정비</li><li>선택 이유: 집 방문 편의(통학 회피)·1:1 관리 기대·40년 전통 신뢰·부모 본인 경험 전승</li></ul>
+      <div class="insight" style="margin-top:12px"><div class="k">차별 메시지</div><div class="v">"학원이 못 잡는 매일 습관을 집에서"</div><div class="d">선생님이 집까지 와서 손으로 잡아주는 영어. 보내는 게 아니라 함께 앉는 영어.</div></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:15px">반복 토픽 Top8</h3>
+      <table><tr><th>토픽</th><th class="center">성격</th></tr>
+        <tr><td>파닉스 기초 신뢰</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>선생님 1:1 밀착·관계</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>매일 루틴·습관 형성</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>세대 전승·향수("엄마도 윤선생")</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>과도한 학습량·부담</td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+        <tr><td>원장·교사 교체 불안</td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+        <tr><td>가격 부담(고가)</td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+        <tr><td>주 1회 방문 빈도 한계 <span style="color:var(--g500);font-size:11px">근거약</span></td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+      </table>
+      <div class="quote"><span class="y">2026</span> "큰 아들은 윤선생영어교실 수업이 너무 힘들어 죽고 싶다는 카톡을 보냈다"</div>
+      <div class="quote"><span class="y">2022</span> "3개월이 채 되지 않아 원장 선생님이 바뀌었다. 두 번째 선생님도…"</div>
+      <div class="quote"><span class="y">2026</span> "엄마도 윤선생 회원이었답니다. 초등 중학교까지 윤선생 방문학습…"</div>
+    </div>
+  </div>
+</section>
+
+<!-- 베이직 -->
+<section>
+  <div class="sec-head"><span class="sec-num">BM ②</span><h2><span class="tag-bm bm-b">베이직 · 화상</span> 가성비·자율·선택권</h2></div>
+  <div class="grid g2">
+    <div class="card">
+      <p style="font-size:12.5px;color:var(--g500)">자생 N≈120 · 긍48/중42/부10 (만족도 1위) · 마케팅 잔존 ~72% <span class="conf conf-d">방향성</span></p>
+      <div class="chartbox"><canvas id="ch_b"></canvas></div>
+      <h3 style="margin-top:12px;font-size:15px">이용자 프로파일</h3>
+      <ul class="clean"><li>7세~초저 파닉스 입문 + 워킹맘 가정 + 이주·여행 잦은 가정 + 성인 소수</li><li>엄마표 한계·필리핀 화상 실패 후 정착 패턴</li><li>선택 이유: 가격(학원 대비 저렴)·무약정·선생님 직접선택·지역무관·한국어 보조설명</li></ul>
+      <div class="insight" style="margin-top:12px"><div class="k">차별 메시지</div><div class="v">"선생님을 직접 고르는 무약정 화상영어"</div><div class="d">월 8만 원으로 매일 영어 습관. 안드로이드 제약은 사전 고지.</div></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:15px">반복 토픽 Top8</h3>
+      <table><tr><th>토픽</th><th class="center">성격</th></tr>
+        <tr><td>선생님 직접 선택(최다)</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>가성비·저가(월 7.9만)</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>무약정</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>자기주도 습관 형성</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>장기 지속·누적 신뢰</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>안드로이드 전용 기기 제약</td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+        <tr><td>화상 짧음·집중력(수다)</td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+        <tr><td>한국인 교사(원어민 기대와 불일치)</td><td class="center">양면</td></tr>
+      </table>
+      <div class="quote"><span class="y">2024</span> "더 놀라웠던 건 내가 원하는 선생님을 내가 직접 선택할 수 있다는 점이었다"</div>
+      <div class="quote"><span class="y">2023</span> "초등화상영어는 무약정이라 위약금 없이 언제든…"</div>
+      <div class="quote"><span class="y">2025</span> "2022년 5월부터 2025년 7월 현재까지(초1~초4) 윤선생베이직을 이용"</div>
+    </div>
+  </div>
+</section>
+
+<!-- 공통 -->
+<section>
+  <div class="sec-head"><span class="sec-num">BM ③</span><h2><span class="tag-bm bm-c">공통 · 브랜드</span> 향수·파닉스 대명사</h2></div>
+  <div class="grid g2">
+    <div class="card">
+      <p style="font-size:12.5px;color:var(--g500)">자생 N≈200 · 긍32/중52/부16 · 자생비율 ~35–40%(가장 높음) <span class="conf conf-d">방향성</span></p>
+      <div class="chartbox"><canvas id="ch_c"></canvas></div>
+      <h3 style="margin-top:12px;font-size:15px">이용자 프로파일</h3>
+      <ul class="clean"><li>유아(2~7세) 학부모(스마트랜드·정글비트) + 성인 회고자(20~40대) + 미취학 첫 영어 고민 부모</li><li>특정 상품보다 "윤선생=인생의 영어 출발점"으로 인식. 신규 진입 시 "몇 살부터?"가 최대 질문</li></ul>
+      <div class="insight" style="margin-top:12px"><div class="k">차별 메시지</div><div class="v">"엄마가 배운 그 윤선생, 아이 첫 영어로"</div><div class="d">40년간 한국인이 가장 먼저 만난 파닉스. 단 '효과 회의' 천장은 아웃풋 콘텐츠로 보완.</div></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:15px">반복 토픽 Top8</h3>
+      <table><tr><th>토픽</th><th class="center">성격</th></tr>
+        <tr><td>세대 전승·국민 브랜드 향수</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>파닉스의 대명사</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>전화영어·카세트 향수</td><td class="center">양면</td></tr>
+        <tr><td>유아 놀이영어(스마트랜드)</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>정글비트 전집</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>학습효과 회의("왜 안 늘까")</td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+        <tr><td>비쌈("좀 사는 집에서나")</td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+        <tr><td>강제성·하기 싫었던 기억</td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+      </table>
+      <div class="quote"><span class="y">2025</span> "눈높이부터 윤선생까지 안 해본 학습지가 없지만 왜 이렇게 영어는 안 늘까요?"</div>
+      <div class="quote"><span class="y">2020</span> "어렸을 때 윤선생 영어교실로 처음 영어를 접했는데 그때의 즐거움이 떠올랐다"</div>
+    </div>
+  </div>
+</section>
+
+<!-- 영어숲 -->
+<section>
+  <div class="sec-head"><span class="sec-num">BM ④</span><h2><span class="tag-bm bm-s">영어숲 · 학원(등원)</span> 현장관리·그룹·중등연계</h2></div>
+  <div class="warnote"><strong>영어숲 BM은 '버즈=영업' — 자생 측정 구조적 불가.</strong> 표적 보강으로 자생후보를 2,468건까지 키웠으나 진짜 제3자 자생은 <b>24건(1.0%)</b>. 점주 운영 블로그가 후보의 59%, "솔직후기·내돈내산"마저 마케팅 상투어로 전용. <b>소비자 자발 후기는 죄다 '집 학습지/화상' 결</b>, 학원 고유경험(등원·그룹·IGSE)은 100% 점주 발화. 학원형 진짜 자생 신호는 만족이 아니라 <b>이탈 서사("끊었다·주입식이라 회화 까먹음")</b>.</div>
+  <div class="grid g2">
+    <div class="card">
+      <p style="font-size:12.5px;color:var(--g500)">자생 N=24(긍38/중50/부13) · 가맹마케팅 89%+ 지배 <span class="conf conf-s">정성신호</span></p>
+      <div class="chartbox"><canvas id="ch_soop"></canvas></div>
+      <h3 style="margin-top:12px;font-size:15px">영어숲만의 특징(교실·베이직과 차이)</h3>
+      <ul class="clean"><li>집이 아닌 <b>센터로 등원</b> + 현장 즉시 피드백 + <b>또래 그룹수업</b></li><li>오프라인 행사(스펠링비·마켓데이·YS AWARD)·STEAM '윤스팀'</li><li><b>중등 IGSE 내신 연계</b> — 체류기간 연장형 BM</li><li>월 17만원대 중간옵션(대형어학원 35만 ↔ 엄마표 사이)</li></ul>
+      <div class="insight" style="margin-top:12px"><div class="k">차별 메시지</div><div class="v">"집에서 안 되던 영어, 등원해 끝까지"</div><div class="d">방문·화상의 '관리 부족'을 보완하는 중간옵션. 가맹 품질 편차가 과제.</div></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:15px">반복 토픽 Top8</h3>
+      <table><tr><th>토픽</th><th class="center">성격</th></tr>
+        <tr><td>파닉스=윤선생 절대 연상</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>'어릴 때 윤선생' 회상(브랜드 자산)</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>자기주도·매일학습 반복 시스템</td><td class="center">중립</td></tr>
+        <tr><td>세 BM 비교·선택 고민</td><td class="center">중립</td></tr>
+        <tr><td>학원 대비 가격·가성비(월17만)</td><td class="center"><span class="chip c-pos">강점</span></td></tr>
+        <tr><td>오래 다녀도 아웃풋 안 보임→끊음</td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+        <tr><td>선생님(교사) 의존도가 만족 좌우</td><td class="center">양면</td></tr>
+        <tr><td>숙제 부담·지속 피로 <span style="color:var(--g500);font-size:11px">근거약</span></td><td class="center"><span class="chip c-neg">약점</span></td></tr>
+      </table>
+      <div class="quote"><span class="y">2026</span> "어릴 때는 윤선생부터 시작해서 과외, 대형 학원, 회화 전문 학원까지…"</div>
+      <div class="quote"><span class="y">2010</span> "오래 하던 윤선생 영어는 끊고 근처 학원에 다닌다"</div>
+    </div>
+  </div>
+</section>
+
+<!-- 종합 비교 -->
+<section>
+  <div class="sec-head"><span class="sec-num">종합</span><h2>4개 BM 비교 + 메시지 매트릭스</h2></div>
+  <div class="card"><table>
+    <tr><th>항목</th><th>교실(방문)</th><th>베이직(화상)</th><th>공통(브랜드)</th><th>영어숲(학원)</th></tr>
+    <tr><td>자생 감성(긍/중/부)</td><td>40/42/18</td><td><b>48/42/10</b></td><td>32/52/16</td><td>38/50/13 <span style="color:var(--g500);font-size:11px">N=24</span></td></tr>
+    <tr><td>핵심 강점</td><td>집방문·1:1·전통</td><td>선생님선택·가성비·무약정</td><td>향수·파닉스 대명사</td><td>등원·현장관리·그룹·중등연계</td></tr>
+    <tr><td>핵심 약점</td><td>학습량부담·교사교체·고가</td><td>안드로이드전용·집중력</td><td>효과회의·비쌈</td><td>아웃풋 안보임→이탈·품질편차</td></tr>
+    <tr><td>타깃</td><td>초1~3 학부모(통학회피)</td><td>워킹맘·이주가정·엄마표한계</td><td>유아 학부모+성인 회고</td><td>방문·화상 관리부족 보완층</td></tr>
+    <tr><td>가격 인식</td><td>비싸다</td><td>저렴·가성비</td><td>비쌈(향수)</td><td>중간(월17만)</td></tr>
+    <tr><td><b>차별 메시지</b></td><td>매일 습관을 집에서</td><td>직접 고르는 무약정 화상</td><td>엄마가 배운 그 윤선생</td><td>등원해 끝까지 봐주는</td></tr>
+  </table>
+  <div class="card-explain">💡 <strong>BM 분리의 핵심</strong>: 한 카피로 4개 BM을 묶으면 어느 타깃에도 안 꽂힙니다. 베이직은 '가성비·선택권', 교실은 '집까지 오는 관리', 영어숲은 '등원 현장관리', 공통은 '세대 전승'으로 <b>메시지를 분리</b>해야 합니다. 베이직이 자생 만족도 1위라 디지털 전환의 선봉으로, 영어숲은 자생 평판이 형성 안 돼 제3자 후기 확보가 급선무입니다.</div>
+  </div>
+</section>
+
+</div>
+
+<footer style="max-width:1160px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#fff4f6;padding:14px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #ffd0da;line-height:1.7;color:#8a2438;font-weight:700;">🔒 CONFIDENTIAL · 내부 전략 검토용 기밀 문서 — 무단 외부 공유·캡처·재배포를 금합니다.</div>
+  <div style="background:#fafafa;padding:18px 22px;text-align:center;border-bottom:1px solid #eee;line-height:1.7;">
+    <p style="margin:0 0 4px;">본 분석은 공개 SNS·블로그 데이터에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:#F4F3FF;padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;">💠 RXR SNS Analysis Solution</div>
+    <p style="margin:0;color:#333;font-size:12.5px;">본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">『프로젝트 렌트(Project Rent)』</strong>가 자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된 정량·정성 통합 SNS 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다. 본 리포트에 포함된 분석 프레임, 지표 체계, 용어 정의, 산출 로직 일체는 프로젝트 렌트의 독자 기술이며, 무단 복제·인용·역공학·재사용을 엄격히 금합니다.</p>
+  </div>
+  <div style="background:#fafafa;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">📧 <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;<a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a><div style="margin-top:6px;color:#999;font-size:11px;">© Project Rent. All rights reserved.</div></div>
+</footer>
+
+<script>
+Chart.register(ChartDataLabels);
+const POS='#22b07d',NEU='#b0b4c0',NEG='#e8506b',P='#6666FF',MINT='#23c4a8',WARN='#f5a623';
+new Chart(ch_vol,{type:'doughnut',data:{labels:['공통','베이직(화상)','교실(방문)','영어숲(학원)','복합'],datasets:[{data:[543,443,432,379,64],backgroundColor:['#a99dff',MINT,'#2b5fd6',WARN,'#d0d0dd'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:12},padding:8}},datalabels:{color:'#fff',font:{weight:800,size:11},formatter:v=>v}}}});
+new Chart(ch_senti,{type:'bar',data:{labels:['교실','베이직','공통','영어숲'],datasets:[{label:'긍정',data:[40,48,32,38],backgroundColor:POS,stack:'s'},{label:'중립',data:[42,42,52,50],backgroundColor:NEU,stack:'s'},{label:'부정',data:[18,10,16,13],backgroundColor:NEG,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:12}}},datalabels:{color:'#fff',font:{weight:700,size:11},formatter:v=>v+'%'}},scales:{x:{stacked:true},y:{stacked:true,max:100,ticks:{callback:v=>v+'%'}}}}});
+function donut(ctx,d){new Chart(ctx,{type:'doughnut',data:{labels:['긍','중','부'],datasets:[{data:d,backgroundColor:[POS,NEU,NEG],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},datalabels:{color:'#fff',font:{weight:800,size:13},formatter:v=>v}}}});}
+donut(ch_k,[40,42,18]);donut(ch_b,[48,42,10]);donut(ch_c,[32,52,16]);donut(ch_soop,[38,50,13]);
+</script>
+</body>
+</html>

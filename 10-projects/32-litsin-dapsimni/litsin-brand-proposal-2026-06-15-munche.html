@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LI-TSIN — 답십리의 관문 · 브랜딩 제안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --warm:#E9DCC8; --rust:#B86C4A; --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --duration-base:250ms; --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:400;letter-spacing:-0.01em;overflow:hidden;}
+h1,h2,h3,h4{text-wrap:balance;font-weight:700;}
+
+.deck{width:100vw;height:100vh;}
+.slide{
+  width:100vw;height:100vh;max-width:1920px;margin:0 auto;
+  overflow:hidden;background:var(--bg);
+  padding:44px 64px 60px;
+  display:none;flex-direction:column;position:relative;
+}
+.slide.active{display:flex;}
+.slide--dark{background:var(--bg-2);}
+.slide--cover,.slide--divider{background:var(--bg-2);align-items:flex-start;justify-content:center;}
+
+.slide-head{flex-shrink:0;}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-height:0;}
+
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px;border-bottom:1px solid var(--line-2);margin-bottom:22px;}
+.eyebrow{font-size:12px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;font-weight:500;}
+h2{font-size:52px;font-weight:700;letter-spacing:-0.03em;line-height:1.07;color:var(--fg);}
+h2 .hl{color:var(--accent);}
+h2 em{font-style:normal;color:var(--accent-light);}
+.subcopy{font-size:18px;line-height:1.6;color:var(--fg-2);margin-top:14px;max-width:1180px;font-weight:400;}
+.subcopy b{color:var(--fg);font-weight:700;}
+
+.slide-footer{position:absolute;bottom:24px;left:64px;right:64px;display:flex;justify-content:space-between;font-size:12px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;border-top:1px solid var(--line-2);padding-top:12px;font-weight:500;}
+
+/* ===== Cover ===== */
+.cover-wrap{max-width:1400px;}
+.cover-label{font-size:13px;letter-spacing:.45em;color:var(--fg-3);text-transform:uppercase;margin-bottom:24px;font-weight:500;}
+.cover-title{font-size:122px;font-weight:700;letter-spacing:-0.05em;line-height:.9;color:var(--fg);}
+.cover-title .amp{color:var(--accent);}
+.cover-fr{font-size:19px;font-weight:400;font-style:italic;color:var(--accent-light);letter-spacing:.01em;margin-top:26px;line-height:1.55;}
+.cover-sub{font-size:23px;font-weight:400;color:var(--fg-2);margin-top:22px;line-height:1.45;}
+.cover-meta{position:absolute;bottom:50px;left:64px;right:64px;display:flex;justify-content:space-between;align-items:flex-end;font-size:12px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;border-top:1px solid var(--line-2);padding-top:16px;font-weight:500;}
+
+.card{background:var(--bg-3);border:1px solid var(--line-2);padding:24px;transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px);}
+
+/* tension split */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line-2);}
+.split>div{padding:28px 32px;}
+.split .left{border-right:1px solid var(--line-2);}
+.split .tag{font-size:11px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:12px;font-weight:600;}
+.split .left .tag{color:var(--green);}
+.split .right .tag{color:var(--red);}
+.split h3{font-size:27px;font-weight:700;color:var(--fg);line-height:1.2;letter-spacing:-0.02em;margin-bottom:12px;}
+.split p{font-size:15px;line-height:1.6;color:var(--fg-2);}
+.split .big{font-size:58px;font-weight:700;letter-spacing:-0.03em;line-height:1;margin-bottom:8px;}
+.split .left .big{color:var(--green);}
+.split .right .big{color:var(--red);}
+
+/* story */
+.story-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:44px;align-items:end;}
+.story-quote{font-size:26px;font-weight:400;font-style:italic;line-height:1.4;color:var(--fg);letter-spacing:-0.02em;border-left:3px solid var(--accent);padding-left:26px;}
+.story-quote .fr{display:block;font-size:14px;color:var(--accent-light);margin-top:14px;font-style:italic;}
+.story-points{display:flex;flex-direction:column;gap:15px;}
+.sp{display:flex;gap:18px;align-items:flex-start;}
+.sp .n{font-size:12px;letter-spacing:.06em;color:var(--accent);font-weight:700;flex-shrink:0;width:66px;padding-top:3px;}
+.sp .t{font-size:15px;line-height:1.5;color:var(--fg-2);}
+.sp .t b{color:var(--fg);font-weight:700;}
+
+.note{font-size:12px;color:var(--fg-3);line-height:1.55;margin-top:16px;}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:18px 24px;margin-top:18px;}
+.callout p{color:var(--fg-2);font-size:16px;line-height:1.6;}
+.callout strong{color:var(--accent-light);font-weight:700;}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber);}
+.callout-warn strong{color:var(--amber);}
+
+/* pear blossom — sensory */
+.pear-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.pear-card{border:1px solid var(--line-2);background:var(--bg-3);padding:24px 22px;border-top:2px solid var(--accent);}
+.pear-card .pk{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:10px;font-weight:600;}
+.pear-card h4{font-size:22px;font-weight:700;color:var(--fg);margin-bottom:10px;}
+.pear-card p{font-size:15px;line-height:1.55;color:var(--fg-2);}
+.pear-card p b{color:var(--fg);font-weight:700;}
+
+/* identity system */
+.id-grid{display:grid;grid-template-columns:0.85fr 1.15fr;gap:34px;align-items:stretch;}
+.id-logo{border:1px solid var(--line-2);background:var(--bg-3);padding:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+.id-logo .lk-word{font-size:54px;font-weight:700;letter-spacing:.04em;color:var(--fg);line-height:1;}
+.id-logo .lk-kr{font-size:16px;letter-spacing:.3em;color:var(--fg-2);margin-top:16px;}
+.id-logo .lk-kr b{color:var(--accent-light);font-weight:600;}
+.id-logo .lk-tag{font-size:14px;font-style:italic;color:var(--fg-3);margin-top:18px;letter-spacing:.02em;}
+.id-logo .lk-rule{width:40px;height:1px;background:var(--line);margin:24px 0 0;}
+.id-right{display:flex;flex-direction:column;gap:14px;}
+.id-right .id-title{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent-light);font-weight:600;margin-bottom:2px;}
+.scent{display:flex;flex-direction:column;gap:10px;}
+.scent-row{display:grid;grid-template-columns:130px 1fr;gap:20px;align-items:center;border:1px solid var(--line-2);background:var(--bg-3);padding:16px 22px;}
+.scent-row .sl{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;}
+.scent-row .sl span{display:block;font-size:11px;letter-spacing:.04em;color:var(--fg-3);text-transform:none;font-weight:400;margin-top:3px;}
+.scent-row .sn{font-size:16px;color:var(--fg-2);line-height:1.4;}
+.scent-row .sn b{color:var(--fg);font-weight:700;}
+.scent-row.top{border-left:3px solid var(--warm);}
+.scent-row.top .sl{color:var(--warm);}
+.scent-row.heart{border-left:3px solid var(--accent);}
+.scent-row.heart .sl{color:var(--accent-light);}
+.scent-row.base{border-left:3px solid var(--rust);}
+.scent-row.base .sl{color:var(--rust);}
+.id-palette{display:flex;gap:8px;margin-top:4px;}
+.id-palette .sw{flex:1;height:34px;border:1px solid var(--line-2);display:flex;align-items:flex-end;justify-content:center;font-size:9px;letter-spacing:.08em;color:rgba(0,0,0,.55);padding-bottom:3px;font-weight:600;}
+
+/* idea */
+.trans{display:flex;align-items:center;justify-content:center;gap:28px;}
+.trans .node{flex:1;text-align:center;padding:32px 22px;border:1px solid var(--line-2);background:var(--bg-3);}
+.trans .node.src{border-color:rgba(184,108,74,.3);background:rgba(184,108,74,.04);}
+.trans .node.out{border-color:rgba(108,92,231,.25);background:var(--accent-subtle);}
+.trans .node .nl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:12px;font-weight:600;}
+.trans .node.src .nl{color:var(--rust);}
+.trans .node.out .nl{color:var(--accent-light);}
+.trans .node .nv{font-size:24px;font-weight:700;color:var(--fg);line-height:1.3;}
+.trans .arrow{flex-shrink:0;font-size:37px;font-weight:300;color:var(--accent);}
+.trans .arrow span{display:block;font-size:11px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;margin-top:6px;text-align:center;font-weight:500;}
+
+/* one scene */
+.scene{border:1px solid var(--line-2);background:var(--bg-3);padding:36px 42px;}
+.scene-q{font-size:34px;font-weight:700;line-height:1.4;color:var(--fg);letter-spacing:-0.02em;}
+.scene-q .hl{color:var(--accent-light);}
+.scene-tags{display:flex;gap:9px;margin-top:24px;flex-wrap:wrap;}
+.scene-tags span{font-size:13px;letter-spacing:.04em;color:var(--fg-2);border:1px solid var(--line-2);padding:7px 14px;background:var(--bg-2);font-weight:500;}
+
+/* pillars */
+.pillars{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:16px;align-items:stretch;}
+.pillar{border:1px solid var(--line-2);background:var(--bg-3);padding:24px 22px;display:flex;flex-direction:column;}
+.pillar.lead{border-color:rgba(108,92,231,.3);background:var(--accent-subtle);}
+.pillar .pl{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-3);margin-bottom:12px;font-weight:500;}
+.pillar.lead .pl{color:var(--accent-light);}
+.pillar .pr{font-size:12px;letter-spacing:.06em;color:var(--accent);margin-bottom:10px;font-weight:700;}
+.pillar h4{font-size:25px;font-weight:700;color:var(--fg);margin-bottom:10px;letter-spacing:-0.02em;}
+.pillar p{font-size:15px;line-height:1.55;color:var(--fg-2);flex:1;}
+.pillar .role{font-size:13px;color:var(--fg-3);margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2);line-height:1.45;}
+.pillar .role b{color:var(--fg-2);font-weight:700;}
+
+/* funnel */
+.funnel{display:flex;flex-direction:column;gap:12px;}
+.fl{display:grid;grid-template-columns:200px 1fr 240px;gap:24px;align-items:center;border:1px solid var(--line-2);background:var(--bg-3);padding:18px 26px;}
+.fl .fn{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.fl .fn span{display:block;font-size:24px;font-weight:700;color:var(--fg);margin-top:5px;letter-spacing:-0.01em;text-transform:none;}
+.fl .fd{font-size:15px;line-height:1.5;color:var(--fg-2);}
+.fl .fd b{color:var(--fg);font-weight:700;}
+.fl .fm{text-align:right;font-size:12px;color:var(--fg-3);letter-spacing:.04em;line-height:1.45;}
+.fl .fm b{display:block;color:var(--accent-light);font-size:14px;font-weight:700;margin-bottom:2px;}
+.fl.g1{border-left:3px solid var(--green);}
+.fl.g2{border-left:3px solid var(--accent);}
+.fl.g3{border-left:3px solid var(--amber);}
+
+/* anchor */
+.anchor-hero{display:grid;grid-template-columns:1fr 1.1fr;gap:42px;align-items:center;}
+.anchor-stat{display:flex;flex-direction:column;gap:20px;}
+.astat .av{font-size:62px;font-weight:700;color:var(--accent);letter-spacing:-0.03em;line-height:1;}
+.astat .av small{font-size:24px;font-weight:500;color:var(--fg-2);}
+.astat .al{font-size:14px;color:var(--fg-2);margin-top:8px;line-height:1.45;}
+.astat .al b{color:var(--fg);font-weight:700;}
+.anchor-body h3{font-size:26px;font-weight:700;color:var(--fg);line-height:1.35;letter-spacing:-0.02em;margin-bottom:14px;}
+.anchor-body h3 .hl{color:var(--accent-light);}
+.anchor-body p{font-size:16px;line-height:1.6;color:var(--fg-2);}
+.anchor-body p b{color:var(--fg);font-weight:700;}
+
+/* evolution */
+.evo{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line-2);}
+.evo .stage{padding:22px 24px;border-right:1px solid var(--line-2);position:relative;}
+.evo .stage:last-child{border-right:none;}
+.evo .stage.now{background:var(--accent-subtle);}
+.evo .et{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-3);margin-bottom:8px;font-weight:500;}
+.evo .stage.now .et{color:var(--accent-light);}
+.evo .eh{font-size:22px;font-weight:700;color:var(--fg);margin-bottom:12px;letter-spacing:-0.01em;}
+.evo .ed{font-size:14px;line-height:1.5;color:var(--fg-2);margin-bottom:12px;}
+.evo .emix{font-size:12px;color:var(--fg-3);letter-spacing:.03em;padding-top:12px;border-top:1px solid var(--line-2);line-height:1.5;}
+.evo .emix b{color:var(--accent);font-weight:700;}
+
+/* closing */
+.close-wrap{max-width:1300px;}
+.close-eyebrow{font-size:13px;letter-spacing:.4em;color:var(--fg-3);text-transform:uppercase;margin-bottom:26px;font-weight:500;}
+.close-title{font-size:83px;font-weight:700;letter-spacing:-0.04em;line-height:1.03;color:var(--fg);}
+.close-title .hl{color:var(--accent);}
+.close-sub{font-size:21px;font-weight:400;color:var(--fg-2);margin-top:24px;line-height:1.5;}
+
+.tbd{font-size:11px;letter-spacing:.08em;color:var(--amber);border:1px solid rgba(217,163,75,.35);padding:2px 8px;border-radius:2px;text-transform:uppercase;vertical-align:middle;margin-left:6px;font-weight:500;}
+
+/* Nav */
+.nav-bar{position:fixed;bottom:0;left:0;right:0;height:46px;background:rgba(17,17,17,.82);backdrop-filter:blur(10px);border-top:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;gap:22px;z-index:100;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-3);}
+.nav-bar button{background:transparent;border:1px solid var(--line-2);color:var(--fg-2);padding:7px 15px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;font-family:inherit;font-weight:500;transition:all var(--duration-base) var(--ease-out);}
+.nav-bar button:hover{border-color:var(--fg-3);color:var(--fg);}
+.nav-counter{font-variant-numeric:tabular-nums;color:var(--fg-2);min-width:64px;text-align:center;}
+.nav-progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);z-index:101;transition:width var(--duration-base) var(--ease-out);}
+.edit-indicator{position:fixed;top:14px;right:18px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);background:var(--accent-subtle);border:1px solid rgba(108,92,231,.3);padding:5px 12px;z-index:101;display:none;font-weight:600;}
+.edit-indicator.on{display:block;}
+.brand-mark{position:fixed;top:14px;left:64px;font-size:12px;letter-spacing:.32em;color:var(--fg-3);z-index:99;font-weight:500;}
+
+/* Bold only on headers — soften body emphasis & labels to medium */
+.subcopy b,.sp .t b,.pear-card p b,.scent-row .sn b,.fl .fd b,.fl .fm b,.anchor-body p b,.pillar .role b,.evo .emix b,.callout strong{font-weight:500;}
+.sp .n,.scent-row .sl,.fl .fn,.pillar .pr,.split .tag,.pear-card .pk,.id-right .id-title{font-weight:500;}
+
+@media print{
+  html,body{overflow:visible;height:auto;}
+  .slide{display:flex !important;page-break-after:always;height:100vh;}
+  .nav-bar,.nav-progress,.edit-indicator,.brand-mark{display:none !important;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important;}}
+</style>
+</head>
+<body>
+<div class="nav-progress" id="progress"></div>
+<div class="edit-indicator" id="editIndicator">● EDIT MODE</div>
+<div class="brand-mark">LI-TSIN</div>
+
+<div class="deck" id="deck">
+
+<!-- 01 COVER -->
+<section class="slide slide--cover active">
+  <div class="cover-wrap">
+    <div class="cover-label">Brand Proposal · 답십리 고미술상가</div>
+    <h1 class="cover-title">LI-TSIN<span class="amp">.</span></h1>
+    <p class="cover-fr">La Fleur d'une Âme — 어느 세계에도 속하지 못한, 영혼의 꽃 한 송이</p>
+    <p class="cover-sub">경계를 넘은 자가 차린, 답십리로 들어가는 관문.<br>가장 오래된 조선의 아름다움을, 가장 현대적인 혀와 코와 눈으로 다시 사는 문화 살롱.</p>
+  </div>
+  <div class="cover-meta">
+    <span>Brand Proposal</span>
+    <span>2026.06.15 · Confidential</span>
+  </div>
+</section>
+
+<!-- 02 THE TENSION -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">01 — The Tension</span><span class="eyebrow">02</span></div>
+    <h2>서울에서 가장 깊은 콘텐츠,<br>가장 높은 <span class="hl">문턱</span>.</h2>
+    <p class="subcopy">답십리는 서울에서 고미술이 가장 깊게 모인 동네다. 그러나 깊이는 종종 문턱이 되고, 문턱은 끝내 벽이 된다. 골동과 장인이 <b>우후죽순</b> 모였으되, 정작 사람을 들이는 관문 하나가 없다. 고미술은 아는 자에게는 보물이나, 모르는 자에게는 <b>박제된 과거</b>다. 같은 사람들이 매일 카페를 찾고, 커피를 마시고, 머물 곳을 고른다. 그렇다면 묻자 — 이 깊은 동네에 왜 머물 이유가 없는가. 리진은 그 물음의 자리에서 시작한다. <b>비어 있던 것은 콘텐츠가 아니라, 들어설 관문이었다.</b></p>
+  </div>
+  <div class="slide-body">
+    <div class="split">
+      <div class="left">
+        <div class="tag">Asset · 가진 것</div>
+        <div class="big">No.1</div>
+        <h3>서울 최대 고미술·공예 집적지</h3>
+        <p>골동·복원·감정·장인 네트워크가 한 동네에 밀집. 콘텐츠 밀도는 국내 최강이자 복제 불가능한 도시 자산입니다.</p>
+      </div>
+      <div class="right">
+        <div class="tag">Friction · 막힌 것</div>
+        <div class="big">머물 이유</div>
+        <h3>'볼 것'은 많은데 '머물 이유'가 없다</h3>
+        <p>흥정 문화, 전문가의 영역, 정서적 진입장벽. 젊은 방문객·관광객·문화 소비자가 들어와 머물 관문이 없습니다.</p>
+      </div>
+    </div>
+    <p class="note">출처 — 답십리 고미술상가 현황 관찰</p>
+  </div>
+  <div class="slide-footer"><span>LI-TSIN — Brand Proposal</span><span>LI-TSIN</span></div>
+</section>
+
+<!-- 03 THE WOMAN -->
+<section class="slide slide--dark">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">02 — The Woman</span><span class="eyebrow">03</span></div>
+    <h2>왜 <em>리진</em>인가</h2>
+    <p class="subcopy">19세기 말, 조선이 가장 격렬하게 흔들리던 시대. 한 시대가 저물고 한 시대가 밀물처럼 들이치던 그 경계 위에 한 여자가 있었다. 조선의 궁중 무희였고, 파리 사교계의 뮤즈였다. 동양과 서양, 전통과 현대 — <b>리진</b>은 양쪽을 모두 통과했으나 어느 쪽에도 갇히지 않았다. 경계를 산다는 것은 외로운 일이다. 그러나 경계에 선 자만이 두 세계를 옮길 수 있다. 그녀의 삶 자체가 곧 '번역'이었다. 우리가 빌리는 것은 그녀의 이름이 아니라, 그 번역의 태도다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="story-grid">
+      <div class="story-quote">
+        조선의 궁중 무희로 태어나 파리의 연인이 되었으나, 결국 그 어떤 세계에도 속하지 못한 영혼의 꽃일 뿐입니다.
+        <span class="fr">« …je ne suis que la fleur d'une âme qui n'appartient à aucun monde. »</span>
+      </div>
+      <div class="story-points">
+        <div class="sp"><span class="n">월경(越境)</span><span class="t"><b>경계를 넘은 여자.</b> 조선 → 파리 → 조선. 두 세계를 모두 통과하고 어디에도 갇히지 않은 인물.</span></div>
+        <div class="sp"><span class="n">번역</span><span class="t"><b>그녀가 한 일이 곧 리진의 직무.</b> 낯선 세계를 익숙한 감각으로 옮겨, 사람을 그 안으로 들이는 통역사.</span></div>
+        <div class="sp"><span class="n">신화</span><span class="t"><b>믿고 싶은 이야기.</b> 브랜드는 검증된 사실이 아니라 서사로 소비된다 — 리진은 그 자체로 강력한 세계관.</span></div>
+      </div>
+    </div>
+    <div class="callout callout-warn"><p><strong>서사 활용 원칙</strong> — 리진(리심)은 소설로 대중화됐으나 실존 여부에는 학계의 논쟁이 있다. 그래서 카피는 이를 역사적 사실로 단정하지 않는다. <strong>전설·모티프·영감의 톤</strong>으로 다룬다. 검증되지 않았다는 점은 결격이 아니다. 오히려 브랜드가 자유롭게 써넣을 수 있는 '신화적 여백'이 된다.</p></div>
+  </div>
+  <div class="slide-footer"><span>LI-TSIN — The Woman</span><span>LI-TSIN</span></div>
+</section>
+
+<!-- 04 THE PEAR BLOSSOM -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">03 — The Name · La Fleur</span><span class="eyebrow">04</span></div>
+    <h2>이름에 담긴 향, <span class="hl">배꽃</span></h2>
+    <p class="subcopy"><b>이화(梨花)에 월백(月白)하고.</b> 옛 시인은 배꽃 흰빛과 달빛 흰빛이 포개지는 봄밤을 그렇게 적었다. La Fleur d'une Âme, '영혼의 꽃'. 그 꽃은 배꽃이다. 요란하게 피지 않는다. 다만 고적한 봄밤, 달빛 아래 가장 희고 깊은 향을 남긴다. 화려함은 눈을 끌고 곧 잊히지만, 청초함은 코끝에 남아 오래 간다. <b>리진의 미학은 후자다.</b> 배꽃을 닮아, 화려하지 않으나 명징하다. 그 명징함이 곧 브랜드의 감각 코드가 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="pear-grid">
+      <div class="pear-card">
+        <div class="pk">후각 · Scent</div>
+        <h4>배꽃의 첫 향</h4>
+        <p>매장의 <b>시그니처 센트는 배꽃 향</b>. 문을 여는 첫 순간, 도심의 소음을 끄고 손님을 리진의 세계로 들이는 후각의 관문이 됩니다.</p>
+      </div>
+      <div class="pear-card">
+        <div class="pk">시각 · Symbol</div>
+        <h4>달밤에 핀 흰 꽃</h4>
+        <p>다섯 장 흰 꽃잎과 흰 달빛(<b>梨花月白</b>). 낮과 밤, 흑과 백의 경계에서 피는 꽃 — '경계를 넘은' 리진의 시각 상징.</p>
+      </div>
+      <div class="pear-card">
+        <div class="pk">미각 · Taste</div>
+        <h4>맑고 깊은 단맛</h4>
+        <p>화려한 겉모습 안의 <b>청초한 단맛</b>. 배의 맑은 향과 여백의 풍미로 번역된 조선의 미감 — 배 숙성 크림 디저트가 그 정점.</p>
+      </div>
+    </div>
+    <p class="note">모티프 출처 — 이조년(李兆年, 1268~1342)의 시조 「다정가」 첫 구 '이화에 월백하고'. 봄밤·배꽃·흰 달빛의 정서를 브랜드 모티프로 차용했다.</p>
+  </div>
+  <div class="slide-footer"><span>LI-TSIN — The Pear Blossom</span><span>LI-TSIN</span></div>
+</section>
+
+<!-- 05 IDENTITY SYSTEM -->
+<section class="slide slide--dark">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">04 — Identity System</span><span class="eyebrow">05</span></div>
+    <h2>로고와 <span class="hl">향으로 번역된 배꽃</span></h2>
+    <p class="subcopy">배꽃이라는 모티프를 두 개의 실체로 번역한다. 하나는 눈으로 읽는 <b>워드마크</b> — LI-TSIN · 梨花 · La Fleur의 3단 락업. 다른 하나는 코로 읽는 <b>시그니처 센트</b> — 배꽃에서 출발해 묵향과 침향으로 가라앉는 3단 향이다. 로고는 보여야 닿지만, 향은 먼저 도착한다. 손님이 문을 열기 전에 리진은 이미 시작된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="id-grid">
+      <div class="id-logo">
+        <div class="lk-word">LI-TSIN</div>
+        <div class="lk-kr">리진 · <b>梨花</b></div>
+        <div class="lk-tag">La Fleur d'une Âme</div>
+        <div class="lk-rule"></div>
+      </div>
+      <div class="id-right">
+        <div class="id-title">Signature Scent — 배꽃에서 묵향으로</div>
+        <div class="scent">
+          <div class="scent-row top">
+            <div class="sl">Top<span>첫 향 · 진입</span></div>
+            <div class="sn"><b>배꽃 · 청배(Asian Pear) · 새벽 이슬</b> — 문을 여는 순간 도심을 끄는 맑고 흰 첫인상</div>
+          </div>
+          <div class="scent-row heart">
+            <div class="sl">Heart<span>중심 · 머묾</span></div>
+            <div class="sn"><b>백목련 · 백차(White Tea) · 은은한 묵향(墨)</b> — 머무는 시간을 감싸는 정제된 동양의 깊이</div>
+          </div>
+          <div class="scent-row base">
+            <div class="sl">Base<span>잔향 · 여운</span></div>
+            <div class="sn"><b>침향(Agarwood) · 한지 · 머스크</b> — 떠난 뒤에도 옷깃에 남는 고요한 여운</div>
+          </div>
+        </div>
+        <div class="id-title" style="margin-top:8px">Core Palette</div>
+        <div class="id-palette">
+          <span class="sw" style="background:#F5F0EB">백자 크림</span>
+          <span class="sw" style="background:#E9DCC8">배꽃 웜</span>
+          <span class="sw" style="background:#6C5CE7;color:rgba(255,255,255,.7)">월백 퍼플</span>
+          <span class="sw" style="background:#B86C4A;color:rgba(255,255,255,.7)">묵·러스트</span>
+          <span class="sw" style="background:#1A1A1A;color:rgba(255,255,255,.55)">먹 차콜</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>LI-TSIN — Identity System</span><span>LI-TSIN</span></div>
+</section>
+
+<!-- 06 THE IDEA -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">05 — The Idea</span><span class="eyebrow">06</span></div>
+    <h2>헤리티지 <span class="hl">트랜스레이션</span></h2>
+    <p class="subcopy">우리는 전통을 보존하지 않는다. 보존된 것은 이미 멈춘 것이다. 우리는 전통을 <b>살아있게</b> 만든다. 문화는 박물관 유리장 안에서 박제될 때 죽고, 오늘의 사람들이 마시고, 먹고, 머물고, 선물하는 경험 속으로 들어설 때 비로소 다시 숨을 쉰다. 그러므로 리진이 하는 일은 복고(Retro)가 아니다. <b>번역(Translation)</b>이다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="trans">
+      <div class="node src"><div class="nl">Source · 원형</div><div class="nv">가장 깊은<br>조선의 미학</div></div>
+      <div class="arrow">→<span>Translate</span></div>
+      <div class="node out"><div class="nl">Output · 번역</div><div class="nv">가장 세련된<br>세계의 언어</div></div>
+    </div>
+    <div class="callout mt-18"><p>“가장 깊은 조선의 미학을 가장 세련된 세계의 언어로 번역하다.” — <strong>리진의 미션이다. 그리고 제품·공간·프로그램을 관통하는 단 하나의 동사다.</strong></p></div>
+  </div>
+  <div class="slide-footer"><span>LI-TSIN — The Idea</span><span>LI-TSIN</span></div>
+</section>
+
+<!-- 07 ONE SCENE -->
+<section class="slide slide--dark">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">06 — One Scene</span><span class="eyebrow">07</span></div>
+    <h2>한 테이블 위, 동서고금</h2>
+    <p class="subcopy">키워드가 넷이면 소비자는 셋을 잊는다. 브랜드는 설명으로 기억되지 않는다. <b>한 장면</b>으로 각인된다. 백자 잔에 담긴 에스프레소, 그 곁의 고가구 한 점 — 동과 서, 과거와 현재가 한 상 위에 나란히 놓이는 찰나. 리진은 그 한 컷으로 말한다. 그리고 그 컷이 사람들의 손끝을 타고 퍼지는 리진의 시각 문법이 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="scene">
+      <p class="scene-q">파리에서 돌아온 리진이 차린 다실(茶室).<br><span class="hl">잔은 조선 백자, 커피는 에스프레소,</span><br>곁엔 답십리에서 발굴한 고가구 한 점.</p>
+      <div class="scene-tags">
+        <span>越境 — 경계를 넘은 잔</span>
+        <span>고미술 오브제 + 현대 디저트 = 한 프레임</span>
+        <span>공간 = 사진 프레이밍 시스템</span>
+        <span>발견되는 한 컷의 장면</span>
+      </div>
+    </div>
+    <p class="note">설계 원칙 — 모든 좌석·집기는 "고미술 + 현대 F&B"가 한 프레임에 잡히도록 배치한다. 인테리어가 아니라 미디어를 설계한다.</p>
+  </div>
+  <div class="slide-footer"><span>LI-TSIN — One Scene</span><span>LI-TSIN</span></div>
+</section>
+
+<!-- 08 THREE PILLARS -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">07 — Three Pillars</span><span class="eyebrow">08</span></div>
+    <h2>세 가지 경험, <span class="hl">하나의 주연</span></h2>
+    <p class="subcopy">리진은 세 개의 기둥으로 선다. 그러나 셋의 무게는 같지 않다. <b>F&B는 사람을 들이는 미끼(게이트)이고, 공예 큐레이션이 가닿아야 할 목적지(영혼)</b>다. 공간도 동선도 미디어도, 주연은 언제나 공예가 잡는다. 그래야 리진이 '예쁜 한옥 카페' 한 줄로 수렴하지 않는다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="pillars">
+      <div class="pillar lead">
+        <div class="pl">Pillar 01 · The Heritage</div>
+        <div class="pr">★ 주연 — 목적지</div>
+        <h4>고미술과 공예</h4>
+        <p>답십리가 가진 가장 강력한 자산. 고미술품과 현대 공예를 큐레이션하는 '살아있는 갤러리'. 손님은 커피를 마시러 왔다가 한국의 아름다움을 발견합니다.</p>
+        <div class="role"><b>역할 ·</b> 브랜드 무게중심 · 신뢰성 · 큐레이션 커머스의 원천</div>
+      </div>
+      <div class="pillar">
+        <div class="pl">Pillar 02 · The Fusion</div>
+        <div class="pr">미끼 — 게이트</div>
+        <h4>재해석한 디저트</h4>
+        <p>약과를 그대로 내지 않습니다. 조선의 맛을 현대 파티세리로 번역 — 오미자 무스, 막걸리 가나슈 타르트, 흑임자 밀푀유, 배 숙성 크림.</p>
+        <div class="role"><b>역할 ·</b> 대중적 접근성 · 시각적 극대화 · F&B 기프팅</div>
+      </div>
+      <div class="pillar">
+        <div class="pl">Pillar 03 · The Modern</div>
+        <div class="pr">미끼 — 앵커</div>
+        <h4>다도(茶道) 커피</h4>
+        <p>커피를 다루되 추출·서빙에 궁중 다례(茶禮)의 리추얼을 입힙니다. 백자 선의 잔, 공예가의 드리퍼. 커피 한 잔이 '숨을 고르는 의식'이 됩니다.</p>
+        <div class="role"><b>역할 ·</b> 일상적 반복 구매 · 앵커 콘텐츠 · 객단가의 기반</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>LI-TSIN — Three Pillars</span><span>LI-TSIN</span></div>
+</section>
+
+<!-- 09 GATEWAY MODEL -->
+<section class="slide slide--dark">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">08 — Business Model</span><span class="eyebrow">09</span></div>
+    <h2>게이트웨이 <span class="hl">3층 깔때기</span></h2>
+    <p class="subcopy">정체성은 하나로 고정한다 — 동네로 들어가는 <b>게이트웨이</b>. 수익은 그 위에 세 층으로 쌓는다. <b>F&B → 큐레이션 커머스 → 살롱</b>. 1층에서 사람을 들이고, 2층에서 곁의 공예를 사 상가 안쪽으로 걸어 들어가게 하고, 3층에서 단골과 컬렉터로 붙잡는다. 미끼는 커피지만, 깔때기의 끝은 답십리다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="funnel">
+      <div class="fl g1">
+        <div class="fn">1층 · Gate<span>다도 커피 · 디저트</span></div>
+        <div class="fd"><b>사람을 들인다.</b> 직영 F&B로 일상 방문·회전·SNS 인지를 만든다. 객단가 1.5–2.5만, 시즌 디저트로 재방문 유도.</div>
+        <div class="fm"><b>회전 · 인지</b>고마진 · 빠른 회전</div>
+      </div>
+      <div class="fl g2">
+        <div class="fn">2층 · Commerce<span>공예 큐레이션</span></div>
+        <div class="fd"><b>곁의 공예를 산다.</b> 상가 점주·장인과 위탁 큐레이션 코너. QR로 원점포 연결 = 게이트웨이 실증. 재고 부담 낮음.</div>
+        <div class="fm"><b>위탁 수수료</b>객단가 5만~수백만</div>
+      </div>
+      <div class="fl g3">
+        <div class="fn">3층 · Salon<span>멤버십 · 프로그램</span></div>
+        <div class="fd"><b>단골·컬렉터가 된다.</b> 다도 클래스, 도슨트 투어("리진의 답십리 산책"), 작가 드롭, 살롱 멤버십으로 락인.</div>
+        <div class="fm"><b>락인 · 프리미엄</b>경험 객단가 상</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>LI-TSIN — Gateway Model</span><span>LI-TSIN</span></div>
+</section>
+
+<!-- 10 ANCHOR THESIS -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">09 — Anchor Thesis</span><span class="eyebrow">10</span></div>
+    <h2>리진은 카페가 아니라 <span class="hl">동네의 로비</span></h2>
+    <p class="subcopy">리진의 첫 목표는 제 매출이 아니다. <b>답십리 전체를 깨우는 앵커</b>가 되는 것이다. 사람들은 커피를 마시러 온다. 그러다 고미술을 발견한다. 그리고 결국 동네 전체를 걷는다. 리진은 한 점포가 아니라, 동네로 들어가는 단 하나의 관문이다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="anchor-hero">
+      <div class="anchor-stat">
+        <div class="astat"><div class="av">+α<small> 유동인구</small></div><div class="al"><b>젊은 방문객·외국인 관광객·문화 소비자</b>를 동네로 유입시키는 첫 관문</div></div>
+        <div class="astat"><div class="av">QR<small> 전환</small></div><div class="al">공예 코너 → 원점포 유입률로 <b>'동네로 들어갔는가'</b>를 실측</div></div>
+        <div class="astat"><div class="av">↑<small> 자산가치</small></div><div class="al">동네의 <b>문화 권위와 자산가치 상승</b>을 가장 먼저 만드는 거점</div></div>
+      </div>
+      <div class="anchor-body">
+        <h3>우리가 만드는 것은 카페도, 편집샵도, 갤러리도 아니다. <span class="hl">답십리 전체를 잇는 하나의 문화적 로비</span>다.</h3>
+        <p>그래서 1년차의 성패는 객단가나 회전으로 묻지 않는다. <b>① 동네 트래픽 유입 ② 공예 QR 클릭→상가 유입률 ③ 멤버십 사전신청 수</b>로 본다. 리진의 성공은 매출이 아니다. <b>답십리가 현대의 문화 지도 위에 처음 이름을 올리는 것</b>으로 측정한다.</p>
+        <div class="callout"><p><strong>린 검증(3개월)</strong> — 직영 F&B 일 방문·객단가 / 공예 코너 QR→상가 유입률 / 살롱 멤버십 사전신청 수.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>LI-TSIN — Anchor Thesis</span><span>LI-TSIN</span></div>
+</section>
+
+<!-- 11 EVOLUTION -->
+<section class="slide slide--dark">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">10 — Evolution</span><span class="eyebrow">11</span></div>
+    <h2>게이트웨이에서 <span class="hl">플랫폼</span>으로</h2>
+    <p class="subcopy">리진은 한 점포에서 멈추지 않는다. 장면이 있는 F&B가 SNS로 퍼지고, 새 방문이 공예의 발견과 구매로 이어지고, 단골이 멤버가 되고, 작가와 점주가 합류해 큐레이션이 깊어지고, 그 깊이가 다시 더 강한 장면을 만든다. 이 바퀴가 한 바퀴 돌 때마다 <b>리진은 조금씩 답십리를 만든 게이트웨이 플랫폼</b>이 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="evo">
+      <div class="stage now">
+        <div class="et">초기 · 0–1년</div>
+        <div class="eh">게이트 살롱 오픈</div>
+        <div class="ed">F&B + 공예 코너 + 동네 연계. 인지와 SNS 장면 자산 축적. 게이트웨이 가설 실증.</div>
+        <div class="emix">수익 무게 · F&B <b>60</b> / 커머스 30 / 프로그램 10</div>
+      </div>
+      <div class="stage">
+        <div class="et">중기 · 1–3년</div>
+        <div class="eh">커머스 · 멤버십 정착</div>
+        <div class="ed">큐레이션 커머스 강화, 멤버십·도슨트 정착. 컬렉터 커뮤니티와 작가 네트워크 형성.</div>
+        <div class="emix">수익 무게 · F&B <b>40</b> / 커머스 35 / 프로그램 25</div>
+      </div>
+      <div class="stage">
+        <div class="et">후기 · 3년~</div>
+        <div class="eh">답십리 게이트웨이 플랫폼</div>
+        <div class="ed">트래픽 분배 · 브랜드 라이선스 · 헤리티지 컨설팅. 답십리 = 리진이 만든 동네라는 문화 권위.</div>
+        <div class="emix">수익 무게 · <b>플랫폼 · B2B 상승</b> (분산)</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>LI-TSIN — Evolution</span><span>LI-TSIN</span></div>
+</section>
+
+<!-- 12 CLOSING -->
+<section class="slide slide--cover">
+  <div class="close-wrap">
+    <div class="close-eyebrow">Closing</div>
+    <h1 class="close-title">리진이,<br><span class="hl">답십리로 돌아왔다.</span></h1>
+    <p class="close-sub">리진이 차린 것은 카페가 아니라 관문이다. 사람들은 커피 한 잔을 들고 들어와, 조선의 가장 오래된 아름다움과 오늘의 가장 새로운 감각을 한 자리에서 마주한다.<br>시간은 흐르고 아름다움은 쉽게 박제되지만, 리진은 그 박제를 풀어 멈춰 있던 것을 다시 살게 한다.</p>
+  </div>
+  <div class="cover-meta">
+    <span>LI-TSIN · La Fleur d'une Âme</span>
+    <span>다음 단계 · 공간 스펙 <span class="tbd">TBD</span> · 예산 <span class="tbd">TBD</span> · 오픈 <span class="tbd">TBD</span></span>
+  </div>
+</section>
+
+</div>
+
+<div class="nav-bar">
+  <button id="prevBtn">◀ Prev</button>
+  <span class="nav-counter"><span id="cur">01</span> / <span id="total">12</span></span>
+  <button id="nextBtn">Next ▶</button>
+  <button id="editBtn">Edit</button>
+  <button id="saveBtn">Save</button>
+</div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let idx=0;const total=slides.length;
+document.getElementById('total').textContent=String(total).padStart(2,'0');
+function show(n){
+  idx=Math.max(0,Math.min(total-1,n));
+  slides.forEach((s,i)=>s.classList.toggle('active',i===idx));
+  document.getElementById('cur').textContent=String(idx+1).padStart(2,'0');
+  document.getElementById('progress').style.width=((idx+1)/total*100)+'%';
+}
+function next(){show(idx+1);}function prev(){show(idx-1);}
+document.getElementById('nextBtn').onclick=next;
+document.getElementById('prevBtn').onclick=prev;
+document.addEventListener('keydown',e=>{
+  if(document.body.classList.contains('editing')&&e.key!=='Escape')return;
+  switch(e.key){
+    case 'ArrowRight':case 'ArrowDown':case ' ':case 'PageDown':e.preventDefault();next();break;
+    case 'ArrowLeft':case 'ArrowUp':case 'PageUp':e.preventDefault();prev();break;
+    case 'Home':show(0);break;case 'End':show(total-1);break;
+    case 'f':case 'F':if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();break;
+    case 'h':case 'H':document.querySelector('.nav-bar').style.display=document.querySelector('.nav-bar').style.display==='none'?'flex':'none';break;
+    case 'e':case 'E':toggleEdit();break;
+    case 'Escape':if(document.body.classList.contains('editing'))toggleEdit();break;
+  }
+});
+document.getElementById('deck').addEventListener('click',e=>{
+  if(document.body.classList.contains('editing'))return;
+  if(e.target.closest('button'))return;
+  const x=e.clientX/window.innerWidth;
+  if(x>0.7)next();else if(x<0.3)prev();
+});
+function toggleEdit(){
+  const on=document.body.classList.toggle('editing');
+  document.getElementById('editIndicator').classList.toggle('on',on);
+  slides.forEach(s=>s.querySelectorAll('h1,h2,h3,h4,p,span,div.nv').forEach(el=>{
+    if(el.closest('.nav-bar'))return;el.contentEditable=on;
+  }));
+}
+document.getElementById('editBtn').onclick=toggleEdit;
+document.getElementById('saveBtn').onclick=()=>{
+  const clone=document.documentElement.cloneNode(true);
+  clone.querySelectorAll('.nav-bar,.nav-progress,.edit-indicator,script').forEach(n=>n.remove());
+  clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+  clone.querySelectorAll('.slide').forEach((s,i)=>s.classList.toggle('active',i===0));
+  const blob=new Blob(['<!DOCTYPE html>\n'+clone.outerHTML],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='litsin-brand-proposal.html';a.click();
+};
+show(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L0 Why We Change — 왜 다르게 일해야 하는가</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --green: #8FA37E; --amber: #D9A34B; --red: #E17055; --blue: #6F8AA3;
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300;letter-spacing:-0.01em;line-height:1.7;
+}
+h1,h2,h3,h4{font-weight:500;text-wrap:balance}
+
+.sec{
+  padding:100px 120px 120px;max-width:1440px;margin:0 auto;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out);
+}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sec-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px;
+}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:16px}
+.body{font-size:14px;color:var(--fg-2);line-height:1.7}
+.body strong{color:var(--fg);font-weight:500}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-48{margin-top:48px}
+
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:80px 60px;background:var(--bg-2);
+}
+.cover .eyebrow{margin-bottom:24px}
+.cover h1{font-size:56px;font-weight:200;letter-spacing:-0.03em;line-height:1.1}
+.cover h1 em{font-style:normal;color:var(--accent)}
+.cover .sub{font-size:16px;color:var(--fg-2);margin-top:24px;max-width:640px;font-weight:300}
+.cover .meta{font-size:11px;color:var(--fg-3);letter-spacing:.2em;margin-top:48px;text-transform:uppercase}
+.cover .level-badge{
+  display:inline-block;padding:6px 20px;font-size:12px;letter-spacing:.2em;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.25);margin-bottom:24px;text-transform:uppercase;
+}
+
+.big-quote{
+  background:var(--bg-2);padding:80px 120px;text-align:center;
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+}
+.big-quote blockquote{
+  font-size:28px;font-weight:200;letter-spacing:-0.02em;line-height:1.4;
+  color:var(--fg);max-width:800px;margin:0 auto;
+}
+.big-quote blockquote em{font-style:normal;color:var(--accent)}
+.big-quote .attr{font-size:12px;color:var(--fg-3);margin-top:24px;letter-spacing:.15em}
+
+.principle{
+  background:rgba(108,92,231,.06);border-left:3px solid var(--accent);
+  padding:28px 32px;margin:24px 0;
+}
+.principle p{font-size:14px;color:var(--fg-2);margin:0;line-height:1.7}
+.principle strong{color:var(--accent-light)}
+
+.callout{
+  background:rgba(108,92,231,.08);border-left:3px solid var(--accent);
+  padding:24px 28px;margin:24px 0;
+}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+.card{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card .c-num{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.card.accent-top{border-top:2px solid var(--accent)}
+
+.scenario{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:32px;margin:16px 0;
+  transition:border-color var(--duration-base) var(--ease-out);
+}
+.scenario:hover{border-color:var(--fg-3)}
+.scenario .s-label{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:12px}
+.scenario .s-situation{font-size:15px;color:var(--fg);font-weight:500;margin-bottom:16px}
+.scenario .s-dialogue{padding:16px 20px;background:var(--bg-2);border-left:2px solid var(--accent);margin:12px 0}
+.scenario .s-dialogue p{font-size:13px;color:var(--fg-2);margin:6px 0;line-height:1.6}
+.scenario .s-dialogue .speaker{color:var(--fg-3);font-size:11px;letter-spacing:.1em;margin-bottom:2px}
+.scenario .s-dialogue .speaker.rem{color:var(--accent-light)}
+.scenario .s-insight{
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--line-2);
+  font-size:12px;color:var(--fg-3);
+}
+.scenario .s-insight strong{color:var(--green)}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:32px 0}
+.compare-col{padding:32px;border:1px solid var(--line-2)}
+.compare-col.bad{background:rgba(225,112,85,.03);border-color:rgba(225,112,85,.15)}
+.compare-col.good{background:rgba(143,163,126,.03);border-color:rgba(143,163,126,.15)}
+.compare-col h4{font-size:11px;letter-spacing:.25em;text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--line-2)}
+.compare-col.bad h4{color:var(--red)}
+.compare-col.good h4{color:var(--green)}
+.compare-col .item{padding:14px 0;border-bottom:1px solid var(--line-2);font-size:13px;color:var(--fg-2);line-height:1.5}
+.compare-col .item:last-child{border-bottom:none}
+.compare-col .item .label{font-size:10px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+
+.steps{margin:32px 0}
+.step{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--line-2)}
+.step:last-child{border-bottom:none}
+.step-num{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:500;flex-shrink:0;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.2);
+}
+.step-content h4{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.step-content p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.step-content .example{
+  margin-top:10px;padding:10px 14px;background:var(--bg-3);
+  border-left:2px solid var(--accent);font-size:12px;color:var(--fg-2);line-height:1.5;
+}
+
+footer{
+  padding:80px 120px 60px;border-top:1px solid var(--line-2);
+  max-width:1440px;margin:80px auto 0;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg-3);text-transform:uppercase}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+
+@media(max-width:1200px){
+  .sec{padding:80px 60px}
+  .cover h1{font-size:40px}
+  .big-quote{padding:60px 40px}
+  .big-quote blockquote{font-size:22px}
+  .compare,.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.sec{opacity:1;transform:none;transition:none}}
+@media print{.sec{opacity:1;transform:none;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <span class="level-badge">LEVEL 0 &mdash; WHY</span>
+  <span class="eyebrow">REM OS &middot; Why We Change</span>
+  <h1>왜 <em>다르게</em> 일해야 하는가</h1>
+  <p class="sub">이건 일을 더 하자는 이야기가 아니다.<br>같은 시간을 일하면서 더 깊게 보자는 이야기다.</p>
+  <p class="meta">Project Rent &middot; L0 Why We Change &middot; v1.0</p>
+</section>
+
+<!-- Ch01 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 01 &mdash; YOUR QUESTION</span>
+      <h2>솔직히 이런 생각 들지 않아?</h2>
+    </div>
+    <span class="eyebrow">01</span>
+  </div>
+
+  <p class="body">먼저 인정하자. 이런 생각이 드는 게 당연하다.</p>
+
+  <div class="grid-2 mt-32">
+    <div class="card">
+      <div class="c-num">Question 01</div>
+      <h4>"왜 커피만 만들면 안 되지?"</h4>
+      <p>커피 잘 만들고, 친절하게 응대하고, 매장 깔끔히 관리하면 되는 거 아닌가?</p>
+    </div>
+    <div class="card">
+      <div class="c-num">Question 02</div>
+      <h4>"왜 관찰까지 해야 하지?"</h4>
+      <p>남들은 그냥 단순하게 일하는데, 왜 우리는 생각까지 해야 하지?</p>
+    </div>
+    <div class="card">
+      <div class="c-num">Question 03</div>
+      <h4>"왜 보고를 이렇게 깊게?"</h4>
+      <p>매출 숫자만 적으면 되는 거 아닌가? 왜 "왜?"까지 물어야 하지?</p>
+    </div>
+    <div class="card">
+      <div class="c-num">Question 04</div>
+      <h4>"더 열심히 일하라는 거 아냐?"</h4>
+      <p>결국 업무가 늘어나는 거 아닌가?</p>
+    </div>
+  </div>
+
+  <div class="principle mt-32">
+    <p>이 질문들은 다 정당하다. 그리고 이 질문들에 대한 답이 없으면, 어떤 시스템도 작동하지 않는다. 이 자료는 그 답을 같이 찾아보자는 것이다.</p>
+  </div>
+</section>
+
+<!-- Ch02 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 02 &mdash; THE WORLD CHANGED</span>
+      <h2>예전에 통하던 것들이 안 통하기 시작했다</h2>
+    </div>
+    <span class="eyebrow">02</span>
+  </div>
+
+  <p class="body">5년 전만 해도 이것들이 경쟁력이었다.</p>
+
+  <div class="compare mt-32">
+    <div class="compare-col bad">
+      <h4>예전에는 이걸로 됐다</h4>
+      <div class="item">
+        <div class="label">맛있는 커피</div>
+        지금은 맛있는 커피가 너무 많다
+      </div>
+      <div class="item">
+        <div class="label">예쁜 공간</div>
+        지금은 예쁜 공간도 너무 많다
+      </div>
+      <div class="item">
+        <div class="label">친절한 응대</div>
+        지금은 친절함이 기본값이다
+      </div>
+      <div class="item">
+        <div class="label">좋은 위치</div>
+        지금은 어디든 배달이 된다
+      </div>
+    </div>
+    <div class="compare-col good">
+      <h4>지금 남는 질문</h4>
+      <div class="item">
+        <div class="label">맛</div>
+        "왜 하필 여기서 마셔야 하지?"
+      </div>
+      <div class="item">
+        <div class="label">공간</div>
+        "왜 이 공간을 기억하지?"
+      </div>
+      <div class="item">
+        <div class="label">응대</div>
+        "왜 친구를 데려오고 싶지?"
+      </div>
+      <div class="item">
+        <div class="label">접근성</div>
+        "왜 사진을 찍고 이야기하지?"
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p>경쟁이 바뀌었다. "기능"으로 이기는 시대에서, <strong>"기억"으로 이기는 시대로.</strong> 커피 맛은 비슷한데, "여기서 마시는 경험"이 다르면 사람들은 그걸 기억한다. 그 기억을 설계하는 게 우리가 하려는 일이다.</p>
+  </div>
+</section>
+
+<!-- Ch03 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 03 &mdash; WHAT HAPPENS WHEN YOU MISS THE POINT</span>
+      <h2>돈을 잘 벌고 있을 때가 가장 위험하다</h2>
+    </div>
+    <span class="eyebrow">03</span>
+  </div>
+
+  <p class="body">"지금 잘 되고 있으니까 굳이 바꿀 필요 없잖아?" — 이 생각이 가장 위험하다. 실제 사례를 보자.</p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">Case 01 &mdash; 통신사와 카카오톡</div>
+    <div class="s-situation">통신사는 문자 서비스로 돈을 아주 잘 벌고 있었다</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">통신사</span></p>
+      <p>"문자 1건에 30원씩 잘 벌고 있는데, 뭘 바꿔?"</p>
+      <p><span class="speaker">카카오톡</span></p>
+      <p>"사람은 문자를 보내고 싶은 게 아니라 연결되고 싶은 거야."</p>
+      <p><span class="speaker rem">결과</span></p>
+      <p>문자는 부가 기능이 됐다. 메시지의 중심은 카카오톡으로 완전히 넘어갔다.</p>
+    </div>
+    <div class="s-insight">통신사는 "문자"를 보고 있었고, 카카오톡은 <strong>"연결"을 보고 있었다.</strong> 지금 돈을 버는 모델을 지키려다, 본질을 놓쳤다.</div>
+  </div>
+
+  <div class="scenario mt-16">
+    <div class="s-label">Case 02 &mdash; 은행과 토스</div>
+    <div class="s-situation">은행은 금융상품으로 안정적인 수익을 올리고 있었다</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">은행</span></p>
+      <p>"금리 경쟁하고 상품 다양화하면 되지, 뭘 바꿔?"</p>
+      <p><span class="speaker">토스</span></p>
+      <p>"사람은 금융이 아니라 복잡함을 싫어하는 거야."</p>
+      <p><span class="speaker rem">결과</span></p>
+      <p>금융 자체보다 "경험"이 경쟁력이 됐다. 사람들은 토스로 갈아탔다.</p>
+    </div>
+    <div class="s-insight">은행은 "금융상품"을 보고 있었고, 토스는 <strong>"사람의 불편함"을 보고 있었다.</strong></div>
+  </div>
+
+  <div class="principle mt-32">
+    <p>교훈은 같다. 지금 잘 되는 방식은 생각보다 빨리 무력화될 수 있다. 그리고 대부분의 사람은 그 변화가 이미 시작됐다는 걸 늦게 체감한다. 우리도 마찬가지다. <strong>"커피를 잘 만든다"는 건 좋은 일이지만, 그것만으로는 "왜 하필 여기서?"에 답할 수 없다.</strong></p>
+  </div>
+</section>
+
+<!-- Ch04 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 04 &mdash; FROM FUNCTION TO PERCEPTION</span>
+      <h2>뭘 파느냐가 아니라, 뭘 남기느냐</h2>
+    </div>
+    <span class="eyebrow">04</span>
+  </div>
+
+  <p class="body">통신사와 은행 사례에서 공통점이 있다. 이긴 쪽은 "서비스 자체"가 아니라 "고객이 느끼는 경험"을 본 쪽이었다.</p>
+
+  <div class="grid-2 mt-32">
+    <div class="card">
+      <div class="c-num">기능 경쟁</div>
+      <h4>커피 맛, 인테리어, 가격, 메뉴 수</h4>
+      <p>비교 가능하고, 따라잡기 쉽고, 결국 비슷해진다.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">인식 경쟁</div>
+      <h4>"여기 장인이 만든다", "이 공간은 감각이 다르다", "여기서만 가능한 경험"</h4>
+      <p>비교 불가능하고, 따라잡기 어렵고, 기억에 남는다.</p>
+    </div>
+  </div>
+
+  <p class="body mt-32">우리가 하려는 건 바로 이 전환이다. 커피를 더 맛있게 만들자는 게 아니라, "이 공간에서 경험한 것이 기억에 남고, 이야기가 되고, 다시 오게 만드는" 것을 설계하자는 것이다.</p>
+
+  <div class="callout mt-24">
+    <p>이제 경쟁은 "뭘 파느냐"가 아니라 <strong>"뭘 남기느냐"다.</strong> 고객 머릿속에 남는 한 문장 — 그게 진짜 경쟁력이다.</p>
+  </div>
+</section>
+
+<!-- Ch05 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 05 &mdash; WHAT AI CAN AND CAN'T DO</span>
+      <h2>단순 기능은 줄어들고, 해석 능력은 귀해진다</h2>
+    </div>
+    <span class="eyebrow">05</span>
+  </div>
+
+  <p class="body">AI 이야기를 하면 불안해지는 사람이 있다. 하지만 이건 위기론이 아니라 기회 이야기다.</p>
+
+  <div class="compare mt-32">
+    <div class="compare-col bad">
+      <h4>AI가 점점 잘하게 될 것</h4>
+      <div class="item">
+        <div class="label">주문 · 결제</div>
+        주문 접수, 결제 처리
+      </div>
+      <div class="item">
+        <div class="label">수치 관리</div>
+        재고 계산, 정산
+      </div>
+      <div class="item">
+        <div class="label">정보 전달</div>
+        메뉴 설명 (기본 정보)
+      </div>
+      <div class="item">
+        <div class="label">일정</div>
+        운영 일정 관리
+      </div>
+      <div class="item">
+        <div class="label">응대</div>
+        단순 고객 응대
+      </div>
+    </div>
+    <div class="compare-col good">
+      <h4>인간이 더 중요해지는 것</h4>
+      <div class="item">
+        <div class="label">감지</div>
+        사람의 분위기 읽기
+      </div>
+      <div class="item">
+        <div class="label">현장</div>
+        현장의 공기 감지
+      </div>
+      <div class="item">
+        <div class="label">판단</div>
+        순간의 맥락 판단
+      </div>
+      <div class="item">
+        <div class="label">해석</div>
+        고객의 미묘한 반응 해석
+      </div>
+      <div class="item">
+        <div class="label">전달</div>
+        브랜드를 자기 말로 전달
+      </div>
+      <div class="item">
+        <div class="label">설계</div>
+        경험을 설계하는 감각
+      </div>
+    </div>
+  </div>
+
+  <div class="principle mt-32">
+    <p>앞으로 인간의 가치는 "기능 수행"보다 "해석과 관찰"에 가까워질 가능성이 높다. 커피를 내리는 건 기계도 하지만, <strong>"이 고객이 왜 여기서 오래 머물고 있는지"를 읽는 건 너만 할 수 있다.</strong> REM이 훈련하는 건 바로 그 능력이다.</p>
+  </div>
+</section>
+
+<!-- Ch06 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 06 &mdash; DEEPER, NOT HARDER</span>
+      <h2>일이 늘어나는 게 아니다. 눈이 달라지는 거다</h2>
+    </div>
+    <span class="eyebrow">06</span>
+  </div>
+
+  <p class="body">여기서 가장 중요한 포인트. REM은 "더 열심히 일하라"는 시스템이 아니다. "더 깊게 보라"는 시스템이다. 같은 시간, 같은 장소, 같은 일인데 — 보이는 것이 달라지는 거다.</p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">같은 시간, 다른 깊이</div>
+    <div class="s-situation">두 사람이 같은 매장에서 같은 시간 동안 일했다</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">A</span></p>
+      <p>"오늘 바빴어. 커피 많이 나갔고, 사람 많았어."</p>
+      <p><span class="speaker rem">B</span></p>
+      <p>"오늘 오후 3시쯤 시음 코너에서 사람들이 오래 머물었어. 제조 스토리 말했더니 '정성스럽다'고 하면서 추가 구매한 분이 두 명 있었거든. 내일은 시음 전에 스토리를 먼저 해볼까 생각 중이야."</p>
+    </div>
+    <div class="s-insight">두 사람 다 열심히 일했다. 하지만 B는 같은 시간에 관찰하고, 해석하고, 다음 행동을 설계했다. <strong>이게 "더 열심히"가 아니라 "더 깊게"의 차이다.</strong></div>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="card">
+      <div class="c-num">더 열심히 = 노동량 증가</div>
+      <h4>더 빨리, 더 많이, 더 오래</h4>
+      <p>더 빨리 만들고, 더 많이 접수하고, 더 오래 일한다. 몸은 피곤한데 성장은 안 된다.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">더 깊게 = 해상도 증가</div>
+      <h4>같은 시간에 더 많이 보고, 더 나은 판단</h4>
+      <p>같은 시간에 더 많이 보고, 더 깊이 생각하고, 더 나은 판단을 한다. 시간은 같은데 보이는 게 달라진다.</p>
+    </div>
+  </div>
+
+  <div class="callout mt-24">
+    <p>REM이 요구하는 건 추가 노동이 아니다. <strong>"눈을 여는 것"이다.</strong> 눈이 열리면 같은 시간이 더 많은 의미를 갖게 된다.</p>
+  </div>
+</section>
+
+<!-- Ch07 -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 07 &mdash; YOUR FUTURE SELF</span>
+      <h2>이건 회사 이야기가 아니라 네 이야기다</h2>
+    </div>
+    <span class="eyebrow">07</span>
+  </div>
+
+  <p class="body">솔직히 회사 비전은 와닿지 않을 수 있다. 그건 자연스러운 거다. 더 중요한 질문은 이거다: "나는 여기서 어떤 사람이 될 수 있는가?"</p>
+
+  <div class="compare mt-32">
+    <div class="compare-col bad">
+      <h4>일반 F&amp;B 3년 경력</h4>
+      <div class="item">
+        <div class="label">제조</div>
+        커피 제조 숙련
+      </div>
+      <div class="item">
+        <div class="label">운영</div>
+        매장 운영 경험
+      </div>
+      <div class="item">
+        <div class="label">응대</div>
+        접객 스킬
+      </div>
+      <div class="item">
+        <div class="label">이직 시</div>
+        "카페에서 일했습니다"
+      </div>
+    </div>
+    <div class="compare-col good">
+      <h4>REM 3년 경력</h4>
+      <div class="item">
+        <div class="label">분석</div>
+        고객 반응 분석 가능
+      </div>
+      <div class="item">
+        <div class="label">브랜드</div>
+        브랜드 해석·설명 가능
+      </div>
+      <div class="item">
+        <div class="label">데이터</div>
+        현장 관찰·데이터 기록 가능
+      </div>
+      <div class="item">
+        <div class="label">기획</div>
+        작은 실험 기획·실행 가능
+      </div>
+      <div class="item">
+        <div class="label">개선</div>
+        프로젝트 회고·개선 제안 가능
+      </div>
+      <div class="item">
+        <div class="label">기술</div>
+        AI 협업 경험
+      </div>
+      <div class="item">
+        <div class="label">이직 시</div>
+        "경험 설계와 고객 분석을 했습니다"
+      </div>
+    </div>
+  </div>
+
+  <p class="body mt-32">차이가 보이는가? 같은 3년인데, REM에서의 3년은 완전히 다른 이력서를 만든다. 브랜드 감각, 고객 이해, 데이터 해석, 프로젝트 운영, AI 활용 — 이건 어디서든 통하는 역량이다.</p>
+
+  <div class="principle mt-24">
+    <p>REM은 회사를 위한 시스템이기도 하지만, 동시에 <strong>너를 위한 시스템이다.</strong> "현장형 경험 설계자" — 이 역량은 앞으로 점점 더 희소해지고, 점점 더 가치 있어질 가능성이 높다.</p>
+  </div>
+</section>
+
+<!-- Ch08 -->
+<section class="sec" id="s8">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 08 &mdash; START SMALL</span>
+      <h2>거창한 변화가 아니라, 오늘 하나만</h2>
+    </div>
+    <span class="eyebrow">08</span>
+  </div>
+
+  <p class="body">여기까지 읽으면 거창하게 느껴질 수 있다. 하지만 시작은 아주 작다.</p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">작은 성공의 순간</div>
+    <div class="s-situation">첫 번째 "아, 진짜 다르네?" 순간</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">상황</span></p>
+      <p>오늘 설명 방식을 하나 바꿔봤다. 제품 스펙 대신 셰프 이야기를 먼저 했다.</p>
+      <p><span class="speaker rem">결과</span></p>
+      <p>고객이 "정성스럽다"고 말하면서 선물용으로 추가 구매했다.</p>
+      <p><span class="speaker">느낌</span></p>
+      <p>"내가 말 한마디 바꿨을 뿐인데, 고객 반응이 진짜 달라졌네."</p>
+    </div>
+    <div class="s-insight">이 순간이 가장 중요하다. <strong>"내 행동이 결과를 바꿨다"를 경험하면,</strong> 그다음부터 관찰이 재미있어지기 시작한다. 철학 때문에 움직이는 게 아니라, 체감 때문에 움직이게 된다.</div>
+  </div>
+
+  <p class="body mt-32">오늘부터 해볼 수 있는 것</p>
+
+  <div class="steps mt-16">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>"오늘 고객이 가장 오래 머문 곳이 어디였는지 기억해봐"</h4>
+        <p>그게 관찰의 시작이다.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>"설명할 때 제품 정보 대신 스토리를 하나 먼저 해봐"</h4>
+        <p>반응이 달라지는지 느껴봐.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>"마감 때 REM Bot한테 오늘 가장 기억 남는 고객 반응 하나만 말해봐"</h4>
+        <p>5분이면 된다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="principle mt-32">
+    <p>사람은 철학 때문에 움직이지 않는다. <strong>"내가 해봤는데 진짜 바뀌네?"를 경험할 때 움직인다.</strong> 거창한 변화는 필요 없다. 오늘 하나만 다르게 해보자. 그 하나가 쌓이면, 어느 순간 보이는 것이 완전히 달라져 있을 거다.</p>
+  </div>
+</section>
+
+<!-- BIG QUOTE -->
+<div class="big-quote">
+  <blockquote>"우리는 더 <em>열심히</em> 일하자는 게 아니다. 같은 시간을 일하면서 더 <em>깊게</em> 보자는 거다. 그 깊이가 너의 성장이고, 팀의 자산이고, 회사의 미래다."</blockquote>
+  <div class="attr">REM OS &mdash; Project Rent</div>
+</div>
+
+<footer>
+  <div class="logo">Project Rent</div>
+  <div class="meta">L0 Why We Change &middot; 2026.06.09 &middot; v1.0</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.sec').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

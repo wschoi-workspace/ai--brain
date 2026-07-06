@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봉은문화센터 최종보고서 — Master Roadmap & Deliverables</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  :root {
+    --bg: #111113;
+    --surface: #1A1A1E;
+    --surface2: #222226;
+    --border: #2A2A2E;
+    --border-accent: #3A3A3E;
+    --text: #E8E8EC;
+    --text-dim: #9090A0;
+    --text-muted: #606070;
+    --accent: #6C5CE7;
+    --accent-dim: rgba(108,92,231,0.15);
+    --accent-glow: rgba(108,92,231,0.25);
+    --green: #00D68F;
+    --green-dim: rgba(0,214,143,0.12);
+    --yellow: #FFD93D;
+    --yellow-dim: rgba(255,217,61,0.12);
+    --red: #FF6B6B;
+    --red-dim: rgba(255,107,107,0.12);
+    --blue: #4ECDC4;
+    --blue-dim: rgba(78,205,196,0.12);
+    --orange: #FFA726;
+    --orange-dim: rgba(255,167,38,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 40px 80px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 56px;
+  }
+  .header-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .header p {
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 680px;
+  }
+  .header-meta {
+    margin-top: 16px;
+    display: flex;
+    gap: 24px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .header-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* Section */
+  .section {
+    margin-bottom: 56px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Timeline Overview */
+  .timeline-overview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 56px;
+  }
+  .timeline-bar {
+    display: flex;
+    gap: 0;
+    margin-top: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 48px;
+  }
+  .timeline-bar .phase-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #fff;
+    position: relative;
+  }
+  .timeline-bar .phase-bar.pa { background: var(--accent); flex: 5; }
+  .timeline-bar .phase-bar.pb { background: #4ECDC4; flex: 15; }
+  .timeline-bar .phase-bar.pc { background: #FFD93D; color: #1A1A1E; flex: 15; }
+  .timeline-bar .phase-bar.pd { background: #FF6B6B; flex: 5; }
+  .timeline-bar .phase-bar.pe { background: #00D68F; flex: 2; }
+
+  .timeline-dates {
+    display: flex;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .timeline-dates span { text-align: center; }
+  .timeline-dates .pa { flex: 5; }
+  .timeline-dates .pb { flex: 15; }
+  .timeline-dates .pc { flex: 15; }
+  .timeline-dates .pd { flex: 5; }
+  .timeline-dates .pe { flex: 2; }
+
+  .milestone-row {
+    display: flex;
+    margin-top: 16px;
+    gap: 0;
+  }
+  .milestone-marker {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    position: relative;
+  }
+  .milestone-marker::before {
+    content: '';
+    display: block;
+    width: 2px;
+    height: 12px;
+    background: var(--text-muted);
+    margin: 0 auto 4px;
+  }
+  .milestone-marker.pa { flex: 5; }
+  .milestone-marker.pb { flex: 15; }
+  .milestone-marker.pc { flex: 15; }
+  .milestone-marker.pd { flex: 5; }
+  .milestone-marker.pe { flex: 2; }
+
+  /* Phase Cards */
+  .phase-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .phase-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .phase-header {
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .phase-header-left {}
+  .phase-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+  .phase-badge.a { background: var(--accent-dim); color: var(--accent); }
+  .phase-badge.b { background: var(--blue-dim); color: var(--blue); }
+  .phase-badge.c { background: var(--yellow-dim); color: var(--yellow); }
+  .phase-badge.d { background: var(--red-dim); color: var(--red); }
+  .phase-badge.e { background: var(--green-dim); color: var(--green); }
+  .phase-name {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .phase-period {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .phase-goal {
+    font-size: 13px;
+    color: var(--text-dim);
+    background: var(--surface2);
+    padding: 8px 14px;
+    border-radius: 6px;
+    max-width: 320px;
+    text-align: right;
+    line-height: 1.5;
+  }
+
+  /* Process Table */
+  .process-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .process-table thead th {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .process-table thead th:first-child { width: 44px; }
+  .process-table thead th:nth-child(2) { width: 180px; }
+  .process-table thead th:nth-child(3) { width: 30%; }
+  .process-table thead th:nth-child(4) { width: 30%; }
+  .process-table thead th:last-child { width: 100px; }
+
+  .process-table tbody td {
+    padding: 14px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .process-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .process-num {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .process-name {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .process-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .deliverable-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .deliverable-list li {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .deliverable-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border-accent);
+  }
+  .deliverable-list li.done::before { background: var(--green); }
+  .deliverable-list li.wip::before { background: var(--yellow); }
+  .deliverable-list li.new::before { background: var(--red); }
+  .deliverable-list li.done { color: var(--text-muted); }
+
+  .status-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+  .status-tag.done { background: var(--green-dim); color: var(--green); }
+  .status-tag.wip { background: var(--yellow-dim); color: var(--yellow); }
+  .status-tag.todo { background: var(--red-dim); color: var(--red); }
+  .status-tag.blocked { background: var(--orange-dim); color: var(--orange); }
+
+  /* Chapter Mapping */
+  .chapter-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    margin: 1px 2px;
+  }
+
+  /* Dependency Flow */
+  .dep-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+  }
+  .dep-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .dep-node {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    flex: 1;
+    min-width: 200px;
+  }
+  .dep-node h4 {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .dep-node ul {
+    list-style: none;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .dep-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    color: var(--text-muted);
+    font-size: 18px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .legend-dot.done { background: var(--green); }
+  .legend-dot.wip { background: var(--yellow); }
+  .legend-dot.new { background: var(--red); }
+
+  /* Summary Stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+  .stat-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* RFP Mapping */
+  .rfp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+  .rfp-table th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .rfp-table td {
+    font-size: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .rfp-table tr:last-child td { border-bottom: none; }
+
+  .bar-bg {
+    width: 100%;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* Critical Path highlight */
+  .critical { border-left: 3px solid var(--red) !important; }
+
+  /* Principle box */
+  .principle-box {
+    background: var(--accent-dim);
+    border: 1px solid rgba(108,92,231,0.3);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 40px;
+  }
+  .principle-box h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .principle-cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .principle-item {
+    text-align: center;
+  }
+  .principle-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .principle-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .principle-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-label">Bongeunsa Cultural Center — Master Report</div>
+    <h1>최종보고서 로드맵 & 산출물 매트릭스</h1>
+    <p>12챕터 마스터 프레임워크 기준, 프로세스별 산출물과 의존관계를 정리한 제작 관리 문서</p>
+    <div class="header-meta">
+      <span>계약 2026.05.18 ~ 08.16 (90일)</span>
+      <span>납품 M4: 08.14</span>
+      <span>12 Chapters</span>
+      <span>갱신 2026-06-28</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">전체 완성도</div>
+      <div class="stat-value" style="color:var(--yellow)">45%</div>
+      <div class="stat-sub">리서치 완료 / 전략·실행 진행 중</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">남은 기간</div>
+      <div class="stat-value">47일</div>
+      <div class="stat-sub">~ 08.14 최종납품</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">다음 마일스톤</div>
+      <div class="stat-value" style="font-size:22px; color:var(--red)">M3</div>
+      <div class="stat-sub">방향성 보고 07.02 (D-4)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">총 산출물</div>
+      <div class="stat-value">42건</div>
+      <div class="stat-sub">완료 18 / 진행 5 / 미착수 19</div>
+    </div>
+  </div>
+
+  <!-- Principle -->
+  <div class="principle-box">
+    <h3>모든 챕터의 제작 원칙</h3>
+    <div class="principle-cols">
+      <div class="principle-item">
+        <div class="principle-num">F</div>
+        <div class="principle-label">FACT</div>
+        <div class="principle-desc">지금 어떤 상황인가?<br>데이터 · 수치 · 현황</div>
+      </div>
+      <div class="principle-item">
+        <div class="principle-num">I</div>
+        <div class="principle-label">INSIGHT</div>
+        <div class="principle-desc">무엇을 읽을 수 있는가?<br>해석 · 패턴 · 의미</div>
+      </div>
+      <div class="principle-item">
+        <div class="principle-num">S</div>
+        <div class="principle-label">STRATEGY</div>
+        <div class="principle-desc">무엇을 제안하는가?<br>방향 · 실행 · 권고</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline Overview -->
+  <div class="section">
+    <div class="section-title">01. 전체 타임라인</div>
+    <div class="timeline-overview">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:14px; font-weight:700;">프로젝트 90일 — 5 Phase 구조</span>
+        <span style="font-size:11px; color:var(--text-muted);">계약 05/18 → 납품 08/14 (버퍼 2일)</span>
+      </div>
+      <div class="timeline-bar">
+        <div class="phase-bar pa">PHASE 0</div>
+        <div class="phase-bar pb">PHASE A</div>
+        <div class="phase-bar pc">PHASE B</div>
+        <div class="phase-bar pd">PHASE C</div>
+        <div class="phase-bar pe">M4</div>
+      </div>
+      <div class="timeline-dates">
+        <span class="pa">5/18 ~ 6/28</span>
+        <span class="pb">6/29 ~ 7/10</span>
+        <span class="pc">7/10 ~ 7/25</span>
+        <span class="pd">7/27 ~ 8/9</span>
+        <span class="pe">8/14</span>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-marker pa">M1·M2 완료</div>
+        <div class="milestone-marker pb">M3 방향성 보고 (7/2)</div>
+        <div class="milestone-marker pc">마스터플랜 통합</div>
+        <div class="milestone-marker pd">최종보고서 제작</div>
+        <div class="milestone-marker pe">납품</div>
+      </div>
+
+      <div class="legend" style="margin-top:24px;">
+        <div class="legend-item"><div class="legend-dot done"></div>완료 (기존 산출물 보유)</div>
+        <div class="legend-item"><div class="legend-dot wip"></div>진행 중 / 보완 필요</div>
+        <div class="legend-item"><div class="legend-dot new"></div>미착수 (신규 제작)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- PHASE 0 -->
+  <!-- ============================================ -->
+  <div class="section">
+    <div class="section-title">02. Phase 0 — 리서치 & 진단 (완료)</div>
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-badge a">PHASE 0 — DONE</div>
+          <div class="phase-name">데스크 리서치 & 진단 레포트</div>
+          <div class="phase-period">2026.05.18 ~ 06.28 (41일) — 완료</div>
+        </div>
+        <div class="phase-goal">이미 수행한 리서치·분석을 정리.<br>최종보고서의 원재료(Raw Material).</div>
+      </div>
+      <table class="process-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>프로세스</th>
+            <th>산출물</th>
+            <th>최종보고서 활용</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="process-num">0-1</td>
+            <td>
+              <div class="process-name">RFP·계약 분석</div>
+              <div class="process-desc">과업지시서+추가합의서+계약서 원문 정밀 분석</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="done">rfp-analysis-bongeunsa.md (Phase1+2)</li>
+                <li class="done">rfp-analysis-contract-based.md (계약서 기반)</li>
+                <li class="done">rfp-analysis-contract-based.html (시각화)</li>
+                <li class="done">과업 체크리스트 45항목</li>
+                <li class="done">수정 방어 매트릭스 8건</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">내부관리</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">검수 QA 기준으로 활용</div>
+            </td>
+            <td><span class="status-tag done">완료</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">0-2</td>
+            <td>
+              <div class="process-name">법규 분석</div>
+              <div class="process-desc">전통사찰법·건축법·세법·문화재법·도시공원법 5법령</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="done">법적-행정적-검토-전통사찰법-문화재법.md</li>
+                <li class="done">법적-행정적-검토-세법-사업구조.md</li>
+                <li class="done">문화집회시설-용도변경-법규-가이드.md</li>
+                <li class="done">법적 허용 3단계 매트릭스</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.04</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Spiritual BM Framework 법률검토</div>
+            </td>
+            <td><span class="status-tag done">완료</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">0-3</td>
+            <td>
+              <div class="process-name">시장·사례 리서치</div>
+              <div class="process-desc">국내외 종교공간·웰니스·문화시설 벤치마크</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="done">종교공간 BM 22개 패턴 (5권역·6유형)</li>
+                <li class="done">명동1898 케이스스터디</li>
+                <li class="done">일본 도시형 사원 심층 리서치</li>
+                <li class="done">유럽·동남아 종교공간 BM</li>
+                <li class="done">럭셔리 주거 커뮤니티 3종 (유럽/일본/미국)</li>
+                <li class="done">리서치 덱 8종 (중간산출물/)</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.05</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">시장 사례분석 원자료</div>
+            </td>
+            <td><span class="status-tag done">완료</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">0-4</td>
+            <td>
+              <div class="process-name">상권·입지 분석</div>
+              <div class="process-desc">삼성동 유동인구·개발·외국인 동선</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="done">상권 종합분석 (유동인구 31.6만)</li>
+                <li class="done">삼성동 메가개발 리서치 (2031 유동인구 50~70만)</li>
+                <li class="done">외국인 사찰 경험 페인포인트</li>
+                <li class="done">MZ 명상·불교 인식 리서치</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.01</span> <span class="chapter-tag">Ch.05</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">시대변화 + 시장검증</div>
+            </td>
+            <td><span class="status-tag done">완료</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">0-5</td>
+            <td>
+              <div class="process-name">불교 인식 분석</div>
+              <div class="process-desc">불교 brand-analysis (SNS 멘션 2,809건)</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="done">불교 브랜드 인식 리포트 (호감 54.4·1위)</li>
+                <li class="done">담론 지형 매트릭스</li>
+                <li class="done">진정성 분석 (61.7)</li>
+                <li class="done">빈자리 = '현대적 깊이' 도출</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.01</span> <span class="chapter-tag">Ch.02</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">불교 현위치 + 비전 근거</div>
+            </td>
+            <td><span class="status-tag done">완료</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">0-6</td>
+            <td>
+              <div class="process-name">진단 컨설팅 레포트</div>
+              <div class="process-desc">MBB 하이브리드 덱 (기존 분석 구조화)</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="done">consulting-report-bongeunsa.html (25장)</li>
+                <li class="done">consulting-report-storyline.md (Ghost Deck)</li>
+                <li class="done">Governing Thought 확정</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">전체</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">최종보고서의 논증 골격</div>
+            </td>
+            <td><span class="status-tag done">완료</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">0-7</td>
+            <td>
+              <div class="process-name">조사 도구 & 착수</div>
+              <div class="process-desc">설문·인터뷰 도구 제작 + 착수계획서</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="done">내부 설문 22Q (Vercel 배포 완료)</li>
+                <li class="done">인터뷰 가이드 24Q (ARISA)</li>
+                <li class="done">착수계획서 A4 PDF</li>
+                <li class="wip">설문 응답 수집 (아직 미회수)</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.03</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">고객·전략 프레임 인풋</div>
+            </td>
+            <td><span class="status-tag wip">수집대기</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- PHASE A -->
+  <!-- ============================================ -->
+  <div class="section">
+    <div class="section-title">03. Phase A — 전략 뼈대 확정 (6/29 ~ 7/10)</div>
+    <div class="phase-card critical">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-badge b">PHASE A — CRITICAL PATH</div>
+          <div class="phase-name">비전 · 전략 프레임 · 시나리오 3안</div>
+          <div class="phase-period">2026.06.29 ~ 07.10 (12일) — M3 방향성 보고 포함</div>
+        </div>
+        <div class="phase-goal">발주처가 방향을 선택할 수 있는<br>전략적 판단 근거 제공.<br><strong style="color:var(--red)">M3 (7/2) = 최대 게이트</strong></div>
+      </div>
+      <table class="process-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>프로세스</th>
+            <th>산출물</th>
+            <th>최종보고서 챕터</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="process-num">A-1</td>
+            <td>
+              <div class="process-name">비전 정의</div>
+              <div class="process-desc">봉은사의 존재이유 재정의, 서울/불교 내 역할, 본원 vs 문화센터 역할분리</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="wip">비전 선언문 (Project Vision Statement)</li>
+                <li class="new">본원 vs 문화센터 역할분리 매트릭스</li>
+                <li class="new">봉은사 고유 자산 정의서</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.02</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">2-1~2-4 전체</div>
+            </td>
+            <td><span class="status-tag wip">보완</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">A-2</td>
+            <td>
+              <div class="process-name">Spiritual BM Framework</div>
+              <div class="process-desc">비즈니스 철학, Boundary Map, 법률 정리</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">Mission → Business 연결 다이어그램</li>
+                <li class="new">비즈니스 Boundary Map (가능/주의/불가)</li>
+                <li class="wip">법률 검토 보고서용 재편집</li>
+                <li class="wip">유권해석 시나리오별 영향 정리</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.04</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">4-1~4-4 전체, 가장 중요한 장</div>
+            </td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">A-3</td>
+            <td>
+              <div class="process-name">전략 프레임 설계</div>
+              <div class="process-desc">고객 세그먼트, 핵심 경험, 재방문 구조, 브랜드 가치</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">고객 세그먼트별 페르소나 (5유형)</li>
+                <li class="new">핵심 경험 Journey Map</li>
+                <li class="new">재방문 구조 설계서</li>
+                <li class="new">브랜드 포지셔닝 맵 + 핵심 가치</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.03</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">3-1~3-4 전체</div>
+            </td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">A-4</td>
+            <td>
+              <div class="process-name">BM 포트폴리오 평가</div>
+              <div class="process-desc">22개 BM → 5축 비교 → 우선순위</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="wip">가능 BM 전체 목록 (22개 → 정리)</li>
+                <li class="new">5축 비교 매트릭스 (수익/운영/확장/종교/법률)</li>
+                <li class="new">우선순위 도출 + 근거</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.06</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">6-1~6-3 전체</div>
+            </td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">A-5</td>
+            <td>
+              <div class="process-name">시나리오 A·B·C 상세 전개</div>
+              <div class="process-desc">각 안의 철학/BM/공간개요/운영/장단점 + 비교표</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="wip">시나리오 A: Convention & Culture Hub</li>
+                <li class="wip">시나리오 B: Membership & Wellness Hub</li>
+                <li class="wip">시나리오 C: Korean Spiritual Lifestyle Platform</li>
+                <li class="new">3안 비교표 (운영/수익/투자/차별성/확장성)</li>
+                <li class="new">시나리오별 고객 여정 시뮬레이션</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.07</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">M3 방향성 보고의 핵심</div>
+            </td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">A-6</td>
+            <td>
+              <div class="process-name">M3 방향성 보고 덱</div>
+              <div class="process-desc">A-1~A-5를 발표용 PT 슬라이드로 구성</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">방향성 보고 PT 덱 (HTML 16:9)</li>
+                <li class="new">핸드아웃 요약 (A4 PDF)</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">발표</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">M3 마일스톤 발표 자료</div>
+            </td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- PHASE B -->
+  <!-- ============================================ -->
+  <div class="section">
+    <div class="section-title">04. Phase B — 마스터플랜 설계 (7/10 ~ 7/25)</div>
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-badge c">PHASE B — BUILD</div>
+          <div class="phase-name">공간 · 운영 · 재무 — 실행 설계</div>
+          <div class="phase-period">2026.07.10 ~ 07.25 (16일) — M3 확정 안 기반</div>
+        </div>
+        <div class="phase-goal">선택된 시나리오를 공간·운영·재무로<br>구체화하여 실행 가능성 검증</div>
+      </div>
+      <table class="process-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>프로세스</th>
+            <th>산출물</th>
+            <th>최종보고서 챕터</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="process-num">B-1</td>
+            <td>
+              <div class="process-name">공간 기본계획</div>
+              <div class="process-desc">공간 철학, 층별 기능배치, 동선, 경험흐름, Mood</div>
+              <div class="process-desc" style="color:var(--orange); margin-top:4px;">전제훈 공간디자인 총괄 협업 필수</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">공간 철학 정의서</li>
+                <li class="new">층별 기능 배치도 (시나리오별)</li>
+                <li class="new">방문객 동선 설계</li>
+                <li class="new">경험 흐름도 (Experience Flow)</li>
+                <li class="new">공간 Mood & 레퍼런스 보드</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.08</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">8-1~8-5 전체</div>
+            </td>
+            <td><span class="status-tag blocked">협업대기</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">B-2</td>
+            <td>
+              <div class="process-name">운영 시스템 설계</div>
+              <div class="process-desc">조직, 프로그램, 멤버십, 예약, 프로세스, KPI</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">조직 구조도 (직영 운영팀)</li>
+                <li class="new">프로그램 운영 체계 (주간/월간/시즌)</li>
+                <li class="new">멤버십 등급·혜택·가격 설계서</li>
+                <li class="new">예약·CRM 시스템 설계</li>
+                <li class="new">운영 프로세스 (일일/주간/월간)</li>
+                <li class="new">KPI 대시보드 설계</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.09</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">9-1~9-6 전체</div>
+            </td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">B-3</td>
+            <td>
+              <div class="process-name">재무 시뮬레이션</div>
+              <div class="process-desc">CAPEX, OPEX, Revenue, P&L 5년, Sensitivity, BEP</div>
+              <div class="process-desc" style="color:var(--orange); margin-top:4px;">배성원 사업PM 협업</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">CAPEX 상세 (리모델링+인테리어+장비+시스템)</li>
+                <li class="new">OPEX 상세 (인건비+운영비+마케팅+감가상각)</li>
+                <li class="new">Revenue 모델 (BM별 단가x수량x가동률)</li>
+                <li class="new">P&L 5개년 (시나리오별)</li>
+                <li class="new">Sensitivity 분석 (낙관/기준/보수)</li>
+                <li class="new">BEP 분석 + 투자 회수기간</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.10</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">10-1~10-5 전체 + 과업Ch.6·7</div>
+            </td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">B-4</td>
+            <td>
+              <div class="process-name">로드맵 상세화</div>
+              <div class="process-desc">Phase1 Launch → Phase2 Expansion → Phase3 Platform</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">Phase별 목표·과제·투자·조직 상세</li>
+                <li class="new">연도별 마일스톤 간트</li>
+                <li class="new">리스크 관리 매트릭스 (실행 단계)</li>
+              </ul>
+            </td>
+            <td>
+              <span class="chapter-tag">Ch.11</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">11-1~11-3 + 과업Ch.8</div>
+            </td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- PHASE C -->
+  <!-- ============================================ -->
+  <div class="section">
+    <div class="section-title">05. Phase C — 최종보고서 제작 (7/27 ~ 8/9)</div>
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-badge d">PHASE C — COMPILE</div>
+          <div class="phase-name">12챕터 통합 + 재편집 + QA</div>
+          <div class="phase-period">2026.07.27 ~ 08.09 (14일)</div>
+        </div>
+        <div class="phase-goal">기존 리서치를 F-I-S로 재편집하고<br>전체를 하나의 보고서로 통합</div>
+      </div>
+      <table class="process-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>프로세스</th>
+            <th>산출물</th>
+            <th>최종보고서 챕터</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="process-num">C-1</td>
+            <td>
+              <div class="process-name">Ch.01 시대 변화 편집</div>
+              <div class="process-desc">기존 리서치를 F-I-S 구조로 재편집</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="wip">사회 변화 분석 (정량 보완)</li>
+                <li class="wip">한국 불교 현위치 (통계청 데이터 추가)</li>
+                <li class="done">봉은사 현재 과제 (충분)</li>
+              </ul>
+            </td>
+            <td><span class="chapter-tag">Ch.01</span></td>
+            <td><span class="status-tag wip">편집</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">C-2</td>
+            <td>
+              <div class="process-name">Ch.05 시장·사례 재편집</div>
+              <div class="process-desc">사례별 So What 통일, 시장규모 정량</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="wip">국내외 사례 So What 통일 (15건+)</li>
+                <li class="new">명상/웰니스/전통문화 시장규모 정량</li>
+                <li class="wip">트렌드→시사점 구조화</li>
+              </ul>
+            </td>
+            <td><span class="chapter-tag">Ch.05</span></td>
+            <td><span class="status-tag wip">편집</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">C-3</td>
+            <td>
+              <div class="process-name">Ch.12 기대효과·정책 제언</div>
+              <div class="process-desc">임팩트 정량화 + 조계종 확산 + 정책 제언</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">문화적·사회적·경제적 가치 정량화</li>
+                <li class="new">조계종 확산 모델 (봉은사 → 전국 사찰)</li>
+                <li class="new">정책 제언 3~5건</li>
+              </ul>
+            </td>
+            <td><span class="chapter-tag">Ch.12</span></td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">C-4</td>
+            <td>
+              <div class="process-name">12챕터 통합 편집</div>
+              <div class="process-desc">전체 보고서 일관성, 넘버링, 크로스레퍼런스</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">최종보고서 본문 (12챕터 통합 HTML)</li>
+                <li class="new">Exhibit 번호·각주·출처 통일</li>
+                <li class="new">전체 논리 흐름 교차 검증</li>
+              </ul>
+            </td>
+            <td><span class="chapter-tag">전체</span></td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">C-5</td>
+            <td>
+              <div class="process-name">QA 검수</div>
+              <div class="process-desc">과업지시서 45항목 전수 검증 + 숫자 3중 체크</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">검수 체크리스트 45항목 통과 확인서</li>
+                <li class="new">숫자·통계 3중 검증 리포트</li>
+                <li class="new">오탈자·디자인 최종 점검</li>
+              </ul>
+            </td>
+            <td><span class="chapter-tag">품질</span></td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- PHASE D — 납품 -->
+  <!-- ============================================ -->
+  <div class="section">
+    <div class="section-title">06. Phase D — 납품 준비 (8/9 ~ 8/14)</div>
+    <div class="phase-card">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-badge e">PHASE D — DELIVER</div>
+          <div class="phase-name">M4 최종보고 & 납품</div>
+          <div class="phase-period">2026.08.09 ~ 08.14 (5일 + 버퍼 2일)</div>
+        </div>
+        <div class="phase-goal">계약 산출물 납품 완료</div>
+      </div>
+      <table class="process-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>프로세스</th>
+            <th>산출물</th>
+            <th>비고</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="process-num">D-1</td>
+            <td>
+              <div class="process-name">최종 산출물 제작</div>
+              <div class="process-desc">보고서 인쇄본 + USB + 발표자료</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">최종보고서 5부 (인쇄 제본)</li>
+                <li class="new">요약보고서 5부 (Executive Summary)</li>
+                <li class="new">USB 5개 (전체 디지털 파일)</li>
+                <li class="new">최종 발표 PT 덱</li>
+              </ul>
+            </td>
+            <td>
+              <div style="font-size:11px; color:var(--text-muted);">추가합의서 제1조 산출물 정의 기준</div>
+            </td>
+            <td><span class="status-tag todo">제작</span></td>
+          </tr>
+          <tr>
+            <td class="process-num">D-2</td>
+            <td>
+              <div class="process-name">M4 최종보고</div>
+              <div class="process-desc">발주처 PT + 산출물 납품</div>
+            </td>
+            <td>
+              <ul class="deliverable-list">
+                <li class="new">발표 (진우 총무원장·주지·신도회)</li>
+                <li class="new">납품 확인서 서명</li>
+                <li class="new">잔금 청구 (자동승인 10일)</li>
+              </ul>
+            </td>
+            <td>
+              <div style="font-size:11px; color:var(--text-muted);">M4: 08.14 (마감 08.16, 버퍼 2일)</div>
+            </td>
+            <td><span class="status-tag todo">예정</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- Dependency Flow -->
+  <!-- ============================================ -->
+  <div class="section">
+    <div class="section-title">07. 의존관계 & 크리티컬 패스</div>
+    <div class="dep-section">
+      <div style="font-size:14px; font-weight:700; margin-bottom:16px;">논리적 의존 순서 (앞 단계가 완료돼야 다음 진행 가능)</div>
+
+      <!-- Row 1 -->
+      <div style="font-size:11px; font-weight:700; color:var(--accent); margin-bottom:8px; margin-top:16px;">PHASE A 내부 순서</div>
+      <div class="dep-flow">
+        <div class="dep-node">
+          <h4 style="color:var(--accent)">A-1 비전</h4>
+          <ul>
+            <li>존재이유 재정의</li>
+            <li>본원 vs 문화센터</li>
+          </ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node">
+          <h4 style="color:var(--accent)">A-2 Spiritual BM</h4>
+          <ul>
+            <li>비즈니스 철학</li>
+            <li>Boundary Map</li>
+          </ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node">
+          <h4 style="color:var(--accent)">A-3 전략 프레임</h4>
+          <ul>
+            <li>고객 정의</li>
+            <li>경험·브랜드</li>
+          </ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node">
+          <h4 style="color:var(--accent)">A-4 BM 포트폴리오</h4>
+          <ul>
+            <li>5축 비교</li>
+            <li>우선순위</li>
+          </ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node" style="border-color:var(--red)">
+          <h4 style="color:var(--red)">A-5 시나리오 3안</h4>
+          <ul>
+            <li>A·B·C 상세</li>
+            <li>비교표</li>
+            <li style="color:var(--red); font-weight:600;">M3 핵심</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div style="font-size:11px; font-weight:700; color:var(--blue); margin-bottom:8px; margin-top:24px;">PHASE B 내부 순서 (M3 확정 안 의존)</div>
+      <div class="dep-flow">
+        <div class="dep-node" style="border-color:var(--red); max-width:140px;">
+          <h4 style="color:var(--red)">M3 확정</h4>
+          <ul>
+            <li>시나리오 선택</li>
+          </ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node">
+          <h4 style="color:var(--blue)">B-1 공간</h4>
+          <ul>
+            <li>층별 배치</li>
+            <li>동선 설계</li>
+            <li style="color:var(--orange)">전제훈 협업</li>
+          </ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node">
+          <h4 style="color:var(--blue)">B-2 운영</h4>
+          <ul>
+            <li>조직·프로그램</li>
+            <li>멤버십·KPI</li>
+          </ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node">
+          <h4 style="color:var(--blue)">B-3 재무</h4>
+          <ul>
+            <li>CAPEX/OPEX</li>
+            <li>P&L 5년</li>
+            <li style="color:var(--orange)">배성원 협업</li>
+          </ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node">
+          <h4 style="color:var(--blue)">B-4 로드맵</h4>
+          <ul>
+            <li>Phase 1·2·3</li>
+            <li>마일스톤</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Row 3 -->
+      <div style="font-size:11px; font-weight:700; color:var(--yellow); margin-bottom:8px; margin-top:24px;">PHASE C 병렬 가능</div>
+      <div class="dep-flow">
+        <div class="dep-node">
+          <h4 style="color:var(--yellow)">C-1 Ch.01 편집</h4>
+          <ul><li>Phase A와 병렬 가능</li></ul>
+        </div>
+        <div class="dep-node" style="margin-left:8px;">
+          <h4 style="color:var(--yellow)">C-2 Ch.05 편집</h4>
+          <ul><li>Phase A와 병렬 가능</li></ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node">
+          <h4 style="color:var(--yellow)">C-3 Ch.12 기대효과</h4>
+          <ul><li>B-3 재무 의존</li></ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node">
+          <h4 style="color:var(--yellow)">C-4 통합 편집</h4>
+          <ul><li>전 챕터 완료 후</li></ul>
+        </div>
+        <div class="dep-arrow">→</div>
+        <div class="dep-node">
+          <h4 style="color:var(--yellow)">C-5 QA 검수</h4>
+          <ul><li>45항목 전수</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- RFP Mapping -->
+  <!-- ============================================ -->
+  <div class="section">
+    <div class="section-title">08. 과업지시서 산출물 매핑</div>
+    <div class="dep-section">
+      <div style="font-size:13px; color:var(--text-dim); margin-bottom:16px;">과업지시서 9챕터 요구사항이 최종보고서 12챕터에 어떻게 대응되는지</div>
+      <table class="rfp-table">
+        <thead>
+          <tr>
+            <th style="width:60px;">과업</th>
+            <th style="width:200px;">요구사항</th>
+            <th style="width:160px;">대응 챕터</th>
+            <th style="width:200px;">핵심 산출물</th>
+            <th style="width:80px;">완성도</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:700; color:var(--text);">Ch.1</td>
+            <td>사업 환경 분석</td>
+            <td><span class="chapter-tag">Ch.01</span> <span class="chapter-tag">Ch.05</span></td>
+            <td style="font-size:11px; color:var(--text-dim);">사회변화·불교현위치·삼성동개발·시장규모</td>
+            <td>
+              <div style="font-size:12px; font-weight:700; color:var(--green);">75%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:75%; background:var(--green);"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:var(--text);">Ch.2</td>
+            <td>시장 분석</td>
+            <td><span class="chapter-tag">Ch.05</span></td>
+            <td style="font-size:11px; color:var(--text-dim);">시장규모·트렌드·수요예측</td>
+            <td>
+              <div style="font-size:12px; font-weight:700; color:var(--yellow);">60%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:60%; background:var(--yellow);"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:var(--text);">Ch.3</td>
+            <td>사례 분석</td>
+            <td><span class="chapter-tag">Ch.05</span></td>
+            <td style="font-size:11px; color:var(--text-dim);">국내외 15건+ 벤치마크</td>
+            <td>
+              <div style="font-size:12px; font-weight:700; color:var(--green);">80%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:80%; background:var(--green);"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:var(--text);">Ch.4</td>
+            <td>공간 활용 대안</td>
+            <td><span class="chapter-tag">Ch.07</span> <span class="chapter-tag">Ch.08</span></td>
+            <td style="font-size:11px; color:var(--text-dim);">시나리오 3안 + 층별 배치도</td>
+            <td>
+              <div style="font-size:12px; font-weight:700; color:var(--red);">30%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:30%; background:var(--red);"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:var(--text);">Ch.5</td>
+            <td>운영 모델</td>
+            <td><span class="chapter-tag">Ch.06</span> <span class="chapter-tag">Ch.09</span></td>
+            <td style="font-size:11px; color:var(--text-dim);">BM 포트폴리오 + 운영시스템</td>
+            <td>
+              <div style="font-size:12px; font-weight:700; color:var(--red);">25%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:25%; background:var(--red);"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:var(--text);">Ch.6</td>
+            <td>5개년 수지분석</td>
+            <td><span class="chapter-tag">Ch.10</span></td>
+            <td style="font-size:11px; color:var(--text-dim);">P&L 5년 + BEP + Sensitivity</td>
+            <td>
+              <div style="font-size:12px; font-weight:700; color:var(--red);">15%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:15%; background:var(--red);"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:var(--text);">Ch.7</td>
+            <td>경제성 검토</td>
+            <td><span class="chapter-tag">Ch.10</span></td>
+            <td style="font-size:11px; color:var(--text-dim);">Sensitivity 3시나리오</td>
+            <td>
+              <div style="font-size:12px; font-weight:700; color:var(--red);">10%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:10%; background:var(--red);"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:var(--text);">Ch.8</td>
+            <td>사업 추진 로드맵</td>
+            <td><span class="chapter-tag">Ch.11</span></td>
+            <td style="font-size:11px; color:var(--text-dim);">Phase 1·2·3 + 마일스톤</td>
+            <td>
+              <div style="font-size:12px; font-weight:700; color:var(--red);">30%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:30%; background:var(--red);"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:var(--text);">Ch.9</td>
+            <td>종합 결론</td>
+            <td><span class="chapter-tag">Ch.02</span> <span class="chapter-tag">Ch.12</span></td>
+            <td style="font-size:11px; color:var(--text-dim);">비전 + 기대효과 + 정책제언</td>
+            <td>
+              <div style="font-size:12px; font-weight:700; color:var(--yellow);">35%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:35%; background:var(--yellow);"></div></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- 산출물 총 목록 -->
+  <!-- ============================================ -->
+  <div class="section">
+    <div class="section-title">09. 전체 산출물 체크리스트 (42건)</div>
+    <div class="phase-card">
+      <table class="process-table">
+        <thead>
+          <tr>
+            <th style="width:60px;">Phase</th>
+            <th style="width:60px;">#</th>
+            <th>산출물</th>
+            <th style="width:100px;">챕터</th>
+            <th style="width:80px;">상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Phase 0 완료 -->
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">1</td><td style="color:var(--text-muted);">RFP 분석 리포트 (Phase1+2)</td><td><span class="chapter-tag">내부</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">2</td><td style="color:var(--text-muted);">계약서 기반 분석 + HTML</td><td><span class="chapter-tag">내부</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">3</td><td style="color:var(--text-muted);">법규 분석 4종 (전통사찰법·건축법·세법·문화재법)</td><td><span class="chapter-tag">Ch.04</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">4</td><td style="color:var(--text-muted);">종교공간 BM 22개 패턴</td><td><span class="chapter-tag">Ch.04</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">5</td><td style="color:var(--text-muted);">국내외 사례 리서치 15건+</td><td><span class="chapter-tag">Ch.05</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">6</td><td style="color:var(--text-muted);">상권·입지·유동인구 분석</td><td><span class="chapter-tag">Ch.01</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">7</td><td style="color:var(--text-muted);">불교 brand-analysis (2,809건 멘션)</td><td><span class="chapter-tag">Ch.01</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">8</td><td style="color:var(--text-muted);">MBB 컨설팅 레포트 25장 덱</td><td><span class="chapter-tag">전체</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">9</td><td style="color:var(--text-muted);">리서치 덱 8종 (중간산출물/)</td><td><span class="chapter-tag">Ch.05</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">10</td><td style="color:var(--text-muted);">아이디에이션 3안 초안</td><td><span class="chapter-tag">Ch.07</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">11</td><td style="color:var(--text-muted);">내부 설문 22Q (Vercel 배포)</td><td><span class="chapter-tag">Ch.03</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">12</td><td style="color:var(--text-muted);">인터뷰 가이드 24Q</td><td><span class="chapter-tag">Ch.03</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">13</td><td style="color:var(--text-muted);">착수계획서 A4 PDF</td><td><span class="chapter-tag">행정</span></td><td><span class="status-tag done">완료</span></td></tr>
+          <!-- Phase 0 진행 중 -->
+          <tr><td><span class="phase-badge a" style="font-size:9px;">P0</span></td><td class="process-num">14</td><td>설문 응답 수집 (미회수)</td><td><span class="chapter-tag">Ch.03</span></td><td><span class="status-tag wip">수집</span></td></tr>
+
+          <!-- Phase A -->
+          <tr style="border-top:2px solid var(--border-accent);"><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">15</td><td>비전 선언문 (Project Vision)</td><td><span class="chapter-tag">Ch.02</span></td><td><span class="status-tag wip">보완</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">16</td><td>본원 vs 문화센터 역할분리 매트릭스</td><td><span class="chapter-tag">Ch.02</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">17</td><td>Mission→Business 연결 다이어그램</td><td><span class="chapter-tag">Ch.04</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">18</td><td>비즈니스 Boundary Map</td><td><span class="chapter-tag">Ch.04</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">19</td><td>고객 세그먼트 페르소나 (5유형)</td><td><span class="chapter-tag">Ch.03</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">20</td><td>핵심 경험 Journey Map</td><td><span class="chapter-tag">Ch.03</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">21</td><td>재방문 구조 설계서</td><td><span class="chapter-tag">Ch.03</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">22</td><td>브랜드 포지셔닝 맵</td><td><span class="chapter-tag">Ch.03</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">23</td><td>5축 BM 비교 매트릭스</td><td><span class="chapter-tag">Ch.06</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">24</td><td>시나리오 A 상세 전개</td><td><span class="chapter-tag">Ch.07</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">25</td><td>시나리오 B 상세 전개</td><td><span class="chapter-tag">Ch.07</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">26</td><td>시나리오 C 상세 전개</td><td><span class="chapter-tag">Ch.07</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">27</td><td>3안 비교표</td><td><span class="chapter-tag">Ch.07</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge b" style="font-size:9px;">PA</span></td><td class="process-num">28</td><td>M3 방향성 보고 PT 덱</td><td><span class="chapter-tag">발표</span></td><td><span class="status-tag todo">제작</span></td></tr>
+
+          <!-- Phase B -->
+          <tr style="border-top:2px solid var(--border-accent);"><td><span class="phase-badge c" style="font-size:9px;">PB</span></td><td class="process-num">29</td><td>공간 철학 + 층별 기능 배치도</td><td><span class="chapter-tag">Ch.08</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge c" style="font-size:9px;">PB</span></td><td class="process-num">30</td><td>동선 + 경험 흐름도</td><td><span class="chapter-tag">Ch.08</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge c" style="font-size:9px;">PB</span></td><td class="process-num">31</td><td>조직 구조 + 프로그램 체계</td><td><span class="chapter-tag">Ch.09</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge c" style="font-size:9px;">PB</span></td><td class="process-num">32</td><td>멤버십 등급·가격 설계서</td><td><span class="chapter-tag">Ch.09</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge c" style="font-size:9px;">PB</span></td><td class="process-num">33</td><td>CAPEX + OPEX 상세</td><td><span class="chapter-tag">Ch.10</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge c" style="font-size:9px;">PB</span></td><td class="process-num">34</td><td>P&L 5개년 + BEP + Sensitivity</td><td><span class="chapter-tag">Ch.10</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge c" style="font-size:9px;">PB</span></td><td class="process-num">35</td><td>Phase 1·2·3 로드맵 상세</td><td><span class="chapter-tag">Ch.11</span></td><td><span class="status-tag todo">제작</span></td></tr>
+
+          <!-- Phase C -->
+          <tr style="border-top:2px solid var(--border-accent);"><td><span class="phase-badge d" style="font-size:9px;">PC</span></td><td class="process-num">36</td><td>Ch.01 시대 변화 (F-I-S 재편집)</td><td><span class="chapter-tag">Ch.01</span></td><td><span class="status-tag wip">편집</span></td></tr>
+          <tr><td><span class="phase-badge d" style="font-size:9px;">PC</span></td><td class="process-num">37</td><td>Ch.05 시장·사례 (정량 보완 + So What 통일)</td><td><span class="chapter-tag">Ch.05</span></td><td><span class="status-tag wip">편집</span></td></tr>
+          <tr><td><span class="phase-badge d" style="font-size:9px;">PC</span></td><td class="process-num">38</td><td>Ch.12 기대효과 + 정책 제언</td><td><span class="chapter-tag">Ch.12</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge d" style="font-size:9px;">PC</span></td><td class="process-num">39</td><td>12챕터 통합 최종보고서 (HTML→PDF)</td><td><span class="chapter-tag">전체</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge d" style="font-size:9px;">PC</span></td><td class="process-num">40</td><td>QA 검수 (45항목 + 숫자 3중 체크)</td><td><span class="chapter-tag">품질</span></td><td><span class="status-tag todo">제작</span></td></tr>
+
+          <!-- Phase D -->
+          <tr style="border-top:2px solid var(--border-accent);"><td><span class="phase-badge e" style="font-size:9px;">PD</span></td><td class="process-num">41</td><td>최종보고서 5부 + 요약 5부 + USB 5개</td><td><span class="chapter-tag">납품</span></td><td><span class="status-tag todo">제작</span></td></tr>
+          <tr><td><span class="phase-badge e" style="font-size:9px;">PD</span></td><td class="process-num">42</td><td>최종 발표 PT 덱</td><td><span class="chapter-tag">발표</span></td><td><span class="status-tag todo">제작</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>by Project Rent</span>
+    <span>Master Report Roadmap v1 — 2026-06-28</span>
+    <span>Confidential</span>
+  </div>
+
+</div>
+</body>
+</html>

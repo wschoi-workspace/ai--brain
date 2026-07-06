@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IR Deck Guide — 페이지 구성 로직</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root{
+    --bg:#1A1A1A; --bg-2:#111; --bg-3:#222; --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+    --line:#333; --line-2:#2a2a2a; --accent:#6C5CE7; --accent-light:#A29BFE;
+    --green:#8FA37E; --amber:#D9A34B; --red:#E17055;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+    background:var(--bg);color:var(--fg);font-weight:300;letter-spacing:-.01em;line-height:1.7;
+    -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 64px;}
+
+  /* hero */
+  .hero{padding:120px 0 70px;border-bottom:1px solid var(--line-2);}
+  .hero .eyebrow{font-size:11px;letter-spacing:.35em;color:var(--fg-3);text-transform:uppercase;}
+  .hero h1{font-size:72px;font-weight:200;letter-spacing:-.04em;line-height:1.0;margin:24px 0 0;}
+  .hero h1 .ac{color:var(--accent);}
+  .hero .sub{font-size:18px;color:var(--fg-2);max-width:60ch;margin-top:26px;}
+  .hero .meta{font-size:11px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-top:30px;}
+
+  /* section */
+  .sec{padding:80px 0;border-bottom:1px solid var(--line-2);}
+  .sec-head{display:flex;justify-content:space-between;align-items:baseline;
+    padding-bottom:22px;border-bottom:1px solid var(--line-2);margin-bottom:44px;}
+  .sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;}
+  .sec-head h2{font-size:38px;font-weight:500;letter-spacing:-.025em;line-height:1.15;}
+  .sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3);}
+  .sec-intro{font-size:17px;color:var(--fg-2);max-width:68ch;margin-bottom:40px;}
+  .sec-intro b{color:var(--fg);font-weight:500;}
+
+  /* 철학 3원칙 */
+  .princ{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .princ .p{background:var(--bg-3);border:1px solid var(--line-2);padding:28px;}
+  .princ .p .n{font-size:11px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;}
+  .princ .p .t{font-size:19px;font-weight:500;color:var(--fg);margin:12px 0 10px;}
+  .princ .p .d{font-size:14px;color:var(--fg-2);line-height:1.65;}
+  .quote{background:rgba(108,92,231,.08);border-left:3px solid var(--accent);padding:20px 26px;margin-top:26px;}
+  .quote p{font-size:16px;color:var(--fg-2);} .quote strong{color:var(--accent-light);font-weight:500;}
+
+  /* 내러티브 아크 */
+  .arc{display:flex;flex-direction:column;gap:0;}
+  .arc .row{display:grid;grid-template-columns:200px 1fr 200px;align-items:center;gap:24px;
+    padding:14px 0;border-bottom:1px solid var(--line-2);}
+  .arc .row:last-child{border-bottom:none;}
+  .arc .stage{font-size:15px;font-weight:500;color:var(--fg);}
+  .arc .q{font-size:14px;color:var(--fg-3);font-style:italic;text-align:center;}
+  .arc .slide{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-light);text-align:right;font-weight:400;}
+  .arc-note{margin-top:32px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .arc-note .an{background:var(--bg-2);border:1px solid var(--line-2);padding:18px 20px;}
+  .arc-note .an .t{font-size:13px;font-weight:500;color:var(--accent-light);margin-bottom:6px;}
+  .arc-note .an .d{font-size:13px;color:var(--fg-2);line-height:1.55;}
+
+  /* 13 페이지 카드 */
+  .pages{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .pg{background:var(--bg-3);border:1px solid var(--line-2);padding:24px 26px;}
+  .pg .ph{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;}
+  .pg .ph .num{font-size:12px;font-weight:500;color:var(--accent);letter-spacing:.05em;}
+  .pg .ph .name{font-size:18px;font-weight:500;color:var(--fg);}
+  .pg .ph .span{margin-left:auto;font-size:10px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;}
+  .pg .qline{font-size:13px;color:var(--fg-3);font-style:italic;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line-2);}
+  .pg .field{font-size:13.5px;line-height:1.6;margin:7px 0;}
+  .pg .field .k{color:var(--fg-3);font-size:10px;letter-spacing:.15em;text-transform:uppercase;margin-right:6px;}
+  .pg .field.do{color:var(--fg-2);} .pg .field.do b{color:var(--fg);font-weight:500;}
+  .pg .field.no{color:var(--red);opacity:.92;}
+
+  /* 단계 변형 표 */
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:12px 14px;font-weight:400;border-bottom:1px solid var(--line);}
+  td{padding:13px 14px;border-bottom:1px solid var(--line-2);color:var(--fg-2);}
+  td:first-child{color:var(--fg);font-weight:500;}
+
+  /* 체크리스트 */
+  .checks{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .chk{background:var(--bg-2);border:1px solid var(--line-2);padding:24px;}
+  .chk h4{font-size:12px;letter-spacing:.2em;color:var(--accent-light);text-transform:uppercase;margin-bottom:16px;}
+  .chk ul{list-style:none;}
+  .chk li{font-size:14px;color:var(--fg-2);padding:7px 0 7px 24px;position:relative;line-height:1.5;}
+  .chk li::before{content:"□";position:absolute;left:0;color:var(--fg-3);}
+
+  footer{padding:60px 0 90px;display:flex;justify-content:space-between;align-items:baseline;}
+  footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg-2);}
+  footer .m{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;}
+
+  @media(max-width:900px){.wrap{padding:0 24px;}.hero h1{font-size:44px;}.princ,.pages,.checks,.arc-note{grid-template-columns:1fr;}.arc .row{grid-template-columns:1fr;gap:6px;text-align:left;}.arc .q,.arc .slide{text-align:left;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="eyebrow">Project Rent · Templates</div>
+    <h1>IR DECK <span class="ac">GUIDE</span></h1>
+    <p class="sub">투자 제안서의 페이지 구성 로직과 논리 흐름. Airbnb·Sequoia·YC·B2B SaaS 분석 기반 — "무기화된 논리"로 사업이 작동함을 증명하는 13~15페이지 표준.</p>
+    <div class="meta">by Project Rent · 2026.06.14</div>
+  </header>
+
+  <!-- 0 철학 -->
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">Philosophy</span><span class="no">00</span></div>
+    <p class="sec-intro">좋은 IR deck은 예쁜 회사 소개가 아니다. <b>"이 사업은 반드시 작동한다"를 증명하는 논리 체인</b>이다. Airbnb가 $600K를 받은 deck의 본질은 디자인이 아니라, 각 슬라이드가 증명의 한 단계였다는 것.</p>
+    <div class="princ">
+      <div class="p"><div class="n">원칙 1</div><div class="t">한 슬라이드 = 한 메시지</div><div class="d">제목만 위→아래로 읽어도 결론이 흐른다 (Ghost Deck 테스트).</div></div>
+      <div class="p"><div class="n">원칙 2</div><div class="t">추상이 아니라 증거</div><div class="d">"거대한 TAM"(✕) → "이미 630K개 리스팅 존재"(○). 실수치·실행동으로 말한다.</div></div>
+      <div class="p"><div class="n">원칙 3</div><div class="t">다음으로 자연히 이어진다</div><div class="d">투자자 머릿속 질문 순서 = 슬라이드 순서.</div></div>
+    </div>
+    <div class="quote"><p>투자자는 deck을 <strong>"읽지" 않고 "반박하며"</strong> 본다. 각 페이지는 그가 떠올릴 다음 반론에 미리 답해야 한다.</p></div>
+  </section>
+
+  <!-- 1 내러티브 아크 -->
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">Narrative Arc · 논리 흐름</span><span class="no">01</span></div>
+    <p class="sec-intro">페이지 순서는 디자인이 아니라 <b>설득의 논리</b>다. 투자자 머릿속 질문이 곧 순서가 된다.</p>
+    <div class="arc">
+      <div class="row"><span class="stage">세상이 바뀐다</span><span class="q">"왜 지금인가?"</span><span class="slide">Why Now</span></div>
+      <div class="row"><span class="stage">그래서 문제가 생겼다</span><span class="q">"누가, 얼마나 아픈가?"</span><span class="slide">Problem</span></div>
+      <div class="row"><span class="stage">아무도 못 푼다</span><span class="q">"방치하면 얼마를 잃나?"</span><span class="slide">Stakes</span></div>
+      <div class="row"><span class="stage">우리가 푼다</span><span class="q">"그래서 답이 뭔가?"</span><span class="slide">Solution</span></div>
+      <div class="row"><span class="stage">이렇게 작동한다</span><span class="q">"진짜 되나? 보여줘"</span><span class="slide">Product / How</span></div>
+      <div class="row"><span class="stage">이미 통한다</span><span class="q">"증거 있나?"</span><span class="slide">Traction</span></div>
+      <div class="row"><span class="stage">시장이 크다</span><span class="q">"얼마나 큰 판인가?"</span><span class="slide">Market</span></div>
+      <div class="row"><span class="stage">이렇게 번다</span><span class="q">"어떻게 돈을 버나?"</span><span class="slide">Business Model</span></div>
+      <div class="row"><span class="stage">우리만의 해자</span><span class="q">"왜 너희가 이기나?"</span><span class="slide">Competition / Moat</span></div>
+      <div class="row"><span class="stage">이렇게 판다</span><span class="q">"어떻게 팔 건가?"</span><span class="slide">Go-to-Market</span></div>
+      <div class="row"><span class="stage">우리가 적임자다</span><span class="q">"왜 너희가 해내나?"</span><span class="slide">Team</span></div>
+      <div class="row"><span class="stage">함께하자</span><span class="q">"얼마가, 어디에 필요한가?"</span><span class="slide">The Ask</span></div>
+    </div>
+    <div class="arc-note">
+      <div class="an"><div class="t">한 줄 설명을 맨 앞</div><div class="d">커버에서 5초 안에 "무슨 회사"인지 알게.</div></div>
+      <div class="an"><div class="t">팀은 앞이 아니라 뒤</div><div class="d">팀을 1~2번에 두면 "팀이 핵심 투자포인트"라는 약점 신호. "이 문제를 풀 유니크한 위치"의 맥락에서 끝부분에.</div></div>
+      <div class="an"><div class="t">3블록 구조</div><div class="d">Problem~Market(앞) · Product~Traction(중간) · Team~Ask~Financials(마무리).</div></div>
+    </div>
+  </section>
+
+  <!-- 2 표준 13~15 페이지 -->
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">Standard Pages · 13~15p</span><span class="no">02</span></div>
+    <p class="sec-intro">각 페이지마다 — <b>목적 · 투자자의 질문 · 다룰 내용 · 흔한 실수</b>. 흔한 실수는 <span style="color:var(--red)">코랄색</span>으로 표시.</p>
+    <div class="pages">
+
+      <div class="pg"><div class="ph"><span class="num">P1</span><span class="name">Cover / One-liner</span><span class="span">1p</span></div>
+        <div class="qline">"무슨 회사야?"</div>
+        <div class="field do"><span class="k">담을 것</span>한 문장 정의("X를 위한 Y") + 로고 + 크레딧</div>
+        <div class="field no"><span class="k">실수</span>모호한 슬로건·미사여구, 뭐 하는지 모름</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P2</span><span class="name">Problem</span><span class="span">1~2p</span></div>
+        <div class="qline">"진짜 큰 문제야? 누가 아파해?"</div>
+        <div class="field do"><span class="k">담을 것</span><b>구체적 pain</b>, 누가/언제/왜, 현 대안의 한계</div>
+        <div class="field no"><span class="k">실수</span>회사 관점 문제, 너무 일반적, 문제 나열</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P3</span><span class="name">Stakes · 방치의 대가</span><span class="span">1p·선택</span></div>
+        <div class="qline">"안 풀면 얼마를 잃나?"</div>
+        <div class="field do"><span class="k">담을 것</span>정량 손실(시간·돈·기회), 악화되는 구조</div>
+        <div class="field no"><span class="k">실수</span>숫자 없이 "큰 문제다"만 반복</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P4</span><span class="name">Solution</span><span class="span">1p</span></div>
+        <div class="qline">"그래서 답이 뭔데?"</div>
+        <div class="field do"><span class="k">담을 것</span><b>한 문장 솔루션</b> + benefit 3개, 행동 재구성</div>
+        <div class="field no"><span class="k">실수</span>기능 나열, 기술 용어, 2장 이상</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P5</span><span class="name">Why Now</span><span class="span">1p</span></div>
+        <div class="qline">"왜 지금? 5년 전엔 왜 안 됐고?"</div>
+        <div class="field do"><span class="k">담을 것</span>기술·시장·행동·규제 변곡점 2~4개</div>
+        <div class="field no"><span class="k">실수</span>생략(가장 흔한 누락), "AI 뜨니까"만</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P6–7</span><span class="name">Product / How it works</span><span class="span">2~3p</span></div>
+        <div class="qline">"실제로 어떻게 돌아가?"</div>
+        <div class="field do"><span class="k">담을 것</span><b>비주얼/데모</b>, 사용자 흐름, 구성요소+각 가치</div>
+        <div class="field no"><span class="k">실수</span>텍스트만, 데모 없음, 기능 백화점</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P8</span><span class="name">Market · TAM/SAM/SOM</span><span class="span">1p</span></div>
+        <div class="qline">"얼마나 큰 판? 10배 회사 되나?"</div>
+        <div class="field do"><span class="k">담을 것</span><b>bottom-up</b> 산정, 실수치 기반, 확장 경로</div>
+        <div class="field no"><span class="k">실수</span>top-down만("1%만 먹어도"), 비현실 TAM</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P9</span><span class="name">Traction</span><span class="span">1p</span></div>
+        <div class="qline">"데이터 있어? 실제로 써?"</div>
+        <div class="field do"><span class="k">담을 것</span>성장지표(MoM/ARR/리텐션), 마일스톤·로고</div>
+        <div class="field no"><span class="k">실수</span>허영지표, 추세 없는 스냅샷, 과장</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P10</span><span class="name">Business Model + Unit Econ</span><span class="span">1p</span></div>
+        <div class="qline">"어떻게 벌어? 단위당 남아?"</div>
+        <div class="field do"><span class="k">담을 것</span>가격/수익원 + <b>CAC·LTV·NRR·Payback</b></div>
+        <div class="field no"><span class="k">실수</span>가격만, 단위경제 없음</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P11</span><span class="name">Competition / Moat</span><span class="span">1p</span></div>
+        <div class="qline">"이미 누가 하잖아? 대기업이 따라하면?"</div>
+        <div class="field do"><span class="k">담을 것</span>포지셔닝 맵(2×2), 솔직한 비교, <b>해자</b></div>
+        <div class="field no"><span class="k">실수</span>"경쟁자 없음", 우리만 체크표</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P12</span><span class="name">Go-to-Market</span><span class="span">1p</span></div>
+        <div class="qline">"어떻게 고객 확보? CAC는?"</div>
+        <div class="field do"><span class="k">담을 것</span>채널, 초기 거점(wedge), CAC 효율</div>
+        <div class="field no"><span class="k">실수</span>"입소문/바이럴" 막연, 채널 없음</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P13</span><span class="name">Team</span><span class="span">1p</span></div>
+        <div class="qline">"너희가 해낼 사람들이야?"</div>
+        <div class="field do"><span class="k">담을 것</span>창업자 + <b>founder-market fit</b>, 관련 실적</div>
+        <div class="field no"><span class="k">실수</span>앞에 배치(약점), 무관한 이력, 직함만</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P14</span><span class="name">Financials / Projections</span><span class="span">1p·seed선택</span></div>
+        <div class="qline">"3년 뒤 모습? 가정이 말이 돼?"</div>
+        <div class="field do"><span class="k">담을 것</span>3~5년 추이 + <b>핵심 가정</b> 명시 + 마일스톤</div>
+        <div class="field no"><span class="k">실수</span>근거 없는 하키스틱, 가정 미표기</div></div>
+
+      <div class="pg"><div class="ph"><span class="num">P15</span><span class="name">The Ask</span><span class="span">1p</span></div>
+        <div class="qline">"얼마가, 어디에, 왜 필요해?"</div>
+        <div class="field do"><span class="k">담을 것</span><b>금액·라운드</b> + 자금 사용처(%) + 마일스톤 + 연락처</div>
+        <div class="field no"><span class="k">실수</span>금액 모호, 사용처 없음, CTA 없이 끝</div></div>
+
+    </div>
+  </section>
+
+  <!-- 3 단계 변형 -->
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">Stage Variation</span><span class="no">03</span></div>
+    <table>
+      <tr><th>요소</th><th>Seed</th><th>Series A</th></tr>
+      <tr><td>핵심 증명</td><td>PMF 신호 · 팀 · 비전</td><td>반복 가능한 성장 · Unit Economics</td></tr>
+      <tr><td>Traction</td><td>작아도 성장곡선 · 정성</td><td>ARR $1~5M · NRR 100%+ · CAC payback &lt;24개월</td></tr>
+      <tr><td>Financials</td><td>가볍게(방향)</td><td>상세 P&amp;L + 코호트</td></tr>
+      <tr><td>분량</td><td>10~12p</td><td>15~20p + Appendix</td></tr>
+    </table>
+    <div class="quote" style="margin-top:28px"><p>미보유 수치는 <strong>지어내지 말고 [확인 필요]로 표기.</strong> 거짓 숫자 단 한 개가 deck 전체 신뢰를 무너뜨린다.</p></div>
+  </section>
+
+  <!-- 4 체크리스트 -->
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">Final Checklist</span><span class="no">04</span></div>
+    <div class="checks">
+      <div class="chk"><h4>논리</h4><ul>
+        <li>제목만 읽어도 "사업이 작동한다" 증명 완성 (Ghost Deck)</li>
+        <li>각 슬라이드가 투자자의 다음 질문에 답한다</li>
+        <li>한 줄 설명 맨 앞 / 팀은 뒷부분</li></ul></div>
+      <div class="chk"><h4>증거</h4><ul>
+        <li>모든 주장에 수치·근거 (추상 TAM 금지)</li>
+        <li>Traction이 추세(성장)로 보인다</li>
+        <li>Unit Economics(CAC/LTV/NRR) 있다</li>
+        <li>미보유 수치는 [확인 필요]로 정직하게</li></ul></div>
+      <div class="chk"><h4>메시지</h4><ul>
+        <li>슬라이드당 메시지 1개, 핵심 숫자 3개 이하</li>
+        <li>Why Now 있다 (누락 금지)</li>
+        <li>Competition에 솔직한 비교 + 해자</li>
+        <li>The Ask에 금액·사용처·연락처</li></ul></div>
+      <div class="chk"><h4>디자인</h4><ul>
+        <li>R 가이드 적용 (다크·청보라 극소량·얇은 weight)</li>
+        <li>캡처용 네비바 제거</li>
+        <li>by Project Rent 크레딧</li></ul></div>
+    </div>
+  </section>
+
+  <footer>
+    <span class="logo">PROJECT RENT</span>
+    <span class="m">IR Deck Guide · 2026.06.14 · 01-templates/ir-deck-guide.md</span>
+  </footer>
+
+</div>
+</body>
+</html>

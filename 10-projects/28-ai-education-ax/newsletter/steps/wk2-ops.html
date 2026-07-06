@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AX 스텝 WK2 · 매장운영</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{--bg:#0f0e17;--card:#1a1925;--card2:#211f30;--line:#2e2c40;--text:#e7e5f0;--muted:#9b97b3;
+    --accent:#6C5CE7;--accent-soft:#8b7df0;--good:#16A34A;--warn:#E0A93B;--code:#0a0913;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Pretendard',-apple-system,sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:50px 22px 90px}
+  .crumb{font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--accent-soft);background:rgba(108,92,231,.12);display:inline-block;padding:6px 14px;border-radius:999px;margin-bottom:16px}
+  h1{font-size:29px;font-weight:800;letter-spacing:-.02em;line-height:1.28}
+  .concept{font-size:15px;color:var(--muted);margin:12px 0 4px}
+  .concept b{color:#e7e5f0}
+  .divider{height:1px;background:var(--line);margin:34px 0}
+  .sec-label{font-size:14px;font-weight:800;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .before{font-size:14.5px;color:#cdcae0;background:var(--card2);border-left:3px solid var(--warn);border-radius:0 10px 10px 0;padding:13px 16px;margin:0 0 12px}
+  .before b{color:var(--warn)}
+  .why{font-size:13.5px;color:#cdcae0;background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.22);border-radius:10px;padding:12px 15px;margin:0 0 14px;line-height:1.65}
+  .why b{color:var(--accent-soft)}
+  .tip{font-size:13px;color:var(--muted);margin-top:8px;padding-left:2px;line-height:1.6}
+  .tip b{color:#bdb9d4}
+  .step{display:grid;grid-template-columns:32px 1fr;gap:13px;margin:16px 0}
+  .step-n{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .step-b{min-width:0}
+  .step-t{font-size:13.5px;font-weight:700;color:var(--accent-soft);margin-bottom:6px}
+  .io{font-size:13.5px;color:#bdb9d4;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-style:italic}
+  .code{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:13px 15px;font-family:'SF Mono',Consolas,monospace;font-size:12.5px;line-height:1.6;color:#c9c4e8;white-space:pre-wrap;word-break:break-word}
+  .result{border:1px solid rgba(22,163,74,.4);border-radius:12px;overflow:hidden;margin-top:2px}
+  .result .rh{background:rgba(22,163,74,.12);color:#5fd38a;font-size:12.5px;font-weight:700;padding:8px 14px}
+  .result .rb{padding:12px 15px;font-size:13.5px;color:#d6d3e4}
+  .result .rb .k{color:var(--accent-soft);font-weight:700}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--accent-soft);font-weight:700;background:rgba(108,92,231,.06)}
+  td{color:#cdcae0}td:first-child{color:var(--muted);font-weight:600;white-space:nowrap}
+  .chk{font-size:13.5px;color:#cdcae0;margin-top:10px;display:flex;gap:8px}
+  .chk .ic{color:var(--warn);font-weight:700;flex-shrink:0}
+  .perf{background:linear-gradient(135deg,rgba(108,92,231,.12),rgba(108,92,231,.03));border:1px solid rgba(108,92,231,.28);border-radius:14px;padding:16px 18px;margin-top:4px}
+  .perf .big{font-size:17px;font-weight:800;color:#fff;margin-bottom:4px}
+  .perf .big span{color:var(--accent-soft)}
+  .perf .src{font-size:11.5px;color:var(--muted);margin-top:6px}
+  .present{background:var(--card);border:1px solid rgba(224,169,59,.35);border-radius:16px;padding:22px 22px;margin-top:4px}
+  .present h3{font-size:17px;font-weight:800;color:var(--warn);margin-bottom:4px}
+  .present .psub{font-size:13.5px;color:var(--muted);margin-bottom:14px}
+  .talk{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .talk .t{background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:13px;color:#cdcae0}
+  .talk .t b{color:#fff;display:block;font-size:13.5px;margin-bottom:2px}
+  .present .pp{font-size:13px;color:var(--accent-soft);font-weight:700;margin:4px 0 6px}
+  .peer{font-size:13px;color:var(--muted);margin-top:12px;border-top:1px dashed var(--line);padding-top:11px}
+  .peer b{color:#cdcae0}
+  footer{margin-top:34px;text-align:center;color:var(--muted);font-size:13px}
+  @media(max-width:560px){.wrap{padding:38px 15px 60px}h1{font-size:24px}.talk{grid-template-columns:1fr}table{font-size:11.5px}th,td{padding:6px 8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<span class="crumb">WEEK 2 · 🏪 매장운영</span>
+<h1>매출 엑셀, 말 한마디로 요약하고 검증까지</h1>
+<p class="concept">이번 주 개념 — <b>말하듯 시키고 "확인해줘"</b></p>
+<div class="divider"></div>
+<div class="sec-label">🎯 이번 주 심화 — 직접 해보기</div>
+<div class="before"><b>Before</b> — POS 엑셀은 매일 쌓이는데, 월말에 손으로 합계만 낸다. "이번 달 좀 빠졌네"에서 끝나고, 왜 그런지는 모른다.</div>
+<div class="why"><b>왜 이걸 하나</b> — 매출을 '총합'이 아니라 <b>요일·시간대·메뉴</b>로 쪼개면, "언제 왜 빠졌는지"가 비로소 보인다. 같은 데이터에서 다음 행동이 나온다. 손으로 며칠 걸리던 집계가 한 마디면 끝난다 — 단, 숫자는 꼭 검산시켜야 한다.</div>
+<div class="step"><div class="step-n">1</div><div class="step-b"><div class="step-t">입력 — 내가 가진 것</div><div class="io">POS에서 내려받은 매출 엑셀 (날짜·메뉴·금액 정도면 충분)</div></div></div>
+<div class="step"><div class="step-n">2</div><div class="step-b"><div class="step-t">프롬프트 — 이렇게 시킨다</div><div class="code">이 매출 엑셀 분석해줘.
+요일·시간대별 합계, 전월 대비 증감, 베스트·부진 메뉴 5개씩, 객단가 추이.
+표 + 한 줄 코멘트로. 숫자 빠지거나 잘못 더한 거 없는지 확인해줘.</div><div class="tip">💬 <b>팁</b> — 엑셀이 복잡하면 "먼저 이 파일 구조부터 알려줘"로 시작하라. <b>"검산해줘"</b>를 꼭 붙여야 보고에 틀린 숫자가 들어가는 사고를 막는다.</div></div></div>
+<div class="step"><div class="step-n">3</div><div class="step-b"><div class="step-t">결과 — 이렇게 나온다 (예시)</div><div class="result"><div class="rh">▸ 요약 (예시)</div><div class="rb"><span class="k">피크</span> 금·토 저녁(매출 38%) · <span class="k">객단가</span> 전월 ▲6%<br><span class="k">베스트</span> A세트·시즌음료 / <span class="k">부진</span> 사이드 3종<br><span class="k">공백</span> 평일 오후 시간대</div></div></div></div>
+<div class="step"><div class="step-n">4</div><div class="step-b"><div class="step-t">검증 — 한 마디 더</div><div class="chk"><span class="ic">✓</span><span>"합계와 증감률을 한 번 더 검산하고, 빠진 항목 없는지 확인해줘"</span></div></div></div>
+<div class="step"><div class="step-n">5</div><div class="step-b"><div class="step-t">이어서 — 숫자에서 '왜'와 '액션'까지</div><div class="code">이 매출에서 '왜 그런지' 가설 2개와, 이번 주 해볼 액션 2개를 알려줘.</div><div class="result"><div class="rh">▸ 가설→액션 (예시)</div><div class="rb"><span class="k">가설</span> 사이드 부진=메뉴판 위치 → <span class="k">액션</span> 세트로 묶기 / <span class="k">가설</span> 평일 오후 공백 → <span class="k">액션</span> 한정 프로모션</div></div></div></div>
+<div class="divider"></div>
+<div class="sec-label">📊 이게 쌓이면</div>
+<div class="perf"><div class="big">매출 합산·집계 <span>월 4시간 → 수 분</span></div><div class="src">프로젝트렌트 소상공인 강의자료(강의 참여자 사례)</div></div>
+<div class="divider"></div>
+<div class="sec-label">🎤 차주 주간 공유 — 5분 발표</div>
+<div class="present"><h3>이번 주 실습한 걸 다음 주 <b>주간 공유</b> 때 5분으로 나눕니다</h3><p class="psub">잘한 것보다 "해보니 어땠는지"가 중요해요. 막힌 것도 자산입니다.</p><div class="talk"><div class="t"><b>① 뭘 했나 (1분)</b>어떤 실습을 골랐는지</div><div class="t"><b>② 결과 (2분)</b>나온 결과물 보여주기</div><div class="t"><b>③ 배운 점 (1분)</b>새로 알게 된 것</div><div class="t"><b>④ 막힌 점·질문 (1분)</b>안 된 것·궁금한 것</div></div><div class="pp">📑 발표 슬라이드도 AI로 — 그대로 복사해서 쓰세요</div><div class="code">이번 주 내가 한 실습으로 발표 슬라이드 3장 만들어줘.
+1장: 뭘 했나 / 2장: 결과(스크린샷 자리) / 3장: 배운 점·다음 시도.
+16:9 다크 톤, Pretendard. 완성되면 스크린샷으로.</div><div class="peer">👥 <b>동료에게</b> — 발표 들은 뒤 한 줄씩: "가장 인상적인 점 1개" + "나도 써볼 것 1개"</div></div>
+  <footer>🤖 AX 케이스북 · by Project Rent</footer>
+</div>
+</body>
+</html>

@@ -82,6 +82,28 @@
             gap: 12px;
         }
 
+        .daypick { display: flex; gap: 4px; flex-wrap: wrap; }
+        .daypick label {
+            flex: 1; min-width: 34px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 600; color: #777;
+            border: 1.5px solid #e0e0e0; border-radius: 8px;
+            padding: 8px 0; cursor: pointer; transition: all 0.15s;
+        }
+        .daypick label:has(input:checked) {
+            border-color: #6C5CE7; background: #f3f0ff; color: #6C5CE7;
+        }
+        .daypick label.wend { color: #c0392b; }
+        .daypick label.wend:has(input:checked) { border-color: #c0392b; background: #fdecec; color: #c0392b; }
+        .daypick input { display: none; }
+
+        .time-sel { display: flex; align-items: center; gap: 4px; }
+        .time-sel select {
+            flex: 1; padding: 10px 6px; border: 1.5px solid #e0e0e0;
+            border-radius: 8px; font-size: 14px; text-align: center;
+        }
+        .time-sel span { color: #999; font-weight: 600; }
+
         .divider {
             height: 1px;
             background: #f0f0f0;
@@ -306,6 +328,22 @@
                 <h2>운영 조건 입력</h2>
 
                 <div class="form-group">
+                    <label>운영 형태</label>
+                    <select id="opMode" onchange="toggleEventWeeks()">
+                        <option value="permanent">상설 (상시 운영 · 월간 기준)</option>
+                        <option value="event">행사·팝업 (기간 한정)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="eventWeeksGroup" style="display:none;">
+                    <label>운영 주차 (working weeks)</label>
+                    <input type="number" id="eventWeeks" value="4" min="1" max="52">
+                    <span style="font-size:11px;color:#888;margin-top:4px;display:block;">예: 3주 팝업 → 3 입력. 이 기간 전체 인건비를 산출합니다.</span>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-group">
                     <label>시급 기준</label>
                     <select id="wageType">
                         <option value="minimum">2026 최저시급 (10,320원)</option>
@@ -322,20 +360,24 @@
                 <div class="divider"></div>
 
                 <div class="form-group">
-                    <label>영업시간</label>
+                    <label>영업시간 <span style="font-weight:400;color:#999">(10분 단위)</span></label>
                     <div class="form-row">
-                        <input type="time" id="openTime" value="09:00">
-                        <input type="time" id="closeTime" value="18:40">
+                        <div class="time-sel"><select id="openHour"></select><span>:</span><select id="openMin"></select></div>
+                        <div class="time-sel"><select id="closeHour"></select><span>:</span><select id="closeMin"></select></div>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>영업일</label>
-                    <select id="opDays">
-                        <option value="7">주 7일 (연중무휴)</option>
-                        <option value="6">주 6일</option>
-                        <option value="5">주 5일</option>
-                    </select>
+                    <label>영업 요일 <span style="font-weight:400;color:#999">(체크한 요일만 운영 · 팝업/행사장은 일부만)</span></label>
+                    <div class="daypick" id="opDayPicker">
+                        <label><input type="checkbox" id="day0" checked>월</label>
+                        <label><input type="checkbox" id="day1" checked>화</label>
+                        <label><input type="checkbox" id="day2" checked>수</label>
+                        <label><input type="checkbox" id="day3" checked>목</label>
+                        <label><input type="checkbox" id="day4" checked>금</label>
+                        <label class="wend"><input type="checkbox" id="day5" checked>토</label>
+                        <label class="wend"><input type="checkbox" id="day6" checked>일</label>
+                    </div>
                 </div>
 
                 <div class="divider"></div>
@@ -360,21 +402,25 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>피크 시작</label>
-                        <input type="time" id="peakStart" value="11:00">
+                        <div class="time-sel"><select id="peakStartHour"></select><span>:</span><select id="peakStartMin"></select></div>
                     </div>
                     <div class="form-group">
                         <label>피크 종료</label>
-                        <input type="time" id="peakEnd" value="14:00">
+                        <div class="time-sel"><select id="peakEndHour"></select><span>:</span><select id="peakEndMin"></select></div>
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" id="peakDaysGroup">
                     <label>파트타임 근무일</label>
                     <select id="peakDays">
                         <option value="weekday">평일만 (월~금)</option>
                         <option value="all">평일 + 주말</option>
                         <option value="weekend">주말만 (토~일)</option>
                     </select>
+                </div>
+
+                <div class="form-group" id="peakEventNote" style="display:none;">
+                    <span style="font-size:11px;color:#6C5CE7;background:#f3f0ff;border:1px solid #cfc8f6;border-radius:8px;padding:8px 10px;display:block;">행사 모드: 파트타임은 <strong>영업 요일 전체</strong> 기준으로 근무합니다.</span>
                 </div>
 
                 <div class="divider"></div>
@@ -453,8 +499,10 @@
 
                     <div class="note-box">
                         <strong>법적 참고사항</strong><br>
+                        - <strong>주휴수당</strong>: 1주 소정근로 15시간 이상 + 개근 시 발생. 주40시간 미만은 (주근로/40)×8H로 <strong>비례 지급</strong> (본 계산 반영)<br>
+                        - <strong>무급 휴게</strong>: 8시간 근무 시 1시간, 4시간 근무 시 30분 휴게는 무급으로 급여에서 제외 (본 계산 반영)<br>
+                        - <strong>영업 요일</strong>: 체크한 요일만 운영 (팝업·행사장 등 비정기 운영 반영). 비영업일은 배치표에 '휴무' 표시<br>
                         - 교대제 소정근로일의 토/일 근무는 휴일가산 미적용<br>
-                        - 주 15시간 이상 근무 시 주휴수당 발생 (PT 포함)<br>
                         - 5인 미만 사업장은 연장/야간/휴일 가산수당 미적용<br>
                         - 퇴직급여: 1년 이상 계속 근로 시 발생<br>
                         - 2026년 최저시급: 10,320원 (월 환산 2,156,880원)
@@ -478,17 +526,19 @@
 
         // 초기화 함수
         function resetAll() {
+            document.getElementById('opMode').value = 'permanent';
+            document.getElementById('eventWeeks').value = '4';
+            document.getElementById('eventWeeksGroup').style.display = 'none';
+            document.getElementById('peakDaysGroup').style.display = 'block';
+            document.getElementById('peakEventNote').style.display = 'none';
             document.getElementById('wageType').value = 'minimum';
             document.getElementById('customWageGroup').style.display = 'none';
             document.getElementById('customWage').value = '12000';
-            document.getElementById('openTime').value = '09:00';
-            document.getElementById('closeTime').value = '18:40';
-            document.getElementById('opDays').value = '7';
+            initTimes();
+            for (let i = 0; i < 7; i++) document.getElementById('day'+i).checked = true;
             document.getElementById('weekdayStaff').value = '2';
             document.getElementById('weekendStaff').value = '3';
             document.getElementById('peakStaff').value = '1';
-            document.getElementById('peakStart').value = '11:00';
-            document.getElementById('peakEnd').value = '14:00';
             document.getElementById('peakDays').value = 'weekday';
             document.getElementById('managerCount').value = '1';
             document.getElementById('managerPayType').value = 'salary';
@@ -507,6 +557,15 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // 운영 형태(행사) 선택 시 주차 입력 표시 + 파트타임 근무일 옵션 전환
+        function toggleEventWeeks() {
+            const isEvent = document.getElementById('opMode').value === 'event';
+            document.getElementById('eventWeeksGroup').style.display = isEvent ? 'block' : 'none';
+            // 행사 모드: 파트타임은 영업요일 전체 기준 → 평일/주말 선택 숨기고 안내 표시
+            document.getElementById('peakDaysGroup').style.display = isEvent ? 'none' : 'block';
+            document.getElementById('peakEventNote').style.display = isEvent ? 'block' : 'none';
+        }
+
         // 매니저 급여체계 변경 시 연봉 입력 표시
         function toggleManagerSalary() {
             const type = document.getElementById('managerPayType').value;
@@ -520,6 +579,30 @@
             const monthly = Math.round(annual / 12);
             document.getElementById('salaryPreview').textContent = monthly + '만원';
         });
+
+        // 시·분 드롭다운 채우기 (분은 10분 단위)
+        function fillTimeSel(id, type, val) {
+            const s = document.getElementById(id);
+            let opts = '';
+            if (type === 'h') {
+                for (let h = 0; h < 24; h++) opts += `<option value="${h}">${String(h).padStart(2,'0')}</option>`;
+            } else {
+                [0,10,20,30,40,50].forEach(m => opts += `<option value="${m}">${String(m).padStart(2,'0')}</option>`);
+            }
+            s.innerHTML = opts;
+            s.value = String(val);
+        }
+        function initTimes() {
+            fillTimeSel('openHour','h',9);   fillTimeSel('openMin','m',0);
+            fillTimeSel('closeHour','h',18); fillTimeSel('closeMin','m',30);
+            fillTimeSel('peakStartHour','h',11); fillTimeSel('peakStartMin','m',0);
+            fillTimeSel('peakEndHour','h',14);   fillTimeSel('peakEndMin','m',0);
+        }
+        // 드롭다운에서 분 단위 시각 읽기
+        function getMins(prefix) {
+            return parseInt(document.getElementById(prefix+'Hour').value) * 60
+                 + parseInt(document.getElementById(prefix+'Min').value);
+        }
 
         // 시간 문자열을 분 단위로 변환
         function timeToMinutes(timeStr) {
@@ -551,16 +634,28 @@
             return { manager: custom, senior: custom, staff: custom, pt: custom };
         }
 
+        function getActiveDays() {
+            const arr = [];
+            for (let i = 0; i < 7; i++) arr.push(document.getElementById('day'+i).checked ? 1 : 0);
+            return arr;
+        }
+
         function calculate() {
             const wage = getWage();
-            const openMin = timeToMinutes(document.getElementById('openTime').value);
-            const closeMin = timeToMinutes(document.getElementById('closeTime').value);
-            const opDays = parseInt(document.getElementById('opDays').value);
+            const openMin = getMins('open');
+            const closeMin = getMins('close');
+            const activeDays = getActiveDays();
+            const opDays = activeDays.reduce((a,b)=>a+b,0);
+            if (opDays === 0) { alert('영업 요일을 1개 이상 선택해 주세요.'); return; }
+            const weekdayActive = activeDays.reduce((a,d,i)=> a + (d && i < 5 ? 1 : 0), 0);
+            const weekendActive = activeDays.reduce((a,d,i)=> a + (d && i >= 5 ? 1 : 0), 0);
             const weekdayStaff = parseInt(document.getElementById('weekdayStaff').value);
             const weekendStaff = parseInt(document.getElementById('weekendStaff').value);
             const peakStaff = parseInt(document.getElementById('peakStaff').value);
-            const peakStart = document.getElementById('peakStart').value;
-            const peakEnd = document.getElementById('peakEnd').value;
+            const peakStartMin = getMins('peakStart');
+            const peakEndMin = getMins('peakEnd');
+            const peakStart = formatTime(peakStartMin);
+            const peakEnd = formatTime(peakEndMin);
             const managerCount = parseInt(document.getElementById('managerCount').value);
             const managerPayType = document.getElementById('managerPayType').value;
             const bizSize = document.getElementById('bizSize').value;
@@ -611,8 +706,6 @@
             }
 
             // 피크타임 시프트
-            const peakStartMin = timeToMinutes(peakStart);
-            const peakEndMin = timeToMinutes(peakEnd);
             const peakHours = (peakEndMin - peakStartMin) / 60;
             if (peakStaff > 0) {
                 shifts.push({
@@ -625,91 +718,97 @@
                 });
             }
 
-            // 인원 산출
-            const weekdaysFT = opDays >= 6 ? 5 : opDays; // 평일 일수
-            const weekendDays = opDays - weekdaysFT; // 주말 일수
+            // 인원 산출 (영업 요일 기반)
+            const weekdaysFT = weekdayActive; // 영업 평일 수
+            const weekendDays = weekendActive; // 영업 주말 수
+            const weeksPerMonth = 4.345;
 
-            // 풀타임: 주 7일 커버에 필요한 인원
-            // 매니저는 평일만 근무 가정
-            const staffForWeekdays = needsSplit ? weekdayStaff : weekdayStaff; // 시프트당 인원
-            const staffForWeekends = weekendStaff;
-
-            // 총 근무 슬롯 계산 (주간)
-            const weekdaySlots = weekdaysFT * (needsSplit ? weekdayStaff : weekdayStaff);
-            const weekendSlots = weekendDays * staffForWeekends;
+            // 총 근무 슬롯 (주간) — 영업하는 요일에만 상주
+            const weekdaySlots = weekdayActive * weekdayStaff;
+            const weekendSlots = weekendActive * weekendStaff;
             const totalSlots = weekdaySlots + weekendSlots;
 
-            // 매니저 제외한 스태프 슬롯
-            const managerSlots = Math.min(managerCount * 5, weekdaysFT * managerCount);
-            const staffSlots = totalSlots - managerSlots;
-            const staffCount = Math.ceil(staffSlots / 5); // 1인당 주 5일
+            // 매니저는 영업 평일에 근무(주 최대 5일)
+            const mgrWeekDays = Math.min(weekdayActive, 5);
+            const managerSlots = managerCount * mgrWeekDays;
+
+            // 스태프: 1인 주 최대 5일(영업일이 5 이하면 그 일수)
+            const perStaffDays = Math.min(opDays, 5);
+            const staffSlots = Math.max(0, totalSlots - managerSlots);
+            const staffCount = perStaffDays > 0 ? Math.ceil(staffSlots / perStaffDays) : 0;
 
             const totalFT = managerCount + staffCount;
             const totalAll = totalFT + (peakStaff > 0 ? peakStaff : 0);
 
-            // 인건비 산출
-            const monthDays = 22; // 월 평균 근무일 (주5일)
-            const weeksPerMonth = 4.345;
+            // ===== 운영 형태: 상설(월=4.345주) / 행사(입력 주차) =====
+            const opMode = document.getElementById('opMode').value;
+            const isEvent = opMode === 'event';
+            const eventWeeks = Math.max(1, parseInt(document.getElementById('eventWeeks').value) || 1);
+            const periodWeeks = isEvent ? eventWeeks : weeksPerMonth; // 비용 곱할 주차 수
+            const periodLabel = isEvent ? `행사 ${eventWeeks}주` : '월';
 
-            // 매니저
-            let managerMonthlyCost = 0;
+            // ===== 매니저 — 주당 비용 산출 후 기간 곱 =====
+            let managerWeekly = 0;
             let managerDetail = '';
             if (managerPayType === 'salary') {
                 const annualSalary = (parseInt(document.getElementById('managerSalary').value) || 3000) * 10000;
-                managerMonthlyCost = annualSalary / 12;
-                managerDetail = `연봉 ${(annualSalary/10000).toLocaleString()}만원 ÷ 12`;
+                managerWeekly = (annualSalary / 12) / weeksPerMonth;
+                managerDetail = isEvent ? `연봉 환산 주 ${Math.round(managerWeekly).toLocaleString()}` : `연봉 ${(annualSalary/10000).toLocaleString()}만원 ÷ 12`;
             } else if (managerPayType === 'monthly') {
-                managerMonthlyCost = wage.manager * 209; // 209H (주휴 포함)
-                managerDetail = `${wage.manager.toLocaleString()}원 × 209H`;
+                managerWeekly = wage.manager * 209 / weeksPerMonth;
+                managerDetail = `${wage.manager.toLocaleString()}원 × 209H ÷ ${weeksPerMonth}`;
             } else {
-                const base = wage.manager * 8 * monthDays;
-                const weeklyPay = wage.manager * 8; // 주휴
-                const weeklyPayMonth = weeklyPay * weeksPerMonth;
-                managerMonthlyCost = base + weeklyPayMonth;
-                managerDetail = `기본 ${base.toLocaleString()} + 주휴 ${Math.round(weeklyPayMonth).toLocaleString()}`;
+                const mgrWeekHours = 8 * mgrWeekDays;
+                const holWeekly = mgrWeekHours >= 15 ? wage.manager * Math.min(mgrWeekHours/40, 1) * 8 : 0;
+                managerWeekly = wage.manager * mgrWeekHours + holWeekly;
+                managerDetail = `${mgrWeekDays}일×8H + 주휴 = 주 ${Math.round(managerWeekly).toLocaleString()}`;
             }
+            const managerMonthlyCost = managerWeekly * periodWeeks;
 
-            // 스태프 (시급제)
-            const staffBase = wage.staff * 8 * monthDays;
-            const staffWeeklyPay = wage.staff * (40/40) * 8 * weeksPerMonth;
-            const staffMonthlyCost = staffBase + staffWeeklyPay;
-            const staffDetail = `기본 ${staffBase.toLocaleString()} + 주휴 ${Math.round(staffWeeklyPay).toLocaleString()}`;
+            // ===== 스태프(시급제) — 주근무일 기반, 주휴 비례 =====
+            const staffWeekDays = perStaffDays;
+            const staffWeekHours = 8 * staffWeekDays;
+            const staffHolWeekly = staffWeekHours >= 15 ? wage.staff * Math.min(staffWeekHours/40, 1) * 8 : 0;
+            const staffWeekly = wage.staff * staffWeekHours + staffHolWeekly;
+            const staffMonthlyCost = staffWeekly * periodWeeks;
+            const staffDetail = `${staffWeekDays}일×8H + 주휴 = 주 ${Math.round(staffWeekly).toLocaleString()}${staffHolWeekly === 0 ? ' (주15H 미만, 주휴 미적용)' : ''}`;
 
-            // PT (주말 적용 옵션)
+            // ===== PT(피크) — 영업요일 ∩ 선택요일, 무급휴게 차감 =====
             const peakDaysOption = document.getElementById('peakDays').value;
-            let ptWorkDaysPerWeek = 0;
-            let ptDaySchedule = [0,0,0,0,0,0,0];
-            if (peakDaysOption === 'weekday') {
-                ptWorkDaysPerWeek = Math.min(weekdaysFT, 5);
-                ptDaySchedule = [1,1,1,1,1,0,0];
-            } else if (peakDaysOption === 'weekend') {
-                ptWorkDaysPerWeek = weekendDays;
-                ptDaySchedule = [0,0,0,0,0,1,1];
-            } else { // all
-                ptWorkDaysPerWeek = opDays;
-                ptDaySchedule = [1,1,1,1,1,1,1];
-                if (opDays === 6) ptDaySchedule = [1,1,1,1,1,1,0];
+            let ptDaySchedule, ptDaysLabel;
+            if (isEvent) {
+                ptDaySchedule = activeDays.slice(); // 행사: 영업 요일 전체 기준
+                ptDaysLabel = '행사 영업일';
+            } else {
+                let peakMask;
+                if (peakDaysOption === 'weekday') peakMask = [1,1,1,1,1,0,0];
+                else if (peakDaysOption === 'weekend') peakMask = [0,0,0,0,0,1,1];
+                else peakMask = [1,1,1,1,1,1,1];
+                ptDaySchedule = activeDays.map((d,i)=> (d && peakMask[i]) ? 1 : 0);
+                ptDaysLabel = peakDaysOption === 'weekday' ? '평일' : peakDaysOption === 'weekend' ? '주말' : '영업일';
             }
-            const ptMonthDays = Math.round(ptWorkDaysPerWeek * weeksPerMonth);
+            const ptWorkDaysPerWeek = ptDaySchedule.reduce((a,b)=>a+b,0);
+            const ptBreak = peakHours >= 4 ? 0.5 : 0; // 4시간 이상 무급휴게 30분
+            const effPeakHours = Math.max(0, peakHours - ptBreak); // 급여 산정용 실근로
 
             let ptMonthlyCost = 0;
             let ptDetail = '';
+            const ptWeeklyHoursCalc = effPeakHours * ptWorkDaysPerWeek;
             if (peakStaff > 0) {
-                const ptWeeklyHours = peakHours * ptWorkDaysPerWeek;
-                const ptBase = wage.pt * peakHours * ptMonthDays;
-                const ptWeeklyPay = ptWeeklyHours >= 15
-                    ? wage.pt * (ptWeeklyHours/40) * 8 * weeksPerMonth
-                    : 0;
-                ptMonthlyCost = ptBase + ptWeeklyPay;
-                const daysLabel = peakDaysOption === 'weekday' ? '평일' : peakDaysOption === 'weekend' ? '주말' : '전일';
-                ptDetail = `${daysLabel} ${ptWorkDaysPerWeek}일×${peakHours}H = ${ptBase.toLocaleString()}${ptWeeklyPay > 0 ? ' + 주휴 ' + Math.round(ptWeeklyPay).toLocaleString() : ' (주휴 미적용)'}`;
+                const ptHolWeekly = ptWeeklyHoursCalc >= 15
+                    ? wage.pt * Math.min(ptWeeklyHoursCalc/40, 1) * 8 : 0;
+                const ptWeekly = wage.pt * effPeakHours * ptWorkDaysPerWeek + ptHolWeekly;
+                ptMonthlyCost = ptWeekly * periodWeeks;
+                ptDetail = `${ptDaysLabel} ${ptWorkDaysPerWeek}일×${effPeakHours}H${ptBreak > 0 ? '(휴게30분 차감)' : ''} = 주 ${Math.round(ptWeekly).toLocaleString()}${ptHolWeekly > 0 ? ' (주휴 포함)' : ' (주15H 미만, 주휴 미적용)'}`;
             }
 
             const totalWage = (managerMonthlyCost * managerCount) + (staffMonthlyCost * staffCount) + (ptMonthlyCost * peakStaff);
             const insurance = totalWage * 0.095;
-            const ptWeeklyHoursCalc = peakHours * ptWorkDaysPerWeek;
-            const retirement = (managerMonthlyCost * managerCount + staffMonthlyCost * staffCount) * 0.0833
-                + (peakStaff > 0 && ptWeeklyHoursCalc >= 15 ? ptMonthlyCost * peakStaff * 0.0833 : 0);
+            // 퇴직급여: 1년 이상 계속근로 시 발생 → 상설만 적용, 행사(단기)는 제외
+            const retirement = isEvent ? 0 : (
+                (managerMonthlyCost * managerCount + staffMonthlyCost * staffCount) * 0.0833
+                + (peakStaff > 0 && ptWeeklyHoursCalc >= 15 ? ptMonthlyCost * peakStaff * 0.0833 : 0)
+            );
             const totalCost = totalWage + insurance + retirement;
 
             // 주간 시프트 배치표 생성
@@ -724,60 +823,36 @@
                     role: '매니저',
                     tag: 'tag-mgr',
                     pay: mgrPayLabel,
-                    weekly: 40,
+                    weekly: 8 * mgrWeekDays,
                     cost: managerMonthlyCost,
-                    days: [1,1,1,1,1,0,0] // 평일
+                    days: activeDays.map((d,idx)=> (d && idx < 5) ? 1 : 0) // 영업 평일
                 });
             }
 
-            // 스태프 배치 (주말 포함 로테이션)
+            // 스태프 배치 — 영업 요일 내에서만 근무, 주5일 초과분만 로테이션 휴무
             let staffSchedules = [];
-            if (opDays === 7) {
-                // 주 7일: 주말 커버 필요
-                if (staffCount <= 2) {
-                    staffSchedules = [
-                        [1,1,1,0,0,1,1], // 목금 OFF
-                        [0,0,1,1,1,1,1], // 월화 OFF
-                    ];
-                } else if (staffCount === 3) {
-                    staffSchedules = [
-                        [1,1,0,0,1,1,1], // 수목 OFF
-                        [0,1,1,1,1,0,1], // 월토 OFF → 조정
-                        [1,0,1,1,0,1,1], // 화금 OFF
-                    ];
-                } else {
-                    // 4명 이상: 균등 배분
-                    for (let i = 0; i < staffCount; i++) {
-                        const off1 = (i * 2) % 7;
-                        const off2 = (i * 2 + 1) % 7;
-                        const sched = [1,1,1,1,1,1,1];
-                        sched[off1] = 0;
-                        sched[off2] = 0;
-                        staffSchedules.push(sched);
-                    }
+            const activeIdxList = activeDays.map((d,i)=> d ? i : -1).filter(i => i >= 0);
+            const offPerStaff = Math.max(0, opDays - perStaffDays); // 줄여야 할 휴무 일수
+            for (let i = 0; i < staffCount; i++) {
+                const sched = activeDays.slice(); // 영업일 전부 근무로 시작(비영업일은 이미 0)
+                for (let k = 0; k < offPerStaff; k++) {
+                    const idx = activeIdxList[(i + k) % activeIdxList.length];
+                    sched[idx] = 0;
                 }
-            } else if (opDays === 6) {
-                for (let i = 0; i < staffCount; i++) {
-                    const off = i % 6;
-                    const sched = [1,1,1,1,1,1,0];
-                    sched[off] = 0;
-                    staffSchedules.push(sched);
-                }
-            } else {
-                for (let i = 0; i < staffCount; i++) {
-                    staffSchedules.push([1,1,1,1,1,0,0]);
-                }
+                staffSchedules.push(sched);
             }
 
             for (let i = 0; i < staffCount; i++) {
+                const sched = staffSchedules[i] || activeDays.slice();
+                const wd = sched.reduce((a,b)=>a+b,0);
                 people.push({
                     id: String.fromCharCode(65 + managerCount + i),
                     role: '스태프',
                     tag: 'tag-staff',
                     pay: '시급제',
-                    weekly: 40,
+                    weekly: 8 * wd,
                     cost: staffMonthlyCost,
-                    days: staffSchedules[i] || [1,1,1,1,1,0,0]
+                    days: sched
                 });
             }
 
@@ -788,7 +863,7 @@
                     role: 'PT',
                     tag: 'tag-pt',
                     pay: '시급제',
-                    weekly: peakHours * ptWorkDaysPerWeek,
+                    weekly: effPeakHours * ptWorkDaysPerWeek,
                     cost: ptMonthlyCost,
                     days: [...ptDaySchedule]
                 });
@@ -797,6 +872,15 @@
             // ========== 렌더링 ==========
 
             // 요약 카드
+            const fourthCard = isEvent
+                ? `<div class="summary-card">
+                    <div class="num">${formatMoney(totalCost / eventWeeks)}</div>
+                    <div class="label">주당 평균 인건비</div>
+                </div>`
+                : `<div class="summary-card">
+                    <div class="num">약 ${(totalCost * 12 / 100000000).toFixed(2)}억</div>
+                    <div class="label">연간 인건비</div>
+                </div>`;
             document.getElementById('summaryCards').innerHTML = `
                 <div class="summary-card">
                     <div class="num">${totalAll}명</div>
@@ -804,16 +888,13 @@
                 </div>
                 <div class="summary-card">
                     <div class="num">${formatMoney(totalWage)}</div>
-                    <div class="label">월 급여 소계</div>
+                    <div class="label">${periodLabel} 급여 소계</div>
                 </div>
                 <div class="summary-card primary">
                     <div class="num">${formatMoney(totalCost)}</div>
-                    <div class="label">월 총 인건비</div>
+                    <div class="label">${periodLabel} 총 인건비</div>
                 </div>
-                <div class="summary-card">
-                    <div class="num">약 ${(totalCost * 12 / 100000000).toFixed(2)}억</div>
-                    <div class="label">연간 인건비</div>
-                </div>
+                ${fourthCard}
             `;
 
             // 시프트 설계
@@ -840,8 +921,9 @@
             // 주간 배치표
             let schedHTML = `<table><tr><th>시간대</th>`;
             days.forEach((d, idx) => {
-                const cls = idx >= 5 ? ' class="s-weekend"' : '';
-                schedHTML += `<th${cls}>${d}</th>`;
+                const off = activeDays[idx] === 0;
+                const cls = off ? ' class="s-off"' : (idx >= 5 ? ' class="s-weekend"' : '');
+                schedHTML += `<th${cls}>${d}${off ? '<br><span style="font-size:9px;font-weight:400">휴무</span>' : ''}</th>`;
             });
             schedHTML += `</tr>`;
 
@@ -930,7 +1012,7 @@
             document.getElementById('personTable').innerHTML = personHTML;
 
             // 인건비 테이블
-            let costHTML = `<table class="cost-table"><tr><th style="text-align:left">구분</th><th>인원</th><th>계산 근거</th><th style="text-align:right">월 인건비</th></tr>`;
+            let costHTML = `<table class="cost-table"><tr><th style="text-align:left">구분</th><th>인원</th><th>계산 근거</th><th style="text-align:right">${periodLabel} 인건비</th></tr>`;
 
             if (managerCount > 0) {
                 costHTML += `<tr>
@@ -972,25 +1054,38 @@
             costHTML += `<tr class="row-burden">
                 <td>퇴직급여 충당 (8.33%)</td>
                 <td></td>
-                <td>1년 이상 근무자 대상</td>
+                <td>${isEvent ? '행사(단기) — 1년 미만, 미적용' : '1년 이상 근무자 대상'}</td>
                 <td style="text-align:right">${formatMoney(retirement)}</td>
             </tr>`;
             costHTML += `<tr class="row-total">
-                <td>월 총 인건비</td>
+                <td>${periodLabel} 총 인건비</td>
                 <td>${totalAll}명</td>
                 <td></td>
                 <td style="text-align:right">${formatMoney(totalCost)}</td>
             </tr></table>`;
             document.getElementById('costTable').innerHTML = costHTML;
 
-            // 연간
-            let annualHTML = `<table class="cost-table">
-                <tr><th style="text-align:left">항목</th><th style="text-align:right">금액</th></tr>
-                <tr><td>월 인건비</td><td style="text-align:right">${formatMoney(totalCost)}</td></tr>
-                <tr><td>연간 인건비 (×12)</td><td style="text-align:right;font-weight:700;">${formatMoney(totalCost * 12)}</td></tr>
-                <tr><td>인당 연간 비용</td><td style="text-align:right">${formatMoney(totalCost * 12 / totalAll)}</td></tr>
-            </table>`;
+            // 기간 합계 (상설=연간 / 행사=총액)
+            let annualHTML;
+            if (isEvent) {
+                annualHTML = `<table class="cost-table">
+                    <tr><th style="text-align:left">항목</th><th style="text-align:right">금액</th></tr>
+                    <tr><td>주당 평균 인건비</td><td style="text-align:right">${formatMoney(totalCost / eventWeeks)}</td></tr>
+                    <tr><td>행사 총 인건비 (${eventWeeks}주)</td><td style="text-align:right;font-weight:700;">${formatMoney(totalCost)}</td></tr>
+                    <tr><td>인당 행사 비용</td><td style="text-align:right">${formatMoney(totalCost / totalAll)}</td></tr>
+                </table>`;
+            } else {
+                annualHTML = `<table class="cost-table">
+                    <tr><th style="text-align:left">항목</th><th style="text-align:right">금액</th></tr>
+                    <tr><td>월 인건비</td><td style="text-align:right">${formatMoney(totalCost)}</td></tr>
+                    <tr><td>연간 인건비 (×12)</td><td style="text-align:right;font-weight:700;">${formatMoney(totalCost * 12)}</td></tr>
+                    <tr><td>인당 연간 비용</td><td style="text-align:right">${formatMoney(totalCost * 12 / totalAll)}</td></tr>
+                </table>`;
+            }
             document.getElementById('annualTable').innerHTML = annualHTML;
+            // 섹션 제목도 모드에 맞게
+            const annualSection = document.getElementById('annualTable').closest('.result-section');
+            if (annualSection) annualSection.querySelector('h3').textContent = isEvent ? '행사 기간 인건비 합계' : '연간 인건비 추정';
 
             // UI 표시
             document.getElementById('resultPanel').classList.add('active');
@@ -1000,7 +1095,7 @@
             document.getElementById('btnPrint').style.display = 'block';
 
             // 결과 데이터 저장 (CSV 내보내기용)
-            window._calcResult = { people, managerCount, staffCount, peakStaff, totalWage, insurance, retirement, totalCost, wage, shifts };
+            window._calcResult = { people, managerCount, staffCount, peakStaff, totalWage, insurance, retirement, totalCost, wage, shifts, isEvent, eventWeeks, periodLabel };
         }
 
         // CSV 내보내기
@@ -1023,8 +1118,12 @@
             csv += `급여 소계,,${Math.round(r.totalWage)}\n`;
             csv += `4대보험 (9.5%),,${Math.round(r.insurance)}\n`;
             csv += `퇴직급여 (8.33%),,${Math.round(r.retirement)}\n`;
-            csv += `월 총 인건비,,${Math.round(r.totalCost)}\n`;
-            csv += `연간 인건비,,${Math.round(r.totalCost * 12)}\n`;
+            csv += `${r.periodLabel} 총 인건비,,${Math.round(r.totalCost)}\n`;
+            if (r.isEvent) {
+                csv += `주당 평균,,${Math.round(r.totalCost / r.eventWeeks)}\n`;
+            } else {
+                csv += `연간 인건비,,${Math.round(r.totalCost * 12)}\n`;
+            }
 
             csv += '\n\n주간 배치표\n';
             csv += '시간대,월,화,수,목,금,토,일\n';
@@ -1048,6 +1147,9 @@
             link.download = `인건비_시뮬레이션_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
         }
+
+        // 페이지 로드 시 시·분 드롭다운 초기화
+        initTimes();
     </script>
 </body>
 </html>

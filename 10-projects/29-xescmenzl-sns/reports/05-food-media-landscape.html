@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한국 미식/식당 정보 미디어 경쟁 지형도 2026</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+
+  :root {
+    --primary: #6C5CE7;
+    --primary-light: #A29BFE;
+    --primary-bg: #F8F7FF;
+    --accent: #00B894;
+    --accent-warm: #E17055;
+    --dark: #1A1A2E;
+    --gray-900: #2D3436;
+    --gray-700: #636E72;
+    --gray-500: #B2BEC3;
+    --gray-300: #DFE6E9;
+    --gray-100: #F5F6FA;
+    --white: #FFFFFF;
+    --red: #D63031;
+    --orange: #E17055;
+    --yellow: #FDCB6E;
+    --green: #00B894;
+    --blue: #0984E3;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard Variable', -apple-system, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    line-height: 1.7;
+  }
+
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* Header */
+  .report-header {
+    background: linear-gradient(135deg, var(--dark) 0%, #2D1B69 100%);
+    color: var(--white);
+    padding: 60px 48px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .report-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(108,92,231,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .report-header .tag {
+    display: inline-block;
+    background: rgba(108,92,231,0.3);
+    border: 1px solid rgba(108,92,231,0.5);
+    color: var(--primary-light);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .report-header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+  .report-header .subtitle {
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 400;
+  }
+  .report-header .date {
+    position: absolute;
+    top: 24px;
+    right: 32px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* Section */
+  .section {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 36px 40px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .section-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--primary);
+    color: var(--white);
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    margin-right: 12px;
+  }
+  .section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Table */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .data-table thead th {
+    background: var(--primary-bg);
+    color: var(--primary);
+    font-weight: 700;
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 2px solid var(--primary-light);
+    font-size: 13px;
+    letter-spacing: 0.5px;
+  }
+  .data-table tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--gray-300);
+    vertical-align: top;
+  }
+  .data-table tbody tr:hover {
+    background: var(--gray-100);
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .badge-green { background: #E8F8F5; color: #00B894; }
+  .badge-red { background: #FDEAEA; color: #D63031; }
+  .badge-orange { background: #FEF3E8; color: #E17055; }
+  .badge-blue { background: #E8F0FE; color: #0984E3; }
+  .badge-purple { background: #F0EDFE; color: #6C5CE7; }
+  .badge-gray { background: #ECEEF0; color: #636E72; }
+
+  /* MAU bar */
+  .mau-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mau-bar {
+    height: 24px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    min-width: 4px;
+    transition: width 0.3s;
+  }
+  .mau-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray-700);
+    white-space: nowrap;
+  }
+
+  /* Card Grid */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .card {
+    background: var(--gray-100);
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--gray-300);
+  }
+  .card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--dark);
+  }
+  .card p, .card li {
+    font-size: 13px;
+    color: var(--gray-700);
+    line-height: 1.6;
+  }
+  .card ul {
+    padding-left: 16px;
+    margin-top: 8px;
+  }
+
+  /* Insight Box */
+  .insight-box {
+    background: linear-gradient(135deg, #F8F7FF 0%, #EDE8FF 100%);
+    border-left: 4px solid var(--primary);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin: 20px 0;
+  }
+  .insight-box h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+  .insight-box p {
+    font-size: 14px;
+    color: var(--gray-700);
+    line-height: 1.7;
+  }
+
+  /* Warning Box */
+  .warning-box {
+    background: #FFF8E1;
+    border-left: 4px solid var(--yellow);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin: 20px 0;
+  }
+  .warning-box h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #F39C12;
+    margin-bottom: 8px;
+  }
+
+  /* White Space Section */
+  .whitespace-section {
+    background: linear-gradient(135deg, var(--dark) 0%, #2D1B69 100%);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 24px;
+  }
+  .whitespace-section h2 {
+    color: var(--white);
+    margin-bottom: 28px;
+  }
+  .ws-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .ws-card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-light);
+    margin-bottom: 10px;
+  }
+  .ws-card p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.7;
+  }
+  .ws-card .ws-tag {
+    display: inline-block;
+    background: rgba(108,92,231,0.3);
+    color: var(--primary-light);
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 6px;
+    margin-top: 10px;
+  }
+
+  /* Positioning Map */
+  .map-container {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    background: var(--gray-100);
+    border-radius: 12px;
+    border: 1px solid var(--gray-300);
+    margin: 24px 0;
+    overflow: hidden;
+  }
+  .map-axis-x {
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: var(--gray-500);
+  }
+  .map-axis-y {
+    position: absolute;
+    left: 50%;
+    top: 5%;
+    bottom: 5%;
+    width: 1px;
+    background: var(--gray-500);
+  }
+  .map-label {
+    position: absolute;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gray-700);
+  }
+  .map-label.top { top: 8px; left: 50%; transform: translateX(-50%); }
+  .map-label.bottom { bottom: 8px; left: 50%; transform: translateX(-50%); }
+  .map-label.left { left: 8px; top: 50%; transform: translateY(-50%); }
+  .map-label.right { right: 8px; top: 50%; transform: translateY(-50%); }
+  .map-dot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .map-dot .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  .map-dot .name {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gray-900);
+    white-space: nowrap;
+  }
+
+  /* Footer */
+  .report-footer {
+    text-align: center;
+    padding: 32px 0;
+    font-size: 12px;
+    color: var(--gray-500);
+  }
+
+  .sub-note {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .report-header { padding: 32px 24px; }
+    .report-header h1 { font-size: 24px; }
+    .section { padding: 24px 20px; }
+    .card-grid { grid-template-columns: 1fr; }
+    .map-container { height: 400px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="report-header">
+  <div class="date">2026.06.07</div>
+  <div class="tag">COMPETITIVE LANDSCAPE</div>
+  <h1>한국 미식/식당 정보 미디어<br>경쟁 지형도 2026</h1>
+  <div class="subtitle">플랫폼 / 가이드 / 매거진 / SNS / 유튜브 / 뉴스레터 -- 7개 카테고리 종합 분석</div>
+</div>
+
+<!-- 1. 플랫폼형 -->
+<div class="section">
+  <h2><span class="section-number">1</span>플랫폼형 -- 식당 검색/예약</h2>
+
+  <p style="font-size:14px; color:var(--gray-700); margin-bottom:20px;">
+    한국의 식당 검색/예약 시장은 <strong>네이버 지도(플레이스)</strong>가 압도적 1위를 점유하고, <strong>캐치테이블</strong>이 프리미엄 예약 시장에서 독주하는 구조이다. 망고플레이트는 2023년 서비스 종료, 포잉은 캐치테이블에 흡수되며 시장 통합이 가속화되었다.
+  </p>
+
+  <!-- MAU 비교 차트 -->
+  <h4 style="font-size:14px; font-weight:700; margin-bottom:16px; color:var(--dark);">MAU 비교 (2025년 기준, 모바일인덱스)</h4>
+
+  <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+    <div class="mau-bar-container">
+      <div style="width:120px; font-size:13px; font-weight:600;">네이버 지도</div>
+      <div class="mau-bar" style="width:380px; background:linear-gradient(90deg, #00B894, #55EFC4);"></div>
+      <span class="mau-label">2,856만</span>
+    </div>
+    <div class="mau-bar-container">
+      <div style="width:120px; font-size:13px; font-weight:600;">카카오맵</div>
+      <div class="mau-bar" style="width:170px; background:linear-gradient(90deg, #FDCB6E, #FFEAA7);"></div>
+      <span class="mau-label">1,266만</span>
+    </div>
+    <div class="mau-bar-container">
+      <div style="width:120px; font-size:13px; font-weight:600;">캐치테이블</div>
+      <div class="mau-bar" style="width:67px; background:linear-gradient(90deg, #6C5CE7, #A29BFE);"></div>
+      <span class="mau-label">500만+</span>
+    </div>
+    <div class="mau-bar-container">
+      <div style="width:120px; font-size:13px; font-weight:600;">식신</div>
+      <div class="mau-bar" style="width:47px; background:linear-gradient(90deg, #E17055, #FAB1A0);"></div>
+      <span class="mau-label">350만</span>
+    </div>
+    <div class="mau-bar-container">
+      <div style="width:120px; font-size:13px; font-weight:600;">다이닝코드</div>
+      <div class="mau-bar" style="width:24px; background:linear-gradient(90deg, #0984E3, #74B9FF);"></div>
+      <span class="mau-label">180만</span>
+    </div>
+    <div class="mau-bar-container">
+      <div style="width:120px; font-size:13px; font-weight:600;">망고플레이트</div>
+      <div class="mau-bar" style="width:4px; background:#D63031;"></div>
+      <span class="mau-label" style="color:var(--red);">서비스 종료 (2023.10)</span>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>플랫폼</th>
+        <th>핵심 특징</th>
+        <th>수익 모델</th>
+        <th>한계점</th>
+        <th>상태</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>네이버 플레이스</strong><br><span style="font-size:11px; color:var(--gray-500);">(네이버 지도/블로그)</span></td>
+        <td>등록 업체 310만+, 블로그 리뷰 기반 검색, AI 장소 추천 도입. 식당 검색의 <strong>디폴트 진입점</strong></td>
+        <td>광고(스마트플레이스), 예약수수료</td>
+        <td>체험단/광고 리뷰 범람으로 신뢰도 하락. "내돈내산" 구별 어려움. 알고리즘 상업화</td>
+        <td><span class="badge badge-green">독점적 1위</span></td>
+      </tr>
+      <tr>
+        <td><strong>캐치테이블</strong></td>
+        <td>예약/웨이팅/결제/POS 통합. 가맹점 1만+. <strong>미쉐린 2026 공식 예약 파트너</strong>. 글로벌 버전 4개국어</td>
+        <td>예약수수료, B2B SaaS (POS/웨이팅), 광고</td>
+        <td>프리미엄 편향 (중저가 식당 커버리지 부족). 정보성 콘텐츠 미약</td>
+        <td><span class="badge badge-green">고성장</span></td>
+      </tr>
+      <tr>
+        <td><strong>식신</strong></td>
+        <td>10년간 빅데이터 축적. 2026 별 인증 맛집 5,996곳 선정. MAU 350만. 미쉐린/블루리본과 함께 3대 가이드 자처</td>
+        <td>광고, 별 인증 마케팅, 제휴</td>
+        <td>인지도 대비 브랜드 파워 약함. 에디토리얼 깊이 부족. 검증 방법론 불투명</td>
+        <td><span class="badge badge-orange">정체</span></td>
+      </tr>
+      <tr>
+        <td><strong>다이닝코드</strong></td>
+        <td>빅데이터 기반 광고 배제 랭킹. AI 맛집 연상키워드/지역 음식랭킹 출시 (2025). 앱 다운 250만</td>
+        <td>광고, 데이터 API</td>
+        <td>MAU 180만으로 축소세. UX 노후화. 마케팅 투자 부족</td>
+        <td><span class="badge badge-orange">축소세</span></td>
+      </tr>
+      <tr>
+        <td><strong>카카오맵</strong></td>
+        <td>AI메이트 로컬 출시(맞춤 추천). 연말결산 전국 1,700곳 리스트. 네이버 대비 광고 영향 적다는 인식</td>
+        <td>광고, 카카오 생태계 연동</td>
+        <td>식당 전문성 부족. 리뷰 양 네이버 대비 현저히 적음</td>
+        <td><span class="badge badge-blue">성장 중</span></td>
+      </tr>
+      <tr>
+        <td><strong>망고플레이트</strong></td>
+        <td>한때 MAU 200만. 2020년 다이닝앱에 인수 후 급감 (22만 -> 12만)</td>
+        <td>-</td>
+        <td>2023.10 서비스 종료. 식신이 이탈 사용자 흡수 시도</td>
+        <td><span class="badge badge-red">종료</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="insight-box">
+    <h4>핵심 인사이트</h4>
+    <p>식당 검색/예약 시장은 "검색=네이버, 예약=캐치테이블"로 양분 구조가 고착화되고 있다. 그러나 <strong>두 플랫폼 모두 '정보의 깊이'보다 '트랜잭션 효율'에 집중</strong>하고 있어, 에디토리얼 수준의 심층 콘텐츠는 부재하다. 다이닝코드의 "광고 배제 빅데이터" 컨셉은 좋으나 실행력/마케팅에서 밀리는 중.</p>
+  </div>
+</div>
+
+<!-- 2. 가이드/평가형 -->
+<div class="section">
+  <h2><span class="section-number">2</span>가이드/평가형 -- 미식 권위 매체</h2>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>가이드</th>
+        <th>2026 선정 규모</th>
+        <th>평가 방식</th>
+        <th>권위/신뢰도</th>
+        <th>한계점</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>미쉐린 가이드<br>서울&부산</strong></td>
+        <td>3스타 3곳, 2스타 11곳, 1스타 33곳<br>빕구르망 71곳 (서울51+부산20)<br>2026년 신규 빕구르망 8곳</td>
+        <td>비공개 전문 심사원 (익명 방문)</td>
+        <td><span class="badge badge-green">국제적 인지도 최상</span><br>캐치테이블 공식 예약 파트너</td>
+        <td>
+          <ul style="font-size:12px; padding-left:14px;">
+            <li><strong>서양 편향</strong>: 프랑스 요리 중심 기준 (가디언 "문화제국주의 도구" 비판)</li>
+            <li><strong>금전 논란</strong>: 한국관광공사 4년간 14억원+ 지급 사실 공개</li>
+            <li><strong>기준 모호</strong>: 베트남 가판대와 런던 고급 레스토랑이 같은 1스타</li>
+            <li>서울/부산만 커버 (지방 배제)</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>블루리본 서베이</strong></td>
+        <td>서울 리본3개: 43곳 (2026)<br>리본2개/1개 수천 곳</td>
+        <td>일반 독자 실방문 평가 누적 반영<br>(2005년 첫 발행, 20년 역사)</td>
+        <td><span class="badge badge-blue">국내 최장수 맛집 가이드</span><br>성심당 리본2, 고든램지 리본1 등 논란 존재</td>
+        <td>
+          <ul style="font-size:12px; padding-left:14px;">
+            <li>일반 독자 평가 기반이라 <strong>전문성 한계</strong></li>
+            <li>정확성/객관성 신뢰 높지 못하다는 평가</li>
+            <li>온라인 미디어화 부족 (책 중심)</li>
+            <li>젊은 세대 인지도 상대적 약세</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>식신 별 인증</strong></td>
+        <td>2026년 5,996곳<br>(전국 대상)</td>
+        <td>빅데이터 + AI 분석<br>(클릭율, 검색, 좋아요 등)</td>
+        <td><span class="badge badge-gray">인지도 낮음</span><br>미쉐린/블루리본 대비 브랜드 파워 약</td>
+        <td>
+          <ul style="font-size:12px; padding-left:14px;">
+            <li>데이터 기반이나 <strong>방법론 검증 투명성 부족</strong></li>
+            <li>선정 규모(6,000곳)가 너무 넓어 큐레이션 가치 희석</li>
+            <li>소비자 인식: "3대 가이드"로 받아들이지 않음</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="warning-box">
+    <h4>가이드 시장의 구조적 문제</h4>
+    <p style="font-size:14px; color:var(--gray-700);">
+      미쉐린은 <strong>"외국인의 시선"</strong>, 블루리본은 <strong>"아마추어의 집합지성"</strong>, 식신은 <strong>"알고리즘의 블랙박스"</strong>라는 근본적 한계를 각각 안고 있다.
+      한식/로컬 식문화에 깊이 있는 전문성을 갖추면서도, 검증 가능한 평가 체계를 운영하는 가이드는 한국에 <strong>아직 없다</strong>.
+    </p>
+  </div>
+</div>
+
+<!-- 3. 매거진/미디어형 -->
+<div class="section">
+  <h2><span class="section-number">3</span>매거진/미디어형 -- 식문화 에디토리얼</h2>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>매체</th>
+        <th>발행 주기</th>
+        <th>포지셔닝</th>
+        <th>수익 모델</th>
+        <th>현황</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>매거진 F</strong><br><span style="font-size:11px; color:var(--gray-500);">배달의민족(우아한형제들)</span></td>
+        <td>격월간</td>
+        <td>식재료 1개를 심층 탐구 (생산지/조리법/산업/문화). <strong>한국 유일의 본격 식문화 매거진</strong></td>
+        <td>판매, 구독, 브랜드(배민) 마케팅</td>
+        <td><span class="badge badge-green">운영 중</span><br>인스타 @food.magazine.f 활발</td>
+      </tr>
+      <tr>
+        <td><strong>에쎈 (ESSEN)</strong><br><span style="font-size:11px; color:var(--gray-500);">SM C&C (smlounge.co.kr)</span></td>
+        <td>월간</td>
+        <td>한국 유일 요리 전문 월간지. 레시피/식재료/조리법 중심</td>
+        <td>광고, 판매, 온라인 레시피 콘텐츠</td>
+        <td><span class="badge badge-blue">운영 중</span><br>디지털 전환 진행 중</td>
+      </tr>
+      <tr>
+        <td><strong>올리브 매거진 코리아</strong><br><span style="font-size:11px; color:var(--gray-500);">BBC 라이선스</span></td>
+        <td>-</td>
+        <td>한국 최초 해외 요리 라이선스 매거진</td>
+        <td>광고, 판매</td>
+        <td><span class="badge badge-orange">축소/불명</span><br>인스타 운영은 유지되나 정기 발간 불확실</td>
+      </tr>
+      <tr>
+        <td><strong>한국 미식 저널</strong><br><span style="font-size:11px; color:var(--gray-500);">koreamisikjournal.com</span></td>
+        <td>비정기</td>
+        <td>"일상 식탁에서 발견하는 비범함" -- 성실한 노동과 식의 가치 조명</td>
+        <td>구독, 콘텐츠 판매</td>
+        <td><span class="badge badge-purple">니치 운영</span></td>
+      </tr>
+      <tr>
+        <td><strong>월간식당</strong><br><span style="font-size:11px; color:var(--gray-500);">식품외식경제</span></td>
+        <td>월간 (1985~)</td>
+        <td>외식 업계인 대상 B2B 정보지. 트렌드/경영/메뉴 개발</td>
+        <td>광고, 구독, 행사</td>
+        <td><span class="badge badge-blue">운영 중</span> (40년 역사)</td>
+      </tr>
+      <tr>
+        <td><strong>블루리본 매거진</strong><br><span style="font-size:11px; color:var(--gray-500);">bluer.co.kr/magazine</span></td>
+        <td>온라인 수시</td>
+        <td>계절별 미식 풍경, 식문화 에세이, 신규 선정 소개</td>
+        <td>가이드 판매, 레스토랑 제휴</td>
+        <td><span class="badge badge-blue">운영 중</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="insight-box">
+    <h4>에디토리얼 미디어의 현실</h4>
+    <p>
+      <strong>매거진 F</strong>가 유일하게 "본격 식문화 에디토리얼"을 표방하지만, 식재료 단위 탐구에 집중하여 <strong>레스토랑/식당 현장 이야기</strong>는 부재하다. 에쎈은 가정 요리 레시피 중심이라 "미식"과는 결이 다르다. <strong>한국의 식당 씬(scene)을 깊이 있게 다루는 정기 매거진은 사실상 부재</strong>하며, 이는 해외의 Bon Appetit, Eater, The Infatuation 같은 매체와 대비되는 뚜렷한 공백이다.
+    </p>
+  </div>
+</div>
+
+<!-- 4. 인스타그램 미식 계정 -->
+<div class="section">
+  <h2><span class="section-number">4</span>인스타그램 미식 계정</h2>
+
+  <h4 style="font-size:14px; font-weight:700; margin-bottom:16px; color:var(--dark);">팔로워 규모별 주요 계정</h4>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>계정</th>
+        <th>팔로워</th>
+        <th>콘텐츠 유형</th>
+        <th>포지셔닝</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>@seoulhotple</strong> (서울핫플)</td>
+        <td><strong>514K</strong></td>
+        <td>큐레이션 (맛집+카페+전시+근교여행)</td>
+        <td>서울 라이프스타일 종합</td>
+      </tr>
+      <tr>
+        <td><strong>@biteofyommy</strong> (요미)</td>
+        <td><strong>148K</strong></td>
+        <td>먹스타그램, 사진 중심</td>
+        <td>비주얼 맛집 소개</td>
+      </tr>
+      <tr>
+        <td><strong>@korean_foodman</strong> (맛집남자)</td>
+        <td><strong>125K</strong></td>
+        <td>블루리본 엠배서더, 에디토리얼</td>
+        <td>권위 기반 미식가</td>
+      </tr>
+      <tr>
+        <td><strong>@bestgreedfood</strong> (맛집정보특공대)</td>
+        <td><strong>99K</strong></td>
+        <td>큐레이션 리스트, 사진+정보</td>
+        <td>실용 맛집 정보</td>
+      </tr>
+      <tr>
+        <td><strong>@dwyt_food</strong> (DWYT)</td>
+        <td>-</td>
+        <td>맛집 큐레이션</td>
+        <td>타겟 큐레이션</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card-grid" style="margin-top:20px;">
+    <div class="card">
+      <h4>콘텐츠 유형 분류</h4>
+      <ul>
+        <li><strong>사진 위주</strong>: 음식 비주얼 중심, 정보 최소화 -- 대다수 계정</li>
+        <li><strong>큐레이션형</strong>: 지역/테마별 리스트 -- 서울핫플, DWYT 등</li>
+        <li><strong>에디토리얼형</strong>: 맛집남자 등 극소수 -- 스토리/맥락 포함</li>
+        <li><strong>릴스/숏폼</strong>: 2025년 이후 급증, 15-60초 맛집 소개</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>수익 모델 & 신뢰도 문제</h4>
+      <ul>
+        <li><strong>수익원</strong>: 식당 협찬, 광고 게시물, 제휴 커머스, 체험단</li>
+        <li><strong>2025년 규제</strong>: 공정위 개정 -- "체험단/서포터즈" 표현 금지, "광고/협찬" 명시 의무화</li>
+        <li><strong>AI 광고 남발</strong>: 생성형 AI로 대충 만든 광고 콘텐츠 급증</li>
+        <li><strong>협찬 사기 DM</strong>: 소규모 계정 타겟 사기 피해 증가</li>
+        <li><strong>결과</strong>: 전문가/전문 인플루언서만 높은 신뢰도 유지. 일반 인플루언서 신뢰도 급락</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="warning-box">
+    <h4>인스타그램 맛집 계정의 구조적 한계</h4>
+    <p style="font-size:14px; color:var(--gray-700);">
+      대부분의 계정이 "예쁜 사진 + 위치 태그"에 머물러 있으며, <strong>왜 이 식당이 좋은지, 셰프는 어떤 철학을 갖고 있는지, 식재료는 어디서 오는지</strong> 같은 깊이 있는 스토리텔링을 하는 계정은 거의 전무하다. 또한 대부분 협찬 의존 수익 구조여서 객관성 담보가 구조적으로 불가능하다.
+    </p>
+  </div>
+</div>
+
+<!-- 5. 유튜브 미식 채널 -->
+<div class="section">
+  <h2><span class="section-number">5</span>유튜브 미식/식문화 채널</h2>
+
+  <p style="font-size:14px; color:var(--gray-700); margin-bottom:20px;">
+    한국 유튜브 푸드 카테고리는 <strong>먹방(대식/ASMR)이 압도적</strong>이며, "미식/식문화" 채널은 소수에 불과하다. 2026년 트렌드는 30분 대식에서 <strong>1분 압축 미식 리포트</strong>로 전환 중이다.
+  </p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>채널</th>
+        <th>구독자</th>
+        <th>콘텐츠 스타일</th>
+        <th>포지셔닝</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>푸드킹덤</strong></td>
+        <td>대규모<br><span style="font-size:11px; color:var(--gray-500);">포브스 TOP100 40위</span></td>
+        <td>세계 맛 여행 다큐멘터리</td>
+        <td>글로벌 식문화 탐방</td>
+      </tr>
+      <tr>
+        <td><strong>승우아빠</strong></td>
+        <td><strong>156만</strong></td>
+        <td>셰프의 가정 요리 레시피</td>
+        <td>전문 셰프의 접근 가능한 요리</td>
+      </tr>
+      <tr>
+        <td><strong>육식맨</strong></td>
+        <td><strong>140만</strong></td>
+        <td>고기 전문 맛집 탐방 + 리뷰</td>
+        <td>육류 미식 전문</td>
+      </tr>
+      <tr>
+        <td><strong>학배형 (소식하는 미식가)</strong></td>
+        <td>중규모</td>
+        <td>소식 관점의 미식 리뷰</td>
+        <td>양보다 질 미식</td>
+      </tr>
+      <tr>
+        <td><strong>1분요리 뚝딱이형</strong></td>
+        <td>급성장</td>
+        <td>1분 압축 레시피</td>
+        <td>2026 숏폼 트렌드 선도</td>
+      </tr>
+      <tr>
+        <td><strong>레읽녀</strong></td>
+        <td>급성장</td>
+        <td>복잡한 레시피 간단하게 풀어내기</td>
+        <td>효능감 기반 레시피</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>먹방 vs 미식 -- 콘텐츠 분류</h4>
+      <ul>
+        <li><strong>먹방 (대식/ASMR)</strong>: 유튜브 푸드 카테고리의 80%+ 점유. 게자리, 먹스나, 이공삼, 햄지 등</li>
+        <li><strong>레시피/요리</strong>: 승우아빠, 1분요리, 레읽녀 -- 실용 중심</li>
+        <li><strong>맛집 탐방</strong>: 육식맨, 학배형 등 -- 리뷰 중심이나 에디토리얼 깊이 부족</li>
+        <li><strong>식문화 다큐</strong>: 푸드킹덤 정도 -- 해외 사례 중심, 한국 로컬 식문화 다큐는 부재</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>2026년 트렌드 전환</h4>
+      <ul>
+        <li>"30분 대식 쇼는 옛말, 1분 만에 끝내는 압축 미식 리포트" (다음 뉴스)</li>
+        <li><strong>빠른 이해 + 효능감</strong> = 새로운 공식</li>
+        <li>긴 포만감 --> 짧은 서사 + 재치 있는 자막</li>
+        <li>숏폼 전환이 가속화되며 <strong>깊이 있는 식문화 콘텐츠가 더욱 희소</strong>해지는 중</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <h4>유튜브 미식 채널의 빈틈</h4>
+    <p>
+      한국에는 <strong>Bon Appetit (미국), Sorted Food (영국), Tested by Babish (미국)</strong>에 해당하는 -- 즉, 전문 편집팀이 만드는 고퀄리티 식문화 콘텐츠 채널이 부재하다. 대부분 1인 크리에이터 기반이라 제작 퀄리티/깊이에 한계가 있으며, 셰프 인터뷰, 식재료 산지 취재, 식문화 히스토리 같은 다큐멘터리급 콘텐츠는 거의 생산되지 않는다.
+    </p>
+  </div>
+</div>
+
+<!-- 6. 뉴스레터/커뮤니티 -->
+<div class="section">
+  <h2><span class="section-number">6</span>뉴스레터/커뮤니티</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>뉴스레터/콘텐츠 플랫폼</h4>
+      <table class="data-table" style="margin:12px 0 0 0;">
+        <tbody>
+          <tr>
+            <td><strong>비마이비</strong></td>
+            <td>브랜드 경험 플랫폼. 뉴스레터 "마이비레터" 구독자 1만+. F&B 직접 다루기보다 브랜드 관점에서 식문화 사례 분석</td>
+          </tr>
+          <tr>
+            <td><strong>폴인 (fol:in)</strong></td>
+            <td>중앙일보 콘텐츠 유료 구독. 링커(전문가) 기반. F&B 카테고리 있으나 비중 낮음</td>
+          </tr>
+          <tr>
+            <td><strong>식품저널</strong></td>
+            <td>B2B 식품산업 뉴스. 월간지+디지털. 업계 종사자 대상</td>
+          </tr>
+          <tr>
+            <td><strong>소믈리에타임즈</strong></td>
+            <td>와인/미식 전문 온라인 미디어. 미쉐린 소식 등 업계 뉴스</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h4>맛집 커뮤니티</h4>
+      <table class="data-table" style="margin:12px 0 0 0;">
+        <tbody>
+          <tr>
+            <td><strong>네이버 카페</strong></td>
+            <td>지역별 맛집 카페 다수 (수만~수십만 회원). 내돈내산 리뷰 중심이나 광고 침투 문제</td>
+          </tr>
+          <tr>
+            <td><strong>디시인사이드</strong></td>
+            <td>"기타음식 갤러리", "오마카세 마이너 갤러리" 등. 솔직한 평가 문화이나 정보 체계화 부재</td>
+          </tr>
+          <tr>
+            <td><strong>에브리타임</strong></td>
+            <td>대학생 커뮤니티 내 맛집 게시판. 학교 주변 식당 정보 교환. 세대 한정</td>
+          </tr>
+          <tr>
+            <td><strong>블라인드</strong></td>
+            <td>직장인 커뮤니티 맛집 게시판. 점심 맛집 중심. 비익명 검증</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <h4>뉴스레터/커뮤니티의 한계</h4>
+    <p>
+      <strong>미식 전문 뉴스레터</strong>는 한국에 사실상 존재하지 않는다. 비마이비/폴인은 "브랜드/비즈니스" 관점에서 식문화를 간접적으로 다룰 뿐, <strong>주 1회 미식 큐레이션 뉴스레터</strong> 같은 포맷은 비어 있다. 커뮤니티는 "익명의 솔직함"이 강점이나, 정보가 파편화되어 있고 아카이빙/검색이 어려워 <strong>지식 축적이 불가능</strong>한 구조이다.
+    </p>
+  </div>
+</div>
+
+<!-- 포지셔닝 맵 -->
+<div class="section">
+  <h2><span class="section-number">*</span>경쟁 지형 포지셔닝 맵</h2>
+  <p style="font-size:13px; color:var(--gray-700); margin-bottom:8px;">X축: 실용성(검색/예약) <---> 에디토리얼(깊이/스토리) | Y축: 대중적 <---> 전문적</p>
+
+  <div class="map-container">
+    <div class="map-axis-x"></div>
+    <div class="map-axis-y"></div>
+    <div class="map-label top">전문적 / 권위</div>
+    <div class="map-label bottom">대중적 / 접근성</div>
+    <div class="map-label left">실용 (검색/예약)</div>
+    <div class="map-label right">에디토리얼 (깊이/스토리)</div>
+
+    <!-- Dots -->
+    <div class="map-dot" style="left:18%; top:60%;">
+      <div class="dot" style="background:#00B894; width:20px; height:20px;"></div>
+      <div class="name">네이버 플레이스</div>
+    </div>
+    <div class="map-dot" style="left:25%; top:35%;">
+      <div class="dot" style="background:#6C5CE7; width:16px; height:16px;"></div>
+      <div class="name">캐치테이블</div>
+    </div>
+    <div class="map-dot" style="left:22%; top:72%;">
+      <div class="dot" style="background:#FDCB6E; width:14px; height:14px;"></div>
+      <div class="name">카카오맵</div>
+    </div>
+    <div class="map-dot" style="left:30%; top:55%;">
+      <div class="dot" style="background:#E17055; width:10px; height:10px;"></div>
+      <div class="name">식신</div>
+    </div>
+    <div class="map-dot" style="left:35%; top:50%;">
+      <div class="dot" style="background:#0984E3; width:8px; height:8px;"></div>
+      <div class="name">다이닝코드</div>
+    </div>
+
+    <div class="map-dot" style="left:60%; top:18%;">
+      <div class="dot" style="background:#D63031; width:14px; height:14px;"></div>
+      <div class="name">미쉐린 가이드</div>
+    </div>
+    <div class="map-dot" style="left:55%; top:28%;">
+      <div class="dot" style="background:#0984E3; width:12px; height:12px;"></div>
+      <div class="name">블루리본</div>
+    </div>
+
+    <div class="map-dot" style="left:80%; top:22%;">
+      <div class="dot" style="background:#6C5CE7; width:12px; height:12px;"></div>
+      <div class="name">매거진 F</div>
+    </div>
+    <div class="map-dot" style="left:72%; top:40%;">
+      <div class="dot" style="background:#00B894; width:8px; height:8px;"></div>
+      <div class="name">한국미식저널</div>
+    </div>
+
+    <div class="map-dot" style="left:40%; top:75%;">
+      <div class="dot" style="background:#FDCB6E; width:14px; height:14px;"></div>
+      <div class="name">인스타 맛집계정</div>
+    </div>
+    <div class="map-dot" style="left:42%; top:85%;">
+      <div class="dot" style="background:#E17055; width:16px; height:16px;"></div>
+      <div class="name">유튜브 먹방</div>
+    </div>
+    <div class="map-dot" style="left:55%; top:65%;">
+      <div class="dot" style="background:#636E72; width:10px; height:10px;"></div>
+      <div class="name">유튜브 미식</div>
+    </div>
+
+    <div class="map-dot" style="left:15%; top:80%;">
+      <div class="dot" style="background:#B2BEC3; width:10px; height:10px;"></div>
+      <div class="name">커뮤니티 (디시/에타)</div>
+    </div>
+
+    <!-- White Space Zone -->
+    <div style="position:absolute; left:60%; top:40%; width:200px; height:140px; border:3px dashed var(--primary); border-radius:16px; opacity:0.7;"></div>
+    <div style="position:absolute; left:62%; top:43%; font-size:14px; font-weight:800; color:var(--primary);">WHITE SPACE</div>
+    <div style="position:absolute; left:62%; top:50%; font-size:10px; color:var(--primary); max-width:180px; line-height:1.4;">실용적 정보 + 에디토리얼 깊이 + 대중 접근성의 교차점</div>
+  </div>
+</div>
+
+<!-- 7. White Space -->
+<div class="whitespace-section">
+  <h2><span class="section-number" style="background:var(--primary-light); color:var(--dark);">7</span>White Space -- 아무도 제대로 못하고 있는 영역</h2>
+
+  <div class="ws-card">
+    <h4>1. "신뢰할 수 있는 에디토리얼 + 실용적 식당 정보" 매체의 부재</h4>
+    <p>
+      미국의 <strong>Eater, The Infatuation, Bon Appetit</strong>에 해당하는 매체가 한국에 없다.
+      네이버는 실용적이나 깊이가 없고, 매거진 F는 깊이 있으나 식당 정보가 없고, 미쉐린은 권위 있으나 한식 문맥이 약하다.
+      <strong>"이 식당이 왜 좋은지를 맥락과 스토리로 설명하면서, 동시에 예약/방문이 가능한"</strong> 미디어가 비어 있다.
+    </p>
+    <span class="ws-tag">에디토리얼</span>
+    <span class="ws-tag">실용성</span>
+    <span class="ws-tag">신뢰</span>
+  </div>
+
+  <div class="ws-card">
+    <h4>2. 한식/로컬 식문화 전문 가이드의 부재</h4>
+    <p>
+      미쉐린은 서양 편향, 블루리본은 아마추어 집합지성, 식신은 알고리즘 블랙박스.
+      <strong>한식의 맥락(계절, 지역성, 식재료 철학, 조리 전통)을 이해하는 전문 평가단</strong>이 운영하는 가이드가 없다.
+      특히 서울 이외 지역(지방 식문화)을 체계적으로 다루는 가이드는 전무하다.
+    </p>
+    <span class="ws-tag">한식 전문성</span>
+    <span class="ws-tag">지방 커버리지</span>
+  </div>
+
+  <div class="ws-card">
+    <h4>3. 미식 뉴스레터 / 정기 큐레이션의 공백</h4>
+    <p>
+      해외의 <strong>The Infatuation Newsletter, Eater Newsletter</strong>처럼, 주 1-2회 "이번 주 가볼 만한 곳, 새로 오픈한 곳, 클로즈한 곳, 셰프 이동 소식"을 정리해주는 미식 전문 뉴스레터가 한국에는 <strong>없다</strong>.
+      비마이비/폴인은 식문화를 부분적으로만 다루고, 식품저널은 B2B 업계지에 머물러 있다.
+    </p>
+    <span class="ws-tag">뉴스레터</span>
+    <span class="ws-tag">주기적 큐레이션</span>
+  </div>
+
+  <div class="ws-card">
+    <h4>4. 프로덕션 퀄리티의 식문화 영상 콘텐츠</h4>
+    <p>
+      Bon Appetit 유튜브, Chef's Table (넷플릭스) 수준의 <strong>프로덕션 퀄리티로 한국 식문화를 다루는 영상</strong>이 없다.
+      유튜브는 1인 크리에이터 중심이라 촬영/편집 퀄리티에 한계가 있고, 방송사 콘텐츠는 예능에 치우쳐 식문화 다큐멘터리 장르가 비어 있다.
+      한국 셰프의 철학, 식재료 산지, 한식의 역사를 깊이 있게 다루는 영상 매체의 수요는 있으나 공급이 없다.
+    </p>
+    <span class="ws-tag">고퀄 영상</span>
+    <span class="ws-tag">다큐멘터리</span>
+  </div>
+
+  <div class="ws-card">
+    <h4>5. "검증된 비전문가" -- 신뢰 가능한 일반인 미식 커뮤니티</h4>
+    <p>
+      전문 평론가와 협찬 인플루언서 사이에서, <strong>"내돈내산이 검증된 일반 미식가"</strong>의 리뷰를 체계적으로 모아주는 플랫폼이 없다.
+      디시/에타의 솔직한 리뷰는 아카이빙이 불가능하고, 네이버 블로그는 광고가 범람한다.
+      Yelp Elite, Google Local Guides처럼 <strong>기여도/정확도에 따른 레벨 시스템 + 광고 배제</strong>를 갖춘 한국형 미식 커뮤니티의 공백이 존재한다.
+    </p>
+    <span class="ws-tag">커뮤니티</span>
+    <span class="ws-tag">신뢰 시스템</span>
+  </div>
+
+  <div class="ws-card">
+    <h4>6. 데이터 기반 식문화 인사이트</h4>
+    <p>
+      네이버/카카오/캐치테이블은 방대한 데이터를 갖고 있으나, 이를 <strong>"식문화 트렌드 인사이트"</strong>로 가공하여 소비자에게 제공하는 매체가 없다.
+      "올해 가장 많이 검색된 음식 유형", "지역별 외식 트렌드 변화", "셰프 이동 동선" 같은 데이터 저널리즘이 식문화 영역에서는 전무하다.
+    </p>
+    <span class="ws-tag">데이터 저널리즘</span>
+    <span class="ws-tag">트렌드 분석</span>
+  </div>
+</div>
+
+<!-- 종합 매트릭스 -->
+<div class="section">
+  <h2><span class="section-number">*</span>종합: 카테고리별 충족도 매트릭스</h2>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>차원</th>
+        <th>검색/예약</th>
+        <th>에디토리얼</th>
+        <th>신뢰성</th>
+        <th>한식 전문성</th>
+        <th>지방 커버</th>
+        <th>정기성</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>네이버 플레이스</strong></td>
+        <td style="text-align:center; color:#00B894; font-weight:700;">★★★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#00B894;">★★★</td>
+        <td style="text-align:center; color:#00B894;">★★★</td>
+      </tr>
+      <tr>
+        <td><strong>캐치테이블</strong></td>
+        <td style="text-align:center; color:#00B894; font-weight:700;">★★★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#00B894;">★★★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#00B894;">★★★</td>
+      </tr>
+      <tr>
+        <td><strong>미쉐린 가이드</strong></td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#00B894;">★★★</td>
+        <td style="text-align:center; color:#00B894;">★★★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+      </tr>
+      <tr>
+        <td><strong>블루리본</strong></td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+      </tr>
+      <tr>
+        <td><strong>매거진 F</strong></td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#00B894; font-weight:700;">★★★</td>
+        <td style="text-align:center; color:#00B894;">★★★</td>
+        <td style="text-align:center; color:#00B894;">★★★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+      </tr>
+      <tr>
+        <td><strong>인스타 맛집계정</strong></td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#00B894;">★★★</td>
+      </tr>
+      <tr>
+        <td><strong>유튜브 미식</strong></td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+        <td style="text-align:center; color:#D63031;">★</td>
+        <td style="text-align:center; color:#E17055;">★★</td>
+      </tr>
+      <tr style="background:var(--primary-bg); font-weight:700;">
+        <td style="color:var(--primary);">WHITE SPACE</td>
+        <td style="text-align:center; color:var(--primary);">★★★</td>
+        <td style="text-align:center; color:var(--primary);">★★★</td>
+        <td style="text-align:center; color:var(--primary);">★★★</td>
+        <td style="text-align:center; color:var(--primary);">★★★</td>
+        <td style="text-align:center; color:var(--primary);">★★★</td>
+        <td style="text-align:center; color:var(--primary);">★★★</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="sub-note">★ = 약함 | ★★ = 보통 | ★★★ = 강함. White Space는 6개 차원을 동시에 충족하는 매체가 없음을 의미.</p>
+</div>
+
+<!-- 결론 -->
+<div class="section" style="border-left:4px solid var(--primary);">
+  <h2 style="margin-bottom:16px;">결론: 가장 큰 기회</h2>
+  <p style="font-size:15px; line-height:1.8; color:var(--gray-900);">
+    한국 미식 미디어 시장에서 가장 뚜렷한 공백은 <strong>"깊이 있는 에디토리얼 + 실용적 식당 정보 + 검증된 신뢰성"</strong>의 교차점이다.
+  </p>
+  <p style="font-size:14px; line-height:1.8; color:var(--gray-700); margin-top:12px;">
+    구체적으로, 다음 포맷이 한국에서 아직 시도되지 않았거나 제대로 실행되지 않았다:
+  </p>
+  <ul style="font-size:14px; color:var(--gray-700); padding-left:20px; margin-top:12px; line-height:2;">
+    <li><strong>식당 씬 전문 뉴스레터</strong> (신규 오픈/클로즈, 셰프 이동, 시즌 메뉴 등 주간 큐레이션)</li>
+    <li><strong>한식 맥락의 에디토리얼 가이드</strong> (계절성/지역성/식재료 철학을 반영한 평가)</li>
+    <li><strong>검증된 일반 미식가 커뮤니티</strong> (기여도/정확도 레벨 시스템, 광고 완전 배제)</li>
+    <li><strong>데이터 기반 식문화 저널리즘</strong> (트렌드 분석, 지역별 외식 패턴, 가격 동향)</li>
+    <li><strong>프로덕션 퀄리티 식문화 다큐</strong> (한국 셰프/식재료/식문화 히스토리)</li>
+  </ul>
+  <p style="font-size:14px; line-height:1.8; color:var(--gray-700); margin-top:16px;">
+    현재 한국 소비자는 "광고로 범벅된 네이버 블로그"와 "외국인 시선의 미쉐린" 사이에서 <strong>신뢰할 수 있는 미식 정보에 대한 갈증</strong>을 해소하지 못하고 있다. 이 영역을 점유하는 매체가 등장한다면, 식문화에 관심 있는 2030-4050의 강한 충성도를 확보할 수 있을 것이다.
+  </p>
+</div>
+
+<!-- Sources -->
+<div class="section" style="background:var(--gray-100); border:1px solid var(--gray-300);">
+  <h4 style="font-size:14px; font-weight:700; margin-bottom:12px; color:var(--gray-700);">주요 출처</h4>
+  <ul style="font-size:12px; color:var(--gray-500); line-height:2; padding-left:16px;">
+    <li>모바일인덱스 월간 MAU 순위 (mobileindex.com) -- 네이버지도 2,856만, 카카오맵 1,266만 (2025.8)</li>
+    <li>한국경제 -- 캐치테이블 시리즈D 300억원 유치, MAU 300만 (2023.7) / 현재 500만+ (2026.2)</li>
+    <li>미쉐린 가이드 공식 -- 서울&부산 2026 빕구르망 71곳, 스타 레스토랑 총정리</li>
+    <li>위키트리 -- 블루리본 2026 서울 리본3 43곳</li>
+    <li>메트로서울 -- 식신 2026 별 인증 맛집 5,996곳, MAU 350만</li>
+    <li>THE VC / 플래텀 -- 다이닝코드 MAU 180만, AI 기능 출시 (2025)</li>
+    <li>이코노믹리뷰 -- 망고플레이트 2023.10 서비스 종료</li>
+    <li>서울경제 -- 미쉐린 한국관광공사 14억원 지급 논란</li>
+    <li>정책브리핑 -- 공정위 SNS 광고/협찬 표기 개정 (2024.12)</li>
+    <li>다음뉴스 -- 2026 먹방 트렌드 "1분 압축 미식 리포트"</li>
+    <li>ZDNet -- 캐치테이블 미쉐린 2026 공식 예약 파트너 선정</li>
+    <li>나무위키 -- 승우아빠 156만 구독자, 미쉐린 가이드 비판 종합</li>
+    <li>Medium 캐치테이블 기술블로그 -- 글로벌 버전 MAU 두 배 성장</li>
+  </ul>
+</div>
+
+<div class="report-footer">
+  &copy; 2026 Do Better Things -- Competitive Landscape Research
+</div>
+
+</div>
+</body>
+</html>

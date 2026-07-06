@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basket TOP 30 SOP + 루틴 카드 v0.1 — RX Operations Knowledge DB</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+  :root{--bg:#0E0B1A;--panel:#171327;--panel2:#1F1A33;--line:#2C2542;--txt:#EDEBF5;--sub:#B4B0C6;--mut:#6F6A86;--acc:#6C5CE7;--acc2:#8B7BFF;--acc-soft:rgba(108,92,231,.12);--green:#27C093;--amber:#F2B53C;--rose:#FF6B9D}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Pretendard',-apple-system,sans-serif;line-height:1.68;-webkit-font-smoothing:antialiased;padding:0 0 90px;font-size:15px}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 26px}
+  header.hero{padding:56px 0 32px;border-bottom:1px solid var(--line);background:radial-gradient(1100px 360px at 16% -10%,var(--acc-soft),transparent)}
+  .eyebrow{color:var(--acc2);font-weight:700;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:31px;font-weight:800;line-height:1.28;margin:12px 0 12px;letter-spacing:-.02em}
+  h1 .hl{color:var(--acc2)}
+  .lede{color:var(--sub);font-size:15.5px;max-width:760px}
+  .meta{margin-top:18px;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{background:var(--panel2);border:1px solid var(--line);color:var(--sub);font-size:11.5px;padding:5px 11px;border-radius:999px}
+  .chip.real{border-color:var(--acc);color:var(--acc2)}
+  nav.toc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 20px;margin:22px 0}
+  nav.toc b{font-size:12px;color:var(--mut);letter-spacing:.05em;text-transform:uppercase}
+  nav.toc a{color:var(--sub);text-decoration:none;font-size:13.5px;margin-right:16px} nav.toc a:hover{color:var(--acc2)}
+  section{margin:46px 0;scroll-margin-top:14px}
+  h2{font-size:22px;font-weight:800;margin:6px 0 6px;letter-spacing:-.01em;display:flex;align-items:center;gap:11px}
+  h2 .num{color:var(--acc2);font-size:15px;font-weight:700;background:var(--acc-soft);border:1px solid var(--acc);min-width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+  h3{font-size:16px;font-weight:800;margin:22px 0 8px;color:var(--acc2)}
+  .sub{color:var(--mut);font-size:13.5px;margin-bottom:16px}
+  p{color:var(--sub);margin:8px 0} b{color:var(--txt)}
+  table{width:100%;border-collapse:collapse;font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:11px;overflow:hidden;margin:10px 0}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{background:var(--panel2);font-weight:700;font-size:12px;color:var(--sub)}
+  tbody tr:last-child td{border-bottom:none}
+  td.id{color:var(--mut);font-family:ui-monospace,monospace;font-size:11.5px;white-space:nowrap}
+  td.nm{color:var(--txt);font-weight:600}
+  .catrow td{background:var(--panel2);color:var(--acc2);font-weight:800;font-size:12.5px;letter-spacing:.03em}
+  .freq{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:5px;white-space:nowrap}
+  .f-d{background:rgba(39,192,147,.12);color:var(--green);border:1px solid var(--green)}
+  .f-w{background:var(--acc-soft);color:var(--acc2);border:1px solid var(--acc)}
+  .f-m{background:rgba(242,181,60,.12);color:var(--amber);border:1px solid var(--amber)}
+  .f-a{background:rgba(255,107,157,.1);color:var(--rose);border:1px solid var(--rose)}
+  .sop{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden;margin:14px 0}
+  .sop .hd{background:var(--panel2);padding:11px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+  .sop .hd .name{font-weight:800;color:var(--txt);font-size:15px}
+  .sop .hd .id{font-size:11px;color:var(--mut);font-family:ui-monospace,monospace}
+  .sop .bd{padding:13px 16px}
+  .sop .row{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .sop .row:last-child{border-bottom:none}
+  .sop .row .lab{color:var(--acc2);font-weight:700}
+  .sop .row .lab.rem{color:var(--rose)} .sop .row .lab.g{color:var(--green)}
+  .sop .row .val{color:var(--sub)}
+  .sop ol{margin:2px 0 2px 17px;color:var(--sub)} .sop ol li{padding:2px 0} .sop ol li b{color:var(--txt)}
+  .sop ol li span{color:var(--mut);font-size:12.5px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden;margin:14px 0}
+  .card .ch{padding:11px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:var(--panel2)}
+  .card .ch .t{font-weight:800;color:var(--txt);font-size:15px}
+  .card .ch .when{font-size:11.5px;color:var(--acc2);font-weight:700}
+  .chk{list-style:none;padding:8px 16px}
+  .chk li{position:relative;padding:8px 0 8px 30px;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--sub)}
+  .chk li:last-child{border-bottom:none}
+  .chk li::before{content:"";position:absolute;left:0;top:9px;width:16px;height:16px;border:1.5px solid var(--mut);border-radius:4px}
+  .chk li .ref{font-size:10.5px;color:var(--mut);font-family:ui-monospace,monospace;margin-left:6px}
+  .chk li.rem{color:var(--rose)} .chk li.rem::before{border-color:var(--rose);border-radius:50%}
+  .chk li b{color:var(--txt)}
+  .note{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:13px 16px;color:var(--mut);font-size:12.5px;margin:12px 0}
+  .note b{color:var(--amber)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.two{grid-template-columns:1fr}.sop .row{grid-template-columns:1fr}}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin:6px 0 0}
+  .big{background:linear-gradient(135deg,var(--acc-soft),transparent);border:1px solid var(--acc);border-radius:14px;padding:18px 20px;margin:14px 0}
+  .big b{color:var(--txt)}
+  footer{margin-top:54px;padding-top:20px;border-top:1px solid var(--line);color:var(--mut);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div style="background:#6C5CE7;color:#fff;text-align:center;padding:10px 16px;font-family:'Pretendard',-apple-system,sans-serif;font-size:13.5px;font-weight:600">📚 이 SOP·루틴카드는 <b>Basket 업무가이드 매뉴얼 v1</b>로 통합되었습니다 — 최신 통합본: <a href="../25-basket-ops-manual/basket-업무가이드-매뉴얼-v1.html" style="color:#fff;text-decoration:underline">basket-업무가이드-매뉴얼-v1.html</a></div>
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Project Rent · Basket · RX Operations Knowledge DB — Day 4 산출물</div>
+  <h1><span class="hl">Basket TOP 30 SOP + 루틴 카드</span> v0.1 (초안)</h1>
+  <p class="lede">SOP(참조 지식) ↔ 루틴 카드(실행 체크리스트)를 분리해 산출. SOP는 "왜·어떻게"를 담은 표준, 루틴 카드는 직원이 매 시프트 체크하는 '오늘 할 일'. 봇은 둘을 함께 쓴다 — 질문엔 SOP로 답하고, 출근하면 루틴 카드를 띄운다.</p>
+  <div class="meta">
+    <span class="chip real">REM 관찰질문 내장</span>
+    <span class="chip">템플릿: §4 표준 SOP (REM 확장)</span>
+    <span class="chip">⚠️ 내용은 초안 — 운영팀이 Basket 기준 확정</span>
+    <span class="chip">by Project Rent</span>
+  </div>
+</div></header>
+
+<div class="wrap">
+<nav class="toc"><b>목차</b> &nbsp;
+  <a href="#s1">1. TOP 30 SOP 리스트</a>
+  <a href="#s2">2. 샘플 SOP 전문</a>
+  <a href="#s3">3. 루틴 카드 (일/주/월)</a>
+  <a href="#s4">4. SOP↔루틴 연결</a>
+</nav>
+
+<!-- 1. TOP 30 -->
+<section id="s1">
+<h2><span class="num">1</span>TOP 30 SOP 마스터 리스트</h2>
+<p class="sub">선정 기준 = 신입이 가장 자주 하는 업무 순. 카테고리 A~F. 주기 라벨로 루틴 연결.</p>
+<div class="legend"><span class="freq f-d">D 매일</span><span class="freq f-w">W 매주</span><span class="freq f-m">M 매월+</span><span class="freq f-a">A 수시</span></div>
+<table>
+<thead><tr><th>ID</th><th>SOP 이름</th><th>주기</th><th>담당</th></tr></thead>
+<tbody>
+<tr class="catrow"><td colspan="4">A · Store Operations (운영)</td></tr>
+<tr><td class="id">SOP-OPEN-001</td><td class="nm">오픈 루틴</td><td><span class="freq f-d">D</span></td><td>오픈</td></tr>
+<tr><td class="id">SOP-CLOSE-001</td><td class="nm">마감 루틴 (+REM 복기)</td><td><span class="freq f-d">D</span></td><td>마감</td></tr>
+<tr><td class="id">SOP-OPS-002</td><td class="nm">시프트 교대·인수인계</td><td><span class="freq f-d">D</span></td><td>전원</td></tr>
+<tr><td class="id">SOP-OPS-003</td><td class="nm">POS·결제 운영</td><td><span class="freq f-d">D</span></td><td>레지스터</td></tr>
+<tr><td class="id">SOP-OPS-004</td><td class="nm">현금 시재·마감 정산</td><td><span class="freq f-d">D</span></td><td>마감</td></tr>
+<tr><td class="id">SOP-OPS-005</td><td class="nm">공간 세팅 (음악·조명·온도·향)</td><td><span class="freq f-d">D</span></td><td>오픈</td></tr>
+<tr><td class="id">SOP-OPS-006</td><td class="nm">청소 — 영업 중 / 마감</td><td><span class="freq f-d">D</span> <span class="freq f-w">W</span></td><td>전원</td></tr>
+<tr class="catrow"><td colspan="4">B · Facility (시설·장비)</td></tr>
+<tr><td class="id">SOP-FAC-001</td><td class="nm">에스프레소 머신 사용·세척</td><td><span class="freq f-d">D</span></td><td>바</td></tr>
+<tr><td class="id">SOP-FAC-002</td><td class="nm">냉장고·쇼케이스 점검</td><td><span class="freq f-d">D</span></td><td>오픈/마감</td></tr>
+<tr><td class="id">SOP-FAC-003</td><td class="nm">그라인더 관리·세팅</td><td><span class="freq f-d">D</span> <span class="freq f-w">W</span></td><td>바</td></tr>
+<tr><td class="id">SOP-FAC-004</td><td class="nm">제빙기·온수기 관리</td><td><span class="freq f-w">W</span></td><td>바</td></tr>
+<tr><td class="id">SOP-FAC-005</td><td class="nm">장비 고장 대응·AS 접수</td><td><span class="freq f-a">A</span></td><td>점장</td></tr>
+<tr><td class="id">SOP-FAC-006</td><td class="nm">화장실 점검·관리</td><td><span class="freq f-d">D</span></td><td>전원</td></tr>
+<tr class="catrow"><td colspan="4">C · Inventory (재고·상품)</td></tr>
+<tr><td class="id">SOP-INV-001</td><td class="nm">입고·검수</td><td><span class="freq f-a">A</span></td><td>수령자</td></tr>
+<tr><td class="id">SOP-INV-002</td><td class="nm">일일 재고 확인</td><td><span class="freq f-d">D</span></td><td>오픈</td></tr>
+<tr><td class="id">SOP-INV-003</td><td class="nm">주간 재고 실사</td><td><span class="freq f-w">W</span></td><td>점장</td></tr>
+<tr><td class="id">SOP-INV-004</td><td class="nm">발주</td><td><span class="freq f-w">W</span></td><td>점장</td></tr>
+<tr><td class="id">SOP-INV-005</td><td class="nm">유통기한·선입선출·폐기</td><td><span class="freq f-d">D</span></td><td>전원</td></tr>
+<tr><td class="id">SOP-INV-006</td><td class="nm">원두 관리·신선도</td><td><span class="freq f-w">W</span></td><td>바</td></tr>
+<tr class="catrow"><td colspan="4">D · Customer (고객·경험)</td></tr>
+<tr><td class="id">SOP-CS-000</td><td class="nm">고객 응대 기본(인사·핸드오프)</td><td><span class="freq f-a">상시</span></td><td>전원</td></tr>
+<tr><td class="id">SOP-CS-001</td><td class="nm">컴플레인 대응 (Basket 5스텝)</td><td><span class="freq f-a">A</span></td><td>전원</td></tr>
+<tr><td class="id">SOP-CS-002</td><td class="nm">VOC 수집·기록</td><td><span class="freq f-a">A</span></td><td>전원</td></tr>
+<tr><td class="id">SOP-CS-003</td><td class="nm">단골·관계 관리</td><td><span class="freq f-a">상시</span></td><td>전원</td></tr>
+<tr><td class="id">SOP-CS-004</td><td class="nm">리테일·큐레이션 안내/판매</td><td><span class="freq f-a">상시</span></td><td>플로어</td></tr>
+<tr class="catrow"><td colspan="4">E · Reporting &amp; Learning (보고·학습)</td></tr>
+<tr><td class="id">SOP-REP-001</td><td class="nm">일일 마감 보고 + REM 복기 3문</td><td><span class="freq f-d">D</span></td><td>마감</td></tr>
+<tr><td class="id">SOP-REP-002</td><td class="nm">주간 운영 보고</td><td><span class="freq f-w">W</span></td><td>점장</td></tr>
+<tr><td class="id">SOP-REP-003</td><td class="nm">이슈 보고·기록 (Issue DB)</td><td><span class="freq f-a">A</span></td><td>전원</td></tr>
+<tr class="catrow"><td colspan="4">F · Admin &amp; Training (관리·교육)</td></tr>
+<tr><td class="id">SOP-TRN-001</td><td class="nm">신규 입사 Day1 온보딩</td><td><span class="freq f-a">A</span></td><td>점장</td></tr>
+<tr><td class="id">SOP-TRN-002</td><td class="nm">파트타이머 교육 체크</td><td><span class="freq f-a">A</span></td><td>점장</td></tr>
+<tr><td class="id">SOP-ADM-001</td><td class="nm">협력사 연락·관리</td><td><span class="freq f-m">M</span></td><td>점장</td></tr>
+</tbody>
+</table>
+<p class="note"><b>커버리지</b> — A 7 · B 6 · C 6 · D 5 · E 3 · F 3 = 30. 매일(D) 15개가 루틴 카드의 핵심. 수시(A)·월(M)은 SOP로만 두고 필요 시 호출.</p>
+</section>
+
+<!-- 2. 샘플 SOP -->
+<section id="s2">
+<h2><span class="num">2</span>샘플 SOP 전문 (템플릿 채운 6종)</h2>
+<p class="sub">표준 템플릿(목적/왜 · 언제 · 절차+핵심포인트 · 완료기준(됨/아직) · 예외 · <span style="color:var(--rose)">REM 관찰질문</span>)으로 작성. 카테고리를 고르게 커버.</p>
+
+<div class="sop">
+  <div class="hd"><span class="name">에스프레소 머신 사용·세척</span><span class="id">SOP-FAC-001 · v0.1</span></div>
+  <div class="bd">
+    <div class="row"><span class="lab">목적/왜</span><span class="val">맛의 80%는 머신 상태에서 갈린다. 세척을 거르면 산패·잡내로 그날 모든 잔이 무너진다.</span></div>
+    <div class="row"><span class="lab">언제</span><span class="val">오픈(예열) · 영업 중(샷마다) · 마감(역류세척)</span></div>
+    <div class="row"><span class="lab">절차</span><span class="val"><ol>
+      <li><b>오픈 예열</b> <span>전원 ON 후 15~20분 안정화, 첫 샷 폐기·맛 체크</span></li>
+      <li><b>샷마다</b> <span>추출 후 포터필터 넉박스 비우기, 퍽 제거, 물 흘려 그룹헤드 린스</span></li>
+      <li><b>스팀완드</b> <span>사용 즉시 분사·물수건 닦기(우유 굳기 전)</span></li>
+      <li><b>마감 역류세척</b> <span>블라인드 바스켓+세제로 백플러시, 그룹헤드 가스켓 점검</span></li>
+      <li><b>샤워스크린·포터필터</b> <span>마감 시 분리 세척</span></li>
+    </ol></span></div>
+    <div class="row"><span class="lab g">완료기준</span><span class="val">됨/아직 — 예열 후 첫 샷 정상 · 스팀완드 깨끗 · 마감 백플러시 완료 · 물기 제거</span></div>
+    <div class="row"><span class="lab">예외</span><span class="val">압력/추출 이상·누수 → 사용 중지 + SOP-FAC-005(AS) + Issue DB</span></div>
+    <div class="row"><span class="lab rem">관찰질문</span><span class="val">"오늘 <b>샷 맛이 흔들린 시간대</b>가 있었나?(피크? 그라인더?)" → ⑧/원두관리 연계</span></div>
+  </div>
+</div>
+
+<div class="sop">
+  <div class="hd"><span class="name">입고·검수</span><span class="id">SOP-INV-001 · v0.1</span></div>
+  <div class="bd">
+    <div class="row"><span class="lab">목적/왜</span><span class="val">잘못 받은 1건이 결품·폐기·정산오류로 번진다. 받는 순간이 재고 정확도의 출발점.</span></div>
+    <div class="row"><span class="lab">언제</span><span class="val">납품 도착 시(수시)</span></div>
+    <div class="row"><span class="lab">절차</span><span class="val"><ol>
+      <li><b>발주서 대조</b> <span>품목·수량 일치 확인</span></li>
+      <li><b>상태 검수</b> <span>파손·온도(냉장/냉동)·유통기한 확인</span></li>
+      <li><b>유통기한 등록</b> <span>⑤ Product DB에 입력 → 폐기 체크리스트 자동연결</span></li>
+      <li><b>보관</b> <span>선입선출 위치로(기존 재고 앞으로)</span></li>
+      <li><b>이상 시</b> <span>사진+메모 → 협력사 통보(SOP-ADM-001)</span></li>
+    </ol></span></div>
+    <div class="row"><span class="lab g">완료기준</span><span class="val">됨/아직 — 수량 일치 · 유통기한 등록 · 선입선출 보관 · 이상품 통보</span></div>
+    <div class="row"><span class="lab rem">관찰질문</span><span class="val">"이 품목, <b>최근 자주 모자라거나 남는가?</b>" → 최소재고/발주량 재조정</span></div>
+  </div>
+</div>
+
+<div class="two">
+<div class="sop">
+  <div class="hd"><span class="name">발주</span><span class="id">SOP-INV-004 · v0.1</span></div>
+  <div class="bd">
+    <div class="row"><span class="lab">언제</span><span class="val">매주 지정 요일(+긴급 수시)</span></div>
+    <div class="row"><span class="lab">절차</span><span class="val"><ol>
+      <li>재고 실사 결과 확인(SOP-INV-003)</li>
+      <li>품목별 최소재고 대비 부족분 산출</li>
+      <li>협력사별 발주(⑥ Vendor DB의 방법·리드타임)</li>
+      <li>발주 내역 기록·입고 예정일 메모</li>
+    </ol></span></div>
+    <div class="row"><span class="lab g">완료기준</span><span class="val">됨/아직 — 부족분 누락 없음 · 발주 전송 · 입고일 기록</span></div>
+    <div class="row"><span class="lab rem">관찰질문</span><span class="val">"이번 주 <b>왜 많이/적게 나갔나?</b>(날씨·행사·신메뉴?)"</span></div>
+  </div>
+</div>
+<div class="sop">
+  <div class="hd"><span class="name">VOC 수집·기록</span><span class="id">SOP-CS-002 · v0.1</span></div>
+  <div class="bd">
+    <div class="row"><span class="lab">목적/왜</span><span class="val">고객의 말 한마디가 가장 싼 시장조사. 흘리면 사라지고, 적으면 자산이 된다.</span></div>
+    <div class="row"><span class="lab">언제</span><span class="val">고객 의견·요청·반응 포착 시(수시)</span></div>
+    <div class="row"><span class="lab">절차</span><span class="val"><ol>
+      <li>들은 그대로 한 줄 기록(봇/시트) — 각색 금지</li>
+      <li>유형 태그: 메뉴/공간/가격/응대/상품</li>
+      <li>즉시 대응 가능하면 해결, 아니면 점장 전달</li>
+    </ol></span></div>
+    <div class="row"><span class="lab g">완료기준</span><span class="val">됨/아직 — 원문 기록 · 태그 부여</span></div>
+    <div class="row"><span class="lab rem">관찰질문</span><span class="val">"같은 말을 <b>몇 명이 반복</b>했나?" → 반복 3회↑면 이슈 승격</span></div>
+  </div>
+</div>
+</div>
+
+<div class="sop">
+  <div class="hd"><span class="name">신규 입사 Day1 온보딩</span><span class="id">SOP-TRN-001 · v0.1</span></div>
+  <div class="bd">
+    <div class="row"><span class="lab">목적/왜</span><span class="val">첫날 경험이 정착률을 가른다. 기술보다 <b>"우리는 왜 이 일을 하는가(REM)"</b>를 먼저 심는다.</span></div>
+    <div class="row"><span class="lab">언제</span><span class="val">입사 첫날 (점장 주관, 약 2h)</span></div>
+    <div class="row"><span class="lab">절차</span><span class="val"><ol>
+      <li><b>철학</b> <span>"우리는 운영하지 않고 경험을 설계한다" — REM 한 장 설명</span></li>
+      <li><b>공간 투어</b> <span>동선·구역·안전·비상</span></li>
+      <li><b>오픈/마감 루틴 견학</b> <span>SOP-OPEN/CLOSE 따라 보기</span></li>
+      <li><b>응대 기본</b> <span>SOP-CS-000 + 컴플레인 5스텝 롤플레이 1회</span></li>
+      <li><b>관찰 미션</b> <span>"오늘 손님 한 명을 골라 무엇을 하는지 1줄 적기" → 첫 ⑧ 기록</span></li>
+    </ol></span></div>
+    <div class="row"><span class="lab g">완료기준</span><span class="val">됨/아직 — 철학 이해 · 동선 숙지 · 응대 롤플레이 · 관찰 1줄 제출</span></div>
+    <div class="row"><span class="lab rem">관찰질문</span><span class="val">(본인에게) "오늘 이 공간에서 <b>가장 인상 깊었던 장면</b>은?"</span></div>
+  </div>
+</div>
+
+<div class="sop">
+  <div class="hd"><span class="name">시프트 교대·인수인계</span><span class="id">SOP-OPS-002 · v0.1</span></div>
+  <div class="bd">
+    <div class="row"><span class="lab">언제</span><span class="val">교대 시(겹치는 10분)</span></div>
+    <div class="row"><span class="lab">절차</span><span class="val"><ol>
+      <li>미완 업무·대기 주문 인계</li>
+      <li>재고 부족·발주 메모 공유</li>
+      <li>진행 중 이슈·특이 고객·예약/대관 공유</li>
+      <li>시재 중간 확인(필요 시)</li>
+    </ol></span></div>
+    <div class="row"><span class="lab g">완료기준</span><span class="val">됨/아직 — 미완업무 인계 · 이슈 공유 · 다음 시프트 "오늘 할 일" 확인</span></div>
+    <div class="row"><span class="lab rem">관찰질문</span><span class="val">"이전 시프트에서 <b>넘어온 문제의 패턴</b>이 있나?"</span></div>
+  </div>
+</div>
+</section>
+
+<!-- 3. 루틴 카드 -->
+<section id="s3">
+<h2><span class="num">3</span>루틴 카드 — 실행 버전 (일 / 주 / 월)</h2>
+<p class="sub">SOP가 "참조 지식"이라면, 루틴 카드는 직원이 매 시프트 <b>체크하는 형태</b>. 각 항목은 SOP로 연결(자세히 보고 싶을 때 펼침). 봇이 시각 트리거로 자동 생성하는 '오늘 할 일'의 모습.</p>
+
+<div class="card">
+  <div class="ch"><span class="t">🌅 데일리 — 오픈</span><span class="when">매일 / 오픈 60분 전 생성</span></div>
+  <ul class="chk">
+    <li>문·셔터 개방, 공간 세팅(음악·조명·온도·향) <span class="ref">SOP-OPS-005</span></li>
+    <li>에스프레소 머신 예열 + 첫 샷 맛 체크 <span class="ref">SOP-FAC-001</span></li>
+    <li>그라인더 분쇄도 세팅 <span class="ref">SOP-FAC-003</span></li>
+    <li>냉장고·쇼케이스 온도 점검·기록 <span class="ref">SOP-FAC-002</span></li>
+    <li>일일 재고 1차 확인(우유·원두·컵) <span class="ref">SOP-INV-002</span></li>
+    <li>유통기한·선입선출 정리 <span class="ref">SOP-INV-005</span></li>
+    <li>POS·결제 테스트 1건 <span class="ref">SOP-OPS-003</span></li>
+    <li>화장실·입구·테이블 청결 <span class="ref">SOP-FAC-006</span></li>
+    <li class="rem">REM 관찰: 첫 손님은 들어와 처음 어디를 봤나? (1줄)</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="ch"><span class="t">☀️ 데일리 — 영업 중</span><span class="when">상시</span></div>
+  <ul class="chk">
+    <li>응대 기본(인사·눈맞춤·핸드오프) 유지 <span class="ref">SOP-CS-000</span></li>
+    <li>샷마다 머신 린스·스팀완드 세척 <span class="ref">SOP-FAC-001</span></li>
+    <li>영업 중 청소(바·플로어 수시) <span class="ref">SOP-OPS-006</span></li>
+    <li>VOC 포착 시 즉시 1줄 기록 <span class="ref">SOP-CS-002</span></li>
+    <li>이슈 발생 시 기록·보고 <span class="ref">SOP-REP-003</span></li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="ch"><span class="t">🌙 데일리 — 마감 (+REM 복기)</span><span class="when">매일 / 영업 종료 시</span></div>
+  <ul class="chk">
+    <li>장비 세척·역류세척·전원 OFF <span class="ref">SOP-FAC-001</span></li>
+    <li>식자재 선입선출·폐기·유통기한 체크 <span class="ref">SOP-INV-005</span></li>
+    <li>재고 마감 확인·발주 필요분 메모 <span class="ref">SOP-INV-002</span></li>
+    <li>POS 마감 정산·현금 시재 <span class="ref">SOP-OPS-004</span></li>
+    <li>청소·쓰레기 배출·문단속 <span class="ref">SOP-OPS-006</span></li>
+    <li class="rem"><b>REM 복기 ①</b> 오늘 사람들은 어디서 멈췄나?</li>
+    <li class="rem"><b>REM 복기 ②</b> 어떤 단어를 반복했나?</li>
+    <li class="rem"><b>REM 복기 ③</b> 다음에 뭘 하나 바꿔볼까?</li>
+  </ul>
+  <div class="note" style="margin:0 16px 14px"><b>핵심</b> — 마감 복기 3문이 <b>일일 보고를 대체</b>한다. 별도 보고서 작성 없이, 체크+3문 답이 곧 Daily Report(SOP-REP-001).</div>
+</div>
+
+<div class="two">
+<div class="card">
+  <div class="ch"><span class="t">📅 위클리</span><span class="when">매주 지정 요일</span></div>
+  <ul class="chk">
+    <li>주간 재고 실사 <span class="ref">SOP-INV-003</span></li>
+    <li>발주 <span class="ref">SOP-INV-004</span></li>
+    <li>원두 관리·신선도 점검 <span class="ref">SOP-INV-006</span></li>
+    <li>제빙기·온수기 관리 <span class="ref">SOP-FAC-004</span></li>
+    <li>그라인더 정밀 세척 <span class="ref">SOP-FAC-003</span></li>
+    <li>심층 청소(주간) <span class="ref">SOP-OPS-006</span></li>
+    <li class="rem">주간 운영 보고(이슈·VOC 패턴 요약) <span class="ref">SOP-REP-002</span></li>
+  </ul>
+</div>
+<div class="card">
+  <div class="ch"><span class="t">🗓️ 먼슬리+</span><span class="when">매월 지정일 / 분기</span></div>
+  <ul class="chk">
+    <li>장비 정밀 점검(머신·냉장·제빙) <span class="ref">SOP-FAC-005</span></li>
+    <li>운영 리뷰(월간 SOP 개선 회의) <span class="ref">SOP-REP-002</span></li>
+    <li>협력사 정리·단가 점검 <span class="ref">SOP-ADM-001</span></li>
+    <li>메뉴·레시피·원가 재검토 <span class="ref">④ Menu DB</span></li>
+    <li class="rem">월간 인사이트: ⑧ 관찰 DB에서 반복 패턴 3개 추출</li>
+    <li>(분기/연) 계약·사업자·보험 갱신 점검</li>
+  </ul>
+</div>
+</div>
+</section>
+
+<!-- 4. 연결 -->
+<section id="s4">
+<h2><span class="num">4</span>SOP ↔ 루틴 ↔ 봇 — 어떻게 함께 도나</h2>
+<div class="big">
+<p><b>SOP(③②④…) = "왜·어떻게"의 표준 지식.</b> 평소엔 안 펼쳐 봐도 된다. 막히거나 신입일 때 펼친다.</p>
+<p><b>루틴 카드(③) = 매 시프트 '오늘 할 일'.</b> SOP의 압축 실행판. 체크박스 + SOP 링크 + REM 질문.</p>
+<p style="margin-bottom:0"><b>봇(Phase 2) = 둘의 인터페이스.</b> 시각 트리거로 루틴 카드를 띄우고("오늘 뭐 해야 하나요?"→데일리 카드), 질문엔 SOP로 답하고("냉장고 점검 어떻게?"→SOP-FAC-002), 마감엔 복기 3문을 물어 ⑧·Daily Report를 만든다.</p>
+</div>
+<table>
+<thead><tr><th>상황</th><th>봇이 꺼내는 것</th></tr></thead>
+<tbody>
+<tr><td class="nm">"오늘 뭐 해야 하나요?"</td><td>현재 시각 기준 루틴 카드(오픈/영업중/마감)</td></tr>
+<tr><td class="nm">"냉장고 점검 어떻게 해요?"</td><td>SOP-FAC-002 전문</td></tr>
+<tr><td class="nm">컴플레인 발생</td><td>SOP-CS-001 (Basket 5스텝) + YES 경계</td></tr>
+<tr><td class="nm">마감 시각</td><td>마감 체크 + REM 복기 3문 → Daily Report 자동 생성</td></tr>
+<tr><td class="nm">"이거 SOP에 없는데요"</td><td>DB 변경요청 접수 → 검토 → 대표 승인 → 반영(§거버넌스)</td></tr>
+</tbody>
+</table>
+<p class="note"><b>다음 작업</b> — 이 TOP 30 중 <b>매일(D) 15개</b>를 Week2 Day10에 우선 입력하면 MVP DB 완성. 샘플 SOP 6종은 나머지 24종의 작성 견본. <b>실제 Basket의 장비 모델·메뉴·동선·협력사</b>를 주시면 초안 수치를 진짜 값으로 채웁니다.</p>
+</section>
+
+<footer>
+Basket TOP 30 SOP + 루틴 카드 v0.1 (초안) · RX Operations Knowledge DB · REM 설계 · 벤치마크 Starbucks Barista Basics(2020) · 2026-06-21 · by Project Rent
+</footer>
+</div>
+</body>
+</html>

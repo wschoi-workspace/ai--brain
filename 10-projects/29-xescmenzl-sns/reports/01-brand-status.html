@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XESC MENZL 브랜드 현황 진단 | RXR AI Intention Analysis</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard Variable', system-ui, -apple-system, sans-serif;
+      background: #f8f8fc;
+      color: #1a1a1a;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 32px 0;
+    }
+
+    /* ── 섹션 타이틀 ── */
+    .report-title {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.8px;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    .report-meta {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 36px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .report-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.1px;
+    }
+    .badge-purple { background: #eeeefc; color: #6666FF; }
+    .badge-green  { background: #e8f8f0; color: #18a06a; }
+    .badge-orange { background: #fff3ea; color: #e07a20; }
+    .badge-gray   { background: #f0f0f4; color: #666; }
+
+    /* ── 카드 공통 ── */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 28px 30px;
+      margin-bottom: 20px;
+      border: 1px solid #ececf4;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #6666FF;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      background: #6666FF;
+      border-radius: 2px;
+    }
+
+    /* ── 섹션 헤더 (h2) ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #9090b0;
+      margin: 36px 0 10px;
+    }
+
+    /* ── 브랜드 개요 그리드 ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .overview-grid.col2 { grid-template-columns: 1fr 1fr; }
+    .info-item {
+      background: #f8f8fc;
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .info-item .label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #9090b0;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .info-item .value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.4;
+    }
+    .info-item .sub {
+      font-size: 11.5px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* ── 셰프 프로필 ── */
+    .chef-profile {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .chef-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6666FF 0%, #a388ee 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      flex-shrink: 0;
+      letter-spacing: -1px;
+    }
+    .chef-name {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: #1a1a1a;
+      margin-bottom: 2px;
+    }
+    .chef-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #6666FF;
+      margin-bottom: 10px;
+    }
+    .chef-journey {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .country-tag {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: #f0f0fc;
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #3a3a6a;
+    }
+    .country-flag { font-size: 15px; }
+
+    /* ── 메뉴 카드 ── */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .menu-item {
+      background: #f8f8fc;
+      border-radius: 10px;
+      padding: 16px 14px;
+      border-left: 3px solid #6666FF;
+    }
+    .menu-item .name {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    .menu-item .desc {
+      font-size: 11.5px;
+      color: #666;
+      line-height: 1.45;
+    }
+    .menu-item .price {
+      font-size: 13px;
+      font-weight: 800;
+      color: #6666FF;
+      margin-top: 8px;
+    }
+
+    /* ── 채널 & 미디어 ── */
+    .media-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .media-block {
+      background: #f8f8fc;
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .media-block .block-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #6666FF;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .media-block ul {
+      list-style: none;
+      padding: 0;
+    }
+    .media-block li {
+      font-size: 12.5px;
+      color: #444;
+      padding: 4px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .media-block li:last-child { border-bottom: none; }
+    .media-block li::before { content: '·'; color: #6666FF; font-weight: 900; }
+
+    /* ── SNS 인스타 하이라이트 ── */
+    .sns-highlight {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: linear-gradient(120deg, #f0f0ff 0%, #e8e8fc 100%);
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin-bottom: 14px;
+      border: 1px solid #d8d8f4;
+    }
+    .sns-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .sns-info .handle {
+      font-size: 15px;
+      font-weight: 900;
+      color: #6666FF;
+      letter-spacing: -0.3px;
+    }
+    .sns-info .followers {
+      font-size: 13px;
+      color: #555;
+      margin-top: 2px;
+    }
+    .sns-follower-num {
+      font-size: 28px;
+      font-weight: 900;
+      color: #6666FF;
+      letter-spacing: -1px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .sns-follower-label {
+      font-size: 11px;
+      color: #9090b0;
+      margin-left: 4px;
+    }
+
+    /* ── 비즈니스 모델 ── */
+    .biz-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .biz-item {
+      background: #f8f8fc;
+      border-radius: 10px;
+      padding: 18px 16px;
+      text-align: center;
+    }
+    .biz-item .icon { font-size: 22px; margin-bottom: 8px; }
+    .biz-item .biz-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    .biz-item .biz-desc {
+      font-size: 11px;
+      color: #777;
+      line-height: 1.45;
+    }
+
+    /* ── RXR 데이터 섹션 ── */
+    .data-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .metric-card {
+      background: #f8f8fc;
+      border-radius: 12px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .metric-card.accent {
+      background: linear-gradient(135deg, #6666FF 0%, #8888ff 100%);
+    }
+    .metric-card.accent .metric-label,
+    .metric-card.accent .metric-sub { color: rgba(255,255,255,0.75); }
+    .metric-card.accent .metric-value { color: #fff; }
+    .metric-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #9090b0;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      font-size: 32px;
+      font-weight: 900;
+      color: #1a1a1a;
+      letter-spacing: -1.5px;
+      line-height: 1;
+    }
+    .metric-value .unit {
+      font-size: 16px;
+      font-weight: 700;
+      color: #6666FF;
+      letter-spacing: 0;
+    }
+    .metric-sub {
+      font-size: 11.5px;
+      color: #888;
+      margin-top: 5px;
+    }
+
+    /* ── 토픽 바 차트 ── */
+    .topic-table { width: 100%; border-collapse: collapse; }
+    .topic-table tr { border-bottom: 1px solid #f0f0f4; }
+    .topic-table tr:last-child { border-bottom: none; }
+    .topic-table td { padding: 9px 0; vertical-align: middle; }
+    .topic-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a1a;
+      width: 140px;
+    }
+    .topic-bar-wrap {
+      flex: 1;
+      height: 10px;
+      background: #f0f0f4;
+      border-radius: 5px;
+      overflow: hidden;
+      min-width: 200px;
+    }
+    .topic-bar {
+      height: 100%;
+      border-radius: 5px;
+      background: #6666FF;
+    }
+    .topic-bar.dim { background: #c0c0e8; }
+    .topic-count {
+      font-size: 13px;
+      font-weight: 800;
+      color: #6666FF;
+      text-align: right;
+      width: 44px;
+    }
+    .topic-pct {
+      font-size: 11px;
+      color: #aaa;
+      text-align: right;
+      width: 36px;
+      padding-left: 4px;
+    }
+
+    /* ── 감성 분포 ── */
+    .sentiment-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .sent-block {
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .sent-block.pos  { background: #e8f8f0; }
+    .sent-block.mix  { background: #fff8e0; }
+    .sent-block.neu  { background: #f0f0f4; }
+    .sent-block.neg  { background: #ffe8e8; }
+    .sent-pct {
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .pos  .sent-pct { color: #18a06a; }
+    .mix  .sent-pct { color: #d4900a; }
+    .neu  .sent-pct { color: #666; }
+    .neg  .sent-pct { color: #d44444; }
+    .sent-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #666;
+      margin-top: 4px;
+    }
+    .sent-count {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 2px;
+    }
+
+    /* ── RQL 분포 ── */
+    .rql-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+    .rql-block {
+      background: #f8f8fc;
+      border-radius: 10px;
+      padding: 14px 12px;
+      text-align: center;
+      border-top: 3px solid;
+    }
+    .rql-block.q5 { border-color: #6666FF; }
+    .rql-block.q4 { border-color: #8888ff; }
+    .rql-block.q3 { border-color: #a0a0e0; }
+    .rql-block.q2 { border-color: #c0c0e8; }
+    .rql-block.q1 { border-color: #d8d8f0; }
+    .rql-grade {
+      font-size: 11px;
+      font-weight: 800;
+      color: #9090b0;
+      letter-spacing: 0.3px;
+      margin-bottom: 4px;
+    }
+    .rql-name {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .rql-num {
+      font-size: 20px;
+      font-weight: 900;
+      color: #1a1a1a;
+      letter-spacing: -0.5px;
+    }
+    .rql-unit {
+      font-size: 11px;
+      color: #aaa;
+    }
+
+    /* ── Psyche Layer 지표 ── */
+    .psyche-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .psyche-card {
+      background: #f8f8fc;
+      border-radius: 12px;
+      padding: 16px 14px;
+      text-align: center;
+    }
+    .psyche-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #9090b0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .psyche-score {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .score-high   { color: #6666FF; }
+    .score-mid    { color: #e07a20; }
+    .score-low    { color: #9090b0; }
+    .psyche-bar-wrap {
+      height: 5px;
+      background: #e8e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 8px 0 5px;
+    }
+    .psyche-bar {
+      height: 100%;
+      border-radius: 3px;
+      background: #6666FF;
+    }
+    .psyche-note {
+      font-size: 10px;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    /* ── 핵심 진단 ── */
+    .diagnosis-card {
+      background: #fff;
+      border-radius: 14px;
+      border: 2px solid #6666FF;
+      padding: 28px 30px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .diagnosis-card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(102,102,255,0.08) 0%, transparent 70%);
+    }
+    .diagnosis-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .diagnosis-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #6666FF, #8888ff);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .diagnosis-title {
+      font-size: 17px;
+      font-weight: 900;
+      color: #1a1a1a;
+      letter-spacing: -0.4px;
+    }
+    .diagnosis-subtitle {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .gap-diagram {
+      display: grid;
+      grid-template-columns: 1fr 40px 1fr;
+      gap: 0;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .gap-side {
+      background: #f8f8fc;
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .gap-side.real { border-left: 4px solid #6666FF; }
+    .gap-side.perceived { border-left: 4px solid #d44444; }
+    .gap-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+    .gap-label.real-l { color: #6666FF; }
+    .gap-label.perceived-l { color: #d44444; }
+    .gap-text {
+      font-size: 15px;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1.35;
+    }
+    .gap-sub {
+      font-size: 11.5px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .gap-arrow {
+      text-align: center;
+      font-size: 20px;
+      color: #d44444;
+    }
+
+    .insight-list { list-style: none; padding: 0; }
+    .insight-item {
+      display: flex;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid #f0f0f4;
+      align-items: flex-start;
+    }
+    .insight-item:last-child { border-bottom: none; }
+    .insight-num {
+      min-width: 24px;
+      height: 24px;
+      background: #6666FF;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .insight-text {
+      font-size: 13.5px;
+      color: #333;
+      line-height: 1.55;
+    }
+    .insight-text strong { color: #6666FF; }
+
+    /* ── LAI 경고 박스 ── */
+    .lai-alert {
+      background: #fffbe8;
+      border: 1px solid #f0d060;
+      border-left: 4px solid #d4900a;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-top: 14px;
+    }
+    .lai-alert-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #d4900a;
+      margin-bottom: 5px;
+    }
+    .lai-alert-text {
+      font-size: 12px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    /* ── 구분선 ── */
+    hr.divider {
+      border: none;
+      border-top: 1px solid #ecedf4;
+      margin: 8px 0 22px;
+    }
+
+    /* ── 투자 하이라이트 배너 ── */
+    .invest-banner {
+      background: linear-gradient(120deg, #1a1a3a 0%, #2a2a5a 100%);
+      border-radius: 12px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .invest-badge-box {
+      background: #6666FF;
+      border-radius: 8px;
+      padding: 8px 14px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .invest-badge-box .ib-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .invest-badge-box .ib-value {
+      font-size: 14px;
+      font-weight: 900;
+      color: #fff;
+      margin-top: 2px;
+    }
+    .invest-desc {
+      font-size: 13px;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.5;
+    }
+    .invest-desc strong { color: #fff; }
+
+    /* ── 반응형 ── */
+    @media (max-width: 768px) {
+      .overview-grid { grid-template-columns: 1fr 1fr; }
+      .menu-grid { grid-template-columns: 1fr 1fr; }
+      .rql-grid { grid-template-columns: repeat(3, 1fr); }
+      .psyche-grid { grid-template-columns: repeat(3, 1fr); }
+      .data-row { grid-template-columns: 1fr 1fr; }
+      .biz-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ── RXR 헤더 ── -->
+  <div style="display:flex;align-items:center;gap:10px;margin:0 0 20px 0;padding:0;background:transparent;border:none;font-family:'Pretendard Variable',system-ui,sans-serif;">
+    <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+    <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+    <strong style="font-size:19px;color:#1a1a1a;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+    <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+    <div style="flex:1"></div>
+    <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+    <strong style="font-size:13px;color:#6666FF;font-weight:700;letter-spacing:-0.1px;white-space:nowrap;">Project Rent</strong>
+    <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  </div>
+
+  <!-- ── 리포트 타이틀 ── -->
+  <div class="report-title">XESC MENZL 브랜드 현황 진단</div>
+  <div class="report-meta">
+    <span><span class="badge badge-purple">Brand Status Report</span></span>
+    <span>분석일 2026-06-07</span>
+    <span>수집 196건 · 유효 174건</span>
+    <span class="badge badge-gray">RXR SNS Analysis v1.0</span>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 1 · 브랜드 개요
+  ══════════════════════════════════════════ -->
+  <div class="section-label">Section 01 · Brand Overview</div>
+  <div class="card">
+    <div class="card-title">브랜드 개요</div>
+    <div class="overview-grid">
+      <div class="info-item">
+        <div class="label">브랜드명</div>
+        <div class="value">XESC MENZL</div>
+        <div class="sub">세스크멘슬 · 주식회사 세스크멘슬</div>
+      </div>
+      <div class="info-item">
+        <div class="label">위치</div>
+        <div class="value">서울 성동구 성수이로14길 7, 1층</div>
+        <div class="sub">성수동 로컬 브랜드 생태계 내 위치</div>
+      </div>
+      <div class="info-item">
+        <div class="label">영업시간</div>
+        <div class="value">수~일 11:00–23:00</div>
+        <div class="sub">월·화 정기 휴무</div>
+      </div>
+    </div>
+    <div class="overview-grid">
+      <div class="info-item">
+        <div class="label">브랜드명 유래</div>
+        <div class="value">Xesc + Menzl</div>
+        <div class="sub">유럽 유학 시절 두 스승 이름을 합성 — Xesc Reina(스페인) + Rudolf Menzl(오스트리아)</div>
+      </div>
+      <div class="info-item">
+        <div class="label">생산시설</div>
+        <div class="value">양평 별도 공장</div>
+        <div class="sub">크플 투자 리워드로 공장 투어 제공</div>
+      </div>
+      <div class="info-item">
+        <div class="label">카테고리</div>
+        <div class="value">샤퀴테리 전문점</div>
+        <div class="sub">제조업 기반 F&amp;B · 정통 유럽식 육가공</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 2 · 셰프 프로필
+  ══════════════════════════════════════════ -->
+  <div class="section-label">Section 02 · Chef Profile</div>
+  <div class="card">
+    <div class="card-title">김정현 셰프 — 브랜드 핵심 자산</div>
+    <div class="chef-profile">
+      <div class="chef-avatar">金</div>
+      <div>
+        <div class="chef-name">김정현</div>
+        <div class="chef-title">Charcutier · 정통 유럽식 육가공 장인</div>
+        <div style="font-size:13px;color:#555;margin-bottom:12px;line-height:1.6;">
+          유럽 4개국을 오가며 약 <strong>10년간</strong> 전통 육가공 기술을 수련한 한국 내 희귀 전문 장인.<br>
+          단순 요리사가 아닌 Charcutier — 염지·훈연·발효·건조 전 과정을 직접 설계하고 생산한다.
+        </div>
+        <div class="chef-journey">
+          <div class="country-tag"><span class="country-flag">🇩🇪</span> 독일 — 소시지·부어스트 기술</div>
+          <div class="country-tag"><span class="country-flag">🇪🇸</span> 스페인 — 하몽·콜드컷</div>
+          <div class="country-tag"><span class="country-flag">🇦🇹</span> 오스트리아 — 드라이 커링</div>
+          <div class="country-tag"><span class="country-flag">🇮🇹</span> 이탈리아 — 살루미·치즈</div>
+        </div>
+      </div>
+    </div>
+    <div class="lai-alert" style="margin-top:18px;background:#f0f0ff;border:1px solid #c0c0ee;border-left:4px solid #6666FF;">
+      <div class="lai-alert-title" style="color:#6666FF;">RXR 진단 포인트</div>
+      <div class="lai-alert-text">
+        셰프의 전문성은 브랜드의 가장 강력한 차별화 자산이지만, 현재 소비자 리뷰 중
+        <strong style="color:#d44444;">셰프·스토리 토픽 언급은 전체의 1.1%(2건)</strong>에 불과하다.
+        가장 중요한 자산이 소비자에게 가장 보이지 않는 구조다.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 3 · 주요 메뉴
+  ══════════════════════════════════════════ -->
+  <div class="section-label">Section 03 · Menu &amp; Products</div>
+  <div class="card">
+    <div class="card-title">주요 제품 · 메뉴</div>
+    <div class="menu-grid">
+      <div class="menu-item">
+        <div class="name">보끼 (BOC-CHI)</div>
+        <div class="desc">6종 콜드컷 + 드라이 햄 모둠 플래터. 세스크멘슬의 시그니처를 한 판에.</div>
+        <div class="price">약 16,000원</div>
+      </div>
+      <div class="menu-item">
+        <div class="name">마일리 (Maili)</div>
+        <div class="desc">대표 메뉴. 방문객 다수가 필수 주문으로 언급하는 코어 디시.</div>
+        <div class="price">약 28,000원</div>
+      </div>
+      <div class="menu-item">
+        <div class="name">수제 소시지 · 부어스트</div>
+        <div class="desc">독일·오스트리아 스타일 정통 소시지. 직접 제조. 안에서 터지는 육즙이 특징.</div>
+        <div class="price">단품 제공</div>
+      </div>
+      <div class="menu-item">
+        <div class="name">런치 메뉴</div>
+        <div class="desc">평일 점심 접근성 제공. 합리적 가격대로 샤퀴테리 입문 역할.</div>
+        <div class="price">약 15,000원대</div>
+      </div>
+    </div>
+    <div style="margin-top:14px;background:#f8f8fc;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:18px;">🍷</span>
+      <div>
+        <span style="font-size:13px;font-weight:800;color:#1a1a1a;">콜키지 프리 1병</span>
+        <span style="font-size:12px;color:#888;margin-left:8px;">와인 페어링의 핵심 진입 유인 — 소비자 리뷰 32% 언급</span>
+      </div>
+      <span class="badge badge-purple" style="margin-left:auto;">High Impact</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 4 · 채널 & 미디어 노출
+  ══════════════════════════════════════════ -->
+  <div class="section-label">Section 04 · Channels &amp; Media</div>
+  <div class="card">
+    <div class="card-title">브랜드 채널 &amp; 미디어 노출</div>
+
+    <!-- 인스타그램 하이라이트 -->
+    <div class="sns-highlight">
+      <div class="sns-icon">📸</div>
+      <div class="sns-info">
+        <div class="handle">@xescmenzl</div>
+        <div class="followers">Instagram 공식 계정 · 팔로워 기반 자발 확산 구조</div>
+      </div>
+      <div style="margin-left:auto;text-align:right;">
+        <div style="font-size:32px;font-weight:900;color:#6666FF;letter-spacing:-1.5px;line-height:1;">16,000<span style="font-size:14px;font-weight:700;color:#9090b0;margin-left:2px;">명</span></div>
+        <div style="font-size:11px;color:#aaa;margin-top:2px;">팔로워 약 16,000명</div>
+      </div>
+    </div>
+
+    <div class="media-grid">
+      <div class="media-block">
+        <div class="block-title">🛒 온라인 유통</div>
+        <ul>
+          <li>그리팅(Greating) — 세스크멘슬 Only 전용 상품</li>
+          <li>신세계백화점 SSG.com 입점</li>
+          <li>그리팅 유튜브 "샤퀴테리 알쓸신잡" 콜라보</li>
+        </ul>
+      </div>
+      <div class="media-block">
+        <div class="block-title">📺 미디어 노출</div>
+        <ul>
+          <li>전참시(MBC) 윤남노 편 출연</li>
+          <li>마리끌레르 코리아 피처링</li>
+          <li>머니S, 블록미디어 기사</li>
+        </ul>
+      </div>
+      <div class="media-block">
+        <div class="block-title">🤝 협업 &amp; 파트너십</div>
+        <ul>
+          <li>어메이징브루잉컴퍼니 콜라보</li>
+          <li>성수동 로컬 브랜드 생태계 적극 협업</li>
+          <li>한국관광공사 공식 여행지 등록</li>
+        </ul>
+      </div>
+      <div class="media-block">
+        <div class="block-title">💰 투자 유치</div>
+        <ul>
+          <li>2026년 4월 크플(PFCT) "팝업 투자" 첫 선정</li>
+          <li>50만~180만원 단위 소액 분산 투자</li>
+          <li>리워드: 양평 공장 투어 제공</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="invest-banner">
+      <div class="invest-badge-box">
+        <div class="ib-label">크플 투자</div>
+        <div class="ib-value">2026.04</div>
+      </div>
+      <div class="invest-desc">
+        <strong>팝업 투자 1호 브랜드</strong> 선정 — 크플(PFCT) 플랫폼의 첫 번째 F&amp;B 투자 케이스.
+        소비자가 직접 브랜드에 투자하고 공장 투어 등 실물 리워드를 받는 구조는
+        팬덤과 투자자 경계를 허무는 새로운 브랜드 관계 모델이다.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 5 · 비즈니스 모델
+  ══════════════════════════════════════════ -->
+  <div class="section-label">Section 05 · Business Model</div>
+  <div class="card">
+    <div class="card-title">비즈니스 모델 특성</div>
+    <div style="font-size:13px;color:#555;margin-bottom:16px;padding:12px 16px;background:#f0f0ff;border-radius:8px;border-left:3px solid #6666FF;">
+      <strong style="color:#6666FF;">핵심 정의:</strong> 단순 레스토랑이 아닌 "제조업 기반 F&amp;B" — 양평 공장에서 직접 생산하고, 매장·온라인·B2B로 다채널 유통한다.
+    </div>
+    <div class="biz-grid">
+      <div class="biz-item">
+        <div class="icon">🏭</div>
+        <div class="biz-title">자체 제조</div>
+        <div class="biz-desc">양평 공장에서 직접 생산.<br>염지·훈연·건조 전 공정 인하우스.</div>
+      </div>
+      <div class="biz-item">
+        <div class="icon">🍽️</div>
+        <div class="biz-title">매장 판매</div>
+        <div class="biz-desc">성수동 플래그십.<br>런치·디너·테라스 석 운영.</div>
+      </div>
+      <div class="biz-item">
+        <div class="icon">📦</div>
+        <div class="biz-title">온라인 유통</div>
+        <div class="biz-desc">그리팅 전용 상품, SSG 입점.<br>제품 직배송으로 브랜드 확장.</div>
+      </div>
+      <div class="biz-item">
+        <div class="icon">🤝</div>
+        <div class="biz-title">B2B 콜라보</div>
+        <div class="biz-desc">어메이징브루잉컴퍼니 등<br>F&amp;B 파트너십 적극 운영.</div>
+      </div>
+      <div class="biz-item">
+        <div class="icon">💼</div>
+        <div class="biz-title">소액 투자</div>
+        <div class="biz-desc">크플 팝업 투자 1호.<br>팬덤을 투자자로 전환.</div>
+      </div>
+      <div class="biz-item">
+        <div class="icon">🗺️</div>
+        <div class="biz-title">관광 자원화</div>
+        <div class="biz-desc">한국관광공사 공식 등록.<br>외국인 방문 수요 잠재.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 6 · RXR 데이터 기반 인식 현황
+  ══════════════════════════════════════════ -->
+  <div class="section-label">Section 06 · RXR Data — 소비자 인식 현황</div>
+
+  <!-- 데이터 요약 메트릭 -->
+  <div class="data-row">
+    <div class="metric-card accent">
+      <div class="metric-label">전체 수집</div>
+      <div class="metric-value">4,183<span class="unit" style="color:rgba(255,255,255,0.7);font-size:14px;">건</span></div>
+      <div class="metric-sub">RXR 필터링 후 유효 196건 추출</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">유효 분석 대상</div>
+      <div class="metric-value">174<span class="unit">건</span></div>
+      <div class="metric-sub">A+B+C 클래스 · 유효율 89%</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">협찬 비율</div>
+      <div class="metric-value">1.7<span class="unit">%</span></div>
+      <div class="metric-sub">3건 협찬 · 거의 전량 자발 팬덤</div>
+    </div>
+  </div>
+
+  <!-- 콘텐츠 클래스 분류 -->
+  <div class="card">
+    <div class="card-title">콘텐츠 클래스 분포</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+      <div style="background:#f0f0ff;border-radius:10px;padding:14px 16px;border-top:3px solid #6666FF;">
+        <div style="font-size:10.5px;font-weight:800;color:#6666FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Class A — 진성후기</div>
+        <div style="font-size:24px;font-weight:900;color:#6666FF;letter-spacing:-1px;">42건</div>
+        <div style="font-size:11px;color:#888;margin-top:3px;">직접 경험 기반 고밀도 리뷰</div>
+      </div>
+      <div style="background:#f8f8fc;border-radius:10px;padding:14px 16px;border-top:3px solid #a0a0e0;">
+        <div style="font-size:10.5px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Class B — 일반포스트</div>
+        <div style="font-size:24px;font-weight:900;color:#444;letter-spacing:-1px;">129건</div>
+        <div style="font-size:11px;color:#888;margin-top:3px;">방문 기록형 일반 블로그</div>
+      </div>
+      <div style="background:#fff8e0;border-radius:10px;padding:14px 16px;border-top:3px solid #d4900a;">
+        <div style="font-size:10.5px;font-weight:800;color:#d4900a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Class C — 협찬</div>
+        <div style="font-size:24px;font-weight:900;color:#d4900a;letter-spacing:-1px;">3건</div>
+        <div style="font-size:11px;color:#888;margin-top:3px;">광고 표기 또는 의심 콘텐츠</div>
+      </div>
+      <div style="background:#f4f4f4;border-radius:10px;padding:14px 16px;border-top:3px solid #ccc;">
+        <div style="font-size:10.5px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Class D~G — 제외</div>
+        <div style="font-size:24px;font-weight:900;color:#bbb;letter-spacing:-1px;">22건</div>
+        <div style="font-size:11px;color:#bbb;margin-top:3px;">노이즈·무관·중복 필터링</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토픽 분포 + 감성 분포 나란히 -->
+  <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:14px;margin-bottom:20px;">
+
+    <!-- 토픽 분포 -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title">토픽 분포 — 소비자 인식 지형</div>
+      <table class="topic-table">
+        <tbody>
+          <tr>
+            <td class="topic-name">와인_페어링</td>
+            <td><div class="topic-bar-wrap"><div class="topic-bar" style="width:100%;"></div></div></td>
+            <td class="topic-count">46건</td>
+            <td class="topic-pct">26%</td>
+          </tr>
+          <tr>
+            <td class="topic-name">위치_접근성</td>
+            <td><div class="topic-bar-wrap"><div class="topic-bar" style="width:97%;"></div></div></td>
+            <td class="topic-count">45건</td>
+            <td class="topic-pct">26%</td>
+          </tr>
+          <tr>
+            <td class="topic-name">맛_품질</td>
+            <td><div class="topic-bar-wrap"><div class="topic-bar" style="width:85%;"></div></div></td>
+            <td class="topic-count">39건</td>
+            <td class="topic-pct">22%</td>
+          </tr>
+          <tr>
+            <td class="topic-name">메뉴_제품</td>
+            <td><div class="topic-bar-wrap"><div class="topic-bar dim" style="width:48%;"></div></div></td>
+            <td class="topic-count">22건</td>
+            <td class="topic-pct">13%</td>
+          </tr>
+          <tr>
+            <td class="topic-name">공간_분위기</td>
+            <td><div class="topic-bar-wrap"><div class="topic-bar dim" style="width:26%;"></div></div></td>
+            <td class="topic-count">12건</td>
+            <td class="topic-pct">7%</td>
+          </tr>
+          <tr>
+            <td class="topic-name">서비스_경험</td>
+            <td><div class="topic-bar-wrap"><div class="topic-bar dim" style="width:13%;"></div></div></td>
+            <td class="topic-count">6건</td>
+            <td class="topic-pct">3%</td>
+          </tr>
+          <tr>
+            <td class="topic-name" style="color:#d44444;font-weight:900;">셰프_스토리</td>
+            <td><div class="topic-bar-wrap"><div class="topic-bar" style="width:4%;background:#d44444;"></div></div></td>
+            <td class="topic-count" style="color:#d44444;">2건</td>
+            <td class="topic-pct" style="color:#d44444;">1%</td>
+          </tr>
+          <tr>
+            <td class="topic-name">가격_가성비</td>
+            <td><div class="topic-bar-wrap"><div class="topic-bar dim" style="width:4%;"></div></div></td>
+            <td class="topic-count">2건</td>
+            <td class="topic-pct">1%</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="lai-alert" style="margin-top:12px;">
+        <div class="lai-alert-title">핵심 발견</div>
+        <div class="lai-alert-text">와인·위치가 인식의 52%를 차지한다. 브랜드의 본질인 샤퀴테리 장인 정체성은 1%(2건)에 그친다.</div>
+      </div>
+    </div>
+
+    <!-- 감성 분포 -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title">감성 분포</div>
+      <div class="sentiment-grid">
+        <div class="sent-block pos">
+          <div class="sent-pct">39%</div>
+          <div class="sent-label">긍정</div>
+          <div class="sent-count">67건</div>
+        </div>
+        <div class="sent-block mix">
+          <div class="sent-pct">32%</div>
+          <div class="sent-label">혼합</div>
+          <div class="sent-count">56건</div>
+        </div>
+        <div class="sent-block neu">
+          <div class="sent-pct">20%</div>
+          <div class="sent-label">중립</div>
+          <div class="sent-count">35건</div>
+        </div>
+        <div class="sent-block neg">
+          <div class="sent-pct">9%</div>
+          <div class="sent-label">부정</div>
+          <div class="sent-count">16건</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;font-size:12.5px;color:#555;line-height:1.6;padding:12px 14px;background:#f8f8fc;border-radius:8px;">
+        긍정 39% + 혼합 32% = <strong>전체 71%가 우호적 기조</strong>. 혼합 리뷰의 주요 불만은 웨이팅·예약 어려움으로, 제품 품질 자체의 문제가 아니다.
+        부정 9%는 가격·대기 관련이 대부분이다.
+      </div>
+
+      <!-- RQL 요약 -->
+      <div style="margin-top:16px;">
+        <div style="font-size:11px;font-weight:700;color:#9090b0;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px;">리뷰 품질(RQL) 분포</div>
+        <div class="rql-grid" style="grid-template-columns:repeat(5,1fr);">
+          <div class="rql-block q5">
+            <div class="rql-grade">Q5</div>
+            <div class="rql-name">서사형</div>
+            <div class="rql-num">29<span class="rql-unit">건</span></div>
+          </div>
+          <div class="rql-block q4">
+            <div class="rql-grade">Q4</div>
+            <div class="rql-name">분석형</div>
+            <div class="rql-num">63<span class="rql-unit">건</span></div>
+          </div>
+          <div class="rql-block q3">
+            <div class="rql-grade">Q3</div>
+            <div class="rql-name">경험형</div>
+            <div class="rql-num">44<span class="rql-unit">건</span></div>
+          </div>
+          <div class="rql-block q2">
+            <div class="rql-grade">Q2</div>
+            <div class="rql-name">감상형</div>
+            <div class="rql-num">26<span class="rql-unit">건</span></div>
+          </div>
+          <div class="rql-block q1">
+            <div class="rql-grade">Q1</div>
+            <div class="rql-name">간단형</div>
+            <div class="rql-num">12<span class="rql-unit">건</span></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#888;margin-top:8px;text-align:right;">리뷰 자산값 211.9 (평균 1.22/건)</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Psyche Layer -->
+  <div class="card">
+    <div class="card-title">Psyche Layer + Linguistic Layer 지표</div>
+    <div class="psyche-grid">
+      <div class="psyche-card">
+        <div class="psyche-name">Authenticity</div>
+        <div class="psyche-score score-high">73.7</div>
+        <div class="psyche-bar-wrap"><div class="psyche-bar" style="width:73.7%;"></div></div>
+        <div class="psyche-note">진정성 지수<br>Linguistic 보정 후</div>
+      </div>
+      <div class="psyche-card">
+        <div class="psyche-name">Clout</div>
+        <div class="psyche-score score-mid">56.3</div>
+        <div class="psyche-bar-wrap"><div class="psyche-bar" style="width:56.3%;background:#e07a20;"></div></div>
+        <div class="psyche-note">추천 확신 강도<br>전환형 브랜드 수준</div>
+      </div>
+      <div class="psyche-card">
+        <div class="psyche-name">Freshness</div>
+        <div class="psyche-score score-low">47.1</div>
+        <div class="psyche-bar-wrap"><div class="psyche-bar" style="width:47.1%;background:#9090b0;"></div></div>
+        <div class="psyche-note">정보 신선도<br>CLT 기반 추정</div>
+      </div>
+      <div class="psyche-card" style="border:1.5px solid #f0d060;">
+        <div class="psyche-name" style="color:#d4900a;">LAI</div>
+        <div class="psyche-score" style="color:#d4900a;">27.7</div>
+        <div class="psyche-bar-wrap"><div class="psyche-bar" style="width:27.7%;background:#d4900a;"></div></div>
+        <div class="psyche-note">언어학적 진정성<br>Auth와 큰 괴리</div>
+      </div>
+      <div class="psyche-card">
+        <div class="psyche-name">EDS</div>
+        <div class="psyche-score score-low">14.8</div>
+        <div class="psyche-bar-wrap"><div class="psyche-bar" style="width:14.8%;background:#9090b0;"></div></div>
+        <div class="psyche-note">인지적 몰입도<br>표면 감정 중심 기술</div>
+      </div>
+    </div>
+
+    <div class="lai-alert">
+      <div class="lai-alert-title">LAI-Auth 교차검증 경고</div>
+      <div class="lai-alert-text">
+        Auth 73.7 vs LAI 27.7 — 차이 46점. 174건 중 <strong>152건(87%)</strong>에서 |Auth-LAI| &gt; 20 플래그 발생.
+        표면 감정 점수(Auth)는 높지만 언어 패턴의 진정성(LAI)은 낮다.
+        리뷰 다수가 감정 표현은 풍부하나 관찰·사실 기술이 얕은 "정형화된 칭찬" 구조임을 시사한다.
+        이는 콘텐츠 품질보다 <strong>방문 경험의 감각적 만족이 강하지만 브랜드 이해는 낮음</strong>을 반영한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 7 · 핵심 진단
+  ══════════════════════════════════════════ -->
+  <div class="section-label">Section 07 · Core Diagnosis</div>
+  <div class="diagnosis-card">
+    <div class="diagnosis-header">
+      <div class="diagnosis-icon">🔍</div>
+      <div>
+        <div class="diagnosis-title">브랜드 정체성 vs 소비자 인식 — 구조적 괴리</div>
+        <div class="diagnosis-subtitle">RXR 데이터 기반 핵심 진단</div>
+      </div>
+    </div>
+
+    <!-- 갭 다이어그램 -->
+    <div class="gap-diagram">
+      <div class="gap-side real">
+        <div class="gap-label real-l">브랜드 본질 (실제)</div>
+        <div class="gap-text">유럽 4개국 10년 수련<br>정통 샤퀴테리 장인</div>
+        <div class="gap-sub">전 세계에서 드문 Charcutier<br>한국 내 희귀 전문 제조 역량</div>
+      </div>
+      <div class="gap-arrow">→<br><span style="font-size:11px;color:#d44444;font-weight:700;">GAP</span></div>
+      <div class="gap-side perceived">
+        <div class="gap-label perceived-l">소비자 인식 (현재)</div>
+        <div class="gap-text">성수에서<br>와인 마시기 좋은 곳</div>
+        <div class="gap-sub">리뷰 66% 와인 언급<br>셰프 전문성 언급 1%(2건)</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 인사이트 리스트 -->
+    <ul class="insight-list">
+      <li class="insight-item">
+        <div class="insight-num">1</div>
+        <div class="insight-text">
+          <strong>와인이 브랜드 인식의 중심축을 차지했다.</strong>
+          콜키지 프리 정책(32% 언급)과 성수동 야장 문화가 결합하면서, 소비자는 세스크멘슬을 "와인 바"로 먼저 인식한다.
+          샤퀴테리는 와인 안주의 맥락 안에서만 소비된다.
+        </div>
+      </li>
+      <li class="insight-item">
+        <div class="insight-num">2</div>
+        <div class="insight-text">
+          <strong>Clout 56.3은 전환형 브랜드의 특성이다.</strong>
+          "한번 가면 추천하게 되는" 수준. 처음엔 와인·성수 목적으로 오지만, 방문 후 실제 제품 품질에 놀라는 구조.
+          이 전환 경험을 의도적으로 설계할 여지가 있다.
+        </div>
+      </li>
+      <li class="insight-item">
+        <div class="insight-num">3</div>
+        <div class="insight-text">
+          <strong>Auth 73.7은 높지만 LAI 27.7이 말하는 것이 다르다.</strong>
+          리뷰 감정은 긍정적이나, 대부분 "분위기 좋다 · 와인이랑 잘 어울린다"는 표면 기술에 그친다.
+          브랜드의 제조 철학·재료 원산지·기술적 차별점이 소비자 언어에 녹아들지 않은 상태다.
+        </div>
+      </li>
+      <li class="insight-item">
+        <div class="insight-num">4</div>
+        <div class="insight-text">
+          <strong>서브 브랜드(다이닝 스핀오프) 론칭 전, 모 브랜드 정체성 재정립이 선행돼야 한다.</strong>
+          현재 인식 구조에서 새 브랜드가 분화되면 "성수 와인 바의 다이닝 버전"으로 읽힐 위험이 있다.
+          "유럽 정통 샤퀴테리 제조 브랜드가 운영하는 다이닝"이라는 순서가 되어야 한다.
+        </div>
+      </li>
+      <li class="insight-item">
+        <div class="insight-num">5</div>
+        <div class="insight-text">
+          <strong>협찬 1.7%는 강점이다.</strong>
+          거의 모든 리뷰가 자발 방문이다. 신뢰 기반 팬덤이 이미 형성돼 있다.
+          이 자발성을 "장인 브랜드 정체성 전달"로 연결하는 것이 다음 단계다.
+        </div>
+      </li>
+    </ul>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ── 푸터 ── -->
+<footer style="max-width:1100px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#fafafa;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #eee;line-height:1.7;">
+    <p style="margin:0 0 4px;">본 분석은 공개 SNS 데이터에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:#F4F3FF;padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;letter-spacing:-0.3px;">💠 RXR SNS Analysis Solution</div>
+    <p style="margin:0;color:#333;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">『프로젝트 렌트(Project Rent)』</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 SNS 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+      본 리포트에 포함된 분석 프레임, 지표 체계, 용어 정의, 산출 로직 일체는 프로젝트 렌트의 독자 기술이며,
+      무단 복제·인용·역공학·재사용을 엄격히 금합니다.
+    </p>
+  </div>
+  <div style="background:#fafafa;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">
+    📧 <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#999;font-size:11px;">© Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>

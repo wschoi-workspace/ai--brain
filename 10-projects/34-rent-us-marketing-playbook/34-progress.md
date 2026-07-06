@@ -24,10 +24,16 @@ Economy에서 더 강한 무기.
 - [ ] 메인 md 8개 섹션 통합
 - [ ] HTML 덱 (사용자 리뷰 후)
 
-## 맥미니 이관 상태
-- repo `~/do-better-workspace` 존재, `screen`·`node` 있음, GitHub remote 공유
-- ⚠️ `claude` CLI 미설치 / Dropbox 없음 → 이관 전 (1)claude 설치+인증 (2)본 폴더 push 필요
-- 경로 확정: (실행 시 기록)
+## 맥미니 이관 상태 — 무인 자율 실행으로 확정
+- foundation 커밋 완료: `9a7b77d` (source 2종 + 리서치 브리프 + progress)
+- 실행 스크립트: `research/_macmini-launch.sh` (클립보드 복사됨) — claude 설치+인증+동기화+
+  `--dangerously-skip-permissions` headless를 `screen rent34`로 무인 실행
+- ⚠️ 로컬 `git push` 차단(설정 deny rule) → **사용자가 랩탑에서 직접 push** 필요:
+  `git push origin HEAD:feat/34-us-marketing`
+- ⚠️ 맥미니 `claude` 미설치·미인증 / Dropbox 없음(→source는 repo 편입으로 해결)
 
 ## 액션 아이템
-- (실행 경로 확정 후 갱신)
+1. [사용자·랩탑] `git push origin HEAD:feat/34-us-marketing` (제출 차단돼 수동)
+2. [사용자·맥미니] 클립보드 스크립트 붙여넣기 → 인증(키 or `claude` 로그인) → 실행
+3. [무인] 리서치·초안 커밋 → 이동 중 `ssh macmini-ts` / `screen -r rent34`로 확인
+4. [복귀 후] 결과 3중검증 재대조 + HTML 덱 제작(사용자 리뷰)

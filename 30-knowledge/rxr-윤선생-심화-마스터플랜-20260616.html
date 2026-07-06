@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>윤선생 RXR 심화분석 — 마스터 플랜</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --p:#6666FF; --p-d:#4B3FE4; --p-l:#EEEDFF; --p-ll:#F7F7FF;
+    --ink:#1A1A2E; --g700:#3A3A4A; --g500:#6B6B7B; --g300:#B8B8C4; --g100:#E8E8EF;
+    --bg:#FBFBFD; --card:#FFFFFF; --ok:#16A34A; --warn:#E0701B; --warn-bg:#FFF4E8; --danger:#DC2626;
+    --r:16px; --shadow:0 2px 14px rgba(40,38,90,.06); --shadow-h:0 8px 30px rgba(75,63,228,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--ink);line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px 100px}
+
+  /* HERO */
+  .hero{background:linear-gradient(135deg,#16162E 0%,#2A2470 55%,#4B3FE4 100%);color:#fff;border-radius:0 0 32px 32px;padding:62px 48px 54px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-80px;top:-80px;width:340px;height:340px;background:radial-gradient(circle,rgba(102,102,255,.55),transparent 70%);border-radius:50%}
+  .hero .kicker{font-size:.82rem;letter-spacing:.18em;font-weight:700;color:#C7C2FF;text-transform:uppercase}
+  .hero h1{font-size:2.5rem;font-weight:800;margin:14px 0 10px;letter-spacing:-.02em;line-height:1.2}
+  .hero p{font-size:1.06rem;color:#DDDAFF;max-width:760px}
+  .hero .meta{margin-top:26px;display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:1}
+  .chip{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);padding:7px 15px;border-radius:999px;font-size:.82rem;font-weight:600;backdrop-filter:blur(4px)}
+
+  section{margin-top:54px}
+  .sec-h{display:flex;align-items:center;gap:13px;margin-bottom:22px}
+  .sec-n{flex:none;width:38px;height:38px;border-radius:11px;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.05rem;box-shadow:var(--shadow-h)}
+  .sec-h h2{font-size:1.5rem;font-weight:800;letter-spacing:-.01em}
+  .sec-h .sub{color:var(--g500);font-size:.92rem;font-weight:500;margin-top:2px}
+
+  .card{background:var(--card);border:1px solid var(--g100);border-radius:var(--r);padding:26px 28px;box-shadow:var(--shadow)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}.hero{padding:46px 26px}.hero h1{font-size:1.9rem}}
+
+  /* context bullets */
+  .gap-list{list-style:none;display:flex;flex-direction:column;gap:13px}
+  .gap-list li{display:flex;gap:13px;align-items:flex-start}
+  .gap-list .ic{flex:none;width:26px;height:26px;border-radius:8px;background:var(--warn-bg);color:var(--warn);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;margin-top:2px}
+  .gap-list b{color:var(--ink)}
+  .gap-list span{color:var(--g700)}
+
+  /* decisions */
+  .dec{display:flex;gap:14px;padding:15px 0;border-bottom:1px dashed var(--g100)}
+  .dec:last-child{border-bottom:0}
+  .dec .num{flex:none;width:24px;height:24px;border-radius:50%;background:var(--p-l);color:var(--p-d);font-weight:800;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+  .dec .t{font-weight:700;color:var(--ink)}
+  .dec .d{color:var(--g500);font-size:.9rem}
+  .dec .v{margin-left:auto;flex:none;color:var(--ok);font-weight:700;font-size:.85rem}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--g100);vertical-align:top}
+  thead th{background:var(--p-ll);color:var(--p-d);font-weight:700;font-size:.82rem;letter-spacing:.02em;border-bottom:2px solid var(--p-l)}
+  tbody tr:hover{background:var(--p-ll)}
+  td .tag{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:6px}
+  .tag-e{background:#E7F7EE;color:var(--ok)} .tag-m{background:#FFF4E8;color:var(--warn)} .tag-pool{background:var(--g100);color:var(--g500)}
+  code{background:var(--p-ll);color:var(--p-d);font-size:.84rem;padding:2px 7px;border-radius:6px;font-family:'Pretendard'}
+
+  /* track diagram */
+  .tracks{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:760px){.tracks{grid-template-columns:1fr}}
+  .track{border-radius:var(--r);padding:24px;color:#fff;position:relative;overflow:hidden}
+  .track.a{background:linear-gradient(135deg,#4B3FE4,#6666FF)}
+  .track.b{background:linear-gradient(135deg,#1F2A55,#3A57C9)}
+  .track .lbl{font-size:.78rem;letter-spacing:.14em;font-weight:700;opacity:.8;text-transform:uppercase}
+  .track h3{font-size:1.22rem;font-weight:800;margin:6px 0 12px}
+  .track .vs{font-size:.92rem;line-height:1.7}
+  .track .vs b{font-weight:800}
+  .track .seq{margin-top:16px;font-size:.8rem;background:rgba(255,255,255,.15);border-radius:9px;padding:8px 12px;font-weight:600}
+  .arrow-seq{text-align:center;color:var(--p);font-weight:800;margin:14px 0;font-size:.92rem}
+
+  /* analysis modules */
+  .mod{border-left:4px solid var(--p);padding-left:18px;margin-bottom:20px}
+  .mod:last-child{margin-bottom:0}
+  .mod .mh{display:flex;align-items:baseline;gap:10px}
+  .mod .mh .id{font-weight:800;color:var(--p);font-size:1.05rem}
+  .mod .mh h4{font-size:1.08rem;font-weight:800}
+  .mod .purpose{font-size:.84rem;color:var(--g500);margin:3px 0 10px}
+  .mod ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+  .mod ul li{padding-left:18px;position:relative;font-size:.92rem;color:var(--g700)}
+  .mod ul li::before{content:"▹";position:absolute;left:0;color:var(--p)}
+  .mod ul li b{color:var(--ink)}
+
+  /* callout */
+  .callout{border-radius:14px;padding:18px 22px;display:flex;gap:14px;align-items:flex-start}
+  .callout.warn{background:var(--warn-bg);border:1px solid #F5D7B0}
+  .callout.danger{background:#FEF2F2;border:1px solid #F7C4C4}
+  .callout .ce{flex:none;font-size:1.4rem}
+  .callout .ct b{display:block;margin-bottom:4px}
+  .callout.warn .ct b{color:var(--warn)} .callout.danger .ct b{color:var(--danger)}
+  .callout .ct,.callout .ct *{font-size:.9rem;color:var(--g700)}
+
+  /* timeline */
+  .tl{position:relative;padding-left:28px}
+  .tl::before{content:"";position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--p-l)}
+  .tl .step{position:relative;padding:0 0 22px 6px}
+  .tl .step:last-child{padding-bottom:0}
+  .tl .dot{position:absolute;left:-23px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--p)}
+  .tl .step h4{font-size:1rem;font-weight:800;display:flex;gap:8px;align-items:center}
+  .tl .step .sn{font-size:.72rem;background:var(--p);color:#fff;padding:2px 8px;border-radius:6px;font-weight:700}
+  .tl .step p{font-size:.9rem;color:var(--g700);margin-top:4px}
+
+  /* verify checklist */
+  .check{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px dashed var(--g100)}
+  .check:last-child{border:0}
+  .check .box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--p);color:var(--p);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;margin-top:1px}
+  .check span{font-size:.92rem;color:var(--g700)}
+  .check b{color:var(--ink)}
+
+  .note{font-size:.82rem;color:var(--g500);margin-top:10px;font-style:italic}
+  .footer{margin-top:60px;text-align:center;color:var(--g300);font-size:.8rem;border-top:1px solid var(--g100);padding-top:24px}
+  .footer b{color:var(--g500)}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="kicker">RXR · Research Master Plan</div>
+  <h1>윤선생 RXR 심화분석 마스터 플랜</h1>
+  <p>3개 BM 분리 · 이용자 영어수준 정량추정 · 배제사유(획득장벽) · 24/25/26 시간흐름 — 기존 단일브랜드 보고서의 4대 공백을 메우는 신규 RXR 2-Layer 리서치.</p>
+  <div class="meta">
+    <span class="chip">📅 2026.06.16 수립</span>
+    <span class="chip">🧩 신규 보고서 별도 생성</span>
+    <span class="chip">🔀 2트랙 순차</span>
+    <span class="chip">🔬 풀 RXR 2-Layer</span>
+    <span class="chip">by Project Rent</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- WHY -->
+  <section>
+    <div class="sec-h"><div class="sec-n">0</div><div><h2>왜 이 리서치인가 (메우는 4대 공백)</h2><div class="sub">기존 20260615 보고서는 윤선생을 단일 브랜드로 보고 구몬/빨간펜/청담과 비교 — 아래가 빠져 있었다</div></div></div>
+    <div class="card">
+      <ul class="gap-list">
+        <li><span class="ic">1</span><span><b>BM 미분리</b> — 교실(방문1:1)·베이직(화상)·영어숲(학원)이 한 덩어리로 분석돼 타겟·메시지 차별화가 불가능했다.</span></li>
+        <li><span class="ic">2</span><span><b>영어수준 근거 부재</b> — "관리형 입문 영어" 결론이 <b>실제 학생 행동 데이터</b>(시작시점·사전경로·동기)로 받쳐지지 않았다.</span></li>
+        <li><span class="ic">3</span><span><b>배제사유 없음</b> — 이탈사유(이미 쓴 사람=보유 문제)만 있고, "고려했는데 안 한" 잠재고객의 배제사유(획득 문제)가 없었다.</span></li>
+        <li><span class="ic">4</span><span><b>시간흐름 없음</b> — 24/25/26 추이가 없어 인식 변화·신규/소멸 토픽을 볼 수 없었다.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DECISIONS -->
+  <section>
+    <div class="sec-h"><div class="sec-n">1</div><div><h2>확정 의사결정</h2><div class="sub">검토 과정에서 합의된 6개 — 본 플랜의 기준선</div></div></div>
+    <div class="card">
+      <div class="dec"><div class="num">1</div><div><div class="t">BM 입도 — 3개 분리하되 핵심만</div><div class="d">교실/베이직/영어숲 분리, 신호 없는 멘션은 "브랜드 공통" 풀로</div></div><div class="v">확정 ✓</div></div>
+      <div class="dec"><div class="num">2</div><div><div class="t">경쟁사 — 풀 RXR 2-Layer</div><div class="d">감성+토픽+심리계층+배제사유+시간흐름 동일 깊이</div></div><div class="v">확정 ✓</div></div>
+      <div class="dec"><div class="num">3</div><div><div class="t">산출물 — 신규 보고서 별도 생성</div><div class="d">기존 20260615 보고서 보존, 신규 파일로</div></div><div class="v">확정 ✓</div></div>
+      <div class="dec"><div class="num">4</div><div><div class="t">②정량 표기 — N+신뢰도+통계청 대비 병기</div><div class="d">설문 수치 ❌, "멘션 관찰 방향성" + 통계청 사교육비조사 벤치마크</div></div><div class="v">확정 ✓</div></div>
+      <div class="dec"><div class="num">5</div><div><div class="t">처리 순서 — 2트랙 순차</div><div class="d">트랙A 완성→검토→트랙B</div></div><div class="v">확정 ✓</div></div>
+      <div class="dec"><div class="num">6</div><div><div class="t">단순화 금지</div><div class="d">토픽 Top8·매트릭스 항목 유지. N 낮아도 축소 ❌, 신뢰도 라벨로만 보정</div></div><div class="v">확정 ✓</div></div>
+    </div>
+  </section>
+
+  <!-- BM TAGGING -->
+  <section>
+    <div class="sec-h"><div class="sec-n">2</div><div><h2>BM 태깅 신호</h2><div class="sub">모든 분석의 공통 전제 — 멘션에서 BM을 가르는 키워드 규칙</div></div></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr><th>BM</th><th>분리 신호 (멘션 워딩)</th><th>경쟁사</th><th>분리난이도</th></tr></thead>
+        <tbody>
+          <tr><td><b>윤선생영어숲</b><br><span style="color:var(--g500);font-size:.82rem">학원형</span></td><td><code>영어숲</code> <code>학원</code> <code>등원</code> <code>센터</code> <code>원장</code></td><td>삼성영어, 뮤엠영어<br><span style="color:var(--g500);font-size:.8rem">(+정상JLS·청담 윗칸)</span></td><td><span class="tag tag-e">쉬움</span></td></tr>
+          <tr><td><b>윤선생영어교실</b><br><span style="color:var(--g500);font-size:.82rem">방문 1:1</span></td><td><code>방문선생님</code> <code>집으로</code> <code>주1회 방문</code> <code>1:1</code></td><td>눈높이영어, 재능교육</td><td><span class="tag tag-m">중간</span></td></tr>
+          <tr><td><b>윤선생베이직</b><br><span style="color:var(--g500);font-size:.82rem">화상 관리형</span></td><td><code>화상</code> <code>줌/ZOOM</code> <code>비대면</code> <code>저가 월회비</code></td><td>시원스쿨, 윙크, 천재교육</td><td><span class="tag tag-m">중간</span></td></tr>
+          <tr><td><b>브랜드 공통</b><br><span style="color:var(--g500);font-size:.82rem">미상</span></td><td>위 신호 없는 "윤선생" 단독 멘션</td><td>—</td><td><span class="tag tag-pool">풀(pool)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">→ BM별 N(건수)을 모든 표·차트에 표기. 단순화는 안 하되, N&lt;10 구간은 "방향성 참고용" 라벨로 신뢰도를 노출한다.</p>
+  </section>
+
+  <!-- TRACKS -->
+  <section>
+    <div class="sec-h"><div class="sec-n">3</div><div><h2>2트랙 순차 실행 구조</h2><div class="sub">트랙A 완성·검토 후 트랙B — 품질 관리를 위한 분리</div></div></div>
+    <div class="tracks">
+      <div class="track a">
+        <div class="lbl">Track A · 방문 / 관리형</div>
+        <h3>영어교실 + 베이직</h3>
+        <div class="vs"><b>vs 눈높이영어 · 재능교육</b><br>(+시원스쿨·윙크·천재 경량)</div>
+        <div class="seq">먼저 수집 → 분석 → 검토</div>
+      </div>
+      <div class="track b">
+        <div class="lbl">Track B · 학원</div>
+        <h3>영어숲</h3>
+        <div class="vs"><b>vs 삼성영어 · 뮤엠영어</b><br>(+정상JLS·청담 참조)</div>
+        <div class="seq">트랙A 검토 후 진행</div>
+      </div>
+    </div>
+    <div class="arrow-seq">트랙 A &nbsp;→&nbsp; 검토 &nbsp;→&nbsp; 트랙 B &nbsp;→&nbsp; 최종 통합 리포트</div>
+  </section>
+
+  <!-- 3 ANALYSIS MODULES -->
+  <section>
+    <div class="sec-h"><div class="sec-n">4</div><div><h2>3대 분석 모듈 구체화</h2><div class="sub">①BM분리 · ②영어수준 정량추정 · ③배제사유 + 시간흐름</div></div></div>
+    <div class="card">
+      <div class="mod">
+        <div class="mh"><span class="id">①</span><h4>BM별 분리 분석</h4></div>
+        <div class="purpose">목적 — BM별 마케팅 메시지 분리 (동일 브랜드 산하, 타겟 다르게)</div>
+        <ul>
+          <li><b>BM별 감성분포</b> — 긍/중/부 비율 + 전체 대비 차이</li>
+          <li><b>BM별 토픽 Top8</b> — 교실=방문관리/1:1, 베이직=가성비/화상편의, 영어숲=학원성과/레벨 가설 검증</li>
+          <li><b>BM별 이용자 프로파일</b> — 학년·동기·상황(워킹맘 등), ②와 연결</li>
+          <li>각 BM 카드 하단 <b>"메시지 차별화 한 줄 제언"</b></li>
+        </ul>
+      </div>
+
+      <div class="mod">
+        <div class="mh"><span class="id">②</span><h4>이용자 영어수준 정량추정</h4></div>
+        <div class="purpose">목적 — 타겟이 "지연 시작층"인지 "평균층"인지 확정 → 카피·채널 전략 결정</div>
+        <ul>
+          <li><b>(a) 시작시점 분포</b> — 초1이전/초1~2/초3~4/초4이후 → 막대(윤선생 추정 vs 통계청 평균), BM별</li>
+          <li><b>(b) 사전경험 경로</b> — 영유졸업→ / 영유미경험→ / 타학습지이탈→ 3분류 + 대표 인용 <span class="tag tag-e">데이터 잘 잡힘</span></li>
+          <li><b>(c) 시작시점×동기 매트릭스</b> — (늦게/평균/빨리)×(흥미·기초만회 / 결과·선행) 히트맵</li>
+          <li><b>가설 판정</b> — "윤선생=지연시작층 vs 평균층"을 BM별로 명시</li>
+        </ul>
+      </div>
+
+      <div class="mod">
+        <div class="mh"><span class="id">③</span><h4>배제사유 TOP (이탈 ≠ 배제)</h4></div>
+        <div class="purpose">목적 — 진입장벽 식별. 이탈=보유 문제 / 배제=신규 획득 문제</div>
+        <ul>
+          <li>전용 쿼리 — <code>윤선생 고민</code> <code>윤선생 vs OO</code> <code>윤선생 안 시키는 이유</code> <code>윤선생 거른</code> <code>우리 애한텐</code></li>
+          <li><b>배제사유 클러스터 TOP N</b> — 예상: 가격·약정 / 아웃풋 약점 인식 / "학원이 낫다" / 방문 부담 / 디지털 거부감</li>
+          <li><b>경쟁사 대비</b> — 삼성·뮤엠 / 눈높이·재능의 배제사유도 추출 → "윤선생 고유 장벽 vs 카테고리 공통 장벽" 구분</li>
+        </ul>
+      </div>
+
+      <div class="mod">
+        <div class="mh"><span class="id">⏱</span><h4>시간흐름 24 / 25 / 26</h4></div>
+        <div class="purpose">목적 — 인식 변화·신규/소멸 토픽 추적</div>
+        <ul>
+          <li>멘션 발행연도 버킷팅 → 연도별 <b>멘션량·감성추이·신규/소멸 토픽</b></li>
+          <li>적용 위치 — ①감성분포(연도축), ③배제사유(연도별 장벽 변화)</li>
+          <li>산출 — 3개년 sparkline + 연도 감성 스택바</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA REALITY / RISK -->
+  <section>
+    <div class="sec-h"><div class="sec-n">5</div><div><h2>데이터 현실성 · 리스크 보정</h2><div class="sub">웹 멘션의 한계를 명시하고 항목마다 대비책을 내장</div></div></div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="callout danger">
+        <div class="ce">⚠️</div>
+        <div class="ct"><b>②는 설문 수치가 아니다</b>웹 멘션은 모집단 대표 표본이 아니다(후기 작성자=만족/불만 극단 편향). 모든 %에 <b>N + 신뢰도 라벨 + 통계청 사교육비조사 벤치마크 대비</b>를 병기해 과대해석을 차단한다. 형식: <code>멘션 관찰값(N=__) · 통계청 대비 ±__</code></div>
+      </div>
+      <div class="callout warn">
+        <div class="ce">📉</div>
+        <div class="ct"><b>연도별 N 불균형</b>24년 멘션은 최신순 편향으로 적게 잡힘 → 절대량 비교 자제, <b>비율 중심 해석</b>. 연도별 N을 차트에 표기.</div>
+      </div>
+      <div class="callout warn">
+        <div class="ce">🔀</div>
+        <div class="ct"><b>교실·베이직 신호 혼동</b>학부모가 브랜드명을 혼동 → 두 BM은 N이 적을 수 있음. 단순화(항목 축소)는 하지 않되 <b>"방향성 참고용" 라벨</b>로 신뢰도를 노출.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXECUTION TIMELINE -->
+  <section>
+    <div class="sec-h"><div class="sec-n">6</div><div><h2>실행 단계</h2><div class="sub">/rxr-analysis 단순분석 모드 기반, 시간축·BM축 확장</div></div></div>
+    <div class="card">
+      <div class="tl">
+        <div class="step"><div class="dot"></div><h4><span class="sn">STEP 1</span>데이터 수집</h4><p>윤선생 멘션을 <b>연도×BM신호</b>로 태깅(트랙당 30건+). 배제사유 전용 쿼리, 영어수준 신호(시작연령·사전경로), 경쟁사 멘션 동시 수집. 검증 앵커: 통계청 2024 사교육비조사.</p></div>
+        <div class="step"><div class="dot"></div><h4><span class="sn">STEP 2</span>① BM별 분리 분석</h4><p>BM별 감성·토픽Top8·프로파일 + 메시지 차별화 제언.</p></div>
+        <div class="step"><div class="dot"></div><h4><span class="sn">STEP 3</span>② 영어수준 정량추정</h4><p>(a)시작시점 (b)사전경로 (c)동기 매트릭스 + 가설 판정. N·벤치마크 보정 필수.</p></div>
+        <div class="step"><div class="dot"></div><h4><span class="sn">STEP 4</span>③ 배제사유 TOP</h4><p>배제 클러스터 + 경쟁사 대비 "고유 장벽 vs 공통 장벽".</p></div>
+        <div class="step"><div class="dot"></div><h4><span class="sn">STEP 5</span>시간흐름 24/25/26</h4><p>연도 버킷팅 → 멘션량·감성·신규/소멸 토픽. N 불균형 리스크 명시.</p></div>
+        <div class="step"><div class="dot"></div><h4><span class="sn">STEP 6</span>경쟁사 풀 RXR 2-Layer</h4><p>트랙별 경쟁사 감성+토픽+심리계층+배제+시간흐름.</p></div>
+        <div class="step"><div class="dot"></div><h4><span class="sn">STEP 7</span>HTML + MD 리포트 생성</h4><p>R디자인가이드(#6666FF, Pretendard), Chart.js, card-explain 해설, 부록 로우데이터. 헤더/푸터 가이드 적용. 외부본 필요 시 v3 용어+보안세팅.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VERIFICATION -->
+  <section>
+    <div class="sec-h"><div class="sec-n">7</div><div><h2>완료 검증 체크리스트</h2><div class="sub">숫자·통계 3중 검증(추출→웹대조→재대조) 내장</div></div></div>
+    <div class="card">
+      <div class="check"><div class="box">✓</div><span>BM별·연도별·경쟁사별 <b>N(건수)</b>이 모든 표·차트에 표기됐는가</span></div>
+      <div class="check"><div class="box">✓</div><span>②의 % 옆에 <b>N·신뢰도라벨·통계청 벤치마크</b>가 빠짐없이 병기됐는가</span></div>
+      <div class="check"><div class="box">✓</div><span>③ 배제사유가 <b>이탈사유와 명확히 분리</b>됐는가 (획득 vs 보유)</span></div>
+      <div class="check"><div class="box">✓</div><span>통계청 수치·매출·회원수가 <b>출처 크로스체크</b>(수치·단위 %vs%p·귀속·맥락·출처) 됐는가</span></div>
+      <div class="check"><div class="box">✓</div><span>HTML 브라우저 렌더 — 차트·해설박스·부록 출처링크 정상 (PNG 캡처 금지, evaluate로 검증)</span></div>
+      <div class="check"><div class="box">✓</div><span>기존 <b>20260615 보고서가 보존</b>됐는가 (신규 파일명 확인)</span></div>
+    </div>
+    <p class="note">산출 경로(예정): <code>30-knowledge/rxr-analysis-윤선생영어-심화-20260616.html</code> / <code>.md</code></p>
+  </section>
+
+  <div class="footer">
+    <b>윤선생 RXR 심화분석 마스터 플랜</b> · 2026.06.16 · by Project Rent<br>
+    이 문서는 실행 전 합의된 리서치 설계도입니다. 승인 시 STEP 1(트랙 A)부터 착수합니다.
+  </div>
+
+</div>
+</body>
+</html>

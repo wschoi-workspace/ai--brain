@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basket 주간업무 리스트 — 오전·오후</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+  :root{--bg:#0E0B1A;--panel:#171327;--panel2:#1F1A33;--line:#2C2542;--txt:#EDEBF5;--sub:#B4B0C6;--mut:#6F6A86;--acc:#6C5CE7;--acc2:#8B7BFF;--acc-soft:rgba(108,92,231,.12);--green:#27C093;--amber:#F2B53C;--rose:#FF6B9D;--am:#4DA3FF}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Pretendard',-apple-system,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;padding:0 0 80px;font-size:15px}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+  header.hero{padding:50px 0 28px;border-bottom:1px solid var(--line);background:radial-gradient(1000px 320px at 16% -10%,var(--acc-soft),transparent)}
+  .eyebrow{color:var(--acc2);font-weight:700;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:29px;font-weight:800;line-height:1.3;margin:11px 0 11px;letter-spacing:-.02em}
+  h1 .hl{color:var(--acc2)}
+  .lede{color:var(--sub);font-size:15px;max-width:720px}
+  .meta{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{background:var(--panel2);border:1px solid var(--line);color:var(--sub);font-size:11.5px;padding:5px 11px;border-radius:999px}
+  .chip.real{border-color:var(--acc);color:var(--acc2)}
+  section{margin:38px 0}
+  h2{font-size:20px;font-weight:800;margin:6px 0 6px;display:flex;align-items:center;gap:10px}
+  h2 .num{color:var(--acc2);font-size:14px;font-weight:700;background:var(--acc-soft);border:1px solid var(--acc);min-width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:14px}
+  /* 매일 공통 2열 */
+  .common{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.common{grid-template-columns:1fr}}
+  .col{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .col .ch{padding:11px 16px;font-weight:800;font-size:15px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .col.am .ch{background:rgba(77,163,255,.1);color:var(--am)}
+  .col.pm .ch{background:var(--acc-soft);color:var(--acc2)}
+  .col .cb{padding:6px 16px}
+  .tk{list-style:none}
+  .tk li{position:relative;padding:7px 0 7px 26px;border-bottom:1px solid var(--line);font-size:13.7px;color:var(--sub)}
+  .tk li:last-child{border-bottom:none}
+  .tk li::before{content:"";position:absolute;left:0;top:9px;width:15px;height:15px;border:1.5px solid var(--mut);border-radius:4px}
+  .tk li b{color:var(--txt)}
+  /* 주간 매트릭스 */
+  .grid{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;margin-top:6px}
+  .grid th,.grid td{border:1px solid var(--line);padding:9px 11px;vertical-align:top}
+  .grid thead th{background:var(--panel2);font-size:13px;font-weight:800;text-align:center;width:16.6%}
+  .grid thead th .ppl{display:block;font-size:10.5px;font-weight:600;margin-top:2px}
+  .ppl-2{color:var(--green)} .ppl-1{color:var(--amber)}
+  .grid .rowlab{background:var(--panel2);font-weight:800;text-align:center;width:54px;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:2px}
+  .grid td.am-c{background:rgba(77,163,255,.04)}
+  .grid td.pm-c{background:rgba(108,92,231,.04)}
+  .grid td .none{color:var(--mut);font-size:12px}
+  .grid td .it{display:block;padding:3px 0;color:var(--sub);font-size:12.7px}
+  .grid td .it b{color:var(--txt)}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;margin-bottom:3px}
+  .b-order{background:rgba(39,192,147,.12);color:var(--green);border:1px solid var(--green)}
+  .b-clean{background:var(--acc-soft);color:var(--acc2);border:1px solid var(--acc)}
+  .b-break{background:rgba(242,181,60,.12);color:var(--amber);border:1px solid var(--amber)}
+  .b-report{background:rgba(255,107,157,.1);color:var(--rose);border:1px solid var(--rose)}
+  .warn{background:rgba(255,107,157,.06);border:1px solid var(--rose);border-radius:10px;padding:11px 15px;color:var(--sub);font-size:12.8px;margin:14px 0}
+  .warn b{color:var(--rose)}
+  .note{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 15px;color:var(--mut);font-size:12.3px;margin:12px 0}
+  .note b{color:var(--amber)}
+  footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:var(--mut);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div style="background:#6C5CE7;color:#fff;text-align:center;padding:10px 16px;font-family:'Pretendard',-apple-system,sans-serif;font-size:13.5px;font-weight:600">📚 이 문서의 운영 내용은 <b>Basket 업무가이드 매뉴얼 v1</b>로 통합되었습니다 — 최신 통합본: <a href="./basket-업무가이드-매뉴얼-v1.html" style="color:#fff;text-decoration:underline">basket-업무가이드-매뉴얼-v1.html</a></div>
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Project Rent · Basket 상설매장 · 주간업무 리스트</div>
+  <h1><span class="hl">Basket 주간업무</span> — 매일 업무 × 오전·오후</h1>
+  <p class="lede">한 주를 한눈에. <b>매일 공통으로 하는 업무</b>를 오전·오후로 나누고, 그 위에 <b>요일별로 추가되는 업무</b>만 얹었다. 운영: 월~토(일 휴무) · 10:00~18:00.</p>
+  <div class="meta">
+    <span class="chip real">매일 공통 + 요일별 추가</span>
+    <span class="chip">월·토 1인 / 화~금 2인</span>
+    <span class="chip">by Project Rent</span>
+  </div>
+</div></header>
+
+<div class="wrap">
+
+<!-- 1. 매일 공통 -->
+<section>
+<h2><span class="num">1</span>매일 공통 업무 (월~토 동일)</h2>
+<p class="sub">아래는 영업하는 날마다 똑같이 하는 업무. 요일에 상관없이 매일 수행한다.</p>
+<div class="common">
+  <div class="col am">
+    <div class="ch">🌅 오전 (오픈, 10시 전)</div>
+    <div class="cb"><ul class="tk">
+      <li><b>매장 준비</b> — 조명 ON·POS 영업중·에어컨/난방·DID·음향(갤탭)·와이파이 / 홀 청소·화장실 / 건물 체크 / 소화기·비상구 / <b>제빙기 얼음 정리·작동 / 온수기·냉장냉동고 온도</b></li>
+      <li><b>바·머신 세팅</b> — 그라인더 예비추출·입자조절 / 머신 셋팅(19~21g·32~40g·30~36초) / 브루비 예열 / 그룹헤드 샷 1회·브루잉 온도 / 워터디스펜서·서비스바 물통</li>
+      <li><b>식자재·제조</b> — 식자재 정리(택배/쿠팡) / 소분(소비기한·선입선출·라벨) / 베이스 제조·디저트 해동·가니쉬 소분 / 식재료·원두 수량 체크</li>
+      <li><b>재고·소모품·위생</b> — 유통기한·진열·부족·발주필요 / 리테일 DP·비품 세팅·종이컵 채우기 / 손·보건증</li>
+      <li><b>환경·메뉴·이슈</b> — 행주 빨아 널기 / 테이블·유리문·동선·테라스 / 당일 재료·제조동선 / 전일 인계·이슈 파악</li>
+    </ul></div>
+  </div>
+  <div class="col pm">
+    <div class="ch">🌙 오후 (영업 중 → 마감)</div>
+    <div class="cb"><ul class="tk">
+      <li><b>고객 응대 우선</b> + 수시 청결·설거지·매대 정리·VOC 기록</li>
+      <li><b>데일리 보고 작성</b> — 매일 16:30 · 바스켓 운영방 <span class="badge b-report">매일</span></li>
+      <li><b>머신·그라인더 마감</b> — 1·2차 약품 마감(샤워스크린·블라인드·린싱·배수트레인) / 그라인더 호퍼·챔버·날 / 브루비 청소</li>
+      <li><b>식자재·집기</b> — 디저트·가니쉬 상태 / 통 집게·소량 재료 합치고 용기 세척</li>
+      <li><b>발주·소모품</b> — 일일 발주리스트 → 담당자 카톡 / 식재료·원두·비품·화장실 비품·리테일 발주 체크 / 소모품 보충</li>
+      <li><b>클리닝·기물</b> — 사용 기물 세척·린넨 핸들링 / 작업대·냉장고·고무패킹 / 린넨 세제 담그기 / 분리수거</li>
+      <li><b>POS·정산</b> — 정산 / 현금 시재 / 갤탭·진동벨 충전</li>
+      <li><b>테라스·전원·보안</b> — 테라스 의자 내부 / 조명·에어컨·DID·핫디스펜서 OFF(머신 유지) / CCTV·문단속</li>
+    </ul></div>
+  </div>
+</div>
+<div class="warn"><b>절대 원칙</b> — 커피 머신 전원은 끄지 않는다(마감 시 머신 제외 전원만 OFF). · 마감은 클로즈 30분 전(18시 종료 → 17:30) 시작.</div>
+</section>
+
+<!-- 2. 요일별 추가 매트릭스 -->
+<section>
+<h2><span class="num">2</span>요일별 추가 업무 (매일 공통 위에 얹는 것만)</h2>
+<p class="sub">매일 공통 업무에 더해, 그 요일에만 추가로 하는 일. 비어 있으면 매일 공통만 수행.</p>
+<table class="grid">
+  <thead><tr>
+    <th></th>
+    <th>월<span class="ppl ppl-1">1인</span></th>
+    <th>화<span class="ppl ppl-2">2인</span></th>
+    <th>수<span class="ppl ppl-2">2인</span></th>
+    <th>목<span class="ppl ppl-2">2인</span></th>
+    <th>금<span class="ppl ppl-2">2인</span></th>
+    <th>토<span class="ppl ppl-1">1인</span></th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td class="rowlab">오전</td>
+      <td class="am-c"><span class="none">매일 공통만</span></td>
+      <td class="am-c"><span class="none">매일 공통만</span></td>
+      <td class="am-c"><span class="it"><span class="badge b-clean">연계</span>전날 담근 <b>호퍼 결합</b></span></td>
+      <td class="am-c"><span class="none">매일 공통만</span></td>
+      <td class="am-c"><span class="none">매일 공통만</span></td>
+      <td class="am-c"><span class="none">매일 공통만</span></td>
+    </tr>
+    <tr>
+      <td class="rowlab">오후</td>
+      <td class="pm-c"><span class="none">매일 공통만</span></td>
+      <td class="pm-c"><span class="it"><span class="badge b-clean">정비</span><b>그라인더 호퍼 청소</b></span></td>
+      <td class="pm-c"><span class="it"><span class="badge b-clean">정비</span><b>그룹헤드 분해 청소</b><br>포터필터 약품 청소</span></td>
+      <td class="pm-c"><span class="it"><span class="badge b-clean">정비</span><b>커피머신 위 먼지 닦기</b></span></td>
+      <td class="pm-c"><span class="it"><span class="badge b-clean">정비</span><b>냉장/냉동고 청소</b></span></td>
+      <td class="pm-c">
+        <span class="it">🗑️ <b>쓰레기 분리수거 배출</b></span>
+        <span class="it"><span class="badge b-clean">격주</span><b>제빙기 청소</b> (얼음 덜기→전원 OFF→필터·내부→재가동)</span>
+        <span class="it"><span class="badge b-clean">격주</span><b>청소기 필터 청소</b> (먼지통·필터 물세척 후 건조)</span>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<div class="note"><b>읽는 법</b> — 매일: <b>§1 공통(오전+오후)</b> 전부 수행. + 그 요일 칸에 적힌 것만 추가. 예) 수요일 = 공통 전부 + (오후) 그룹헤드 분해·포터필터 약품 청소.</div>
+<div class="note"><b>커피머신 약품 사이클</b> — 화(호퍼 담금) → 수오전(호퍼 결합) · 수(그룹헤드·포터필터 약품 밤새 담금) → 목 오전 머신 세팅 때 헹궈 결합(결합 전 작동 금지·화상 주의).</div>
+<div class="note"><b>＊ 현장 실행용</b> — 영업 중 <b>미들 단계</b>(이슈 노트 인수인계·수시 청결·쓰레기 6시 배출)와 요일별 전체 체크는 <b>요일별 직원 TO-DO 체크리스트 v3</b>(봇 /todo) 사용. POS=그로잉세일즈, 기기=갤럭시탭.</div>
+</section>
+
+<!-- 3. 참고 -->
+<section>
+<h2><span class="num">3</span>이번 리스트 범위 밖 (참고)</h2>
+<p class="sub">매일/주간이 아닌 주기는 별도 관리 — 일일·주간 매뉴얼 §4·§5 참조.</p>
+<div class="note">
+<b>격주(2주 1회)</b> 제빙기 청소 · 청소기 필터 → <b>토요일</b>에 편입(§2 참조) &nbsp;|&nbsp;
+<b>월간</b> 그라인더 분해청소 · 머신 배수관 약품 · (첫째주) 제빙기 분해·에어컨 필터 · 방역 &nbsp;|&nbsp;
+<b>비정기</b> 정수필터·가스켓·샤워스크린 교체 · 누수(우천) · 팝업 전후 재고
+</div>
+</section>
+
+<footer>
+Basket 주간업무 리스트 (오전·오후) v2 · '요일별 to-do 수정_260623' 반영(완전교체) · 2026-06-23 · by Project Rent<br>
+연계: 일일·주간 업무관리 매뉴얼 · 표준 일일보고 양식
+</footer>
+</div>
+</body>
+</html>

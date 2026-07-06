@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Project Rent — Company Overview</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root {
+    --bg:       #1A1A1A;
+    --bg-2:     #111111;
+    --bg-3:     #222222;
+    --fg:       #F5F0EB;
+    --fg-2:     #C9C2BA;
+    --fg-3:     #7A7570;
+    --line:     #333333;
+    --line-2:   #2A2A2A;
+    --accent:   #6C5CE7;
+    --accent-l: #A29BFE;
+    --warm:     #E9DCC8;
+    --rust:     #B86C4A;
+    --green:    #8FA37E;
+    --duration-fast: 150ms;
+    --duration-base: 250ms;
+    --ease-out:  cubic-bezier(.2, .8, .2, 1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+    font-weight: 300;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── 1페이지 슬라이드 컨테이너 ── */
+  .slide {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: var(--bg);
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 48px 72px 0;
+  }
+
+  /* ── 헤더 ── */
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line-2);
+    margin-bottom: 32px;
+  }
+  .header-left {}
+  .header-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 400;
+  }
+  .header-title {
+    font-size: 38px;
+    font-weight: 300;
+    color: var(--fg);
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+  .header-sub {
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    color: var(--fg-3);
+    text-transform: uppercase;
+    margin-top: 10px;
+    font-weight: 400;
+  }
+  .header-right {
+    text-align: right;
+  }
+  .header-brand {
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--fg-3);
+    text-transform: uppercase;
+  }
+  .header-year {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--fg-3);
+    margin-top: 4px;
+  }
+
+  /* ── 본문 그리드 ── */
+  .body-grid {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    gap: 32px;
+    min-height: 0;
+  }
+
+  /* ── 좌측 컬럼 ── */
+  .col-left {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 0;
+  }
+
+  /* WHO WE ARE */
+  .who-card {
+    background: var(--bg-3);
+    border: 1px solid var(--line-2);
+    border-top: 2px solid var(--accent);
+    padding: 28px 28px 24px;
+    flex: 0 0 auto;
+  }
+  .section-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--fg-3);
+    text-transform: uppercase;
+    font-weight: 400;
+    margin-bottom: 14px;
+  }
+  .who-slogan {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--fg);
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+  }
+  .who-def {
+    font-size: 12.5px;
+    color: var(--fg-2);
+    line-height: 1.65;
+    margin-bottom: 20px;
+  }
+  .who-def strong { color: var(--fg); font-weight: 500; }
+
+  /* 메타 정보 테이블 */
+  .meta-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--line-2);
+  }
+  .meta-item {
+    padding: 14px 0 12px;
+    border-right: 1px solid var(--line-2);
+  }
+  .meta-item:last-child { border-right: none; }
+  .meta-item + .meta-item { padding-left: 14px; }
+  .meta-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--fg-3);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .meta-value {
+    font-size: 13px;
+    color: var(--fg);
+    font-weight: 400;
+  }
+
+  /* 실적 수치 카드 */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+  .stat-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    padding: 18px 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 34px;
+    font-weight: 200;
+    color: var(--accent);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .stat-unit {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--fg-2);
+  }
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--fg-3);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* 클라이언트 */
+  .client-block {
+    flex: 0 0 auto;
+  }
+  .client-label {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--fg-3);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .client-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .client-tag {
+    font-size: 10.5px;
+    color: var(--fg-3);
+    background: var(--bg-3);
+    border: 1px solid var(--line-2);
+    padding: 4px 10px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── 우측 컬럼 ── */
+  .col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 0;
+  }
+
+  /* WHAT WE DO */
+  .what-block {
+    flex: 0 0 auto;
+  }
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .value-card {
+    background: var(--bg-3);
+    border: 1px solid var(--line-2);
+    padding: 20px 18px 18px;
+    transition: border-color var(--duration-base) var(--ease-out);
+  }
+  .value-card:hover { border-color: var(--fg-3); }
+  .value-num {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--fg-3);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .value-title {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--fg);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .value-accent { color: var(--accent); }
+  .value-body {
+    font-size: 11.5px;
+    color: var(--fg-2);
+    line-height: 1.6;
+  }
+  .value-badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--accent-l);
+    background: rgba(108,92,231,.08);
+    border: 1px solid rgba(108,92,231,.2);
+    padding: 2px 8px;
+    margin-top: 10px;
+    text-transform: uppercase;
+  }
+
+  /* HOW WE THINK */
+  .think-block {
+    flex: 0 0 auto;
+  }
+  .think-quotes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .think-quote {
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    border-left: 2px solid var(--line);
+    padding: 16px 16px 14px;
+  }
+  .think-quote-text {
+    font-size: 11.5px;
+    color: var(--fg-2);
+    line-height: 1.65;
+    font-style: italic;
+    letter-spacing: -0.005em;
+  }
+
+  /* 4-Layer Business */
+  .layer-block {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .layer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+    height: 100%;
+  }
+  .layer-card {
+    background: var(--bg-3);
+    border: 1px solid var(--line-2);
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: border-color var(--duration-base) var(--ease-out);
+  }
+  .layer-card:hover { border-color: var(--fg-3); }
+  .layer-num-block {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .layer-num {
+    font-size: 22px;
+    font-weight: 200;
+    color: var(--fg-3);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .layer-tag {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--fg-3);
+    text-transform: uppercase;
+  }
+  .layer-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fg);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .layer-desc {
+    font-size: 11px;
+    color: var(--fg-3);
+    line-height: 1.6;
+    flex: 1;
+  }
+  .layer-sub {
+    font-size: 10px;
+    color: var(--fg-3);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line-2);
+    letter-spacing: 0.05em;
+  }
+  .layer-sub strong { color: var(--fg-2); font-weight: 400; }
+
+  /* ── 푸터 ── */
+  .footer {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0 16px;
+    border-top: 1px solid var(--line-2);
+    margin-top: auto;
+  }
+  .footer-brand {
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--fg-3);
+    text-transform: uppercase;
+  }
+  .footer-contact {
+    display: flex;
+    gap: 40px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--fg-3);
+    text-transform: uppercase;
+  }
+  .footer-contact .contact-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .footer-contact .contact-label { color: var(--fg-3); }
+  .footer-contact .contact-value { color: var(--fg-2); }
+  .footer-right {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--fg-3);
+    text-transform: uppercase;
+  }
+
+  /* ── 반응형 뷰포트 스케일 ── */
+  @media (max-width: 1920px) {
+    html { font-size: 16px; }
+    .slide {
+      transform-origin: top left;
+    }
+  }
+
+  /* ── 프린트 A4 가로 ── */
+  @media print {
+    @page { size: A4 landscape; margin: 0; }
+    html, body { width: 297mm; height: 210mm; background: var(--bg); }
+    .slide {
+      width: 297mm;
+      height: 210mm;
+      padding: 10mm 13mm 0;
+      transform: none !important;
+    }
+    .header { margin-bottom: 7mm; padding-bottom: 5mm; }
+    .header-title { font-size: 22pt; }
+    .stat-num { font-size: 20pt; }
+    .body-grid { gap: 6mm; }
+    .values-grid, .think-quotes, .layer-grid { gap: 3mm; }
+    .stat-row { gap: 3mm; }
+    .footer { padding: 4mm 0 4mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="slide" id="slide">
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="header-left">
+      <div class="header-eyebrow">Company Overview</div>
+      <h1 class="header-title">우리는 공간을 미디어로 만드는 회사입니다</h1>
+      <p class="header-sub">PROJECT RENT &nbsp;—&nbsp; Retail Media Store Platform</p>
+    </div>
+    <div class="header-right">
+      <div class="header-brand">by Project Rent</div>
+      <div class="header-year">Est. 2018 &nbsp;·&nbsp; 2026</div>
+    </div>
+  </header>
+
+  <!-- ── BODY ── -->
+  <div class="body-grid">
+
+    <!-- ── 좌측 ── -->
+    <div class="col-left">
+
+      <!-- WHO WE ARE -->
+      <div class="who-card">
+        <div class="section-eyebrow">Who We Are</div>
+        <div class="who-slogan">End of design / Movement of Business</div>
+        <p class="who-def">
+          팝업 대행사가 아닙니다.<br>
+          <strong>오프라인 경험을 측정 가능한 미디어로 전환하는 플랫폼</strong>입니다.
+        </p>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">설립</div>
+            <div class="meta-value">2018</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">대표</div>
+            <div class="meta-value">최원석</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">팀</div>
+            <div class="meta-value">6명</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 실적 수치 -->
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-num">250<span class="stat-unit">+</span></div>
+          <div class="stat-label">Projects</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">60<span class="stat-unit">억+</span></div>
+          <div class="stat-label">누적 계약</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">300<span class="stat-unit">+</span></div>
+          <div class="stat-label">Case Library</div>
+        </div>
+      </div>
+
+      <!-- 클라이언트 -->
+      <div class="client-block">
+        <div class="client-label">Key Clients</div>
+        <div class="client-list">
+          <span class="client-tag">현대자동차</span>
+          <span class="client-tag">매일유업</span>
+          <span class="client-tag">OB맥주</span>
+          <span class="client-tag">롯데웰푸드</span>
+          <span class="client-tag">배달의민족</span>
+          <span class="client-tag">Apple TV+ 파친코2</span>
+          <span class="client-tag">한국관광공사</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── 우측 ── -->
+    <div class="col-right">
+
+      <!-- WHAT WE DO -->
+      <div class="what-block">
+        <div class="section-eyebrow">What We Do — 3 Values</div>
+        <div class="values-grid">
+          <div class="value-card">
+            <span class="value-num">01</span>
+            <div class="value-title"><span class="value-accent">Retail</span> as Media</div>
+            <p class="value-body">매장을 "판매처"가 아닌 "미디어"로 설계합니다. 공간이 곧 콘텐츠이자 채널.</p>
+            <span class="value-badge">Space = Channel</span>
+          </div>
+          <div class="value-card">
+            <span class="value-num">02</span>
+            <div class="value-title">Measurement</div>
+            <p class="value-body">RXR 특허(10-2545502) 기반 경험→행동→매출 연결 측정. EMV/BEI 지표.</p>
+            <span class="value-badge">Patent 10-2545502</span>
+          </div>
+          <div class="value-card">
+            <span class="value-num">03</span>
+            <div class="value-title">Modular System</div>
+            <p class="value-body">단발 팝업이 아닌 반복 가능한 모듈형 플랫폼. 300+ 케이스 라이브러리.</p>
+            <span class="value-badge">300+ Cases</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- HOW WE THINK -->
+      <div class="think-block">
+        <div class="section-eyebrow">How We Think</div>
+        <div class="think-quotes">
+          <div class="think-quote">
+            <p class="think-quote-text">"AI 시대에 실행은 평준화됩니다. 차별화는 '왜 이렇게 했는가'에서 옵니다."</p>
+          </div>
+          <div class="think-quote">
+            <p class="think-quote-text">"우리는 공간을 만드는 회사가 아니라, 공간을 통해 생각하는 회사입니다."</p>
+          </div>
+          <div class="think-quote">
+            <p class="think-quote-text">"모든 프로젝트에 '이 경험이 정말 사람을 움직였는가'를 묻습니다."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4-LAYER BUSINESS -->
+      <div class="layer-block">
+        <div class="section-eyebrow">4-Layer Business</div>
+        <div class="layer-grid">
+          <div class="layer-card">
+            <div class="layer-num-block">
+              <span class="layer-num">01</span>
+              <span class="layer-tag">Layer</span>
+            </div>
+            <div class="layer-title">공간 운영</div>
+            <p class="layer-desc">성수 3개소, 논현, 이대 등 직영 매장 운영</p>
+            <div class="layer-sub"><strong>직영 공간 네트워크</strong></div>
+          </div>
+          <div class="layer-card">
+            <div class="layer-num-block">
+              <span class="layer-num">02</span>
+              <span class="layer-tag">Layer</span>
+            </div>
+            <div class="layer-title">프로젝트 서비스</div>
+            <p class="layer-desc">기획→콘텐츠→운영→측정 원스톱 서비스</p>
+            <div class="layer-sub"><strong>건당 5천만 — 20억</strong></div>
+          </div>
+          <div class="layer-card">
+            <div class="layer-num-block">
+              <span class="layer-num">03</span>
+              <span class="layer-tag">Layer</span>
+            </div>
+            <div class="layer-title">RXR 분석</div>
+            <p class="layer-desc">특허 기반 오프라인 경험 측정 솔루션</p>
+            <div class="layer-sub"><strong>EMV / BEI 지표</strong></div>
+          </div>
+          <div class="layer-card">
+            <div class="layer-num-block">
+              <span class="layer-num">04</span>
+              <span class="layer-tag">Layer</span>
+            </div>
+            <div class="layer-title">AX 교육</div>
+            <p class="layer-desc">Do Better Things — AI 업무전환 교육</p>
+            <div class="layer-sub"><strong>소상공인 · 기업 대상</strong></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="footer-brand">Project Rent</div>
+    <div class="footer-contact">
+      <div class="contact-item">
+        <span class="contact-label">Website</span>
+        <span class="contact-value">project-rent.com</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label">Email</span>
+        <span class="contact-value">ws.choi@project-rent.com</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label">Tel</span>
+        <span class="contact-value">&nbsp;</span>
+      </div>
+    </div>
+    <div class="footer-right">Company Overview · 2026</div>
+  </footer>
+
+</div>
+
+<script>
+  // 뷰포트 너비에 따라 슬라이드 자동 스케일
+  function scaleSlide() {
+    const slide = document.getElementById('slide');
+    const scaleX = window.innerWidth / 1920;
+    const scaleY = window.innerHeight / 1080;
+    const scale = Math.min(scaleX, scaleY);
+    slide.style.transform = `scale(${scale})`;
+    slide.style.transformOrigin = 'top left';
+    // 슬라이드가 중앙에 오도록 여백 조정
+    const offsetX = (window.innerWidth - 1920 * scale) / 2;
+    const offsetY = (window.innerHeight - 1080 * scale) / 2;
+    slide.style.marginLeft = offsetX + 'px';
+    slide.style.marginTop = offsetY + 'px';
+  }
+
+  scaleSlide();
+  window.addEventListener('resize', scaleSlide);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L5 프로젝트 회고 — 경험을 자산으로 바꾸는 법</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --green: #8FA37E; --amber: #D9A34B; --red: #E17055; --blue: #6F8AA3;
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300;letter-spacing:-0.01em;line-height:1.7;
+}
+h1,h2,h3,h4{font-weight:500;text-wrap:balance}
+
+.sec{
+  padding:100px 120px 120px;max-width:1440px;margin:0 auto;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out);
+}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sec-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px;
+}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:16px}
+.body{font-size:14px;color:var(--fg-2);line-height:1.7}
+.body strong{color:var(--fg);font-weight:500}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-48{margin-top:48px}
+
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:80px 60px;background:var(--bg-2);
+}
+.cover .eyebrow{margin-bottom:24px}
+.cover h1{font-size:56px;font-weight:200;letter-spacing:-0.03em;line-height:1.1}
+.cover h1 em{font-style:normal;color:var(--accent)}
+.cover .sub{font-size:16px;color:var(--fg-2);margin-top:24px;max-width:640px;font-weight:300}
+.cover .meta{font-size:11px;color:var(--fg-3);letter-spacing:.2em;margin-top:48px;text-transform:uppercase}
+.cover .level-badge{
+  display:inline-block;padding:6px 20px;font-size:12px;letter-spacing:.2em;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.25);margin-bottom:24px;text-transform:uppercase;
+}
+
+.big-quote{
+  background:var(--bg-2);padding:80px 120px;text-align:center;
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+}
+.big-quote blockquote{
+  font-size:28px;font-weight:200;letter-spacing:-0.02em;line-height:1.4;
+  color:var(--fg);max-width:800px;margin:0 auto;
+}
+.big-quote blockquote em{font-style:normal;color:var(--accent)}
+.big-quote .attr{font-size:12px;color:var(--fg-3);margin-top:24px;letter-spacing:.15em}
+
+.principle{
+  background:rgba(108,92,231,.06);border-left:3px solid var(--accent);
+  padding:28px 32px;margin:24px 0;
+}
+.principle p{font-size:14px;color:var(--fg-2);margin:0;line-height:1.7}
+.principle strong{color:var(--accent-light)}
+
+.callout{
+  background:rgba(108,92,231,.08);border-left:3px solid var(--accent);
+  padding:24px 28px;margin:24px 0;
+}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+.card{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card .c-num{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.card.accent-top{border-top:2px solid var(--accent)}
+
+.scenario{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:32px;margin:16px 0;
+  transition:border-color var(--duration-base) var(--ease-out);
+}
+.scenario:hover{border-color:var(--fg-3)}
+.scenario .s-label{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:12px}
+.scenario .s-situation{font-size:15px;color:var(--fg);font-weight:500;margin-bottom:16px}
+.scenario .s-dialogue{padding:16px 20px;background:var(--bg-2);border-left:2px solid var(--accent);margin:12px 0}
+.scenario .s-dialogue p{font-size:13px;color:var(--fg-2);margin:6px 0;line-height:1.6}
+.scenario .s-dialogue .speaker{color:var(--fg-3);font-size:11px;letter-spacing:.1em;margin-bottom:2px}
+.scenario .s-dialogue .speaker.rem{color:var(--accent-light)}
+.scenario .s-insight{
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--line-2);
+  font-size:12px;color:var(--fg-3);
+}
+.scenario .s-insight strong{color:var(--green)}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:32px 0}
+.compare-col{padding:32px;border:1px solid var(--line-2)}
+.compare-col.bad{background:rgba(225,112,85,.03);border-color:rgba(225,112,85,.15)}
+.compare-col.good{background:rgba(143,163,126,.03);border-color:rgba(143,163,126,.15)}
+.compare-col h4{font-size:11px;letter-spacing:.25em;text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--line-2)}
+.compare-col.bad h4{color:var(--red)}
+.compare-col.good h4{color:var(--green)}
+.compare-col .item{padding:14px 0;border-bottom:1px solid var(--line-2);font-size:13px;color:var(--fg-2);line-height:1.5}
+.compare-col .item:last-child{border-bottom:none}
+.compare-col .item .label{font-size:10px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+
+.steps{margin:32px 0}
+.step{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--line-2)}
+.step:last-child{border-bottom:none}
+.step-num{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:500;flex-shrink:0;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.2);
+}
+.step-content h4{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.step-content p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.step-content .example{
+  margin-top:10px;padding:10px 14px;background:var(--bg-3);
+  border-left:2px solid var(--accent);font-size:12px;color:var(--fg-2);line-height:1.5;
+}
+
+/* Observation Map */
+.obs-map{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:32px 0;
+}
+.obs-item{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:24px;
+  border-left:3px solid transparent;
+}
+.obs-item.body-obs{border-left-color:var(--green)}
+.obs-item.word-obs{border-left-color:var(--accent)}
+.obs-item.space-obs{border-left-color:var(--amber)}
+.obs-item.emotion-obs{border-left-color:var(--blue)}
+.obs-item .obs-tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+.obs-item.body-obs .obs-tag{color:var(--green)}
+.obs-item.word-obs .obs-tag{color:var(--accent-light)}
+.obs-item.space-obs .obs-tag{color:var(--amber)}
+.obs-item.emotion-obs .obs-tag{color:var(--blue)}
+.obs-item h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.obs-item p{font-size:12px;color:var(--fg-2);line-height:1.6}
+.obs-item .obs-how{
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2);
+  font-size:11px;color:var(--fg-3);
+}
+
+/* Theory Box */
+.theory{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.theory .t-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  padding-bottom:14px;border-bottom:1px solid var(--line-2);
+}
+.theory .t-badge{
+  padding:3px 10px;font-size:10px;letter-spacing:.15em;
+  background:rgba(111,138,163,.1);color:var(--blue);
+  border:1px solid rgba(111,138,163,.2);text-transform:uppercase;
+}
+.theory .t-title{font-size:14px;font-weight:500;color:var(--fg)}
+.theory .t-author{font-size:11px;color:var(--fg-3);margin-left:auto}
+.theory p{font-size:13px;color:var(--fg-2);line-height:1.7;margin-bottom:10px}
+.theory p:last-child{margin-bottom:0}
+.theory .t-apply{
+  margin-top:16px;padding:14px 18px;
+  background:rgba(108,92,231,.06);border-left:2px solid var(--accent);
+  font-size:12px;color:var(--fg-2);line-height:1.6;
+}
+.theory .t-apply strong{color:var(--accent-light)}
+
+/* Mission */
+.mission{
+  background:rgba(143,163,126,.04);border:1px solid rgba(143,163,126,.2);
+  padding:28px;margin:16px 0;
+}
+.mission .m-label{font-size:10px;letter-spacing:.25em;color:var(--green);text-transform:uppercase;margin-bottom:10px}
+.mission h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.mission p{font-size:13px;color:var(--fg-2);line-height:1.6}
+
+/* Book Card */
+.book{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  border-top:2px solid transparent;
+}
+.book:hover{border-color:var(--fg-3);transform:translateY(-2px);transition:all var(--duration-base) var(--ease-out)}
+.book .b-tag{
+  display:inline-block;padding:3px 10px;font-size:10px;letter-spacing:.1em;margin-bottom:12px;
+}
+.book .b-tag.essential{background:rgba(108,92,231,.1);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.book .b-tag.optional{background:rgba(143,163,126,.1);color:var(--green);border:1px solid rgba(143,163,126,.2)}
+.book .b-title{font-size:17px;font-weight:500;color:var(--fg);margin-bottom:4px}
+.book .b-author{font-size:12px;color:var(--fg-3);margin-bottom:12px}
+.book .b-why{font-size:13px;color:var(--fg-2);line-height:1.6;margin-bottom:12px}
+.book .b-connect{font-size:12px;color:var(--fg-3);padding-top:12px;border-top:1px solid var(--line-2);line-height:1.5}
+.book .b-connect strong{color:var(--fg-2)}
+
+/* Levelup */
+.levelup{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.levelup h4{font-size:11px;letter-spacing:.25em;color:var(--accent-light);text-transform:uppercase;margin-bottom:20px}
+.lu-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.lu-item:last-child{border-bottom:none}
+.lu-check{
+  width:20px;height:20px;border:1px solid var(--line);display:flex;
+  align-items:center;justify-content:center;font-size:11px;color:var(--fg-3);flex-shrink:0;
+}
+.lu-text{font-size:13px;color:var(--fg-2)}
+
+footer{
+  padding:80px 120px 60px;border-top:1px solid var(--line-2);
+  max-width:1440px;margin:80px auto 0;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg-3);text-transform:uppercase}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+
+@media(max-width:1200px){
+  .sec{padding:80px 60px}
+  .cover h1{font-size:40px}
+  .big-quote{padding:60px 40px}
+  .big-quote blockquote{font-size:22px}
+  .compare,.grid-2,.grid-3,.grid-4,.obs-map{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.sec{opacity:1;transform:none;transition:none}}
+@media print{.sec{opacity:1;transform:none;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <span class="level-badge">Level 5 &middot; Stage 5</span>
+  <span class="eyebrow">REM OS &middot; Project Review</span>
+  <h1>경험을 <em>자산</em>으로 바꾸는 법</h1>
+  <p class="sub">프로젝트가 끝나면 매출 숫자만 남고 나머지는 사라진다. 회고는 "왜 그 결과가 나왔는가"를 남겨서 다음 프로젝트를 더 잘하게 만드는 것이다.</p>
+  <p class="meta">Project Rent &middot; 5-1 Project Review &middot; v1.0</p>
+</section>
+
+<!-- Ch01 — 프로젝트가 끝나면 뭐가 남는가 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 01 &mdash; What Remains</span>
+      <h2>매출 숫자는 남는다. 하지만 "왜"는 사라진다.</h2>
+    </div>
+    <span class="eyebrow">01</span>
+  </div>
+
+  <p class="body">
+    프로젝트가 끝나면 매출 리포트가 나온다. "OO만원 매출, OO명 방문."<br>
+    그런데 정작 중요한 건 빠져 있다.
+  </p>
+
+  <div class="compare mt-32">
+    <div class="compare-col bad">
+      <h4>보통 남는 것</h4>
+      <div class="item">매출 숫자</div>
+      <div class="item">방문자 수</div>
+      <div class="item">사진 몇 장</div>
+      <div class="item">"잘됐다" 또는 "별로였다" 한 줄 감상</div>
+    </div>
+    <div class="compare-col good">
+      <h4>남아야 하는 것</h4>
+      <div class="item">어떤 설명이 가장 먹혔는가</div>
+      <div class="item">어떤 장면에서 사람들이 멈췄는가</div>
+      <div class="item">어떤 실험이 효과 있었는가</div>
+      <div class="item">인식 목표가 실제로 전달됐는가</div>
+      <div class="item">다음에 뭘 바꿔야 하는가</div>
+    </div>
+  </div>
+
+  <div class="principle">
+    <p>왼쪽만 남으면 다음 프로젝트도 처음부터. 오른쪽까지 남으면 다음 프로젝트는 <strong>더 높은 곳에서 시작한다.</strong> 이 차이를 만드는 게 회고다.</p>
+  </div>
+</section>
+
+<!-- Ch02 — 회고는 보고서가 아니다 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 02 &mdash; Review &ne; Report</span>
+      <h2>보고서는 "뭘 했나"를 적는다. 회고는 "뭘 배웠나"를 적는다.</h2>
+    </div>
+    <span class="eyebrow">02</span>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="card">
+      <div class="c-num">보고서 = What</div>
+      <h4>사실 나열</h4>
+      <p>"이번 프로젝트에서 우리는 시음 이벤트를 3회 진행했고, 매출 OO만원을 달성했습니다."</p>
+      <p style="margin-top:10px;font-size:12px;color:var(--fg-3)">다음에 어떻게 해야 하는지 안 보임.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">회고 = Why + Next</div>
+      <h4>학습 + 다음 행동</h4>
+      <p>"시음 전에 스토리를 먼저 말했을 때 구매율이 3배 높았다. 다음 프로젝트에서는 모든 시음에 스토리를 선행시키자."</p>
+      <p style="margin-top:10px;font-size:12px;color:var(--accent-light)">발견이 다음 행동으로 이어진다.</p>
+    </div>
+  </div>
+
+  <div class="theory mt-32">
+    <div class="t-header">
+      <span class="t-badge">Theory</span>
+      <span class="t-title">도널드 쇤의 반성적 실천 (Reflective Practice)</span>
+      <span class="t-author">교육학</span>
+    </div>
+    <p>도널드 쇤은 "같은 경험을 해도 복기하는 사람과 안 하는 사람의 성장 속도는 완전히 다르다"고 했다. 전문가와 초보를 가르는 건 경험의 양이 아니라 <strong>"경험을 되돌아보는 능력"</strong>이다. 일일 복기가 하루 단위라면, 프로젝트 회고는 프로젝트 단위의 반성적 실천이다.</p>
+    <div class="t-apply"><strong>현장 적용:</strong> 프로젝트 회고를 "숙제"가 아니라 "다음 프로젝트를 더 잘하기 위한 준비"로 봐라. "지난번에 이게 먹혔으니까 이번에도 하자" — 이 한마디가 회고의 가치다.</div>
+  </div>
+</section>
+
+<!-- Ch03 — 회고의 5가지 질문 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 03 &mdash; Five Questions</span>
+      <h2>이 다섯 개만 답하면 된다</h2>
+    </div>
+    <span class="eyebrow">03</span>
+  </div>
+
+  <p class="body">
+    회고가 복잡할 필요 없다. 프로젝트가 끝나면 팀이 이 5가지 질문에 답한다.
+  </p>
+
+  <div class="steps mt-32">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>인식 목표가 전달됐는가?</h4>
+        <p>인식 브리프에서 정한 "고객이 기억할 한 문장"이 실제로 VOC에 나타났는가? 나타나지 않았다면 왜?</p>
+        <div class="example">예: 목표 "장인이 만든다" → 실제 VOC에 "정성", "수제" 언급 15회 → 전달됨 ✅</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>가장 효과적이었던 것은?</h4>
+        <p>설명 멘트, 진열, 시음 방식, 공간 배치 중 가장 반응이 좋았던 것. "이건 다음에도 꼭 하자" 리스트.</p>
+        <div class="example">예: "시음 전 스토리 선행 → 구매율 3배" → 다음 프로젝트 표준화</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>예상과 달랐던 것은?</h4>
+        <p>기대했는데 안 먹힌 것, 기대 안 했는데 먹힌 것. 여기서 가장 큰 인사이트가 나온다.</p>
+        <div class="example">예: "와인 페어링이 매출엔 좋았지만, 인식은 '와인 마시는 곳'으로 흘렀다" → 방지선 학습</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>다음에 바꿔야 할 것은?</h4>
+        <p>구체적 행동 1~3개. "다음에는 이렇게 하자." 추상적이면 안 된다.</p>
+        <div class="example">❌ "더 잘하자" &nbsp;→&nbsp; ✅ "시음 전에 반드시 셰프 스토리를 30초 이상 한다"</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>이번 프로젝트에서 성장한 것은?</h4>
+        <p>개인과 팀이 뭘 새로 배웠는가. 관찰 기술? 설명 기술? 실험 설계?</p>
+        <div class="example">예: "처음으로 A/B 실험을 설계해봤다. 가설→결과 구조가 익숙해졌다"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Ch04 — 회고 리포트 양식 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 04 &mdash; Review Template</span>
+      <h2>이 양식을 채우면 회고가 된다</h2>
+    </div>
+    <span class="eyebrow">04</span>
+  </div>
+
+  <div class="scenario mt-32">
+    <div class="s-label">프로젝트 회고 리포트 &mdash; 예시</div>
+    <div class="s-situation">세스크멘슬 성수 팝업 (가상)</div>
+    <div class="s-dialogue">
+      <p style="font-size:13px;line-height:2;color:var(--fg-2)">
+        <strong style="color:var(--fg)">[프로젝트 회고 — 세스크멘슬 성수 팝업]</strong><br>
+        기간: 2026.07.01~07.14<br>
+        인식 목표: "여기 진짜 장인이 만든다"<br><br>
+        <strong style="color:var(--accent-light)">1. 인식 전달 여부</strong><br>
+        ✅ 전달됨 — "장인/정성/수제" 언급 총 47회 (일평균 3.4회)<br>
+        ⚠️ 부분 이슈 — "와인" 언급 62회로 장인 키워드보다 많음<br><br>
+        <strong style="color:var(--accent-light)">2. 가장 효과적이었던 것</strong><br>
+        → 시음 전 제조 스토리 선행 (구매 전환율 3배)<br>
+        → 제조 과정 디스플레이 위치 변경 (촬영 건수 2배)<br><br>
+        <strong style="color:var(--accent-light)">3. 예상과 달랐던 것</strong><br>
+        → 와인 페어링이 매출에는 기여했지만 인식을 "와인집"으로 끌어감<br>
+        → 선물 구매가 예상보다 많았음 (전체의 35%)<br><br>
+        <strong style="color:var(--accent-light)">4. 다음에 바꿀 것</strong><br>
+        → 와인을 "셰프가 고른 페어링"으로 소개 (주인공 전환)<br>
+        → 선물 패키지를 더 눈에 띄는 위치로<br>
+        → 시음 전 스토리 선행을 SOP로 확정<br><br>
+        <strong style="color:var(--accent-light)">5. 성장한 것</strong><br>
+        → L2 관찰 채널 4개 모두 활용 가능해짐<br>
+        → 첫 A/B 실험 3건 완료<br>
+        → "인식 목표 vs 실제 VOC" 비교 분석 경험
+      </p>
+    </div>
+    <div class="s-insight"><strong>이 한 장이 다음 프로젝트의 출발점이 된다.</strong> 다음 팀은 "시음 전 스토리 선행"을 처음부터 적용할 수 있고, "와인 인식 탈취" 리스크를 미리 방지할 수 있다.</div>
+  </div>
+</section>
+
+<!-- Ch05 — 패턴을 축적하는 법 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 05 &mdash; Accumulating Patterns</span>
+      <h2>프로젝트 3개가 쌓이면 "법칙"이 보이기 시작한다</h2>
+    </div>
+    <span class="eyebrow">05</span>
+  </div>
+
+  <p class="body">
+    회고 리포트 1개는 사례다. 3개가 쌓이면 패턴이다. 패턴이 쌓이면 "우리만의 법칙"이 된다.
+  </p>
+
+  <div class="grid-3 mt-32">
+    <div class="card">
+      <div class="c-num">사례 — 1건</div>
+      <h4>"시음 전 스토리가 효과 있었다"</h4>
+      <p>이건 이 프로젝트에서만 통하는 걸 수도 있다.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">패턴 — 3건</div>
+      <h4>"3개 프로젝트에서 모두 스토리 선행이 효과 있었다"</h4>
+      <p>이건 반복되는 현상이다.</p>
+    </div>
+    <div class="card" style="border-top:2px solid var(--green)">
+      <div class="c-num">법칙 — 5건+</div>
+      <h4>"스토리 선행은 시음 구매 전환율을 평균 2.5배 올린다"</h4>
+      <p>이건 우리의 법칙이다.</p>
+    </div>
+  </div>
+
+  <div class="principle mt-8">
+    <p>이 축적이 프로젝트렌트만의 자산이 된다. 다른 팝업 운영사는 이런 데이터가 없다. 우리만 가지고 있다. <strong>그래서 회고가 중요한 거다.</strong></p>
+  </div>
+</section>
+
+<!-- Ch06 — 팀 회고 하는 법 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 06 &mdash; Team Review</span>
+      <h2>혼자 하면 사례, 같이 하면 문화</h2>
+    </div>
+    <span class="eyebrow">06</span>
+  </div>
+
+  <p class="body">
+    회고를 혼자 하면 개인 학습이다. 팀이 함께 하면 조직 학습이 된다.
+  </p>
+
+  <div class="theory mt-32">
+    <div class="t-header">
+      <span class="t-badge">Theory</span>
+      <span class="t-title">에티엔 웽거의 실천 공동체 (Community of Practice)</span>
+      <span class="t-author">교육학</span>
+    </div>
+    <p>교육학자 웽거는 "사람은 매뉴얼보다 주변 사람이 뭘 중요하게 여기는가를 보고 배운다"고 했다. 옆 사람이 관찰을 기록하고 공유하면 나도 "아, 이걸 봐야 하는 거구나"를 배운다. 좋은 관찰과 인사이트를 공유하는 문화가 조직 전체의 감각을 만든다.</p>
+    <div class="t-apply"><strong>현장 적용:</strong> 프로젝트 종료 후 팀 회고 시간을 가져라. 30분이면 충분하다. 핵심은 "칭찬도 비판도 아닌, 발견의 공유"다.</div>
+  </div>
+
+  <div class="steps mt-8">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>각자 5분 — 5가지 질문에 개인 답변 준비</h4>
+        <p>미리 생각해와야 회고가 산으로 안 간다.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>돌아가며 공유 — 가장 인상적이었던 것 하나씩</h4>
+        <p>평가 없이 듣는다. "오" "그랬구나" 수준.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>패턴 찾기 — 겹치는 발견 모으기</h4>
+        <p>여러 명이 같은 걸 봤으면 그건 강한 패턴이다.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>다음 행동 정하기 — '다음에는 이렇게' 3개</h4>
+        <p>구체적 행동만. 추상적 다짐 금지.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>성공 아카이브에 기록</h4>
+        <p>이번 프로젝트의 가장 좋았던 것을 남긴다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Ch07 — 성공 아카이브 -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 07 &mdash; Success Archive</span>
+      <h2>작은 성공이 쌓이면 팀의 무기가 된다</h2>
+    </div>
+    <span class="eyebrow">07</span>
+  </div>
+
+  <p class="body">
+    회고에서 나온 "이건 좋았다"를 모아두는 곳이 성공 아카이브다.<br>
+    매 프로젝트마다 2~3개씩 쌓으면 1년 후에는 엄청난 자산이 된다.
+  </p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">성공 아카이브 예시</div>
+    <div class="s-situation">6개월간 축적된 아카이브</div>
+    <div class="s-dialogue">
+      <p style="font-size:13px;line-height:2;color:var(--fg-2)">
+        <strong style="color:var(--fg-3)">📅 2026.07 | 세스크멘슬 팝업</strong><br>
+        "시음 전 제조 스토리 선행 → 구매 전환율 3배"<br>
+        "제조 디스플레이를 대기 동선에 배치 → 대기 중 장인성 체험"<br><br>
+        <strong style="color:var(--fg-3)">📅 2026.08 | OO 브랜드 팝업</strong><br>
+        "'여기서만 가능해요' 멘트 → 망설이는 고객 전환율 상승"<br>
+        "입구 오른쪽에 핵심 상품 배치 → 첫 접점 효과 확인"<br><br>
+        <strong style="color:var(--fg-3)">📅 2026.09 | OO 행사</strong><br>
+        "고객 질문 '온라인에서도 살 수 있어요?' 반복 → 온라인 연결 QR 추가 → 사후 구매 발생"<br>
+        "주말 고객에게 '선물용' 프레이밍 → 객단가 1.5배"
+      </p>
+    </div>
+    <div class="s-insight"><strong>이 아카이브가 쌓이면 "새 프로젝트 시작할 때 뭘 해야 하는지"가 바로 보인다.</strong> 신규 직원도 이걸 읽으면 3개월치 경험을 1시간에 흡수할 수 있다.</div>
+  </div>
+
+  <div class="theory mt-16">
+    <div class="t-header">
+      <span class="t-badge">Theory</span>
+      <span class="t-title">크리스티안 마두스베르그의 센스메이킹</span>
+      <span class="t-author">『일의 감각 (Sensemaking)』</span>
+    </div>
+    <p>맥킨지 출신 마두스베르그는 "데이터만으로는 의미를 찾을 수 없다. 현장에서 사람을 관찰하고 맥락을 이해해야 진짜 인사이트가 나온다"고 했다. 빅데이터 시대에도 "왜?"는 현장에서만 답할 수 있다. 성공 아카이브는 현장의 "왜?"를 축적하는 데이터베이스다.</p>
+    <div class="t-apply"><strong>현장 적용:</strong> 너의 관찰, 너의 실험, 너의 발견이 회사의 데이터 자산이 된다. 매출 숫자는 POS가 기록하지만, <strong>"왜 팔렸는지"는 너만 기록할 수 있다.</strong></div>
+  </div>
+</section>
+
+<!-- Ch08 — 레벨업 + 도서 -->
+<section class="sec" id="s8">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 08 &mdash; Level Up &amp; Reading</span>
+      <h2>L5 레벨업 기준 &amp; 추천 도서</h2>
+    </div>
+    <span class="eyebrow">08</span>
+  </div>
+
+  <div class="levelup">
+    <h4>L5 레벨업 체크리스트</h4>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">프로젝트 회고 리포트 <strong>1건 이상</strong> 작성</div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">회고에서 도출한 "다음 프로젝트 적용 포인트" <strong>3개 이상</strong></div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">팀 회고에서 인사이트 공유 <strong>3회 이상</strong></div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">성공 아카이브에 기록 <strong>3건 이상</strong></div></div>
+  </div>
+
+  <div class="callout mt-8">
+    <p>L5를 마치면 "관찰 → 설명 → 실험 → 회고"의 전체 루프를 돌 수 있게 된다. 이 루프를 반복할수록 프로젝트마다 시작점이 높아진다. <strong>L6(매출/경험 개선 제안)과 L7(Retail Experience Manager)은 이 루프를 여러 번 돌면서 자연스럽게 도달하게 된다.</strong></p>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="book" style="border-top-color:var(--accent)">
+      <span class="b-tag essential">Essential</span>
+      <div class="b-title">일의 감각 (Sensemaking)</div>
+      <div class="b-author">크리스티안 마두스베르그</div>
+      <div class="b-why">맥킨지 출신이 "왜 현장 관찰이 데이터보다 중요한가"를 설명한 책. 우리가 하는 관찰과 회고가 왜 "전문성"인지 확신을 준다.</div>
+      <div class="b-connect">
+        <strong>읽기 질문:</strong><br>
+        1. 이 책에서 말하는 "현장의 힘"이 우리 매장에서는 어떻게 작동하는가?<br>
+        2. 데이터(매출)만 보면 놓치는 것이 있다면?<br>
+        3. 지금까지 관찰에서 발견한 가장 큰 인사이트는?
+      </div>
+    </div>
+    <div class="book" style="border-top-color:var(--green)">
+      <span class="b-tag optional">Optional</span>
+      <div class="b-title">피드백 이야기 (Thanks for the Feedback)</div>
+      <div class="b-author">더글러스 스톤, 쉴라 힌</div>
+      <div class="b-why">회고에서 나오는 피드백을 "평가"가 아니라 "학습"으로 받아들이는 마인드셋. 팀 회고가 건강하게 돌아가려면 이 태도가 필요하다.</div>
+      <div class="b-connect">
+        <strong>읽기 질문:</strong><br>
+        1. 피드백을 받을 때 방어적이 되는 순간은 언제인가?<br>
+        2. 팀 회고에서 가장 배운 점은?
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BIG QUOTE -->
+<div class="big-quote">
+  <blockquote>경험은 하면 할수록 쌓인다. 하지만 <em>회고</em>하지 않으면 매번 처음이다. 회고하는 팀은 프로젝트마다 더 <em>높은 곳</em>에서 시작한다.</blockquote>
+  <div class="attr">REM OS &mdash; Project Rent</div>
+</div>
+
+<footer>
+  <div class="logo">Project Rent</div>
+  <div class="meta">5-1 Project Review &middot; 2026.06.10 &middot; v1.0</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.sec').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>보고·교육 시스템 개선 — GitHub 스킬 채굴 리포트</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+  :root{--bg:#0E0B1A;--panel:#171327;--panel2:#1F1A33;--line:#2C2542;--txt:#EDEBF5;--sub:#B4B0C6;--mut:#6F6A86;--acc:#6C5CE7;--acc2:#8B7BFF;--acc-soft:rgba(108,92,231,.12);--green:#27C093;--amber:#F2B53C;--rose:#FF6B9D;--am:#4DA3FF}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Pretendard',-apple-system,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased;padding:0 0 90px;font-size:15px}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+  a{color:var(--acc2);text-decoration:none} a:hover{text-decoration:underline}
+  header.hero{padding:54px 0 30px;border-bottom:1px solid var(--line);background:radial-gradient(1100px 340px at 16% -10%,var(--acc-soft),transparent)}
+  .eyebrow{color:var(--acc2);font-weight:700;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:31px;font-weight:800;line-height:1.28;margin:12px 0;letter-spacing:-.02em}
+  h1 .hl{color:var(--acc2)}
+  .lede{color:var(--sub);font-size:15px;max-width:760px}
+  .meta{margin-top:18px;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{background:var(--panel2);border:1px solid var(--line);color:var(--sub);font-size:11.5px;padding:5px 11px;border-radius:999px}
+  .chip.real{border-color:var(--acc);color:var(--acc2)}
+  section{margin:40px 0}
+  h2{font-size:21px;font-weight:800;margin:8px 0 6px;display:flex;align-items:center;gap:10px}
+  h2 .num{color:var(--acc2);font-size:14px;font-weight:700;background:var(--acc-soft);border:1px solid var(--acc);min-width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:16px}
+  /* TL;DR 카드 */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px}
+  @media(max-width:760px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px}
+  .card .k{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc2);margin-bottom:7px}
+  .card p{font-size:13.6px;color:var(--sub)}
+  .card b{color:var(--txt)}
+  /* 표 */
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13.2px;margin-top:6px}
+  th,td{border:1px solid var(--line);padding:10px 12px;vertical-align:top;text-align:left}
+  thead th{background:var(--panel2);font-weight:800;font-size:12.5px}
+  td b{color:var(--txt)}
+  td .src{color:var(--mut);font-size:12px}
+  tbody tr:nth-child(even){background:rgba(255,255,255,.012)}
+  /* 판정 뱃지 */
+  .v{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:6px;white-space:nowrap}
+  .v-go{background:rgba(39,192,147,.13);color:var(--green);border:1px solid var(--green)}
+  .v-borrow{background:var(--acc-soft);color:var(--acc2);border:1px solid var(--acc)}
+  .v-ref{background:rgba(77,163,255,.1);color:var(--am);border:1px solid var(--am)}
+  .v-hold{background:rgba(242,181,60,.1);color:var(--amber);border:1px solid var(--amber)}
+  .v-cond{background:rgba(255,107,157,.1);color:var(--rose);border:1px solid var(--rose)}
+  .note{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;color:var(--sub);font-size:12.8px;margin:14px 0}
+  .note b{color:var(--amber)}
+  .note.go b{color:var(--green)}
+  /* 액션 리스트 */
+  .acts{list-style:none;counter-reset:a}
+  .acts li{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 18px 15px 58px;margin-bottom:11px;font-size:14px;color:var(--sub)}
+  .acts li::before{counter-increment:a;content:counter(a);position:absolute;left:16px;top:14px;width:28px;height:28px;border-radius:8px;background:var(--acc-soft);border:1px solid var(--acc);color:var(--acc2);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .acts li b{color:var(--txt)}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:5px;margin-left:6px;vertical-align:1px}
+  .t-now{background:rgba(39,192,147,.13);color:var(--green)} .t-pilot{background:var(--acc-soft);color:var(--acc2)} .t-borrow{background:rgba(77,163,255,.1);color:var(--am)} .t-hold{background:rgba(242,181,60,.1);color:var(--amber)}
+  .decide{background:linear-gradient(180deg,rgba(108,92,231,.10),rgba(108,92,231,.02));border:1px solid var(--acc);border-radius:14px;padding:20px 22px;margin-top:18px}
+  .decide h3{font-size:16px;font-weight:800;margin-bottom:10px}
+  .decide ul{margin-left:18px;color:var(--sub);font-size:13.6px} .decide li{margin:5px 0}
+  ul.src-list{list-style:none;font-size:13px;color:var(--sub)}
+  ul.src-list li{padding:5px 0;border-bottom:1px solid var(--line)}
+  footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);color:var(--mut);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Project Rent · 시스템 개선 검토 · GitHub 스킬 채굴</div>
+  <h1><span class="hl">보고·교육 시스템</span>, 무엇을 채굴해 보강할까</h1>
+  <p class="lede">Basket 일일보고 시스템과 AX 교육 시스템을 개선 관점에서 검토하고, GitHub의 Claude 스킬·에이전트 생태계에서 <b>바로 쓸 수 있는 것</b>만 골라냈다. 핵심 기준: 우리가 이미 잘 만든 건 대체하지 않고, <b>빈 곳만 채굴해 얹는다</b>.</p>
+  <div class="meta">
+    <span class="chip real">스킬 채굴 중심</span>
+    <span class="chip">보고 ↔ 교육 균형</span>
+    <span class="chip">도입 / 차용 / 참고 / 보류</span>
+    <span class="chip">by Project Rent · 2026-06-24</span>
+  </div>
+</div></header>
+
+<div class="wrap">
+
+<!-- 1 -->
+<section>
+<h2><span class="num">1</span>한눈에 — 결론 3줄</h2>
+<div class="cards">
+  <div class="card"><div class="k">대체 아닌 보강</div><p>우리 텔레그램 봇·커스텀 HTML 슬라이드는 GitHub 유사 프로젝트보다 <b>이미 정교하다</b>. 통째 교체 대상이 아니라, <b>빠진 레이어만</b> 스킬로 얹는다.</p></div>
+  <div class="card"><div class="k">즉시 레버리지</div><p><b>Anthropic 공식 스킬</b>(xlsx·pptx·pdf·docx) + <b>CSV Data Summarizer</b>. 산출물 편집성↑ + 쌓이기만 하던 보고 데이터를 <b>인사이트로</b>.</p></div>
+  <div class="card"><div class="k">채굴 우선순위</div><p>① 데이터 활용(분석·대시보드) ② 편집형 산출물(PPTX/DOCX) ③ 콘텐츠 리서치·검증. LMS·n8n·Metabase는 <b>현 규모엔 과함</b> → 보류.</p></div>
+</div>
+<div class="note">검토 대상 현황: <b>보고</b> = 봇(/jot·/todo·일일보고)+Apps Script 웹앱+OpenAI 12섹션+구글시트. 갭 = 데이터 미활용·봇 슬립·PIN 평문·Executive 뷰 부재. <b>교육</b> = 제안서·데모3종·에세이4부작·HTML 강의슬라이드·7회 텔레그램 뉴스레터·직무 케이스북. 갭 = 콘텐츠 버전 산만·학습 추적 부재·편집형 PPTX 부재.</div>
+</section>
+
+<!-- 2 -->
+<section>
+<h2><span class="num">2</span>채굴표 — 보고 시스템</h2>
+<p class="sub">쌓이는 보고를 "기록"에서 "인사이트"로. 봇 자체는 건드리지 않고 분석·산출 레이어만 추가.</p>
+<table>
+  <thead><tr><th style="width:20%">스킬 / 패턴</th><th style="width:20%">출처</th><th style="width:42%">우리 갭 매핑</th><th style="width:18%">판정</th></tr></thead>
+  <tbody>
+    <tr><td><b>xlsx</b> (공식)</td><td class="src"><a href="https://github.com/anthropics/skills">anthropics/skills</a></td><td>구글시트 보고 데이터 → 수식·피벗·차트·월간집계를 자동 생성. <code>weekly-report-aggregate.py</code> 보완.</td><td><span class="v v-go">도입</span></td></tr>
+    <tr><td><b>CSV Data Summarizer</b></td><td class="src"><a href="https://github.com/ComposioHQ/awesome-claude-skills">ComposioHQ/awesome-claude-skills</a></td><td>시트 export→CSV→<b>자동 인사이트·시각화</b>. "데이터가 쌓이기만 한다"는 최대 갭을 직접 해소. <b>파일럿 후보 1순위</b>.</td><td><span class="v v-go">도입·파일럿</span></td></tr>
+    <tr><td><b>analytics-reporter</b> · <b>Data Visualization</b> (agent)</td><td class="src"><a href="https://github.com/rohitg00/awesome-claude-code-toolkit">rohitg00/awesome-claude-code-toolkit</a></td><td>Executive 대시보드(매출 추이·승인 병목·블로커 추적). 기존 <code>getWeeklySummary()</code> 확장 설계의 레퍼런스(Chart.js/Plotly 패턴).</td><td><span class="v v-borrow">패턴 차용</span></td></tr>
+    <tr><td><b>metrics-calculator</b></td><td class="src"><a href="https://github.com/alirezarezvani/claude-skills">alirezarezvani/claude-skills</a></td><td>매장 KPI 정의(객단가·재방문·승인 대기시간). MRR/이탈 중심이라 리테일엔 그대로는 안 맞음 → 지표 설계 참고용.</td><td><span class="v v-ref">참고</span></td></tr>
+    <tr><td>PicklePersistence · caffeinate · 맥미니 이관</td><td class="src">python-telegram-bot 내장 · macOS</td><td>인메모리 conversation 상태(재시작 시 입력 손실) → 디스크 영속화. 맥 슬립 네트워크 단절 → 상시가동 호스트.</td><td><span class="v v-go">보강(도구 아님)</span></td></tr>
+  </tbody>
+</table>
+<div class="note">텔레그램↔시트 GitHub 봇들(<a href="https://github.com/fmiccolis/GAS-conversational-telegram-bot">GAS-conversational</a>, <a href="https://github.com/R3D4NG3L/PersonalExpenseReport">PersonalExpenseReport</a> 등)은 모두 우리 시스템보다 단순하다(AI 12섹션 구조화·해상도 점검·본인 피드백 없음). → <b>봇은 대체하지 않는다.</b> 채굴은 "데이터 분석 레이어"에 한정.</div>
+</section>
+
+<!-- 3 -->
+<section>
+<h2><span class="num">3</span>채굴표 — 교육 시스템</h2>
+<p class="sub">슬라이드는 커스텀 HTML+Playwright 유지. 빠진 건 ① 편집형 산출물 ② 콘텐츠 검증·리서치 ③ 학습 추적.</p>
+<table>
+  <thead><tr><th style="width:20%">스킬 / 패턴</th><th style="width:20%">출처</th><th style="width:42%">우리 갭 매핑</th><th style="width:18%">판정</th></tr></thead>
+  <tbody>
+    <tr><td><b>pptx</b> (공식)</td><td class="src"><a href="https://github.com/anthropics/skills">anthropics/skills</a></td><td>강의 슬라이드 → <b>편집 가능한 PPTX</b> 산출(이미지 캡처 금지 원칙과 직결). HTML 덱과 병행하는 배포본.</td><td><span class="v v-go">도입</span></td></tr>
+    <tr><td><b>Theme Factory</b></td><td class="src"><a href="https://github.com/ComposioHQ/awesome-claude-skills">ComposioHQ/awesome-claude-skills</a></td><td>슬라이드·문서·리포트에 폰트·컬러 테마 일괄 적용 → <b>R 디자인(청보라·Pretendard) 강제</b>로 V1/V2/V3 버전 산만함 완화.</td><td><span class="v v-go">도입</span></td></tr>
+    <tr><td><b>Content Research Writer</b> · <b>recursive-research</b></td><td class="src"><a href="https://github.com/ComposioHQ/awesome-claude-skills">ComposioHQ</a></td><td>에세이·강의 리서치+인용. 숫자·출처 3중 검증 습관과 결합 시 자료 신뢰도 자동 강화.</td><td><span class="v v-borrow">차용</span></td></tr>
+    <tr><td><b>content-creator</b> · <b>Content Strategist</b></td><td class="src"><a href="https://github.com/rohitg00/awesome-claude-code-toolkit">rohitg00</a> · <a href="https://github.com/alirezarezvani/claude-skills">alirezarezvani</a></td><td>뉴스레터 <code>ep.md</code>↔<code>ep.html</code> 이중 제작·동기화 자동화(반복 수작업 제거).</td><td><span class="v v-ref">참고</span></td></tr>
+    <tr><td><b>docx</b> · <b>pdf</b> (공식)</td><td class="src"><a href="https://github.com/anthropics/skills">anthropics/skills</a></td><td>케이스북·제안서를 Word/PDF로 산출·병합·주석. 공유용 보안 PDF 워크플로와 연계.</td><td><span class="v v-go">도입</span></td></tr>
+    <tr><td>LMS — <b>ClassroomIO</b> · <b>Frappe LMS</b></td><td class="src"><a href="https://github.com/classroomio/classroomio">classroomio</a> · <a href="https://github.com/frappe/lms">frappe/lms</a></td><td>학습 완료·이해도 추적, 수료증, 진도 분석(뉴스레터 피드백 루프 부재 해소). 단 풀 LMS는 직원 9명·7회차엔 과함.</td><td><span class="v v-cond">조건부</span></td></tr>
+  </tbody>
+</table>
+<div class="note">슬라이드 대안(<a href="https://github.com/marp-team/marp">Marp</a>=마크다운→PPTX/PDF, <a href="https://github.com/slidevjs/slidev">Slidev</a>=Vue 기반)은 매력적이나, 우리는 이미 R 디자인이 박힌 커스텀 HTML 덱에 투자했다. → <b>전환 대신 "pptx 공식 스킬"을 편집형 export 보조로.</b> 학습 추적은 LMS 도입보다 <b>가벼운 체크 수합(텔레그램 응답→시트)부터</b>.</div>
+</section>
+
+<!-- 4 -->
+<section>
+<h2><span class="num">4</span>공통 채굴 — 컨설팅 · 산출물 · 자동화</h2>
+<table>
+  <thead><tr><th style="width:22%">스킬 / 패턴</th><th style="width:20%">출처</th><th style="width:40%">활용</th><th style="width:18%">판정</th></tr></thead>
+  <tbody>
+    <tr><td><b>rfp-responder</b></td><td class="src"><a href="https://github.com/alirezarezvani/claude-skills">alirezarezvani/claude-skills</a></td><td>기존 <code>/rfp-analysis</code>·<code>/gov-proposal</code> 스킬의 응답 생성 패턴 보강(구조·체크리스트 차용).</td><td><span class="v v-borrow">차용</span></td></tr>
+    <tr><td><b>공식 4종 + Theme Factory</b></td><td class="src">anthropics/skills · ComposioHQ</td><td>산출물 4종(시트·슬라이드·문서·PDF)을 <b>한 디자인</b>으로 일괄 생산 — 컨설팅 레포트 표준 템플릿과 결합.</td><td><span class="v v-go">도입</span></td></tr>
+    <tr><td><b>N8n-workflow</b> · Workflow Director</td><td class="src"><a href="https://github.com/n8n-io/n8n">n8n-io/n8n</a> · rohitg00</td><td>향후 launchd+python 글루(뉴스레터 발송·보고 알림)를 시각적 워크플로로. 강력하나 무겁다.</td><td><span class="v v-hold">보류</span></td></tr>
+    <tr><td><b>skill-security-auditor</b></td><td class="src"><a href="https://github.com/alirezarezvani/claude-skills">alirezarezvani/claude-skills</a></td><td>외부 스킬을 도입하기 전 보안 점검(임의 코드·시크릿 유출 스캔). <b>채굴 안전벨트</b>.</td><td><span class="v v-go">도입 전 필수</span></td></tr>
+  </tbody>
+</table>
+<div class="note go"><b>맥락:</b> Anthropic은 2025-10 Claude Skills 포맷을 도입하고 2025-12 오픈 표준으로 공개했다(Claude Code·API·Codex·Cursor·Gemini CLI 등 호환). 공식 <code>xlsx·pptx·pdf·docx</code>는 1st-party라 신뢰도·유지보수 측면에서 외부 커뮤니티 스킬보다 우선 도입할 가치가 크다. <span class="src">(출처: 검색 결과 — Anthropic skills 공지, 2026-06 기준)</span></div>
+</section>
+
+<!-- 5 -->
+<section>
+<h2><span class="num">5</span>권장 액션 — 우선순위 × 마찰도</h2>
+<ul class="acts">
+  <li><b>Anthropic 공식 스킬 4종 활성화</b> (xlsx·pptx·pdf·docx)<span class="tag t-now">즉시·저마찰</span><br>산출물 품질·편집성이 즉시 상승. 교육(PPTX/DOCX)·보고(XLSX 집계)·컨설팅(PDF) 전반에 공통 효과. 도입 전 <b>skill-security-auditor</b>로 점검.</li>
+  <li><b>데이터 활용 파일럿 1개</b><span class="tag t-pilot">파일럿</span><br>구글시트 일일보고 → CSV export → <b>CSV Data Summarizer</b>로 "이번 주 매장 인사이트 1장"(매출 추이·승인 병목·반복 블로커) 시연. "쌓이기만 하던 데이터"의 가치 증명 PoC.</li>
+  <li><b>Executive 대시보드 설계</b><span class="tag t-borrow">패턴 차용</span><br>analytics-reporter / Data Visualization 패턴으로 기존 <code>getWeeklySummary()</code>를 매장간 비교·KPI 추이 뷰로 확장(멀티매장 대비).</li>
+  <li><b>봇 복원력 보강</b><span class="tag t-borrow">보강</span><br>PicklePersistence(상태 영속) + 맥미니 이관(슬립 단절 근절). 이미 적용한 caffeinate·<code>drop_pending_updates=False</code>와 합쳐 3중 안전장치.</li>
+  <li><b>보류·조건부</b><span class="tag t-hold">보류</span><br>LMS·n8n·Metabase·Listmonk — 현 규모(매장 1·직원 9·뉴스레터 7회)엔 과투자. <b>멀티매장 확장 또는 AX 교육의 판매형 제품화</b> 시점에 재검토(그때 Metabase=대시보드, LMS=수료·추적, Listmonk=이메일 전환).</li>
+</ul>
+</section>
+
+<!-- 6 -->
+<section>
+<h2><span class="num">6</span>출처</h2>
+<ul class="src-list">
+  <li><b>공식 스킬</b> — <a href="https://github.com/anthropics/skills">anthropics/skills</a> (xlsx·pptx·pdf·docx)</li>
+  <li><b>스킬 카탈로그</b> — <a href="https://github.com/ComposioHQ/awesome-claude-skills">ComposioHQ/awesome-claude-skills</a> · <a href="https://github.com/travisvn/awesome-claude-skills">travisvn/awesome-claude-skills</a> · <a href="https://github.com/VoltAgent/awesome-agent-skills">VoltAgent/awesome-agent-skills</a></li>
+  <li><b>스킬·에이전트 모음</b> — <a href="https://github.com/alirezarezvani/claude-skills">alirezarezvani/claude-skills</a> · <a href="https://github.com/rohitg00/awesome-claude-code-toolkit">rohitg00/awesome-claude-code-toolkit</a></li>
+  <li><b>보조 도구(보류 근거)</b> — <a href="https://github.com/metabase/metabase">Metabase</a> · <a href="https://github.com/marp-team/marp">Marp</a> · <a href="https://github.com/slidevjs/slidev">Slidev</a> · <a href="https://github.com/knadh/listmonk">Listmonk</a> · <a href="https://github.com/classroomio/classroomio">ClassroomIO</a> · <a href="https://github.com/frappe/lms">Frappe LMS</a> · <a href="https://github.com/n8n-io/n8n">n8n</a></li>
+</ul>
+</section>
+
+<div class="decide">
+  <h3>🎯 다음 결정 포인트</h3>
+  <ul>
+    <li><b>지금 도입할 스킬</b> — 공식 4종(xlsx·pptx·pdf·docx)을 바로 켤까? (skill-security-auditor 점검 포함)</li>
+    <li><b>파일럿 실행</b> — 이번 주 Basket 보고 데이터로 "주간 매장 인사이트 1장" PoC를 만들어 볼까?</li>
+    <li><b>제품화 트리거</b> — AX 교육을 외부 판매형으로 갈 계획이면, 그 시점에 LMS·대시보드를 본격 검토(지금은 보류).</li>
+  </ul>
+</div>
+
+<footer>
+보고·교육 시스템 개선 — GitHub 스킬 채굴 리포트 · 2026-06-24 · by Project Rent<br>
+검토 대상: Basket 일일보고 시스템 · AX 교육 시스템 / 판정 기준: 도입 · 차용 · 참고 · 보류
+</footer>
+</div>
+</body>
+</html>

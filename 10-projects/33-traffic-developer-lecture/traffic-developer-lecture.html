@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>부동산 개발의 다음 10년 — 건물에서 트래픽으로</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  /* ═══════════════════════════════════════════
+     PROJECT RENT — DESIGN SYSTEM
+     12-column · 20px gutter · 56px margin · 8px base
+     Accent: 청보라 #6C5CE7 (한 슬라이드 극소량)
+     ═══════════════════════════════════════════ */
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --columns: 12; --gutter: 20px; --margin: 56px;
+    --sp-4: 4px;  --sp-8: 8px;  --sp-16: 16px; --sp-24: 24px;
+    --sp-32: 32px; --sp-48: 48px; --sp-64: 64px;
+
+    --bg: #1A1A1A; --bg-2: #111111; --bg-3: #222222;
+    --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+    --line: #333333; --line-2: #2A2A2A;
+    --accent: #6C5CE7; --accent-dark: #5A4BD1; --accent-light: #A29BFE; --accent-subtle: #EDE9FE;
+    --green: #8FA37E; --amber: #D9A34B; --red: #E17055; --blue: #6F8AA3;
+
+    --duration-fast: 150ms; --duration-base: 250ms; --duration-slow: 400ms;
+    --ease-out: cubic-bezier(.2, .8, .2, 1);
+  }
+
+  html, body { overflow: hidden; }
+  body {
+    font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+    background: var(--bg); color: var(--fg);
+    font-weight: 300; letter-spacing: -0.01em;
+  }
+
+  /* ═══════ SLIDE CONTAINER ═══════ */
+  .slide-container { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+  .slide {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    display: none; background: var(--bg);
+    opacity: 0; transition: opacity var(--duration-slow) var(--ease-out);
+  }
+  .slide.active { display: block; opacity: 1; }
+  .slide.fade-in { animation: fadeIn var(--duration-slow) var(--ease-out) forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ═══════ BACKGROUNDS ═══════ */
+  .s-cover { background: radial-gradient(ellipse at 28% 50%, rgba(108,92,231,0.12) 0%, transparent 58%), var(--bg-2); }
+  .s-dark   { background: var(--bg-2); }
+  .s-accent { background: var(--bg-2); }
+  .s-divider { background: radial-gradient(ellipse at 70% 40%, rgba(108,92,231,0.10) 0%, transparent 60%), var(--bg-2); }
+
+  /* ═══════ 12-COLUMN GRID ═══════ */
+  .grid {
+    display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--gutter);
+    padding: var(--margin); width: 100%; height: 100%; align-content: center;
+  }
+  /* head 상단 고정 + body 하단 정렬 패턴 */
+  .grid--split { align-content: stretch; grid-template-rows: auto 1fr; }
+  .slide-head { grid-column: span 12; }
+  .slide-body { grid-column: span 12; display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--gutter); align-content: end; }
+  .col-1{grid-column:span 1}.col-2{grid-column:span 2}.col-3{grid-column:span 3}
+  .col-4{grid-column:span 4}.col-5{grid-column:span 5}.col-6{grid-column:span 6}
+  .col-7{grid-column:span 7}.col-8{grid-column:span 8}.col-9{grid-column:span 9}
+  .col-10{grid-column:span 10}.col-11{grid-column:span 11}.col-12{grid-column:span 12}
+
+  /* ═══════ TYPOGRAPHY ═══════ */
+  .label { font-size: 11px; font-weight: 400; letter-spacing: 0.3em; text-transform: uppercase; color: var(--fg-3); margin-bottom: var(--sp-16); line-height: 1.4; }
+  h1 { font-size: 64px; font-weight: 200; color: var(--fg); line-height: 1.05; letter-spacing: -0.04em; margin-bottom: var(--sp-24); text-wrap: balance; }
+  h2 { font-size: 40px; font-weight: 500; color: var(--fg); line-height: 1.15; letter-spacing: -0.025em; margin-bottom: var(--sp-16); text-wrap: balance; }
+  .sub { font-size: 16px; font-weight: 300; color: var(--fg-2); line-height: 1.65; margin-bottom: var(--sp-16); max-width: 760px; }
+  .highlight { color: var(--accent-light); }
+  .em-accent { color: var(--accent); }
+  .em-green { color: var(--green); } .em-red { color: var(--red); } .em-amber { color: var(--amber); } .em-blue { color: var(--blue); }
+
+  .divider { width: var(--sp-48); height: 2px; background: var(--accent); margin-bottom: var(--sp-24); }
+  .divider--center { width: var(--sp-48); height: 2px; background: var(--accent); margin: 0 auto var(--sp-32); }
+
+  /* ═══════ CARDS ═══════ */
+  .card { background: var(--bg-3); border: 1px solid var(--line-2); padding: var(--sp-24); display: flex; flex-direction: column; transition: border-color var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out); }
+  .card:hover { border-color: var(--fg-3); transform: translateY(-2px); }
+  .card--accent { background: rgba(108,92,231,0.08); border-color: rgba(108,92,231,0.25); }
+  .card--accent:hover { border-color: var(--accent); }
+  .card--green { background: rgba(143,163,126,0.06); border-color: rgba(143,163,126,0.22); }
+  .card--red   { background: rgba(225,112,85,0.05); border-color: rgba(225,112,85,0.20); }
+  .card--amber { background: rgba(217,163,75,0.05); border-color: rgba(217,163,75,0.20); }
+  .card--blue  { background: rgba(111,138,163,0.05); border-color: rgba(111,138,163,0.20); }
+  .card--elevated { background: var(--bg-3); border-color: var(--line); }
+  .card__tag { margin-bottom: var(--sp-16); }
+  .card__title { font-size: 17px; font-weight: 500; color: var(--fg); line-height: 1.3; margin-bottom: var(--sp-8); }
+  .card__body { font-size: 14px; font-weight: 300; color: var(--fg-2); line-height: 1.65; }
+  .card__footer { margin-top: auto; border-top: 1px solid var(--line-2); padding-top: var(--sp-16); font-size: 13px; color: var(--fg-2); }
+  .card__head { display: flex; align-items: center; gap: var(--sp-16); margin-bottom: var(--sp-16); }
+  .src { font-size: 11px; color: var(--fg-3); margin-top: var(--sp-8); letter-spacing: 0.02em; }
+
+  .num-box { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; flex-shrink: 0; border: 1px solid var(--line-2); }
+  .num-box--sm { width: 32px; height: 32px; font-size: 14px; }
+
+  /* ═══════ TAGS ═══════ */
+  .tag { display: inline-block; font-size: 11px; font-weight: 400; letter-spacing: 0.1em; padding: 3px 12px; }
+  .tag--accent { background: rgba(108,92,231,0.10); color: var(--accent-light); border: 1px solid rgba(108,92,231,0.22); }
+  .tag--green  { background: rgba(143,163,126,0.10); color: var(--green); border: 1px solid rgba(143,163,126,0.22); }
+  .tag--amber  { background: rgba(217,163,75,0.10); color: var(--amber); border: 1px solid rgba(217,163,75,0.22); }
+  .tag--red    { background: rgba(225,112,85,0.10); color: var(--red); border: 1px solid rgba(225,112,85,0.22); }
+  .tag--blue   { background: rgba(111,138,163,0.10); color: var(--blue); border: 1px solid rgba(111,138,163,0.22); }
+  .tag--muted  { background: var(--bg-2); color: var(--fg-3); border: 1px solid var(--line-2); }
+  .tag-row { display: flex; gap: var(--sp-8); flex-wrap: wrap; align-items: center; }
+
+  /* ═══════ BULLET / NUM LIST ═══════ */
+  .bullet-list { list-style: none; display: flex; flex-direction: column; gap: var(--sp-8); }
+  .bullet-list li { display: flex; align-items: flex-start; gap: var(--sp-8); color: var(--fg-2); font-size: 14px; font-weight: 300; line-height: 1.6; }
+  .bullet-list li::before { content: ''; width: 5px; height: 5px; background: var(--accent); margin-top: 8px; flex-shrink: 0; }
+  .num-item { display: flex; align-items: flex-start; gap: var(--sp-16); }
+  .num-item__num { font-size: 13px; font-weight: 500; letter-spacing: 0.1em; flex-shrink: 0; width: 24px; line-height: 1.5; color: var(--fg-3); }
+
+  /* ═══════ HORIZONTAL CHAIN ═══════ */
+  .chain { display: flex; align-items: center; gap: var(--sp-16); justify-content: center; flex-wrap: wrap; }
+  .chain__item { background: var(--bg-3); border: 1px solid var(--line-2); padding: var(--sp-16) var(--sp-24); font-size: 15px; font-weight: 400; color: var(--fg-2); text-align: center; }
+  .chain__item.is-end { background: rgba(108,92,231,0.10); border-color: var(--accent); color: var(--fg); font-weight: 500; }
+  .chain__item.is-start { border-color: var(--line); color: var(--fg); }
+  .chain__arrow { color: var(--accent); font-size: 20px; font-weight: 300; }
+
+  /* ═══════ VERTICAL FLOW (원고 A↓B↓C) ═══════ */
+  .flow-v { display: flex; flex-direction: column; align-items: center; gap: var(--sp-8); }
+  .flow-v__item { width: 100%; max-width: 360px; background: var(--bg-3); border: 1px solid var(--line-2); padding: var(--sp-16) var(--sp-24); text-align: center; font-size: 15px; color: var(--fg-2); }
+  .flow-v__item .lab { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-3); display: block; margin-bottom: 2px; }
+  .flow-v__item.is-end { background: rgba(108,92,231,0.12); border-color: var(--accent); color: var(--fg); font-weight: 500; }
+  .flow-v__arrow { color: var(--accent); font-size: 18px; line-height: 1; }
+
+  /* ═══════ VALUE FORMULA (성수동 공식 / 최종) ═══════ */
+  .formula { display: flex; align-items: stretch; gap: var(--sp-8); justify-content: center; }
+  .formula__step { flex: 1; max-width: 180px; background: var(--bg-3); border: 1px solid var(--line-2); padding: var(--sp-16) var(--sp-8); text-align: center; display: flex; flex-direction: column; justify-content: center; gap: var(--sp-4); }
+  .formula__step .n { font-size: 10px; letter-spacing: 0.2em; color: var(--fg-3); }
+  .formula__step .t { font-size: 16px; font-weight: 500; color: var(--fg); }
+  .formula__step.is-final { background: rgba(108,92,231,0.14); border-color: var(--accent); }
+  .formula__step.is-final .t { color: var(--accent-light); }
+  .formula__arrow { display: flex; align-items: center; color: var(--accent); font-size: 18px; }
+
+  /* ═══════ TIMELINE ═══════ */
+  .timeline { display: flex; align-items: flex-start; width: 100%; }
+  .tl-node { display: flex; flex-direction: column; align-items: center; text-align: center; flex-shrink: 0; width: 150px; }
+  .tl-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--bg-3); border: 2px solid var(--fg-3); margin-bottom: var(--sp-16); }
+  .tl-node.is-now .tl-dot { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 6px rgba(108,92,231,0.15); }
+  .tl-year { font-size: 22px; font-weight: 200; color: var(--fg); letter-spacing: -0.02em; }
+  .tl-place { font-size: 14px; font-weight: 500; color: var(--fg); margin-top: var(--sp-4); }
+  .tl-desc { font-size: 12px; color: var(--fg-3); margin-top: var(--sp-8); line-height: 1.5; }
+  .tl-line { flex: 1; height: 2px; background: var(--line); margin-top: 6px; }
+
+  /* ═══════ VS COMPARE ═══════ */
+  .vs-wrap { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--sp-24); align-items: center; }
+  .vs-badge { width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 14px; letter-spacing: 0.1em; color: var(--fg-3); background: var(--bg-2); }
+
+  /* ═══════ KPI / HERO ═══════ */
+  .kpi { background: var(--bg-3); border: 1px solid var(--line-2); padding: var(--sp-24); text-align: center; height: 100%; transition: border-color var(--duration-base) var(--ease-out); }
+  .kpi:hover { border-color: var(--accent); }
+  .kpi__label { font-size: 10px; letter-spacing: 0.2em; color: var(--fg-3); text-transform: uppercase; margin-bottom: var(--sp-16); }
+  .kpi__value { font-size: 36px; font-weight: 200; color: var(--fg); line-height: 1; letter-spacing: -0.02em; }
+  .kpi__value .u { font-size: 14px; font-weight: 300; color: var(--fg-2); }
+  .kpi__sub { font-size: 11px; color: var(--fg-3); margin-top: var(--sp-8); line-height: 1.4; }
+  .hero-number { text-align: center; }
+  .hero-number .value { font-size: 76px; font-weight: 200; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
+  .hero-number .unit { font-size: 22px; font-weight: 300; color: var(--fg-2); }
+  .hero-number .sub { font-size: 13px; color: var(--fg-3); margin-top: var(--sp-8); }
+
+  /* ═══════ COMPARE TABLE ═══════ */
+  .price-table { width: 100%; border-collapse: collapse; border: 1px solid var(--line-2); }
+  .price-table th { padding: 14px var(--sp-24); font-size: 10px; font-weight: 400; text-align: left; color: var(--fg-3); letter-spacing: 0.2em; text-transform: uppercase; border-bottom: 1px solid var(--line-2); background: var(--bg-2); }
+  .price-table td { padding: 14px var(--sp-24); font-size: 15px; font-weight: 300; color: var(--fg-2); border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  .price-table tr:last-child td { border-bottom: none; }
+
+  /* ═══════ DIVIDER (PART) SLIDE ═══════ */
+  .divider-slide { text-align: center; position: relative; }
+  .part-kicker { font-size: 13px; letter-spacing: 0.4em; text-transform: uppercase; color: var(--accent-light); margin-bottom: var(--sp-24); }
+  .part-ghost { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -54%); font-size: 320px; font-weight: 200; color: rgba(245,240,235,0.03); letter-spacing: -0.04em; z-index: 0; pointer-events: none; }
+  .divider-slide .inner { position: relative; z-index: 1; }
+  .part-q { font-size: 52px; font-weight: 200; color: var(--fg); line-height: 1.15; letter-spacing: -0.03em; max-width: 900px; margin: 0 auto; }
+  .part-note { font-size: 16px; color: var(--fg-2); margin-top: var(--sp-24); }
+
+  /* ═══════ FOOTER ═══════ */
+  .slide-footer { position: absolute; bottom: 22px; left: var(--margin); right: var(--margin); display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.2em; color: var(--fg-3); text-transform: uppercase; border-top: 1px solid var(--line-2); padding-top: 12px; z-index: 2; }
+
+  /* ═══════ NAV ═══════ */
+  .nav { position: fixed; bottom: var(--sp-24); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: var(--sp-16); z-index: 100; background: rgba(17,17,17,0.85); border: 1px solid var(--line-2); padding: var(--sp-8) var(--sp-24); backdrop-filter: blur(10px); transition: opacity var(--duration-base) var(--ease-out); }
+  .nav.hidden { opacity: 0; pointer-events: none; }
+  .nav-btn { background: none; border: none; color: var(--fg-2); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; opacity: 0.7; transition: opacity var(--duration-fast) var(--ease-out); padding: var(--sp-4) var(--sp-8); font-family: inherit; }
+  .nav-btn:hover { opacity: 1; color: var(--fg); }
+  .nav-counter { color: var(--fg-3); font-size: 12px; letter-spacing: 0.15em; font-weight: 400; min-width: 64px; text-align: center; }
+  .nav-sep { width: 1px; height: 16px; background: var(--line-2); }
+  .nav-progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--accent); z-index: 100; transition: width var(--duration-base) var(--ease-out); }
+  .edit-flag { position: fixed; top: 14px; right: 18px; z-index: 100; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-light); border: 1px solid rgba(108,92,231,0.4); padding: 4px 10px; background: rgba(17,17,17,0.8); display: none; }
+  .edit-flag.on { display: block; }
+  [contenteditable="true"] { outline: 1px dashed rgba(108,92,231,0.5); outline-offset: 3px; }
+
+  @media print {
+    html, body { overflow: visible; height: auto; background: var(--bg); }
+    .slide-container { position: static; width: auto; height: auto; overflow: visible; }
+    .slide { display: block !important; opacity: 1 !important; position: relative !important; inset: auto !important; width: 1920px; height: 1080px; overflow: hidden; break-after: page; page-break-after: always; animation: none !important; }
+    .slide:last-child { page-break-after: auto; break-after: auto; }
+    .nav, .nav-progress, .edit-flag { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-progress" id="progress"></div>
+<div class="edit-flag" id="editFlag">편집 모드 · Cmd+S 저장</div>
+<div class="slide-container">
+
+  <!-- ════════ 1. 커버 ════════ -->
+  <div class="slide s-cover active fade-in">
+    <div class="grid" style="text-align:center;">
+      <div class="col-12">
+        <div class="label">Real Estate Development · The Next 10 Years</div>
+        <h1>부동산 개발의 다음 10년<br><span class="highlight">건물에서 트래픽으로</span></h1>
+        <div class="divider--center"></div>
+        <p class="sub" style="margin:0 auto var(--sp-48); font-size:19px;">
+          사람들은 건물을 찾아가지 않는다.<br>이유를 찾아간다.
+        </p>
+        <p style="font-size:12px; color:var(--fg-3); letter-spacing:0.3em;">BY PROJECT RENT</p>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>by Project Rent · 2026</span></div>
+  </div>
+
+  <!-- ════════ 2. 강의 목표 ════════ -->
+  <div class="slide s-dark">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">Why This Lecture</div>
+        <h2>이 강의는 <span class="highlight">부동산 강의가 아니다</span></h2>
+        <div class="divider"></div>
+        <p class="sub">가치가 어떻게 만들어지는가 — 그리고 왜 앞으로 부동산 개발은 건설업이 아니라 <strong style="color:var(--fg);">운영업</strong>에 가까워질 것인가를 설명하는 강의다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-6">
+          <div class="card card--elevated" style="height:100%;">
+            <div class="card__tag"><span class="tag tag--muted">Question 1</span></div>
+            <p class="card__title">가치는 어떻게 만들어지는가</p>
+            <p class="card__body">땅값과 건물값은 결과일 뿐이다. 그 값을 움직이는 진짜 동력이 무엇인지 거슬러 올라간다.</p>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card card--accent" style="height:100%;">
+            <div class="card__tag"><span class="tag tag--accent">Question 2</span></div>
+            <p class="card__title">왜 개발이 건설업에서 운영업이 되는가</p>
+            <p class="card__body">짓고 파는 사업에서, 사람이 찾아올 이유를 만들고 운영하는 사업으로. 패러다임의 전환을 추적한다.</p>
+          </div>
+        </div>
+        <div class="col-12" style="margin-top:var(--sp-8);">
+          <div class="chain">
+            <div class="chain__item is-start">토지의 시대</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">건물의 시대</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">트래픽의 시대</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Lecture Goal</span><span>02</span></div>
+  </div>
+
+  <!-- ════════ 3. PART 1 간지 ════════ -->
+  <div class="slide s-divider">
+    <div class="part-ghost">1</div>
+    <div class="grid divider-slide"><div class="col-12 inner">
+      <div class="part-kicker">Part 1</div>
+      <p class="part-q">부동산은 현재 가치일까,<br><span class="highlight">미래 가치</span>일까?</p>
+      <p class="part-note">우리가 사는 것은 지금의 입지인가, 앞으로의 기대인가</p>
+    </div></div>
+    <div class="slide-footer"><span>Part 1 — 현재 가치 vs 미래 가치</span><span>03</span></div>
+  </div>
+
+  <!-- ════════ 4. P1 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P1 · The Nature of Value</div>
+        <h2>부동산은 현재 가치일까, 미래 가치일까?</h2>
+        <div class="divider"></div>
+        <p class="sub">사람들은 강남이 좋아서 강남을 산 것일까, 강남이 좋아질 것이라 믿어서 산 것일까. 부동산의 본질은 현재가 아니라 <strong style="color:var(--fg);">미래 가치의 거래</strong>에 있다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-12">
+          <div class="timeline">
+            <div class="tl-node">
+              <div class="tl-dot"></div><div class="tl-year">1973</div>
+              <div class="tl-place">강남</div>
+              <div class="tl-desc">영동지구 개발촉진지구 지정<br>정책·인프라가 만든 계획도시</div>
+            </div>
+            <div class="tl-line"></div>
+            <div class="tl-node">
+              <div class="tl-dot"></div><div class="tl-year">2009</div>
+              <div class="tl-place">판교</div>
+              <div class="tl-desc">신도시 입주 · 2012 테크노밸리<br>IT 산업이 만든 자족도시</div>
+            </div>
+            <div class="tl-line"></div>
+            <div class="tl-node">
+              <div class="tl-dot"></div><div class="tl-year">2010s</div>
+              <div class="tl-place">성수</div>
+              <div class="tl-desc">서울숲(2000s 중반) → 산업·문화 집적<br>자생적으로 떠오른 거리</div>
+            </div>
+            <div class="tl-line"></div>
+            <div class="tl-node is-now">
+              <div class="tl-dot"></div><div class="tl-year">Now</div>
+              <div class="tl-place">다음은?</div>
+              <div class="tl-desc">미래 기대가 먼저,<br>가격은 뒤따른다</div>
+            </div>
+          </div>
+          <p class="src" style="text-align:center; margin-top:var(--sp-24);">출처: 서울정책아카이브(강남), 판교테크노밸리(판교), 건국대 글로컬문화전략연구소(성수)</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>04</span></div>
+  </div>
+
+  <!-- ════════ 5. P2 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P2 · Buying the Future</div>
+        <h2>사람들은 왜 미래의 강남을 사는가</h2>
+        <div class="divider"></div>
+        <p class="sub">부동산 가격은 현재 가치의 반영이 아니다. 사람들이 믿는 <strong style="color:var(--fg);">미래의 크기</strong>를 거래하는 시장이다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-7">
+          <div class="flow-v">
+            <div class="flow-v__item is-end"><span class="lab">기대</span>미래 기대</div>
+            <div class="flow-v__arrow">↓</div>
+            <div class="flow-v__item"><span class="lab">수요</span>사람과 자본의 유입</div>
+            <div class="flow-v__arrow">↓</div>
+            <div class="flow-v__item"><span class="lab">결과</span>가격 형성</div>
+          </div>
+        </div>
+        <div class="col-5" style="display:flex; flex-direction:column; gap:var(--sp-16);">
+          <div class="card card--blue"><p class="card__title" style="font-size:15px;">판교</p><p class="card__body">아직 없는 산업단지를 미리 샀다 — 테크노밸리 기대</p></div>
+          <div class="card card--blue"><p class="card__title" style="font-size:15px;">마곡</p><p class="card__body">기업 이전이 '예정'된 시점에 가격이 먼저 움직였다</p></div>
+          <div class="card card--blue"><p class="card__title" style="font-size:15px;">한남동</p><p class="card__body">'앞으로 더 귀해질 희소성'에 대한 베팅</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>05</span></div>
+  </div>
+
+  <!-- ════════ 6. P3 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P3 · Order of Cause</div>
+        <h2>살기 좋아서 비싼가, 비싸서 살기 좋은가</h2>
+        <div class="divider"></div>
+        <p class="sub">두 가지 모두 맞다. 하지만 중요한 것은 <strong style="color:var(--fg);">순서</strong>다. 좋은 이유가 먼저 생기는가, 가격이 먼저 형성되는가.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-12">
+          <div class="chain">
+            <div class="chain__item is-start">좋은 이유</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">사람이 모임</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">가격 상승</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">인프라 유입</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">더 좋은 이유</div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-32) auto 0;">가치는 직선이 아니라 <strong style="color:var(--fg);">순환</strong>한다. 한 바퀴를 먼저 돌리는 '이유'가 어디서 오는지가 핵심이다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>06</span></div>
+  </div>
+
+  <!-- ════════ 7. P4 ════════ -->
+  <div class="slide s-accent">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P4 · Definition</div>
+        <h2>부동산 가격은 <span class="em-accent">사람들이 믿는 미래의 크기</span>다</h2>
+        <div class="divider"></div>
+        <p class="sub">결국 사람들은 미래를 사고 있다. 그렇다면 사람들은 무엇을 보고 미래를 판단할까.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-12">
+          <div class="chain">
+            <div class="chain__item">입지</div>
+            <div class="chain__arrow" style="color:var(--fg-3);">+</div>
+            <div class="chain__item">학군</div>
+            <div class="chain__arrow" style="color:var(--fg-3);">+</div>
+            <div class="chain__item">개발 호재</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">미래 기대 = 가격</div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-32) auto 0;">지금까지 '미래의 근거'는 입지·학군·개발 호재였다.<br>그런데 이 근거들이 흔들리기 시작했다 — 그것이 다음 이야기다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>07</span></div>
+  </div>
+
+  <!-- ════════ 8. PART 2 간지 ════════ -->
+  <div class="slide s-divider">
+    <div class="part-ghost">2</div>
+    <div class="grid divider-slide"><div class="col-12 inner">
+      <div class="part-kicker">Part 2</div>
+      <p class="part-q">왜 지금<br>이 이야기가 중요한가</p>
+      <p class="part-note">공급의 시대가 끝나고 있다</p>
+    </div></div>
+    <div class="slide-footer"><span>Part 2 — 왜 지금인가</span><span>08</span></div>
+  </div>
+
+  <!-- ════════ 9. P5 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P5 · PF Crisis</div>
+        <h2>PF가 어려운 진짜 이유</h2>
+        <div class="divider"></div>
+        <p class="sub">많은 사람들은 PF(프로젝트 파이낸싱) 위기를 금리 문제로 본다. 하지만 더 큰 원인은 <strong style="color:var(--fg);">공급 중심 모델의 한계</strong>다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-12">
+          <div class="chain">
+            <div class="chain__item is-start">인구 증가</div>
+            <div class="chain__arrow" style="color:var(--fg-3);">→</div>
+            <div class="chain__item">공간 부족</div>
+            <div class="chain__arrow" style="color:var(--fg-3);">→</div>
+            <div class="chain__item">개발</div>
+            <div class="chain__arrow" style="color:var(--fg-3);">→</div>
+            <div class="chain__item">분양</div>
+            <div class="chain__arrow" style="color:var(--fg-3);">→</div>
+            <div class="chain__item" style="border-color:var(--green); color:var(--green);">성공</div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-24) auto 0;"><span class="em-amber">이 공식은 '공급이 부족하던 시대'의 공식이었다.</span><br>분양만 되면 끝나던 모델이, 사람이 안 오면 멈춘다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>09</span></div>
+  </div>
+
+  <!-- ════════ 10. P6 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P6 · The Shortage Era</div>
+        <h2>우리는 너무 오래 <span class="highlight">공급 부족 시대</span>에 살았다</h2>
+        <div class="divider"></div>
+        <p class="sub">짓기만 하면 가치가 올라가던 시대가 있었다. 그래서 우리는 개발을 '건물 공급'으로만 이해하게 되었다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-12">
+          <div class="chain">
+            <div class="chain__item is-start">공간 부족</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">건물 공급</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">가치 상승</div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-32) auto 0;">이 단순한 등식이 수십 년간 작동했다.<br>문제는 — 이 등식의 <strong style="color:var(--fg);">첫 칸(공간 부족)</strong>이 사라지고 있다는 것이다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>10</span></div>
+  </div>
+
+  <!-- ════════ 11. P7 ════════ -->
+  <div class="slide s-accent">
+    <div class="grid divider-slide"><div class="col-12 inner">
+      <div class="label" style="text-align:center;">P7 · The New Question</div>
+      <h2 style="font-size:30px; color:var(--fg-2); font-weight:300; margin-bottom:var(--sp-32);">이제 건물을 지으면 사람이 오는 시대가 아니다</h2>
+      <div style="display:flex; align-items:center; justify-content:center; gap:var(--sp-32); margin:var(--sp-16) 0;">
+        <span style="font-size:48px; font-weight:200; color:var(--fg);">건물</span>
+        <span style="font-size:56px; font-weight:200; color:var(--accent);">≠</span>
+        <span style="font-size:48px; font-weight:200; color:var(--fg);">트래픽</span>
+      </div>
+      <p class="part-note" style="margin-top:var(--sp-32);">사람이 올 <strong style="color:var(--fg);">이유</strong>를 만들어야 하는 시대다</p>
+    </div></div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>11</span></div>
+  </div>
+
+  <!-- ════════ 12. PART 3 간지 ════════ -->
+  <div class="slide s-divider">
+    <div class="part-ghost">3</div>
+    <div class="grid divider-slide"><div class="col-12 inner">
+      <div class="part-kicker">Part 3</div>
+      <p class="part-q">일본은 이미<br><span class="highlight">미래를 경험</span>했다</p>
+      <p class="part-note">한국보다 먼저 늙은 나라가 찾은 답</p>
+    </div></div>
+    <div class="slide-footer"><span>Part 3 — 일본의 선행 경험</span><span>12</span></div>
+  </div>
+
+  <!-- ════════ 13. P8 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P8 · Japan Aged First</div>
+        <h2>일본은 먼저 늙었다</h2>
+        <div class="divider"></div>
+        <p class="sub">일본은 한국보다 먼저 인구 감소·고령화·저성장을 경험했다. 그 결과 부동산은 '짓는 것'에서 <strong style="color:var(--fg);">'운영하는 것'</strong>으로 무게가 옮겨갔다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-4">
+          <div class="card card--red" style="height:100%; justify-content:center; text-align:center;">
+            <div class="hero-number"><span class="value" style="color:var(--red);">13.8</span><span class="unit">%</span>
+              <div class="sub">전국 빈집률 (역대 최고)</div></div>
+            <p class="src" style="text-align:center;">총무성 주택·토지통계조사, 2023</p>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card" style="height:100%; justify-content:center; text-align:center;">
+            <div class="hero-number"><span class="value" style="color:var(--fg);">900</span><span class="unit">만 호</span>
+              <div class="sub">전국 빈집 총수 / 총주택 6,502만 호</div></div>
+            <p class="src" style="text-align:center;">총무성, 2023</p>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card card--blue" style="height:100%; justify-content:center;">
+            <p class="card__title" style="font-size:16px;">그런데 도쿄 도심 오피스는 <span class="em-blue">2%대 만실</span></p>
+            <p class="card__body">빈집은 넘치는데 '좋은 입지·운영되는 공간'은 만실. 부동산이 <strong style="color:var(--fg);">양극화</strong>되고 있다는 신호.</p>
+            <p class="src">도쿄 도심5구 평균 공실률, 미키상사 2025~26</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>13</span></div>
+  </div>
+
+  <!-- ════════ 14. P9 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P9 · Development Redefined</div>
+        <h2>일본의 개발은 왜 달라졌는가</h2>
+        <div class="divider"></div>
+        <p class="sub">건물 완공이 사업의 '종료'가 아니라 사업의 '시작'이 되었다. 분양 후 손을 떼는 모델에서, 운영하며 가치를 키우는 모델로.</p>
+      </div>
+      <div class="slide-body">
+        <div class="vs-wrap" style="grid-column:span 12;">
+          <div class="card card--red" style="height:100%;">
+            <div class="card__tag"><span class="tag tag--red">과거 · 한국형</span></div>
+            <div class="flow-v" style="align-items:stretch;">
+              <div class="flow-v__item" style="max-width:none;">개발</div>
+              <div class="flow-v__arrow" style="color:var(--red);">↓</div>
+              <div class="flow-v__item" style="max-width:none;">분양</div>
+              <div class="flow-v__arrow" style="color:var(--red);">↓</div>
+              <div class="flow-v__item" style="max-width:none; border-color:var(--red); color:var(--fg);">종료 — 손을 뗀다</div>
+            </div>
+          </div>
+          <div class="vs-badge">VS</div>
+          <div class="card card--green" style="height:100%;">
+            <div class="card__tag"><span class="tag tag--green">현재 · 일본형</span></div>
+            <div class="flow-v" style="align-items:stretch;">
+              <div class="flow-v__item" style="max-width:none;">개발</div>
+              <div class="flow-v__arrow" style="color:var(--green);">↓</div>
+              <div class="flow-v__item" style="max-width:none;">운영</div>
+              <div class="flow-v__arrow" style="color:var(--green);">↓</div>
+              <div class="flow-v__item" style="max-width:none; border-color:var(--green); color:var(--fg);">가치 상승 — 계속 키운다</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>14</span></div>
+  </div>
+
+  <!-- ════════ 15. P10 시모키타자와 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P10 · Case · Shimokitazawa</div>
+        <h2>시모키타자와 — 크게 짓지 않고, 작게 잇다</h2>
+        <div class="divider"></div>
+        <p class="sub">오다큐 전철은 지하화로 생긴 철도 상부 부지를 대형 쇼핑몰이 아니라 <strong style="color:var(--fg);">작은 브랜드와 콘텐츠</strong>로 채웠다. 동네다움을 지키는 '지원형 개발'.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-7">
+          <div class="flow-v" style="align-items:stretch;">
+            <div class="flow-v__item" style="max-width:none;">철도 상부 부지 (약 1.7km)</div>
+            <div class="flow-v__arrow">↓</div>
+            <div class="flow-v__item" style="max-width:none;">13개 소규모 시설로 분산</div>
+            <div class="flow-v__arrow">↓</div>
+            <div class="flow-v__item" style="max-width:none;">작은 브랜드·가게의 집합</div>
+            <div class="flow-v__arrow">↓</div>
+            <div class="flow-v__item is-end" style="max-width:none;">체류 → 재방문</div>
+          </div>
+        </div>
+        <div class="col-5" style="display:flex; flex-direction:column; gap:var(--sp-16);">
+          <div class="kpi"><div class="kpi__label">전면 개장</div><div class="kpi__value">2022<span class="u">.5</span></div><div class="kpi__sub">下北線路街 (시모키타 라인로가)</div></div>
+          <div class="card"><p class="card__body"><strong style="color:var(--fg);">'지원형 개발(支援型開発)'</strong> — 사업자가 주도하지 않고, 지역을 뒤에서 받친다. BONUS TRACK(2020)·reload(2021) 단계적 조성.</p>
+            <p class="src">출처: 오다큐 그룹 공식, 2022</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>15</span></div>
+  </div>
+
+  <!-- ════════ 16. P11 다이칸야마 T-SITE ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P11 · Case · Daikanyama T-SITE</div>
+        <h2>다이칸야마 츠타야 — 책이 아니라 취향을 팔다</h2>
+        <div class="divider"></div>
+        <p class="sub">서점을 판 것이 아니다. <strong style="color:var(--fg);">취향과 체류</strong>를 판매했다. '숲속의 도서관'이라는 라이프스타일 제안 공간.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-7">
+          <div class="chain">
+            <div class="chain__item is-start">책</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">취향</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">체류</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">커뮤니티</div>
+          </div>
+          <p class="sub" style="margin-top:var(--sp-32);">'무엇을 파는 공간인가'가 아니라 '어떤 사람이 머무는 공간인가'로 질문이 바뀌었다.</p>
+        </div>
+        <div class="col-5" style="display:flex; flex-direction:column; gap:var(--sp-16);">
+          <div class="kpi"><div class="kpi__label">개관</div><div class="kpi__value">2011</div><div class="kpi__sub">운영: CCC · 설계: Klein Dytham</div></div>
+          <div class="card card--amber"><p class="card__body">타깃은 '프리미엄 에이지'. 책·음악·영화·여행을 한 공간에서 큐레이션해 <strong style="color:var(--fg);">머무는 시간 자체를 상품화</strong>했다.</p>
+            <p class="src">출처: CCC 공식 · Klein Dytham architecture</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>16</span></div>
+  </div>
+
+  <!-- ════════ 17. P12 모리빌딩 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P12 · Case · Mori Building</div>
+        <h2>모리빌딩 — 건물이 아니라 지역을 운영한다</h2>
+        <div class="divider"></div>
+        <p class="sub">하나의 건물이 아니라 <strong style="color:var(--fg);">거리와 지역 전체</strong>를 장기 보유·운영한다. 자산 소유보다 '도시 운영'에 가까운 모델.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-7">
+          <div class="chain">
+            <div class="chain__item is-start">건물</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">거리</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">지역</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">도시</div>
+          </div>
+          <p class="sub" style="margin-top:var(--sp-32);"><strong style="color:var(--fg);">에어리어 매니지먼트</strong> — 개발이 끝이 아니라, 그 지역을 수십 년간 운영하며 가치를 관리한다.</p>
+        </div>
+        <div class="col-5" style="display:flex; flex-direction:column; gap:var(--sp-16);">
+          <div class="kpi"><div class="kpi__label">롯폰기힐스</div><div class="kpi__value">2003</div><div class="kpi__sub">타운 매니지먼트 도입</div></div>
+          <div class="kpi"><div class="kpi__label">아자부다이힐스</div><div class="kpi__value">2023</div><div class="kpi__sub">약 35년·권리자 300명 협의</div></div>
+          <p class="src">출처: 모리빌딩 공식</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>17</span></div>
+  </div>
+
+  <!-- ════════ 18. PART 4 간지 ════════ -->
+  <div class="slide s-divider">
+    <div class="part-ghost">4</div>
+    <div class="grid divider-slide"><div class="col-12 inner">
+      <div class="part-kicker">Part 4</div>
+      <p class="part-q">성수동은<br><span class="highlight">왜 올랐는가</span></p>
+      <p class="part-note">국가사업도, 신도시도 아니었는데</p>
+    </div></div>
+    <div class="slide-footer"><span>Part 4 — 성수동의 공식</span><span>18</span></div>
+  </div>
+
+  <!-- ════════ 19. P13 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P13 · Not an Exception</div>
+        <h2>성수동은 특수사례가 아니다</h2>
+        <div class="divider"></div>
+        <p class="sub">국가사업도 아니고 신도시도 아니었다. 대형 개발 없이도 서울 최고 수준의 가치 상승을 만들었다. 우연이 아니라 <strong style="color:var(--fg);">공식</strong>이 작동했다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-5">
+          <div class="card card--green" style="height:100%; justify-content:center; text-align:center;">
+            <div class="hero-number"><span class="value" style="color:var(--green);">+110</span><span class="unit">%</span>
+              <div class="sub">성수 외국인 관광객 증가 (2025 1분기, 전년 동기 대비)</div></div>
+            <p class="src" style="text-align:center;">CBRE 코리아</p>
+          </div>
+        </div>
+        <div class="col-7" style="display:flex; flex-direction:column; gap:var(--sp-16); justify-content:center;">
+          <div class="card"><p class="card__title" style="font-size:16px;">평당 월매출이 강남을 추월</p>
+            <p class="card__body">국내 패션 브랜드 기준 — 성수 <strong style="color:var(--fg);">634만원</strong> vs 강남 167만원 (약 4배). 글로벌 스포츠웨어도 성수 876 vs 강남 509만원.</p>
+            <p class="src">출처: CBRE 코리아 리테일 인사이트, 2025~26</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>19</span></div>
+  </div>
+
+  <!-- ════════ 20. P14 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P14 · The First Movers</div>
+        <h2>가장 먼저 온 사람들</h2>
+        <div class="divider"></div>
+        <p class="sub">성수동에 가장 먼저 온 것은 자본이 아니었다. <strong style="color:var(--fg);">창작자</strong>가 먼저 왔다. 디자이너, 작은 브랜드, 기획자들.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-4"><div class="card" style="height:100%;"><p class="card__title">디자이너</p><p class="card__body">싼 임대료의 옛 공장·창고를 스튜디오로. 작업 공간을 찾아 모였다.</p></div></div>
+        <div class="col-4"><div class="card" style="height:100%;"><p class="card__title">작은 브랜드</p><p class="card__body">쇼룸과 플래그십을 실험. '여기서만 볼 수 있는 것'을 만들었다.</p></div></div>
+        <div class="col-4"><div class="card" style="height:100%;"><p class="card__title">기획자</p><p class="card__body">전시·팝업·콘텐츠를 기획. 거리에 일어날 사건을 설계했다.</p></div></div>
+        <div class="col-12" style="margin-top:var(--sp-8);">
+          <div class="chain"><div class="chain__item">디자이너 + 브랜드 + 기획자</div><div class="chain__arrow">→</div><div class="chain__item is-end">생산자 밀도</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>20</span></div>
+  </div>
+
+  <!-- ════════ 21. P15 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P15 · Density → Content</div>
+        <h2>생산자가 모이면 <span class="highlight">콘텐츠</span>가 생긴다</h2>
+        <div class="divider"></div>
+        <p class="sub">생산자 밀도가 임계점을 넘으면 브랜드·전시·팝업이 생기고, 거리에 '문화'가 만들어진다. 그리고 문화는 SNS를 타고 퍼진다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-12">
+          <div class="chain">
+            <div class="chain__item is-start">생산자 밀도</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">브랜드 · 전시 · 팝업</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">거리의 문화</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">SNS 확산</div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-32) auto 0;">콘텐츠는 '광고'가 아니라 '사건'이다.<br>사람들은 광고를 보러 오지 않지만, 사건은 보러 온다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>21</span></div>
+  </div>
+
+  <!-- ════════ 22. P16 ════════ -->
+  <div class="slide s-accent">
+    <div class="grid divider-slide"><div class="col-12 inner">
+      <div class="label" style="text-align:center;">P16 · Content Pulls People</div>
+      <h2 style="font-size:34px; margin-bottom:var(--sp-32);">사람들은 <span class="em-accent">콘텐츠</span>를 따라온다</h2>
+      <div style="display:flex; align-items:center; justify-content:center; gap:var(--sp-32);">
+        <span style="font-size:40px; font-weight:200; color:var(--fg);">콘텐츠</span>
+        <span style="font-size:40px; font-weight:200; color:var(--accent);">→</span>
+        <span style="font-size:40px; font-weight:200; color:var(--fg);">트래픽</span>
+      </div>
+      <p class="part-note" style="margin-top:var(--sp-32);">사람들은 성수를 찾아간 것이 아니다.<br>그곳에서 벌어지는 <strong style="color:var(--fg);">경험</strong>을 찾아갔다.</p>
+    </div></div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>22</span></div>
+  </div>
+
+  <!-- ════════ 23. P17 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P17 · Capital Follows People</div>
+        <h2>자본은 사람을 따라온다</h2>
+        <div class="divider"></div>
+        <p class="sub">브랜드와 자본은 사람들이 모인 곳으로 이동한다. 트래픽이 먼저고, 투자가 나중이다. <strong style="color:var(--fg);">순서가 뒤집히지 않는다.</strong></p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-12">
+          <div class="chain">
+            <div class="chain__item is-start">트래픽</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">브랜드 입점</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">투자 유입</div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-32) auto 0;">대기업 플래그십과 투자금은 '뜰 곳'을 미리 알아서 오는 게 아니다.<br>사람이 모인 것을 <strong style="color:var(--fg);">확인하고</strong> 들어온다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>23</span></div>
+  </div>
+
+  <!-- ════════ 24. P18 성수동 공식 ════════ -->
+  <div class="slide s-dark">
+    <div class="grid grid--split">
+      <div class="slide-head" style="text-align:center;">
+        <div class="label" style="text-align:center;">P18 · The Seongsu Formula</div>
+        <h2>성수동 공식</h2>
+        <p class="sub" style="margin:0 auto;">성수동은 우연이 아니다. <strong style="color:var(--fg);">가치 창조 공식</strong>이 순서대로 작동한 결과다.</p>
+      </div>
+      <div class="slide-body" style="align-content:center;">
+        <div class="col-12">
+          <div class="formula">
+            <div class="formula__step is-start"><div class="n">01</div><div class="t">생산자</div></div>
+            <div class="formula__arrow">→</div>
+            <div class="formula__step"><div class="n">02</div><div class="t">콘텐츠</div></div>
+            <div class="formula__arrow">→</div>
+            <div class="formula__step"><div class="n">03</div><div class="t">트래픽</div></div>
+            <div class="formula__arrow">→</div>
+            <div class="formula__step"><div class="n">04</div><div class="t">브랜드</div></div>
+            <div class="formula__arrow">→</div>
+            <div class="formula__step"><div class="n">05</div><div class="t">자본</div></div>
+            <div class="formula__arrow">→</div>
+            <div class="formula__step is-final"><div class="n">06</div><div class="t">부동산 가치</div></div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-32) auto 0;">이 공식의 출발점은 건물도 자본도 아닌 <strong style="color:var(--fg);">생산자</strong>다.<br>그리고 종착점인 부동산 가치는 — 가장 마지막에 따라온다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>24</span></div>
+  </div>
+
+  <!-- ════════ 25. PART 5 간지 ════════ -->
+  <div class="slide s-divider">
+    <div class="part-ghost">5</div>
+    <div class="grid divider-slide"><div class="col-12 inner">
+      <div class="part-kicker">Part 5</div>
+      <p class="part-q">왜 어떤 곳은<br><span class="em-red" style="color:#E89B85;">죽는가</span></p>
+      <p class="part-note">공식이 멈추면, 거리도 멈춘다</p>
+    </div></div>
+    <div class="slide-footer"><span>Part 5 — 쇠퇴의 메커니즘</span><span>25</span></div>
+  </div>
+
+  <!-- ════════ 26. P19 가로수길 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P19 · Case · Garosu-gil</div>
+        <h2>가로수길 — 성공 이후, 이유를 잃다</h2>
+        <div class="divider"></div>
+        <p class="sub">뜨고 난 뒤 임대료가 치솟자 창작자가 떠났고, 창작자가 떠나자 콘텐츠가 사라졌다. <strong style="color:var(--fg);">공식이 역방향으로</strong> 돌기 시작했다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-7">
+          <div class="flow-v">
+            <div class="flow-v__item" style="border-color:rgba(225,112,85,0.4);">창작자 감소</div>
+            <div class="flow-v__arrow" style="color:var(--red);">↓</div>
+            <div class="flow-v__item" style="border-color:rgba(225,112,85,0.4);">콘텐츠 감소</div>
+            <div class="flow-v__arrow" style="color:var(--red);">↓</div>
+            <div class="flow-v__item" style="border-color:rgba(225,112,85,0.4);">트래픽 감소</div>
+            <div class="flow-v__arrow" style="color:var(--red);">↓</div>
+            <div class="flow-v__item" style="border-color:var(--red); color:var(--fg);">가치 감소</div>
+          </div>
+        </div>
+        <div class="col-5">
+          <div class="card card--red" style="height:100%; justify-content:center; text-align:center;">
+            <div class="hero-number"><span class="value" style="color:var(--red);">41.6</span><span class="unit">%</span>
+              <div class="sub">가로수길 공실률 (2025 1분기)</div></div>
+            <p class="card__body" style="text-align:center; margin-top:var(--sp-16);">전년 동기 대비 <strong style="color:var(--fg);">+0.4%p</strong> · 타 상권 대비 최대 약 12배. 임대료는 오히려 우상향 — 공실과 임대료가 함께 오르는 역설.</p>
+            <p class="src" style="text-align:center;">출처: 국민일보·뉴스1 (원자료 한국부동산원)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>26</span></div>
+  </div>
+
+  <!-- ════════ 27. P20 을지로 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P20 · Case · Euljiro</div>
+        <h2>을지로 — 콘텐츠는 있었지만</h2>
+        <div class="divider"></div>
+        <p class="sub">을지로에는 콘텐츠가 있었다. 그러나 그것이 <strong style="color:var(--fg);">확장 가능한 플랫폼</strong>으로 이어지지 못했다. 트래픽이 자본과 연결되지 않았다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-12">
+          <div class="chain">
+            <div class="chain__item is-start">콘텐츠</div>
+            <div class="chain__arrow" style="color:var(--green);">→</div>
+            <div class="chain__item">트래픽</div>
+            <div class="chain__arrow" style="color:var(--red); font-size:24px;">✕</div>
+            <div class="chain__item" style="border-color:rgba(225,112,85,0.4); color:var(--fg-3);">자본 연결</div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-32) auto 0;">콘텐츠와 트래픽이 있어도, 그것을 <strong style="color:var(--fg);">지속 가능한 구조</strong>로 묶지 못하면<br>거리는 한순간의 유행으로 끝난다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>27</span></div>
+  </div>
+
+  <!-- ════════ 28. P21 임대료는 체온계 ════════ -->
+  <div class="slide s-accent">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P21 · Rent is a Thermometer</div>
+        <h2>임대료는 <span class="em-accent">체온계</span>다</h2>
+        <div class="divider"></div>
+        <p class="sub">임대료는 원인이 아니라 결과다. 거리의 건강 상태를 보여주는 지표일 뿐, 임대료를 올린다고 거리가 건강해지지 않는다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-12">
+          <div class="chain">
+            <div class="chain__item is-start">콘텐츠</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">트래픽</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">가치</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">임대료</div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-32) auto 0;">체온계의 숫자를 손으로 올린다고 열이 나는 게 아니다.<br>임대료만 먼저 올리면 — <strong style="color:var(--fg);">앞 단계가 무너진다(가로수길)</strong>.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>28</span></div>
+  </div>
+
+  <!-- ════════ 29. PART 6 간지 ════════ -->
+  <div class="slide s-divider">
+    <div class="part-ghost">6</div>
+    <div class="grid divider-slide"><div class="col-12 inner">
+      <div class="part-kicker">Part 6</div>
+      <p class="part-q">트래픽은<br><span class="highlight">관리 가능한가</span></p>
+      <p class="part-note">우연인가, 아니면 설계할 수 있는가</p>
+    </div></div>
+    <div class="slide-footer"><span>Part 6 — 트래픽의 측정과 설계</span><span>29</span></div>
+  </div>
+
+  <!-- ════════ 30. P22 가장 중요한 질문 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P22 · The Key Question</div>
+        <h2>가장 중요한 질문</h2>
+        <div class="divider"></div>
+        <p class="sub">지금까지의 모든 사례가 향하는 단 하나의 질문 — 트래픽은 <strong style="color:var(--fg);">우연</strong>인가, 아니면 <strong style="color:var(--fg);">설계와 운영</strong>의 결과인가.</p>
+      </div>
+      <div class="slide-body">
+        <div class="vs-wrap" style="grid-column:span 12;">
+          <div class="card card--red" style="height:100%; text-align:center; justify-content:center;">
+            <p class="label" style="text-align:center; color:var(--red);">Option A</p>
+            <p style="font-size:30px; font-weight:200; color:var(--fg); margin:var(--sp-16) 0;">우연</p>
+            <p class="card__body" style="text-align:center;">운이 좋아 떴고, 운이 다하면 진다 — 통제 불가능한 영역</p>
+          </div>
+          <div class="vs-badge">VS</div>
+          <div class="card card--accent" style="height:100%; text-align:center; justify-content:center;">
+            <p class="label" style="text-align:center; color:var(--accent-light);">Option B</p>
+            <p style="font-size:30px; font-weight:200; color:var(--accent-light); margin:var(--sp-16) 0;">운영</p>
+            <p class="card__body" style="text-align:center;">측정하고, 설계하고, 키울 수 있는 것 — 개발사의 새로운 역량</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>30</span></div>
+  </div>
+
+  <!-- ════════ 31. P23 측정 가능 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label" style="margin-bottom:var(--sp-8);">P23 · Traffic is Measurable</div>
+        <h2 style="margin-bottom:var(--sp-8);">트래픽은 측정 가능하다</h2>
+        <div class="divider" style="margin-bottom:var(--sp-16);"></div>
+        <p class="sub" style="margin-bottom:0;">좋은 공간은 단순 방문자 수가 아니라 <strong style="color:var(--fg);">체류시간과 재방문율</strong>로 판단된다. 측정할 수 있다면, 관리할 수 있다.</p>
+      </div>
+      <div class="slide-body" style="align-content:center;">
+        <div class="col-12">
+          <div class="chain">
+            <div class="chain__item is-start">방문</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">체류</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">재방문</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">전환</div>
+          </div>
+          <div class="grid" style="grid-template-columns:repeat(4,1fr); padding:0; gap:var(--gutter); margin-top:var(--sp-8);">
+            <div class="kpi" style="padding:var(--sp-16) var(--sp-16) 14px;"><div class="kpi__label" style="margin-bottom:6px;">Visit</div><div class="kpi__value" style="font-size:19px;">방문</div><div class="kpi__sub">얼마나 오는가</div></div>
+            <div class="kpi" style="padding:var(--sp-16) var(--sp-16) 14px;"><div class="kpi__label" style="margin-bottom:6px;">Dwell</div><div class="kpi__value" style="font-size:19px;">체류</div><div class="kpi__sub">얼마나 머무는가</div></div>
+            <div class="kpi" style="padding:var(--sp-16) var(--sp-16) 14px;"><div class="kpi__label" style="margin-bottom:6px;">Return</div><div class="kpi__value" style="font-size:19px;">재방문</div><div class="kpi__sub">다시 오는가</div></div>
+            <div class="kpi" style="padding:var(--sp-16) var(--sp-16) 14px;"><div class="kpi__label" style="margin-bottom:6px;">Convert</div><div class="kpi__value" style="font-size:19px; color:var(--accent-light);">전환</div><div class="kpi__sub">가치로 이어지는가</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>31</span></div>
+  </div>
+
+  <!-- ════════ 32. P24 선행지표 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P24 · Leading Indicators</div>
+        <h2>미래 가치의 <span class="highlight">선행지표</span></h2>
+        <div class="divider"></div>
+        <p class="sub">가격보다 먼저 움직이는 신호들이 있다. 공시지가·임대료가 오른 뒤엔 이미 늦다 — 그 전에 움직이는 것을 봐야 한다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-6">
+          <div class="card card--muted" style="height:100%; background:var(--bg-3);">
+            <div class="card__tag"><span class="tag tag--muted">후행지표 · 결과</span></div>
+            <ul class="bullet-list" style="--b:var(--fg-3);">
+              <li style="color:var(--fg-3);">공시지가</li>
+              <li style="color:var(--fg-3);">임대료</li>
+              <li style="color:var(--fg-3);">거래가</li>
+            </ul>
+            <p class="card__footer">이미 모두가 아는 신호 — 투자의 영역</p>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card card--accent" style="height:100%;">
+            <div class="card__tag"><span class="tag tag--accent">선행지표 · 원인</span></div>
+            <ul class="bullet-list">
+              <li>생산자 밀도</li>
+              <li>콘텐츠 생성량</li>
+              <li>체류시간</li>
+              <li>브랜드 유입</li>
+            </ul>
+            <p class="card__footer" style="color:var(--accent-light);">먼저 움직이는 신호 — 개발의 영역</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>32</span></div>
+  </div>
+
+  <!-- ════════ 33. P25 다음 성수 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P25 · Finding the Next Seongsu</div>
+        <h2>미래의 성수를 찾는 방법</h2>
+        <div class="divider"></div>
+        <p class="sub">이미 유명한 곳을 사는 것은 <strong style="color:var(--fg);">투자</strong>다. 새로운 생산자가 모이는 곳을 먼저 찾는 것은 <strong style="color:var(--fg);">개발</strong>이다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-12">
+          <div class="chain">
+            <div class="chain__item is-start" style="border-color:var(--line);">현재의 성수<br><span style="font-size:11px; color:var(--fg-3);">이미 비싸다 · 투자</span></div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end" style="font-size:24px;">다음 성수 <span class="em-accent">?</span><br><span style="font-size:11px; color:var(--accent-light);">생산자가 모이는 곳 · 개발</span></div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-32) auto 0;">선행지표(생산자 밀도·콘텐츠·체류)를 읽을 수 있다면,<br>다음 성수는 <strong style="color:var(--fg);">예측이 아니라 발견</strong>의 대상이 된다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>33</span></div>
+  </div>
+
+  <!-- ════════ 34. PART 7 간지 ════════ -->
+  <div class="slide s-divider">
+    <div class="part-ghost">7</div>
+    <div class="grid divider-slide"><div class="col-12 inner">
+      <div class="part-kicker">Part 7</div>
+      <p class="part-q">새로운 개발사의<br><span class="highlight">등장</span></p>
+      <p class="part-note">Builder에서 Operator로</p>
+    </div></div>
+    <div class="slide-footer"><span>Part 7 — Traffic Developer</span><span>34</span></div>
+  </div>
+
+  <!-- ════════ 35. P26 Builder→Operator ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P26 · Builder → Operator</div>
+        <h2>Builder에서 <span class="highlight">Operator</span>로</h2>
+        <div class="divider"></div>
+        <p class="sub">건설 경쟁력보다 운영 경쟁력이 중요해진다. 잘 짓는 회사가 아니라, 사람이 계속 찾아오게 <strong style="color:var(--fg);">운영하는 회사</strong>가 이긴다.</p>
+      </div>
+      <div class="slide-body">
+        <div class="vs-wrap" style="grid-column:span 12;">
+          <div class="card" style="height:100%;">
+            <div class="card__tag"><span class="tag tag--muted">과거 · Builder</span></div>
+            <p class="card__title">잘 짓는 경쟁</p>
+            <ul class="bullet-list" style="--b:var(--fg-3);">
+              <li>토지 확보 → 인허가 → 시공</li>
+              <li>분양·매각으로 사업 종료</li>
+              <li>핵심 역량: 건설·금융</li>
+            </ul>
+          </div>
+          <div class="vs-badge">→</div>
+          <div class="card card--accent" style="height:100%;">
+            <div class="card__tag"><span class="tag tag--accent">미래 · Operator</span></div>
+            <p class="card__title">계속 오게 만드는 경쟁</p>
+            <ul class="bullet-list">
+              <li>콘텐츠·브랜드·커뮤니티 설계</li>
+              <li>준공 이후가 사업의 시작</li>
+              <li>핵심 역량: 운영·기획</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>35</span></div>
+  </div>
+
+  <!-- ════════ 36. P27 카페도 같다 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P27 · Case · Starbucks</div>
+        <h2>카페도 같다</h2>
+        <div class="divider"></div>
+        <p class="sub">사람들은 커피를 사는 것이 아니라 <strong style="color:var(--fg);">머물 이유</strong>를 산다. 스타벅스가 판 것은 음료가 아니라 '제3의 공간'이었다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-7">
+          <div class="chain">
+            <div class="chain__item is-start">커피</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">체류</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">커뮤니티</div>
+          </div>
+        </div>
+        <div class="col-5">
+          <div class="card card--amber" style="height:100%; justify-content:center;">
+            <p class="card__body"><strong style="color:var(--fg);">'제3의 공간(Third Place)'</strong> — 집(제1)과 직장(제2) 사이, 머무는 공간. 사회학자 레이 올든버그가 제시하고, 스타벅스가 브랜드 비전으로 차용했다.</p>
+            <p class="src">출처: Ray Oldenburg, 『The Great Good Place』(1989)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>36</span></div>
+  </div>
+
+  <!-- ════════ 37. P28 리테일도 같다 ════════ -->
+  <div class="slide">
+    <div class="grid grid--split">
+      <div class="slide-head">
+        <div class="label">P28 · Case · Apple</div>
+        <h2>리테일도 같다</h2>
+        <div class="divider"></div>
+        <p class="sub">온라인이 상품 판매를 대체했다. 오프라인에 남은 것은 <strong style="color:var(--fg);">경험</strong>이다. 애플스토어는 물건을 파는 곳이 아니라 브랜드를 체험하는 곳이다.</p>
+      </div>
+      <div class="slide-body" style="align-content:end;">
+        <div class="col-7">
+          <div class="chain">
+            <div class="chain__item is-start">상품</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item">경험</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end">팬덤</div>
+          </div>
+        </div>
+        <div class="col-5">
+          <div class="card card--blue" style="height:100%; justify-content:center;">
+            <p class="card__body">애플은 매장을 <strong style="color:var(--fg);">'타운스퀘어(town square)'</strong>로 재정의했다. "매장이 우리가 만드는 가장 큰 제품"이라며, 판매보다 워크숍·커뮤니티·체험에 무게를 뒀다.</p>
+            <p class="src">출처: Angela Ahrendts, Fortune (2016)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>37</span></div>
+  </div>
+
+  <!-- ════════ 38. P29 Traffic Developer ════════ -->
+  <div class="slide s-accent">
+    <div class="grid grid--split">
+      <div class="slide-head" style="text-align:center;">
+        <div class="label" style="text-align:center;">P29 · Traffic Developer</div>
+        <h2>Traffic Developer</h2>
+        <p class="sub" style="margin:0 auto;">미래의 개발사는 건물을 만드는 사람이 아니다. 사람들이 <strong style="color:var(--fg);">찾아올 이유</strong>를 만드는 사람이다.</p>
+      </div>
+      <div class="slide-body" style="align-content:center;">
+        <div class="col-12">
+          <div class="chain" style="margin-bottom:var(--sp-32);">
+            <div class="chain__item">브랜드</div>
+            <div class="chain__arrow" style="color:var(--fg-3);">+</div>
+            <div class="chain__item">콘텐츠</div>
+            <div class="chain__arrow" style="color:var(--fg-3);">+</div>
+            <div class="chain__item">커뮤니티</div>
+            <div class="chain__arrow" style="color:var(--fg-3);">+</div>
+            <div class="chain__item">운영</div>
+            <div class="chain__arrow">→</div>
+            <div class="chain__item is-end" style="font-size:17px;">Traffic Developer</div>
+          </div>
+          <p class="sub" style="text-align:center; margin:0 auto;">건물을 짓는 역량 위에, 사람을 모으고 머물게 하는 역량을 더한다.<br>이것이 다음 10년의 개발사가 갖춰야 할 정체성이다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>38</span></div>
+  </div>
+
+  <!-- ════════ 39. P30 최종 결론 ════════ -->
+  <div class="slide s-dark">
+    <div class="grid grid--split">
+      <div class="slide-head" style="text-align:center;">
+        <div class="label" style="text-align:center;">P30 · Conclusion</div>
+        <h2>사람들은 건물을 찾아가지 않는다</h2>
+        <p class="sub" style="margin:0 auto;">과거의 가치는 토지에서, 산업화 시대의 가치는 건물에서 나왔다. 그리고 앞으로의 가치는 — 사람들이 <strong style="color:var(--fg);">반복적으로 찾아올 이유</strong>에서 나온다.</p>
+      </div>
+      <div class="slide-body" style="align-content:center;">
+        <div class="col-12">
+          <div class="formula">
+            <div class="formula__step"><div class="n">PAST</div><div class="t" style="color:var(--fg-3);">토지 가치</div></div>
+            <div class="formula__arrow" style="color:var(--fg-3);">→</div>
+            <div class="formula__step"><div class="n">INDUSTRIAL</div><div class="t" style="color:var(--fg-2);">건물 가치</div></div>
+            <div class="formula__arrow">→</div>
+            <div class="formula__step is-final"><div class="n">NEXT 10 YEARS</div><div class="t">트래픽 가치</div></div>
+          </div>
+          <p class="sub" style="text-align:center; margin:var(--sp-32) auto 0; font-size:18px;">토지 가치 · 건물 가치 · 트래픽 가치<br><strong style="color:var(--accent-light);">＝ 미래 자산 가치</strong></p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>39</span></div>
+  </div>
+
+  <!-- ════════ 40. 엔딩 ════════ -->
+  <div class="slide s-cover">
+    <div class="grid" style="text-align:center;"><div class="col-12">
+      <div class="label">The Next 10 Years</div>
+      <h2 style="font-size:38px; font-weight:300; line-height:1.4; margin-bottom:var(--sp-24);">
+        부동산 개발의 다음 10년은<br>건물을 얼마나 잘 짓느냐의 경쟁이 아니다.<br>
+        사람들이 얼마나 <span class="highlight">오래, 자주, 반복적으로</span><br>찾아오게 만드느냐의 경쟁이다.
+      </h2>
+      <div class="divider--center"></div>
+      <p class="sub" style="max-width:600px; margin:0 auto var(--sp-48);">
+        프로젝트렌트는 공간을 기획하는 회사가 아니라,<br>미래 자산가치를 설계하는 <strong style="color:var(--fg);">트래픽 디벨로퍼</strong>입니다.
+      </p>
+      <p style="font-size:12px; color:var(--fg-3); letter-spacing:0.35em;">BY PROJECT RENT</p>
+    </div></div>
+    <div class="slide-footer"><span>Building → Traffic</span><span>by Project Rent · 2026</span></div>
+  </div>
+
+</div>
+
+<!-- ─── 네비게이션 ─── -->
+<div class="nav" id="nav">
+  <button class="nav-btn" id="prev-btn">← Prev</button>
+  <span class="nav-counter" id="counter">1 / 40</span>
+  <button class="nav-btn" id="next-btn">Next →</button>
+  <span class="nav-sep"></span>
+  <button class="nav-btn" id="edit-btn" title="편집 모드 (E)">Edit</button>
+  <button class="nav-btn" id="save-btn" title="HTML 저장 (Cmd+S)">Save</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const nav = document.getElementById('nav');
+  const editFlag = document.getElementById('editFlag');
+  const total = slides.length;
+  let current = 0;
+  let editMode = false;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active', 'fade-in');
+    current = ((n % total) + total) % total;
+    slides[current].classList.add('active');
+    requestAnimationFrame(() => slides[current].classList.add('fade-in'));
+    counter.textContent = (current + 1) + ' / ' + total;
+    progress.style.width = ((current + 1) / total * 100) + '%';
+  }
+
+  function toggleEdit() {
+    editMode = !editMode;
+    document.querySelectorAll('h1,h2,h3,p,li,.card__title,.card__body,.chain__item,.flow-v__item,.formula__step,.tl-place,.tl-desc,.kpi__sub')
+      .forEach(el => el.contentEditable = editMode);
+    editFlag.classList.toggle('on', editMode);
+    document.body.style.cursor = editMode ? 'text' : '';
+  }
+
+  function saveHTML() {
+    if (editMode) toggleEdit();
+    const clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+    const blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], {type: 'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'traffic-developer-lecture.html';
+    a.click();
+  }
+
+  document.getElementById('prev-btn').addEventListener('click', () => showSlide(current - 1));
+  document.getElementById('next-btn').addEventListener('click', () => showSlide(current + 1));
+  document.getElementById('edit-btn').addEventListener('click', toggleEdit);
+  document.getElementById('save-btn').addEventListener('click', saveHTML);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.isContentEditable && !(e.key === 'Escape')) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveHTML(); }
+      return;
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveHTML(); return; }
+    if (['ArrowRight', ' ', 'PageDown', 'ArrowDown'].includes(e.key)) { e.preventDefault(); showSlide(current + 1); }
+    if (['ArrowLeft', 'PageUp', 'ArrowUp'].includes(e.key)) { e.preventDefault(); showSlide(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); showSlide(0); }
+    if (e.key === 'End') { e.preventDefault(); showSlide(total - 1); }
+    if (e.key.toLowerCase() === 'f') { e.preventDefault(); if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    if (e.key.toLowerCase() === 'h') { e.preventDefault(); nav.classList.toggle('hidden'); }
+    if (e.key.toLowerCase() === 'e') { e.preventDefault(); toggleEdit(); }
+    if (e.key === 'Escape' && editMode) { e.preventDefault(); toggleEdit(); }
+  });
+
+  // 화면 좌우 30% 클릭 네비게이션 (편집 모드 / 네비바 제외)
+  document.addEventListener('click', (e) => {
+    if (editMode || e.target.closest('.nav')) return;
+    const x = e.clientX / window.innerWidth;
+    if (x > 0.7) showSlide(current + 1);
+    else if (x < 0.3) showSlide(current - 1);
+  });
+
+  progress.style.width = (1 / total * 100) + '%';
+</script>
+
+</body>
+</html>

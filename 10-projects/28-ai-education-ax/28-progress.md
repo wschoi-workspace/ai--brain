@@ -217,3 +217,145 @@
 - [ ] V2 사고전환 강의 + 기존 데모 3종 → 통합 교육 플로우 설계
 - [ ] 마무리 슬라이드 ("오늘 밤 딱 하나만" + QR)
 - [ ] 바이브코딩 실습 트랙 설계
+
+---
+
+## 2026-06-10 — 일일업무보고봇 첨부파일 수신 기능
+
+직원이 텔레그램으로 업무보고 시 **결과물 파일도 함께 제출**할 수 있도록 봇 확장.
+
+### 구현
+- **봇 스크립트**: `00-system/02-scripts/daily-report-bot.py` (python-telegram-bot 21.10)
+- **수신 시점**: 보고 중 아무 단계에서나 (모든 state에 `filters.PHOTO | filters.Document.ALL` 핸들러)
+- **처리 흐름**: 텔레그램 다운로드 → `gws drive +upload`로 "일일업무보고" 폴더 업로드 → 링크 누적
+  - 파일명 규칙: `날짜_이름_원본명`
+  - 드라이브 폴더 ID: `18JLhq98zVbJps1B-AXQ0xgxWqscIBYbe`
+  - 링크 형식: `https://drive.google.com/file/d/{id}/view`
+- **출력 연결**:
+  - 관리자봇 보고서에 `■ 첨부 산출물` 섹션 + 링크
+  - 구글시트 **메타 G열("첨부")**에 `파일명: 링크` 기록 (헤더 추가 완료)
+
+### 의미
+- 기존 `output` = 텍스트 설명뿐 → 실물 파일 링크 결합으로 **검증 가능(verifiable)** 보고 실현
+
+### 상태
+- 문법 검사 통과 / 드라이브 업로드 단위 테스트 통과 / 봇 재시작 가동 중(PID 40876)
+- 커밋 `241eac8` (봇 관련 8파일 일괄)
+- ⏳ **남은 것**: 텔레그램 실사용 테스트(직원 `/report` 흐름) — 사용자 직접 진행 예정
+
+### 참고: 알려진 개선 여지 (미반영)
+- 봇 토큰·시트ID 하드코딩 → `.env` 이관 권장
+- `improvement`(개선포인트) 필드가 수집 단계 없이 항상 빈 값 (instructions엔 STEP 존재)
+- 시트 헤더 자동 생성 로직 없음 (수동 세팅 전제)
+
+---
+
+## 2026-06-14 — AX 에세이 V3 (최원석 문체 변환 + 숫자 팩트체크)
+
+### 작업
+이림 강의 2026 교육메뉴얼 AX 에세이 4편을 신규 `/문체` 스킬로 V3 변환.
+경로: `Dropbox/02-프로젝트렌트RENT/07.AI연습/이림 _강의2026/교육메뉴얼/AX_에세이/`
+
+- **`/문체` 스킬 신설**: 저서 『결국, 오프라인』 문체 DNA 10규칙 추출 → 휴머나이저 특화 스킬(`do-better-workspace/.claude/skills/문체/`). 명시 호출 전용
+- **V3 4편 변환**: ch01 resolution / ch02 judgment / ch03 transition / ch04 attitude. 단문 단언 리듬·대조 재정의·구어체→단정조·어휘 격상. HTML/CSS/통계/인용 보존, chapter-label·footer V2→V3
+
+### 숫자 재검증 — 오류 5건 수정 (웹 출처 크로스체크)
+| 위치 | 수정 |
+|------|------|
+| ch03 | BCG 74% "파일럿 실패"→"기업의 74%가 AI 가치 실현·확장 어려움(26%만 실험단계 넘음)" |
+| ch01 | "19% 더 틀렸다"→"정답확률 19퍼센트포인트 낮음" (단위) |
+| ch01·02 | 몰릭 귀속 정정: 와튼 몰릭 단독→HBS+BCG 공동, 주저자 Dell'Acqua, 758명·43% 정확 |
+| ch02 | 영국 코파일럿 "정부 1,000개"→"기업통상부(DBT) 1,000개", "동료 감지못함"→"독립평가서 품질·정확도 하락" |
+| ch01·04 | Turing Trap 출처 "(Stanford HAI)"→"Daedalus (2022)" |
+
+- 정확 확인(유지): 43%·758명·666명(Gerlich, Societies 2025), 인용문 3건(Hoffman·Brynjolfsson·Christensen)
+
+### 신규 규칙 확립
+숫자·통계 자료는 항상 **출처 크로스체크 + 3중 검증**(추출→웹대조→반영후 재대조). CLAUDE.md 작업규칙 + 메모리(`feedback_number_verification`) 영구 반영.
+
+### 남은 것
+- (선택) V2 원본 4편에도 동일 숫자 수정 적용
+- (선택) V3 4편 Playwright PDF/PNG 렌더링
+
+---
+
+## 2026-06-20 — AX 직원교육 뉴스레터 (주1회 텔레그램 순차발송)
+
+### 배경
+`RXR_ai강의_v1.html`(20파트, 공유 워크스페이스 셋업 전제)을 **공유 인프라 의존분 제거** 후
+"각자 자기 Claude Code에서 완결되는 한 개념 + 한 실습"으로 경량 재구성.
+직원 대상 뉴스레터로 **주 1회 · 7회차(약 두 달) · 텔레그램** 순차 발송.
+
+### 확정 전제 (사용자)
+- 실습환경: 각자 Claude Code(공유 git/CLAUDE.md 셋업 없음) → 로컬 완결 예제만
+- 채널: 텔레그램 / 주기: 주1회 7회차 / 범위: 플랜+전체콘텐츠+발송자동화 전부
+
+### 산출물 (`newsletter/`)
+- **curriculum.md** — 7회차 매핑(개념·v1근거·실습미션·비유)
+- **episodes/** — 텔레그램 본문 8건(ep-00 온보딩 + ep-01~07.md), 상세 HTML 2건(ep-01·02.html, R 다크테마)
+- **send-newsletter.py** — 회차 카운터 기반 발송(daily-report-bot 패턴 재사용). `--test/--dry-run/--episode/--status` 지원
+- **delivery-status.json** — last_sent_episode 카운터(현재 0, 미시작) / **recipients.json** — 직원 chat_id(현재 빈 배열→매니저 폴백)
+- **send-newsletter.sh** + `~/Library/LaunchAgents/com.dobetter.ax-newsletter.plist` — 매주 월 09:00 (plutil OK, **아직 load 안 함**)
+
+### 회차 구성
+EP01 왜 까만화면(에이전트 3특성) / EP02 말하듯+확인해줘 / EP03 쪼개기·Plan·/clear /
+EP04 CLAUDE.md / EP05 첫 스킬 / EP06 HTML 비주얼 / EP07 깎아쓰기+1년후풍경
+
+### 검증 완료
+- EP01 본인 chat_id 실발송 성공(Markdown 파싱 통과), dry-run·status 정상
+- plist 문법 OK, 스크립트 실행권한 부여
+
+### 직원봇 재사용 확정 (전용 봇 불필요)
+- 직원 발송은 **일일업무보고봇**(`DAILY_REPORT_BOT_TOKEN`) 재사용 → 직원이 이미 아는 봇으로 발송
+- 수신자 = `arisa-employees.json`의 `by_telegram_id` 자동 사용 (개인채팅 user_id=chat_id)
+- 현재 **명부 12명 중 텔레그램ID 학습 3명** → 나머지 9명은 봇에 1회 메시지(/report 등) 필요
+- 스크립트에 `--audience {me,employees}` 추가, 래퍼·plist는 `--audience employees`로 차주 발송
+- **roadmap.html** 추가(8주 여정 맵), 샘플(온보딩+EP01) 본인 발송 검증 완료
+
+### 운영 시작 전 남은 결정 (사용자 확인 필요)
+1. **미학습 직원 9명** — 일일업무보고봇에 1회 메시지 유도(전체 안내) → chat_id 자동 학습
+2. **launchd load** — `launchctl load ~/Library/LaunchAgents/com.dobetter.ax-newsletter.plist` (차주 월 09:00 가동)
+3. EP03~07 상세 HTML 제작 여부(현재 텔레그램 본문만)
+
+### 2차 — 직무별 심화 예제 강화 (2026-06-20)
+- 직원 구성 확인: 공간팀3·기획팀3·운영1 + 마케팅 업무 → **4직무군**(디자인/기획·PM/운영/마케팅)
+- **`job-playbook.html`** 신설 — 4직무 탭 × 업무흐름 3단계(리서치/자료정리/보고서) = **12블록** 예제집(복붙 프롬프트+산출물+검증+출처스킬), R 다크테마
+- **`job-examples.md`** 신설 — 예제집 콘텐츠 원천
+- 회차 본문(ep-01~07) 강화 — "💼 내 직무라면" 직무별 1줄 + 예제집 안내, EP02·05·06에 공통흐름 보강. 전 회차 1,041자 이하(텔레그램 여유)
+- `curriculum.md`·`roadmap.html` 반영. 소스: 워크스페이스 자산(RXR 8종·brand-analysis·card-news·소상공인 M1·디자인컨설팅·survey) + 온라인 사례(콘텐츠 캘린더·경쟁사 90일·프롬프트 4요소)
+- 예제집 전달 방식 → **텔레그램 첨부**로 확정(아래 3차 보안)
+
+### 3차 — 30일 보안 패키지 구축 (2026-06-20)
+사용자 요청: 텔레그램 전달 자료를 발송 30일 후 삭제·사용불가로. 풀 패키지(삭제+만료링크+워터마크+공지).
+- **`build-locked.py`** — `job-playbook.html`→`job-playbook-locked.html` 빌더. 프로젝트렌트 표준 패턴 재사용(비번 게이트+EXPIRY `new Date` 비교+CSS 워터마크+보안공지+Base64 payload+TextDecoder)
+- **`job-playbook-locked.html`** — 비번 `projectrent2026`, 만료 `2026-08-31`(빌드 인자), 워터마크 "AX 교육 · Project Rent", 하단 보안공지. payload 디코드·12블록 정상
+- **`send-newsletter.py` 보안 보강**:
+  - `tg_send`가 message_id 반환 → `sent-log.json`에 발송 기록(token/chat/msg/episode/sent_at)
+  - `tg_send_document`(multipart) — 예제집 보안본 첨부(`--attach`)
+  - `--purge` — `SECURITY_TTL_DAYS=30` 경과분 `deleteMessage`로 회수 후 로그 정리
+  - **검증 완료**: 텍스트+첨부 발송→msg기록→타임스탬프 31일전 조작→`--purge`→텔레그램 실삭제+로그 비움 확인
+- **`com.dobetter.ax-newsletter-purge.plist`** — 매일 04:30 `--purge` (plutil OK, 미등록 대기)
+- 회차 본문 8개에 "🔒 30일 후 자동 삭제·무단 공유 금지" 공지 푸터 추가
+- **텔레그램 한계 명시**: 수신자 캡처/복사/전달 사본은 회수 불가 → 삭제+워터마크+공지는 유출 억제·추적이지 완전 차단 아님
+
+### 4차 — 직원 자동등록 (2026-06-20)
+- 봇 링크: **https://t.me/Dailywork_report_bot** (@Dailywork_report_bot, "업무보고 도우미")
+- `daily-report-bot.py`에 `register_subscriber()` + `cmd_start` 훅 추가 → 직원이 봇 [시작]만 눌러도 `recipients.json`에 chat_id 자동 등록 + "AX 뉴스레터 신청 완료" 안내
+- `send-newsletter.py` `resolve_audience`: 자동구독(recipients.json) ∪ 직원명부(by_telegram_id) 합집합·중복제거
+- 봇 재시작 완료(launchctl kickstart). 함수 단위 + 합집합 dry-run 검증 통과
+- 직원 공지문구: "봇 링크 → [시작] 누르면 자동 수신 신청" + 30일 자동삭제 안내
+
+### 5~7차 — 케이스북·주차 스텝·프로젝트 일정 특별편 (2026-06-21)
+- **5차 케이스북**: `casebook/case-{design,planning,ops,marketing}.html` 4종(워크스루+목업+성과근거) + 보안본. 직무매칭 발송 `--casebook`
+- **6차 주차 스텝**: `build-steps.py`+`step_content.py` → `steps/wk1~7-{4직무}.html` 28개 + 보안본. 각 스텝=워크스루+성과+🎤차주 **주간 공유** 5분 발표(발표슬라이드 AI제작 프롬프트). WK2 충실화(왜/팁/이어서). 발송 `--steps`(직무 스텝 + **마케팅 전직무 공통 동봉**)
+- **7차 프로젝트 일정 특별편(WK8)**: 기획/디자인/운영 3종. 턴키 팝업 8단계 기준, **①정의 ②현황 ③D-Day 역산 일정표** 순차(stages) + **🚩 핵심 마일스톤** 섹션. `--steps --wk 8`(마케팅 미존재 조용히 skip)
+- 회차 본문 ep-01~07에 "📎 이번 주 직무 심화 스텝 첨부 → 차주 주간 공유 발표" 안내
+- 총 스텝 HTML 31개(WK1~8) + 보안본 31개. 전체 보안본 비번 `projectrent2026`·만료 `2026-08-31`
+- 검증: 직무매칭 dry-run, 본인 실발송(텍스트+첨부), purge 정상
+
+### 정식 가동 체크리스트 (사용자 요청 시)
+1. 직원 전체에게 봇 링크 공지 → 각자 [시작] → recipients.json 자동 등록
+2. 예제집 보안본 재빌드(만료일/비번 확정): `python build-locked.py --expiry YYYY-MM-DD --pw ___`
+3. 발송 가동: `launchctl load ~/Library/LaunchAgents/com.dobetter.ax-newsletter.plist`
+4. purge 가동: `launchctl load ~/Library/LaunchAgents/com.dobetter.ax-newsletter-purge.plist`
+5. 정식 발송은 `--audience employees --attach`로 (직원봇+예제집 첨부)

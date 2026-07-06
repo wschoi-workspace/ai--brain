@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>쿠키리스 시대, 왜 오프라인이 새로운 마케팅 플랫폼이 되는가 — Project Rent Ad-Tech Lecture</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg:#1A1A1A; --bg-2:#111111; --bg-3:#222222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333333; --line-2:#2A2A2A;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-dark:#5A4BD1;
+  --warm:#E9DCC8; --rust:#B86C4A; --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { background:var(--bg); color:var(--fg); font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif; font-weight:300; letter-spacing:-0.01em; line-height:1.7; overflow:hidden; width:100%; height:100%; }
+.deck { width:100%; height:100%; position:relative; }
+
+/* ── Slide (1920×1080, scale-fit) — PT형 가이드 구조 ── */
+.slide { width:1920px; height:1080px; position:absolute; top:0; left:0; transform-origin:top left; display:none; padding:72px 100px 104px; overflow:hidden; flex-direction:column; }
+.slide.active { display:flex; }
+.slide--dark { background:var(--bg-2); }
+.slide--cover, .slide--closing { justify-content:center; align-items:flex-start; }
+
+/* slide-head 상단 고정 */
+.slide-head { flex-shrink:0; }
+.sec-head { display:flex; justify-content:space-between; align-items:baseline; padding-bottom:20px; border-bottom:1px solid var(--line-2); }
+.eyebrow { font-size:16.5px; letter-spacing:0.3em; color:var(--fg-3); text-transform:uppercase; font-weight:400; }
+.eyebrow .en { color:var(--accent); font-weight:600; }
+h1 { font-size:96px; font-weight:700; line-height:1.04; letter-spacing:-0.04em; }
+h2 { font-size:62px; font-weight:700; line-height:1.14; letter-spacing:-0.025em; color:var(--fg); margin-top:22px; }
+h3 { font-size:42px; font-weight:300; line-height:1.2; letter-spacing:-0.02em; }
+.subcopy { font-size:28.5px; font-weight:300; line-height:1.6; color:var(--fg-2); margin-top:18px; max-width:1280px; }
+.subcopy b { color:var(--fg); font-weight:500; } .subcopy .accent { color:var(--accent); font-weight:500; }
+.body-text { font-size:30px; font-weight:300; line-height:1.7; color:var(--fg-2); }
+.label { font-size:16.5px; letter-spacing:0.25em; color:var(--fg-3); text-transform:uppercase; font-weight:400; }
+
+/* slide-body 하단 정렬 */
+.slide-body { flex:1; display:flex; flex-direction:column; justify-content:flex-end; min-height:0; }
+.note { font-size:16.5px; color:var(--fg-3); margin-top:16px; line-height:1.5; }
+.note b { color:var(--fg-2); font-weight:500; }
+
+/* slide-footer */
+.slide-footer { position:absolute; bottom:40px; left:100px; right:100px; display:flex; justify-content:space-between; align-items:baseline; font-size:15px; letter-spacing:0.2em; color:var(--fg-3); text-transform:uppercase; border-top:1px solid var(--line-2); padding-top:14px; }
+.slide-footer .pg { color:var(--accent); font-weight:600; }
+
+/* Components */
+.card { background:var(--bg-3); border:1px solid var(--line-2); padding:28px; display:flex; flex-direction:column; }
+.card-accent { border-top:2px solid var(--accent); }
+.kpi { background:var(--bg-3); border:1px solid var(--line-2); padding:24px; text-align:center; }
+.kpi-label { font-size:15px; letter-spacing:0.2em; color:var(--fg-3); text-transform:uppercase; margin-bottom:8px; }
+.kpi-value { font-size:54px; font-weight:200; color:var(--accent); line-height:1.1; letter-spacing:-0.02em; }
+.kpi-unit { font-size:24px; font-weight:300; color:var(--fg-2); }
+.kpi-sub { font-size:16.5px; color:var(--fg-3); margin-top:6px; }
+.g { display:grid; gap:14px; } .g2 { grid-template-columns:1fr 1fr; } .g3 { grid-template-columns:1fr 1fr 1fr; } .g4 { grid-template-columns:1fr 1fr 1fr 1fr; }
+.g-23 { grid-template-columns:2fr 3fr; } .g-32 { grid-template-columns:3fr 2fr; } .g-gap { gap:24px; }
+.split { display:grid; grid-template-columns:1fr 1fr; gap:48px; }
+.split-dark { background:var(--bg-2); border:1px solid var(--line-2); padding:32px; display:flex; flex-direction:column; justify-content:center; }
+.callout { background:rgba(108,92,231,.08); border-left:3px solid var(--accent); padding:18px 22px; }
+.callout p { color:var(--fg-2); font-size:22.5px; margin:0; line-height:1.7; } .callout strong { color:var(--accent-light); }
+.callout-success { background:rgba(143,163,126,.08); border-left-color:var(--green); } .callout-success strong { color:var(--green); }
+.accent { color:var(--accent); } .accent-light { color:var(--accent-light); }
+.green { color:var(--green); } .amber { color:var(--amber); } .rust { color:var(--rust); } .red { color:var(--red); } .fg3 { color:var(--fg-3); }
+.bold { font-weight:500; } .light { font-weight:200; }
+.hero-num { font-size:96px; font-weight:200; color:var(--accent); letter-spacing:-0.03em; line-height:1; }
+.hero-num .unit { font-size:33px; font-weight:300; color:var(--fg-2); }
+.divider { border:none; border-top:1px solid var(--line-2); margin:14px 0; }
+
+/* 행동 사슬 / 흐름 */
+.ir-flow { display:flex; align-items:stretch; gap:0; }
+.ir-fstep { flex:1; background:#222; border:1px solid var(--line-2); padding:24px 16px; position:relative; display:flex; flex-direction:column; justify-content:center; }
+.ir-fstep.dim { background:#1c1c1c; }
+.ir-fstep.hot { background:rgba(108,92,231,.06); border-color:rgba(108,92,231,.25); }
+.ir-fstep::after { content:'\2192'; position:absolute; right:-13px; top:50%; transform:translateY(-50%); color:var(--accent); font-size:27px; z-index:1; }
+.ir-fstep:last-child::after { display:none; }
+.ir-fstep .fs-num { font-size:34px; font-weight:200; color:var(--accent); }
+.ir-fstep .fs-num.dimn { color:var(--fg-3); }
+.ir-fstep .fs-title { font-size:24px; font-weight:500; color:var(--fg); margin-top:8px; }
+.ir-fstep .fs-desc { font-size:16.5px; color:var(--fg-3); margin-top:6px; line-height:1.5; }
+.perf-row { display:flex; align-items:baseline; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--line-2); }
+.perf-row:last-child { border-bottom:none; }
+.perf-row .p-label { font-size:21px; color:var(--fg-2); }
+.perf-row .p-value { font-size:36px; font-weight:200; color:var(--accent); letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
+
+.ir-blist { list-style:none; padding:0; }
+.ir-blist li { padding:13px 0 13px 24px; position:relative; font-size:22.5px; color:var(--fg-2); border-bottom:1px solid var(--line-2); line-height:1.55; }
+.ir-blist li::before { content:''; position:absolute; left:0; top:24px; width:6px; height:6px; background:var(--accent); border-radius:50%; }
+.ir-blist li b { color:var(--fg); font-weight:500; }
+.ir-blist.plain li::before { background:var(--fg-3); }
+
+.chips { display:flex; flex-wrap:wrap; gap:8px; }
+.chip { display:inline-block; padding:6px 16px; font-size:19.5px; letter-spacing:0.04em; border-radius:2px; font-weight:400; background:rgba(122,117,112,.1); color:var(--fg-2); border:1px solid var(--line); }
+
+/* Cover/Closing */
+.cover-eyebrow { font-size:16.5px; letter-spacing:0.3em; color:var(--fg-3); text-transform:uppercase; margin-bottom:40px; }
+.close-line { font-size:42px; font-weight:300; line-height:1.5; color:var(--fg-2); padding:18px 0; border-bottom:1px solid var(--line-2); }
+.close-line:last-child { border-bottom:none; }
+.close-line b { color:var(--fg); font-weight:500; }
+.close-line .accent { color:var(--accent); font-weight:500; }
+
+/* ── Top progress bar ── */
+.nav-progress { position:fixed; top:0; left:0; right:0; height:3px; background:rgba(108,92,231,.12); z-index:200; }
+.nav-progress-fill { height:100%; background:var(--accent); width:0; transition:width .3s cubic-bezier(.2,.8,.2,1); }
+
+/* ── Nav bar ── */
+.nav-bar { position:fixed; bottom:0; left:0; right:0; height:48px; background:rgba(17,17,17,.92); backdrop-filter:blur(10px); border-top:1px solid var(--line-2); display:flex; align-items:center; justify-content:space-between; padding:0 32px; z-index:100; font-size:16.5px; letter-spacing:0.2em; color:var(--fg-3); text-transform:uppercase; }
+.nav-bar.hidden { transform:translateY(100%); }
+.nav-bar button { background:none; border:1px solid var(--line-2); color:var(--fg-3); padding:6px 14px; font-size:15px; letter-spacing:0.22em; text-transform:uppercase; cursor:pointer; font-family:inherit; transition:all 150ms; }
+.nav-bar button:hover { border-color:var(--fg-3); color:var(--fg); }
+.nav-bar button.on { border-color:var(--accent); color:var(--accent-light); }
+.nav-center { display:flex; align-items:center; gap:14px; }
+.slide-counter { font-variant-numeric:tabular-nums; }
+
+/* ── Edit mode ── */
+[contenteditable="true"] { outline:none; }
+[contenteditable="true"]:hover { background:rgba(108,92,231,.05); }
+[contenteditable="true"]:focus { outline:1px dashed var(--accent); outline-offset:3px; background:rgba(108,92,231,.06); }
+.edit-indicator { position:fixed; top:14px; right:24px; z-index:200; font-size:15px; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent-light); background:rgba(108,92,231,.12); border:1px solid rgba(108,92,231,.3); padding:5px 12px; display:none; }
+body.editing .edit-indicator { display:block; }
+#toast { position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:300; font-size:16.5px; letter-spacing:0.1em; color:var(--fg); background:rgba(17,17,17,.95); border:1px solid var(--line); padding:8px 18px; border-radius:2px; opacity:0; transition:opacity .25s; pointer-events:none; }
+#toast.show { opacity:1; }
+
+@media print {
+  html, body { overflow:visible; height:auto; }
+  .slide { display:flex !important; page-break-after:always; position:relative; transform:none !important; left:0 !important; top:0 !important; }
+  .nav-bar, .nav-progress, .edit-indicator, #toast { display:none !important; }
+}
+</style>
+</head>
+<body>
+<div class="nav-progress"><div class="nav-progress-fill" id="progress-fill"></div></div>
+<div class="edit-indicator">● EDIT MODE</div>
+<div id="toast"></div>
+<div class="deck">
+
+<!-- ════════ P01 · COVER ════════ -->
+<section class="slide slide--cover slide--dark active">
+  <div class="cover-eyebrow">PROJECT RENT · AD-TECH LECTURE 2026</div>
+  <h1>쿠키리스 시대,<br>왜 <span class="accent">오프라인</span>이 새로운<br>마케팅 플랫폼이 되는가</h1>
+  <p class="body-text" style="margin-top:30px;max-width:1000px;font-size:33px;">클릭의 시대에서 <b style="color:var(--fg)">행동의 시대</b>로</p>
+  <div style="margin-top:48px;border-left:2px solid var(--line);padding-left:28px;">
+    <p class="body-text" style="font-size:33px;line-height:1.6;">우리는 고객이 <span class="fg3">무엇을 클릭했는지</span>는 알지만,<br><b style="color:var(--fg)">왜 <span class="accent">움직였는지</span>는 모른다.</b></p>
+  </div>
+  <div class="cover-eyebrow" style="margin-top:48px;margin-bottom:0;">From the Click Era to the Behavior Era &nbsp;·&nbsp; by Project Rent</div>
+</section>
+
+<!-- ════════ P02 · 광고의 위기 + 클릭의 한계 ════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">01 — THE CRISIS</span><span class="eyebrow en">02</span></div>
+    <h2>광고는 많아졌지만, 신뢰는 줄어들었다</h2>
+    <p class="subcopy"><b>쿠키가 닫히고 비용은 오르는데, 우리가 쥔 데이터는 '무엇을 클릭했는가'까지만 안다.</b> 정작 '왜 움직였는가'는 여전히 알 수 없다 — 디지털 광고 산업 전체가 흔들리는 중이다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g g3 g-gap">
+      <div class="card card-accent">
+        <div class="label accent">01 · 데이터</div>
+        <h3 style="font-size:34px;margin:14px 0 12px;">쿠키리스 가속</h3>
+        <p class="body-text" style="font-size:21px;">Safari·Firefox는 이미 서드파티 쿠키를 차단 — <b class="accent-light">웹 절반이 쿠키리스</b>. iOS의 ATT로 앱 추적도 제한된다.</p>
+      </div>
+      <div class="card card-accent">
+        <div class="label accent">02 · 비용</div>
+        <h3 style="font-size:34px;margin:14px 0 12px;">CAC 상승</h3>
+        <p class="body-text" style="font-size:21px;">이커머스 고객 획득 비용(CAC)이 <b class="accent-light">'23→'25 약 40~60% 상승</b>. 유료 트래픽만으론 성장이 정체된다.</p>
+      </div>
+      <div class="card card-accent">
+        <div class="label accent">03 · 한계</div>
+        <h3 style="font-size:34px;margin:14px 0 12px;">클릭 ≠ 행동</h3>
+        <p class="body-text" style="font-size:21px;">온라인은 클릭·조회·체류까지만 안다. <b class="accent-light">망설임·관심·감정·실제 경험</b>은 데이터에 잡히지 않는다.</p>
+      </div>
+    </div>
+    <div class="note"><b>출처:</b> 이커머스 CAC '23→'25 +40~60% — LoyaltyLion·Mobiloud 등 업계 벤치마크(2025). 쿠키 — Safari·Firefox 기본 차단 + Apple ATT(2021). ※ 구글 Chrome은 2024.7 서드파티 쿠키 폐지 계획을 철회.</div>
+  </div>
+  <div class="slide-footer"><span>쿠키리스 시대, 왜 오프라인인가 · by Project Rent</span><span class="pg">02 / 08</span></div>
+</section>
+
+<!-- ════════ P03 · 소비는 어디서 일어나는가 ════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">02 — WHERE BUYING HAPPENS</span><span class="eyebrow en">03</span></div>
+    <h2>대부분의 소비는 아직도 오프라인에서 일어난다</h2>
+    <p class="subcopy"><b>측정은 온라인에 편중돼 있지만, 실제 지갑이 열리는 곳은 매장이다.</b> 가장 큰 소비 현장이 가장 측정되지 않는다 — 거대한 공백이 비어 있다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g g-23 g-gap">
+      <div class="split-dark">
+        <div style="display:flex;gap:56px;">
+          <div><div class="hero-num">~80<span class="unit">%</span></div><div class="kpi-sub" style="margin-top:10px;">소매 판매가 여전히<br>오프라인에서 발생</div></div>
+          <div><div class="hero-num" style="color:var(--fg-3);">16~20<span class="unit">%</span></div><div class="kpi-sub" style="margin-top:10px;">이커머스가 차지하는<br>소매 판매 비중</div></div>
+        </div>
+        <hr class="divider" style="margin:24px 0;">
+        <p class="body-text" style="font-size:21px;">중요한 구매일수록 — <b style="color:var(--fg)">자동차·가구·뷰티·F&amp;B</b> — 직접 보고 만지는 <b class="accent-light">실제 경험</b>이 필요하다.</p>
+      </div>
+      <div>
+        <div class="label" style="margin-bottom:14px;">측정되지 않는 가장 큰 시장</div>
+        <ul class="ir-blist">
+          <li><b>소비는 오프라인, 데이터는 온라인.</b> 카페·쇼핑·F&amp;B·자동차·가구·뷰티 — 정작 측정 도구가 없다</li>
+          <li><b>국내 디지털 광고 약 11.3조 원</b> ('25) — 측정 가능한 예산은 여기로 쏠린다</li>
+          <li><b>가장 큰 소비 현장이 '감'으로 집행된다</b> — 최적화의 사각지대</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note"><b>출처:</b> 이커머스 소매 비중 — 2024 미국 약 16%·글로벌 약 20%(Digital Commerce 360·Statista), 즉 오프라인 ~80%. 국내 디지털 광고비 약 11조 2,619억 원('25) — DMC리포트.</div>
+  </div>
+  <div class="slide-footer"><span>쿠키리스 시대, 왜 오프라인인가 · by Project Rent</span><span class="pg">03 / 08</span></div>
+</section>
+
+<!-- ════════ P04 · 행동은 속일 수 없다 ════════ -->
+<section class="slide slide--dark">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">03 — THE INSIGHT</span><span class="eyebrow en">04</span></div>
+    <h2>검색어는 속일 수 있지만, 행동은 속일 수 없다</h2>
+    <p class="subcopy"><b>미래의 경쟁은 데이터의 <span class="accent">양</span>이 아니라 <span class="accent">해상도</span>에서 갈린다.</b> 방문에서 구매까지 이어지는 행동의 궤적은, 클릭 한 번보다 훨씬 깊은 진실을 담는다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="ir-flow" style="height:230px;">
+      <div class="ir-fstep hot"><div class="fs-num">01</div><div class="fs-title">매장 방문</div><div class="fs-desc">누가 왔는가 — 접근</div></div>
+      <div class="ir-fstep hot"><div class="fs-num">02</div><div class="fs-title">체류</div><div class="fs-desc">얼마나 머무는가 — 관심</div></div>
+      <div class="ir-fstep hot"><div class="fs-num">03</div><div class="fs-title">상품 접촉</div><div class="fs-desc">무엇을 만지는가 — 탐색</div></div>
+      <div class="ir-fstep hot"><div class="fs-num">04</div><div class="fs-title">반응</div><div class="fs-desc">어떻게 반응하는가 — 참여</div></div>
+      <div class="ir-fstep hot"><div class="fs-num">05</div><div class="fs-title">구매</div><div class="fs-desc">왜 선택했는가 — 전환</div></div>
+    </div>
+    <div class="g g2 g-gap" style="margin-top:24px;">
+      <div class="callout"><p><strong>기존 — 양의 데이터</strong><br>100만 번의 노출. 그러나 누가, 왜 움직였는지는 비어 있다.</p></div>
+      <div class="callout callout-success"><p><strong>미래 — 해상도의 데이터</strong><br>누가 · 왜 · 언제 · 어떻게 움직였는가. 행동이 곧 진실이다.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>쿠키리스 시대, 왜 오프라인인가 · by Project Rent</span><span class="pg">04 / 08</span></div>
+</section>
+
+<!-- ════════ P05 · 매장은 미디어다 ════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">04 — THE NEW PLATFORM</span><span class="eyebrow en">05</span></div>
+    <h2>매장은 더 이상 판매 공간이 아니다 —<br><span class="accent">미디어이자 데이터 플랫폼</span>이다</h2>
+    <p class="subcopy"><b>광고가 곧바로 판매로 직행하던 구조가 바뀐다.</b> 체험과 행동, 그리고 데이터가 그 사이를 채우면서 — 매장 자체가 새로운 광고 플랫폼이 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="label" style="margin-bottom:12px;">기존 구조</div>
+    <div class="ir-flow" style="height:120px;margin-bottom:32px;">
+      <div class="ir-fstep dim"><div class="fs-num dimn">01</div><div class="fs-title" style="color:var(--fg-2)">광고</div></div>
+      <div class="ir-fstep dim"><div class="fs-num dimn">02</div><div class="fs-title" style="color:var(--fg-2)">판매</div></div>
+    </div>
+    <div class="label accent" style="margin-bottom:12px;">새로운 구조 — 매장이 데이터를 만든다</div>
+    <div class="ir-flow" style="height:150px;">
+      <div class="ir-fstep hot"><div class="fs-num">01</div><div class="fs-title">광고</div><div class="fs-desc">캠페인이 거점에서 시작</div></div>
+      <div class="ir-fstep hot"><div class="fs-num">02</div><div class="fs-title">체험</div><div class="fs-desc">고객이 직접 경험</div></div>
+      <div class="ir-fstep hot"><div class="fs-num">03</div><div class="fs-title">행동</div><div class="fs-desc">방문·체류·반응이 기록</div></div>
+      <div class="ir-fstep hot"><div class="fs-num">04</div><div class="fs-title">데이터</div><div class="fs-desc">행동이 자산으로 축적</div></div>
+      <div class="ir-fstep hot"><div class="fs-num">05</div><div class="fs-title">구매</div><div class="fs-desc">전환·매출 발생</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>쿠키리스 시대, 왜 오프라인인가 · by Project Rent</span><span class="pg">05 / 08</span></div>
+</section>
+
+<!-- ════════ P06 · Amazon이 증명한 것 + 빈자리 ════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">05 — PROOF & OPPORTUNITY</span><span class="eyebrow en">06</span></div>
+    <h2>Amazon의 핵심은 쇼핑몰이 아니라 데이터였다</h2>
+    <p class="subcopy"><b>구매 데이터를 쥔 Amazon은 광고·추천·매출의 선순환을 만들었고, 광고만으로 연 562억 달러를 번다.</b> 그런데 오프라인에는 아직 'Amazon Ads'도, '구글 애널리틱스'도 없다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g g-23 g-gap">
+      <div class="split-dark">
+        <div class="label" style="margin-bottom:16px;">Amazon이 증명한 선순환</div>
+        <div class="ir-flow" style="height:auto;">
+          <div class="ir-fstep" style="padding:18px 10px;"><div class="fs-title" style="font-size:20px;">구매 데이터</div></div>
+          <div class="ir-fstep" style="padding:18px 10px;"><div class="fs-title" style="font-size:20px;">광고</div></div>
+          <div class="ir-fstep" style="padding:18px 10px;"><div class="fs-title" style="font-size:20px;">추천</div></div>
+          <div class="ir-fstep" style="padding:18px 10px;"><div class="fs-title" style="font-size:20px;">매출</div></div>
+        </div>
+        <div style="margin-top:24px;"><span class="hero-num" style="font-size:72px;">562<span class="unit">억 달러</span></span><div class="kpi-sub" style="margin-top:8px;">Amazon 광고 매출 (2024) — 데이터가 만든 사업</div></div>
+      </div>
+      <div>
+        <div class="label" style="margin-bottom:14px;">아직 비어 있는 자리</div>
+        <div class="g g2" style="margin-bottom:20px;">
+          <div class="card"><div class="label">온라인</div><h3 style="font-size:32px;margin-top:10px;color:var(--green)">측정 가능</h3><p class="body-text" style="font-size:19.5px;margin-top:8px;">GA·픽셀로 모든 행동이 데이터화</p></div>
+          <div class="card"><div class="label">오프라인</div><h3 style="font-size:32px;margin-top:10px;color:var(--red)">블랙박스</h3><p class="body-text" style="font-size:19.5px;margin-top:8px;">가장 큰 소비 현장이 측정 불가</p></div>
+        </div>
+        <div class="callout"><p>오프라인 행동 데이터를 측정하는 자가 다음 플랫폼을 가진다. 리테일 미디어 시장은 <strong>2025년 1,840억 달러 → 2030년 3,120억 달러</strong>(연 ~11% 성장)로 향한다.</p></div>
+      </div>
+    </div>
+    <div class="note"><b>출처:</b> Amazon 2024 연간 광고 매출 562억 달러(Amazon 실적·Statista). 리테일 미디어 글로벌 전망 — Forrester Global Retail Media Forecast 2025→2030.</div>
+  </div>
+  <div class="slide-footer"><span>쿠키리스 시대, 왜 오프라인인가 · by Project Rent</span><span class="pg">06 / 08</span></div>
+</section>
+
+<!-- ════════ P07 · 미래의 마케팅 (CLOSING) ════════ -->
+<section class="slide slide--dark">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">06 — THE FUTURE</span><span class="eyebrow en">07</span></div>
+    <h2>광고를 많이 하는 기업이 아니라,<br><span class="accent">사람을 가장 깊게 이해하는 기업</span>이 승리한다</h2>
+  </div>
+  <div class="slide-body" style="justify-content:center;">
+    <div style="max-width:1400px;">
+      <p class="close-line">Google은 사람들이 <b>무엇을 검색하는지</b> 이해했다.</p>
+      <p class="close-line">Amazon은 사람들이 <b>무엇을 구매하는지</b> 이해했다.</p>
+      <p class="close-line">다음 시대의 승자는, 사람들이 <span class="accent">왜 움직이는지</span>를 이해하는 기업이 될 것이다.</p>
+    </div>
+  </div>
+  <div class="slide-footer"><span>클릭의 시대에서 행동의 시대로 · by Project Rent</span><span class="pg">07 / 08</span></div>
+</section>
+
+<!-- ════════ P08 · PROJECT RENT 공개 (REVEAL) ════════ -->
+<section class="slide slide--dark">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">PROJECT RENT</span><span class="eyebrow en">08</span></div>
+    <h2>우리는 이 문제를 해결하기 위해<br><span class="accent">Physical Ad-Tech Network</span>를 구축하고 있습니다</h2>
+    <p class="subcopy"><b>검증된 오프라인 실행력 위에서 — 자사 엔진 RXR로 행동을 고해상도로 읽는다.</b> '무엇을 했나'를 넘어 '왜·어떤 심리로 움직였나'까지 해석해, 오프라인 행동을 온라인 구매로 잇는다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g g-32 g-gap" style="align-items:stretch;">
+      <!-- 좌: RXR 엔진 (2-Layer) -->
+      <div>
+        <div class="label accent" style="margin-bottom:14px;">RXR — 행동을 읽는 자사 엔진 · 특허 제10-2545502호</div>
+        <div class="split" style="gap:24px;">
+          <div class="card">
+            <div class="label">Content Layer</div>
+            <h3 style="font-size:34px;margin:10px 0 14px;color:var(--fg-2);">무엇을 했나</h3>
+            <p class="body-text" style="font-size:20px;">방문 · 체류 · 반응 · 구매를 비식별로 기록 — 행동의 사실을 데이터로 남긴다.</p>
+          </div>
+          <div class="card card-accent" style="background:rgba(108,92,231,.05);">
+            <div class="label accent-light">Psyche Layer</div>
+            <h3 style="font-size:34px;margin:10px 0 14px;color:var(--fg);">왜 그랬나</h3>
+            <p class="body-text" style="font-size:20px;">관여 깊이 · 취향(LAS) · <b class="accent-light">진정성</b>까지 — 행동 뒤의 심리를 해석한다.</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:18px;"><p>같은 1명의 방문도 '무엇을'이 아니라 <strong>'누가·왜·어떤 심리로'</strong>까지 읽는다 — 그래서 오프라인 행동이 온라인 구매로 이어졌음을 증명한다.</p></div>
+      </div>
+      <!-- 우: 검증된 성과 -->
+      <div class="split-dark">
+        <div class="label" style="margin-bottom:8px;">이미 검증된 성과</div>
+        <div class="perf-row"><span class="p-label">가나초콜릿 — TVC 대비 마케팅 효과</span><span class="p-value">4,500%</span></div>
+        <div class="perf-row"><span class="p-label">비욘드 — 재방문 희망률</span><span class="p-value">100%</span></div>
+        <div class="perf-row"><span class="p-label">삼성스토어 — 트래픽 상승 (전년比)</span><span class="p-value">+44%</span></div>
+        <hr class="divider" style="margin:18px 0;">
+        <div class="chips">
+          <span class="chip">현대</span><span class="chip">롯데</span><span class="chip">배민</span><span class="chip">매일</span><span class="chip">Apple</span><span class="chip">KOCCA</span>
+        </div>
+        <p class="body-text fg3" style="font-size:18px;margin-top:16px;">직영 8거점 · 300+ 운영 케이스 · 특허 제10-2545502호</p>
+      </div>
+    </div>
+    <div class="note"><b>출처:</b> 캠페인 성과·운영 케이스·특허 — Project Rent 자사 데이터 기준. RXR 2-Layer(Content·Psyche)·LAS·OMO Attribution — 자사 분석 엔진 구조.</div>
+  </div>
+  <div class="slide-footer"><span>Physical Ad-Tech Network · by Project Rent</span><span class="pg">08 / 08</span></div>
+</section>
+
+</div>
+
+<div class="nav-bar" id="navbar">
+  <span>PROJECT RENT — 쿠키리스 시대, 왜 오프라인인가 · AD-TECH LECTURE 2026</span>
+  <div class="nav-center">
+    <button onclick="navigate(-1)">◀ Prev</button>
+    <span class="slide-counter" id="counter-display">1 / 8</span>
+    <button onclick="navigate(1)">Next ▶</button>
+    <button id="edit-btn" onclick="toggleEdit()">Edit</button>
+    <button onclick="saveHTML()">Save</button>
+  </div>
+  <span>← → · F 풀스크린 · H 네비 · E 편집</span>
+</div>
+
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0; const total = slides.length;
+  const fill = document.getElementById('progress-fill');
+  function show(idx){
+    slides.forEach((s,i)=>s.classList.toggle('active', i===idx));
+    document.getElementById('counter-display').textContent = (idx+1)+' / '+total;
+    fill.style.width = ((idx+1)/total*100)+'%';
+    cur = idx;
+  }
+  window.navigate = function(d){ let n=cur+d; if(n<0)n=0; if(n>=total)n=total-1; show(n); };
+
+  let editMode=false;
+  window.toggleEdit = function(){
+    editMode=!editMode;
+    document.body.classList.toggle('editing', editMode);
+    document.getElementById('edit-btn').classList.toggle('on', editMode);
+    slides.forEach(s=>{ s.setAttribute('contenteditable', editMode); });
+    toast(editMode ? '편집 모드 ON — 텍스트를 직접 수정하세요' : '편집 모드 OFF');
+  };
+  function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800); }
+
+  window.saveHTML = function(){
+    const clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll('.nav-bar, .nav-progress, .edit-indicator, #toast').forEach(e=>e.remove());
+    clone.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
+    const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+    const blob = new Blob([html], {type:'text/html'});
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='adtech-lecture-cookieless-era.html'; a.click();
+    toast('HTML 저장됨');
+  };
+
+  document.addEventListener('keydown', function(e){
+    if(editMode && e.key!=='Escape' && !(e.metaKey&&e.key==='s')) return;
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '||e.key==='PageDown'){ e.preventDefault(); navigate(1); }
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp'){ e.preventDefault(); navigate(-1); }
+    if(e.key==='Home'){ e.preventDefault(); show(0); }
+    if(e.key==='End'){ e.preventDefault(); show(total-1); }
+    if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    if(e.key==='h'||e.key==='H'){ document.getElementById('navbar').classList.toggle('hidden'); }
+    if(e.key==='e'||e.key==='E'){ toggleEdit(); }
+    if(e.key==='Escape' && editMode){ toggleEdit(); }
+    if(e.metaKey && e.key==='s'){ e.preventDefault(); saveHTML(); }
+  });
+
+  let tsx=0; document.addEventListener('touchstart', e=>{ tsx=e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e=>{ if(editMode) return; const d=e.changedTouches[0].screenX-tsx; if(Math.abs(d)>50) navigate(d<0?1:-1); });
+  document.addEventListener('click', function(e){ if(editMode||e.target.closest('.nav-bar')) return; const x=e.clientX/window.innerWidth; if(x>0.7) navigate(1); else if(x<0.3) navigate(-1); });
+
+  function scaleSlides(){ const vw=window.innerWidth, vh=window.innerHeight-48; const s=Math.min(vw/1920, vh/1080); slides.forEach(sl=>{ sl.style.transform=`scale(${s})`; sl.style.left=((vw-1920*s)/2)+'px'; sl.style.top=((vh-1080*s)/2)+'px'; }); }
+  scaleSlides(); window.addEventListener('resize', scaleSlides);
+  show(0);
+})();
+</script>
+</body>
+</html>

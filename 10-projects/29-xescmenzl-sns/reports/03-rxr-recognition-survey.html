@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>세스크멘슬 RXR 인지도 조사 결과</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard Variable', system-ui, -apple-system, sans-serif;
+      background: #f8f8fc;
+      color: #1a1a1a;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 32px;
+    }
+
+    /* ── 섹션 공통 ── */
+    .section {
+      background: #fff;
+      border-radius: 14px;
+      padding: 32px 36px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .section-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #1a1a1a;
+      letter-spacing: -0.5px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #f0f0f8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title .badge {
+      background: #6666FF;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+
+    .report-meta {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 36px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .report-meta span { color: #888; }
+    .report-meta strong { color: #444; }
+
+    /* ── 조사 개요 그리드 ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .overview-item {
+      background: #f8f8fc;
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+
+    .overview-item .label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+    }
+
+    .overview-item .value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: -0.3px;
+    }
+
+    .overview-item .sub {
+      font-size: 12px;
+      color: #888;
+      margin-top: 3px;
+    }
+
+    /* ── KPI 카드 ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: #f8f8fc;
+      border-radius: 12px;
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    .kpi-card.accent {
+      background: linear-gradient(135deg, #6666FF 0%, #8888ff 100%);
+      color: #fff;
+    }
+
+    .kpi-card .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      letter-spacing: 0.3px;
+      margin-bottom: 6px;
+    }
+
+    .kpi-card.accent .kpi-label { color: rgba(255,255,255,0.75); }
+
+    .kpi-card .kpi-value {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: #1a1a1a;
+      line-height: 1;
+    }
+
+    .kpi-card.accent .kpi-value { color: #fff; }
+
+    .kpi-card .kpi-unit {
+      font-size: 13px;
+      font-weight: 600;
+      color: #888;
+    }
+
+    .kpi-card.accent .kpi-unit { color: rgba(255,255,255,0.8); }
+
+    /* ── 게이지 바 ── */
+    .gauge-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .gauge-item {
+      display: grid;
+      grid-template-columns: 160px 1fr 52px;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .gauge-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .gauge-label .gauge-sub {
+      font-size: 11px;
+      color: #aaa;
+      font-weight: 400;
+      display: block;
+    }
+
+    .gauge-track {
+      background: #f0f0f8;
+      border-radius: 20px;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      border-radius: 20px;
+      background: #6666FF;
+      transition: width 0.3s;
+    }
+
+    .gauge-fill.green { background: #00b894; }
+    .gauge-fill.orange { background: #fdcb6e; }
+    .gauge-fill.red { background: #e17055; }
+
+    .gauge-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: #6666FF;
+      text-align: right;
+    }
+
+    /* ── Content Class 바 차트 ── */
+    .class-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .class-bar-item {
+      display: grid;
+      grid-template-columns: 120px 1fr 80px;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .class-bar-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .class-bar-label .class-sub {
+      font-size: 11px;
+      color: #aaa;
+      font-weight: 400;
+    }
+
+    .class-bar-track {
+      background: #f0f0f8;
+      border-radius: 20px;
+      height: 12px;
+      overflow: hidden;
+    }
+
+    .class-bar-fill {
+      height: 100%;
+      border-radius: 20px;
+    }
+
+    .class-bar-stat {
+      font-size: 13px;
+      font-weight: 700;
+      color: #555;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* ── 감성 분포 ── */
+    .sentiment-stack {
+      display: flex;
+      height: 36px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .sentiment-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      transition: flex 0.3s;
+    }
+
+    .sentiment-legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── 경쟁사 비교 ── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .compare-table th {
+      background: #f8f8fc;
+      padding: 10px 14px;
+      font-weight: 700;
+      color: #555;
+      text-align: left;
+      border-bottom: 2px solid #eee;
+    }
+
+    .compare-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+    }
+
+    .compare-table tr:last-child td { border-bottom: none; }
+
+    .compare-table .highlight td {
+      background: #f5f5ff;
+      font-weight: 700;
+    }
+
+    .tag-pos { color: #00b894; font-weight: 700; }
+    .tag-neg { color: #e17055; font-weight: 700; }
+    .tag-mix { color: #fdcb6e; font-weight: 700; }
+
+    /* ── 토픽 카드 ── */
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .topic-card {
+      background: #f8f8fc;
+      border-radius: 12px;
+      padding: 20px 22px;
+      border-left: 4px solid #6666FF;
+    }
+
+    .topic-card.rank-1 { border-left-color: #6666FF; }
+    .topic-card.rank-2 { border-left-color: #8888ff; }
+    .topic-card.rank-3 { border-left-color: #00b894; }
+    .topic-card.rank-4 { border-left-color: #fdcb6e; }
+    .topic-card.rank-5 { border-left-color: #e17055; }
+    .topic-card.rank-7 { border-left-color: #a29bfe; }
+
+    .topic-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .topic-rank {
+      font-size: 11px;
+      font-weight: 800;
+      color: #aaa;
+      letter-spacing: 0.5px;
+    }
+
+    .topic-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #1a1a1a;
+      letter-spacing: -0.5px;
+      margin-top: 2px;
+    }
+
+    .topic-count {
+      font-size: 22px;
+      font-weight: 900;
+      color: #6666FF;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .topic-count span {
+      font-size: 12px;
+      font-weight: 600;
+      color: #aaa;
+    }
+
+    .topic-gauges {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .mini-gauge {
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .mini-gauge .mg-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #aaa;
+      letter-spacing: 0.3px;
+      margin-bottom: 6px;
+    }
+
+    .mini-gauge .mg-track {
+      background: #f0f0f8;
+      border-radius: 20px;
+      height: 6px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .mini-gauge .mg-fill {
+      height: 100%;
+      border-radius: 20px;
+      background: #6666FF;
+    }
+
+    .mini-gauge .mg-val {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+
+    .topic-insight {
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .topic-insight .insight-head {
+      font-weight: 700;
+      color: #6666FF;
+      margin-bottom: 4px;
+      font-size: 11px;
+      letter-spacing: 0.3px;
+    }
+
+    .topic-keywords {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .kw-tag {
+      background: #f0f0f8;
+      color: #6666FF;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* ── RQL 분포 ── */
+    .rql-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .rql-card {
+      background: #f8f8fc;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .rql-level {
+      font-size: 11px;
+      font-weight: 800;
+      color: #6666FF;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .rql-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .rql-count {
+      font-size: 24px;
+      font-weight: 900;
+      color: #1a1a1a;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .rql-sub {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 3px;
+    }
+
+    .rql-asset {
+      background: linear-gradient(135deg, #6666FF, #8888ff);
+      border-radius: 12px;
+      padding: 20px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+    }
+
+    .rql-asset .asset-label {
+      font-size: 14px;
+      font-weight: 700;
+      opacity: 0.85;
+    }
+
+    .rql-asset .asset-value {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+    }
+
+    .rql-asset .asset-sub {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+
+    /* ── 문제점/고민 카드 ── */
+    .problem-list, .question-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .problem-card {
+      border-left: 4px solid #e17055;
+      background: #fff8f6;
+      border-radius: 0 10px 10px 0;
+      padding: 16px 18px;
+    }
+
+    .question-card {
+      border-left: 4px solid #fdcb6e;
+      background: #fffdf5;
+      border-radius: 0 10px 10px 0;
+      padding: 16px 18px;
+    }
+
+    .problem-card .card-num,
+    .question-card .card-num {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .problem-card .card-num { color: #e17055; }
+    .question-card .card-num { color: #e6a817; }
+
+    .problem-card .card-title,
+    .question-card .card-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1a1a1a;
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
+    }
+
+    .problem-card .card-body,
+    .question-card .card-body {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.65;
+    }
+
+    /* ── 두 컬럼 레이아웃 ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .sub-section {
+      margin-top: 0;
+    }
+
+    .sub-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #333;
+      margin-bottom: 14px;
+      letter-spacing: -0.3px;
+    }
+
+    /* ── 주석/캡션 ── */
+    .note {
+      font-size: 12px;
+      color: #999;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #f0f0f0;
+      margin: 22px 0;
+    }
+
+    /* ── 색상 팔레트 ── */
+    .c-purple { color: #6666FF; }
+    .c-green  { color: #00b894; }
+    .c-orange { color: #fdcb6e; }
+    .c-red    { color: #e17055; }
+    .c-gray   { color: #aaa; }
+
+    .bg-pos { background: #00b894; }
+    .bg-mix { background: #fdcb6e; }
+    .bg-neu { background: #b2bec3; }
+    .bg-neg { background: #e17055; }
+
+    .bg-a { background: #6666FF; }
+    .bg-b { background: #a29bfe; }
+    .bg-c { background: #fdcb6e; }
+    .bg-d { background: #dfe6e9; }
+    .bg-g { background: #b2bec3; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ── 헤더 ── -->
+  <div style="display:flex;align-items:center;gap:10px;margin:0 0 20px 0;padding:0;background:transparent;border:none;font-family:'Pretendard Variable',system-ui,sans-serif;">
+    <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+    <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+    <strong style="font-size:19px;color:#1a1a1a;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+    <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+    <div style="flex:1"></div>
+    <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+    <strong style="font-size:13px;color:#6666FF;font-weight:700;letter-spacing:-0.1px;white-space:nowrap;">Project Rent</strong>
+    <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  </div>
+
+  <h1>세스크멘슬 RXR 인지도 조사 결과</h1>
+  <div class="report-meta">
+    <span><strong>분석일</strong> 2026-06-07</span>
+    <span><strong>분석 엔진</strong> RXR Mention Analysis v1.0</span>
+    <span><strong>데이터 소스</strong> 네이버 블로그</span>
+    <span><strong>분석 기간</strong> 2026-03-09 ~ 2026-06-07 (90일)</span>
+  </div>
+
+  <!-- ── 섹션 1: 조사 개요 ── -->
+  <div class="section">
+    <div class="section-title">
+      조사 개요
+      <span class="badge">OVERVIEW</span>
+    </div>
+    <div class="overview-grid">
+      <div class="overview-item">
+        <div class="label">분석 엔진</div>
+        <div class="value">RXR Mention Analysis v1.0</div>
+        <div class="sub">Sincerity Filter + 2-Layer + Linguistic Layer</div>
+      </div>
+      <div class="overview-item">
+        <div class="label">데이터 소스</div>
+        <div class="value">네이버 블로그</div>
+        <div class="sub">검색 API + 본문 크롤링</div>
+      </div>
+      <div class="overview-item">
+        <div class="label">분석 기간</div>
+        <div class="value">최근 90일</div>
+        <div class="sub">2026-03-09 ~ 2026-06-07</div>
+      </div>
+      <div class="overview-item">
+        <div class="label">전체 수집</div>
+        <div class="value" style="color:#6666FF;">4,183건</div>
+        <div class="sub">날짜 필터 → 300건</div>
+      </div>
+      <div class="overview-item">
+        <div class="label">관련성 필터 후</div>
+        <div class="value">196건</div>
+        <div class="sub">유효 분석 대상 (A+B+C)</div>
+      </div>
+      <div class="overview-item">
+        <div class="label">유효 분석 대상</div>
+        <div class="value" style="color:#00b894;">174건</div>
+        <div class="sub">유효율 89% — 비교: 메종조 178건, 소금집 1,234건</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 섹션 2: 핵심 KPI 대시보드 ── -->
+  <div class="section">
+    <div class="section-title">
+      핵심 KPI 대시보드
+      <span class="badge">KEY METRICS</span>
+    </div>
+
+    <!-- Top KPI Cards -->
+    <div class="kpi-grid" style="margin-bottom:28px;">
+      <div class="kpi-card accent">
+        <div class="kpi-label">유효 멘션</div>
+        <div class="kpi-value">174<span style="font-size:16px;opacity:0.8;">건</span></div>
+        <div class="kpi-unit" style="margin-top:4px;">유효율 89%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">긍정률</div>
+        <div class="kpi-value" style="color:#00b894;">39<span style="font-size:16px;color:#aaa;">%</span></div>
+        <div class="kpi-unit">67건 긍정</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">협찬 비율</div>
+        <div class="kpi-value" style="color:#6666FF;">1.7<span style="font-size:16px;color:#aaa;">%</span></div>
+        <div class="kpi-unit">3건 협찬 감지</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">리뷰 자산값</div>
+        <div class="kpi-value">211.9</div>
+        <div class="kpi-unit">평균 RQL 1.22/건</div>
+      </div>
+    </div>
+
+    <!-- Gauge 지표들 -->
+    <div class="gauge-list">
+      <div class="gauge-item">
+        <div class="gauge-label">
+          Auth (진정성)
+          <span class="gauge-sub">Linguistic 보정 후</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" style="width:73.7%"></div>
+        </div>
+        <div class="gauge-val">73.7</div>
+      </div>
+      <div class="gauge-item">
+        <div class="gauge-label">
+          Clout (추천 확신)
+          <span class="gauge-sub">추천 의향 강도</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" style="width:56.3%"></div>
+        </div>
+        <div class="gauge-val">56.3</div>
+      </div>
+      <div class="gauge-item">
+        <div class="gauge-label">
+          Freshness (정보 신선도)
+          <span class="gauge-sub">콘텐츠 최신성</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill orange" style="width:47.1%"></div>
+        </div>
+        <div class="gauge-val" style="color:#e6a817;">47.1</div>
+      </div>
+      <div class="gauge-item">
+        <div class="gauge-label">
+          LAI (언어학적 진정성)
+          <span class="gauge-sub">텍스트 분석 기반</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill red" style="width:27.7%"></div>
+        </div>
+        <div class="gauge-val" style="color:#e17055;">27.7</div>
+      </div>
+      <div class="gauge-item">
+        <div class="gauge-label">
+          EDS (인지적 몰입)
+          <span class="gauge-sub">Engagement Depth Score</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill red" style="width:14.8%"></div>
+        </div>
+        <div class="gauge-val" style="color:#e17055;">14.8</div>
+      </div>
+    </div>
+
+    <p class="note">* Auth·Clout·Freshness·LAI·EDS는 0~100 스케일의 상대 비교 지수입니다. Auth는 Linguistic Layer 보정값이며, LAI·EDS의 저수치는 F&B 카테고리 특성(사진 중심 단문 포스팅)에서 일반적으로 나타납니다.</p>
+  </div>
+
+  <!-- ── 섹션 3: Content Class 분포 ── -->
+  <div class="section">
+    <div class="section-title">
+      Content Class 분포
+      <span class="badge">SINCERITY FILTER</span>
+    </div>
+    <div class="class-bars">
+      <div class="class-bar-item">
+        <div class="class-bar-label">
+          A 진성후기
+          <span class="class-sub">경험 신호 2건+, 디테일 3건+</span>
+        </div>
+        <div class="class-bar-track">
+          <div class="class-bar-fill bg-a" style="width:24%"></div>
+        </div>
+        <div class="class-bar-stat"><span style="color:#6666FF;font-weight:800;">42건</span> · 24%</div>
+      </div>
+      <div class="class-bar-item">
+        <div class="class-bar-label">
+          B 일반포스트
+          <span class="class-sub">브랜드 관련 일반 포스팅</span>
+        </div>
+        <div class="class-bar-track">
+          <div class="class-bar-fill bg-b" style="width:74%"></div>
+        </div>
+        <div class="class-bar-stat"><span style="color:#a29bfe;font-weight:800;">129건</span> · 74%</div>
+      </div>
+      <div class="class-bar-item">
+        <div class="class-bar-label">
+          C 협찬
+          <span class="class-sub">협찬 마커 감지</span>
+        </div>
+        <div class="class-bar-track">
+          <div class="class-bar-fill bg-c" style="width:1.7%"></div>
+        </div>
+        <div class="class-bar-stat"><span style="color:#e6a817;font-weight:800;">3건</span> · 1.7%</div>
+      </div>
+      <div class="class-bar-item">
+        <div class="class-bar-label">
+          D 나열형
+          <span class="class-sub">단순 목록 나열</span>
+        </div>
+        <div class="class-bar-track">
+          <div class="class-bar-fill bg-d" style="width:0.6%"></div>
+        </div>
+        <div class="class-bar-stat"><span style="color:#888;font-weight:800;">1건</span></div>
+      </div>
+      <div class="class-bar-item">
+        <div class="class-bar-label">
+          G 노이즈
+          <span class="class-sub">분석 제외</span>
+        </div>
+        <div class="class-bar-track">
+          <div class="class-bar-fill bg-g" style="width:10.7%"></div>
+        </div>
+        <div class="class-bar-stat"><span style="color:#aaa;font-weight:800;">21건</span></div>
+      </div>
+    </div>
+    <p class="note">* 유효 분석(A+B+C) 174건 기준. G 노이즈는 전체 196건 대비 11%로, 브랜드 검색 품질이 양호한 수준입니다.</p>
+  </div>
+
+  <!-- ── 섹션 4: 감성 분포 ── -->
+  <div class="section">
+    <div class="section-title">
+      감성 분포
+      <span class="badge">SENTIMENT</span>
+    </div>
+
+    <!-- 세스크멘슬 -->
+    <div class="sub-title" style="margin-bottom:10px;">세스크멘슬 (174건)</div>
+    <div class="sentiment-stack">
+      <div class="sentiment-seg bg-pos" style="flex:39;">39%</div>
+      <div class="sentiment-seg bg-mix" style="flex:32;color:#555;">32%</div>
+      <div class="sentiment-seg bg-neu" style="flex:20;color:#555;">20%</div>
+      <div class="sentiment-seg bg-neg" style="flex:9;">9%</div>
+    </div>
+    <div class="sentiment-legend" style="margin-bottom:24px;">
+      <div class="legend-item"><div class="legend-dot bg-pos"></div> 긍정 67건 (39%)</div>
+      <div class="legend-item"><div class="legend-dot bg-mix"></div> 혼합 56건 (32%)</div>
+      <div class="legend-item"><div class="legend-dot bg-neu"></div> 중립 35건 (20%)</div>
+      <div class="legend-item"><div class="legend-dot bg-neg"></div> 부정 16건 (9%)</div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 경쟁사 비교 테이블 -->
+    <div class="sub-title">경쟁사 감성 비교</div>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>브랜드</th>
+          <th>유효 멘션</th>
+          <th>긍정</th>
+          <th>혼합</th>
+          <th>중립</th>
+          <th>부정</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="highlight">
+          <td><strong>세스크멘슬</strong></td>
+          <td>174건</td>
+          <td class="tag-pos">39%</td>
+          <td class="tag-mix">32%</td>
+          <td>20%</td>
+          <td class="tag-neg">9%</td>
+        </tr>
+        <tr>
+          <td>메종조</td>
+          <td>178건</td>
+          <td class="tag-pos">42%</td>
+          <td class="tag-mix">—</td>
+          <td>—</td>
+          <td class="tag-neg">—</td>
+        </tr>
+        <tr>
+          <td>소금집</td>
+          <td>1,234건</td>
+          <td class="tag-pos">—</td>
+          <td class="tag-mix">—</td>
+          <td>—</td>
+          <td class="tag-neg">—</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">* 경쟁사 세부 감성 분포는 별도 비교 리포트에서 상세 분석됩니다. 긍정률 기준 세스크멘슬 39% vs 메종조 42%, 3%p 차이.</p>
+  </div>
+
+  <!-- ── 섹션 5: 토픽 구조 분석 ── -->
+  <div class="section">
+    <div class="section-title">
+      토픽 구조 분석
+      <span class="badge">TOPIC LAYER</span>
+    </div>
+    <div class="topic-grid">
+
+      <!-- 1위 와인/페어링 -->
+      <div class="topic-card rank-1">
+        <div class="topic-header">
+          <div>
+            <div class="topic-rank">RANK 1</div>
+            <div class="topic-name">와인 / 페어링</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="topic-count">46<span>건</span></div>
+            <div style="font-size:12px;color:#aaa;">26%</div>
+          </div>
+        </div>
+        <div class="topic-gauges">
+          <div class="mini-gauge">
+            <div class="mg-label">긍정률</div>
+            <div class="mg-track"><div class="mg-fill" style="width:50%;background:#00b894;"></div></div>
+            <div class="mg-val" style="color:#00b894;">50.0%</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Auth</div>
+            <div class="mg-track"><div class="mg-fill" style="width:74.8%;"></div></div>
+            <div class="mg-val">74.8</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Clout</div>
+            <div class="mg-track"><div class="mg-fill" style="width:60.3%;"></div></div>
+            <div class="mg-val">60.3</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">RQL</div>
+            <div class="mg-track"><div class="mg-fill" style="width:61%;"></div></div>
+            <div class="mg-val">1.22</div>
+          </div>
+        </div>
+        <div class="topic-insight">
+          <div class="insight-head">INSIGHT</div>
+          Clout 전 토픽 최고 — "가보라" 추천 강도 최강. 소비자가 가장 강하게 타인에게 권유하는 토픽.
+        </div>
+        <div class="topic-keywords">
+          <span class="kw-tag">와인 89%</span>
+          <span class="kw-tag">안주 59%</span>
+          <span class="kw-tag">콜키지 52%</span>
+        </div>
+      </div>
+
+      <!-- 2위 위치/접근성 -->
+      <div class="topic-card rank-2">
+        <div class="topic-header">
+          <div>
+            <div class="topic-rank">RANK 2</div>
+            <div class="topic-name">위치 / 접근성</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="topic-count">45<span>건</span></div>
+            <div style="font-size:12px;color:#aaa;">26%</div>
+          </div>
+        </div>
+        <div class="topic-gauges">
+          <div class="mini-gauge">
+            <div class="mg-label">긍정률</div>
+            <div class="mg-track"><div class="mg-fill" style="width:24.4%;background:#e17055;"></div></div>
+            <div class="mg-val" style="color:#e17055;">24.4%</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Auth</div>
+            <div class="mg-track"><div class="mg-fill" style="width:70.2%;"></div></div>
+            <div class="mg-val">70.2</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Clout</div>
+            <div class="mg-track"><div class="mg-fill" style="width:52.1%;"></div></div>
+            <div class="mg-val">52.1</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">RQL</div>
+            <div class="mg-track"><div class="mg-fill" style="width:48%;"></div></div>
+            <div class="mg-val" style="color:#e17055;">0.96</div>
+          </div>
+        </div>
+        <div class="topic-insight">
+          <div class="insight-head">INSIGHT</div>
+          긍정률 최저, RQL도 최저. 부정 5건 전부 "웨이팅" 언급. 접근성 자체보다 대기 경험이 핵심 변수.
+        </div>
+      </div>
+
+      <!-- 3위 맛/품질 -->
+      <div class="topic-card rank-3">
+        <div class="topic-header">
+          <div>
+            <div class="topic-rank">RANK 3</div>
+            <div class="topic-name">맛 / 품질</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="topic-count">39<span>건</span></div>
+            <div style="font-size:12px;color:#aaa;">22%</div>
+          </div>
+        </div>
+        <div class="topic-gauges">
+          <div class="mini-gauge">
+            <div class="mg-label">긍정률</div>
+            <div class="mg-track"><div class="mg-fill" style="width:48.7%;background:#00b894;"></div></div>
+            <div class="mg-val" style="color:#00b894;">48.7%</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Auth</div>
+            <div class="mg-track"><div class="mg-fill" style="width:76.8%;"></div></div>
+            <div class="mg-val" style="color:#6666FF;">76.8</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Clout</div>
+            <div class="mg-track"><div class="mg-fill" style="width:58.7%;"></div></div>
+            <div class="mg-val">58.7</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">RQL</div>
+            <div class="mg-track"><div class="mg-fill" style="width:72%;"></div></div>
+            <div class="mg-val" style="color:#6666FF;">1.44</div>
+          </div>
+        </div>
+        <div class="topic-insight">
+          <div class="insight-head">INSIGHT</div>
+          Auth·RQL 최고 — 가장 깊이 있는 리뷰 집중. 그러나 64%가 와인 동시 언급 → 샤퀴테리가 "맛있는 안주"로 프레임.
+        </div>
+      </div>
+
+      <!-- 4위 메뉴/제품 -->
+      <div class="topic-card rank-4">
+        <div class="topic-header">
+          <div>
+            <div class="topic-rank">RANK 4</div>
+            <div class="topic-name">메뉴 / 제품</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="topic-count">22<span>건</span></div>
+            <div style="font-size:12px;color:#aaa;">13%</div>
+          </div>
+        </div>
+        <div class="topic-gauges">
+          <div class="mini-gauge">
+            <div class="mg-label">긍정률</div>
+            <div class="mg-track"><div class="mg-fill" style="width:31.8%;background:#fdcb6e;"></div></div>
+            <div class="mg-val" style="color:#e6a817;">31.8%</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Auth</div>
+            <div class="mg-track"><div class="mg-fill" style="width:76.4%;"></div></div>
+            <div class="mg-val">76.4</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Clout</div>
+            <div class="mg-track"><div class="mg-fill" style="width:58.2%;"></div></div>
+            <div class="mg-val">58.2</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">RQL</div>
+            <div class="mg-track"><div class="mg-fill" style="width:61.5%;"></div></div>
+            <div class="mg-val">1.23</div>
+          </div>
+        </div>
+        <div class="topic-insight">
+          <div class="insight-head">INSIGHT</div>
+          혼합 41% — "뭘 시킬지" 탐색형 리뷰가 지배적. 메뉴 구성에 대한 명확한 가이드 부재를 시사.
+        </div>
+      </div>
+
+      <!-- 5위 공간/분위기 -->
+      <div class="topic-card rank-5">
+        <div class="topic-header">
+          <div>
+            <div class="topic-rank">RANK 5</div>
+            <div class="topic-name">공간 / 분위기</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="topic-count">12<span>건</span></div>
+            <div style="font-size:12px;color:#aaa;">7%</div>
+          </div>
+        </div>
+        <div class="topic-gauges">
+          <div class="mini-gauge">
+            <div class="mg-label">긍정률</div>
+            <div class="mg-track"><div class="mg-fill" style="width:16.7%;background:#e17055;"></div></div>
+            <div class="mg-val" style="color:#e17055;">16.7%</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Auth</div>
+            <div class="mg-track"><div class="mg-fill" style="width:74.4%;"></div></div>
+            <div class="mg-val">74.4</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Clout</div>
+            <div class="mg-track"><div class="mg-fill" style="width:47.1%;"></div></div>
+            <div class="mg-val" style="color:#e17055;">47.1</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">RQL</div>
+            <div class="mg-track"><div class="mg-fill" style="width:64.5%;"></div></div>
+            <div class="mg-val">1.29</div>
+          </div>
+        </div>
+        <div class="topic-insight">
+          <div class="insight-head">INSIGHT</div>
+          혼합 67%, Clout 최저 — "좋은데 좁다" 패턴이 추천을 주저하게 만드는 결정적 구조. 물리적 제약이 바이럴 한계.
+        </div>
+      </div>
+
+      <!-- 7위 셰프/스토리 -->
+      <div class="topic-card rank-7">
+        <div class="topic-header">
+          <div>
+            <div class="topic-rank">RANK 7</div>
+            <div class="topic-name">셰프 / 스토리</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="topic-count">2<span>건</span></div>
+            <div style="font-size:12px;color:#aaa;">1%</div>
+          </div>
+        </div>
+        <div class="topic-gauges">
+          <div class="mini-gauge">
+            <div class="mg-label">긍정률</div>
+            <div class="mg-track"><div class="mg-fill" style="width:50%;background:#00b894;"></div></div>
+            <div class="mg-val" style="color:#00b894;">50.0%</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Auth</div>
+            <div class="mg-track"><div class="mg-fill" style="width:83.5%;background:#6666FF;"></div></div>
+            <div class="mg-val" style="color:#6666FF;">83.5</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">Clout</div>
+            <div class="mg-track"><div class="mg-fill" style="width:55%;"></div></div>
+            <div class="mg-val">55.0</div>
+          </div>
+          <div class="mini-gauge">
+            <div class="mg-label">RQL</div>
+            <div class="mg-track"><div class="mg-fill" style="width:87.5%;background:#6666FF;"></div></div>
+            <div class="mg-val" style="color:#6666FF;">1.75</div>
+          </div>
+        </div>
+        <div class="topic-insight">
+          <div class="insight-head">INSIGHT</div>
+          Auth·RQL 전체 최고이나 단 2건. 잠재 파급력이 가장 높은 토픽이 가장 적게 노출된다 — 접할 기회 자체가 설계되지 않음.
+        </div>
+      </div>
+
+    </div>
+    <p class="note" style="margin-top:16px;">* RQL 기준값: 1.0 이상=품질 기여, 1.5 이상=고품질, 2.0 이상=프리미엄 후기. 토픽 볼륨이 적은 셰프/스토리(2건)는 통계적 신뢰도가 낮으며 방향성 참고 수준으로 해석 권장.</p>
+  </div>
+
+  <!-- ── 섹션 6: RQL 분포 ── -->
+  <div class="section">
+    <div class="section-title">
+      RQL (리뷰 품질 등급) 분포
+      <span class="badge">REVIEW QUALITY</span>
+    </div>
+    <div class="rql-grid">
+      <div class="rql-card">
+        <div class="rql-level">Q5</div>
+        <div class="rql-name">서사형</div>
+        <div class="rql-count">29<span style="font-size:14px;color:#aaa;">건</span></div>
+        <div class="rql-sub">500단어+ 상세 후기</div>
+      </div>
+      <div class="rql-card">
+        <div class="rql-level">Q4</div>
+        <div class="rql-name">분석형</div>
+        <div class="rql-count">50<span style="font-size:14px;color:#aaa;">건</span></div>
+        <div class="rql-sub">비교/분석 포함<br><span style="color:#6666FF;font-size:11px;">승격 13건 포함</span></div>
+      </div>
+      <div class="rql-card">
+        <div class="rql-level">Q3</div>
+        <div class="rql-name">경험형</div>
+        <div class="rql-count">44<span style="font-size:14px;color:#aaa;">건</span></div>
+        <div class="rql-sub">경험 중심 일반 리뷰</div>
+      </div>
+      <div class="rql-card">
+        <div class="rql-level">Q2</div>
+        <div class="rql-name">감상형</div>
+        <div class="rql-count">26<span style="font-size:14px;color:#aaa;">건</span></div>
+        <div class="rql-sub">짧은 감상</div>
+      </div>
+      <div class="rql-card">
+        <div class="rql-level">Q1</div>
+        <div class="rql-name">간단형</div>
+        <div class="rql-count">12<span style="font-size:14px;color:#aaa;">건</span></div>
+        <div class="rql-sub">단순 방문 인증</div>
+      </div>
+    </div>
+    <div class="rql-asset">
+      <div>
+        <div class="asset-label">총 리뷰 자산값</div>
+        <div class="asset-sub">Q5×2.0 + Q4×1.5 + Q3×1.0 + Q2×0.5 + Q1×0.2</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="asset-value">211.9</div>
+        <div class="asset-sub">평균 1.22점/건</div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:12px;">* Q4·Q5 고품질 리뷰가 전체의 45%를 차지 — 단일 다이닝 브랜드로서 리뷰 밀도는 준수한 편. 단 절대 볼륨(174건)이 소금집(1,234건) 대비 7분의 1 수준.</p>
+  </div>
+
+  <!-- ── 섹션 7: 소비자 감성 키워드 매핑 & 포지셔닝 맵 ── -->
+  <div class="section">
+    <div class="section-title">
+      소비자 감성 키워드 매핑 & 포지셔닝 맵
+      <span class="badge">POSITIONING</span>
+    </div>
+
+    <p style="font-size:13px;color:#666;margin-bottom:16px;line-height:1.6;">
+      RXR 크롤링 데이터에서 구매의사결정 관련 감성 키워드를 추출하여 3개 브랜드의 소비자 인식을 비교합니다.<br>
+      <strong style="color:#6666FF;">★★★</strong> = 세스크멘슬 독점 키워드 (경쟁사 평균 대비 +25pp 이상)
+    </p>
+
+    <div class="sub-title" style="margin-bottom:12px;">1차 — 감성 키워드 매핑</div>
+
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
+      <tr style="background:#f4f3ff;">
+        <th style="padding:10px 12px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid #e8e6ff;">키워드</th>
+        <th style="padding:10px 12px;text-align:center;font-weight:700;color:#6666FF;border-bottom:2px solid #e8e6ff;">세스크멘슬</th>
+        <th style="padding:10px 12px;text-align:center;font-weight:700;color:#e17055;border-bottom:2px solid #e8e6ff;">메종조</th>
+        <th style="padding:10px 12px;text-align:center;font-weight:700;color:#00b894;border-bottom:2px solid #e8e6ff;">소금집</th>
+        <th style="padding:10px 12px;text-align:center;font-weight:700;color:#555;border-bottom:2px solid #e8e6ff;">격차</th>
+        <th style="padding:10px 12px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid #e8e6ff;">해석</th>
+      </tr>
+      <tr style="background:#f9f8ff;"><td style="padding:8px 12px;font-weight:700;border-bottom:1px solid #f0f0f0;">성수</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:800;border-bottom:1px solid #f0f0f0;">78.2%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">9.0%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">4.5%</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:700;border-bottom:1px solid #f0f0f0;">+71.4pp ★★★</td><td style="padding:8px 12px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">장소 = 브랜드 정체성</td></tr>
+      <tr style="background:#f9f8ff;"><td style="padding:8px 12px;font-weight:700;border-bottom:1px solid #f0f0f0;">와인</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:800;border-bottom:1px solid #f0f0f0;">67.8%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">43.3%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">9.5%</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:700;border-bottom:1px solid #f0f0f0;">+41.4pp ★★★</td><td style="padding:8px 12px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">소비 맥락의 핵심 축</td></tr>
+      <tr style="background:#f9f8ff;"><td style="padding:8px 12px;font-weight:700;border-bottom:1px solid #f0f0f0;">콜드컷/플래터</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:800;border-bottom:1px solid #f0f0f0;">35.1%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">1.1%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">0.6%</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:700;border-bottom:1px solid #f0f0f0;">+34.2pp ★★★</td><td style="padding:8px 12px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">제품 카테고리 독점</td></tr>
+      <tr style="background:#f9f8ff;"><td style="padding:8px 12px;font-weight:700;border-bottom:1px solid #f0f0f0;">콜키지</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:800;border-bottom:1px solid #f0f0f0;">33.3%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">3.9%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">1.3%</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:700;border-bottom:1px solid #f0f0f0;">+30.7pp ★★★</td><td style="padding:8px 12px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">방문 동기 자체</td></tr>
+      <tr style="background:#f9f8ff;"><td style="padding:8px 12px;font-weight:700;border-bottom:1px solid #f0f0f0;">야장/테라스</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:800;border-bottom:1px solid #f0f0f0;">33.3%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">8.4%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">6.1%</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:700;border-bottom:1px solid #f0f0f0;">+26.1pp ★★★</td><td style="padding:8px 12px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">공간 경험 차별화</td></tr>
+      <tr><td style="padding:8px 12px;font-weight:700;border-bottom:1px solid #f0f0f0;">부어스트</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:700;border-bottom:1px solid #f0f0f0;">33.3%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">14.0%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">4.1%</td><td style="padding:8px 12px;text-align:center;font-weight:600;border-bottom:1px solid #f0f0f0;">+24.2pp ★★</td><td style="padding:8px 12px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">제품 전문성 인식</td></tr>
+      <tr><td style="padding:8px 12px;font-weight:700;border-bottom:1px solid #f0f0f0;">유럽감성</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:700;border-bottom:1px solid #f0f0f0;">25.9%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">2.8%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">4.1%</td><td style="padding:8px 12px;text-align:center;font-weight:600;border-bottom:1px solid #f0f0f0;">+22.4pp ★★</td><td style="padding:8px 12px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">정통성 + 감성 결합</td></tr>
+      <tr><td style="padding:8px 12px;font-weight:700;border-bottom:1px solid #f0f0f0;">데이트</td><td style="padding:8px 12px;text-align:center;color:#6666FF;font-weight:700;border-bottom:1px solid #f0f0f0;">33.9%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">15.7%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">17.5%</td><td style="padding:8px 12px;text-align:center;font-weight:600;border-bottom:1px solid #f0f0f0;">+17.3pp ★★</td><td style="padding:8px 12px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">방문 목적 1위</td></tr>
+      <tr style="background:#fff8f8;"><td style="padding:8px 12px;font-weight:700;color:#e17055;border-bottom:1px solid #f0f0f0;">재방문</td><td style="padding:8px 12px;text-align:center;color:#e17055;font-weight:700;border-bottom:1px solid #f0f0f0;">12.6%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">19.1%</td><td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f0f0f0;">17.3%</td><td style="padding:8px 12px;text-align:center;color:#e17055;font-weight:600;border-bottom:1px solid #f0f0f0;">-5.6pp ▼</td><td style="padding:8px 12px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">추천은 하나 재방문 언급 최저</td></tr>
+      <tr style="background:#fff8f8;"><td style="padding:8px 12px;font-weight:700;color:#e17055;">편안함/아늑</td><td style="padding:8px 12px;text-align:center;color:#e17055;font-weight:700;">24.1%</td><td style="padding:8px 12px;text-align:center;">28.1%</td><td style="padding:8px 12px;text-align:center;">38.7%</td><td style="padding:8px 12px;text-align:center;color:#e17055;font-weight:600;">-9.3pp ▼</td><td style="padding:8px 12px;font-size:12px;color:#666;">공간 약점과 연동</td></tr>
+    </table>
+
+    <div class="sub-title" style="margin:28px 0 12px;">2차 — 소비자 인식 기반 오프라인 포지셔닝 맵</div>
+
+    <p style="font-size:12px;color:#888;margin-bottom:12px;">
+      <strong>X축</strong>: 일상적 방문(편하다, 자주, 혼술, 런치) ↔ 특별한 경험(데이트, 기념일, 모임, 선물) &nbsp;&nbsp;
+      <strong>Y축</strong>: 감성/분위기(와인, 감성, 인스타, 야장) ↔ 제품/전문성(정통, 수제, 셰프, 숙성)
+    </p>
+
+    <div style="background:#fff;border-radius:14px;padding:24px;border:1px solid #eee;margin-bottom:16px;">
+      <div style="width:100%;height:400px;position:relative;border:1px solid #eee;border-radius:8px;background:linear-gradient(to right,#fafafa 50%,#f4f3ff 50%);overflow:visible;">
+        <!-- Cross lines -->
+        <div style="position:absolute;top:0;left:50%;width:1px;height:100%;background:#ddd;"></div>
+        <div style="position:absolute;top:50%;left:0;width:100%;height:1px;background:#ddd;"></div>
+
+        <!-- Axis labels -->
+        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:11px;color:#6666FF;font-weight:700;">← 일상적 방문 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 특별한 경험 →</div>
+        <div style="position:absolute;left:-22px;top:50%;transform:translateY(-50%) rotate(-90deg);font-size:11px;color:#6666FF;font-weight:700;white-space:nowrap;">← 감성/분위기 &nbsp;&nbsp; 제품/전문성 →</div>
+
+        <!-- Quadrant labels -->
+        <div style="position:absolute;top:8px;left:8px;font-size:9px;color:#bbb;font-weight:600;line-height:1.4;"><strong style="color:#aaa;">일상 × 제품</strong><br>편하다, 자주, 수제, 직접</div>
+        <div style="position:absolute;top:8px;right:8px;font-size:9px;color:#bbb;font-weight:600;line-height:1.4;text-align:right;"><strong style="color:#aaa;">특별 × 제품</strong><br>선물, 기념일, 정통, 장인</div>
+        <div style="position:absolute;bottom:8px;left:8px;font-size:9px;color:#bbb;font-weight:600;line-height:1.4;"><strong style="color:#aaa;">일상 × 감성</strong><br>혼술, 편안, 아늑, 런치</div>
+        <div style="position:absolute;bottom:8px;right:8px;font-size:9px;color:#bbb;font-weight:600;line-height:1.4;text-align:right;"><strong style="color:#aaa;">특별 × 감성</strong><br>데이트, 와인, 인스타, 야장</div>
+
+        <!-- Brands -->
+        <div style="position:absolute;left:68%;top:68%;transform:translate(-50%,-50%);background:#6666FF;color:#fff;padding:10px 16px;border-radius:8px;font-size:12px;font-weight:700;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.12);white-space:nowrap;">
+          <strong style="font-size:14px;">세스크멘슬</strong><br><span style="font-size:10px;opacity:0.85;">데이트·와인·콜키지·야장·성수핫플</span>
+        </div>
+        <div style="position:absolute;left:48%;top:40%;transform:translate(-50%,-50%);background:#e17055;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.12);white-space:nowrap;">
+          메종조<br><span style="font-size:10px;opacity:0.85;">맛·프렌치·선물·모임</span>
+        </div>
+        <div style="position:absolute;left:25%;top:28%;transform:translate(-50%,-50%);background:#00b894;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.12);white-space:nowrap;">
+          소금집<br><span style="font-size:10px;opacity:0.85;">편하다·자주·잠봉·직접·다양한</span>
+        </div>
+
+        <!-- Ideal positions -->
+        <div style="position:absolute;left:72%;top:22%;transform:translate(-50%,-50%);background:transparent;color:#6666FF;border:2px dashed #6666FF;padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;text-align:center;white-space:nowrap;">
+          모 브랜드<br>이상적 포지션<br><span style="font-size:9px;">정통·장인·유일한·셰프</span>
+        </div>
+        <div style="position:absolute;left:72%;top:62%;transform:translate(-50%,-50%);background:transparent;color:#FF9F43;border:2px dashed #FF9F43;padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;text-align:center;white-space:nowrap;">
+          서브 브랜드<br>계승 포지션<br><span style="font-size:9px;">와인·데이트·경험·페어링</span>
+        </div>
+
+        <!-- Arrow -->
+        <div style="position:absolute;left:70%;top:46%;font-size:24px;color:#6666FF;transform:translate(-50%,-50%);opacity:0.5;">⬆</div>
+      </div>
+    </div>
+
+    <div style="background:#fafaff;border:2px solid #6666FF;border-radius:10px;padding:18px 22px;margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:800;color:#6666FF;margin-bottom:8px;">포지셔닝 맵 해석</div>
+      <ul style="padding-left:18px;font-size:13px;color:#444;line-height:1.7;">
+        <li><strong>세스크멘슬 현재</strong>: "특별한 경험 × 감성/분위기" — 데이트, 와인, 야장, 성수 핫플이 인식 중심</li>
+        <li><strong>메종조</strong>: 중앙 상단 — 맛·선물·모임 등 다양한 맥락. "범용 프리미엄"</li>
+        <li><strong>소금집</strong>: "일상적 × 제품" — 편하다, 자주, 잠봉. 일상에서 사고 즐기는 구조</li>
+        <li><strong>모 브랜드 이동 방향(⬆)</strong>: Y축을 위로(제품/전문성). "왜 특별한가"의 답이 "와인"에서 <strong>"장인의 정통 크래프트"</strong>로 전환</li>
+        <li><strong>재방문 12.6%의 경고</strong>: Clout 56.3(추천 최고)인데 재방문 언급은 최저 → "한번 가서 추천하지만 자주 가진 않는" 1회성 경험 구조</li>
+      </ul>
+    </div>
+
+    <div style="background:#fff8f8;border-left:3px solid #e17055;padding:14px 18px;border-radius:0 8px 8px 0;font-size:13px;color:#666;line-height:1.65;">
+      <strong style="color:#e17055;">핵심 독점 키워드 구조:</strong> "성수 + 와인 + 콜키지 + 야장 + 데이트" → 장소성과 와인 경험이 브랜드 인식을 지배. 제품 전문성 키워드(부어스트 33%, 정통 29%)는 존재하나 와인 키워드에 종속되어 독립적 포지션 미형성.
+    </div>
+  </div>
+
+  <!-- ── 섹션 8: 문제점 & 고민 포인트 ── -->
+  <div class="section">
+    <div class="section-title">
+      문제점 & 고민 포인트 리스트업
+      <span class="badge">DIAGNOSIS</span>
+    </div>
+
+    <div class="two-col">
+      <div class="sub-section">
+        <div class="sub-title" style="color:#e17055;">문제점 (Problem)</div>
+        <div class="problem-list">
+
+          <div class="problem-card">
+            <div class="card-num">P-01</div>
+            <div class="card-title">와인에 의한 카테고리 종속</div>
+            <div class="card-body">리뷰 66%가 와인 중심 서술. 샤퀴테리 장인 브랜드가 소비자 인식 안에서 "와인 안주"로 격하되는 구조적 현상.</div>
+          </div>
+
+          <div class="problem-card">
+            <div class="card-num">P-02</div>
+            <div class="card-title">셰프 전문성 비가시성</div>
+            <div class="card-body">멘션은 1%(2건)에 불과하지만 Auth 83.5로 잠재 파급력 최고. 노출 기회 자체가 설계되지 않은 상태.</div>
+          </div>
+
+          <div class="problem-card">
+            <div class="card-num">P-03</div>
+            <div class="card-title">긍정률 구조적 희석</div>
+            <div class="card-body">전체 긍정률 39% — 위치(24.4%)·공간(16.7%) 토픽이 평균을 끌어내리는 패턴. 경쟁사 메종조 대비 3%p 열위.</div>
+          </div>
+
+          <div class="problem-card">
+            <div class="card-num">P-04</div>
+            <div class="card-title">멘션 볼륨 구조적 한계</div>
+            <div class="card-body">단일매장 + 다이닝 전용 구조로 방문 후기 외 콘텐츠 생성 채널 부재. 소금집(1,234건) 대비 7분의 1 수준.</div>
+          </div>
+
+          <div class="problem-card">
+            <div class="card-num">P-05</div>
+            <div class="card-title">공간 경험 약점</div>
+            <div class="card-body">"분위기 좋은데 좁다" 패턴이 공간/분위기 토픽 혼합 67%를 만든다. Clout 47.1로 전 토픽 최저 — 추천 의향을 직접 제한.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title" style="color:#e6a817;">고민해야 할 부분 (Strategic Questions)</div>
+        <div class="question-list">
+
+          <div class="question-card">
+            <div class="card-num">Q-01</div>
+            <div class="card-title">와인 페어링 포지션을 어떻게 다룰 것인가</div>
+            <div class="card-body">소비자가 이미 사랑하는 이 포지션을 약화시킬 것인가, 아니면 "장인이 만든 것을 와인과 즐기는" 구조로 재프레이밍할 것인가.</div>
+          </div>
+
+          <div class="question-card">
+            <div class="card-num">Q-02</div>
+            <div class="card-title">셰프 스토리를 어떤 채널로 전파할 것인가</div>
+            <div class="card-body">영상, 매거진, SNS — 어떤 채널이 장인 전문성 이미지를 가장 효과적으로 확산시키는가. Auth 83.5의 잠재력을 현실화하는 방법.</div>
+          </div>
+
+          <div class="question-card">
+            <div class="card-num">Q-03</div>
+            <div class="card-title">온라인 확장이 토픽 구조를 바꿀 수 있는가</div>
+            <div class="card-body">자사몰을 만들면 "제품 중심 리뷰"가 늘어 와인 종속 토픽 구조가 자연스럽게 재편될 가능성. 부업이 아니라 구조 개편 수단으로 접근.</div>
+          </div>
+
+          <div class="question-card">
+            <div class="card-num">Q-04</div>
+            <div class="card-title">서브 브랜드와의 역할 분리가 가능한가</div>
+            <div class="card-body">현재의 "와인바 경험" 인식을 서브 브랜드에 넘기고, 모 브랜드를 정통 장인으로 재포지셔닝하는 구조 분리 시나리오.</div>
+          </div>
+
+          <div class="question-card">
+            <div class="card-num">Q-05</div>
+            <div class="card-title">웨이팅 관리 — 가장 빠른 긍정률 개선 레버</div>
+            <div class="card-body">부정 리뷰 최대 원인이 "웨이팅". 캐치테이블 최적화 + 대기 경험 설계로 구조적 원인 해소 가능. 단기 ROI가 가장 높은 액션.</div>
+          </div>
+
+          <div class="question-card">
+            <div class="card-num">Q-06</div>
+            <div class="card-title">Auth-LAI 괴리 — 캘리브레이션 필요</div>
+            <div class="card-body">3개 브랜드 모두 Auth(70+) vs LAI(27~32) 괴리. F&B 카테고리 특성상 사진 위주 단문이 많아 LAI가 낮게 측정 — 업종별 기준선 재조정이 필요.</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── 푸터 ── -->
+<footer style="max-width:1100px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#fafafa;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #eee;line-height:1.7;">
+    <p style="margin:0 0 4px;">본 분석은 공개 SNS 데이터에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:#F4F3FF;padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;letter-spacing:-0.3px;">💠 RXR SNS Analysis Solution</div>
+    <p style="margin:0;color:#333;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">『프로젝트 렌트(Project Rent)』</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 SNS 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+    </p>
+  </div>
+  <div style="background:#fafafa;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">
+    📧 <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#999;font-size:11px;">© Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>

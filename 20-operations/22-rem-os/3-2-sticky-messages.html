@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L3 Sticky Messages — 기억에 남는 한마디</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --green: #8FA37E; --amber: #D9A34B; --red: #E17055; --blue: #6F8AA3;
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300;letter-spacing:-0.01em;line-height:1.7;
+}
+h1,h2,h3,h4{font-weight:500;text-wrap:balance}
+
+.sec{
+  padding:100px 120px 120px;max-width:1440px;margin:0 auto;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out);
+}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sec-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px;
+}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:16px}
+.body{font-size:14px;color:var(--fg-2);line-height:1.7}
+.body strong{color:var(--fg);font-weight:500}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-48{margin-top:48px}
+
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:80px 60px;background:var(--bg-2);
+}
+.cover .eyebrow{margin-bottom:24px}
+.cover h1{font-size:56px;font-weight:200;letter-spacing:-0.03em;line-height:1.1}
+.cover h1 em{font-style:normal;color:var(--accent)}
+.cover .sub{font-size:16px;color:var(--fg-2);margin-top:24px;max-width:640px;font-weight:300}
+.cover .meta{font-size:11px;color:var(--fg-3);letter-spacing:.2em;margin-top:48px;text-transform:uppercase}
+.cover .level-badge{
+  display:inline-block;padding:6px 20px;font-size:12px;letter-spacing:.2em;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.25);margin-bottom:24px;text-transform:uppercase;
+}
+
+.big-quote{
+  background:var(--bg-2);padding:80px 120px;text-align:center;
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+}
+.big-quote blockquote{
+  font-size:28px;font-weight:200;letter-spacing:-0.02em;line-height:1.4;
+  color:var(--fg);max-width:800px;margin:0 auto;
+}
+.big-quote blockquote em{font-style:normal;color:var(--accent)}
+.big-quote .attr{font-size:12px;color:var(--fg-3);margin-top:24px;letter-spacing:.15em}
+
+.principle{
+  background:rgba(108,92,231,.06);border-left:3px solid var(--accent);
+  padding:28px 32px;margin:24px 0;
+}
+.principle p{font-size:14px;color:var(--fg-2);margin:0;line-height:1.7}
+.principle strong{color:var(--accent-light)}
+
+.callout{
+  background:rgba(108,92,231,.08);border-left:3px solid var(--accent);
+  padding:24px 28px;margin:24px 0;
+}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+.card{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card .c-num{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.card.accent-top{border-top:2px solid var(--accent)}
+
+.scenario{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:32px;margin:16px 0;
+  transition:border-color var(--duration-base) var(--ease-out);
+}
+.scenario:hover{border-color:var(--fg-3)}
+.scenario .s-label{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:12px}
+.scenario .s-situation{font-size:15px;color:var(--fg);font-weight:500;margin-bottom:16px}
+.scenario .s-dialogue{padding:16px 20px;background:var(--bg-2);border-left:2px solid var(--accent);margin:12px 0}
+.scenario .s-dialogue p{font-size:13px;color:var(--fg-2);margin:6px 0;line-height:1.6}
+.scenario .s-dialogue .speaker{color:var(--fg-3);font-size:11px;letter-spacing:.1em;margin-bottom:2px}
+.scenario .s-dialogue .speaker.rem{color:var(--accent-light)}
+.scenario .s-insight{
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--line-2);
+  font-size:12px;color:var(--fg-3);
+}
+.scenario .s-insight strong{color:var(--green)}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:32px 0}
+.compare-col{padding:32px;border:1px solid var(--line-2)}
+.compare-col.bad{background:rgba(225,112,85,.03);border-color:rgba(225,112,85,.15)}
+.compare-col.good{background:rgba(143,163,126,.03);border-color:rgba(143,163,126,.15)}
+.compare-col h4{font-size:11px;letter-spacing:.25em;text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--line-2)}
+.compare-col.bad h4{color:var(--red)}
+.compare-col.good h4{color:var(--green)}
+.compare-col .item{padding:14px 0;border-bottom:1px solid var(--line-2);font-size:13px;color:var(--fg-2);line-height:1.5}
+.compare-col .item:last-child{border-bottom:none}
+.compare-col .item .label{font-size:10px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+
+.steps{margin:32px 0}
+.step{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--line-2)}
+.step:last-child{border-bottom:none}
+.step-num{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:500;flex-shrink:0;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.2);
+}
+.step-content h4{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.step-content p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.step-content .example{
+  margin-top:10px;padding:10px 14px;background:var(--bg-3);
+  border-left:2px solid var(--accent);font-size:12px;color:var(--fg-2);line-height:1.5;
+}
+
+/* Theory Box */
+.theory{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.theory .t-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  padding-bottom:14px;border-bottom:1px solid var(--line-2);
+}
+.theory .t-badge{
+  padding:3px 10px;font-size:10px;letter-spacing:.15em;
+  background:rgba(111,138,163,.1);color:var(--blue);
+  border:1px solid rgba(111,138,163,.2);text-transform:uppercase;
+}
+.theory .t-title{font-size:14px;font-weight:500;color:var(--fg)}
+.theory .t-author{font-size:11px;color:var(--fg-3);margin-left:auto}
+.theory p{font-size:13px;color:var(--fg-2);line-height:1.7;margin-bottom:10px}
+.theory p:last-child{margin-bottom:0}
+.theory .t-apply{
+  margin-top:16px;padding:14px 18px;
+  background:rgba(108,92,231,.06);border-left:2px solid var(--accent);
+  font-size:12px;color:var(--fg-2);line-height:1.6;
+}
+.theory .t-apply strong{color:var(--accent-light)}
+
+/* Mission */
+.mission{
+  background:rgba(143,163,126,.04);border:1px solid rgba(143,163,126,.2);
+  padding:28px;margin:16px 0;
+}
+.mission .m-label{font-size:10px;letter-spacing:.25em;color:var(--green);text-transform:uppercase;margin-bottom:10px}
+.mission h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.mission p{font-size:13px;color:var(--fg-2);line-height:1.6}
+
+/* Book Card */
+.book{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  border-top:2px solid transparent;
+}
+.book:hover{border-color:var(--fg-3);transform:translateY(-2px);transition:all var(--duration-base) var(--ease-out)}
+.book .b-tag{
+  display:inline-block;padding:3px 10px;font-size:10px;letter-spacing:.1em;margin-bottom:12px;
+}
+.book .b-tag.essential{background:rgba(108,92,231,.1);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.book .b-tag.optional{background:rgba(143,163,126,.1);color:var(--green);border:1px solid rgba(143,163,126,.2)}
+.book .b-title{font-size:17px;font-weight:500;color:var(--fg);margin-bottom:4px}
+.book .b-author{font-size:12px;color:var(--fg-3);margin-bottom:12px}
+.book .b-why{font-size:13px;color:var(--fg-2);line-height:1.6;margin-bottom:12px}
+.book .b-connect{font-size:12px;color:var(--fg-3);padding-top:12px;border-top:1px solid var(--line-2);line-height:1.5}
+.book .b-connect strong{color:var(--fg-2)}
+
+/* Levelup */
+.levelup{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.levelup h4{font-size:11px;letter-spacing:.25em;color:var(--accent-light);text-transform:uppercase;margin-bottom:20px}
+.lu-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.lu-item:last-child{border-bottom:none}
+.lu-check{
+  width:20px;height:20px;border:1px solid var(--line);display:flex;
+  align-items:center;justify-content:center;font-size:11px;color:var(--fg-3);flex-shrink:0;
+}
+.lu-text{font-size:13px;color:var(--fg-2)}
+
+/* Success Principle Cards */
+.success-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:32px 0}
+.success-card{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  border-top:3px solid var(--accent);
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.success-card:hover{border-color:var(--accent-light);transform:translateY(-2px)}
+.success-card .s-letter{
+  font-size:36px;font-weight:200;letter-spacing:-0.02em;color:var(--accent);
+  line-height:1;margin-bottom:8px;
+}
+.success-card h4{font-size:14px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.success-card p{font-size:12px;color:var(--fg-2);line-height:1.6}
+
+footer{
+  padding:80px 120px 60px;border-top:1px solid var(--line-2);
+  max-width:1440px;margin:80px auto 0;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg-3);text-transform:uppercase}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+
+@media(max-width:1200px){
+  .sec{padding:80px 60px}
+  .cover h1{font-size:40px}
+  .big-quote{padding:60px 40px}
+  .big-quote blockquote{font-size:22px}
+  .compare,.grid-2,.grid-3,.grid-4,.success-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.sec{opacity:1;transform:none;transition:none}}
+@media print{.sec{opacity:1;transform:none;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <span class="level-badge">Level 3 &middot; Module 2</span>
+  <span class="eyebrow">REM OS &middot; Sticky Messages</span>
+  <h1>기억에 <em>남는</em> 한마디</h1>
+  <p class="sub">같은 제품인데 어떤 설명은 기억되고 어떤 설명은 잊힌다.<br>그 차이를 만드는 6가지 원칙.</p>
+  <p class="meta">Project Rent &middot; 3-2 Sticky Messages &middot; v1.0</p>
+</section>
+
+<!-- Ch01 — 왜 어떤 말은 기억되고 어떤 말은 안 되는가 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 01 &mdash; The Problem</span>
+      <h2>정보는 전달했는데 기억은 안 남는다</h2>
+    </div>
+    <span class="eyebrow">01</span>
+  </div>
+
+  <p class="body">
+    우리는 매일 고객에게 브랜드를 설명한다. 제품 특징, 가격, 원산지...<br>
+    정보는 전달했는데 고객이 돌아가서 기억하는 건 거의 없다. 왜일까?
+  </p>
+
+  <div class="compare mt-32">
+    <div class="compare-col bad">
+      <h4>잊히는 설명</h4>
+      <div class="item">
+        <div class="label">정보 나열</div>
+        "이 제품은 독일 전통 방식으로 제조된 프리미엄 샤퀴테리입니다. 100g에 OO원이며, 와인과 잘 어울립니다."
+        <p style="margin-top:8px;font-size:11px;color:var(--fg-3)">정보는 정확하지만, 집에 가면 "뭐였더라?"</p>
+      </div>
+    </div>
+    <div class="compare-col good">
+      <h4>기억되는 설명</h4>
+      <div class="item">
+        <div class="label">장면 하나</div>
+        "셰프가 독일에서 10년 배운 방식 그대로, 양평 공장에서 직접 2개월 숙성해요."
+        <p style="margin-top:8px;font-size:11px;color:var(--green)">집에 가서 "거기 장인이 직접 만드는 데야"라고 말할 수 있음</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="theory mt-32">
+    <div class="t-header">
+      <span class="t-badge">Theory</span>
+      <span class="t-title">칩 히스 &amp; 댄 히스의 SUCCESs 모델</span>
+      <span class="t-author">『스틱! (Made to Stick)』</span>
+    </div>
+    <p>스탠포드 교수 칩 히스와 저널리스트 댄 히스가 수십 년간의 연구를 분석해서 발견한 것: 기억에 남는 메시지에는 공통된 6가지 특징이 있다. Simple(단순), Unexpected(의외), Concrete(구체), Credible(신뢰), Emotional(감성), Story(스토리). 앞글자를 따면 SUCCESS(s).</p>
+    <p>이건 마케팅 이론이 아니라 "사람의 뇌가 뭘 기억하는가"에 대한 연구다.</p>
+    <div class="t-apply"><strong>현장 적용:</strong> 너의 설명 멘트가 이 6가지 중 하나라도 충족하면, 고객이 기억할 확률이 확 올라간다. 아무것도 충족하지 못하면, 아무리 정확한 정보라도 잊힌다.</div>
+  </div>
+</section>
+
+<!-- Ch02 — 원칙 1: 단순하게 (Simple) -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 02 &mdash; Simple</span>
+      <h2>한 가지만 말해라</h2>
+    </div>
+    <span class="eyebrow">02</span>
+  </div>
+
+  <p class="body">
+    핵심은 "정보를 줄이라"가 아니라 <strong>"가장 중요한 것 하나를 골라라"</strong>다.<br>
+    3가지를 말하면 0가지가 기억된다. 1가지를 말하면 1가지가 기억된다.
+  </p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">현장 적용 &mdash; 단순화</div>
+    <div class="s-situation">고객이 브랜드에 대해 물었다</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">Staff (bad)</span></p>
+      <p>"이 브랜드는 독일 전통 방식의 샤퀴테리 전문점이고, 성수동에 매장이 있고, 양평에 공장도 있고, 와인 페어링도 하고, 온라인에서도 팔고..."</p>
+      <p><span class="speaker">고객</span></p>
+      <p>"아 네..." <span style="color:var(--fg-3);font-size:11px">(과부하)</span></p>
+    </div>
+    <div class="s-dialogue">
+      <p><span class="speaker rem">Staff (good)</span></p>
+      <p>"유럽에서 10년 수련한 장인이 직접 만드는 곳이에요."</p>
+      <p><span class="speaker">고객</span></p>
+      <p>"오, 장인이요?" <span style="color:var(--green);font-size:11px">(관심)</span></p>
+    </div>
+    <div class="s-insight"><strong>핵심:</strong> 6가지 정보를 말한 사람보다, 1가지 핵심을 말한 사람이 이긴다. 나머지는 고객이 관심 보이면 그때 풀어도 늦지 않는다.</div>
+  </div>
+
+  <div class="mission mt-32">
+    <div class="m-label">실습 미션</div>
+    <h4>이번 프로젝트의 브랜드를 "한 문장"으로 말해봐</h4>
+    <p>30초 안에 끝나야 한다. 친구한테 카톡 보내듯이. 그 한 문장이 고객이 기억할 전부다.</p>
+  </div>
+</section>
+
+<!-- Ch03 — 원칙 2: 의외성 (Unexpected) -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 03 &mdash; Unexpected</span>
+      <h2>예상을 깨야 귀가 열린다</h2>
+    </div>
+    <span class="eyebrow">03</span>
+  </div>
+
+  <p class="body">
+    사람의 뇌는 예상대로 흘러가는 정보를 자동으로 무시한다.<br>
+    "맛있습니다", "좋은 재료입니다" — 이런 건 예상 범위 안이라 뇌가 필터링해버린다.<br>
+    귀를 열려면 <strong>예상을 깨야 한다.</strong>
+  </p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">현장 적용 &mdash; 의외성</div>
+    <div class="s-situation">고객이 제품 가격을 보고 놀랐다</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">Staff (bad)</span></p>
+      <p>"네, 프리미엄 제품이라서요."</p>
+      <p><span class="speaker">고객</span></p>
+      <p>"음..." <span style="color:var(--fg-3);font-size:11px">(가격 저항 유지)</span></p>
+    </div>
+    <div class="s-dialogue">
+      <p><span class="speaker rem">Staff (good)</span></p>
+      <p>"이거 만드는 데 2개월 걸려요. 매일 온도 체크하면서 숙성하는 거라..."</p>
+      <p><span class="speaker">고객</span></p>
+      <p>"2개월이요?!" <span style="color:var(--green);font-size:11px">(놀람 → 관심)</span></p>
+    </div>
+    <div class="s-insight"><strong>원리:</strong> "프리미엄"은 예상 범위 안이라 뇌가 무시한다. "2개월 숙성"은 예상 밖이라 뇌가 반응한다. 의외성 = "에? 진짜?" 순간을 만드는 것.</div>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="card accent-top">
+      <div class="c-num">의외성의 공식</div>
+      <h4>예상을 깨고 → 빈 칸을 만들고 → 채워준다</h4>
+      <p>"2개월이요?" → "매일 온도 체크하면서..." → "아, 그래서 이 맛이구나"<br><br>놀라움이 먼저, 설명은 그 다음이다. 순서가 바뀌면 안 된다.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">주의: 거짓말 아님</div>
+      <h4>의외성은 과장이 아니다</h4>
+      <p>사실인데 고객이 모르는 것을 꺼내는 것이다.<br><br>"셰프가 10년 수련" = 사실이지만 의외.<br>"세계 최고" = 주장이고 안 믿음.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Ch04 — 원칙 3: 구체적으로 (Concrete) -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 04 &mdash; Concrete</span>
+      <h2>추상적인 말은 기억되지 않는다</h2>
+    </div>
+    <span class="eyebrow">04</span>
+  </div>
+
+  <p class="body">
+    "프리미엄", "차별화된", "최고급" — 이런 단어는 아무것도 그려지지 않는다.<br>
+    기억되려면 <strong>감각으로 느낄 수 있어야 한다.</strong>
+  </p>
+
+  <div class="compare mt-32">
+    <div class="compare-col bad">
+      <h4>추상적</h4>
+      <div class="item">"최고급 재료를 사용합니다"</div>
+      <div class="item">"차별화된 경험을 제공합니다"</div>
+      <div class="item">"프리미엄 품질입니다"</div>
+    </div>
+    <div class="compare-col good">
+      <h4>구체적</h4>
+      <div class="item">"스페인산 이베리코 돼지 뒷다리로 만들어요"</div>
+      <div class="item">"숙성만 2개월, 매일 온도 체크해요"</div>
+      <div class="item">"셰프가 양평 공장에서 직접 만들어요"</div>
+    </div>
+  </div>
+
+  <div class="principle mt-24">
+    <p><strong>테스트:</strong> 눈을 감고 떠올릴 수 있으면 구체적이다. "프리미엄" → 안 떠오름. "양평 공장에서 셰프가 직접" → 장면이 그려짐. <strong>장면이 그려져야 기억된다.</strong></p>
+  </div>
+</section>
+
+<!-- Ch05 — 원칙 4: 믿을 수 있게 (Credible) -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 05 &mdash; Credible</span>
+      <h2>왜 믿어야 하는지를 말해라</h2>
+    </div>
+    <span class="eyebrow">05</span>
+  </div>
+
+  <p class="body">
+    아무리 좋은 말도 안 믿으면 소용없다.<br>
+    "맛있어요"는 판매자가 하는 말이니까 안 믿는다. 신뢰를 만드는 건 세 가지다.
+  </p>
+
+  <div class="grid-3 mt-32">
+    <div class="card accent-top">
+      <div class="c-num">신뢰 01 &mdash; 권위</div>
+      <h4>"셰프가 유럽에서 10년 수련했어요"</h4>
+      <p>전문가 배경이 신뢰를 만든다.<br><br><span style="font-size:11px;color:var(--fg-3)">치알디니의 권위 원칙과 연결 — 3-3에서 심화</span></p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">신뢰 02 &mdash; 디테일</div>
+      <h4>"2개월 숙성, 매일 온도 체크"</h4>
+      <p>구체적 디테일이 "이 사람 진짜 아는구나" 느낌을 만든다.<br><br><span style="font-size:11px;color:var(--fg-3)">숫자가 있으면 더 믿는다</span></p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">신뢰 03 &mdash; 직접 경험</div>
+      <h4>"한번 맛보시겠어요?"</h4>
+      <p>시음이 최강의 신뢰. 직접 경험한 건 의심할 수 없다.<br><br><span style="font-size:11px;color:var(--fg-3)">말로 100번보다 한 번 맛보게</span></p>
+    </div>
+  </div>
+
+  <div class="callout mt-24">
+    <p><strong>가장 강력한 신뢰는 "직접 경험"이다.</strong> 그래서 시음/시식이 중요하다. 말로 100번 설명하는 것보다 한 번 맛보게 하는 게 낫다.</p>
+  </div>
+</section>
+
+<!-- Ch06 — 원칙 5: 감정을 건드려라 (Emotional) -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 06 &mdash; Emotional</span>
+      <h2>사실은 잊어도 느낌은 남는다</h2>
+    </div>
+    <span class="eyebrow">06</span>
+  </div>
+
+  <p class="body">
+    사람은 정보를 잊어도 감정은 기억한다.<br>
+    "가격이 얼마였지?"는 잊어도 "거기 분위기 좋았어"는 남는다.<br>
+    <strong>감정을 건드리는 설명이 기억에 남는다.</strong>
+  </p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">감정 연결</div>
+    <div class="s-situation">고객이 선물용을 찾고 있다</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">Staff (bad)</span></p>
+      <p>"이 제품이 선물용으로 적합합니다. 패키지도 예쁘고요." <span style="color:var(--fg-3);font-size:11px">(기능 설명)</span></p>
+    </div>
+    <div class="s-dialogue">
+      <p><span class="speaker rem">Staff (good)</span></p>
+      <p>"이거 받으신 분이 열어보면 '와, 이런 게 있어?' 하실 거예요. 한국에서 이렇게 만드는 데가 거의 없거든요." <span style="color:var(--green);font-size:11px">(받는 사람의 반응을 상상하게)</span></p>
+    </div>
+    <div class="s-insight"><strong>차이:</strong> 두 번째는 "받는 사람의 놀라운 표정"을 상상하게 만들었다. 감정 = 상대방의 반응을 미리 느끼게 하는 것.</div>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="card accent-top">
+      <div class="c-num">감정 연결 01 &mdash; 개인 기억</div>
+      <h4>"유럽 여행 갔을 때 먹었던 그 맛"</h4>
+      <p>"한국 시장이 성장 중입니다" → 관심 없음.<br>"이거 드시면 유럽 여행 갔을 때 먹었던 그 맛이에요" → 개인 기억과 연결.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">감정 연결 02 &mdash; 받는 사람</div>
+      <h4>선물용은 받는 사람의 반응을 떠올리게</h4>
+      <p>"받는 분이 어떤 반응을 할까?"를 떠올리게 하면 구매 전환율이 올라간다. 상품이 아니라 장면을 파는 것이다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Ch07 — 원칙 6: 이야기로 만들어라 (Story) -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 07 &mdash; Story</span>
+      <h2>스토리는 뇌의 시뮬레이션이다</h2>
+    </div>
+    <span class="eyebrow">07</span>
+  </div>
+
+  <p class="body">
+    사람의 뇌는 이야기를 들으면 자동으로 "시뮬레이션"을 돌린다.<br>
+    주인공의 경험을 내 것처럼 느낀다. <strong>그래서 스토리가 가장 강력한 기억 도구다.</strong>
+  </p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">스토리의 힘</div>
+    <div class="s-situation">같은 브랜드, 두 가지 설명</div>
+    <div class="s-dialogue">
+      <p><span class="speaker">정보</span></p>
+      <p>"독일 전통 방식, 이베리코 돼지, 2개월 숙성, 양평 공장 제조."</p>
+    </div>
+    <div class="s-dialogue">
+      <p><span class="speaker rem">스토리</span></p>
+      <p>"셰프님이 독일에서 처음 살라미를 배웠을 때, 스승이 '좋은 살라미는 시간이 만든다'고 했대요. 그래서 지금도 최소 2개월은 숙성해요. 급하게 만들면 그 맛이 안 나온다고."</p>
+    </div>
+    <div class="s-insight"><strong>원리:</strong> 같은 정보인데, 스토리로 포장하면 뇌가 "셰프의 경험"을 시뮬레이션한다. 정보는 잊어도 이야기는 남는다.</div>
+  </div>
+
+  <div class="principle mt-32">
+    <p>스토리의 공식은 간단하다: <strong>누가(셰프가) + 어떤 상황에서(독일에서) + 뭘 했고(10년 수련) + 결과가 뭔지(그래서 이 맛).</strong> 4요소만 있으면 스토리다. 외울 필요 없다. 브랜드에 대해 네가 가장 인상적이었던 장면을 말하면 그게 스토리다.</p>
+  </div>
+</section>
+
+<!-- Ch08 — 6원칙 체크리스트 + 레벨업 -->
+<section class="sec" id="s8">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 08 &mdash; Checklist &amp; Level Up</span>
+      <h2>내 멘트를 점검해보자</h2>
+    </div>
+    <span class="eyebrow">08</span>
+  </div>
+
+  <p class="body">
+    6가지를 다 충족할 필요 없다.<br>
+    하나라도 충족하면 기억될 확률이 올라간다. 아무것도 충족 못 하면 잊힌다.
+  </p>
+
+  <div class="success-grid mt-32">
+    <div class="success-card">
+      <div class="s-letter">S</div>
+      <h4>단순 (Simple)</h4>
+      <p>한 가지만 말하고 있는가?</p>
+    </div>
+    <div class="success-card">
+      <div class="s-letter">U</div>
+      <h4>의외 (Unexpected)</h4>
+      <p>"에? 진짜?" 순간이 있는가?</p>
+    </div>
+    <div class="success-card">
+      <div class="s-letter">C</div>
+      <h4>구체 (Concrete)</h4>
+      <p>눈 감고 장면이 그려지는가?</p>
+    </div>
+    <div class="success-card">
+      <div class="s-letter">C</div>
+      <h4>신뢰 (Credible)</h4>
+      <p>왜 믿어야 하는지 근거가 있는가?</p>
+    </div>
+    <div class="success-card">
+      <div class="s-letter">E</div>
+      <h4>감성 (Emotional)</h4>
+      <p>감정을 건드리는가?</p>
+    </div>
+    <div class="success-card">
+      <div class="s-letter">S</div>
+      <h4>스토리 (Story)</h4>
+      <p>누가, 어디서, 뭘 했는지 이야기인가?</p>
+    </div>
+  </div>
+
+  <div class="mission mt-32">
+    <div class="m-label">실습 미션</div>
+    <h4>이번 프로젝트의 핵심 멘트를 SUCCESs로 점검해봐</h4>
+    <p>지금 쓰고 있는 설명 멘트 중 하나를 골라서, 6가지 원칙 중 뭘 충족하는지 체크해봐. 하나도 충족 안 하면 → 하나라도 넣어서 바꿔보고 내일 반응을 비교해봐.</p>
+  </div>
+
+  <div class="levelup">
+    <h4>L3-2 레벨업 체크리스트</h4>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">멘트 실험 <strong>3건 이상</strong> (변경 전후 반응 비교 기록)</div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">SUCCESs 6원칙 중 <strong>2가지 이상</strong>을 의식적으로 활용한 멘트 실험 1건 이상</div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">"이 멘트가 왜 먹혔는지" 원칙으로 설명 가능 <strong>1건 이상</strong></div></div>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="book" style="border-top-color:var(--accent)">
+      <span class="b-tag essential">Essential</span>
+      <div class="b-title">스틱! (Made to Stick)</div>
+      <div class="b-author">칩 히스, 댄 히스</div>
+      <div class="b-why">이 책의 사례를 읽으면서 '우리 매장에서는?'을 계속 떠올려라. 각 원칙의 현장 적용법이 바로 나온다.</div>
+      <div class="b-connect">
+        <strong>읽기 질문:</strong><br>
+        1. 우리 매장에서 가장 '스티키'한 멘트는 SUCCESs 중 뭘 충족하는가?<br>
+        2. 인식 목표를 SUCCESs로 검증하면 몇 개 충족?<br>
+        3. 6원칙 중 가장 쉽게 적용할 수 있는 것 1가지는?
+      </div>
+    </div>
+    <div class="book" style="border-top-color:var(--green)">
+      <span class="b-tag optional">Optional &mdash; 연결</span>
+      <div class="b-title">설득의 심리학</div>
+      <div class="b-author">로버트 치알디니</div>
+      <div class="b-why">3-3 설득의 6원칙에서 더 깊이 다룬다. 기억의 6원칙이 '뭘 말할까?'라면, 설득의 6원칙은 '어떻게 말할까?'에 가깝다.</div>
+      <div class="b-connect">
+        <strong>연결 포인트:</strong><br>
+        이번 모듈의 "신뢰(Credible)" 원칙이 치알디니의 "권위"와 직접 연결된다. 두 책을 교차해서 읽으면 설명력이 두 배가 된다.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BIG QUOTE -->
+<div class="big-quote">
+  <blockquote>같은 제품인데 어떤 멘트는 <em>기억</em>되고 어떤 멘트는 잊힌다.<br>차이는 재능이 아니라 <em>구조</em>다.<br>구조를 알면 누구나 기억되는 한마디를 만들 수 있다.</blockquote>
+  <div class="attr">REM OS &mdash; Project Rent</div>
+</div>
+
+<footer>
+  <div class="logo">Project Rent</div>
+  <div class="meta">3-2 Sticky Messages &middot; 2026.06.09 &middot; v1.0</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.sec').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

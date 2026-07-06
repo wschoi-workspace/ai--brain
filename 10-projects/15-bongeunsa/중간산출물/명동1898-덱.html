@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>명동1898 케이스스터디 — 슬라이드 덱</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{
+  --bg:#1A1A1A;--bg-2:#111;--bg-3:#222;
+  --fg:#F5F0EB;--fg-2:#C9C2BA;--fg-3:#7A7570;
+  --line:#333;--line-2:#2a2a2a;
+  --accent:#6C5CE7;--accent-light:#A29BFE;--accent-sub:rgba(108,92,231,.08);
+  --warm:#E9DCC8;--green:#8FA37E;--blue:#6F8AA3;--amber:#D9A34B;--red:#E17055;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+.slide{width:1280px;min-height:720px;height:720px;margin:0 auto 28px;background:var(--bg);padding:54px 72px 70px;display:flex;flex-direction:column;position:relative;border:1px solid var(--line-2);overflow:hidden}
+.slide--dark{background:var(--bg-2)}
+.slide--cover{justify-content:center;align-items:flex-start;background:var(--bg-2)}
+.runhead{position:absolute;top:20px;left:72px;right:72px;display:flex;justify-content:space-between;font-size:9.5px;letter-spacing:.22em;color:var(--fg-3);text-transform:uppercase}
+.runhead .r{color:var(--accent-light)}
+.slide-footer{position:absolute;bottom:24px;left:72px;right:72px;display:flex;justify-content:space-between;font-size:9.5px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;border-top:1px solid var(--line-2);padding-top:12px}
+.slide-head{flex-shrink:0;margin-top:26px}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:18px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px;border-bottom:1px solid var(--line-2);margin-bottom:22px}
+.eyebrow{font-size:10.5px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+h2{font-size:33px;font-weight:500;letter-spacing:-0.025em;line-height:1.18}
+h2 .hl{color:var(--accent)}
+.sub{font-size:14.5px;color:var(--fg-2);line-height:1.65;margin-top:14px;max-width:980px;font-weight:300}
+.sub b{color:var(--fg);font-weight:400}
+.note{font-size:10.5px;color:var(--fg-3);margin-top:16px;line-height:1.6}
+.src{font-size:10px;color:var(--fg-3);margin-top:12px;border-top:1px solid var(--line-2);padding-top:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:var(--bg-3);border:1px solid var(--line-2);padding:22px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:12.5px;color:var(--fg-2);line-height:1.6}
+.card .lab{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card ul{margin:6px 0 0 15px}.card li{font-size:12px;color:var(--fg-2);line-height:1.65;margin-bottom:3px}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi .kl{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.kpi .kv{font-size:36px;font-weight:200;color:var(--accent);line-height:1;letter-spacing:-.02em}
+.kpi .kv.pos{color:var(--green)}.kpi .kv.warm{color:var(--warm)}.kpi .kv.neg{color:var(--red)}
+.kpi .ku{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .ks{font-size:11px;color:var(--fg-3);margin-top:9px;line-height:1.4}
+.callout{background:var(--accent-sub);border-left:3px solid var(--accent);padding:18px 22px;margin-top:16px}
+.callout p{font-size:13.5px;color:var(--fg-2);line-height:1.6}
+.callout strong{color:var(--accent-light)}
+table.t{width:100%;border-collapse:collapse;font-size:12px}
+table.t th{font-size:9.5px;letter-spacing:.14em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:9px 12px 11px;font-weight:400;border-bottom:1px solid var(--line)}
+table.t td{padding:10px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+table.t td:first-child{color:var(--fg);font-weight:400}
+table.t .ok{color:var(--green)}table.t .no{color:var(--red)}table.t .mid{color:var(--amber)}
+.cover-label{font-size:11px;letter-spacing:.4em;color:var(--accent-light);text-transform:uppercase}
+.cover-title{font-size:60px;font-weight:200;line-height:1.06;letter-spacing:-.035em;margin:24px 0 18px}
+.cover-title b{font-weight:400;color:var(--fg)}
+.cover-sub{font-size:16px;color:var(--fg-2);line-height:1.6;max-width:780px}
+.cover-meta{margin-top:46px;display:flex;gap:46px;flex-wrap:wrap}
+.cover-meta .m .ml{font-size:9.5px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:6px}
+.cover-meta .m .mv{font-size:13px;color:var(--fg)}
+
+/* no 카드 — 5대 실패 강조 */
+.card.no{background:rgba(225,112,85,.06);border:1px solid rgba(225,112,85,.3)}
+.card.no .lab{color:var(--red)}
+.card.no h4{color:var(--red)}
+.card.no li{color:var(--fg-2)}
+.no-num{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:10px;font-weight:600;text-align:center;line-height:20px;margin-right:6px;flex-shrink:0}
+
+@media print{.slide{margin:0;border:none;page-break-after:always}}
+</style>
+</head>
+<body>
+
+<!-- 01 COVER -->
+<section class="slide slide--cover">
+  <div class="cover-label">Bongeunsa Project · Case Study</div>
+  <h1 class="cover-title">명동 1898<br><b>케이스스터디</b></h1>
+  <p class="cover-sub">가톨릭 복합문화공간의 성립 구조, 테넌트 전략, 평가 — 그리고 봉은사가 반드시 회피해야 할 5대 실패 지점.</p>
+  <div class="cover-meta">
+    <div class="m"><div class="ml">Scope</div><div class="mv">개요 · 공간 · 테넌트 · 평가 · 교훈 · 5대 실패</div></div>
+    <div class="m"><div class="ml">Source</div><div class="mv">명동1898 복합문화공간 종합 리서치 (2026.04)</div></div>
+    <div class="m"><div class="ml">Prepared by</div><div class="mv">Project Rent</div></div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 02 프로젝트 개요 -->
+<section class="slide">
+  <div class="runhead"><span>봉은사 리서치 · 명동1898</span><span class="r">개요</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Project Overview · 1898광장</span><span class="eyebrow">02</span></div>
+    <h2>명동성당 지하 복합문화공간 — <span class="hl">종교 부지 0원</span> 기반 가치 모델</h2>
+    <p class="sub">정식명 <b>1898광장</b>. 2014년 9월 개관, 명동성당 B1~1층, 약 20개 매장. 이름은 성당 축성연도(1898년)에서 따왔고, 로고는 오병이어(빵 5 + 물고기 2) — "더 넓고 깊은 사랑을 나누자"는 의미다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g4" style="margin-bottom:16px">
+      <div class="kpi"><div class="kl">개관</div><div class="kv warm">2014<span class="ku">년</span></div><div class="ks">명동성당 종합계획 1단계 완료</div></div>
+      <div class="kpi"><div class="kl">매장 수</div><div class="kv">20<span class="ku">개+</span></div><div class="ks">B1~1층 · 연중무휴 09~22시</div></div>
+      <div class="kpi"><div class="kl">사업 면적</div><div class="kpi"><div class="kl" style="margin-top:8px">명동 특별계획구역</div></div><div class="kv" style="font-size:26px">48,845<span class="ku">㎡</span></div><div class="ks">종합계획 4단계 · 2029년까지</div></div>
+      <div class="kpi"><div class="kl">주차</div><div class="kv pos">202<span class="ku">대</span></div><div class="ks">30분 3,000원 · 추가 10분 1,000원</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="lab">추진 경위</div>
+        <table class="t">
+          <tr><td style="width:60px">2003년</td><td>정진석 추기경 주도 명동개발특별위원회 설립</td></tr>
+          <tr><td>2009년</td><td>종합계획 1단계 착수</td></tr>
+          <tr><td>2011.09</td><td>서울시 건축허가 취득 · 기공식</td></tr>
+          <tr><td>2014.09</td><td>1898광장 개관 (교구청 신관 완공)</td></tr>
+          <tr><td>2014.10</td><td>인터파크 북파크 입점 (마지막 매장)</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="lab">3가지 설립 비전</div>
+        <ul>
+          <li><b>보존과 복원</b> — 1898년 네오고딕 성당 경관 훼손 없이 개발</li>
+          <li><b>열린 광장</b> — 비신자·시민 누구나 쉬어가는 도심 쉼터</li>
+          <li><b>신자 교류 공간</b> — 사제서품식 수용(5,000명 규모) 시설 확보</li>
+        </ul>
+        <div class="note">운영 주체: 천주교 서울대교구 (허영엽 신부 총괄 — "수익성보다 공익과 사회적 가치 우선")</div>
+      </div>
+    </div>
+    <div class="src">출처: 명동1898 복합문화공간 종합 리서치 (2026.04) · 1898광장 공식 사이트 · AURIC 건축 리포트 (박노성·김한수·류, 2014)</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 03 공간 구성 -->
+<section class="slide">
+  <div class="runhead"><span>봉은사 리서치 · 명동1898</span><span class="r">공간</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Space · 공간 구성 상세</span><span class="eyebrow">03</span></div>
+    <h2>"지하 전략" — 경관 보존과 개발을 <span class="hl">동시에 풀다</span></h2>
+    <p class="sub">높은 건물 대신 <b>지하 수평 확장</b>을 선택. 자동차가 점령한 전면부를 지하화해 보행 환경을 개선하고, 지상 성당 경관을 그대로 보존했다. 결과: 논쟁의 양측을 모두 달랜 절충의 산물.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2">
+      <div class="card">
+        <div class="lab">층별 구성</div>
+        <table class="t">
+          <tr><th>층</th><th>주요 시설</th></tr>
+          <tr><td>1층 (지상)</td><td>광장동 가온(곰국시·만두) · 커피리브레 · 비스트로74</td></tr>
+          <tr><td class="ok">B1 (지하)</td><td>1898+ 기념품 · 갤러리1898 · 인터파크 북파크(130평·3만권)</td></tr>
+          <tr><td></td><td>전광수커피하우스 · 르빵 · 에쎄레 젤라또 · 홍밀밀 팥빙수</td></tr>
+          <tr><td></td><td>래;코드(업사이클) · 꽃다지 화원 · 가톨릭정보·나눔센터 · 약국</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="lab">건축적 특징</div>
+        <ul>
+          <li><b>인테리어 컨셉</b> — 적벽돌 고딕 양식을 실내에 현대적으로 재해석</li>
+          <li><b>천장</b> — 높은 천정고 + 자연광처럼 느껴지는 천정 조명 (착각 유발)</li>
+          <li><b>공간감</b> — "상가라고는 하나 내부가 광장처럼 넓다"</li>
+          <li><b>동선</b> — 중앙 광장을 축으로 매장들이 둘러싸는 구조</li>
+        </ul>
+        <div class="lab" style="margin-top:14px">접근성</div>
+        <table class="t">
+          <tr><td>을지로입구역</td><td>5번 출구 도보 500m</td></tr>
+          <tr><td>명동역</td><td>9번 출구 도보 700m</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="callout"><p><strong>설계 판단.</strong> 유걸 대표: "장소의 불편함을 해소하면서 동시에 가능성을 구현하는 것이 원칙이다. 무조건적인 보존도 정답은 아니다." — 임진우 건축가: "1898 지하공간은 신자와 비신자가 함께 어울릴 수 있도록 라이프스타일을 고려한 만남과 교제의 다용도 문화공간."</p></div>
+    <div class="src">출처: 명동1898 복합문화공간 종합 리서치 · 매거진HD 임진우 건축가 분석 · 가톨릭뉴스 전문가 인터뷰</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 04 비즈니스모델 -->
+<section class="slide">
+  <div class="runhead"><span>봉은사 리서치 · 명동1898</span><span class="r">BM</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Business Model · 수익 구조 & 3C 원칙</span><span class="eyebrow">04</span></div>
+    <h2>"가치→집객→임팩트" — 부지 0원이 <span class="hl">가능하게 한 구조</span></h2>
+    <p class="sub">일반 상업시설이 "집객→매출→수익"을 최우선으로 하는 반면, 1898은 <b>가치→집객→사회적 임팩트</b>를 우선. 부지 비용이 0원(교구 소유)이기에 수익 극대화 대신 공익 테넌트를 배치할 수 있었다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2">
+      <div class="card">
+        <div class="lab">수익 구조 (추정)</div>
+        <table class="t">
+          <tr><th>항목</th><th>역할</th></tr>
+          <tr><td>① 임대수익</td><td>약 20개 매장 임대료 (최대 매출원)</td></tr>
+          <tr><td>② 직영수익</td><td>1898+ 기념품 (100여 상품)</td></tr>
+          <tr><td>③ 주차수익</td><td>202대 · 30분/3,000원</td></tr>
+          <tr><td>④ 문화수익</td><td>갤러리 전시 · 공방 수업 (일부 유료)</td></tr>
+          <tr><td>⑤ 간접효과</td><td>명동 랜드마크 집객 → 부수 소비</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="lab">입점 브랜드 선별 기준 — 3C 원칙</div>
+        <table class="t">
+          <tr><th>원칙</th><th>테넌트 사례</th></tr>
+          <tr><td class="ok">Charity</td><td>르빵(남은 빵 전량 기부) · 래;코드(업사이클·미혼모 강좌) · 나눔센터</td></tr>
+          <tr><td class="mid">Culture</td><td>갤러리1898(무료 전시) · 인터파크 북파크(독서문화) · 버스킹·음악회</td></tr>
+          <tr><td>Catholic</td><td>1898+(대교구 직영 기념품) · 가톨릭정보센터 · 성물·종교서적</td></tr>
+        </table>
+        <div class="note">커피리브레: 산지 직거래 공정무역 · 주 2회 퍼블릭 커핑 — Charity + Culture 동시 해당</div>
+      </div>
+    </div>
+    <div class="callout"><p><strong>구조 핵심.</strong> 부지 비용 0원 → 임대료를 공격적으로 올리지 않아도 됨 → 공정무역 카페·적자 업사이클 브랜드·자선 베이커리 유치 가능. <b style="color:var(--fg)">일반 디벨로퍼가 복제할 수 없는 종교시설 전용 모델.</b></p></div>
+    <div class="src">출처: 명동1898 복합문화공간 종합 리서치 (BM 분석 섹션) · 가톨릭타임즈 · 디자인정글 (한경애 상무 인터뷰)</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 05 핵심 테넌트 -->
+<section class="slide">
+  <div class="runhead"><span>봉은사 리서치 · 명동1898</span><span class="r">테넌트</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Key Tenants · 핵심 입점 브랜드</span><span class="eyebrow">05</span></div>
+    <h2>모든 매장이 <span class="hl">"선한 소비"</span> 하나의 메시지를 강화한다</h2>
+    <p class="sub">일반 쇼핑몰의 "아무 테넌트나 채우기"와 완전히 다른 접근. 각 브랜드는 Charity·Culture·Catholic 중 최소 하나에 명확히 귀속되며, 서로의 가치를 증폭시키는 구성이다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3">
+      <div class="card">
+        <div class="lab">1898+ · 기념품 편집숍 (직영)</div>
+        <h4>성물방 이미지를 완전히 탈피</h4>
+        <p>약 100여 종 상품. 편집숍형 디스플레이·라이프스타일 상품 전면, 종교적 요소는 자연스럽게 녹여내되 강요하지 않는 방식. 외국인 관광객·비신자도 구매.</p>
+      </div>
+      <div class="card">
+        <div class="lab">래;코드 · 업사이클링 (코오롱FnC)</div>
+        <h4>적자 운영으로 진정성 증명</h4>
+        <p>3년 미판매 재고·산업폐기물·군폐기물 재활용. 주말 공방 수업, 미혼모 무료 강좌(입양아동 인형 제작). 한경애 상무: "진실성을 생각하고 시작했다."</p>
+      </div>
+      <div class="card">
+        <div class="lab">인터파크 북파크 · 서점</div>
+        <h4>130평 · 3만 권 · 신간 대여 2,000원/주</h4>
+        <p>'저자와의 대화' 정기 프로그램. 음반숍 · 카페테리아 병설. "책·저자·독자가 만나는 오프라인 문화공간" — 독서문화 촉진 기능.</p>
+      </div>
+      <div class="card">
+        <div class="lab">커피리브레 · 공정무역 카페</div>
+        <h4>직거래 원두 · 매일 현장 로스팅</h4>
+        <p>브라질·동남아 산지 직거래, 유기농. 매주 2회 퍼블릭 커핑(고객 참여형). "커피 재배 농민과의 지속가능한 발전" 가치.</p>
+      </div>
+      <div class="card">
+        <div class="lab">르빵 · 자선 베이커리</div>
+        <h4>당일 판매 원칙 · 남은 빵 전량 기부</h4>
+        <p>프랑스산 밀가루 등 최고급 재료. 자선 원칙의 실천적 운영 — 수익보다 나눔이 브랜드 정체성 자체.</p>
+      </div>
+      <div class="card">
+        <div class="lab">갤러리1898 · 전시</div>
+        <h4>무료 기획전 · 교회미술 × 한국 현대미술</h4>
+        <p>시즌별 기획 전시. 소소한 음악회(매월 셋째 수), 더 버스킹(매주 화) 정기 공연. 문화 프로그래밍의 중심축.</p>
+      </div>
+    </div>
+    <div class="src">출처: 명동1898 복합문화공간 종합 리서치 (테넌트 심층 분석) · 디자인정글 · 아시아경제 · 가톨릭타임즈</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 06 종합 평가 -->
+<section class="slide">
+  <div class="runhead"><span>봉은사 리서치 · 명동1898</span><span class="r">평가</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Evaluation · 종합 평가 & SWOT</span><span class="eyebrow">06</span></div>
+    <h2>사회적 가치의 모범 — 그러나 <span class="hl">상업적 활력은 아쉬움</span></h2>
+    <p class="sub">공간 매력과 사회적 가치 실현은 최고점이나, 수익성·온라인 존재감·고객 발견성은 낮다. 봉은사는 강점을 차용하고, 약점을 역설계로 회피해야 한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2">
+      <div class="card">
+        <div class="lab">4대 축 평가</div>
+        <table class="t">
+          <tr><th>항목</th><th>점수</th><th>근거</th></tr>
+          <tr><td>BM 독창성</td><td class="ok">★★★★</td><td>종교시설 + 복합문화공간 = 국내 유일 모델</td></tr>
+          <tr><td>BM 수익성</td><td class="no">★★</td><td>공익 우선 의도적 제한. 부지 무상이라 가능</td></tr>
+          <tr><td>BM 지속가능성</td><td class="ok">★★★★</td><td>명동성당 자산(부지+역사성) 기반 → 리스크 낮음</td></tr>
+          <tr><td>공간 매력도</td><td class="ok">★★★★★</td><td>건축적 완성도, 분위기 압도적</td></tr>
+          <tr><td>온라인 존재감</td><td class="no">★★</td><td>SNS 마케팅 거의 없음. 바이럴 부재</td></tr>
+          <tr><td>사회적 가치</td><td class="ok">★★★★★</td><td>자선·공정무역·업사이클 일관성 탁월</td></tr>
+        </table>
+      </div>
+      <div class="g2" style="display:flex;flex-direction:column;gap:14px">
+        <div class="card" style="border-left:3px solid var(--green)">
+          <div class="lab" style="color:var(--green)">강점 (S)</div>
+          <ul>
+            <li>128년 역사 명동성당 — 압도적 자산</li>
+            <li>"1898" 숫자 브랜딩의 간결함 (연도=브랜드명)</li>
+            <li>부지 0원 → 낮은 임대료 → 가치 테넌트 유치</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left:3px solid var(--red)">
+          <div class="lab" style="color:var(--red)">약점 (W)</div>
+          <ul>
+            <li>지하 위치 → 낮은 인지도 · 발견성</li>
+            <li>SNS·디지털 마케팅 부재</li>
+            <li>타깃 불명확 (관광객? 신자? 시민?)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="src">출처: 명동1898 복합문화공간 종합 리서치 (종합 평가 섹션) · 대한민국 구석구석 · 블로그 방문 후기</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 07 차용할 교훈 -->
+<section class="slide">
+  <div class="runhead"><span>봉은사 리서치 · 명동1898</span><span class="r">교훈</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Best Practice · 봉은사가 차용할 교훈</span><span class="eyebrow">07</span></div>
+    <h2>장소성 · 큐레이션 · 지하 전략 · <span class="hl">종교공간 전환 모델</span></h2>
+    <p class="sub">1898의 성공 요인은 4가지로 압축된다. 봉은사는 이 중 장소성과 큐레이션을 가장 적극적으로 차용할 수 있다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2">
+      <div class="card" style="border-left:3px solid var(--accent)">
+        <div class="lab" style="color:var(--accent)">01 · 장소성 브랜딩</div>
+        <h4>"1898" — 연도 하나로 128년 역사를 직관 전달</h4>
+        <p>긴 설명 없이 숫자가 장소의 역사를 말한다. 로고에 오병이어 모티브를 담아 종교적 의미까지 내포. 봉은사 역시 <b>"794"(창건 794년)</b> 같은 숫자 브랜딩이 가능하다.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent)">
+        <div class="lab" style="color:var(--accent)">02 · 가치 기반 테넌트 큐레이션</div>
+        <h4>모든 매장이 하나의 메시지를 강화한다</h4>
+        <p>공정무역·업사이클·자선 → "선한 소비" 일관성. 봉은사는 3C 대신 <b>불교적 생태·나눔·문화</b> 기준으로 테넌트를 큐레이션하면 동일 효과.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent)">
+        <div class="lab" style="color:var(--accent)">03 · "지하 전략" 역발상</div>
+        <h4>약점을 "도심 속 은밀한 안식처"로 전환</h4>
+        <p>높은 천장+자연광 조명으로 지하감 제거. 명동 번화가와의 대비가 오히려 공간 경험을 극대화. 봉은사도 지하·반지하 공간이 있다면 같은 전략 적용 가능.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent)">
+        <div class="lab" style="color:var(--accent)">04 · 종교공간의 현대적 전환 모델</div>
+        <h4>비신자도 자연스럽게 방문하는 설계</h4>
+        <p>"세상과 소통하는 교회" 비전을 물리적 공간으로 구현. 종교색을 숨기지 않되, 진입장벽을 제거. 봉은사 = "1,200년 사찰이 직접 운영하는 정신문화 거점"으로 동일 적용.</p>
+      </div>
+    </div>
+    <div class="callout"><p><strong>봉은사 적용 요약.</strong> 장소성 압축 브랜딩(연도·역사) → 불교적 가치 기반 테넌트 큐레이션 → 사찰 부지 0원 활용한 가치 우선 운영 → 비신자 진입장벽 제거 설계. 1898이 증명한 구조를 봉은사 맥락으로 이식.</p></div>
+    <div class="src">출처: 명동1898 복합문화공간 종합 리서치 (시사점 섹션) · 가톨릭타임즈 허영엽 신부 인터뷰</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 08 5대 실패 -->
+<section class="slide slide--dark">
+  <div class="runhead"><span>봉은사 리서치 · 명동1898</span><span class="r">5대 실패</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Critical Failures · 반드시 피할 5가지</span><span class="eyebrow">08</span></div>
+    <h2>봉은사가 <span class="hl" style="color:var(--red)">회피해야 할</span> 명동1898의 5대 실패</h2>
+    <p class="sub">1898의 실패는 운영 의지나 공간 품질의 문제가 아니다. <b>발견되지 못하고, 알려지지 못하고, 머물 이유가 없었던</b> 구조의 문제다 — 봉은사는 이 5가지를 역설계해야 한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3" style="margin-bottom:14px">
+      <div class="card no">
+        <div class="lab">실패 01 · 발견성</div>
+        <h4>낮은 발견성 — 지하·사이니지·동선 부재</h4>
+        <p>방문 후기 공통 반응: "존재를 몰랐다. 지하에 있어 간판이나 안내가 부족하다." 평일 유동인구 대비 실제 방문/소비가 현저히 적은 핵심 원인.</p>
+      </div>
+      <div class="card no">
+        <div class="lab">실패 02 · 디지털 마케팅</div>
+        <h4>SNS·UGC 전략 전무</h4>
+        <p>인스타그래머블한 공간임에도 공식 SNS 계정 활동 미미. 해시태그 전략·UGC 유도 없음 → 바이럴 부재 → 인지도 정체. 비용 대비 가장 효과 높은 채널을 방치.</p>
+      </div>
+      <div class="card no">
+        <div class="lab">실패 03 · 타깃 불명확</div>
+        <h4>관광객 / 신자 / 시민 혼재</h4>
+        <p>"뭘 하러 가는 곳인지 모호하다. 카페? 갤러리? 서점? 성지순례?" — 메시지가 분산되면 어느 타깃도 강하게 유입되지 않는다.</p>
+      </div>
+      <div class="card no">
+        <div class="lab">실패 04 · 시그니처 콘텐츠</div>
+        <h4>"여기 가면 꼭 OO" 킬러콘텐츠 부재</h4>
+        <p>1898에만 있는 독점 경험이 없다. 명동성당 방문 후 자동 유입은 되나, 1898 자체가 목적지가 되지 못함 → 재방문 동기 부재 직결.</p>
+      </div>
+      <div class="card no">
+        <div class="lab">실패 05 · 크로스 프로모션</div>
+        <h4>매장 간 시너지·재방문 동기 없음</h4>
+        <p>20개 매장이 개별 운영 → 통합 경험 부재. "1898 패스포트(스탬프 5개 → 기념품)" 같은 크로스 프로모션 전무. 1회 방문 후 재방문 동기가 없다.</p>
+      </div>
+    </div>
+    <div class="callout" style="background:rgba(225,112,85,.06);border-left-color:var(--red)"><p style="color:var(--fg-2)"><strong style="color:var(--red)">봉은사 역설계 처방.</strong> ① 지상~지하 사이니지 + 성당 출구 동선 연계 ② 공식 SNS 운영 + 해시태그 전략 + UGC 유도 ③ 타깃 1순위 명확화(외국인 체험객 or 강남 직장인 웰니스) ④ 봉은사에서만 가능한 시그니처 체험 1개 이상 설계 ⑤ 통합 방문 여정 설계 + 재방문 프로그램.</p></div>
+    <div class="src">출처: 명동1898 복합문화공간 종합 리서치 (약점·개선 섹션) · 방문 후기 종합 · 공간 기획자 제언</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 09 사람들의 반응 -->
+<section class="slide">
+  <div class="runhead"><span>봉은사 리서치 · 명동1898</span><span class="r">반응</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">User Reaction · 타깃별 반응</span><span class="eyebrow">09</span></div>
+    <h2>"발견하면 만족 높다" — 그러나 <span class="hl">발견까지가 어렵다</span></h2>
+    <p class="sub">공간 자체의 품질은 검증됐다. 오픈하우스 서울 선정, 명동의 새로운 문화적 랜드마크(서울시 공식 블로그). 문제는 발견성과 재방문 구조다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g4" style="margin-bottom:14px">
+      <div class="kpi"><div class="kl">외국인 관광객</div><div class="kv pos">★★★★</div><div class="ks">성당 방문 후 자연 유입 · 기념품 구매 활발</div></div>
+      <div class="kpi"><div class="kl">종교인 (신자)</div><div class="kv pos">★★★★</div><div class="ks">성물방·정보센터 실질적 니즈 충족</div></div>
+      <div class="kpi"><div class="kl">내국인 일반</div><div class="kv warm">★★★</div><div class="ks">"알면 좋은 곳" 재방문 동기 약함</div></div>
+      <div class="kpi"><div class="kl">건축·디자인 관심층</div><div class="kv pos">★★★★★</div><div class="ks">공간 자체 만족 · 오픈하우스 서울 선정</div></div>
+    </div>
+    <div class="g2">
+      <div class="card" style="border-left:3px solid var(--green)">
+        <div class="lab" style="color:var(--green)">긍정 반응</div>
+        <ul>
+          <li>"정신없던 명동 거리에서 잠시 쉬어 가기 좋은 장소"</li>
+          <li>"종교가 없어도 선물 구매 목적으로 방문. 상품 구성이 알차다."</li>
+          <li>"명동의 새로운 문화적 랜드마크" — 서울시 공식 블로그</li>
+          <li>건축 애호가: 고딕→현대 재해석 만족 · 여름철 도심 오아시스로 인기</li>
+        </ul>
+      </div>
+      <div class="card" style="border-left:3px solid var(--red)">
+        <div class="lab" style="color:var(--red)">부정 반응</div>
+        <ul>
+          <li>"존재를 몰랐다. 지하에 있어 간판이나 안내가 부족하다."</li>
+          <li>"뭘 하러 가는 곳인지 모호하다. 카페? 갤러리? 서점? 성지순례?"</li>
+          <li>평일 유동인구 대비 실제 방문·소비 적음</li>
+          <li>1회 방문 후 재방문 동기 부족 · 콘텐츠 갱신 속도 느림</li>
+        </ul>
+      </div>
+    </div>
+    <div class="src">출처: 블로그 방문 후기 · 서울시 미디어허브 · 대한민국 구석구석 · 명동1898 복합문화공간 종합 리서치 (반응 섹션)</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 10 봉은사 시사점 종합 -->
+<section class="slide slide--dark">
+  <div class="runhead"><span>봉은사 리서치 · 명동1898</span><span class="r">시사점</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Implications · 봉은사 적용 종합</span><span class="eyebrow">10</span></div>
+    <h2>명동1898이 증명한 것과 <span class="hl">증명하지 못한 것</span></h2>
+    <p class="sub">1898은 "종교 부지 기반 가치 모델"이 작동함을 증명했다. 봉은사는 그 구조를 차용하되, 1898이 실패한 5가지 지점을 역설계해 <b>발견되고·알려지고·머무는</b> 공간을 만들어야 한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2">
+      <div class="card">
+        <div class="lab">1898이 증명한 것 — 차용 목록</div>
+        <table class="t">
+          <tr><th>요소</th><th>봉은사 적용</th></tr>
+          <tr><td>장소성 브랜딩</td><td class="ok">연도/역사 숫자 → 봉은사 고유 명칭 설계</td></tr>
+          <tr><td>가치 기반 큐레이션</td><td class="ok">3C → 불교적 생태·나눔·문화 기준 테넌트</td></tr>
+          <tr><td>종교 부지 0원 활용</td><td class="ok">부지비용 0 → 가치 우선 운영 구조 유지</td></tr>
+          <tr><td>비신자 진입장벽 제거</td><td class="ok">사찰음식·체험·전통다원으로 일반인 유입</td></tr>
+          <tr><td>"지하 전략" 절충</td><td class="ok">경관 보존 + 공간 확장 동시 해결</td></tr>
+        </table>
+      </div>
+      <div class="card no">
+        <div class="lab">1898이 실패한 것 — 역설계 목록</div>
+        <table class="t">
+          <tr><th>실패</th><th>봉은사 역설계</th></tr>
+          <tr><td class="no">낮은 발견성</td><td>지상 사이니지 + 코엑스 동선 연계</td></tr>
+          <tr><td class="no">SNS·UGC 부재</td><td>인스타그래머블 포인트 + 공식 채널 운영</td></tr>
+          <tr><td class="no">타깃 불명확</td><td>외국인 문화체험객 1순위로 명확화</td></tr>
+          <tr><td class="no">시그니처 부재</td><td>"봉은사에서만" 체험 1개 이상 설계 필수</td></tr>
+          <tr><td class="no">크로스 프로모션 없음</td><td>통합 여정 + 재방문 프로그램 설계</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="callout"><p><strong>최종 시사점.</strong> 명동1898은 <b style="color:var(--fg)">봉은사에 가장 직접적인 레퍼런스</b>다. 같은 구조(종교 부지·가치 모델·복합문화공간)이되, 봉은사는 1898보다 ①입지(강남·외국인·메가 개발)가 유리하고 ②MZ 수요(힙불교)가 폭발적이며 ③법적 프레임(전통다원·직영)이 정비돼 있다. 남은 과제는 5대 실패를 역설계하는 실행 설계뿐이다.</p></div>
+    <div class="src">출처: 명동1898 복합문화공간 종합 리서치 (전 섹션) · 봉은사 리서치 종합 정리 · 케이스스터디 분석</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 11 CLOSING -->
+<section class="slide slide--cover">
+  <div class="cover-label">Bongeunsa Project · Case Study</div>
+  <h1 class="cover-title" style="font-size:48px">같은 구조, 더 나은 실행.<br><b>5대 실패를 역설계하라.</b></h1>
+  <p class="cover-sub">명동1898이 증명한 "종교 부지 기반 가치 모델"을 봉은사로 이식하되, 발견성·SNS·타깃·시그니처·크로스 프로모션 — 5가지를 처음부터 설계에 반영해야 한다.</p>
+  <div class="cover-meta">
+    <div class="m"><div class="ml">Case Reference</div><div class="mv">명동1898 복합문화공간 종합 리서치 (2026.04)</div></div>
+    <div class="m"><div class="ml">Prepared by</div><div class="mv">Project Rent · ws.choi@project-rent.com</div></div>
+    <div class="m"><div class="ml">Date</div><div class="mv">2026.06</div></div>
+  </div>
+  <div class="slide-footer"><span>봉은사 리서치 · 명동1898</span><span>by Project Rent</span></div>
+</section>
+
+</body>
+</html>

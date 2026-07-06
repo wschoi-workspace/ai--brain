@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정부사업 제안 솔루션 분석 — Do Better Workspace</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --green: #8FA37E; --amber: #D9A34B; --red: #E17055; --blue: #6F8AA3;
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300;letter-spacing:-0.01em;line-height:1.7;
+}
+h1,h2,h3,h4{font-weight:500;text-wrap:balance}
+
+.sec{
+  padding:100px 120px 120px;max-width:1440px;margin:0 auto;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out);
+}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sec-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px;
+}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:16px}
+.body{font-size:14px;color:var(--fg-2);line-height:1.7}
+.body strong{color:var(--fg);font-weight:500}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-48{margin-top:48px}
+
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:80px 60px;background:var(--bg-2);
+}
+.cover .eyebrow{margin-bottom:24px}
+.cover h1{font-size:56px;font-weight:200;letter-spacing:-0.03em;line-height:1.1}
+.cover h1 em{font-style:normal;color:var(--accent)}
+.cover .sub{font-size:16px;color:var(--fg-2);margin-top:24px;max-width:640px;font-weight:300}
+.cover .meta{font-size:11px;color:var(--fg-3);letter-spacing:.2em;margin-top:48px;text-transform:uppercase}
+.cover .level-badge{
+  display:inline-block;padding:6px 20px;font-size:12px;letter-spacing:.2em;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.25);margin-bottom:24px;text-transform:uppercase;
+}
+
+.big-quote{
+  background:var(--bg-2);padding:80px 120px;text-align:center;
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+}
+.big-quote blockquote{
+  font-size:28px;font-weight:200;letter-spacing:-0.02em;line-height:1.4;
+  color:var(--fg);max-width:800px;margin:0 auto;
+}
+.big-quote blockquote em{font-style:normal;color:var(--accent)}
+.big-quote .attr{font-size:12px;color:var(--fg-3);margin-top:24px;letter-spacing:.15em}
+
+.principle{
+  background:rgba(108,92,231,.06);border-left:3px solid var(--accent);
+  padding:28px 32px;margin:24px 0;
+}
+.principle p{font-size:14px;color:var(--fg-2);margin:0;line-height:1.7}
+.principle strong{color:var(--accent-light)}
+
+.callout{
+  background:rgba(108,92,231,.08);border-left:3px solid var(--accent);
+  padding:24px 28px;margin:24px 0;
+}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+.card{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card .c-num{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.card.accent-top{border-top:2px solid var(--accent)}
+
+.scenario{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:32px;margin:16px 0;
+  transition:border-color var(--duration-base) var(--ease-out);
+}
+.scenario:hover{border-color:var(--fg-3)}
+.scenario .s-label{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:12px}
+.scenario .s-situation{font-size:15px;color:var(--fg);font-weight:500;margin-bottom:16px}
+.scenario .s-dialogue{padding:16px 20px;background:var(--bg-2);border-left:2px solid var(--accent);margin:12px 0}
+.scenario .s-dialogue p{font-size:13px;color:var(--fg-2);margin:6px 0;line-height:1.6}
+.scenario .s-dialogue .speaker{color:var(--fg-3);font-size:11px;letter-spacing:.1em;margin-bottom:2px}
+.scenario .s-dialogue .speaker.rem{color:var(--accent-light)}
+.scenario .s-insight{
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--line-2);
+  font-size:12px;color:var(--fg-3);
+}
+.scenario .s-insight strong{color:var(--green)}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:32px 0}
+.compare-col{padding:32px;border:1px solid var(--line-2)}
+.compare-col.bad{background:rgba(225,112,85,.03);border-color:rgba(225,112,85,.15)}
+.compare-col.good{background:rgba(143,163,126,.03);border-color:rgba(143,163,126,.15)}
+.compare-col.neutral{background:rgba(108,92,231,.03);border-color:rgba(108,92,231,.15)}
+.compare-col h4{font-size:11px;letter-spacing:.25em;text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--line-2)}
+.compare-col.bad h4{color:var(--red)}
+.compare-col.good h4{color:var(--green)}
+.compare-col.neutral h4{color:var(--accent-light)}
+.compare-col .item{padding:14px 0;border-bottom:1px solid var(--line-2);font-size:13px;color:var(--fg-2);line-height:1.5}
+.compare-col .item:last-child{border-bottom:none}
+.compare-col .item .label{font-size:10px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+
+.steps{margin:32px 0}
+.step{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--line-2)}
+.step:last-child{border-bottom:none}
+.step-num{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:500;flex-shrink:0;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.2);
+}
+.step-content h4{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.step-content p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.step-content .example{
+  margin-top:10px;padding:10px 14px;background:var(--bg-3);
+  border-left:2px solid var(--accent);font-size:12px;color:var(--fg-2);line-height:1.5;
+}
+.step-phase{
+  font-size:10px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase;
+  margin-bottom:8px;
+}
+
+/* Observation Map */
+.obs-map{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:32px 0;
+}
+.obs-item{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:24px;
+  border-left:3px solid transparent;
+}
+.obs-item.body-obs{border-left-color:var(--green)}
+.obs-item.word-obs{border-left-color:var(--accent)}
+.obs-item.space-obs{border-left-color:var(--amber)}
+.obs-item.emotion-obs{border-left-color:var(--blue)}
+.obs-item .obs-tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+.obs-item.body-obs .obs-tag{color:var(--green)}
+.obs-item.word-obs .obs-tag{color:var(--accent-light)}
+.obs-item.space-obs .obs-tag{color:var(--amber)}
+.obs-item.emotion-obs .obs-tag{color:var(--blue)}
+.obs-item h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.obs-item p{font-size:12px;color:var(--fg-2);line-height:1.6}
+.obs-item .obs-how{
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2);
+  font-size:11px;color:var(--fg-3);
+}
+
+/* Theory Box */
+.theory{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.theory .t-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  padding-bottom:14px;border-bottom:1px solid var(--line-2);
+}
+.theory .t-badge{
+  padding:3px 10px;font-size:10px;letter-spacing:.15em;
+  background:rgba(111,138,163,.1);color:var(--blue);
+  border:1px solid rgba(111,138,163,.2);text-transform:uppercase;
+}
+.theory .t-title{font-size:14px;font-weight:500;color:var(--fg)}
+.theory .t-author{font-size:11px;color:var(--fg-3);margin-left:auto}
+.theory p{font-size:13px;color:var(--fg-2);line-height:1.7;margin-bottom:10px}
+.theory p:last-child{margin-bottom:0}
+.theory .t-apply{
+  margin-top:16px;padding:14px 18px;
+  background:rgba(108,92,231,.06);border-left:2px solid var(--accent);
+  font-size:12px;color:var(--fg-2);line-height:1.6;
+}
+.theory .t-apply strong{color:var(--accent-light)}
+
+/* Mission */
+.mission{
+  background:rgba(143,163,126,.04);border:1px solid rgba(143,163,126,.2);
+  padding:28px;margin:16px 0;
+}
+.mission .m-label{font-size:10px;letter-spacing:.25em;color:var(--green);text-transform:uppercase;margin-bottom:10px}
+.mission h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.mission p{font-size:13px;color:var(--fg-2);line-height:1.6}
+
+/* Levelup */
+.levelup{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.levelup h4{font-size:11px;letter-spacing:.25em;color:var(--accent-light);text-transform:uppercase;margin-bottom:20px}
+.lu-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.lu-item:last-child{border-bottom:none}
+.lu-check{
+  width:20px;height:20px;border:1px solid var(--line);display:flex;
+  align-items:center;justify-content:center;font-size:11px;color:var(--fg-3);flex-shrink:0;
+}
+.lu-text{font-size:13px;color:var(--fg-2)}
+
+/* Group Header */
+.group-header{
+  font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;
+  padding:12px 0;border-bottom:1px solid var(--line-2);margin-bottom:16px;margin-top:32px;
+}
+.group-header:first-child{margin-top:0}
+
+/* Tag inline */
+.tag{
+  display:inline-block;padding:2px 8px;font-size:10px;letter-spacing:.1em;
+  border:1px solid;text-transform:uppercase;margin-right:6px;vertical-align:middle;
+}
+.tag.accent{background:rgba(108,92,231,.1);color:var(--accent-light);border-color:rgba(108,92,231,.25)}
+.tag.green{background:rgba(143,163,126,.1);color:var(--green);border-color:rgba(143,163,126,.25)}
+.tag.amber{background:rgba(217,163,75,.1);color:var(--amber);border-color:rgba(217,163,75,.25)}
+.tag.red{background:rgba(225,112,85,.1);color:var(--red);border-color:rgba(225,112,85,.25)}
+.tag.blue{background:rgba(111,138,163,.1);color:var(--blue);border-color:rgba(111,138,163,.25)}
+
+footer{
+  padding:80px 120px 60px;border-top:1px solid var(--line-2);
+  max-width:1440px;margin:80px auto 0;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg-3);text-transform:uppercase}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+
+@media(max-width:1200px){
+  .sec{padding:80px 60px}
+  .cover h1{font-size:40px}
+  .big-quote{padding:60px 40px}
+  .big-quote blockquote{font-size:22px}
+  .compare,.grid-2,.grid-3,.grid-4,.obs-map{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.sec{opacity:1;transform:none;transition:none}}
+@media print{.sec{opacity:1;transform:none;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <span class="level-badge">System Analysis</span>
+  <span class="eyebrow">Do Better Workspace &middot; System Analysis</span>
+  <h1>정부사업 제안 <em>솔루션</em> 분석</h1>
+  <p class="sub">4개 스킬 + 3개 프레임워크 + 2개 가이드로 구성된 제안서 파이프라인의 전체 구조, 로직 트리, 상호 연결 관계, 한계점과 솔루션화 기회를 정리합니다.</p>
+  <p class="meta">Do Better Workspace &middot; Gov Proposal System Analysis &middot; 2026.06.10</p>
+</section>
+
+<!-- S1 — 전체 구성 요소 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 01 &mdash; Components</span>
+      <h2>4개 스킬 + 3개 프레임워크 + 2개 가이드</h2>
+    </div>
+    <span class="eyebrow">01</span>
+  </div>
+
+  <p class="body">정부사업 제안 생태계는 9개 구성 요소로 이루어져 있습니다.</p>
+
+  <div class="group-header">실행 도구 — 스킬 4개</div>
+  <div class="grid-2 mt-16">
+    <div class="card accent-top">
+      <div class="c-num"><span class="tag accent">Skill 01</span> /rfp-analysis</div>
+      <h4>진단: RFP 분석 + GO/PASS 판단</h4>
+      <p>일반기업/정부사업 자동 모드 감지. 3개 에이전트 병렬 분석. 제출 전 첫 번째 필터링 도구.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num"><span class="tag accent">Skill 02</span> /gov-proposal</div>
+      <h4>제작: 7Phase 파이프라인 오케스트레이터</h4>
+      <p>RFP 분석부터 HTML 제안서 완성까지 전 과정을 관장. /rfp-analysis와 /proposal-architect를 순차 호출.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num"><span class="tag accent">Skill 03</span> /proposal-architect</div>
+      <h4>설계: 10단계 하이브리드 PT 공식</h4>
+      <p>탐색(대화) → 구조화(10단계) 2페이즈. WHY부터 New Bliss까지 내러티브 아키텍처 설계.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num"><span class="tag accent">Skill 04</span> /proposal-critic</div>
+      <h4>검수: 질문형 코칭</h4>
+      <p>답을 주지 않고 질문으로 사고 깊이를 높임. WHY → WHAT/HOW → 통합 3단계 검증.</p>
+    </div>
+  </div>
+
+  <div class="group-header">사고 체계 — 프레임워크 3개</div>
+  <div class="grid-3 mt-16">
+    <div class="card">
+      <div class="c-num"><span class="tag green">Framework 01</span></div>
+      <h4>analysis-framework.md</h4>
+      <p>일반기업 RFP 분석 (Mode A). 6섹션: 클라이언트 → 요구사항 → 타겟 → 차별화 → Winning Point.</p>
+    </div>
+    <div class="card">
+      <div class="c-num"><span class="tag green">Framework 02</span></div>
+      <h4>gov-analysis-framework.md</h4>
+      <p>정부사업 RFP 분석 (Mode B). 7섹션: 평가배점 중심. <strong style="color:var(--amber)">★ 양식×RFP×배점 3자교차.</strong></p>
+    </div>
+    <div class="card">
+      <div class="c-num"><span class="tag green">Framework 03</span></div>
+      <h4>gov-strategy-framework.md</h4>
+      <p>2단계 전략제언 12-Step. 4국면: 진단심화 → 전략설계 → 효과구조화 → 검증전달. <strong style="color:var(--amber)">★ 4-Layer Impact + ROI 3종.</strong></p>
+    </div>
+  </div>
+
+  <div class="group-header">설계 원칙 — 가이드 2개</div>
+  <div class="grid-2 mt-16">
+    <div class="card">
+      <div class="c-num"><span class="tag blue">Guide 01</span></div>
+      <h4>hybrid-presentation-guide.md</h4>
+      <p>10단계 하이브리드 PT 공식. 7대 프레임워크(Sinek, Raskin, Duarte 등) + 뇌과학 설득원리 통합.</p>
+    </div>
+    <div class="card">
+      <div class="c-num"><span class="tag blue">Guide 02</span></div>
+      <h4>project-rent-design-guide.md</h4>
+      <p>R스타일 디자인 시스템. 청보라 #6C5CE7, Pretendard, 12-column grid, 1920×1080.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S2 — 파이프라인 7Phase -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 02 &mdash; Pipeline</span>
+      <h2>7단계 파이프라인 흐름</h2>
+    </div>
+    <span class="eyebrow">02</span>
+  </div>
+
+  <p class="body"><code style="color:var(--accent-light);font-family:monospace">/gov-proposal</code>이 오케스트레이터로서 전체 파이프라인을 관장합니다. 각 Phase 사이에 사용자 확인 게이트가 있습니다.</p>
+
+  <div class="steps mt-32">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-phase">Phase 1 — RFP 분석</div>
+        <h4>/rfp-analysis 호출</h4>
+        <p>3개 에이전트 병렬(문서분석 + 리서치 + 평가배점). 자동 모드 감지(일반 / 정부).</p>
+        <div class="example">Output: rfp-analysis-{name}.md + GO/PASS 판단</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-phase">Phase 2 — 배경 리서치</div>
+        <h4>★ 질문 게이트: 팩트 부족 시 진행 중단하고 질문</h4>
+        <p>3축 리서치(지난행사 + 사회문제 + 경쟁사). 완료 조건: 팩트무기 5개+, 3중Problem 재료, 차별화 2개+.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-phase">Phase 3 — 전략 브리프</div>
+        <h4>R가이드 7대 설득원칙 적용</h4>
+        <p>SCQA 정의, HIRE 확정, 3중Problem, Promised Land, Wow Moment(정확히 1개), Sparkline(감정곡선 3피크).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-phase">Phase 4 — 페이지네이션</div>
+        <h4>분량별 레시피 (50P / 40P / 30P / 20P)</h4>
+        <p>슬라이드별 명세(제목, 핵심메시지, R패턴, 감정강도). 3피크 위치 확정.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-phase">Phase 5 — 내러티브 아크</div>
+        <h4>/proposal-architect 호출</h4>
+        <p>Phase 0: 탐색 모드(대화형). Phase 1: 10단계 구조화 — WHY → BigShift → 문제해부 → PromisedLand → WhatIs↔CouldBe → Wow → 차별화 → MagicGifts → Success↔Failure → NewBliss.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-phase">Phase 6 — HTML 제작</div>
+        <h4>design-guide 적용. 1920×1080px, 16:9 FullHD</h4>
+        <p>감정피크 디자인 규칙(Peak1 어두운색, Peak2 극적, Peak3 밝은색). 1개 HTML 파일로 완성.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">7</div>
+      <div class="step-content">
+        <div class="step-phase">Phase 7 — QA</div>
+        <h4>R가이드 체크리스트 + 발표 설계</h4>
+        <p>제목, 메시지, 수치, 비주얼, HIRE 연결 검토. 발표 설계(15분 / 30분 시간배분). s01부터 순차 검토 → 수정 → 최종 완성.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S3 — /rfp-analysis 상세 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 03 &mdash; RFP Analysis</span>
+      <h2>진단 — "발주처의 진짜 의도"를 파악한다</h2>
+    </div>
+    <span class="eyebrow">03</span>
+  </div>
+
+  <p class="body">2가지 모드를 자동 감지하여 다른 프레임워크를 적용합니다.</p>
+
+  <div class="compare mt-32">
+    <div class="compare-col neutral">
+      <h4>Mode A — 일반기업 RFP</h4>
+      <div class="item">
+        <div class="label">감지 조건</div>
+        민간 기업 RFP, 경쟁 PT
+      </div>
+      <div class="item">
+        <div class="label">적용 프레임워크</div>
+        analysis-framework.md
+      </div>
+      <div class="item">
+        <div class="label">핵심 로직</div>
+        클라이언트 상황 → 요구사항 정의 → 4관점 차별화(디자인 / CX / 비즈니스 / 시너지) → Winning Point
+      </div>
+      <div class="item">
+        <div class="label">특징</div>
+        경쟁 관점: "다른 팀은 어떻게 접근할까?"
+      </div>
+    </div>
+    <div class="compare-col neutral">
+      <h4>Mode B — 정부사업</h4>
+      <div class="item">
+        <div class="label">감지 조건</div>
+        나라장터, 조달청, 공고번호 키워드
+      </div>
+      <div class="item">
+        <div class="label">적용 프레임워크</div>
+        gov-analysis-framework.md
+      </div>
+      <div class="item">
+        <div class="label">핵심 로직</div>
+        <strong style="color:var(--amber)">평가배점 역추론 ★</strong> → 양식×RFP×배점 3자교차 → GO/PASS 판단
+      </div>
+      <div class="item">
+        <div class="label">특징</div>
+        "배점 높은 곳에 전략 집중"
+      </div>
+    </div>
+  </div>
+
+  <div class="principle">
+    <p><strong>핵심 차이:</strong> Mode A는 "클라이언트 이해"가 중심, Mode B는 "평가배점"이 중심입니다. 정부사업은 아무리 좋은 제안서도 배점 구조를 못 맞추면 탈락합니다.</p>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="card">
+      <div class="c-num"><span class="tag amber">Mode B</span> 양식 심층분석 (Phase 5-GOV)</div>
+      <h4>양식 구조 ↔ 평가항목 매핑</h4>
+      <p>숨은 요구 추출 — 세부항목이 많을수록 구체적 답 요구. 자유섹션 = 차별화 기회. 배점 높은 곳에 지면 60% 이상 투자.</p>
+    </div>
+    <div class="card">
+      <div class="c-num"><span class="tag amber">Mode B</span> 초안 검토 (Phase 6-GOV)</div>
+      <h4>4단계 평가 + 평가위원 시뮬레이션</h4>
+      <p>✅ 충족 / ⚠️ 부분 / ❌ 미충족 / 🔍 확인. 배점 대비 지면 균형 체크(Under / Over-invested). 평가위원 관점: 첫인상, 차별성, 실행가능성, 증빙.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S4 — 12-Step 전략제언 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 04 &mdash; Strategy Framework</span>
+      <h2>4국면 × 12Step — 전략 설계의 뼈대</h2>
+    </div>
+    <span class="eyebrow">04</span>
+  </div>
+
+  <p class="body">RFP 분석 후 "GO" 판정 시 진행하는 2단계 전략제언입니다.</p>
+
+  <div class="steps mt-32">
+
+    <div class="step">
+      <div class="step-num" style="background:rgba(143,163,126,.1);color:var(--green);border-color:rgba(143,163,126,.2)">1</div>
+      <div class="step-content">
+        <div class="step-phase" style="color:var(--green)">국면 1 — 진단 심화 / Step 1</div>
+        <h4>Pain Point 발굴</h4>
+        <p>과거 사업 딥리서치. 심사위원이 가려운 지점 정의.</p>
+        <div class="example">"작년 약점이 올해의 무기."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:rgba(143,163,126,.1);color:var(--green);border-color:rgba(143,163,126,.2)">2</div>
+      <div class="step-content">
+        <div class="step-phase" style="color:var(--green)">국면 1 — 진단 심화 / Step 2</div>
+        <h4>관통 메시지</h4>
+        <p>Pain을 뒤집은 한 줄. 제안서 전체의 방향타.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:rgba(143,163,126,.1);color:var(--green);border-color:rgba(143,163,126,.2)">3</div>
+      <div class="step-content">
+        <div class="step-phase" style="color:var(--green)">국면 1 — 진단 심화 / Step 3</div>
+        <h4>Why Us</h4>
+        <p>Pain ↔ 우리 강점 1:1 매칭. 제안서의 뼈대.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" style="background:rgba(108,92,231,.1);color:var(--accent-light);border-color:rgba(108,92,231,.2)">4</div>
+      <div class="step-content">
+        <div class="step-phase">국면 2 — 전략 설계 / Step 4</div>
+        <h4>JTBD 재정의</h4>
+        <p>Functional / Emotional / Social 3층. 발주처가 진짜 고용하려는 것.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:rgba(108,92,231,.1);color:var(--accent-light);border-color:rgba(108,92,231,.2)">5</div>
+      <div class="step-content">
+        <div class="step-phase">국면 2 — 전략 설계 / Step 5</div>
+        <h4>마케팅 전략</h4>
+        <p>STP + OMO + Flywheel. 사업 결과물을 "상품"으로 설계.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:rgba(108,92,231,.1);color:var(--accent-light);border-color:rgba(108,92,231,.2)">6</div>
+      <div class="step-content">
+        <div class="step-phase">국면 2 — 전략 설계 / Step 6</div>
+        <h4>컨셉 3안</h4>
+        <p>A(안정형) / B(차별형) / C(혁신형). 의사결정자에게 선택지 제공.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:rgba(108,92,231,.1);color:var(--accent-light);border-color:rgba(108,92,231,.2)">7</div>
+      <div class="step-content">
+        <div class="step-phase">국면 2 — 전략 설계 / Step 7</div>
+        <h4>예산 설계</h4>
+        <p>투찰가 · 마진 · 집행배분. 제출용 / 내부실질 2층 구조.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" style="background:rgba(217,163,75,.1);color:var(--amber);border-color:rgba(217,163,75,.2)">8</div>
+      <div class="step-content">
+        <div class="step-phase" style="color:var(--amber)">국면 3 — 효과 구조화 / Step 8 ★ 핵심</div>
+        <h4>4-Layer Impact + ROI</h4>
+        <p>L1: 직접성과 / L2: 행동변화 / L3: 파급효과 / L4: 지속가능성. ROI 3종(직접 / 종합 / SROI).</p>
+        <div class="example">막연한 기대효과 ❌ → 구조적 근거가 있는 효과 설계 ✅</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" style="background:rgba(111,138,163,.1);color:var(--blue);border-color:rgba(111,138,163,.2)">9</div>
+      <div class="step-content">
+        <div class="step-phase" style="color:var(--blue)">국면 4 — 검증·전달 / Step 9</div>
+        <h4>평가위원 설득전략</h4>
+        <p>SCQA + Cialdini. 중심경로(논리) + 주변경로(신뢰).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:rgba(111,138,163,.1);color:var(--blue);border-color:rgba(111,138,163,.2)">10</div>
+      <div class="step-content">
+        <div class="step-phase" style="color:var(--blue)">국면 4 — 검증·전달 / Step 10</div>
+        <h4>자체평가</h4>
+        <p>배점표로 보수적 채점. 감점 이유까지 명시.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:rgba(111,138,163,.1);color:var(--blue);border-color:rgba(111,138,163,.2)">11</div>
+      <div class="step-content">
+        <div class="step-phase" style="color:var(--blue)">국면 4 — 검증·전달 / Step 11</div>
+        <h4>의사결정 리뷰</h4>
+        <p>3안 나란히 비교 + 결정포인트 5개.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:rgba(111,138,163,.1);color:var(--blue);border-color:rgba(111,138,163,.2)">12</div>
+      <div class="step-content">
+        <div class="step-phase" style="color:var(--blue)">국면 4 — 검증·전달 / Step 12</div>
+        <h4>제안서 반영 가이드</h4>
+        <p>4-Layer를 제안서 어느 슬라이드에 어떻게 녹일지 매핑.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>가장 중요한 원칙:</strong> "~할 것으로 기대됨" ❌ → "이 메커니즘으로 이 가치가 생성된다" ✅. 4-Layer Impact는 막연한 기대효과가 아니라, 구조적 근거가 있는 효과 설계입니다.</p>
+  </div>
+</section>
+
+<!-- S5 — 10단계 하이브리드 공식 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 05 &mdash; Narrative Architecture</span>
+      <h2>설득의 구조 — 10단계 하이브리드 PT</h2>
+    </div>
+    <span class="eyebrow">05</span>
+  </div>
+
+  <p class="body">7대 프레임워크(Sinek, Raskin, Duarte, Gallo, Miller, Godin)와 8개 전설적 사례(Jobs, Nike, Airbnb 등)에서 추출한 통합 공식입니다.</p>
+
+  <div class="grid-4 mt-32">
+    <div class="card accent-top">
+      <div class="c-num">Phase A</div>
+      <h4>공감과 맥락</h4>
+      <p style="color:var(--amber);font-size:12px;margin-bottom:8px">40% / 5~8장 / Step 1~3</p>
+      <p>WHY 선언 → Big Shift → 시장문제 해부(현상→원인→구조적한계→방치의대가)</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">Phase B</div>
+      <h4>비전과 해법</h4>
+      <p style="color:var(--amber);font-size:12px;margin-bottom:8px">30% / 4~6장 / Step 4~6</p>
+      <p>Promised Land → What Is↔Could Be → Wow Moment <strong style="color:var(--accent-light)">(★정확히 1개)</strong></p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">Phase C</div>
+      <h4>우리만의 답</h4>
+      <p style="color:var(--amber);font-size:12px;margin-bottom:8px">25% / 4~6장 / Step 7~8</p>
+      <p>차별화 강점(공감+권위+관점) → Magic Gifts(Rule of Three)</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">Phase D</div>
+      <h4>행동 유도</h4>
+      <p style="color:var(--amber);font-size:12px;margin-bottom:8px">5% / 2~3장 / Step 9~10</p>
+      <p>Success↔Failure → New Bliss</p>
+    </div>
+  </div>
+
+  <div class="principle mt-24">
+    <p><strong>Phase A에 40%를 투자하는 이유:</strong> 문제를 충분히 해부하지 않으면 솔루션에 대한 갈망이 생기지 않습니다. "왜 필요한가?"가 납득되어야 "뭘 하겠다"가 먹힙니다.</p>
+  </div>
+
+  <p class="body mt-32" style="margin-bottom:16px">3중 Problem 구조 — 문제를 3층으로 쌓아야 설득력이 생깁니다.</p>
+  <div class="grid-3">
+    <div class="card">
+      <div class="c-num">External</div>
+      <h4>표면적 문제</h4>
+      <p>"매장 방문객 감소" — 누구나 보는 것. 도입부에서 공통 인식 형성.</p>
+    </div>
+    <div class="card" style="border-color:rgba(108,92,231,.3)">
+      <div class="c-num"><span style="color:var(--accent-light)">Internal ★</span></div>
+      <h4>감정적 문제</h4>
+      <p>"브랜드가 잊혀진다는 불안" — 실제 구매 동기. 이걸 짚어야 설득력이 생깁니다.</p>
+    </div>
+    <div class="card">
+      <div class="c-num">Philosophical</div>
+      <h4>철학적 문제</h4>
+      <p>"좋은 브랜드가 공간 하나 때문에 저평가" — 부당함 호소. 심사위원의 사명감을 자극.</p>
+    </div>
+  </div>
+
+  <p class="body mt-32" style="margin-bottom:16px">뇌과학 설득원리 핵심 3개</p>
+  <div class="grid-3">
+    <div class="card">
+      <div class="c-num"><span class="tag red">Loss Aversion</span></div>
+      <h4>손실이 이득의 2배 강력</h4>
+      <p>Step 3 방치의대가, Step 9 Failure 슬라이드에 적용. "하지 않으면 잃는 것"을 먼저.</p>
+    </div>
+    <div class="card">
+      <div class="c-num"><span class="tag amber">Peak-End Rule</span></div>
+      <h4>정점과 끝만 기억</h4>
+      <p>Step 6 Wow Moment + Step 10 New Bliss에 적용. 감정 설계의 핵심 원리.</p>
+    </div>
+    <div class="card">
+      <div class="c-num"><span class="tag green">Story Recall</span></div>
+      <h4>스토리 기억 63% vs 데이터 5%</h4>
+      <p>모든 수치를 스토리 안에 넣기. 숫자 단독 제시는 기억되지 않습니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S6 — /proposal-critic 상세 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 06 &mdash; Quality Gate</span>
+      <h2>검수 — 답을 주지 않고 질문으로 깊이를 높인다</h2>
+    </div>
+    <span class="eyebrow">06</span>
+  </div>
+
+  <p class="body">제안서 초안이 나오면 <code style="color:var(--accent-light);font-family:monospace">/proposal-critic</code>이 질문형 코칭으로 사고의 깊이를 검증합니다.</p>
+
+  <div class="steps mt-32">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>1단계: WHY — 왜 해야 하는가</h4>
+        <p>목적/이유가 명확한가? "왜 지금 이걸 해야 하는가"에 답할 수 있는가? 근거가 있는가?</p>
+        <div class="example">막연한 "좋을 것 같아서" ❌ → 근거 있는 WHY ✅</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>2단계: WHAT/HOW — 그래서 뭘 어떻게</h4>
+        <p>이유와 실행방향의 논리적 연결. "이유 A → 그래서 실행방향 B"의 관계가 명확한가? 빠진 논리 고리는?</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>3단계: 통합적 사고 — 실행의 현실성</h4>
+        <p>일정 · 예산 · 난이도 · 리스크를 인식하고 있는가? 누가 실행하는지 명확한가?</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="compare mt-32">
+    <div class="compare-col bad">
+      <h4>절대 하지 않는 것</h4>
+      <div class="item">직원 대신 내용 채워주기</div>
+      <div class="item">"이렇게 고치면 됩니다" 답 주기</div>
+      <div class="item">기획서 대신 써주기</div>
+    </div>
+    <div class="compare-col good">
+      <h4>반드시 하는 것</h4>
+      <div class="item">질문만 던진다</div>
+      <div class="item">판단은 직원이 한다</div>
+      <div class="item">스스로 생각하게 만든다</div>
+      <div class="item">좋은 포인트는 즉시 인정</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>핵심:</strong> 3가지 필수 조건 — WHY 명확+근거 ✓ / 연결성 논리적 ✓ / 실행방안 현실성 ✓ — 을 모두 충족하면 "제출해도 됩니다." 하나라도 부족하면 추가 질문으로 보완합니다.</p>
+  </div>
+</section>
+
+<!-- S7 — 스킬 간 연결 관계 -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 07 &mdash; Interconnection</span>
+      <h2>의존 관계 맵</h2>
+    </div>
+    <span class="eyebrow">07</span>
+  </div>
+
+  <p class="body">4개 스킬이 어떻게 연결되어 파이프라인을 형성하는지의 구조입니다.</p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">Scenario A — RFP 분석만 (1회성)</div>
+    <div class="s-situation">"이 공고 분석해줘"</div>
+    <div class="s-dialogue">
+      <p>/rfp-analysis 단독 실행 → 모드 감지 → 3팀 병렬 분석 → GO/PASS 판단 → 리포트 생성. 여기서 끝. 필요 시 2단계 전략(12-Step) 추가 진행 가능.</p>
+    </div>
+    <div class="s-insight"><strong>소요:</strong> 약 15~30분. Output: rfp-analysis-{name}.md</div>
+  </div>
+
+  <div class="scenario">
+    <div class="s-label">Scenario B — 제안서 완성까지 (Full Pipeline)</div>
+    <div class="s-situation">"제안서 만들어줘"</div>
+    <div class="s-dialogue">
+      <p>Phase 1(/rfp-analysis) → Phase 2(배경리서치, 질문게이트) → Phase 3(전략브리프) → Phase 4(페이지네이션) → Phase 5(/proposal-architect) → Phase 6(HTML) → Phase 7(QA). 각 Phase 사이에 사용자 확인.</p>
+    </div>
+    <div class="s-insight"><strong>소요:</strong> 3~8시간 (대화 포함). Output: 완성된 HTML 제안서 + 모든 중간 산출물</div>
+  </div>
+
+  <div class="scenario">
+    <div class="s-label">Scenario C — 초안 크리틱</div>
+    <div class="s-situation">"제안서 초안 봐줘"</div>
+    <div class="s-dialogue">
+      <p>/proposal-critic 단독 실행 → 1단계(WHY) → 2단계(WHAT/HOW) → 3단계(통합) → 제출 가능 판단. 질문형 코칭으로 깊이 강화.</p>
+    </div>
+    <div class="s-insight"><strong>소요:</strong> 30분~1시간. Output: 강화된 기획서 + 검토 포인트</div>
+  </div>
+</section>
+
+<!-- S8 — 참조 관계도 -->
+<section class="sec" id="s8">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 08 &mdash; Reference Map</span>
+      <h2>누가 누구를 참조하는가</h2>
+    </div>
+    <span class="eyebrow">08</span>
+  </div>
+
+  <p class="body">4개 스킬이 어떤 가이드와 프레임워크를 참조하는지의 의존 관계입니다.</p>
+
+  <div class="obs-map mt-32">
+    <div class="obs-item body-obs">
+      <div class="obs-tag">Skill 01</div>
+      <h4>/rfp-analysis</h4>
+      <p>analysis-framework.md (Mode A 감지 시)<br>gov-analysis-framework.md (Mode B 감지 시)<br>gov-strategy-framework.md (2단계 전략제언 옵션)</p>
+      <div class="obs-how">모드 자동 감지 → 다른 프레임워크 분기 적용</div>
+    </div>
+    <div class="obs-item word-obs">
+      <div class="obs-tag">Skill 02 — Orchestrator</div>
+      <h4>/gov-proposal</h4>
+      <p>gov-proposal-guide-R.html (7대 설득원칙, 사전 참조 필수)<br>/rfp-analysis (Phase 1 호출)<br>/proposal-architect (Phase 5 호출)<br>design-guide (Phase 6 적용)</p>
+      <div class="obs-how">파이프라인 전체를 관장하는 오케스트레이터</div>
+    </div>
+    <div class="obs-item space-obs">
+      <div class="obs-tag">Skill 03</div>
+      <h4>/proposal-architect</h4>
+      <p>hybrid-presentation-guide.md (10단계 공식)<br>b2c-presentation-masterclass.md (8개 전설적 사례)</p>
+      <div class="obs-how">/gov-proposal Phase 5에서 호출, 독립 실행도 가능</div>
+    </div>
+    <div class="obs-item emotion-obs">
+      <div class="obs-tag">Skill 04 — Independent</div>
+      <h4>/proposal-critic</h4>
+      <p>독립형. 참조 파일 없음.<br>3단계 사고 깊이 기준만 적용(WHY → WHAT/HOW → 통합).</p>
+      <div class="obs-how">파이프라인 어느 단계에서든 독립 사용 가능</div>
+    </div>
+  </div>
+
+  <div class="principle">
+    <p>/gov-proposal이 오케스트레이터로서 /rfp-analysis와 /proposal-architect를 순차 호출합니다. /proposal-critic은 독립 도구로 파이프라인 어느 단계에서든 사용 가능합니다.</p>
+  </div>
+</section>
+
+<!-- S9 — 현재 한계와 솔루션화 기회 -->
+<section class="sec" id="s9">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 09 &mdash; Limitations &amp; Opportunities</span>
+      <h2>스킬에서 솔루션으로</h2>
+    </div>
+    <span class="eyebrow">09</span>
+  </div>
+
+  <div class="compare mt-32">
+    <div class="compare-col bad">
+      <h4>현재 한계</h4>
+      <div class="item">
+        <div class="label">입찰공고 탐지</div>
+        수동 (나라장터 직접 확인)
+      </div>
+      <div class="item">
+        <div class="label">배경 리서치</div>
+        질문 게이트로 중단 (팩트 부족 시)
+      </div>
+      <div class="item">
+        <div class="label">GO/PASS 판단</div>
+        1회성 (과거 데이터 축적 없음)
+      </div>
+      <div class="item">
+        <div class="label">경쟁사 분석</div>
+        WebSearch 한계 (깊이 부족)
+      </div>
+      <div class="item">
+        <div class="label">디자인</div>
+        PR 전용 (타 브랜드 톤 수동 조정)
+      </div>
+      <div class="item">
+        <div class="label">일정 관리</div>
+        없음 (마감 관리 수동)
+      </div>
+      <div class="item">
+        <div class="label">발표 준비</div>
+        스피커노트만 (스크립트/Q&A 없음)
+      </div>
+    </div>
+    <div class="compare-col good">
+      <h4>솔루션화하면</h4>
+      <div class="item">
+        <div class="label">입찰공고 탐지</div>
+        나라장터 자동 크롤링 + 텔레그램 알림
+      </div>
+      <div class="item">
+        <div class="label">배경 리서치</div>
+        과거 수주 DB 축적 + 자동 팩트 매칭
+      </div>
+      <div class="item">
+        <div class="label">GO/PASS 판단</div>
+        수주/실패 패턴 학습 → GO/PASS 정확도 향상
+      </div>
+      <div class="item">
+        <div class="label">경쟁사 분석</div>
+        경쟁사 DB + 실적 자동 추적
+      </div>
+      <div class="item">
+        <div class="label">디자인</div>
+        클라이언트 브랜드 자동 감지 + 톤 조정
+      </div>
+      <div class="item">
+        <div class="label">일정 관리</div>
+        D-day 역산 → 텔레그램 리마인더 자동화
+      </div>
+      <div class="item">
+        <div class="label">발표 준비</div>
+        발표 스크립트 + 예상 Q&A 자동 생성
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S10 — 실전 적용 이력 -->
+<section class="sec" id="s10">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 10 &mdash; Track Record</span>
+      <h2>지금까지 적용한 프로젝트</h2>
+    </div>
+    <span class="eyebrow">10</span>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="card accent-top">
+      <div class="c-num"><span class="tag amber">KOCCA</span></div>
+      <h4>더셀렉츠 글로벌 팝업</h4>
+      <p>18.2억 위탁용역. RFP 1단계 + 2단계(12-Step) 완성. OMO 3안 비교. Conditional GO (4가지 조건부).</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num"><span class="tag blue">공간기획</span></div>
+      <h4>봉은사 구 웨딩홀 리뉴얼</h4>
+      <p>마스터플랜 검토. RFP 분석 + 전략 제언. 명동1898 케이스스터디 포함.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num"><span class="tag green">글로벌 K-존</span></div>
+      <h4>유니원</h4>
+      <p>RFP 1단계 + 2단계 + 아이디에이션 완성. B안 하이브리드 추천.</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num"><span class="tag accent">4억 규모</span></div>
+      <h4>섬세한식탁</h4>
+      <p>R-v2 전슬라이드 검토 완료. 경쟁사 / 사업성 / 이미지 / QA 단계 진행 중.</p>
+    </div>
+  </div>
+
+  <div class="principle mt-32">
+    <p>4개 프로젝트에서 실전 검증됨. 반복할수록 프레임워크가 고도화되고 있습니다. <strong>솔루션화의 핵심은 "이 반복 패턴을 자동화"하는 것입니다.</strong></p>
+  </div>
+</section>
+
+<!-- BIG QUOTE -->
+<div class="big-quote">
+  <blockquote>"좋은 제안서는 <em>정보</em>를 나열하지 않는다. 심사위원의 <em>문제의식</em>을 정면으로 짚고, 구조적 <em>해법</em>을 설득하고, 실행의 <em>근거</em>를 증명한다."</blockquote>
+  <div class="attr">Gov Proposal System &mdash; Do Better Workspace</div>
+</div>
+
+<footer>
+  <div class="logo">Do Better Workspace</div>
+  <div class="meta">Gov Proposal System Analysis &middot; 2026.06.10 &middot; v1.0</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.sec').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

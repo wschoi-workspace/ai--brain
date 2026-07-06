@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REM Reading Guide — 더 깊이 이해하기 위한 안내서</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --accent-subtle: rgba(108,92,231,.08);
+  --green: #8FA37E; --amber: #D9A34B; --red: #E17055; --blue: #6F8AA3;
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300;letter-spacing:-0.01em;line-height:1.7;
+}
+h1,h2,h3,h4{font-weight:500;text-wrap:balance}
+
+.sec{
+  padding:100px 120px 120px;max-width:1440px;margin:0 auto;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out);
+}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sec-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px;
+}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:16px}
+.body{font-size:14px;color:var(--fg-2);line-height:1.7}
+.body strong{color:var(--fg);font-weight:500}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-48{margin-top:48px}
+
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:80px 60px;background:var(--bg-2);
+}
+.cover .eyebrow{margin-bottom:24px}
+.cover h1{font-size:56px;font-weight:200;letter-spacing:-0.03em;line-height:1.1}
+.cover h1 em{font-style:normal;color:var(--accent)}
+.cover .sub{font-size:16px;color:var(--fg-2);margin-top:24px;max-width:640px;font-weight:300}
+.cover .meta{font-size:11px;color:var(--fg-3);letter-spacing:.2em;margin-top:48px;text-transform:uppercase}
+
+/* Part Divider */
+.part-divider{
+  padding:60px 120px;background:var(--bg-2);
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+  text-align:center;
+}
+.part-divider .eyebrow{margin-bottom:12px}
+.part-divider h3{font-size:28px;font-weight:300;color:var(--fg);letter-spacing:-0.02em}
+
+/* Principle */
+.principle{
+  background:rgba(108,92,231,.06);border-left:3px solid var(--accent);
+  padding:28px 32px;margin:24px 0;
+}
+.principle p{font-size:14px;color:var(--fg-2);margin:0;line-height:1.7}
+.principle strong{color:var(--accent-light)}
+
+/* Callout */
+.callout{
+  background:rgba(108,92,231,.08);border-left:3px solid var(--accent);
+  padding:24px 28px;margin:24px 0;
+}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+/* Card */
+.card{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card .c-num{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:13px;color:var(--fg-2);line-height:1.6}
+
+/* Concept Block — 파트별 핵심 개념 설명 */
+.concept{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:32px;margin:20px 0;
+}
+.concept .c-label{
+  font-size:10px;letter-spacing:.25em;color:var(--accent-light);
+  text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;
+  border-bottom:1px solid var(--line-2);
+}
+.concept h4{font-size:17px;font-weight:500;color:var(--fg);margin-bottom:12px}
+.concept p{font-size:13px;color:var(--fg-2);line-height:1.7;margin-bottom:10px}
+.concept p:last-child{margin-bottom:0}
+.concept .example{
+  margin-top:14px;padding:14px 18px;background:var(--bg-2);
+  border-left:2px solid var(--accent);font-size:12px;color:var(--fg-2);line-height:1.6;
+}
+
+/* Book Card */
+.book{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  border-top:2px solid transparent;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.book:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.book .b-tag{
+  display:inline-block;padding:3px 10px;font-size:10px;letter-spacing:.1em;
+  margin-bottom:12px;
+}
+.book .b-tag.essential{background:rgba(108,92,231,.1);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.book .b-tag.recommended{background:rgba(143,163,126,.1);color:var(--green);border:1px solid rgba(143,163,126,.2)}
+.book .b-tag.optional{background:rgba(111,138,163,.1);color:var(--blue);border:1px solid rgba(111,138,163,.2)}
+.book .b-title{font-size:17px;font-weight:500;color:var(--fg);margin-bottom:4px}
+.book .b-author{font-size:12px;color:var(--fg-3);margin-bottom:12px}
+.book .b-why{font-size:13px;color:var(--fg-2);line-height:1.6;margin-bottom:12px}
+.book .b-connect{
+  font-size:12px;color:var(--fg-3);padding-top:12px;
+  border-top:1px solid var(--line-2);line-height:1.5;
+}
+.book .b-connect strong{color:var(--fg-2)}
+.book .b-tip{
+  margin-top:10px;font-size:11px;color:var(--accent-light);
+  background:rgba(108,92,231,.06);padding:8px 12px;
+}
+
+/* Reading Order */
+.reading-order{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.reading-order h4{
+  font-size:11px;letter-spacing:.25em;color:var(--accent-light);
+  text-transform:uppercase;margin-bottom:20px;
+}
+.ro-item{
+  display:flex;gap:16px;align-items:flex-start;
+  padding:16px 0;border-bottom:1px solid var(--line-2);
+}
+.ro-item:last-child{border-bottom:none}
+.ro-num{
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:500;flex-shrink:0;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.2);
+}
+.ro-content .ro-title{font-size:14px;font-weight:500;color:var(--fg);margin-bottom:2px}
+.ro-content .ro-meta{font-size:11px;color:var(--fg-3)}
+
+/* Big Quote */
+.big-quote{
+  background:var(--bg-2);padding:80px 120px;text-align:center;
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+}
+.big-quote blockquote{
+  font-size:28px;font-weight:200;letter-spacing:-0.02em;line-height:1.4;
+  color:var(--fg);max-width:800px;margin:0 auto;
+}
+.big-quote blockquote em{font-style:normal;color:var(--accent)}
+.big-quote .attr{font-size:12px;color:var(--fg-3);margin-top:24px;letter-spacing:.15em}
+
+footer{
+  padding:80px 120px 60px;border-top:1px solid var(--line-2);
+  max-width:1440px;margin:80px auto 0;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg-3);text-transform:uppercase}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+
+@media(max-width:1200px){
+  .sec{padding:80px 60px}
+  .cover h1{font-size:40px}
+  .big-quote{padding:60px 40px}
+  .big-quote blockquote{font-size:22px}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .part-divider{padding:40px 60px}
+}
+@media(prefers-reduced-motion:reduce){.sec{opacity:1;transform:none;transition:none}}
+@media print{.sec{opacity:1;transform:none;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <span class="eyebrow">REM OS &middot; Reading Guide</span>
+  <h1>더 <em>깊이</em> 이해하기</h1>
+  <p class="sub">온보딩 가이드의 각 파트가 담고 있는 핵심 개념을 풀어서 설명하고,<br>그 개념을 체화하는 데 도움이 되는 책들을 연결한다.</p>
+  <p class="meta">Project Rent &middot; REM Reading Guide &middot; v1.0</p>
+</section>
+
+<!-- ===== PART 1 ===== -->
+<div class="part-divider">
+  <span class="eyebrow">Part 1</span>
+  <h3>우리는 누구인가</h3>
+</div>
+
+<section class="sec" id="p1">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Part 1 &mdash; Deep Dive</span>
+      <h2>"매장 = 미디어"가 무슨 뜻인가</h2>
+    </div>
+    <span class="eyebrow">01</span>
+  </div>
+
+  <p class="body">
+    온보딩 가이드에서 "매장은 미디어다"라고 했다. 이건 비유가 아니라 <strong>사고방식의 전환</strong>이다.<br>
+    이 전환을 제대로 이해하려면, 세 가지 개념이 필요하다.
+  </p>
+
+  <div class="concept mt-32">
+    <div class="c-label">핵심 개념 01</div>
+    <h4>공간은 "콘텐츠를 담는 그릇"이 아니라 "콘텐츠 그 자체"다</h4>
+    <p>보통 매장을 생각하면 "상품을 진열하는 공간"이 떠오른다. 선반에 물건을 놓고, 가격표를 붙이고, 계산대에서 결제한다. 이건 공간을 "그릇"으로 보는 관점이다.</p>
+    <p>프로젝트렌트는 다르게 본다. 공간 자체가 하나의 메시지다. 고객이 문을 열고 들어오는 순간부터, 어떤 향이 나는지, 어떤 음악이 흐르는지, 첫 번째로 눈에 들어오는 것이 무엇인지 — 이 모든 것이 "이 브랜드는 이런 곳이야"라는 메시지를 전달한다.</p>
+    <div class="example">
+      <strong>츠타야 서점의 사례:</strong> 츠타야는 책을 "상품"이 아니라 "라이프스타일 제안"으로 재정의했다. 요리 책 옆에 주방도구를, 여행 책 옆에 여행 가방을 놓았다. 서점이라는 공간이 "당신의 삶은 이렇게 바뀔 수 있습니다"라는 콘텐츠가 된 것이다. 매출이 아니라 "제안"이 먼저였다.
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="c-label">핵심 개념 02</div>
+    <h4>"에디토리얼"이란 편집자의 시선으로 큐레이션하는 것이다</h4>
+    <p>잡지를 생각해보자. 잡지 편집장은 모든 정보를 다 싣지 않는다. "이번 호에서는 이것을 말하겠다"라는 관점을 먼저 정하고, 그 관점에 맞는 콘텐츠만 선별한다. 불필요한 건 과감히 뺀다. 순서를 정하고, 강약을 조절하고, 독자가 페이지를 넘기면서 "아, 그런 거구나"를 느끼도록 흐름을 설계한다.</p>
+    <p>프로젝트렌트가 공간을 설계하는 방식이 바로 이것이다. 모든 브랜드를 다 보여주는 게 아니라, "이번 프로젝트에서는 이 메시지를 전달하겠다"는 관점을 먼저 정한다. 진열, 동선, 설명, 조명 — 모든 요소가 그 관점을 강화하는 방향으로 배치된다.</p>
+    <div class="example">
+      <strong>쉽게 말하면:</strong> 우리는 "매장 관리자"가 아니라 "매장 편집장"이다. 편집장은 "뭘 보여줄까?"가 아니라 "뭘 느끼게 할까?"를 먼저 묻는다.
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="c-label">핵심 개념 03</div>
+    <h4>"WHY → WHAT → HOW" 역순 사고</h4>
+    <p>대부분의 팝업 기획은 "어떤 공간에서(HOW) 어떤 비주얼로(WHAT)"로 시작한다. 결과물은 예쁘지만, 고객이 왜 와야 하는지 모른다.</p>
+    <p>프로젝트렌트는 거꾸로 간다. "이 공간에서 사람들이 뭘 느끼고 뭘 하게 할 것인가(WHY)"를 먼저 정하고, 그 다음에 "그러려면 뭘 보여줘야 하는가(WHAT)", 마지막에 "그걸 어떻게 구현할 것인가(HOW)"를 결정한다.</p>
+    <p>이건 단순한 프로세스 차이가 아니다. <strong>사고 순서의 차이</strong>다. 현장에서도 마찬가지다. "어떻게 진열할까?"보다 "이 진열을 보고 고객이 뭘 느끼길 원하는가?"를 먼저 묻는 습관이 필요하다.</p>
+  </div>
+
+  <div class="principle mt-24">
+    <p><strong>이 세 가지가 체화되면:</strong> 매장에 서 있을 때 "물건을 팔아야 한다"가 아니라 "이 공간이 지금 어떤 메시지를 전달하고 있는가?"가 먼저 보이기 시작한다. 그게 프로젝트렌트 사람의 눈이다.</p>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:500;margin-top:48px;margin-bottom:24px;color:var(--fg)">이 개념을 체화하는 데 도움이 되는 책</h3>
+
+  <div class="grid-2">
+    <div class="book" style="border-top-color:var(--accent)">
+      <span class="b-tag essential">Essential</span>
+      <div class="b-title">지적 자본론</div>
+      <div class="b-author">마스다 무네아키 (츠타야 창업자)</div>
+      <div class="b-why">"매장 = 미디어"의 가장 직관적인 레퍼런스. 츠타야가 서점을 "라이프스타일 제안 미디어"로 재정의한 과정을 담았다. 책 자체가 얇고 쉬워서 2~3일이면 읽는다. 이 책을 읽으면 "아, 매장이 미디어라는 게 이런 뜻이구나"가 바로 와닿는다.</div>
+      <div class="b-connect"><strong>연결:</strong> Ch01 "잡지 같은 거리", Ch03 "매장은 미디어다"의 원형</div>
+      <div class="b-tip">읽는 팁: 1~3장에 핵심이 다 있다. "기획력"이라는 단어가 나올 때마다 "편집력"으로 바꿔 읽으면 프로젝트렌트와 연결된다.</div>
+    </div>
+    <div class="book" style="border-top-color:var(--green)">
+      <span class="b-tag recommended">Recommended</span>
+      <div class="b-title">취향을 설계하는 곳, 츠타야</div>
+      <div class="b-author">마스다 무네아키</div>
+      <div class="b-why">『지적 자본론』의 실전편. 공간 기획자가 "고객의 시간"을 어떻게 설계하는지 구체적으로 보여준다. 특히 "고객에게 제안한다"는 개념이 프로젝트렌트의 "인식을 설계한다"와 거의 동일한 사고 구조다.</div>
+      <div class="b-connect"><strong>연결:</strong> Ch02 "에디토리얼" 개념, Ch04 "우리가 설계하는 것"</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PART 2 ===== -->
+<div class="part-divider">
+  <span class="eyebrow">Part 2</span>
+  <h3>우리의 오프라인은 이런 곳이다</h3>
+</div>
+
+<section class="sec" id="p2">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Part 2 &mdash; Deep Dive</span>
+      <h2>"경험을 설계한다"는 것의 실체</h2>
+    </div>
+    <span class="eyebrow">02</span>
+  </div>
+
+  <p class="body">
+    온보딩 가이드 Part 2에서 "상품이 아니라 인식을 설계한다"고 했다.<br>
+    이건 멋진 말이지만, 구체적으로 뭘 의미하는지 풀어야 현장에서 쓸 수 있다.
+  </p>
+
+  <div class="concept mt-32">
+    <div class="c-label">핵심 개념 04</div>
+    <h4>사람은 "경험"에 돈을 쓰는 시대가 됐다</h4>
+    <p>경제학자 조셉 파인이 정리한 "가치의 사다리"가 있다:</p>
+    <p><strong>원자재 → 상품 → 서비스 → 경험 → 변환</strong></p>
+    <p>커피로 예를 들면: 원두(원자재) → 캔커피(상품) → 카페 커피(서비스) → "이 공간에서 이 분위기로 마시는 커피"(경험). 같은 커피인데 경험이 붙으면 가격이 10배가 된다. 사람들은 커피를 사는 게 아니라 "그 공간에서 보내는 시간"을 산다.</p>
+    <p>프로젝트렌트가 하는 일이 바로 이것이다. 상품 자체의 가치가 아니라, <strong>"이 공간에서 이 브랜드를 경험하는 것"의 가치를 설계</strong>한다. 그래서 같은 제품이라도 우리 공간에서 경험하면 다르게 느껴지고, 다르게 기억되고, 다르게 행동하게 된다.</p>
+    <div class="example">
+      <strong>현장에서의 의미:</strong> "이 제품은 OO원입니다"는 상품을 파는 것. "셰프가 10년 수련한 방식으로 2개월 숙성한 겁니다. 직접 맛보시겠어요?"는 경험을 파는 것. 너의 설명 한마디가 가치의 사다리를 한 칸 올린다.
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="c-label">핵심 개념 05</div>
+    <h4>"기억되는 것"만이 행동을 만든다</h4>
+    <p>사람은 하루에 수천 개의 정보를 접한다. 그중 기억에 남는 건 극히 소수다. 연구에 따르면, 메시지가 기억되려면 6가지 조건 중 하나 이상을 충족해야 한다:</p>
+    <p>
+      <strong>1. 단순함</strong> — 핵심 하나만 전달<br>
+      <strong>2. 의외성</strong> — 예상을 깨는 것<br>
+      <strong>3. 구체성</strong> — 추상적이지 않고 감각적인 것<br>
+      <strong>4. 신뢰성</strong> — 믿을 수 있는 근거<br>
+      <strong>5. 감성</strong> — 감정을 건드리는 것<br>
+      <strong>6. 스토리</strong> — 이야기 구조가 있는 것
+    </p>
+    <p>인식 브리프에서 "고객이 기억할 한 문장"을 쓸 때, 이 6가지를 떠올려보면 좋다. "좋은 경험을 제공한다"는 아무것도 충족하지 않는다. "유럽에서 10년 수련한 장인이 직접 만든다"는 구체성+신뢰성+스토리를 동시에 충족한다.</p>
+    <div class="example">
+      <strong>왜 이게 중요한가:</strong> 우리 프로젝트를 경험한 사람이 집에 가서 친구한테 뭐라고 말할지는, 우리가 무슨 정보를 줬느냐가 아니라 "뭘 기억하느냐"에 달려 있다. 기억되지 않으면 말할 수 없고, 말할 수 없으면 퍼지지 않는다.
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="c-label">핵심 개념 06</div>
+    <h4>"인식"은 의도하지 않아도 형성된다</h4>
+    <p>여기가 가장 중요한 포인트다. 인식을 "설계하지 않는다"고 해서 인식이 "형성되지 않는 것"이 아니다. 고객은 어떤 경우든 뭔가를 느끼고, 뭔가를 기억하고, 뭔가를 말한다. 문제는 그게 우리가 의도한 것과 다를 수 있다는 것이다.</p>
+    <p>세스크멘슬 사례가 정확히 이것이다. 셰프의 본질은 "유럽 전통 방식의 샤퀴테리 장인"이었지만, 의도적 인식 설계가 없었기 때문에 고객이 알아서 만든 인식은 "와인 마시러 가는 곳"이 됐다. 가장 강한 자산(와인 페어링)이 브랜드 정체성을 탈취한 것이다.</p>
+    <p><strong>인식을 설계하지 않으면, 고객이 만든 인식이 브랜드를 규정한다.</strong> 그리고 한번 형성된 잘못된 인식은 바꾸기가 매우 어렵다. 그래서 처음부터 설계해야 한다.</p>
+  </div>
+
+  <div class="principle mt-24">
+    <p><strong>Part 2 전체를 관통하는 한 문장:</strong> 우리는 "상품을 파는 공간"이 아니라 "고객의 머릿속에 한 문장을 남기는 공간"을 운영한다. 그 한 문장을 어떻게 설계하느냐가 프로젝트의 성패를 가른다.</p>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:500;margin-top:48px;margin-bottom:24px;color:var(--fg)">이 개념을 체화하는 데 도움이 되는 책</h3>
+
+  <div class="grid-2">
+    <div class="book" style="border-top-color:var(--accent)">
+      <span class="b-tag essential">Essential</span>
+      <div class="b-title">스틱! (Made to Stick)</div>
+      <div class="b-author">칩 히스, 댄 히스</div>
+      <div class="b-why">"왜 어떤 메시지는 기억되고 어떤 건 안 되는가"에 대한 책. 6가지 원칙(단순성, 의외성, 구체성, 신뢰성, 감성, 스토리)이 인식 목표를 쓰는 데 직접적으로 도움된다. 읽으면서 "우리 프로젝트의 인식 목표는 이 중 뭘 충족하지?"를 체크해볼 수 있다.</div>
+      <div class="b-connect"><strong>연결:</strong> Ch04 "인식 목표" 작성, "기억되는 한 문장"의 이론적 근거</div>
+      <div class="b-tip">읽는 팁: 각 원칙을 읽을 때마다, 우리 매장의 설명 멘트에 적용해보라. "이 멘트는 구체적인가? 스토리가 있는가?" — 이 질문만으로도 멘트가 달라진다.</div>
+    </div>
+    <div class="book" style="border-top-color:var(--accent)">
+      <span class="b-tag essential">Essential</span>
+      <div class="b-title">경험 경제 (The Experience Economy)</div>
+      <div class="b-author">조셉 파인, 제임스 길모어</div>
+      <div class="b-why">"상품→서비스→경험→변환"의 가치 사다리를 제시한 원전. 왜 오프라인 경험이 프리미엄이 되는지, 왜 같은 커피가 장소에 따라 가격이 달라지는지를 구조적으로 설명한다. 우리가 하는 일의 경제학적 근거.</div>
+      <div class="b-connect"><strong>연결:</strong> Ch03 "같은 공간, 다른 세계"의 이론적 뼈대</div>
+      <div class="b-tip">읽는 팁: 전체가 두껍다. 1~3장만 읽으면 핵심 프레임워크는 충분하다. 특히 "경험의 4가지 영역(오락·교육·탈출·미학)" 분류가 공간 설계에 바로 쓸 수 있다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- BIG QUOTE -->
+<div class="big-quote">
+  <blockquote>좋은 팝업은 축제 같은 곳이다.<br>사람들이 <em>경험</em>하고, <em>기억</em>하고,<br>다시 <em>오고 싶은</em> 곳.</blockquote>
+  <div class="attr">최원석 &mdash; Project Rent</div>
+</div>
+
+<!-- ===== PART 3 ===== -->
+<div class="part-divider">
+  <span class="eyebrow">Part 3</span>
+  <h3>현장에서 하는 일</h3>
+</div>
+
+<section class="sec" id="p3">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Part 3 &mdash; Deep Dive</span>
+      <h2>관찰, 설명, 복기의 기술</h2>
+    </div>
+    <span class="eyebrow">03</span>
+  </div>
+
+  <p class="body">
+    Part 3는 현장에서 실제로 하는 일이다. 운영, 관찰, 설명, 복기.<br>
+    이 네 가지가 제대로 작동하려면, 각각의 "왜"를 이해해야 한다.
+  </p>
+
+  <div class="concept mt-32">
+    <div class="c-label">핵심 개념 07</div>
+    <h4>관찰은 "눈치"가 아니라 "가설 검증"이다</h4>
+    <p>"고객 관찰하세요"라고 하면 대부분 "눈치를 보라는 건가?"로 받아들인다. 아니다. 여기서 말하는 관찰은 과학에서의 관찰과 같다.</p>
+    <p>과학자는 "이렇게 하면 이런 결과가 나올 것이다"라는 가설을 먼저 세운다. 그다음 실험하고, 결과를 관찰하고, 가설이 맞았는지 확인한다. 우리도 똑같다:</p>
+    <p>
+      1. <strong>가설:</strong> "인식 목표가 '장인이 만든다'이니까, 제조 스토리를 설명하면 '정성'이라는 단어가 나올 것이다"<br>
+      2. <strong>실행:</strong> 제조 스토리를 먼저 설명한다<br>
+      3. <strong>관찰:</strong> 고객이 실제로 "정성", "수제", "장인" 같은 단어를 쓰는지 본다<br>
+      4. <strong>판단:</strong> 안 나오면 설명 방식을 바꿔본다
+    </p>
+    <p>이게 "인식이 전달됐는지 확인하는 것"이다. 아무 생각 없이 고객을 구경하는 게 아니라, <strong>"우리가 의도한 것이 실제로 작동하는가?"를 검증하는 것</strong>이다.</p>
+    <div class="example">
+      <strong>파코 언더힐의 관찰법:</strong> 『나는 왜 이 가게에서 사는가』의 저자 파코 언더힐은 20년 넘게 매장에서 고객 행동을 관찰했다. 그가 발견한 것들 — "입구에서 오른쪽으로 도는 경향", "손이 닿지 않는 선반의 상품은 안 팔린다", "시음 후 구매율은 설명 유무에 따라 3배 차이" — 은 전부 체계적 관찰의 결과다. 감이 아니라 눈이다.
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="c-label">핵심 개념 08</div>
+    <h4>"공감"이란 고객의 행동 뒤에 있는 이유를 추론하는 것이다</h4>
+    <p>디자인 씽킹의 첫 단계는 "공감(Empathy)"이다. IDEO의 팀 브라운은 이것을 "다른 사람의 눈으로 세상을 보는 것"이라고 정의했다.</p>
+    <p>현장에서 공감은 이렇게 작동한다:</p>
+    <p>
+      - 고객이 제품을 집었다가 내려놓았다 → <strong>"왜?"</strong> (가격? 설명 부족? 필요 없어서?)<br>
+      - 고객이 한 지점에서 오래 머물렀다 → <strong>"왜?"</strong> (흥미로워서? 이해가 안 돼서? 사진 찍으려고?)<br>
+      - 고객이 동행에게 뭔가 속삭였다 → <strong>"뭐라고?"</strong> (긍정? 부정? 가격 논의?)
+    </p>
+    <p>관찰은 "뭘 했는가"를 보는 것이고, 공감은 "왜 했는가"를 추론하는 것이다. L1(사실 관찰)에서 L2(원인 추론)로 올라가는 단계가 바로 이 전환이다.</p>
+    <p>중요한 건 <strong>정답을 맞히는 게 목적이 아니다</strong>. "왜?"라는 질문을 반복하는 습관 자체가 목적이다. 이 습관이 쌓이면 고객이 뭘 원하는지가 점점 더 잘 보이기 시작한다.</p>
+  </div>
+
+  <div class="concept">
+    <div class="c-label">핵심 개념 09</div>
+    <h4>"설득"은 논리가 아니라 심리다</h4>
+    <p>고객에게 제품을 설명하는 건 "정보 전달"이 아니라 "설득"이다. 설득이 작동하는 방식에 대해 심리학자 로버트 치알디니가 6가지 원칙을 정리했다:</p>
+    <p>
+      <strong>1. 상호성</strong> — 무언가를 받으면 돌려주고 싶어진다 (시음/시식의 힘)<br>
+      <strong>2. 일관성</strong> — 한 번 동의하면 계속 동의하려 한다 ("맛있죠?" → "선물용으로도 좋은데요")<br>
+      <strong>3. 사회적 증거</strong> — 다른 사람이 하면 따라한다 ("요즘 제일 많이 찾으세요")<br>
+      <strong>4. 호감</strong> — 좋아하는 사람의 말을 듣는다 (진심이 담긴 추천)<br>
+      <strong>5. 권위</strong> — 전문가의 말을 믿는다 ("셰프가 직접 고른")<br>
+      <strong>6. 희소성</strong> — 없어질 것 같으면 더 원한다 ("이번 시즌에만")
+    </p>
+    <p>스크립트를 외우는 게 아니라, 이 원칙을 이해하면 <strong>상황에 맞게 자연스럽게 멘트를 만들 수 있다</strong>. "왜 시음이 효과적인지"(상호성), "왜 셰프 스토리가 먹히는지"(권위), "왜 한정판이 잘 팔리는지"(희소성)가 설명된다.</p>
+  </div>
+
+  <div class="concept">
+    <div class="c-label">핵심 개념 10</div>
+    <h4>"복기"는 경험을 학습으로 바꾸는 유일한 방법이다</h4>
+    <p>교육학자 도널드 쇤(Donald Schon)은 "전문가는 경험 자체로 성장하는 게 아니라, 경험을 복기하는 능력으로 성장한다"고 했다. 이걸 "반성적 실천(Reflective Practice)"이라고 부른다.</p>
+    <p>같은 매장에서 같은 시간 동안 일해도, 어떤 사람은 빠르게 성장하고 어떤 사람은 제자리다. 차이는 딱 하나 — <strong>하루 끝에 "오늘 뭘 봤지?"를 말로 꺼내보느냐 아니냐</strong>다.</p>
+    <p>말로 꺼내면 정리가 된다. 정리가 되면 패턴이 보인다. 패턴이 보이면 내일 더 잘 볼 수 있다. 이게 복기의 메커니즘이다. 그래서 REM Bot이 매일 마감 때 "가장 기억 남는 건?" 같은 질문을 던지는 것이다. 대단한 인사이트를 기대하는 게 아니라, <strong>"꺼내보는 습관"을 만드는 것이 목적</strong>이다.</p>
+    <div class="example">
+      <strong>구성주의 학습 이론:</strong> 사람은 설명을 듣고 배우는 게 아니라, 직접 경험을 해석하면서 배운다. 그래서 우리는 교육 프로그램을 만들지 않는다. 대신 "프로젝트 안에서 경험하고, 복기하고, 다음에 적용하는" 루프를 설계한다. 복기가 빠지면 경험은 그냥 시간이 된다.
+    </div>
+  </div>
+
+  <div class="principle mt-24">
+    <p><strong>Part 3 전체를 관통하는 한 문장:</strong> 현장에서의 일은 "운영 + 관찰 + 설명 + 복기"다. 운영은 몸이 하고, 관찰·설명·복기는 머리가 한다. 이 네 가지가 매일 돌아가면, 같은 시간을 일해도 성장 속도가 완전히 달라진다.</p>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:500;margin-top:48px;margin-bottom:24px;color:var(--fg)">이 개념을 체화하는 데 도움이 되는 책</h3>
+
+  <div class="grid-2">
+    <div class="book" style="border-top-color:var(--accent)">
+      <span class="b-tag essential">Essential</span>
+      <div class="b-title">나는 왜 이 가게에서 사는가 (Why We Buy)</div>
+      <div class="b-author">파코 언더힐</div>
+      <div class="b-why">오프라인 매장에서 고객 행동을 관찰하는 원조 교과서. "사람은 어디서 멈추고, 뭘 만지고, 어디서 떠나는가"를 20년간의 관찰 데이터로 보여준다. 이 책을 읽으면 매장에 서 있을 때 "뭘 봐야 하는지"가 바로 바뀐다.</div>
+      <div class="b-connect"><strong>연결:</strong> Ch06 "보는 것이 일이다"의 직접적 교재</div>
+      <div class="b-tip">읽는 팁: 각 장의 "관찰 결과"를 읽을 때, "우리 매장에서도 이런 패턴이 있나?"를 떠올리면서 읽어라. 다음 출근 때 바로 써먹을 수 있다.</div>
+    </div>
+    <div class="book" style="border-top-color:var(--green)">
+      <span class="b-tag recommended">Recommended</span>
+      <div class="b-title">디자인 씽킹 (Change by Design)</div>
+      <div class="b-author">팀 브라운 (IDEO)</div>
+      <div class="b-why">디자인 싱킹의 Empathy 단계가 REM의 관찰 훈련과 직결된다. "사용자를 관찰하고, 공감하고, 인사이트를 발견하는" 방법론을 구체적으로 보여준다. 특히 "관찰에서 인사이트로 전환하는 법"이 L2→L3 성장과 연결된다.</div>
+      <div class="b-connect"><strong>연결:</strong> Ch06 관찰 기술, 성장 레벨 L2→L3 전환</div>
+      <div class="b-tip">읽는 팁: 전체를 안 읽어도 1~4장(공감/관찰 파트)만 읽으면 된다. "How Might We...?" 질문법을 배우면 복기할 때 바로 쓸 수 있다.</div>
+    </div>
+  </div>
+
+  <div class="grid-2 mt-16">
+    <div class="book" style="border-top-color:var(--green)">
+      <span class="b-tag recommended">Recommended</span>
+      <div class="b-title">설득의 심리학 (Influence)</div>
+      <div class="b-author">로버트 치알디니</div>
+      <div class="b-why">6가지 설득 원칙(상호성, 일관성, 사회적 증거, 호감, 권위, 희소성)을 이해하면, 어떤 멘트가 왜 먹히는지가 설명된다. 스크립트를 외우는 대신, 원칙을 이해하고 상황에 맞게 자연스럽게 멘트를 만들 수 있게 된다.</div>
+      <div class="b-connect"><strong>연결:</strong> Ch07 "설명은 스토리", 멘트 실험의 이론적 뼈대</div>
+      <div class="b-tip">읽는 팁: 6가지 원칙을 하나씩 읽으면서 "우리 매장에서 이걸 어떻게 쓸 수 있지?"를 메모해봐라. 예: 시음 = 상호성, 셰프 스토리 = 권위.</div>
+    </div>
+    <div class="book" style="border-top-color:var(--blue)">
+      <span class="b-tag optional">Optional</span>
+      <div class="b-title">관찰의 힘 (The Power of Noticing)</div>
+      <div class="b-author">맥스 베이저먼</div>
+      <div class="b-why">하버드 경영대 교수가 쓴 "왜 우리는 명백한 것을 놓치는가". 관찰 습관을 만드는 구체적 프레임워크가 있다. 관찰에 자신감이 붙은 후 읽으면 한 단계 더 올라간다.</div>
+      <div class="b-connect"><strong>연결:</strong> 성장 레벨 L2~L4 깊이 확장</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PART 4 ===== -->
+<div class="part-divider">
+  <span class="eyebrow">Part 4</span>
+  <h3>성장</h3>
+</div>
+
+<section class="sec" id="p4">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Part 4 &mdash; Deep Dive</span>
+      <h2>"더 깊이 보는 사람"이 되는 법</h2>
+    </div>
+    <span class="eyebrow">04</span>
+  </div>
+
+  <p class="body">
+    온보딩 가이드 Part 4에서 "운영자에서 경험 설계자로" 성장한다고 했다.<br>
+    이 성장이 왜 가능한지, 그리고 왜 프로젝트렌트에서의 경험이 다른 곳에서는 얻기 어려운지를 이해해야 한다.
+  </p>
+
+  <div class="concept mt-32">
+    <div class="c-label">핵심 개념 11</div>
+    <h4>성장은 "더 많이 아는 것"이 아니라 "더 많이 보는 것"이다</h4>
+    <p>보통 성장이라고 하면 "지식이 늘어나는 것"을 떠올린다. 매뉴얼을 외우고, 제품 스펙을 알고, 프로세스를 숙지하는 것. 물론 이것도 필요하다.</p>
+    <p>하지만 프로젝트렌트에서의 진짜 성장은 다르다. <strong>"같은 현장에 서 있는데, 보이는 것이 달라지는 것"</strong>이다.</p>
+    <p>
+      L1에서는 "오늘 손님 많았다"가 보인다.<br>
+      L2에서는 "오후 3시에 시음 코너에서 특히 많이 멈췄다"가 보인다.<br>
+      L3에서는 "제조 스토리 설명 후 '정성'이라는 단어를 쓴 고객이 추가 구매로 이어졌다"가 보인다.<br>
+      L4에서는 "내일은 시음 전에 스토리를 먼저 말해보자. 그리고 반응을 비교해보자"가 나온다.
+    </p>
+    <p>같은 시간, 같은 장소, 같은 고객인데 보이는 깊이가 다르다. 이 차이를 만드는 건 지식이 아니라 <strong>관찰과 복기의 반복</strong>이다.</p>
+  </div>
+
+  <div class="concept">
+    <div class="c-label">핵심 개념 12</div>
+    <h4>"스캐폴딩" — 단계별로 사고의 발판을 올린다</h4>
+    <p>교육학에서 "스캐폴딩(Scaffolding)"이라는 개념이 있다. 건물을 지을 때 비계(발판)를 세우는 것처럼, 학습자의 수준에 맞게 사고의 발판을 하나씩 올려주는 것이다.</p>
+    <p>REM Bot이 던지는 질문이 바로 이 스캐폴딩이다:</p>
+    <p>
+      <strong>L1 발판:</strong> "오늘 뭘 봤어?" → 사실을 인식하게 한다<br>
+      <strong>L2 발판:</strong> "왜 그랬을까?" → 원인을 추론하게 한다<br>
+      <strong>L3 발판:</strong> "고객은 뭘 느꼈을까?" → 고객 관점을 갖게 한다<br>
+      <strong>L4 발판:</strong> "다음엔 어떻게 해볼까?" → 설계자 관점을 갖게 한다
+    </p>
+    <p>처음부터 L4 질문을 던지면 압도당한다. L1부터 시작해서 자연스럽게 올라가야 한다. 그래서 REM Bot은 새 팀원에게 "뭘 봤어?"부터 묻고, 경험이 쌓이면 점점 깊은 질문을 던진다.</p>
+    <div class="example">
+      <strong>핵심:</strong> 처음부터 잘 볼 수 없다. 그리고 그게 정상이다. "오늘은 고객이 어디서 멈췄는지 하나만 봐봐" — 이 정도면 충분한 시작이다. 하나를 보기 시작하면, 다음엔 두 개가 보인다.
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="c-label">핵심 개념 13</div>
+    <h4>"실천 공동체" — 좋은 관찰을 공유하면 조직 전체가 성장한다</h4>
+    <p>교육학자 에티엔 웽거(Etienne Wenger)는 "사람은 매뉴얼보다 주변 사람들이 뭘 중요하게 여기는가를 보고 배운다"고 했다. 이걸 "실천 공동체(Community of Practice)"라고 부른다.</p>
+    <p>쉽게 말하면: 옆 사람이 고객 반응을 관찰하고 기록하는 걸 보면, 나도 "아, 이걸 봐야 하는 거구나"를 자연스럽게 배운다. 반대로 아무도 관찰하지 않으면, "그냥 시간 때우면 되는 거구나"를 배운다.</p>
+    <p>그래서 <strong>개인의 관찰이 팀에 공유되는 구조</strong>가 중요하다. 주간 회고에서 "이번 주 가장 좋았던 관찰"을 나누고, 성공 아카이브에 "이 멘트가 먹혔다"를 기록하는 것 — 이게 조직 감각을 만든다.</p>
+  </div>
+
+  <div class="concept">
+    <div class="c-label">핵심 개념 14</div>
+    <h4>너의 관찰이 회사의 데이터가 된다</h4>
+    <p>프로젝트렌트는 "오프라인 경험 데이터를 축적하는 회사"로 진화하고 있다. 온라인에는 구글 애널리틱스가 있지만, 오프라인에는 아직 그런 게 없다. "고객이 어디서 멈추고, 뭘 느끼고, 왜 사는가"를 체계적으로 기록하는 회사는 거의 없다.</p>
+    <p>너가 현장에서 기록하는 모든 관찰 — 체류 지점, 반복 단어, 반응 변화, 실험 결과 — 이 전부 회사의 데이터 자산이 된다. RXR 분석, AI 패턴 분석, 다음 프로젝트 전략 — 모든 것의 원천이 현장 관찰이다.</p>
+    <p><strong>오늘 네가 적은 한 줄 메모가, 내일의 프로젝트 전략이 될 수 있다.</strong> 그래서 "보는 것"이 곧 "만드는 것"이다.</p>
+  </div>
+
+  <div class="principle mt-24">
+    <p><strong>Part 4 전체를 관통하는 한 문장:</strong> 여기서의 성장은 직급이 올라가는 게 아니라, "같은 현장에서 더 깊이 보는 사람"이 되는 것이다. 그 깊이가 곧 너의 전문성이고, 팀의 자산이고, 회사의 미래다.</p>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:500;margin-top:48px;margin-bottom:24px;color:var(--fg)">이 개념을 체화하는 데 도움이 되는 책</h3>
+
+  <div class="grid-2">
+    <div class="book" style="border-top-color:var(--green)">
+      <span class="b-tag recommended">Recommended</span>
+      <div class="b-title">일의 감각 (Sensemaking)</div>
+      <div class="b-author">크리스티안 마두스베르그</div>
+      <div class="b-why">맥킨지 출신이 "왜 데이터만으로는 안 되고, 현장에서 사람을 관찰해야 하는가"를 설명한 책. "관찰이 왜 중요한 일인가"에 대한 동기부여에 최적이다. 우리가 하는 관찰이 단순 업무가 아니라 "전문성"이라는 확신을 준다.</div>
+      <div class="b-connect"><strong>연결:</strong> Ch09 "성장 경로", L1→L7의 "왜"</div>
+    </div>
+    <div class="book" style="border-top-color:var(--blue)">
+      <span class="b-tag optional">Optional</span>
+      <div class="b-title">피드백 이야기 (Thanks for the Feedback)</div>
+      <div class="b-author">더글러스 스톤, 쉴라 힌</div>
+      <div class="b-why">복기/피드백을 "받는 법"에 대한 책. REM Bot의 질문을 생산적으로 받아들이는 태도, 동료의 관찰 공유를 "평가"가 아닌 "학습"으로 받아들이는 마인드셋을 만드는 데 도움.</div>
+      <div class="b-connect"><strong>연결:</strong> Ch08 "복기는 대화", 실천 공동체 문화</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== READING LIST ===== -->
+<section class="sec" id="list">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Appendix &mdash; Reading List</span>
+      <h2>추천 도서 전체 목록</h2>
+    </div>
+    <span class="eyebrow">A</span>
+  </div>
+
+  <p class="body">
+    <strong style="color:var(--accent-light)">Essential</strong> = 반드시 읽어야 할 책 (4권)<br>
+    <strong style="color:var(--green)">Recommended</strong> = 읽으면 확실히 달라지는 책 (4권)<br>
+    <strong style="color:var(--blue)">Optional</strong> = 관심 있는 영역에 따라 선택 (2권)
+  </p>
+
+  <div class="reading-order mt-32">
+    <h4>추천 읽기 순서 (현장팀 기준)</h4>
+    <div class="ro-item">
+      <div class="ro-num">1</div>
+      <div class="ro-content">
+        <div class="ro-title">지적 자본론 — 마스다 무네아키</div>
+        <div class="ro-meta">Essential &middot; "매장 = 미디어" 개념이 바로 와닿는다 &middot; 2~3일</div>
+      </div>
+    </div>
+    <div class="ro-item">
+      <div class="ro-num">2</div>
+      <div class="ro-content">
+        <div class="ro-title">나는 왜 이 가게에서 사는가 — 파코 언더힐</div>
+        <div class="ro-meta">Essential &middot; "뭘 관찰해야 하는지"가 바로 보인다 &middot; 1주</div>
+      </div>
+    </div>
+    <div class="ro-item">
+      <div class="ro-num">3</div>
+      <div class="ro-content">
+        <div class="ro-title">스틱! — 칩 히스, 댄 히스</div>
+        <div class="ro-meta">Essential &middot; "기억되는 메시지" 만드는 6가지 원칙 &middot; 1주</div>
+      </div>
+    </div>
+    <div class="ro-item">
+      <div class="ro-num">4</div>
+      <div class="ro-content">
+        <div class="ro-title">경험 경제 — 조셉 파인, 제임스 길모어</div>
+        <div class="ro-meta">Essential &middot; 1~3장만 &middot; 가치의 사다리 프레임워크 &middot; 3일</div>
+      </div>
+    </div>
+    <div class="ro-item">
+      <div class="ro-num">5</div>
+      <div class="ro-content">
+        <div class="ro-title">설득의 심리학 — 로버트 치알디니</div>
+        <div class="ro-meta">Recommended &middot; 멘트가 왜 먹히는지의 심리학 &middot; 1주</div>
+      </div>
+    </div>
+    <div class="ro-item">
+      <div class="ro-num">6</div>
+      <div class="ro-content">
+        <div class="ro-title">디자인 씽킹 — 팀 브라운</div>
+        <div class="ro-meta">Recommended &middot; 1~4장만 &middot; 관찰→인사이트 방법론 &middot; 3일</div>
+      </div>
+    </div>
+    <div class="ro-item">
+      <div class="ro-num">7</div>
+      <div class="ro-content">
+        <div class="ro-title">취향을 설계하는 곳, 츠타야 — 마스다 무네아키</div>
+        <div class="ro-meta">Recommended &middot; 에디토리얼 공간 설계의 실전 &middot; 3일</div>
+      </div>
+    </div>
+    <div class="ro-item">
+      <div class="ro-num">8</div>
+      <div class="ro-content">
+        <div class="ro-title">일의 감각 — 크리스티안 마두스베르그</div>
+        <div class="ro-meta">Recommended &middot; 관찰이 왜 전문성인가 &middot; 1주</div>
+      </div>
+    </div>
+    <div class="ro-item">
+      <div class="ro-num">9</div>
+      <div class="ro-content">
+        <div class="ro-title">관찰의 힘 — 맥스 베이저먼</div>
+        <div class="ro-meta">Optional &middot; 관찰 습관 심화 &middot; 1주</div>
+      </div>
+    </div>
+    <div class="ro-item">
+      <div class="ro-num">10</div>
+      <div class="ro-content">
+        <div class="ro-title">피드백 이야기 — 더글러스 스톤, 쉴라 힌</div>
+        <div class="ro-meta">Optional &middot; 복기/피드백 받는 마인드셋 &middot; 1주</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout mt-32">
+    <p><strong>읽기 원칙:</strong> 한 번에 다 읽으려 하지 마라. 1~4번을 한 달 안에 읽으면 충분하다. 그리고 읽으면서 "우리 매장에서 이걸 어떻게 쓸 수 있지?"를 항상 떠올려라. 책 내용을 아는 것보다, <strong>현장에서 한 번 써보는 게 100배 낫다.</strong></p>
+  </div>
+</section>
+
+<footer>
+  <div class="logo">Project Rent</div>
+  <div class="meta">REM Reading Guide &middot; 2026.06.09 &middot; v1.0</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.sec').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

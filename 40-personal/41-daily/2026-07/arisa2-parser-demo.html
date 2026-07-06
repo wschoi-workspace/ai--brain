@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ARISA 2.0 · daily_report_parser 데모</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<style>
+  :root{
+    --brand:#6C5CE7; --brand-soft:#8B7FF0; --brand-deep:#4B3FCF;
+    --ink900:#0E0E14; --ink800:#16161F; --ink700:#1E1E2A; --ink600:#2A2A38;
+    --line:#2E2E3E; --muted:#9A9AB0; --risk:#FF6B6B; --ok:#22C55E; --warn:#F5A623;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(1200px 600px at 20% -10%, #1a1730 0%, var(--ink900) 55%);
+    color:#fff;font-family:Pretendard,system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    line-height:1.6;padding:48px 32px;min-height:100vh}
+  .wrap{max-width:1180px;margin:0 auto}
+  .eyebrow{color:var(--brand-soft);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+  h1{font-size:34px;font-weight:800;margin:6px 0 4px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:15px}
+  .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.12);
+    color:var(--ok);border:1px solid rgba(34,197,94,.35);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:600}
+
+  /* pipeline */
+  .pipe{display:flex;align-items:stretch;gap:14px;margin:28px 0 32px;flex-wrap:wrap}
+  .pstep{flex:1;min-width:210px;background:var(--ink700);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .pstep .n{font-size:12px;color:var(--muted);font-weight:700}
+  .pstep .t{font-size:16px;font-weight:700;margin-top:2px}
+  .pstep .d{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .pstep.mid{border-color:rgba(108,92,231,.5);background:linear-gradient(180deg,rgba(108,92,231,.14),var(--ink700))}
+  .arrow{align-self:center;color:var(--brand-soft);font-size:22px;font-weight:800}
+
+  .grid{display:grid;grid-template-columns:0.85fr 1.15fr;gap:20px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--ink700);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .card h2{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+
+  .raw{font-family:'SFMono-Regular',ui-monospace,Menlo,monospace;font-size:13px;color:#cfcfe0;white-space:pre-wrap;
+    background:var(--ink900);border:1px solid var(--line);border-radius:12px;padding:16px;line-height:1.7}
+  .fm{color:var(--muted)}
+
+  .sect{margin-bottom:18px}
+  .sect:last-child{margin-bottom:0}
+  .sh{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;margin-bottom:8px}
+  .sh .cnt{font-size:11.5px;color:var(--muted);background:var(--ink600);border-radius:999px;padding:1px 8px;font-weight:600}
+  ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+  li{font-size:13.5px;color:#e8e8f2;padding-left:16px;position:relative}
+  li::before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--brand-soft)}
+  li.risk::before{background:var(--risk)} li.dec::before{background:var(--warn)} li.q::before{background:var(--muted)}
+
+  /* tasks */
+  .tasks{margin-top:22px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+    padding:8px 12px;border-bottom:1px solid var(--line)}
+  td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  .pill{display:inline-flex;align-items:center;border-radius:999px;padding:2px 10px;font-size:11.5px;font-weight:700}
+  .p-critical{background:rgba(255,107,107,.16);color:#ff8f8f;border:1px solid rgba(255,107,107,.4)}
+  .p-high{background:rgba(245,166,35,.14);color:#f5c06a;border:1px solid rgba(245,166,35,.35)}
+  .p-medium{background:rgba(139,127,240,.14);color:var(--brand-soft);border:1px solid rgba(139,127,240,.35)}
+  .status{color:var(--muted);font-size:12px}
+  .team{color:#cfcfe0}
+  .meta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .chip{font-size:12px;color:var(--muted);background:var(--ink800);border:1px solid var(--line);border-radius:8px;padding:6px 11px}
+  .chip b{color:#fff;font-weight:700}
+  .foot{margin-top:34px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12.5px;flex-wrap:wrap;gap:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">ARISA 2.0 · Decision Window</div>
+  <h1>daily_report_parser 데모</h1>
+  <p class="sub">일일 업무보고(자연어) → Claude 파싱·스키마 검증 → 구조화 데이터 + 자동 Task</p>
+  <div style="margin-top:12px"><span class="badge">✓ 실제 실행·스키마 검증 통과 (2026-07-03)</span></div>
+
+  <!-- pipeline -->
+  <div class="pipe">
+    <div class="pstep"><div class="n">INPUT</div><div class="t">📄 일일보고 (.md)</div><div class="d">운영팀 김담당이 자유롭게 쓴 자연어 보고</div></div>
+    <div class="arrow">→</div>
+    <div class="pstep mid"><div class="n">ENGINE</div><div class="t">🤖 Claude 파싱</div><div class="d">DAILY_REPORT_PROMPT → JSON → daily_report.schema 검증</div></div>
+    <div class="arrow">→</div>
+    <div class="pstep"><div class="n">OUTPUT</div><div class="t">📊 구조화 + Task</div><div class="d">9개 항목 구조화 + assignment_queue Task 생성</div></div>
+  </div>
+
+  <div class="grid">
+    <!-- INPUT -->
+    <div class="card">
+      <h2>입력 · 원문 일일보고</h2>
+      <div class="raw"><span class="fm">---
+date: 2026-07-03
+project: project_litsin_2026_001
+team: 운영팀
+author: 김담당
+--- </span>
+
+# 리진 오픈 일일 업무보고
+
+오늘 리진 오픈 준비 관련해서 메뉴 원가를 1차로 뽑아봤는데, 재료 단가가 생각보다 높게 나와서 판매가 대비 원가율이 42%까지 올라간다. 이대로면 가격 정책을 다시 봐야 할 것 같다.
+
+공간팀에서 공사 일정표를 아직 안 줘서 오픈 역산 일정을 못 짜고 있다. 이거 빨리 받아야 함.
+
+포장재는 테이크아웃 중심이라 종류를 최소화하기로 했고, 샘플 3종 신청해뒀다. 다음 주 화요일 도착 예정.
+
+대표님께 여쭤볼 것: 오픈 목표일을 8월 15일로 확정하는지. 이게 정해져야 발주를 넣는다.</div>
+    </div>
+
+    <!-- OUTPUT sections -->
+    <div class="card">
+      <h2>출력 · 구조화 결과 (schema 검증 완료)</h2>
+
+      <div class="sect">
+        <div class="sh">✅ 완료된 업무 <span class="cnt">2</span></div>
+        <ul>
+          <li>메뉴 원가 1차 산출 완료 (원가율 42% 확인)</li>
+          <li>포장재 테이크아웃 중심 종류 최소화 방향 결정 및 샘플 3종 신청</li>
+        </ul>
+      </div>
+
+      <div class="sect">
+        <div class="sh">🔄 진행 중 <span class="cnt">2</span></div>
+        <ul>
+          <li>메뉴 원가율 검토 및 가격 정책 재검토</li>
+          <li>포장재 샘플 수령 대기 (다음 주 화요일 도착 예정)</li>
+        </ul>
+      </div>
+
+      <div class="sect">
+        <div class="sh">⚠️ 리스크 <span class="cnt">2</span></div>
+        <ul>
+          <li class="risk">재료 단가 상승으로 원가율 42% 초과 → 가격 정책 미확정 시 오픈 준비 지연 가능</li>
+          <li class="risk">공간팀 공사 일정표 미제출로 오픈 역산 일정 수립 불가 상태</li>
+        </ul>
+      </div>
+
+      <div class="sect">
+        <div class="sh">🔷 결정이 필요한 항목 <span class="cnt">2</span></div>
+        <ul>
+          <li class="dec">오픈 목표일 8월 15일 확정 여부 (대표 결정 필요, 발주 일정과 직결)</li>
+          <li class="dec">메뉴 원가율 42% 대응 방향 결정 (판매가 인상 또는 원가 절감)</li>
+        </ul>
+      </div>
+
+      <div class="sect">
+        <div class="sh">❓ 되물어야 할 질문 <span class="cnt">4</span></div>
+        <ul>
+          <li class="q">공간팀에 공사 일정표 제출 마감 기한을 언제로 설정할 것인가?</li>
+          <li class="q">원가율 42%에 대한 허용 기준(목표 원가율)이 설정되어 있는가?</li>
+          <li class="q">포장재 샘플 검수 기준 및 최종 결정권자는 누구인가?</li>
+          <li class="q">오픈 목표일 미확정 시 지연되는 후속 업무 범위는 어디까지인가?</li>
+        </ul>
+      </div>
+
+      <div class="meta-row">
+        <div class="chip">보고 해상도 <b>medium</b></div>
+        <div class="chip">Master Context 갱신 <b>필요</b></div>
+        <div class="chip">관련 프로젝트 <b>리진 오픈</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- tasks -->
+  <div class="card tasks">
+    <h2>자동 생성 · Task (status = assignment_queue → 리더 배정 대기)</h2>
+    <table>
+      <thead><tr><th style="width:90px">우선순위</th><th>업무</th><th style="width:110px">담당팀</th><th style="width:110px">마감</th><th style="width:130px">상태</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill p-critical">critical</span></td><td>오픈 목표일 확정 후 발주 진행</td><td class="team">운영팀</td><td class="status">—</td><td class="status">assignment_queue</td></tr>
+        <tr><td><span class="pill p-high">high</span></td><td>공사 일정표 수령</td><td class="team">공간팀</td><td class="status">—</td><td class="status">assignment_queue</td></tr>
+        <tr><td><span class="pill p-high">high</span></td><td>오픈 역산 일정 수립</td><td class="team">운영팀</td><td class="status">—</td><td class="status">assignment_queue</td></tr>
+        <tr><td><span class="pill p-high">high</span></td><td>메뉴 가격 정책 재검토</td><td class="team">운영팀</td><td class="status">—</td><td class="status">assignment_queue</td></tr>
+        <tr><td><span class="pill p-medium">medium</span></td><td>포장재 샘플 검수 및 최종 선정</td><td class="team">운영팀</td><td class="status">2026-07-08</td><td class="status">assignment_queue</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    <div>ARISA 2.0 · engine → Claude API(claude-sonnet-4-6) · task.schema.json 검증 통과</div>
+    <div>by Project Rent</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L4 실험 설계 — 오늘 하나만 바꿔보자</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --green: #8FA37E; --amber: #D9A34B; --red: #E17055; --blue: #6F8AA3;
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300;letter-spacing:-0.01em;line-height:1.7;
+}
+h1,h2,h3,h4{font-weight:500;text-wrap:balance}
+
+.sec{
+  padding:100px 120px 120px;max-width:1440px;margin:0 auto;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out);
+}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sec-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px;
+}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:16px}
+.body{font-size:14px;color:var(--fg-2);line-height:1.7}
+.body strong{color:var(--fg);font-weight:500}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-48{margin-top:48px}
+
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:80px 60px;background:var(--bg-2);
+}
+.cover .eyebrow{margin-bottom:24px}
+.cover h1{font-size:56px;font-weight:200;letter-spacing:-0.03em;line-height:1.1}
+.cover h1 em{font-style:normal;color:var(--accent)}
+.cover .sub{font-size:16px;color:var(--fg-2);margin-top:24px;max-width:640px;font-weight:300}
+.cover .meta{font-size:11px;color:var(--fg-3);letter-spacing:.2em;margin-top:48px;text-transform:uppercase}
+.cover .level-badge{
+  display:inline-block;padding:6px 20px;font-size:12px;letter-spacing:.2em;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.25);margin-bottom:24px;text-transform:uppercase;
+}
+
+.big-quote{
+  background:var(--bg-2);padding:80px 120px;text-align:center;
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+}
+.big-quote blockquote{
+  font-size:28px;font-weight:200;letter-spacing:-0.02em;line-height:1.4;
+  color:var(--fg);max-width:800px;margin:0 auto;
+}
+.big-quote blockquote em{font-style:normal;color:var(--accent)}
+.big-quote .attr{font-size:12px;color:var(--fg-3);margin-top:24px;letter-spacing:.15em}
+
+.principle{
+  background:rgba(108,92,231,.06);border-left:3px solid var(--accent);
+  padding:28px 32px;margin:24px 0;
+}
+.principle p{font-size:14px;color:var(--fg-2);margin:0;line-height:1.7}
+.principle strong{color:var(--accent-light)}
+
+.callout{
+  background:rgba(108,92,231,.08);border-left:3px solid var(--accent);
+  padding:24px 28px;margin:24px 0;
+}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+.card{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card .c-num{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.card.accent-top{border-top:2px solid var(--accent)}
+
+.scenario{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:32px;margin:16px 0;
+  transition:border-color var(--duration-base) var(--ease-out);
+}
+.scenario:hover{border-color:var(--fg-3)}
+.scenario .s-label{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:12px}
+.scenario .s-situation{font-size:15px;color:var(--fg);font-weight:500;margin-bottom:16px}
+.scenario .s-dialogue{padding:16px 20px;background:var(--bg-2);border-left:2px solid var(--accent);margin:12px 0}
+.scenario .s-dialogue p{font-size:13px;color:var(--fg-2);margin:6px 0;line-height:1.6}
+.scenario .s-dialogue .speaker{color:var(--fg-3);font-size:11px;letter-spacing:.1em;margin-bottom:2px}
+.scenario .s-dialogue .speaker.rem{color:var(--accent-light)}
+.scenario .s-insight{
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--line-2);
+  font-size:12px;color:var(--fg-3);
+}
+.scenario .s-insight strong{color:var(--green)}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:32px 0}
+.compare-col{padding:32px;border:1px solid var(--line-2)}
+.compare-col.bad{background:rgba(225,112,85,.03);border-color:rgba(225,112,85,.15)}
+.compare-col.good{background:rgba(143,163,126,.03);border-color:rgba(143,163,126,.15)}
+.compare-col h4{font-size:11px;letter-spacing:.25em;text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--line-2)}
+.compare-col.bad h4{color:var(--red)}
+.compare-col.good h4{color:var(--green)}
+.compare-col .item{padding:14px 0;border-bottom:1px solid var(--line-2);font-size:13px;color:var(--fg-2);line-height:1.5}
+.compare-col .item:last-child{border-bottom:none}
+.compare-col .item .label{font-size:10px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+
+.steps{margin:32px 0}
+.step{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--line-2)}
+.step:last-child{border-bottom:none}
+.step-num{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:500;flex-shrink:0;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.2);
+}
+.step-content h4{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.step-content p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.step-content .example{
+  margin-top:10px;padding:10px 14px;background:var(--bg-3);
+  border-left:2px solid var(--accent);font-size:12px;color:var(--fg-2);line-height:1.5;
+}
+
+/* Observation Map */
+.obs-map{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:32px 0;
+}
+.obs-item{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:24px;
+  border-left:3px solid transparent;
+}
+.obs-item.body-obs{border-left-color:var(--green)}
+.obs-item.word-obs{border-left-color:var(--accent)}
+.obs-item.space-obs{border-left-color:var(--amber)}
+.obs-item.emotion-obs{border-left-color:var(--blue)}
+.obs-item .obs-tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+.obs-item.body-obs .obs-tag{color:var(--green)}
+.obs-item.word-obs .obs-tag{color:var(--accent-light)}
+.obs-item.space-obs .obs-tag{color:var(--amber)}
+.obs-item.emotion-obs .obs-tag{color:var(--blue)}
+.obs-item h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.obs-item p{font-size:12px;color:var(--fg-2);line-height:1.6}
+.obs-item .obs-how{
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2);
+  font-size:11px;color:var(--fg-3);
+}
+
+/* Theory Box */
+.theory{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.theory .t-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  padding-bottom:14px;border-bottom:1px solid var(--line-2);
+}
+.theory .t-badge{
+  padding:3px 10px;font-size:10px;letter-spacing:.15em;
+  background:rgba(111,138,163,.1);color:var(--blue);
+  border:1px solid rgba(111,138,163,.2);text-transform:uppercase;
+}
+.theory .t-title{font-size:14px;font-weight:500;color:var(--fg)}
+.theory .t-author{font-size:11px;color:var(--fg-3);margin-left:auto}
+.theory p{font-size:13px;color:var(--fg-2);line-height:1.7;margin-bottom:10px}
+.theory p:last-child{margin-bottom:0}
+.theory .t-apply{
+  margin-top:16px;padding:14px 18px;
+  background:rgba(108,92,231,.06);border-left:2px solid var(--accent);
+  font-size:12px;color:var(--fg-2);line-height:1.6;
+}
+.theory .t-apply strong{color:var(--accent-light)}
+
+/* Mission */
+.mission{
+  background:rgba(143,163,126,.04);border:1px solid rgba(143,163,126,.2);
+  padding:28px;margin:16px 0;
+}
+.mission .m-label{font-size:10px;letter-spacing:.25em;color:var(--green);text-transform:uppercase;margin-bottom:10px}
+.mission h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.mission p{font-size:13px;color:var(--fg-2);line-height:1.6}
+
+/* Book Card */
+.book{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  border-top:2px solid transparent;
+}
+.book:hover{border-color:var(--fg-3);transform:translateY(-2px);transition:all var(--duration-base) var(--ease-out)}
+.book .b-tag{
+  display:inline-block;padding:3px 10px;font-size:10px;letter-spacing:.1em;margin-bottom:12px;
+}
+.book .b-tag.essential{background:rgba(108,92,231,.1);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.book .b-tag.optional{background:rgba(143,163,126,.1);color:var(--green);border:1px solid rgba(143,163,126,.2)}
+.book .b-title{font-size:17px;font-weight:500;color:var(--fg);margin-bottom:4px}
+.book .b-author{font-size:12px;color:var(--fg-3);margin-bottom:12px}
+.book .b-why{font-size:13px;color:var(--fg-2);line-height:1.6;margin-bottom:12px}
+.book .b-connect{font-size:12px;color:var(--fg-3);padding-top:12px;border-top:1px solid var(--line-2);line-height:1.5}
+.book .b-connect strong{color:var(--fg-2)}
+
+/* Levelup */
+.levelup{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.levelup h4{font-size:11px;letter-spacing:.25em;color:var(--accent-light);text-transform:uppercase;margin-bottom:20px}
+.lu-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.lu-item:last-child{border-bottom:none}
+.lu-check{
+  width:20px;height:20px;border:1px solid var(--line);display:flex;
+  align-items:center;justify-content:center;font-size:11px;color:var(--fg-3);flex-shrink:0;
+}
+.lu-text{font-size:13px;color:var(--fg-2)}
+
+footer{
+  padding:80px 120px 60px;border-top:1px solid var(--line-2);
+  max-width:1440px;margin:80px auto 0;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg-3);text-transform:uppercase}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+
+@media(max-width:1200px){
+  .sec{padding:80px 60px}
+  .cover h1{font-size:40px}
+  .big-quote{padding:60px 40px}
+  .big-quote blockquote{font-size:22px}
+  .compare,.grid-2,.grid-3,.grid-4,.obs-map{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.sec{opacity:1;transform:none;transition:none}}
+@media print{.sec{opacity:1;transform:none;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <span class="level-badge">LEVEL 4 &middot; STAGE 4</span>
+  <span class="eyebrow">REM OS &middot; Experiment Design</span>
+  <h1>오늘 <em>하나</em>만 바꿔보자</h1>
+  <p class="sub">실험은 거창한 게 아니다. 멘트 하나, 순서 하나, 배치 하나를 바꾸고 반응이 달라지는지 보는 것. 그게 전부다.</p>
+  <p class="meta">Project Rent &middot; 4-1 Experiment Design &middot; v1.0</p>
+</section>
+
+<!-- Ch01 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 01 &mdash; IT'S SIMPLER THAN YOU THINK</span>
+      <h2>실험 = 하나만 바꾸고 비교하는 것</h2>
+    </div>
+    <span class="eyebrow">01</span>
+  </div>
+
+  <p class="body">
+    "실험"이라는 단어가 부담스럽다. 연구실? 논문? 아니다. 여기서 말하는 실험은 아주 단순하다.<br>
+    <strong>"어제와 하나만 다르게 해보고, 반응이 달라졌는지 보는 것."</strong>
+  </p>
+
+  <div class="grid-3 mt-32">
+    <div class="card">
+      <div class="c-num">유형 01 &mdash; SCRIPT</div>
+      <h4>멘트 바꾸기</h4>
+      <p>같은 제품인데 설명 순서나 단어를 바꿔본다.</p>
+      <p style="margin-top:10px;font-size:12px;color:var(--fg-3)">"독일식 살라미" → "셰프가 2개월 숙성한 살라미"</p>
+    </div>
+    <div class="card">
+      <div class="c-num">유형 02 &mdash; SEQUENCE</div>
+      <h4>순서 바꾸기</h4>
+      <p>시음과 설명의 순서를 바꿔본다.</p>
+      <p style="margin-top:10px;font-size:12px;color:var(--fg-3)">먼저 맛보게 하고 설명 vs 스토리 먼저 → 시음</p>
+    </div>
+    <div class="card">
+      <div class="c-num">유형 03 &mdash; PLACEMENT</div>
+      <h4>배치 바꾸기</h4>
+      <p>진열 위치나 디스플레이를 바꿔본다.</p>
+      <p style="margin-top:10px;font-size:12px;color:var(--fg-3)">제조 과정 사진: 입구 vs 매대 옆</p>
+    </div>
+  </div>
+
+  <div class="principle mt-24">
+    <p>실험은 추가 업무가 아니다. 어차피 설명하고, 어차피 진열하고, 어차피 시음 권유하는 거다. <strong>"어떻게" 하느냐를 의식적으로 한 가지만 바꿔보는 것뿐이다.</strong></p>
+  </div>
+</section>
+
+<!-- Ch02 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 02 &mdash; THREE RULES</span>
+      <h2>하나만 바꾸고, 비교하고, 기록한다</h2>
+    </div>
+    <span class="eyebrow">02</span>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>하나만 바꾼다</h4>
+        <p>동시에 멘트도 바꾸고 진열도 바꾸면, 뭐 때문에 반응이 달라졌는지 모른다. 한 번에 한 가지만.</p>
+        <div class="example">"오전에는 스토리 먼저, 오후에는 시음 먼저" → 비교 가능</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>비교 가능하게 설계한다</h4>
+        <p>전후 비교(어제 vs 오늘) 또는 A/B 비교(오전 vs 오후). 비교 대상이 없으면 "좋았는지 나빴는지" 판단이 안 된다.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>기록한다</h4>
+        <p>바꾼 것 + 반응 + 느낀 점. 기록 안 하면 실험이 아니라 그냥 변경이다. REM Bot한테 말하면 정리해준다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="scenario mt-16">
+    <div class="s-label">실험 기록 예시</div>
+    <div class="s-situation">REM Bot이 정리하는 실험 기록</div>
+    <div class="s-dialogue">
+      <p style="font-size:14px;line-height:1.9">
+        <strong style="color:var(--accent-light)">[실험 기록 &mdash; 2026.06.10]</strong><br><br>
+        <span style="color:var(--green)">가설:</span> 시음 전에 제조 스토리를 먼저 말하면, "정성" 관련 단어가 더 많이 나올 것이다<br>
+        <span style="color:var(--amber)">변경:</span> 오전 &mdash; 시음 먼저 → 설명 / 오후 &mdash; 스토리 먼저 → 시음<br>
+        <span style="color:var(--blue)">결과:</span> 오전 "정성" 언급 0회, 추가 구매 1건 / 오후 "정성" 언급 3회, 추가 구매 3건<br>
+        <span style="color:var(--fg-3)">결론:</span> 스토리 선행이 인식 형성에 효과적. 내일도 오후 방식으로 계속.
+      </p>
+    </div>
+    <div class="s-insight"><strong>이 기록이 쌓이면</strong> "어떤 방식이 왜 효과적인지"의 증거가 된다. 감이 아니라 데이터로 판단하게 된다.</div>
+  </div>
+</section>
+
+<!-- Ch03 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 03 &mdash; THE VALUE LADDER</span>
+      <h2>가치의 사다리 — 경험이 붙으면 가격이 달라진다</h2>
+    </div>
+    <span class="eyebrow">03</span>
+  </div>
+
+  <p class="body">커피 한 잔의 가격이 장소에 따라 왜 이렇게 다를까?</p>
+
+  <div class="theory mt-32">
+    <div class="t-header">
+      <span class="t-badge">Theory</span>
+      <span class="t-title">조셉 파인의 가치의 사다리</span>
+      <span class="t-author">『경험 경제 (The Experience Economy)』</span>
+    </div>
+    <p>경제학자 조셉 파인은 가치가 진화하는 4단계를 정리했다. 원자재(커피 원두 10원) → 상품(캔커피 1,000원) → 서비스(카페 커피 5,000원) → 경험("이 공간에서 이 분위기로 마시는 커피" 15,000원). 같은 커피인데 경험이 붙으면 가격이 10배가 된다. 사람들은 커피를 사는 게 아니라 "그 공간에서 보내는 시간"을 산다.</p>
+    <div class="t-apply"><strong>현장 적용:</strong> 너의 설명 한마디가 가치의 사다리를 한 칸 올린다. "독일식 살라미 100g입니다"(상품) vs "셰프가 10년 수련한 방식으로 2개월 숙성한 겁니다"(경험). 같은 물건인데 고객이 느끼는 가치가 달라진다.</div>
+  </div>
+
+  <div class="grid-4 mt-32">
+    <div class="card">
+      <div class="c-num">STEP 01</div>
+      <h4>원자재</h4>
+      <p>커피 원두</p>
+      <p style="margin-top:10px;font-size:18px;font-weight:500;color:var(--fg-3)">10원</p>
+      <p style="margin-top:6px;font-size:11px;color:var(--fg-3)">차별화 불가</p>
+    </div>
+    <div class="card">
+      <div class="c-num">STEP 02</div>
+      <h4>상품</h4>
+      <p>캔커피</p>
+      <p style="margin-top:10px;font-size:18px;font-weight:500;color:var(--fg-3)">1,000원</p>
+      <p style="margin-top:6px;font-size:11px;color:var(--fg-3)">브랜드로 차별화</p>
+    </div>
+    <div class="card">
+      <div class="c-num">STEP 03</div>
+      <h4>서비스</h4>
+      <p>카페 커피</p>
+      <p style="margin-top:10px;font-size:18px;font-weight:500;color:var(--fg-3)">5,000원</p>
+      <p style="margin-top:6px;font-size:11px;color:var(--fg-3)">편의성으로 차별화</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">STEP 04 &mdash; TARGET</div>
+      <h4>경험</h4>
+      <p>"이 공간의 커피"</p>
+      <p style="margin-top:10px;font-size:18px;font-weight:500;color:var(--accent-light)">15,000원</p>
+      <p style="margin-top:6px;font-size:11px;color:var(--accent-light)">기억으로 차별화</p>
+    </div>
+  </div>
+
+  <div class="callout mt-24">
+    <p>우리가 하는 일의 본질이 여기 있다. 상품을 파는 게 아니라 <strong>"경험을 파는 것"</strong>. 그리고 그 경험의 가치를 결정하는 건 공간, 설명, 스토리, 분위기 &mdash; 바로 너가 매일 만드는 것들이다.</p>
+  </div>
+</section>
+
+<!-- Ch04 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 04 &mdash; FOUR REALMS OF EXPERIENCE</span>
+      <h2>우리 프로젝트는 어떤 경험을 설계하는가</h2>
+    </div>
+    <span class="eyebrow">04</span>
+  </div>
+
+  <p class="body">조셉 파인은 경험을 4가지 영역으로 분류했다. 우리 프로젝트가 어느 영역에 있는지 아는 게 실험 방향을 정하는 데 도움이 된다.</p>
+
+  <div class="obs-map">
+    <div class="obs-item body-obs">
+      <div class="obs-tag">Realm 01 &mdash; Entertainment</div>
+      <h4>오락 (Entertainment)</h4>
+      <p>고객이 즐기는 경험. 라이브 공연, 시식 이벤트, 인터랙티브 디스플레이.</p>
+      <div class="obs-how">수동적 + 흡수 — 고객이 보고 즐기는 방식</div>
+    </div>
+    <div class="obs-item word-obs">
+      <div class="obs-tag">Realm 02 &mdash; Education</div>
+      <h4>교육 (Education)</h4>
+      <p>고객이 배우는 경험. 제조 과정 설명, 원재료 스토리, 셰프 클래스.</p>
+      <div class="obs-how">능동적 + 흡수 — 고객이 참여하며 배우는 방식</div>
+    </div>
+    <div class="obs-item space-obs">
+      <div class="obs-tag">Realm 03 &mdash; Escapism</div>
+      <h4>탈출 (Escapism)</h4>
+      <p>고객이 빠져드는 경험. 브랜드 세계관 몰입, 공간 전체가 다른 세계.</p>
+      <div class="obs-how">능동적 + 몰입 — 고객이 완전히 다른 세계로 들어가는 방식</div>
+    </div>
+    <div class="obs-item emotion-obs">
+      <div class="obs-tag">Realm 04 &mdash; Aesthetics</div>
+      <h4>미학 (Aesthetics)</h4>
+      <p>고객이 감탄하는 경험. 공간의 아름다움, 진열의 완성도, 감각적 디테일.</p>
+      <div class="obs-how">수동적 + 몰입 — 고객이 아름다움에 잠기는 방식</div>
+    </div>
+  </div>
+
+  <div class="principle">
+    <p>최고의 경험은 4가지가 겹치는 "스위트 스팟"에 있다. 보기에 예쁘고(미학) + 뭔가 배우고(교육) + 즐겁고(오락) + 빠져드는(탈출) 공간. <strong>우리 실험은 이 4영역 중 약한 부분을 강화하는 방향으로 설계하면 된다.</strong></p>
+  </div>
+
+  <div class="mission mt-24">
+    <div class="m-label">실습 미션</div>
+    <h4>이번 프로젝트의 경험을 4영역으로 진단해봐</h4>
+    <p>오락/교육/탈출/미학 각각 1~5점으로 점수를 매겨봐. 가장 약한 영역이 실험 기회다. 예: "교육이 2점이면 → 제조 스토리 설명을 강화하는 실험을 해보자."</p>
+  </div>
+</section>
+
+<!-- Ch05 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 05 &mdash; FOUR STEPS</span>
+      <h2>가설 → 실행 → 관찰 → 결론</h2>
+    </div>
+    <span class="eyebrow">05</span>
+  </div>
+
+  <p class="body">실험을 체계적으로 하려면 4단계를 따르면 된다. 복잡하지 않다.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>가설 세우기</h4>
+        <p>"이걸 바꾸면 이런 반응이 나올 거야" 한 줄.</p>
+        <div class="example">"시음 전 스토리를 먼저 하면 '정성' 언급이 늘 것이다"</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>실행하기</h4>
+        <p>하루 동안 그 변화를 적용한다. 한 가지만. 나머지는 평소대로.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>관찰하기</h4>
+        <p>가설에서 예상한 반응이 실제로 나타나는지 본다. L2에서 배운 4채널(Body/Words/Space/Emotion)로.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>결론 내리기</h4>
+        <p>효과 있었나? 없었나? 왜? 다음에는 뭘 바꿀까? REM Bot 복기에서 정리.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p>4단계가 부담스러우면 이것만 기억해: <strong>"오늘 하나 바꿔보고, 마감 때 반응이 달랐는지 REM Bot한테 말하기."</strong> 이것만 해도 충분한 실험이다.</p>
+  </div>
+</section>
+
+<!-- Ch06 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 06 &mdash; EXPERIMENT MENU</span>
+      <h2>뭘 바꿔볼지 모르겠을 때 여기서 골라</h2>
+    </div>
+    <span class="eyebrow">06</span>
+  </div>
+
+  <p class="body">실험 아이디어가 안 떠오를 때를 위한 메뉴판이다. 난이도순으로 정리했다.</p>
+
+  <div class="mt-32">
+    <div class="mission">
+      <div class="m-label">난이도 &#9733;</div>
+      <h4>멘트 순서 바꾸기</h4>
+      <p>제품 정보 먼저 vs 스토리 먼저. 가장 쉬운 실험. 오늘 바로 해볼 수 있다.</p>
+    </div>
+    <div class="mission">
+      <div class="m-label">난이도 &#9733;</div>
+      <h4>시음 타이밍 바꾸기</h4>
+      <p>설명 전 시음 vs 설명 후 시음. 어느 쪽이 구매로 더 이어지나?</p>
+    </div>
+    <div class="mission">
+      <div class="m-label">난이도 &#9733;&#9733;</div>
+      <h4>추천 멘트 바꾸기</h4>
+      <p>"인기 있어요"(사회적 증거) vs "여기서만"(희소성) vs "셰프가 고른"(권위). L3에서 배운 설득 원칙 활용.</p>
+    </div>
+    <div class="mission">
+      <div class="m-label">난이도 &#9733;&#9733;</div>
+      <h4>진열 위치 바꾸기</h4>
+      <p>핵심 상품의 위치를 옮겨보고 고객 동선 변화 관찰.</p>
+    </div>
+    <div class="mission">
+      <div class="m-label">난이도 &#9733;&#9733;&#9733;</div>
+      <h4>경험 영역 강화</h4>
+      <p>교육이 약하면 → 제조 과정 시연 추가. 미학이 약하면 → 디스플레이 변경. 오락이 약하면 → 인터랙션 추가.</p>
+    </div>
+    <div class="mission">
+      <div class="m-label">난이도 &#9733;&#9733;&#9733;</div>
+      <h4>고객 여정 재설계</h4>
+      <p>입구→첫 접점→설명→시음→구매 동선 전체를 한 부분 바꿔보기. 가장 큰 실험.</p>
+    </div>
+  </div>
+
+  <div class="principle mt-8">
+    <p>처음에는 ★부터 시작해. 멘트 하나 바꾸는 건 1분도 안 걸린다. 그런데 반응은 확 달라질 수 있다. <strong>그 경험이 쌓이면 ★★, ★★★도 자연스럽게 하게 된다.</strong></p>
+  </div>
+</section>
+
+<!-- Ch07 -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 07 &mdash; FINDING PATTERNS</span>
+      <h2>한 번의 실험은 우연일 수 있다. 세 번이면 패턴이다.</h2>
+    </div>
+    <span class="eyebrow">07</span>
+  </div>
+
+  <p class="body">실험 한 번으로 결론 내지 마라. "오늘 스토리 먼저 했더니 반응 좋았어" — 이건 우연일 수 있다. 3번 반복해서 같은 결과가 나오면 그때 패턴이다.</p>
+
+  <div class="grid-2 mt-32">
+    <div class="card">
+      <div class="c-num">PATTERN RULE 01</div>
+      <h4>반복의 힘</h4>
+      <p>같은 실험을 3일 해봐. 3일 다 비슷한 결과면 → 패턴. 결과가 들쭉날쭉이면 → 다른 변수가 있다는 뜻 (요일? 시간대? 고객층?).</p>
+    </div>
+    <div class="card">
+      <div class="c-num">PATTERN RULE 02</div>
+      <h4>패턴을 팀에 공유</h4>
+      <p>네가 발견한 패턴은 너만의 것이 아니다. 주간 회고에서 "이 멘트가 3일 연속 효과 있었어요"를 공유하면, 팀 전체가 쓸 수 있는 무기가 된다.</p>
+    </div>
+  </div>
+
+  <div class="theory mt-32">
+    <div class="t-header">
+      <span class="t-badge">Theory</span>
+      <span class="t-title">반성적 실천 (Reflective Practice)</span>
+      <span class="t-author">도널드 쇤 (Donald Sch&ouml;n)</span>
+    </div>
+    <p>교육학자 쇤은 "전문가와 초보의 차이는 경험 양이 아니라 경험을 복기하는 능력"이라고 했다. 같은 실험을 해도, 복기하는 사람은 패턴을 발견하고 다음 실험을 더 잘 설계한다. 복기하지 않는 사람은 매번 처음부터.</p>
+    <div class="t-apply"><strong>현장 적용:</strong> 실험 후 반드시 REM Bot 복기를 해라. "바꿔봤어요" → "어떤 반응이었어?" → "왜 그랬을까?" → "다음엔?" 이 루프가 실험을 학습으로 바꾼다.</div>
+  </div>
+</section>
+
+<!-- Ch08 -->
+<section class="sec" id="s8">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">CHAPTER 08 &mdash; LEVEL UP &amp; READING</span>
+      <h2>L4 레벨업 기준 &amp; 추천 도서</h2>
+    </div>
+    <span class="eyebrow">08</span>
+  </div>
+
+  <div class="levelup">
+    <h4>L4 레벨업 체크리스트</h4>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">실험 기획서(가설→실행→결과) <strong>3건 이상</strong></div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">실험 결과에서 패턴 발견 <strong>1건 이상</strong></div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">"이 실험을 왜 이렇게 설계했는가" <strong>설명 가능</strong></div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">경험의 4영역 진단을 <strong>현재 프로젝트에 적용</strong>해봄</div></div>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="book" style="border-top-color:var(--accent)">
+      <span class="b-tag essential">Essential</span>
+      <div class="b-title">경험 경제 (The Experience Economy) 1~3장</div>
+      <div class="b-author">조셉 파인, 제임스 길모어</div>
+      <div class="b-why">가치의 사다리와 경험의 4영역이 핵심. 전체가 두껍지만 1~3장이면 프레임워크는 충분하다. 읽으면서 '우리 프로젝트는 어느 영역인가?'를 떠올려봐.</div>
+      <div class="b-connect">
+        <strong>읽기 질문:</strong><br>
+        ① 우리 프로젝트의 고객 경험은 4영역 중 어디?<br>
+        ② 가치의 사다리에서 우리 매장은 '서비스'와 '경험' 중 어디?<br>
+        ③ 이번 프로젝트에서 설계한 실험 1건의 가설-결과-교훈은?
+      </div>
+    </div>
+    <div class="book" style="border-top-color:var(--green)">
+      <span class="b-tag optional">Optional</span>
+      <div class="b-title">관찰의 힘 (The Power of Noticing)</div>
+      <div class="b-author">맥스 베이저먼</div>
+      <div class="b-why">L2에서 관찰 기초를 배웠다면, 이 책은 관찰의 심화편. '왜 명백한 것을 놓치는가'를 다루며, 실험 설계 시 관찰 포인트를 더 정교하게 잡는 데 도움된다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- BIG QUOTE -->
+<div class="big-quote">
+  <blockquote>실험은 거창한 게 아니다. <em>하나</em>만 바꾸고, 반응이 달라졌는지 보는 것.<br>그 하나가 쌓이면 <em>패턴</em>이 되고, 패턴이 쌓이면 <em>전문성</em>이 된다.</blockquote>
+  <div class="attr">REM OS &mdash; Project Rent</div>
+</div>
+
+<footer>
+  <div class="logo">Project Rent</div>
+  <div class="meta">4-1 Experiment Design &middot; 2026.06.10 &middot; v1.0</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.sec').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

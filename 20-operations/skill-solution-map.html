@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 업무 시스템 전체 맵 — Do Better Workspace</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --green: #8FA37E; --amber: #D9A34B; --red: #E17055; --blue: #6F8AA3;
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300;letter-spacing:-0.01em;line-height:1.7;
+}
+h1,h2,h3,h4{font-weight:500;text-wrap:balance}
+
+.sec{
+  padding:100px 120px 120px;max-width:1440px;margin:0 auto;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out);
+}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sec-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px;
+}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:16px}
+.body{font-size:14px;color:var(--fg-2);line-height:1.7}
+.body strong{color:var(--fg);font-weight:500}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-48{margin-top:48px}
+
+/* COVER */
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:80px 60px;background:var(--bg-2);
+}
+.cover .eyebrow{margin-bottom:24px}
+.cover h1{font-size:56px;font-weight:200;letter-spacing:-0.03em;line-height:1.1}
+.cover h1 em{font-style:normal;color:var(--accent)}
+.cover .sub{font-size:16px;color:var(--fg-2);margin-top:24px;max-width:720px;font-weight:300;line-height:1.7}
+.cover .meta{font-size:11px;color:var(--fg-3);letter-spacing:.2em;margin-top:48px;text-transform:uppercase}
+.cover .level-badge{
+  display:inline-block;padding:6px 20px;font-size:12px;letter-spacing:.2em;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.25);margin-bottom:24px;text-transform:uppercase;
+}
+
+/* BIG QUOTE */
+.big-quote{
+  background:var(--bg-2);padding:80px 120px;text-align:center;
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+}
+.big-quote blockquote{
+  font-size:28px;font-weight:200;letter-spacing:-0.02em;line-height:1.4;
+  color:var(--fg);max-width:800px;margin:0 auto;
+}
+.big-quote blockquote em{font-style:normal;color:var(--accent)}
+.big-quote .attr{font-size:12px;color:var(--fg-3);margin-top:24px;letter-spacing:.15em}
+
+/* PRINCIPLE / CALLOUT */
+.principle{
+  background:rgba(108,92,231,.06);border-left:3px solid var(--accent);
+  padding:28px 32px;margin:24px 0;
+}
+.principle p{font-size:14px;color:var(--fg-2);margin:0;line-height:1.7}
+.principle strong{color:var(--accent-light)}
+
+.callout{
+  background:rgba(108,92,231,.08);border-left:3px solid var(--accent);
+  padding:24px 28px;margin:24px 0;
+}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+
+/* GRIDS */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* CARD */
+.card{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card .c-num{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.card.accent-top{border-top:2px solid var(--accent)}
+
+/* SCENARIO */
+.scenario{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:32px;margin:16px 0;
+  transition:border-color var(--duration-base) var(--ease-out);
+}
+.scenario:hover{border-color:var(--fg-3)}
+.scenario .s-label{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:12px}
+.scenario .s-situation{font-size:15px;color:var(--fg);font-weight:500;margin-bottom:16px}
+.scenario .s-dialogue{padding:16px 20px;background:var(--bg-2);border-left:2px solid var(--accent);margin:12px 0}
+.scenario .s-dialogue p{font-size:13px;color:var(--fg-2);margin:6px 0;line-height:1.6}
+.scenario .s-insight{
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--line-2);
+  font-size:12px;color:var(--fg-3);
+}
+.scenario .s-insight strong{color:var(--green)}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:32px 0}
+.kpi{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px 24px;
+  text-align:center;
+}
+.kpi .k-label{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:12px}
+.kpi .k-value{font-size:48px;font-weight:200;color:var(--fg);letter-spacing:-0.03em;line-height:1}
+.kpi .k-value em{font-style:normal;color:var(--accent);font-size:36px}
+.kpi .k-sub{font-size:11px;color:var(--fg-3);margin-top:10px;line-height:1.5}
+
+/* FOOTER */
+footer{
+  padding:80px 120px 60px;border-top:1px solid var(--line-2);
+  max-width:1440px;margin:80px auto 0;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg-3);text-transform:uppercase}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+
+/* ─── 추가 컴포넌트 ─── */
+
+/* SOLUTION CARD */
+.solution-card{
+  background:var(--bg-3);border:1px solid var(--line-2);
+  border-top:2px solid var(--accent);
+  padding:32px;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.solution-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.solution-card .sc-num{font-size:10px;letter-spacing:.25em;color:var(--accent-light);text-transform:uppercase;margin-bottom:12px}
+.solution-card h3{font-size:18px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.solution-card .sc-sub{font-size:12px;color:var(--fg-3);margin-bottom:16px}
+.solution-card .sc-core{
+  font-size:13px;color:var(--fg-2);line-height:1.6;
+  padding:14px 16px;background:rgba(108,92,231,.06);border-left:2px solid var(--accent);
+  margin-bottom:16px;
+}
+.solution-card .sc-list{
+  list-style:none;margin:0;padding:0;
+  border-top:1px solid var(--line-2);padding-top:14px;
+}
+.solution-card .sc-list li{
+  font-size:12px;color:var(--fg-3);padding:5px 0;
+  border-bottom:1px solid var(--line-2);display:flex;align-items:flex-start;gap:8px;
+}
+.solution-card .sc-list li:last-child{border-bottom:none}
+.solution-card .sc-list li::before{
+  content:'—';color:var(--accent);flex-shrink:0;
+}
+.solution-card .sc-list li strong{color:var(--fg-2)}
+.solution-card .sc-footer{
+  margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2);
+  font-size:11px;color:var(--fg-3);display:flex;gap:16px;flex-wrap:wrap;
+}
+.solution-card .sc-footer span{display:flex;align-items:center;gap:4px}
+.solution-card .sc-footer .badge{
+  font-size:10px;letter-spacing:.1em;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.2);padding:2px 8px;
+}
+.solution-card .sc-footer .badge.green{
+  background:rgba(143,163,126,.1);color:var(--green);
+  border-color:rgba(143,163,126,.2);
+}
+.solution-card .sc-footer .badge.amber{
+  background:rgba(217,163,75,.1);color:var(--amber);
+  border-color:rgba(217,163,75,.2);
+}
+
+/* SKILL TAG */
+.skill-tag{
+  display:inline-block;
+  font-size:11px;letter-spacing:.05em;
+  background:rgba(108,92,231,.08);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.18);
+  padding:3px 9px;margin:2px;
+  font-family:monospace;
+}
+.skill-tag.green{background:rgba(143,163,126,.08);color:var(--green);border-color:rgba(143,163,126,.2)}
+.skill-tag.amber{background:rgba(217,163,75,.08);color:var(--amber);border-color:rgba(217,163,75,.2)}
+.skill-tag.blue{background:rgba(111,138,163,.08);color:var(--blue);border-color:rgba(111,138,163,.2)}
+.skill-tag.neutral{background:rgba(255,255,255,.04);color:var(--fg-3);border-color:var(--line)}
+
+/* MAP GRID */
+.map-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:14px;
+}
+
+/* CATEGORY BLOCK */
+.cat-block{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:24px;
+}
+.cat-block .cat-label{
+  font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;
+  margin-bottom:6px;
+}
+.cat-block .cat-title{
+  font-size:14px;font-weight:500;color:var(--fg);
+  margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line-2);
+}
+.cat-block .skill-row{
+  padding:8px 0;border-bottom:1px solid var(--line-2);
+}
+.cat-block .skill-row:last-child{border-bottom:none}
+.cat-block .skill-name{
+  font-size:12px;color:var(--accent-light);font-family:monospace;letter-spacing:.02em;
+}
+.cat-block .skill-desc{
+  font-size:11px;color:var(--fg-3);margin-top:2px;line-height:1.5;
+}
+
+/* DEPENDENCY LINE */
+.dependency-line{
+  font-family:'Courier New',Courier,monospace;
+  font-size:12px;color:var(--fg-2);line-height:1.8;
+  white-space:pre;
+  overflow-x:auto;
+  background:var(--bg-2);
+  padding:28px 32px;
+  border-left:2px solid var(--accent);
+}
+
+/* GSTACK SECTION */
+.gstack-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:14px;
+}
+.gstack-cat{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:24px;
+}
+.gstack-cat .gc-label{
+  font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;
+  margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line-2);
+}
+.gstack-cat .gc-tags{display:flex;flex-wrap:wrap;gap:4px}
+
+/* HUMANIZER CARD */
+.humanizer-card{
+  background:var(--bg-3);border:1px solid var(--line-2);border-top:2px solid var(--amber);
+  padding:28px;
+}
+.humanizer-card .hc-num{font-size:10px;letter-spacing:.25em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
+.humanizer-card h4{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:4px}
+.humanizer-card .hc-author{font-size:11px;color:var(--fg-3);margin-bottom:14px}
+.humanizer-card .hc-desc{font-size:13px;color:var(--fg-2);line-height:1.6;margin-bottom:14px}
+.humanizer-card .hc-highlight{
+  font-size:12px;color:var(--amber);
+  padding:10px 14px;background:rgba(217,163,75,.06);border-left:2px solid var(--amber);
+}
+
+/* SECTION NAV */
+.section-nav{
+  position:fixed;right:32px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:10px;z-index:100;
+}
+.nav-dot{
+  width:6px;height:6px;background:var(--line);
+  border-radius:50%;cursor:pointer;
+  transition:background var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.nav-dot:hover,.nav-dot.active{background:var(--accent);transform:scale(1.5)}
+.nav-dot[title]{position:relative}
+
+/* RESPONSIVE */
+@media(max-width:1200px){
+  .sec{padding:80px 60px}
+  .cover h1{font-size:40px}
+  .big-quote{padding:60px 40px}
+  .big-quote blockquote{font-size:22px}
+  .grid-2,.grid-3,.grid-4,.kpi-grid,.map-grid,.gstack-grid{grid-template-columns:1fr}
+  .section-nav{display:none}
+  footer{padding:60px 40px 40px}
+}
+@media(max-width:768px){
+  .sec{padding:60px 24px}
+  .dependency-line{font-size:10px;padding:20px 16px}
+}
+@media(prefers-reduced-motion:reduce){.sec{opacity:1;transform:none;transition:none}}
+@media print{.sec{opacity:1;transform:none;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- SECTION NAV -->
+<nav class="section-nav" aria-label="섹션 네비게이션">
+  <a href="#cover" class="nav-dot active" title="커버"></a>
+  <a href="#s1" class="nav-dot" title="솔루션 레벨"></a>
+  <a href="#s2" class="nav-dot" title="커스텀 스킬"></a>
+  <a href="#s3" class="nav-dot" title="gstack 스킬"></a>
+  <a href="#s4" class="nav-dot" title="휴머나이저"></a>
+  <a href="#s5" class="nav-dot" title="연결 관계"></a>
+  <a href="#s6" class="nav-dot" title="숫자로 보기"></a>
+</nav>
+
+<!-- COVER -->
+<section class="cover" id="cover">
+  <span class="level-badge">Do Better Workspace &middot; System Map</span>
+  <span class="eyebrow">AI 업무 시스템 전체 맵</span>
+  <h1>AI 업무 시스템 <em>전체 맵</em></h1>
+  <p class="sub">6개 솔루션 + 41개 커스텀 스킬 + 36개 gstack 스킬 + 3개 휴머나이저.<br>프로젝트렌트의 AI 업무 체계 전체를 한눈에.</p>
+  <p class="meta">Do Better Workspace &middot; Skill &amp; Solution Map &middot; 2026.06.10</p>
+</section>
+
+<!-- S01 솔루션 레벨 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 01 &mdash; Solutions</span>
+      <h2>독립 시스템 — 스킬 조합으로 만든 솔루션</h2>
+    </div>
+    <span class="eyebrow">01</span>
+  </div>
+
+  <p class="body">개별 스킬을 넘어 "시스템"으로 작동하는 6개 솔루션. 각각 고유한 파이프라인과 데이터 흐름을 가진다.</p>
+
+  <div class="grid-2 mt-48">
+
+    <!-- 솔루션 1: REM OS -->
+    <div class="solution-card">
+      <div class="sc-num">Solution 01</div>
+      <h3>REM OS</h3>
+      <div class="sc-sub">현장 운영·관찰·학습 시스템 &middot; 20-operations/22-rem-os/</div>
+      <div class="sc-core">"같은 관찰 프레임을 공유하는 조직"을 만드는 시스템. 현장 경험이 데이터로 축적된다.</div>
+      <ul class="sc-list">
+        <li><strong>Master Frame</strong> — 10개 섹션 철학 기반</li>
+        <li><strong>교육 가이드 9개</strong> — Stage 0-1~5-1 커버</li>
+        <li><strong>REM Bot 프롬프트</strong> — GPT 현장 코치</li>
+        <li><strong>교육 체계 설계서</strong> — L0~L7 레벨 커버</li>
+        <li><strong>인식 브리프 템플릿</strong> — 관찰→데이터 변환</li>
+      </ul>
+      <div class="sc-footer">
+        <span>연결: <span class="badge">/psychology-critic</span></span>
+        <span><span class="badge">/brand-thinking</span></span>
+        <span><span class="badge green">교육 가이드 9/10 완성</span></span>
+      </div>
+    </div>
+
+    <!-- 솔루션 2: 정부사업 제안 파이프라인 -->
+    <div class="solution-card">
+      <div class="sc-num">Solution 02</div>
+      <h3>정부사업 제안 파이프라인</h3>
+      <div class="sc-sub">RFP 분석 → HTML 제안서까지 7Phase 자동화</div>
+      <div class="sc-core">RFP 분석부터 전략, 내러티브, HTML 제안서까지 자동화. 일반/정부 모드 자동감지.</div>
+      <ul class="sc-list">
+        <li><strong>/rfp-analysis</strong> — 진단, 2모드 자동감지</li>
+        <li><strong>/gov-proposal</strong> — 7Phase 오케스트레이터</li>
+        <li><strong>/proposal-architect</strong> — 10단계 내러티브</li>
+        <li><strong>/proposal-critic</strong> — 질문형 검수</li>
+        <li><strong>gov-strategy-framework.md</strong> — 12-Step 전략</li>
+        <li><strong>hybrid-presentation-guide.md</strong> — 10단계 PT</li>
+      </ul>
+      <div class="sc-footer">
+        <span>실전: <span class="badge">더셀렉츠 18.2억</span></span>
+        <span><span class="badge">봉은사</span></span>
+        <span><span class="badge">K-존</span></span>
+        <span><span class="badge">섬세한식탁</span></span>
+      </div>
+    </div>
+
+    <!-- 솔루션 3: RXR 브랜드 분석 체계 -->
+    <div class="solution-card">
+      <div class="sc-num">Solution 03</div>
+      <h3>RXR 브랜드 분석 체계</h3>
+      <div class="sc-sub">오프라인 경험 데이터를 정량화하는 8종 분석 스킬</div>
+      <div class="sc-core">오프라인 경험 데이터를 정량화. /brand-analysis가 전단계 자동화로 8종 스킬을 호출.</div>
+      <ul class="sc-list">
+        <li><strong>/rxr-analysis</strong> — 2-Layer 기본 (Content+Psyche)</li>
+        <li><strong>/rxr-mention-analysis</strong> — 상시 멘션 감정/언어학</li>
+        <li><strong>/rxr-sns-analysis</strong> — SNS Raw Data</li>
+        <li><strong>/rxr-sns-analysis-compare</strong> — 교차 비교</li>
+        <li><strong>/rxr-sns-analysis-follow</strong> — 4주 추적 (BEI)</li>
+        <li><strong>/rxr-sns-analysis-value</strong> — EMV 금전적 가치</li>
+        <li><strong>/rxr-sns-linguistic-layer</strong> — 언어학 6차원</li>
+        <li><strong>/rxr-survey-analysis</strong> — 설문 기반 EDI</li>
+      </ul>
+      <div class="sc-footer">
+        <span>진입: <span class="badge">/brand-analysis</span></span>
+        <span><span class="badge green">8종 완성</span></span>
+      </div>
+    </div>
+
+    <!-- 솔루션 4: ARISA -->
+    <div class="solution-card">
+      <div class="sc-num">Solution 04</div>
+      <h3>ARISA</h3>
+      <div class="sc-sub">GPT 회의 시스템 &middot; ~/arisa-project-memory/</div>
+      <div class="sc-core">GPT 보이스 회의 → 6종 리포트 자동 생성. 경영진↔현장 데이터 레이어를 REM OS와 공유.</div>
+      <ul class="sc-list">
+        <li><strong>GPT 시스템 프롬프트</strong> — 청취→호출→응답</li>
+        <li><strong>OpenAI API 파이프라인</strong> — 리포트 생성</li>
+        <li><strong>텔레그램 봇 연동</strong> — 완성 시 자동 전송</li>
+        <li><strong>프로젝트별 메모리 DB</strong> — 컨텍스트 축적</li>
+        <li><strong>리포트 6종</strong> — Meeting Report, Todo/업무분장, Strategy Report + 3종</li>
+      </ul>
+      <div class="sc-footer">
+        <span>연결: <span class="badge">REM OS</span></span>
+        <span><span class="badge">텔레그램 자동 전송</span></span>
+        <span><span class="badge amber">리포트 3종 추가 예정</span></span>
+      </div>
+    </div>
+
+    <!-- 솔루션 5: 모닝 루틴 자동화 -->
+    <div class="solution-card">
+      <div class="sc-num">Solution 05</div>
+      <h3>모닝 루틴 자동화</h3>
+      <div class="sc-sub">매일 8시 자동 브리핑 → 텔레그램 발송</div>
+      <div class="sc-core">매일 아침 8시, launchd가 자동 실행. 메일+캘린더+할일을 통합해 텔레그램으로 발송.</div>
+      <ul class="sc-list">
+        <li><strong>/morning</strong> — 메일+캘린더+할일 통합</li>
+        <li><strong>/start-day</strong> — 아침 루틴 시작</li>
+        <li><strong>/end-day</strong> — 하루 마무리 + 리플렉션</li>
+        <li><strong>/telegram</strong> — 발송</li>
+        <li><strong>launchd 스케줄러</strong> — com.dobetter.morning-telegram.plist</li>
+        <li><strong>Bot API 직접 호출</strong> — HTML → 텔레그램 체크리스트</li>
+      </ul>
+      <div class="sc-footer">
+        <span>출력: <span class="badge">HTML 대시보드</span></span>
+        <span><span class="badge">텔레그램 체크리스트</span></span>
+        <span><span class="badge green">매일 08:00 자동 실행</span></span>
+      </div>
+    </div>
+
+    <!-- 솔루션 6: 인건비 시뮬레이터 -->
+    <div class="solution-card">
+      <div class="sc-num">Solution 06</div>
+      <h3>인건비 시뮬레이터</h3>
+      <div class="sc-sub">매장 인건비 및 시프트 자동 산출 &middot; labor-cost-simulator/</div>
+      <div class="sc-core">매장 운영 인건비를 자동으로 시뮬레이션. Netlify 배포, 누구나 링크로 접근 가능.</div>
+      <ul class="sc-list">
+        <li><strong>일일 산출 모드</strong> — 날짜별 정산</li>
+        <li><strong>가산수당 자동 계산</strong> — 야간/연장 포함</li>
+        <li><strong>공유 기능</strong> — 링크 기반 공유</li>
+        <li><strong>Netlify 배포</strong> — labor-cost-simulator.netlify.app</li>
+      </ul>
+      <div class="sc-footer">
+        <span>버전: <span class="badge green">v2 배포 완료</span></span>
+        <span><span class="badge amber">v3 배포 대기</span></span>
+        <span>연결: <span class="badge">REM OS</span></span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- S02 커스텀 스킬 전체 맵 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 02 &mdash; Custom Skills</span>
+      <h2>직접 만든 스킬 41개 — 카테고리별 분류</h2>
+    </div>
+    <span class="eyebrow">02</span>
+  </div>
+
+  <p class="body">8개 카테고리로 분류. 모든 스킬은 Claude Code 내에서 <strong>/커맨드</strong> 형태로 즉시 호출.</p>
+
+  <div class="map-grid mt-48">
+
+    <!-- 카테고리 1: 일상 루틴 -->
+    <div class="cat-block">
+      <div class="cat-label">Category 01</div>
+      <div class="cat-title">일상 루틴 &middot; 4개</div>
+      <div class="skill-row">
+        <div class="skill-name">/morning</div>
+        <div class="skill-desc">아침 업무 브리핑 — 메일+캘린더+할일 → HTML 대시보드</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/start-day</div>
+        <div class="skill-desc">아침 루틴 시작. 오늘 맥락 세팅.</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/end-day</div>
+        <div class="skill-desc">하루 마무리 — 리플렉션 + Todo 정리</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/telegram</div>
+        <div class="skill-desc">텔레그램 읽기/보내기/검색</div>
+      </div>
+    </div>
+
+    <!-- 카테고리 2: 브랜드 분석 -->
+    <div class="cat-block">
+      <div class="cat-label">Category 02</div>
+      <div class="cat-title">브랜드 분석 &middot; 2개</div>
+      <div class="skill-row">
+        <div class="skill-name">/brand-analysis</div>
+        <div class="skill-desc">6-Phase 자동화 — 리서치→RXR→분석→리포트→30p PT</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/brand-thinking</div>
+        <div class="skill-desc">욕망+수익 시뮬레이션 — Thinking Partner</div>
+      </div>
+    </div>
+
+    <!-- 카테고리 3: RXR 분석 체계 -->
+    <div class="cat-block">
+      <div class="cat-label">Category 03</div>
+      <div class="cat-title">RXR 분석 체계 &middot; 8개</div>
+      <div class="skill-row">
+        <div class="skill-name">/rxr-analysis</div>
+        <div class="skill-desc">2-Layer — Content + Psyche</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/rxr-mention-analysis</div>
+        <div class="skill-desc">상시 멘션 감정/언어학 분석</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/rxr-sns-analysis</div>
+        <div class="skill-desc">SNS Raw Data — 크롤링→필터→2Layer</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/rxr-sns-analysis-compare</div>
+        <div class="skill-desc">다중 캠페인 교차 비교</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/rxr-sns-analysis-follow</div>
+        <div class="skill-desc">T+0 후 4주 추적 (BEI)</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/rxr-sns-analysis-value</div>
+        <div class="skill-desc">EMV 금전적 가치 환산</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/rxr-sns-linguistic-layer</div>
+        <div class="skill-desc">언어학 6차원 (LAI + EDS)</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/rxr-survey-analysis</div>
+        <div class="skill-desc">설문 기반 EDI 분석</div>
+      </div>
+    </div>
+
+    <!-- 카테고리 4: 제안서 & 기획 -->
+    <div class="cat-block">
+      <div class="cat-label">Category 04</div>
+      <div class="cat-title">제안서 &amp; 기획 &middot; 6개</div>
+      <div class="skill-row">
+        <div class="skill-name">/rfp-analysis</div>
+        <div class="skill-desc">RFP 종합 분석 — 일반/정부 자동감지</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/gov-proposal</div>
+        <div class="skill-desc">정부사업 7Phase 오케스트레이터</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/proposal-architect</div>
+        <div class="skill-desc">10단계 내러티브 아키텍트</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/proposal-critic</div>
+        <div class="skill-desc">기획서 질문형 코칭</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/dashboard-prd</div>
+        <div class="skill-desc">대시보드 PRD 대화형 생성</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/webapp-prd</div>
+        <div class="skill-desc">웹앱 PRD 대화형 생성</div>
+      </div>
+    </div>
+
+    <!-- 카테고리 5: 크리틱 & 씽킹 -->
+    <div class="cat-block">
+      <div class="cat-label">Category 05</div>
+      <div class="cat-title">크리틱 &amp; 씽킹 &middot; 2개</div>
+      <div class="skill-row">
+        <div class="skill-name">/psychology-critic</div>
+        <div class="skill-desc">심리학 기반 마케팅 크리틱</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/sensemaking</div>
+        <div class="skill-desc">낯선 콘텐츠 함께 해석 — 인지 증강</div>
+      </div>
+    </div>
+
+    <!-- 카테고리 6: 콘텐츠 제작 -->
+    <div class="cat-block">
+      <div class="cat-label">Category 06</div>
+      <div class="cat-title">콘텐츠 제작 &middot; 4개</div>
+      <div class="skill-row">
+        <div class="skill-name">/card-news</div>
+        <div class="skill-desc">카드뉴스 제작 → Buffer Draft 업로드</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/playwright</div>
+        <div class="skill-desc">HTML → PNG/PDF 스크린샷</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/intaglio</div>
+        <div class="skill-desc">사진 → 요판화 스타일 변환</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/youtube-analyzer</div>
+        <div class="skill-desc">유튜브 분석 → 노션 저장</div>
+      </div>
+    </div>
+
+    <!-- 카테고리 7: 데이터 & 자동화 -->
+    <div class="cat-block">
+      <div class="cat-label">Category 07</div>
+      <div class="cat-title">데이터 &amp; 자동화 &middot; 9개</div>
+      <div class="skill-row">
+        <div class="skill-name">/gmail-project-note</div>
+        <div class="skill-desc">메일 → 프로젝트별 이력 노트</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/excel-to-csv</div>
+        <div class="skill-desc">엑셀 → CSV (병합셀 해제)</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/notion-handler</div>
+        <div class="skill-desc">노션 DB/페이지 관리</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/web-crawler-ocr</div>
+        <div class="skill-desc">웹 크롤링 + Gemini OCR</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/transcript-organizer</div>
+        <div class="skill-desc">녹음 텍스트 정리 (STT 교정)</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/gemini</div>
+        <div class="skill-desc">Gemini AI 대화</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/daily-report-writer</div>
+        <div class="skill-desc">GPT 업무보고 → 구글시트</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/work-analysis</div>
+        <div class="skill-desc">업무보고 데이터 분석</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/payment</div>
+        <div class="skill-desc">결제/송금 대시보드</div>
+      </div>
+    </div>
+
+    <!-- 카테고리 8: 병렬 처리 + 지식 관리 -->
+    <div class="cat-block">
+      <div class="cat-label">Category 08</div>
+      <div class="cat-title">병렬 처리 + 지식 관리 &middot; 6개</div>
+      <div class="skill-row">
+        <div class="skill-name">/decompose</div>
+        <div class="skill-desc">미션 → 병렬 작업 분해</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/execute</div>
+        <div class="skill-desc">병렬 워커 실행</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/integrate</div>
+        <div class="skill-desc">병렬 결과 통합 → 최종 산출물</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/wiki-ingest</div>
+        <div class="skill-desc">위키 자동 enrichment</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/wiki-lint</div>
+        <div class="skill-desc">위키 헬스체크 — 모순/고아 페이지 탐지</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">/doc-updater</div>
+        <div class="skill-desc">Claude Code 문서 업데이트</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- S03 gstack 스킬 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 03 &mdash; gstack Skills</span>
+      <h2>설치형 개발 도구 — 36개</h2>
+    </div>
+    <span class="eyebrow">03</span>
+  </div>
+
+  <p class="body">gstack 생태계에서 제공하는 전문 개발/운영 도구. 5개 카테고리로 분류.</p>
+
+  <div class="gstack-grid mt-48">
+
+    <div class="gstack-cat">
+      <div class="gc-label">브라우저 &amp; QA &middot; 8개</div>
+      <div class="gc-tags">
+        <span class="skill-tag">/browse</span>
+        <span class="skill-tag">/gstack</span>
+        <span class="skill-tag">/connect-chrome</span>
+        <span class="skill-tag">/qa</span>
+        <span class="skill-tag">/qa-only</span>
+        <span class="skill-tag">/design-review</span>
+        <span class="skill-tag">/benchmark</span>
+        <span class="skill-tag">/canary</span>
+      </div>
+    </div>
+
+    <div class="gstack-cat">
+      <div class="gc-label">플랜 &amp; 리뷰 &middot; 8개</div>
+      <div class="gc-tags">
+        <span class="skill-tag">/plan-ceo-review</span>
+        <span class="skill-tag">/plan-eng-review</span>
+        <span class="skill-tag">/plan-design-review</span>
+        <span class="skill-tag">/plan-devex-review</span>
+        <span class="skill-tag">/devex-review</span>
+        <span class="skill-tag">/autoplan</span>
+        <span class="skill-tag">/review</span>
+        <span class="skill-tag">/codex</span>
+      </div>
+    </div>
+
+    <div class="gstack-cat">
+      <div class="gc-label">디자인 &middot; 3개</div>
+      <div class="gc-tags">
+        <span class="skill-tag">/design-consultation</span>
+        <span class="skill-tag">/design-html</span>
+        <span class="skill-tag">/design-shotgun</span>
+      </div>
+    </div>
+
+    <div class="gstack-cat">
+      <div class="gc-label">배포 &amp; 운영 &middot; 4개</div>
+      <div class="gc-tags">
+        <span class="skill-tag">/ship</span>
+        <span class="skill-tag">/land-and-deploy</span>
+        <span class="skill-tag">/setup-deploy</span>
+        <span class="skill-tag">/setup-browser-cookies</span>
+      </div>
+    </div>
+
+    <div class="gstack-cat" style="grid-column:span 1">
+      <div class="gc-label">안전 &amp; 보안 + 기타 &middot; 13개</div>
+      <div class="gc-tags">
+        <span class="skill-tag neutral">/careful</span>
+        <span class="skill-tag neutral">/freeze</span>
+        <span class="skill-tag neutral">/guard</span>
+        <span class="skill-tag neutral">/unfreeze</span>
+        <span class="skill-tag neutral">/cso</span>
+        <span class="skill-tag neutral">/checkpoint</span>
+        <span class="skill-tag neutral">/retro</span>
+        <span class="skill-tag neutral">/document-release</span>
+        <span class="skill-tag neutral">/health</span>
+        <span class="skill-tag neutral">/learn</span>
+        <span class="skill-tag neutral">/office-hours</span>
+        <span class="skill-tag neutral">/pair-agent</span>
+        <span class="skill-tag neutral">/gstack-upgrade</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- S04 휴머나이저 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 04 &mdash; Humanizer</span>
+      <h2>AI 글쓰기 자연화 도구 — 3종</h2>
+    </div>
+    <span class="eyebrow">04</span>
+  </div>
+
+  <p class="body">AI 글에서 AI 티를 없애는 전문 도구. 목적과 강도에 따라 선택.</p>
+
+  <div class="grid-3 mt-48">
+
+    <div class="humanizer-card">
+      <div class="hc-num">Humanizer 01</div>
+      <h4>/humanize-writing</h4>
+      <div class="hc-author">by jpeggdev</div>
+      <div class="hc-desc">8-pass 편집. 구조/어휘/리듬/감정/헤징/전환어/인간미를 전부 커버. 가장 꼼꼼한 방식.</div>
+      <div class="hc-highlight">가장 정밀. 중요한 문서에 사용.</div>
+    </div>
+
+    <div class="humanizer-card">
+      <div class="hc-num">Humanizer 02</div>
+      <h4>/humanizer</h4>
+      <div class="hc-author">by blader</div>
+      <div class="hc-desc">Wikipedia 기반 AI 패턴 탐지. 문장 리듬+단어 선택 분석 → 재작성 + 셀프 감사. 원조격.</div>
+      <div class="hc-highlight">원조. 패턴 탐지 방식이 신뢰도 높음.</div>
+    </div>
+
+    <div class="humanizer-card">
+      <div class="hc-num">Humanizer 03</div>
+      <h4>/humanizer-aboudjem</h4>
+      <div class="hc-author">by Aboudjem</div>
+      <div class="hc-desc">43패턴 탐지, 5가지 보이스, AI 점수 0-100. 가볍고 실용적. 빠른 체크에 적합.</div>
+      <div class="hc-highlight">가장 가볍고 빠름. 일상 문서에 사용.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- S05 연결 관계 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 05 &mdash; Connections</span>
+      <h2>솔루션과 스킬이 어떻게 연결되는가</h2>
+    </div>
+    <span class="eyebrow">05</span>
+  </div>
+
+  <p class="body">6개 솔루션은 독립 시스템이 아니다. 데이터와 인사이트가 위에서 아래로 흐르며, 모닝 루틴이 전체를 매일 연결한다.</p>
+
+  <div class="scenario mt-48">
+    <div class="s-label">전체 의존관계 맵</div>
+    <div class="s-situation">6개 솔루션의 상호 연결</div>
+    <div class="s-dialogue">
+<pre class="dependency-line">┌─────────────────────────────────────────────────┐
+│              ARISA (경영진 레이어)                │
+│  GPT 회의 → 전략 논의 → 프로젝트 방향 설정       │
+└──────────────────────┬──────────────────────────┘
+                       │ 인식 브리프 ↓  │ 패턴 ↑
+┌──────────────────────▼──────────────────────────┐
+│              REM OS (현장 레이어)                 │
+│  관찰 → 복기 → 실험 → 회고 → 데이터 축적         │
+└──────────────────────┬──────────────────────────┘
+                       │ 현장 데이터 ↓
+┌──────────────────────▼──────────────────────────┐
+│           RXR 분석 체계 (데이터 레이어)            │
+│  크롤링 → 감성분석 → 언어학 → EMV → 추적          │
+└──────────────────────┬──────────────────────────┘
+                       │ 분석 결과 ↓
+┌──────────────────────▼──────────────────────────┐
+│      정부사업 파이프라인 + 브랜드 분석              │
+│  /brand-analysis → /rfp-analysis → /gov-proposal │
+└─────────────────────────────────────────────────┘
+
+횡단 지원:
+  모닝 루틴      ←→  전체 (매일 아침 브리핑)
+  인건비 시뮬    ←→  REM OS (운영 비용 설계)
+  /psychology-critic  ←→  REM OS + 제안서 (심리학 크리틱)
+  /humanize-writing   ←→  모든 문서 산출물</pre>
+    </div>
+    <div class="s-insight">
+      <strong>핵심 흐름:</strong> ARISA(전략) → REM OS(현장) → RXR(데이터) → 제안서/브랜드 분석(산출물). 모닝 루틴이 전체를 매일 연결하는 접착제 역할.
+    </div>
+  </div>
+
+  <div class="grid-3 mt-32">
+    <div class="callout">
+      <p><strong>수직 흐름</strong><br>전략(ARISA) → 현장(REM OS) → 데이터(RXR) → 산출물(제안서). 위에서 내려온 방향 설정이 아래 레이어의 관찰 기준을 정한다.</p>
+    </div>
+    <div class="callout">
+      <p><strong>역방향 피드백</strong><br>현장 데이터(RXR 분석)가 경영진 논의(ARISA)로 역류. 패턴이 쌓이면 전략 방향을 수정할 근거가 된다.</p>
+    </div>
+    <div class="callout">
+      <p><strong>횡단 지원 레이어</strong><br>모닝 루틴, 인건비 시뮬, 심리학 크리틱, 휴머나이저는 특정 솔루션이 아니라 전체 시스템을 가로질러 지원한다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S06 숫자로 보는 전체 시스템 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Section 06 &mdash; By the Numbers</span>
+      <h2>전체 규모</h2>
+    </div>
+    <span class="eyebrow">06</span>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="k-label">총 도구 수</div>
+      <div class="k-value">86</div>
+      <div class="k-sub">커스텀 41 + gstack 36 + 휴머나이저 3 + 솔루션 6</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">커스텀 스킬</div>
+      <div class="k-value">41</div>
+      <div class="k-sub">8개 카테고리, 직접 설계·제작</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">독립 솔루션</div>
+      <div class="k-value">6</div>
+      <div class="k-sub">스킬 조합 → 시스템 레벨</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">실전 적용</div>
+      <div class="k-value">10<em>+</em></div>
+      <div class="k-sub">더셀렉츠, 봉은사, 세스크멘슬, K-존...</div>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="k-label">RXR 분석</div>
+      <div class="k-value">8<em>종</em></div>
+      <div class="k-sub">감성/언어학/추적/가치환산/설문</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">REM 교육</div>
+      <div class="k-value">9<em>개</em></div>
+      <div class="k-sub">Stage 0~5, L0~L7 커버</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">제안서 Phase</div>
+      <div class="k-value">7<em>단계</em></div>
+      <div class="k-sub">RFP → HTML 완성까지</div>
+    </div>
+    <div class="kpi">
+      <div class="k-label">연동 서비스</div>
+      <div class="k-value">6<em>개</em></div>
+      <div class="k-sub">Gmail, 캘린더, Notion, Telegram, Buffer, Sheets</div>
+    </div>
+  </div>
+</section>
+
+<!-- BIG QUOTE -->
+<div class="big-quote">
+  <blockquote>"도구는 <em>도구</em>일 뿐이다. 중요한 건 이 도구들이 연결되어 만드는 <em>시스템</em>이고, 그 시스템이 축적하는 <em>데이터</em>이고, 그 데이터로 내리는 <em>판단의 질</em>이다."</blockquote>
+  <p class="attr">Do Better Workspace — AI 업무 시스템</p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="logo">Do Better Workspace</span>
+  <span class="meta">Skill &amp; Solution Map &middot; 2026.06.10 &middot; v1.0</span>
+</footer>
+
+<script>
+// IntersectionObserver 스크롤 리빌
+const sections = document.querySelectorAll('.sec');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.08 });
+
+sections.forEach(sec => observer.observe(sec));
+
+// 섹션 네비게이션 활성화
+const navDots = document.querySelectorAll('.nav-dot');
+const allSections = document.querySelectorAll('[id]');
+
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.getAttribute('id');
+      navDots.forEach(dot => {
+        dot.classList.toggle('active', dot.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+
+allSections.forEach(sec => navObserver.observe(sec));
+</script>
+</body>
+</html>

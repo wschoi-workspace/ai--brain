@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L2 관찰 가이드 — 보는 것이 기술이다</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --green: #8FA37E; --amber: #D9A34B; --red: #E17055; --blue: #6F8AA3;
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300;letter-spacing:-0.01em;line-height:1.7;
+}
+h1,h2,h3,h4{font-weight:500;text-wrap:balance}
+
+.sec{
+  padding:100px 120px 120px;max-width:1440px;margin:0 auto;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out),transform 700ms var(--ease-out);
+}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sec-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:28px;border-bottom:1px solid var(--line-2);margin-bottom:50px;
+}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:44px;font-weight:300;letter-spacing:-0.025em;line-height:1.1;margin-top:16px}
+.body{font-size:14px;color:var(--fg-2);line-height:1.7}
+.body strong{color:var(--fg);font-weight:500}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-48{margin-top:48px}
+
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:80px 60px;background:var(--bg-2);
+}
+.cover .eyebrow{margin-bottom:24px}
+.cover h1{font-size:56px;font-weight:200;letter-spacing:-0.03em;line-height:1.1}
+.cover h1 em{font-style:normal;color:var(--accent)}
+.cover .sub{font-size:16px;color:var(--fg-2);margin-top:24px;max-width:640px;font-weight:300}
+.cover .meta{font-size:11px;color:var(--fg-3);letter-spacing:.2em;margin-top:48px;text-transform:uppercase}
+.cover .level-badge{
+  display:inline-block;padding:6px 20px;font-size:12px;letter-spacing:.2em;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.25);margin-bottom:24px;text-transform:uppercase;
+}
+
+.big-quote{
+  background:var(--bg-2);padding:80px 120px;text-align:center;
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+}
+.big-quote blockquote{
+  font-size:28px;font-weight:200;letter-spacing:-0.02em;line-height:1.4;
+  color:var(--fg);max-width:800px;margin:0 auto;
+}
+.big-quote blockquote em{font-style:normal;color:var(--accent)}
+.big-quote .attr{font-size:12px;color:var(--fg-3);margin-top:24px;letter-spacing:.15em}
+
+.principle{
+  background:rgba(108,92,231,.06);border-left:3px solid var(--accent);
+  padding:28px 32px;margin:24px 0;
+}
+.principle p{font-size:14px;color:var(--fg-2);margin:0;line-height:1.7}
+.principle strong{color:var(--accent-light)}
+
+.callout{
+  background:rgba(108,92,231,.08);border-left:3px solid var(--accent);
+  padding:24px 28px;margin:24px 0;
+}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.7}
+.callout strong{color:var(--accent-light)}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+.card{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  transition:border-color var(--duration-base) var(--ease-out),transform var(--duration-base) var(--ease-out);
+}
+.card:hover{border-color:var(--fg-3);transform:translateY(-2px)}
+.card .c-num{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.card.accent-top{border-top:2px solid var(--accent)}
+
+.scenario{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:32px;margin:16px 0;
+  transition:border-color var(--duration-base) var(--ease-out);
+}
+.scenario:hover{border-color:var(--fg-3)}
+.scenario .s-label{font-size:10px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:12px}
+.scenario .s-situation{font-size:15px;color:var(--fg);font-weight:500;margin-bottom:16px}
+.scenario .s-dialogue{padding:16px 20px;background:var(--bg-2);border-left:2px solid var(--accent);margin:12px 0}
+.scenario .s-dialogue p{font-size:13px;color:var(--fg-2);margin:6px 0;line-height:1.6}
+.scenario .s-dialogue .speaker{color:var(--fg-3);font-size:11px;letter-spacing:.1em;margin-bottom:2px}
+.scenario .s-dialogue .speaker.rem{color:var(--accent-light)}
+.scenario .s-insight{
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--line-2);
+  font-size:12px;color:var(--fg-3);
+}
+.scenario .s-insight strong{color:var(--green)}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:32px 0}
+.compare-col{padding:32px;border:1px solid var(--line-2)}
+.compare-col.bad{background:rgba(225,112,85,.03);border-color:rgba(225,112,85,.15)}
+.compare-col.good{background:rgba(143,163,126,.03);border-color:rgba(143,163,126,.15)}
+.compare-col h4{font-size:11px;letter-spacing:.25em;text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--line-2)}
+.compare-col.bad h4{color:var(--red)}
+.compare-col.good h4{color:var(--green)}
+.compare-col .item{padding:14px 0;border-bottom:1px solid var(--line-2);font-size:13px;color:var(--fg-2);line-height:1.5}
+.compare-col .item:last-child{border-bottom:none}
+.compare-col .item .label{font-size:10px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+
+.steps{margin:32px 0}
+.step{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--line-2)}
+.step:last-child{border-bottom:none}
+.step-num{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:500;flex-shrink:0;
+  background:rgba(108,92,231,.1);color:var(--accent-light);
+  border:1px solid rgba(108,92,231,.2);
+}
+.step-content h4{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.step-content p{font-size:13px;color:var(--fg-2);line-height:1.6}
+.step-content .example{
+  margin-top:10px;padding:10px 14px;background:var(--bg-3);
+  border-left:2px solid var(--accent);font-size:12px;color:var(--fg-2);line-height:1.5;
+}
+
+/* Observation Map */
+.obs-map{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:32px 0;
+}
+.obs-item{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:24px;
+  border-left:3px solid transparent;
+}
+.obs-item.body-obs{border-left-color:var(--green)}
+.obs-item.word-obs{border-left-color:var(--accent)}
+.obs-item.space-obs{border-left-color:var(--amber)}
+.obs-item.emotion-obs{border-left-color:var(--blue)}
+.obs-item .obs-tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+.obs-item.body-obs .obs-tag{color:var(--green)}
+.obs-item.word-obs .obs-tag{color:var(--accent-light)}
+.obs-item.space-obs .obs-tag{color:var(--amber)}
+.obs-item.emotion-obs .obs-tag{color:var(--blue)}
+.obs-item h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:6px}
+.obs-item p{font-size:12px;color:var(--fg-2);line-height:1.6}
+.obs-item .obs-how{
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2);
+  font-size:11px;color:var(--fg-3);
+}
+
+/* Theory Box */
+.theory{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.theory .t-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  padding-bottom:14px;border-bottom:1px solid var(--line-2);
+}
+.theory .t-badge{
+  padding:3px 10px;font-size:10px;letter-spacing:.15em;
+  background:rgba(111,138,163,.1);color:var(--blue);
+  border:1px solid rgba(111,138,163,.2);text-transform:uppercase;
+}
+.theory .t-title{font-size:14px;font-weight:500;color:var(--fg)}
+.theory .t-author{font-size:11px;color:var(--fg-3);margin-left:auto}
+.theory p{font-size:13px;color:var(--fg-2);line-height:1.7;margin-bottom:10px}
+.theory p:last-child{margin-bottom:0}
+.theory .t-apply{
+  margin-top:16px;padding:14px 18px;
+  background:rgba(108,92,231,.06);border-left:2px solid var(--accent);
+  font-size:12px;color:var(--fg-2);line-height:1.6;
+}
+.theory .t-apply strong{color:var(--accent-light)}
+
+/* Mission */
+.mission{
+  background:rgba(143,163,126,.04);border:1px solid rgba(143,163,126,.2);
+  padding:28px;margin:16px 0;
+}
+.mission .m-label{font-size:10px;letter-spacing:.25em;color:var(--green);text-transform:uppercase;margin-bottom:10px}
+.mission h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.mission p{font-size:13px;color:var(--fg-2);line-height:1.6}
+
+/* Book Card */
+.book{
+  background:var(--bg-3);border:1px solid var(--line-2);padding:28px;
+  border-top:2px solid transparent;
+}
+.book:hover{border-color:var(--fg-3);transform:translateY(-2px);transition:all var(--duration-base) var(--ease-out)}
+.book .b-tag{
+  display:inline-block;padding:3px 10px;font-size:10px;letter-spacing:.1em;margin-bottom:12px;
+}
+.book .b-tag.essential{background:rgba(108,92,231,.1);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.book .b-tag.optional{background:rgba(143,163,126,.1);color:var(--green);border:1px solid rgba(143,163,126,.2)}
+.book .b-title{font-size:17px;font-weight:500;color:var(--fg);margin-bottom:4px}
+.book .b-author{font-size:12px;color:var(--fg-3);margin-bottom:12px}
+.book .b-why{font-size:13px;color:var(--fg-2);line-height:1.6;margin-bottom:12px}
+.book .b-connect{font-size:12px;color:var(--fg-3);padding-top:12px;border-top:1px solid var(--line-2);line-height:1.5}
+.book .b-connect strong{color:var(--fg-2)}
+
+/* Levelup */
+.levelup{
+  background:var(--bg-2);border:1px solid var(--line-2);padding:32px;margin:32px 0;
+}
+.levelup h4{font-size:11px;letter-spacing:.25em;color:var(--accent-light);text-transform:uppercase;margin-bottom:20px}
+.lu-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.lu-item:last-child{border-bottom:none}
+.lu-check{
+  width:20px;height:20px;border:1px solid var(--line);display:flex;
+  align-items:center;justify-content:center;font-size:11px;color:var(--fg-3);flex-shrink:0;
+}
+.lu-text{font-size:13px;color:var(--fg-2)}
+
+footer{
+  padding:80px 120px 60px;border-top:1px solid var(--line-2);
+  max-width:1440px;margin:80px auto 0;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+footer .logo{font-size:13px;letter-spacing:.4em;color:var(--fg-3);text-transform:uppercase}
+footer .meta{font-size:10px;letter-spacing:.2em;color:var(--fg-3)}
+
+@media(max-width:1200px){
+  .sec{padding:80px 60px}
+  .cover h1{font-size:40px}
+  .big-quote{padding:60px 40px}
+  .big-quote blockquote{font-size:22px}
+  .compare,.grid-2,.grid-3,.grid-4,.obs-map{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.sec{opacity:1;transform:none;transition:none}}
+@media print{.sec{opacity:1;transform:none;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <span class="level-badge">Level 2 Module</span>
+  <span class="eyebrow">REM OS &middot; Observation Guide</span>
+  <h1>보는 것이 <em>기술</em>이다</h1>
+  <p class="sub">관찰은 눈치가 아니다. "우리가 의도한 인식이 고객에게 전달됐는가?"를<br>확인하는 체계적 기술이다. 이 가이드에서 그 기술을 배운다.</p>
+  <p class="meta">Project Rent &middot; L2 Observation Guide &middot; v1.0</p>
+</section>
+
+<!-- 01. 관찰이란 무엇인가 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 01 &mdash; What Is Observation</span>
+      <h2>"고객 관찰하세요"가 막연한 이유</h2>
+    </div>
+    <span class="eyebrow">01</span>
+  </div>
+
+  <p class="body">
+    "고객을 잘 관찰하세요." 이 말을 들으면 뭘 해야 할지 모르겠다.<br>
+    고객을 빤히 쳐다보라는 건가? 눈치를 보라는 건가? 아니다.<br>
+    관찰은 <strong>"우리가 의도한 것이 작동하고 있는가?"를 확인하는 것</strong>이다.
+  </p>
+
+  <div class="compare mt-32">
+    <div class="compare-col bad">
+      <h4>이건 관찰이 아니다</h4>
+      <div class="item">
+        <div class="label">멍 때리기</div>
+        아무 생각 없이 고객을 구경한다. "오늘 사람 많네" 끝.
+      </div>
+      <div class="item">
+        <div class="label">감시</div>
+        고객이 뭘 훔치지 않나 지켜본다. 고객도 느끼고, 불쾌하다.
+      </div>
+      <div class="item">
+        <div class="label">인상 비평</div>
+        "오늘 고객이 좋아하는 것 같았어요." 근거 없는 느낌.
+      </div>
+    </div>
+    <div class="compare-col good">
+      <h4>이게 관찰이다</h4>
+      <div class="item">
+        <div class="label">가설 확인</div>
+        "제조 스토리를 먼저 설명하면 '정성' 단어가 나올까?" → 실제로 나오는지 확인.
+      </div>
+      <div class="item">
+        <div class="label">행동 기록</div>
+        고객이 어디서 3초 이상 멈췄는지, 뭘 사진 찍었는지 기록.
+      </div>
+      <div class="item">
+        <div class="label">패턴 발견</div>
+        "오후 3시 이후 시음 코너에서 체류 시간이 길어진다" — 반복을 포착.
+      </div>
+    </div>
+  </div>
+
+  <div class="theory">
+    <div class="t-header">
+      <span class="t-badge">Theory</span>
+      <span class="t-title">파코 언더힐의 관찰학</span>
+      <span class="t-author">『나는 왜 이 가게에서 사는가』</span>
+    </div>
+    <p>파코 언더힐은 20년 넘게 매장에서 고객 행동을 관찰한 "매장 인류학자"다. 그는 수천 시간의 비디오 녹화와 현장 관찰을 통해, 사람들이 매장에서 어떻게 움직이는지 패턴을 발견했다.</p>
+    <p>그가 발견한 것들은 전부 <strong>"누구나 볼 수 있었지만, 아무도 체계적으로 보지 않은 것"</strong>이었다. 입구에서 사람들이 오른쪽으로 도는 경향, 손이 닿지 않는 선반의 상품은 팔리지 않는다는 것, 시음 후 설명을 들은 고객은 그냥 시음한 고객보다 구매율이 3배 높다는 것.</p>
+    <div class="t-apply"><strong>현장 적용:</strong> 너도 같은 걸 할 수 있다. 대단한 도구가 필요 없다. 눈과 메모만 있으면 된다. "어디서 멈추나, 뭘 말하나, 뭘 찍나" — 이 세 가지만 기록해도 일주일 후에 패턴이 보이기 시작한다.</div>
+  </div>
+</section>
+
+<!-- BIG QUOTE -->
+<div class="big-quote">
+  <blockquote>모든 것은 눈앞에 있었다.<br>다만 아무도 <em>체계적으로</em> 보지 않았을 뿐이다.</blockquote>
+  <div class="attr">파코 언더힐 &mdash; Why We Buy</div>
+</div>
+
+<!-- 02. 네 가지 관찰 채널 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 02 &mdash; Four Channels</span>
+      <h2>뭘 봐야 하는가 — 4가지 관찰 채널</h2>
+    </div>
+    <span class="eyebrow">02</span>
+  </div>
+
+  <p class="body">
+    관찰해야 할 것은 크게 네 가지다. 처음에는 하나만 집중해도 된다.<br>
+    익숙해지면 자연스럽게 네 개가 동시에 보이기 시작한다.
+  </p>
+
+  <div class="obs-map mt-32">
+    <div class="obs-item body-obs">
+      <div class="obs-tag">Channel 1 &mdash; Body</div>
+      <h4>몸의 움직임</h4>
+      <p>고객의 발과 손과 눈이 하는 이야기. 말보다 정직하다.</p>
+      <p>
+        <strong>어디서 멈추는가</strong> — 3초 이상 머무른 지점 = 관심<br>
+        <strong>뭘 만지는가</strong> — 손이 가는 것 = 구매 고려<br>
+        <strong>어디로 가는가</strong> — 동선 = 공간이 고객을 이끄는 방향<br>
+        <strong>어디서 떠나는가</strong> — 이탈 지점 = 관심이 끊긴 곳
+      </p>
+      <div class="obs-how"><strong>기록법:</strong> 위치 + 시간대 + 체류 시간. "2층 시음 코너, 오후 3~5시, 평균 2분"</div>
+    </div>
+
+    <div class="obs-item word-obs">
+      <div class="obs-tag">Channel 2 &mdash; Words</div>
+      <h4>고객이 쓰는 단어</h4>
+      <p>고객이 입으로 하는 말이 인식의 증거다.</p>
+      <p>
+        <strong>반복 단어</strong> — 여러 고객이 같은 단어를 쓰면 그게 "형성된 인식"<br>
+        <strong>동행에게 하는 말</strong> — "이거 봐봐" = 인상적 / "비싸다" = 가격 저항<br>
+        <strong>질문</strong> — 자주 받는 질문 = 부족한 정보 or 높은 관심<br>
+        <strong>감탄/불만</strong> — "와" "예쁘다" "음..." = 실시간 감정 표현
+      </p>
+      <div class="obs-how"><strong>기록법:</strong> 원문 그대로. "정성이 들어갔구나" — 바꾸지 말고 고객이 쓴 단어 그대로 적는다.</div>
+    </div>
+
+    <div class="obs-item space-obs">
+      <div class="obs-tag">Channel 3 &mdash; Space</div>
+      <h4>공간과의 상호작용</h4>
+      <p>고객이 공간을 어떻게 사용하는가.</p>
+      <p>
+        <strong>사진 촬영 지점</strong> — 뭘 찍는가 = 뭘 기억하고 싶은가<br>
+        <strong>앉는 위치</strong> — 어디에 앉는가 = 어디가 편한가<br>
+        <strong>동선 패턴</strong> — 입구에서 어디로 가는가 = 공간이 유도하는 방향<br>
+        <strong>무시하는 구역</strong> — 안 가는 곳 = 매력이 없거나 보이지 않는 곳
+      </p>
+      <div class="obs-how"><strong>기록법:</strong> 위치 + 피사체. "제조 과정 디스플레이 앞에서 촬영 3건"</div>
+    </div>
+
+    <div class="obs-item emotion-obs">
+      <div class="obs-tag">Channel 4 &mdash; Emotion</div>
+      <h4>표정과 반응 변화</h4>
+      <p>설명 전과 후, 시음 전과 후 — 변화의 순간이 인사이트다.</p>
+      <p>
+        <strong>표정 변화</strong> — 설명 후 눈이 커지거나, 고개를 끄덕이거나<br>
+        <strong>행동 전환</strong> — "그냥 보는 사람"이 "시식 요청"으로 바뀌는 순간<br>
+        <strong>망설임</strong> — 제품을 들었다 놓는 순간 = 구매 결정의 경계<br>
+        <strong>동행 반응</strong> — 혼자 올 때 vs 같이 올 때 반응 차이
+      </p>
+      <div class="obs-how"><strong>기록법:</strong> 상황 + 변화. "제조 스토리 설명 후 → 시식 요청 + 추가 구매 1건"</div>
+    </div>
+  </div>
+
+  <div class="principle">
+    <p><strong>처음에는 Channel 1(몸의 움직임)만 봐도 충분하다.</strong> "오늘 고객이 가장 오래 머문 곳이 어디야?" — 이 질문 하나에 집중하면 된다. 하나를 보기 시작하면 나머지도 자연스럽게 보인다.</p>
+  </div>
+</section>
+
+<!-- 03. 관찰의 과학 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 03 &mdash; Observation Science</span>
+      <h2>관찰은 과학이다 — 가설 → 확인 → 조정</h2>
+    </div>
+    <span class="eyebrow">03</span>
+  </div>
+
+  <p class="body">
+    관찰을 "그냥 보는 것"에서 "기술"로 바꾸는 핵심이 있다.<br>
+    <strong>"뭘 확인할지 미리 정하고 보는 것"</strong>이다. 이걸 "가설 기반 관찰"이라고 한다.
+  </p>
+
+  <div class="steps mt-32">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>인식 목표를 확인한다</h4>
+        <p>이번 프로젝트의 인식 브리프를 본다. "고객이 뭘 기억하길 원하는가?"</p>
+        <div class="example">예: 인식 목표 = "여기 진짜 장인이 만든다"</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>가설을 세운다 — "이 인식이 전달되면 고객이 뭘 할까?"</h4>
+        <p>인식이 전달됐을 때 고객이 보일 행동이나 말을 예상한다.</p>
+        <div class="example">예: "장인", "수제", "정성" 같은 단어를 쓸 것이다. 제조 과정을 사진 찍을 것이다. 선물용으로 추가 구매할 것이다.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>실제로 관찰한다 — 예상한 행동/말이 나타나는가?</h4>
+        <p>하루 동안 주의를 기울인다. 나타나면 기록하고, 안 나타나면 그것도 기록한다.</p>
+        <div class="example">예: "오늘 '정성' 언급 2회, '수제' 1회. 제조 디스플레이 촬영 3건. 추가 구매 0건."</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>조정한다 — 안 나타나면 뭘 바꿔볼까?</h4>
+        <p>기대한 반응이 안 나온다면, 설명 방식이나 순서를 바꿔본다. 이게 "실험"의 시작이다.</p>
+        <div class="example">예: "장인 언급이 적다 → 내일은 시음 전에 셰프 스토리를 먼저 꺼내보자"</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="theory">
+    <div class="t-header">
+      <span class="t-badge">Theory</span>
+      <span class="t-title">디자인 싱킹의 공감(Empathy) 단계</span>
+      <span class="t-author">팀 브라운, IDEO</span>
+    </div>
+    <p>IDEO의 팀 브라운은 "좋은 디자인은 사용자를 관찰하는 데서 시작한다"고 했다. 디자인 싱킹의 첫 단계인 "공감"은 사용자의 <strong>행동을 관찰하고, 그 뒤에 있는 이유를 추론</strong>하는 것이다.</p>
+    <p>IDEO 디자이너들은 신제품을 만들기 전에 매장에 가서 고객이 어떻게 행동하는지 몇 시간이고 관찰한다. "왜 이 제품을 집었다가 내려놓았을까?", "왜 이 코너에서 오래 서 있을까?" — 이 "왜?"가 인사이트의 씨앗이다.</p>
+    <div class="t-apply"><strong>현장 적용:</strong> 관찰(뭘 했나)에서 멈추지 말고, <strong>"왜?"를 한 번 더 물어라.</strong> 고객이 제품을 내려놓았다 → 왜? (가격? 설명 부족? 관심 없음?) 이 "왜?"가 L1(사실 관찰)에서 L2(원인 추론)로 올라가는 전환점이다.</div>
+  </div>
+
+  <div class="callout mt-24">
+    <p><strong>중요:</strong> "왜?"의 답은 틀려도 괜찮다. 정답을 맞히는 게 목적이 아니라, <strong>"왜?"를 묻는 습관을 만드는 것</strong>이 목적이다. 습관이 쌓이면 점점 정확해진다.</p>
+  </div>
+</section>
+
+<!-- 04. 파코 언더힐이 발견한 것들 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 04 &mdash; Patterns from the Field</span>
+      <h2>20년간의 매장 관찰에서 발견된 패턴들</h2>
+    </div>
+    <span class="eyebrow">04</span>
+  </div>
+
+  <p class="body">
+    파코 언더힐이 수천 시간의 관찰에서 발견한 패턴들이다.<br>
+    우리 매장에서도 확인해볼 수 있는 것들을 골랐다.
+  </p>
+
+  <div class="grid-2 mt-32">
+    <div class="card accent-top">
+      <div class="c-num">Pattern 01</div>
+      <h4>전환 지대 (Transition Zone)</h4>
+      <p>고객은 매장에 들어오자마자 바로 물건을 보지 않는다. 입구에서 2~3보 걸으며 공간에 적응하는 "전환 지대"가 있다. 이 구간에 놓인 상품이나 안내는 거의 무시된다.</p>
+      <p style="margin-top:8px;color:var(--accent-light);font-size:12px">확인해볼 것: 입구에 놓은 안내물이나 첫 진열대를 실제로 고객이 보는지?</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">Pattern 02</div>
+      <h4>오른쪽 편향 (Right Turn Tendency)</h4>
+      <p>대부분의 고객은 입구에서 오른쪽으로 도는 경향이 있다. 오른쪽 벽면의 상품이 왼쪽보다 더 많이 노출된다. 가장 중요한 메시지나 제품을 오른쪽에 배치하면 효과적이다.</p>
+      <p style="margin-top:8px;color:var(--accent-light);font-size:12px">확인해볼 것: 우리 매장 고객의 첫 동선은 어느 방향인가?</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">Pattern 03</div>
+      <h4>손이 닿는 높이 (Touch Zone)</h4>
+      <p>고객은 눈높이에서 허리 높이 사이의 상품을 가장 많이 만진다. 손이 닿지 않는 위치의 상품은 존재감이 급격히 떨어진다. "만진다 = 구매 고려"이므로, 핵심 상품은 반드시 손 닿는 높이에.</p>
+      <p style="margin-top:8px;color:var(--accent-light);font-size:12px">확인해볼 것: 핵심 상품이 고객 손 닿는 높이에 있는가?</p>
+    </div>
+    <div class="card accent-top">
+      <div class="c-num">Pattern 04</div>
+      <h4>시음 + 설명 = 3배 (Taste + Story)</h4>
+      <p>그냥 시음만 한 고객의 구매율과, 시음 + 스토리 설명을 들은 고객의 구매율은 최대 3배 차이가 난다. 맛만으로는 부족하다. "왜 이 맛인지"를 알아야 구매로 이어진다.</p>
+      <p style="margin-top:8px;color:var(--accent-light);font-size:12px">확인해볼 것: 시음만 한 고객 vs 설명+시음 고객의 구매율 차이를 세어볼 수 있을까?</p>
+    </div>
+  </div>
+
+  <div class="principle mt-24">
+    <p><strong>이 패턴들이 중요한 이유:</strong> 파코 언더힐은 "감"으로 발견한 게 아니라 <strong>체계적으로 관찰해서</strong> 발견했다. 너도 같은 방법으로 "우리 매장만의 패턴"을 발견할 수 있다. 그게 L2의 목표다.</p>
+  </div>
+</section>
+
+<!-- 05. "왜?"를 묻는 기술 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 05 &mdash; The Art of "Why"</span>
+      <h2>"왜?"를 묻는 기술</h2>
+    </div>
+    <span class="eyebrow">05</span>
+  </div>
+
+  <p class="body">
+    L1은 "뭘 봤나"다. L2는 "왜 그랬을까"다.<br>
+    이 전환이 관찰을 인사이트로 바꾸는 핵심이다.
+  </p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">Level 1 — 사실 관찰</div>
+    <div class="s-situation">고객이 제품을 집었다가 내려놓았다.</div>
+    <div class="s-dialogue">
+      <p><span class="speaker rem">REM</span></p>
+      <p>오늘 고객 중에 제품 집었다가 내려놓은 사람 있었어?</p>
+      <p><span class="speaker">Staff</span></p>
+      <p>네, 두 명 정도요.</p>
+    </div>
+    <div class="s-insight"><strong>L1 수준:</strong> 사실은 파악됐지만, 원인은 모른다. 다음에 뭘 바꿀지도 모른다.</div>
+  </div>
+
+  <div class="scenario mt-16">
+    <div class="s-label">Level 2 — 원인 추론</div>
+    <div class="s-situation">같은 상황. 같은 관찰.</div>
+    <div class="s-dialogue">
+      <p><span class="speaker rem">REM</span></p>
+      <p>제품 집었다가 내려놓은 사람 있었어? 왜 그랬을까?</p>
+      <p><span class="speaker">Staff</span></p>
+      <p>한 명은 가격표 보더니 바로 내려놨어요. 다른 한 명은 뒤집어서 성분 보다가 놨는데, 뭔가 찾는 정보가 없었던 것 같아요.</p>
+      <p><span class="speaker rem">REM</span></p>
+      <p>좋은 관찰이다. 가격이 문제였던 사람과, 정보가 부족했던 사람이 다른 거네. 정보 부족 쪽은 내일 먼저 말을 걸어서 설명해보면 어떨까?</p>
+    </div>
+    <div class="s-insight"><strong>L2 수준:</strong> 원인이 추론됐고, 다음 행동(설명 타이밍 변경)이 나왔다. 이게 관찰에서 인사이트로 전환되는 순간.</div>
+  </div>
+
+  <div class="grid-3 mt-32">
+    <div class="card">
+      <div class="c-num">"왜?" 연습 01</div>
+      <h4>고객이 오래 머물렀다</h4>
+      <p>→ 왜? 흥미로워서? 이해가 안 돼서? 사진 찍으려고? 동행을 기다려서?<br><br><span style="font-size:11px;color:var(--fg-3)">각각 다른 의미다. "왜"에 따라 대응이 달라진다.</span></p>
+    </div>
+    <div class="card">
+      <div class="c-num">"왜?" 연습 02</div>
+      <h4>고객이 사진을 찍었다</h4>
+      <p>→ 뭘 찍었나? 공간? 제품? 제조 과정? 가격표?<br>→ 왜 그걸 찍었나? 예뻐서? 신기해서? 기억하려고? 누구한테 보여주려고?<br><br><span style="font-size:11px;color:var(--fg-3)">"뭘 찍었나"가 "뭘 기억하고 싶은가"의 증거다.</span></p>
+    </div>
+    <div class="card">
+      <div class="c-num">"왜?" 연습 03</div>
+      <h4>고객이 질문했다</h4>
+      <p>→ 무슨 질문? "온라인에서도 살 수 있어요?" "이거 유통기한이?" "예약 가능해요?"<br>→ 왜 그 질문을 했나? 사고 싶은데 지금은 안 되니까? 선물하려고?<br><br><span style="font-size:11px;color:var(--fg-3)">질문 = 관심의 방향. 자주 받는 질문 = 부족한 정보.</span></p>
+    </div>
+  </div>
+
+  <div class="callout mt-24">
+    <p><strong>핵심:</strong> "왜?"의 답은 추측이어도 된다. 중요한 건 <strong>추측하는 습관을 만드는 것</strong>이다. 처음에는 틀리더라도, 한 달 관찰하면 추측의 정확도가 놀랍게 올라간다.</p>
+  </div>
+</section>
+
+<!-- 06. 관찰 기록법 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 06 &mdash; How to Record</span>
+      <h2>기록하지 않으면 관찰이 아니다</h2>
+    </div>
+    <span class="eyebrow">06</span>
+  </div>
+
+  <p class="body">
+    아무리 잘 봐도 기록하지 않으면 다음 날 잊어버린다.<br>
+    기록의 핵심은 <strong>부담 없이, 짧게, 자주</strong>다.
+  </p>
+
+  <div class="scenario mt-32">
+    <div class="s-label">기록 예시 — REM Bot이 정리하는 형태</div>
+    <div class="s-situation">하루 마감 후 보이스로 말하면 REM이 이렇게 구조화한다</div>
+    <div class="s-dialogue">
+      <p style="font-size:14px;line-height:1.8">
+        <strong style="color:var(--green)">관찰 기록 — 2026.06.09</strong><br><br>
+        <span style="color:var(--green)">체류 포인트:</span> 2층 시음 코너 (오후 3~5시 집중, 평균 2분)<br>
+        <span style="color:var(--accent-light)">반복 단어:</span> "장인" 3회, "정성" 2회, "수제" 1회<br>
+        <span style="color:var(--amber)">촬영 포인트:</span> 제조 과정 디스플레이 앞 3건, 패키지 클로즈업 1건<br>
+        <span style="color:var(--blue)">반응 변화:</span> 제조 스토리 설명 후 → 시식 요청 2건, 추가 구매 1건<br>
+        <span style="color:var(--fg-3)">자주 받은 질문:</span> "온라인에서도 살 수 있어요?" 3회<br><br>
+        <span style="color:var(--fg-3)">내 추론:</span> "장인" 멘트가 "정성" 반응으로 연결되는 패턴. 시음 전 스토리 설명이 전환율에 영향 있어 보임. 내일 스토리 먼저 → 시음 순서로 테스트해볼 것.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid-2 mt-32">
+    <div class="card">
+      <div class="c-num">기록 원칙 01</div>
+      <h4>고객 말은 원문 그대로</h4>
+      <p>"고객이 좋아했다"가 아니라, <strong>"정성이 들어갔구나"</strong>라고 적는다. 원문이 있어야 패턴을 발견할 수 있다. "좋아했다"는 해석이고, "정성이 들어갔구나"는 데이터다.</p>
+    </div>
+    <div class="card">
+      <div class="c-num">기록 원칙 02</div>
+      <h4>숫자를 붙여라</h4>
+      <p>"많았다"가 아니라 <strong>"3회"</strong>. "오래 머물렀다"가 아니라 <strong>"약 2분"</strong>. 정확하지 않아도 된다. 대략적 숫자라도 있으면 비교가 가능하다.</p>
+    </div>
+    <div class="card">
+      <div class="c-num">기록 원칙 03</div>
+      <h4>"왜"도 같이 적어라</h4>
+      <p>사실만 적지 말고, <strong>네 추론도 한 줄 적어라</strong>. 틀려도 괜찮다. "왜 그랬을까?"를 적는 행위 자체가 사고 훈련이다. 나중에 패턴이 보이면 추론의 정확도가 올라간다.</p>
+    </div>
+    <div class="card">
+      <div class="c-num">기록 원칙 04</div>
+      <h4>매일 할 필요 없다, 그래도 자주</h4>
+      <p>완벽한 기록보다 <strong>빈도가 중요하다</strong>. 일주일에 3번이면 충분한 시작. 습관이 붙으면 자연스럽게 매일 하게 된다. REM Bot이 마감 때 물어봐 주니까 그때 말하면 된다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 07. 일일 관찰 미션 -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 07 &mdash; Daily Missions</span>
+      <h2>오늘부터 해볼 수 있는 관찰 미션</h2>
+    </div>
+    <span class="eyebrow">07</span>
+  </div>
+
+  <p class="body">
+    한꺼번에 다 보려 하면 아무것도 안 보인다.<br>
+    하루에 하나만 집중하면 된다. 아래에서 오늘의 미션을 골라봐.
+  </p>
+
+  <div class="mission mt-32">
+    <div class="m-label">Mission 01 — 입문</div>
+    <h4>오늘 고객이 가장 오래 머문 지점은 어디인가?</h4>
+    <p>하루 동안 한 가지만 본다: "어디서 멈추는가." 위치와 시간대를 기록한다. 3일 연속하면 패턴이 보이기 시작한다.</p>
+  </div>
+
+  <div class="mission">
+    <div class="m-label">Mission 02 — 언어</div>
+    <h4>오늘 고객이 가장 많이 쓴 단어는 무엇인가?</h4>
+    <p>고객이 동행에게 하는 말, 직원에게 하는 말에서 반복되는 단어를 수집한다. 원문 그대로 적는다. 5개 이상 모이면 "고객이 우리를 어떻게 인식하는가"가 보인다.</p>
+  </div>
+
+  <div class="mission">
+    <div class="m-label">Mission 03 — 공간</div>
+    <h4>오늘 고객이 사진 찍은 것은 무엇인가?</h4>
+    <p>고객이 뭘 찍는지만 본다. 공간? 제품? 제조 과정? 메뉴판? 사진 찍는 대상 = 기억하고 싶은 것. 3일간 모으면 "우리 공간에서 가장 기억에 남는 장면"을 알 수 있다.</p>
+  </div>
+
+  <div class="mission">
+    <div class="m-label">Mission 04 — 전환</div>
+    <h4>오늘 "보는 사람"이 "사는 사람"으로 바뀐 순간은 언제인가?</h4>
+    <p>고객이 구경만 하다가 구매를 결정하는 전환점을 관찰한다. 시음 후? 설명 후? 동행의 반응 후? 이 순간이 매출의 핵심 지점이다.</p>
+  </div>
+
+  <div class="mission">
+    <div class="m-label">Mission 05 — 심화</div>
+    <h4>오늘 설명 전후로 고객 반응이 가장 크게 바뀐 순간은?</h4>
+    <p>설명 전에는 무관심했는데 설명 후에 표정이 바뀌거나 질문이 나온 순간. 이게 "어떤 멘트가 효과적인가"의 증거다. L3(설명 기술)로 넘어가는 관문이다.</p>
+  </div>
+
+  <div class="callout mt-24">
+    <p><strong>추천 순서:</strong> Mission 01 → 02 → 03 → 04 → 05. 각각 3일씩 해보면 약 2~3주. 그 후에는 상황에 따라 자유롭게 조합하면 된다.</p>
+  </div>
+</section>
+
+<!-- 08. 레벨업 기준 + 도서 -->
+<section class="sec" id="s8">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow">Chapter 08 &mdash; Level Up &amp; Reading</span>
+      <h2>L2 레벨업 기준 &amp; 추천 도서</h2>
+    </div>
+    <span class="eyebrow">08</span>
+  </div>
+
+  <div class="levelup">
+    <h4>L2 레벨업 체크리스트</h4>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">관찰 기록 <strong>10건 이상</strong> (REM Bot 일일 복기 경유)</div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">"왜?" 추론이 포함된 관찰 기록 <strong>5건 이상</strong></div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">관찰에서 발견한 패턴 <strong>1건 이상</strong> 팀에 공유</div></div>
+    <div class="lu-item"><div class="lu-check">&square;</div><div class="lu-text">4가지 관찰 채널 중 <strong>2가지 이상</strong> 활용</div></div>
+  </div>
+
+  <p class="body mt-32">
+    아래 책을 읽으면 관찰의 깊이가 확실히 달라진다.<br>
+    필수 도서를 먼저 읽고, 관심이 생기면 선택 도서로 확장해봐.
+  </p>
+
+  <div class="grid-2 mt-24">
+    <div class="book" style="border-top-color:var(--accent)">
+      <span class="b-tag essential">Essential</span>
+      <div class="b-title">나는 왜 이 가게에서 사는가</div>
+      <div class="b-author">파코 언더힐 (Why We Buy)</div>
+      <div class="b-why">오프라인 매장 관찰의 원조 교과서. 읽으면서 "우리 매장에서도 이런 패턴이 있나?"를 떠올려봐. 다음 출근 때 눈이 달라진다. 특히 전환 지대, 오른쪽 편향, 시음+설명=3배 패턴은 바로 확인해볼 수 있다.</div>
+      <div class="b-connect">
+        <strong>읽기 가이드 질문:</strong><br>
+        1. 파코 언더힐의 패턴 중, 우리 매장에서 확인된 것 3가지는?<br>
+        2. 우리 매장에서 발견했지만 책에는 없는 고유 패턴이 있다면?<br>
+        3. 이 책에서 배운 것 중, 내일 바로 적용해볼 수 있는 것 1가지는?
+      </div>
+    </div>
+    <div class="book" style="border-top-color:var(--green)">
+      <span class="b-tag optional">Optional</span>
+      <div class="b-title">디자인 씽킹 (1~4장)</div>
+      <div class="b-author">팀 브라운 (Change by Design)</div>
+      <div class="b-why">디자인 싱킹의 Empathy 단계가 관찰→공감→인사이트로 이어지는 과정을 체계적으로 보여준다. 특히 "How Might We...?" 질문법을 배우면 복기할 때 바로 쓸 수 있다. "우리가 어떻게 하면 고객이 더 오래 머물게 할 수 있을까?"</div>
+      <div class="b-connect">
+        <strong>읽기 가이드 질문:</strong><br>
+        1. "공감"이 "동정"과 다른 이유는 무엇인가?<br>
+        2. IDEO의 관찰 방법 중 우리 현장에 적용할 수 있는 것은?<br>
+        3. "How Might We...?" 형식으로 이번 프로젝트의 질문을 만들어본다면?
+      </div>
+    </div>
+  </div>
+
+  <div class="principle mt-32">
+    <p><strong>마지막으로:</strong> 관찰은 타고나는 재능이 아니라 <strong>반복으로 만드는 습관</strong>이다. 처음 3일은 아무것도 안 보일 수 있다. 괜찮다. 1주일이면 하나가 보이고, 한 달이면 패턴이 보이고, 석 달이면 "보이는 것"이 완전히 달라진다. 시작이 가장 어렵다. 오늘 Mission 01부터 해보자.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="logo">Project Rent</div>
+  <div class="meta">L2 Observation Guide &middot; 2026.06.09 &middot; v1.0</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.sec').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

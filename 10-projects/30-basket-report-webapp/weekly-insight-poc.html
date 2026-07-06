@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basket 주간 매장 인사이트 — PoC</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+  :root{--bg:#0E0B1A;--panel:#171327;--panel2:#1F1A33;--line:#2C2542;--txt:#EDEBF5;--sub:#B4B0C6;--mut:#6F6A86;--acc:#6C5CE7;--acc2:#8B7BFF;--acc-soft:rgba(108,92,231,.12);--green:#27C093;--amber:#F2B53C;--rose:#FF6B9D;--am:#4DA3FF}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Pretendard',-apple-system,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;padding:0 0 90px;font-size:15px}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+  header.hero{padding:48px 0 26px;border-bottom:1px solid var(--line);background:radial-gradient(1000px 320px at 16% -10%,var(--acc-soft),transparent)}
+  .eyebrow{color:var(--acc2);font-weight:700;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:29px;font-weight:800;line-height:1.3;margin:11px 0;letter-spacing:-.02em}
+  h1 .hl{color:var(--acc2)}
+  .lede{color:var(--sub);font-size:14.5px;max-width:740px}
+  .meta{margin-top:15px;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{background:var(--panel2);border:1px solid var(--line);color:var(--sub);font-size:11.5px;padding:5px 11px;border-radius:999px}
+  section{margin:36px 0}
+  h2{font-size:19px;font-weight:800;margin:6px 0 6px;display:flex;align-items:center;gap:10px}
+  h2 .num{color:var(--acc2);font-size:13px;font-weight:700;background:var(--acc-soft);border:1px solid var(--acc);min-width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+  .sub{color:var(--mut);font-size:12.5px;margin-bottom:14px}
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+  @media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}
+  .kpi .v{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .kpi .l{font-size:11.5px;color:var(--mut);margin-top:3px}
+  .kpi .s{font-size:11px;color:var(--sub);margin-top:6px}
+  .kpi.acc .v{color:var(--acc2)} .kpi.green .v{color:var(--green)} .kpi.amber .v{color:var(--amber)} .kpi.rose .v{color:var(--rose)}
+  /* 매출 바 */
+  .bars{display:flex;gap:22px;align-items:flex-end;height:140px;padding:12px 6px 0;border-bottom:1px solid var(--line)}
+  .bar{flex:0 0 64px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .bar .col{width:46px;background:linear-gradient(180deg,var(--acc2),var(--acc));border-radius:7px 7px 0 0}
+  .bar .val{font-size:12.5px;font-weight:700;margin-bottom:6px}
+  .bar .lab{font-size:11.5px;color:var(--mut);margin-top:8px}
+  /* 카드/리스트 */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px 18px}
+  .box h3{font-size:14.5px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+  ul.li{list-style:none} ul.li li{position:relative;padding:7px 0 7px 18px;border-bottom:1px solid var(--line);font-size:13.3px;color:var(--sub)}
+  ul.li li:last-child{border-bottom:none}
+  ul.li li::before{content:"";position:absolute;left:0;top:13px;width:6px;height:6px;border-radius:50%;background:var(--acc2)}
+  ul.li li b{color:var(--txt)}
+  .q li::before{background:var(--rose)} .theme li::before{background:var(--green)} .pipe li::before{background:var(--am)}
+  .tagm{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:5px}
+  .m-done{background:rgba(39,192,147,.13);color:var(--green)} .m-open{background:rgba(255,107,157,.12);color:var(--rose)} .m-prog{background:rgba(242,181,60,.12);color:var(--amber)}
+  .note{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;color:var(--sub);font-size:12.6px;margin:14px 0}
+  .note b{color:var(--amber)}
+  .note.warn{border-color:var(--rose)} .note.warn b{color:var(--rose)}
+  footer{margin-top:46px;padding-top:18px;border-top:1px solid var(--line);color:var(--mut);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Project Rent · Basket · 데이터 활용 파일럿(PoC)</div>
+  <h1><span class="hl">주간 매장 인사이트</span> — 6/23~6/24</h1>
+  <p class="lede">일일보고 시트를 CSV로 내려 자동 분석한 첫 인사이트 1장. "쌓이기만 하던 보고"를 <b>매출 추이·결재 큐·반복 테마·파이프라인</b>으로 환산. 데이터 2일치라 추세는 참고용이며, 쌓일수록 정밀해진다.</p>
+  <div class="meta">
+    <span class="chip">시트 → CSV → 자동 요약</span>
+    <span class="chip">CSV Data Summarizer 패턴</span>
+    <span class="chip">by Project Rent</span>
+  </div>
+</div></header>
+
+<div class="wrap">
+
+<!-- KPI -->
+<section>
+<div class="kpis">
+  <div class="kpi acc"><div class="v">4<span style="font-size:15px;color:var(--mut)"> / 10</span></div><div class="l">실질 보고 / 전체 제출</div><div class="s">6건은 빈·테스트 제출(초기)</div></div>
+  <div class="kpi green"><div class="v">59,200</div><div class="l">매출 합계(2일, 원)</div><div class="s">6/23 36,000 · 6/24 23,200</div></div>
+  <div class="kpi rose"><div class="v">5</div><div class="l">대표 결재·의사결정 대기</div><div class="s">교육결제·기획안·쇼케이스 외</div></div>
+  <div class="kpi amber"><div class="v">4</div><div class="l">입점·이벤트 파이프라인</div><div class="s">쇼케이스·부스·납품 2채널</div></div>
+</div>
+</section>
+
+<!-- 매출 -->
+<section>
+<h2><span class="num">1</span>매출 추이</h2>
+<p class="sub">정량 매출이 기입된 보고만 집계(2건). 정량 입력이 늘수록 추세선이 의미를 가진다.</p>
+<div class="bars">
+  <div class="bar"><div class="val" style="color:var(--acc2)">36,000</div><div class="col" style="height:100%"></div><div class="lab">6/23 (화)</div></div>
+  <div class="bar"><div class="val" style="color:var(--acc2)">23,200</div><div class="col" style="height:64%"></div><div class="lab">6/24 (수)</div></div>
+</div>
+<div class="note"><b>관찰:</b> 직장인 상권(10~18시) 소규모 카페 특성상 일매출 변동 큼. 단, <b>매장의 핵심 가치는 음료 매출보다 이벤트·납품·공간 활용</b>에 있음(아래 파이프라인 참조) — 매출만으로 매장 성과를 판단하면 본질을 놓친다.</div>
+</section>
+
+<!-- 결재 큐 -->
+<section>
+<h2><span class="num">2</span>대표 결재·의사결정 큐</h2>
+<p class="sub">보고에서 "대표 판단이 필요한 건"만 추출. 매일 흩어진 요청을 한 줄 큐로.</p>
+<div class="box">
+  <ul class="li q">
+    <li><b>식음료 교육 결제</b> 진행 요청 <span class="tagm m-done">회신함(진행)</span></li>
+    <li><b>마시(MASI) 기획안</b> — 예산안 대폭 조정 필요 + 디자인 혜정 이사 미팅 <span class="tagm m-prog">제출 요청함</span></li>
+    <li><b>게스트 쇼케이스</b> 비보이팀 페이 <b>80만원</b> 요청 <span class="tagm m-open">미결</span></li>
+    <li>의류 브랜드 <b>부스 입점</b> 희망(참가비 안내 완료) <span class="tagm m-open">미결</span></li>
+    <li>인터넷·CCTV 해지 / 전기세 행정(구비서류 수령) <span class="tagm m-prog">진행중</span></li>
+  </ul>
+</div>
+</section>
+
+<!-- 테마 + 파이프라인 -->
+<section>
+<h2><span class="num">3</span>반복 테마 · 파이프라인</h2>
+<div class="grid2">
+  <div class="box">
+    <h3>🟢 반복·부상 테마</h3>
+    <ul class="li theme">
+      <li><b>이벤트·세미나 운영</b> — 부동산 세미나(스크린 설치), 게스트 쇼케이스. <b>카페가 아니라 이벤트 공간</b>으로 작동</li>
+      <li><b>B2B 납품 채널</b> — 크림커피 드립백 50세트 발송, 케이크 납품(케익드라마 가입). 납품 사업 확장 신호</li>
+      <li><b>마시(MASI) 기획안</b> — 2일 연속 등장, 예산·디자인 이슈로 진행 정체</li>
+      <li><b>커피머신 점검</b> — 장비 이슈(추적 필요)</li>
+    </ul>
+  </div>
+  <div class="box">
+    <h3>🔵 입점·이벤트 파이프라인</h3>
+    <ul class="li pipe">
+      <li>게스트 쇼케이스 — 비보이팀(페이 80만원) <span class="tagm m-open">검토</span></li>
+      <li>의류 브랜드 부스 입점 <span class="tagm m-open">검토</span></li>
+      <li>드립백 납품(50세트 발송 완료) <span class="tagm m-done">진행</span></li>
+      <li>케이크 납품 — 케익드라마 승인 대기(1~3일) <span class="tagm m-prog">대기</span></li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- 데이터 품질 -->
+<section>
+<h2><span class="num">4</span>파일럿이 발견한 것 — 데이터 품질</h2>
+<div class="note warn"><b>빈·테스트 제출 6/10건.</b> 시스템 초기 테스트 흔적이지만, 운영 들어가면 <b>빈 제출 방지 가드</b>(내용 없으면 제출 차단)와 <b>매출·지출 정량 입력 유도</b>가 필요. 현재 지출은 전 보고에서 미기입 → 비용 추적 불가. (개인경비 26,000원 같은 건은 ⑨구매에만 산문으로 기록됨)</div>
+<div class="note"><b>다음 단계 제안:</b> ① 이 인사이트를 <b>주 1회 자동 생성</b>(시트→CSV→요약 launchd) ② 매출·지출 정량 필드 필수화 ③ 결재 큐를 대표 텔레그램으로 주간 push ④ 데이터 더 쌓이면 요일별 매출 패턴·납품 성약률·이벤트 ROI까지 확장.</div>
+</section>
+
+<footer>
+Basket 주간 매장 인사이트 (PoC) · 데이터 2일치(6/23~6/24, 실질 4건) · 시트→CSV→자동요약 · 2026-06-24 · by Project Rent<br>
+권장액션 2 — 데이터 활용 파일럿 / 소스: 일일보고 시트(봇 연동) · CSV Data Summarizer 패턴
+</footer>
+</div>
+</body>
+</html>

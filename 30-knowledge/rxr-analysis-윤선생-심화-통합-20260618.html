@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>윤선생 RXR 심화분석 통합 — 5개 브랜드 인식 차원·시간흐름 | Project Rent</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root{
+    --p:#6666FF; --p-deep:#4a3fd6; --p-pale:#F4F3FF; --ink:#1a1a1a;
+    --g900:#222; --g700:#444; --g500:#888; --g300:#ccc; --g100:#f2f2f5;
+    --pos:#22b07d; --neu:#b0b4c0; --neg:#e8506b; --warn:#f5a623; --mint:#23c4a8;
+    --bg:#f6f6fa; --card:#fff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;background:var(--bg);color:var(--g900);line-height:1.65;-webkit-font-smoothing:antialiased;letter-spacing:-0.2px}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.toolbar{display:none!important}}
+  .toolbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);border-bottom:1px solid #e7e7ee;display:flex;align-items:center;justify-content:space-between;padding:10px 24px}
+  .toolbar .ttl{font-size:13px;font-weight:700;color:var(--p)}
+  .toolbar button{background:var(--p);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;transition:.15s}
+  .toolbar button:hover{background:var(--p-deep)}
+  .hero{background:linear-gradient(135deg,#16161f 0%,#27214d 55%,#4a3fd6 130%);color:#fff;padding:54px 0 48px;margin-bottom:34px}
+  .hero .eyebrow{font-size:12.5px;letter-spacing:2px;color:#b9b3ff;font-weight:700;text-transform:uppercase}
+  .hero h1{font-size:38px;font-weight:900;line-height:1.18;margin:14px 0 16px;letter-spacing:-1px}
+  .hero h1 .hl{color:#a99dff}
+  .hero p.sub{font-size:16px;color:#d7d4ee;max-width:780px;font-weight:500}
+  .hero .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+  .hero .meta span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:6px 15px;font-size:12.5px;font-weight:600;color:#efeeff}
+  section{margin-bottom:46px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .sec-num{font-size:13px;font-weight:900;color:var(--p);background:var(--p-pale);border-radius:7px;padding:3px 10px;letter-spacing:.5px}
+  h2{font-size:25px;font-weight:900;letter-spacing:-.6px;color:var(--ink)}
+  h3{font-size:18px;font-weight:800;color:var(--ink);margin-bottom:4px}
+  .sec-lead{color:var(--g700);font-size:15px;margin:8px 0 22px;max-width:900px}
+  .card{background:var(--card);border:1px solid #ececf2;border-radius:16px;padding:26px 28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(20,20,50,.04)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:860px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .card-explain{background:#FFF8E1;border:1px solid #ffe9a8;border-left:4px solid var(--warn);border-radius:10px;padding:13px 16px;font-size:13.6px;color:#6b5418;margin:14px 0;line-height:1.62}
+  .card-explain strong{color:#8a6d10}
+  .insight{background:linear-gradient(135deg,#1d1b2e,#2c2654);color:#fff;border-radius:14px;padding:22px 24px}
+  .insight .k{font-size:12px;font-weight:700;letter-spacing:1px;color:#a99dff;text-transform:uppercase}
+  .insight .v{font-size:16.5px;font-weight:700;margin-top:8px;line-height:1.5}
+  .insight .d{font-size:13.5px;color:#cbc8e6;margin-top:8px}
+  .warnote{background:#fff4f6;border:1px solid #ffd0da;border-left:4px solid var(--neg);border-radius:10px;padding:14px 18px;font-size:13.8px;color:#8a2438;margin:14px 0;line-height:1.62}
+  .warnote strong{color:#c4233f}
+  .bignum{text-align:center;padding:20px 14px;background:var(--card);border:1px solid #ececf2;border-radius:14px}
+  .bignum .n{font-size:32px;font-weight:900;color:var(--p);letter-spacing:-1px}
+  .bignum .l{font-size:12.5px;color:var(--g500);font-weight:600;margin-top:3px}
+  .bignum .s{font-size:11.5px;color:var(--g500);margin-top:6px}
+  table{width:100%;border-collapse:collapse;font-size:13.6px;margin-top:6px}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid #eee;vertical-align:top}
+  th{background:#faf9ff;color:var(--p-deep);font-weight:800;font-size:12.8px;letter-spacing:-.2px}
+  td.center,th.center{text-align:center}
+  tr:hover td{background:#fafaff}
+  .chip{display:inline-block;border-radius:6px;padding:2px 8px;font-size:11.5px;font-weight:700}
+  .c-pos{background:#e3f7ef;color:#138a5f}
+  .c-neg{background:#fde7ec;color:#c4233f}
+  .c-neu{background:#eef0f4;color:#6b7280}
+  .conf{display:inline-block;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:800;letter-spacing:.2px}
+  .conf-q{background:#e3f7ef;color:#138a5f}   /* 정량 */
+  .conf-d{background:#fff3d6;color:#9a7400}   /* 방향성 */
+  .conf-s{background:#fde7ec;color:#c4233f}   /* 정성신호 */
+  .quote{background:#fbfbff;border-left:3px solid var(--p);border-radius:0 8px 8px 0;padding:10px 14px;margin:8px 0;font-size:13px;color:var(--g700);line-height:1.55}
+  .quote .y{color:var(--p);font-weight:800;font-size:11.5px}
+  .chartbox{position:relative;height:300px;margin-top:10px}
+  .chartbox.tall{height:340px}
+  .pill{display:inline-block;background:var(--p-pale);color:var(--p-deep);border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;margin:2px}
+  ul.clean{list-style:none;padding-left:0}
+  ul.clean li{padding:5px 0 5px 22px;position:relative;font-size:14px;color:var(--g700)}
+  ul.clean li:before{content:"▹";position:absolute;left:0;color:var(--p);font-weight:900}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--g500);margin-top:8px}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  footer{background:#16161f;color:#cbc8e6;padding:36px 0;margin-top:50px;font-size:13px}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
+  footer b{color:#fff}
+  .tag-bm{font-size:11px;font-weight:800;border-radius:5px;padding:1px 7px}
+  .bm-k{background:#e8f0ff;color:#2b5fd6} .bm-b{background:#e7f8f3;color:#0f9b76} .bm-c{background:#f3eefe;color:#6b46c1}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <span class="ttl">RXR 심화분석 · 윤선생 통합(트랙A+B) · by Project Rent</span>
+  <button onclick="window.print()">PDF로 저장 / 인쇄</button>
+</div>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">RXR 2-LAYER · DEEP DIVE · INTEGRATED (TRACK A+B)</div>
+    <h1>윤선생 심화분석 통합<br><span class="hl">5개 브랜드 인식 차원 매트릭스 · 시간흐름 인식 변화</span></h1>
+    <p class="sub">트랙A(방문·화상)+트랙B(학원)를 합본한 통합 리포트 — ①3+1개 BM(교실·베이직·공통·영어숲) 분리 ②영어수준 정량추정(통계청 대비) ③배제사유(획득장벽) ④2024·2025·2026 시간흐름에 더해, <b>⑤윤선생 vs 4개 경쟁사(눈높이·재능·삼성영어·뮤엠영어)의 인식 차원별 세부 차이 정의 + 브랜드별 시간흐름 인식 변화</b>를 추가했다.</p>
+    <div class="meta">
+      <span>📅 분석기간 2022–2026 (집중 2024–2026)</span>
+      <span>🔍 네이버 블로그 11,824건 수집 → 자생 정제</span>
+      <span>🎯 Focal: 윤선생(교실·베이직·영어숲)</span>
+      <span>⚔️ 경쟁: 눈높이·재능·삼성영어·뮤엠영어 (+정상JLS)</span>
+      <span>🗓️ 발행 2026.06.18</span>
+      <span>© by Project Rent</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<div style="display:flex;align-items:center;gap:10px;margin:18px 0 6px 0;padding:0;background:transparent;border:none;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  <strong style="font-size:19px;color:#1a1a1a;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+  <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+  <strong style="font-size:13px;color:#6666FF;font-weight:700;letter-spacing:-0.1px;white-space:nowrap;">Project Rent</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+</div>
+
+<div class="card" style="border:2px solid #6666FF;background:#faf9ff">
+  <h3 style="color:#4a3fd6">📑 하부(드릴다운) 레포트 인덱스 — 질문별 심층판</h3>
+  <p style="font-size:13px;color:#444;margin:6px 0 10px">본 통합본은 허브(요약)입니다. 각 핵심 질문의 단단한 심층 분석은 아래 하부 레포트에서:</p>
+  <div class="grid g3" style="gap:12px">
+    <a href="rxr-윤선생-하부①-BM분리-20260618.html" style="text-decoration:none"><div style="background:#fff;border:1px solid #e0dcff;border-radius:10px;padding:14px 16px"><div style="font-weight:800;color:#6666FF;font-size:14px">하부① BM별 분리</div><div style="font-size:12.5px;color:#666;margin-top:4px">교실·베이직·공통·영어숲 4개 BM 풀 카드(감성·토픽Top8·프로파일·메시지)</div></div></a>
+    <a href="rxr-윤선생-하부②-영어수준-20260618.html" style="text-decoration:none"><div style="background:#fff;border:1px solid #e0dcff;border-radius:10px;padding:14px 16px"><div style="font-weight:800;color:#6666FF;font-size:14px">하부② 영어수준 정량추정</div><div style="font-size:12.5px;color:#666;margin-top:4px">본문 크롤 보강 — 시작연령 N=295·동기 미상 83→4%·조기시작 확정</div></div></a>
+    <a href="rxr-윤선생-하부③-배제사유-20260618.html" style="text-decoration:none"><div style="background:#fff;border:1px solid #e0dcff;border-radius:10px;padding:14px 16px"><div style="font-weight:800;color:#6666FF;font-size:14px">하부③ 배제사유</div><div style="font-size:12.5px;color:#666;margin-top:4px">블로그 천장(N=3)→카페 검증(N≈23). 배제 1위=<b>관리부담</b>, 전집·패드는 3위로 하향</div></div></a>
+  </div>
+</div>
+
+<!-- SEC 00 방법론 & 한계 -->
+<section>
+  <div class="sec-head"><span class="sec-num">SEC 00</span><h2>읽기 전에 — 데이터의 성격과 한계</h2></div>
+  <p class="sec-lead">이 리포트의 신뢰성은 "수치를 키워 보이는 것"이 아니라 "수치가 어디까지 믿을 만한지 정직하게 표기하는 것"에서 나온다. 모든 표·차트에 <b>N(관찰 건수)</b>과 <b>신뢰도 라벨</b>을 병기했다.</p>
+
+  <div class="warnote">
+    <strong>핵심 한계 — 윤선생 멘션 생태계는 '본사·가맹 마케팅'이 장악하고 있다.</strong><br>
+    네이버 블로그에서 수집한 6,326건을 동음이의(주식 블로거 별명 "윤선생"·요리·마스크·간판 등)와 무관글을 제거하고 정제하면, 표면적으로는 학부모 후기가 많아 보인다. 그러나 한 건씩 정독하면 <b>가맹점 교사·본사가 검색노출(SEO)을 위해 쓴 마케팅 글이 절대다수</b>이고, 제3자(학부모·학습자)의 자생 후기는 소수다. 정독 추정 자생 비중 — 교실 ~12–15%, 베이직 ~26–30%, 공통 ~35–40%. <b>따라서 감성 비율을 '시장 여론'으로 일반화하면 안 되며, 본 리포트는 정량 통계가 아니라 방향성·정성 신호로 읽어야 한다.</b>
+  </div>
+
+  <div class="card">
+    <h3>신뢰도 라벨 체계</h3>
+    <table>
+      <tr><th>라벨</th><th>기준</th><th>해석</th><th>적용</th></tr>
+      <tr><td><span class="conf conf-q">정량</span></td><td>N ≥ 100</td><td>방향과 크기 모두 참고 가능</td><td>수집규모·연도분포·BM분포</td></tr>
+      <tr><td><span class="conf conf-d">방향성</span></td><td>N 50–100</td><td>방향만 참고, 크기 단정 금지</td><td>시작시점·사전경로·BM별 감성</td></tr>
+      <tr><td><span class="conf conf-s">정성신호</span></td><td>N &lt; 50</td><td>"이런 목소리가 존재한다"는 신호. 비율 해석 금지</td><td>배제사유 클러스터</td></tr>
+    </table>
+    <div class="card-explain">💡 <strong>왜 이렇게까지 표기하나요?</strong> 웹 멘션은 설문처럼 무작위로 뽑은 표본이 아니라, '글을 쓸 동기가 있는 사람'만 남긴 자기선택 표본입니다. 게다가 윤선생은 가맹점이 직접 블로그를 운영해 후기처럼 보이는 광고가 섞입니다. 그래서 "몇 %"보다 "누가·왜 그렇게 말하는가"가 더 정확한 정보입니다.</div>
+  </div>
+
+  <div class="card">
+    <h3>방법 (RXR 2-Layer + 시간·BM축 확장)</h3>
+    <ul class="clean">
+      <li><b>수집</b>: 네이버 블로그 검색 API로 BM신호·배제·영어수준·경쟁사 쿼리 33종 수집(트랙A 4,630 + 배제 표적보강 1,696 = 6,326건). 글 작성일(postdate)로 연도 태깅.</li>
+      <li><b>정제</b>: 동음이의·무관 도메인 제거 → 영어교육 맥락 필터 → 가맹 마케팅 분리(Sincerity) → 학부모 자생 풀 확정.</li>
+      <li><b>분석</b>: BM별 분리(Content Layer: 토픽·감성 / Psyche Layer: 동기·프로파일) → 시작시점·사전경로 정독 분류 → 배제사유 정독 클러스터링 → 연도흐름 → 경쟁사 대비.</li>
+      <li><b>검증</b>: 통계청·교육부 공식 통계로 영어수준 벤치마크 크로스체크(출처·연도·성격 병기).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SEC 01 표본 개요 -->
+<section>
+  <div class="sec-head"><span class="sec-num">SEC 01</span><h2>표본 개요 — 무엇을, 얼마나 봤나</h2></div>
+  <div class="grid g4">
+    <div class="bignum"><div class="n">6,326</div><div class="l">총 수집(블로그)</div><div class="s">트랙A 4,630 + 배제보강 1,696</div></div>
+    <div class="bignum"><div class="n">1,861</div><div class="l">학부모 자생 풀</div><div class="s">동음이의·마케팅 제거 후</div></div>
+    <div class="bignum"><div class="n">~380</div><div class="l">정독 검증 자생후기</div><div class="s">교실60+베이직120+공통200</div></div>
+    <div class="bignum"><div class="n">919</div><div class="l">2026년 자생 멘션</div><div class="s">시간축 데이터 충분</div></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card">
+      <h3>연도별 자생 멘션 추이 <span class="conf conf-q">정량</span></h3>
+      <div class="chartbox"><canvas id="ch_yearvol"></canvas></div>
+      <div class="card-explain">💡 2022년 55건 → 2026년 919건으로 급증. 단, 이 증가의 상당 부분은 <strong>가맹점 블로그 마케팅 폭증</strong>이 견인합니다. "윤선생 화제성이 커졌다"기보다 "가맹 콘텐츠가 늘었다"로 읽는 게 안전합니다.</div>
+    </div>
+    <div class="card">
+      <h3>BM(상품)별 자생 멘션 분포 <span class="conf conf-q">정량</span></h3>
+      <div class="chartbox"><canvas id="ch_bmvol"></canvas></div>
+      <div class="card-explain">💡 "공통"은 특정 상품을 안 밝히고 "윤선생"만 언급한 글(향수·일반후기). 교실(방문)과 베이직(화상)이 비슷한 규모로, 윤선생이 더 이상 '방문영어 회사'만이 아님을 보여줍니다. 영어숲(학원)은 트랙B에서 별도 분석.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SEC 02 BM별 분리 -->
+<section>
+  <div class="sec-head"><span class="sec-num">SEC 02 · ①</span><h2>BM별 분리 분석 — 하나의 윤선생이 아니다</h2></div>
+  <p class="sec-lead">기존 리포트는 윤선생을 단일 브랜드로 봤다. 실제로는 <b>교실(방문 1:1)·베이직(화상)·공통(브랜드)·영어숲(학원·등원)</b> 4개가 서로 다른 타깃·메시지·만족도를 가진다. BM별로 마케팅 메시지를 분리해야 하는 이유다. (아래 3개 카드=트랙A, 마지막 영어숲 카드=트랙B)</p>
+
+  <div class="grid g3">
+    <div class="card">
+      <span class="tag-bm bm-k">교실 · 방문 1:1</span>
+      <h3 style="margin-top:8px">관계·편의·전통</h3>
+      <p style="font-size:13px;color:var(--g500);margin-bottom:8px">자생 N≈60 <span class="conf conf-d">방향성</span></p>
+      <div class="chartbox" style="height:150px"><canvas id="ch_s_k"></canvas></div>
+      <p style="font-size:13px;margin-top:10px"><b>강점</b> 집까지 와주는 편의 · 1:1 관계 · "40년 전통" 신뢰 · 부모 본인의 윤선생 경험 전승</p>
+      <p style="font-size:13px;margin-top:4px"><b>약점</b> 학습량 부담 · 원장/교사 교체 불안 · 고가</p>
+      <div class="quote"><span class="y">2026</span> "큰 아들은 윤선생영어교실 수업이 너무 힘들어 죽고 싶다는 카톡을 보냈다"</div>
+      <div class="quote"><span class="y">2022</span> "3개월이 채 되지 않아 원장 선생님이 바뀌었다. 두 번째 선생님도…"</div>
+    </div>
+    <div class="card">
+      <span class="tag-bm bm-b">베이직 · 화상</span>
+      <h3 style="margin-top:8px">가성비·자율·선택권</h3>
+      <p style="font-size:13px;color:var(--g500);margin-bottom:8px">자생 N≈120 <span class="conf conf-d">방향성</span></p>
+      <div class="chartbox" style="height:150px"><canvas id="ch_s_b"></canvas></div>
+      <p style="font-size:13px;margin-top:10px"><b>강점</b> <span class="pill">선생님 직접 선택</span> · 가성비(월 7.9만) · <span class="pill">무약정</span> · 지역무관 · 한국어 보조설명</p>
+      <p style="font-size:13px;margin-top:4px"><b>약점</b> 안드로이드 전용 기기 · 화상 집중력(수다) · 한국인 교사(원어민 기대와 불일치)</p>
+      <div class="quote"><span class="y">2024</span> "더 놀라웠던 건 내가 원하는 선생님을 내가 직접 선택할 수 있다는 점이었다"</div>
+      <div class="quote"><span class="y">2023</span> "초등화상영어는 무약정이라 위약금 없이 언제든…"</div>
+    </div>
+    <div class="card">
+      <span class="tag-bm bm-c">공통 · 브랜드</span>
+      <h3 style="margin-top:8px">향수·파닉스 대명사</h3>
+      <p style="font-size:13px;color:var(--g500);margin-bottom:8px">자생 N≈200 <span class="conf conf-d">방향성</span></p>
+      <div class="chartbox" style="height:150px"><canvas id="ch_s_c"></canvas></div>
+      <p style="font-size:13px;margin-top:10px"><b>강점</b> 세대 전승·국민 브랜드 · "한국인이 가장 먼저 만난 파닉스" · 유아 놀이영어(스마트랜드)</p>
+      <p style="font-size:13px;margin-top:4px"><b>약점</b> 학습효과 회의("그렇게 했는데 왜 안 늘까") · 비쌈 · 강제성 기억</p>
+      <div class="quote"><span class="y">2025</span> "눈높이부터 윤선생까지 안 해본 학습지가 없지만 왜 이렇게 영어는 안 늘까요?"</div>
+      <div class="quote"><span class="y">2020</span> "어렸을 때 윤선생 영어교실로 처음 영어를 접했는데 그때의 즐거움이 떠올랐다"</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>교실 vs 베이직 핵심 차이 + 메시지 차별화</h3>
+    <table>
+      <tr><th>항목</th><th>교실(방문 1:1)</th><th>베이직(화상)</th></tr>
+      <tr><td>감성(자생 정독)</td><td>긍 40 / 중 42 / 부 18 <span class="conf conf-d">방향성</span></td><td>긍 48 / 중 42 / 부 10 <span class="conf conf-d">방향성</span></td></tr>
+      <tr><td>대표 강점</td><td>집 방문 편의·1:1 관계·전통</td><td>선생님 직접 선택·가성비·무약정</td></tr>
+      <tr><td>대표 약점</td><td>학습량 부담·원장 교체·고가</td><td>안드로이드 전용·화상 집중력</td></tr>
+      <tr><td>타깃</td><td>초1~3 학부모(통학 부담 회피)</td><td>워킹맘·이주가정·엄마표 한계 가정</td></tr>
+      <tr><td>가격 인식</td><td>비싸다(부담 토픽 상위)</td><td>저렴·가성비(강점 1순위)</td></tr>
+      <tr><td><b>차별 메시지(제언)</b></td><td>"학원이 못 잡는 <b>매일 습관을 집에서</b>, 선생님이 손으로 잡아드립니다"</td><td>"선생님을 <b>직접 고르는 무약정 화상영어</b>, 월 8만 원으로 매일 영어 습관"</td></tr>
+    </table>
+    <div class="card-explain">💡 <strong>실전 시사점</strong>: 자생 후기 만족도는 <strong>베이직(화상)이 우위</strong>(부정 10%)입니다. "윤선생=구식 방문영어" 이미지와 달리, 가성비·선택권을 내세운 화상이 실제 입소문에서 더 호의적입니다. 교실은 마케팅 노이즈가 가장 심해 진짜 신호가 가려져 있으니, 자생 후기 발굴이 시급합니다.</div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="tag-bm" style="background:#fff1e0;color:#c2710c">영어숲 · 학원(등원) · 트랙B</span>
+      <h3 style="margin:0">제3의 BM — 등원·현장관리·그룹</h3>
+      <span style="font-size:12.5px;color:var(--g500)">표적 보강 후 자생후보 2,468건 · 진짜 자생 N=24(1.0%) <span class="conf conf-s">정성신호</span></span>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <p style="font-size:13.5px"><b>정의</b> 교실(집 방문)·베이직(화상)과 달리 <b>아이가 센터로 등원</b>하는 학원형. "윤선생영어숲 / igse 아카데미 / 스마트랜드(유아)" 간판.</p>
+        <p style="font-size:13.5px;margin-top:8px"><b>영어숲만의 특징</b> 현장 즉시 피드백 · <b>또래 그룹수업</b> · 오프라인 행사(스펠링비·마켓데이·YS AWARD) · STEAM '윤스팀' · <b>중등 igse 내신 연계</b>(체류기간 연장형)</p>
+        <p style="font-size:13.5px;margin-top:8px"><b>강점</b> 파닉스=윤선생 연상 · "어릴 때 윤선생" 세대자산 · 월 17만원대 중간옵션(대형어학원 35만원↔엄마표 사이)</p>
+        <p style="font-size:13.5px;margin-top:4px"><b>약점</b> "오래 다녀도 아웃풋 안 보여 끊음" · 가맹점 교사 역량 편차 · 숙제 부담</p>
+      </div>
+      <div>
+        <div class="chartbox" style="height:140px"><canvas id="ch_s_soop"></canvas></div>
+        <p style="font-size:12px;color:var(--g500);text-align:center">감성(자생 정독 N=24, 긍38/중50/부13)</p>
+        <div class="quote"><span class="y">2026</span> "어릴 때는 윤선생부터 시작해서 과외, 대형 학원, 회화 전문 학원까지…"</div>
+        <div class="quote"><span class="y">2010</span> "오래 하던 윤선생 영어는 끊고 근처 학원에 다닌다"</div>
+      </div>
+    </div>
+    <div class="warnote" style="margin-top:6px">⚠️ <strong>영어숲(학원) BM은 '버즈=영업' — 자생 측정이 구조적으로 거의 불가.</strong> 표적 보강으로 1,330건을 더 모아 자생후보를 2,468건(이전 1,045)으로 키웠으나, 정독 결과 <b>진짜 제3자 자생은 24건(1.0%)</b>에 불과(점주 운영 블로그가 후보의 59%, "솔직후기·내돈내산"마저 마케팅 상투어로 전용). 게다가 <b>소비자 자발 후기는 죄다 '집에서 하는 학습지/화상' 결</b>이고, 등원·그룹·IGSE 같은 <b>학원 고유 경험은 100% 점주 발화</b>다. 학원형의 진짜 자생 신호는 만족이 아니라 <b>이탈 서사("끊었다·주입식이라 회화 까먹음")</b>에서 나온다. → 영어숲은 비율이 아닌 정성 신호로만 해석.</div>
+    <div class="card-explain">💡 <strong>차별 메시지(제언)</strong>: "집에서 혼자 안 되던 윤선생을, <b>매일 등원해 선생님 옆에서 끝까지 봐주는 학원</b>으로" — 파닉스 입문 신뢰는 그대로, 관리·또래·현장 피드백을 더한 중간옵션. (교실=집 1:1 / 베이직=화상 편의 / <b>영어숲=등원·관리·그룹·중등 연계</b>)</div>
+  </div>
+</section>
+
+<!-- SEC 03 영어수준 -->
+<section>
+  <div class="sec-head"><span class="sec-num">SEC 03 · ②</span><h2>영어수준 정량추정 — 윤선생은 '지연시작층'인가?</h2></div>
+  <p class="sec-lead">광고 카피·채널 전략은 "우리 고객이 언제, 어떤 경로로 영어를 시작하는가"에 따라 갈린다. 멘션에서 시작연령·사전경로 단서를 정독 추출하고, <b>통계청·교육부 공식 통계</b>와 대조했다.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>시작시점 분포 — 멘션 관찰값 vs 통계청 <span class="conf conf-d">방향성</span></h3>
+      <p style="font-size:12.5px;color:var(--g500)">관찰값 N=54 (명시적 연령단서 + 1인칭 화자만)</p>
+      <div class="chartbox"><canvas id="ch_start"></canvas></div>
+      <div class="legend"><span><i style="background:#6666FF"></i>윤선생 멘션 관찰값(N=54)</span><span><i style="background:#f5a623"></i>통계청·교육부 벤치마크</span></div>
+    </div>
+    <div class="card">
+      <h3>사전경험 경로 <span class="conf conf-d">방향성</span></h3>
+      <p style="font-size:12.5px;color:var(--g500)">관찰값 N=72</p>
+      <div class="chartbox"><canvas id="ch_prior"></canvas></div>
+      <div class="card-explain">💡 "타학습지 고려군"의 상당수는 <strong>전환(이탈)이 아니라 동시언급</strong>입니다. "우리 세대 다 했던 구몬·윤선생·눈높이"처럼 묶여 회상되거나, 비교 검토 후보군에 함께 오른 경우. 즉 윤선생은 <strong>가정용 학습지 고려군(구몬·눈높이·튼튼) 안</strong>에 강하게 묶여 있습니다.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="insight" style="margin-bottom:16px">
+      <div class="k">가설 판정</div>
+      <div class="v">윤선생 자생 멘션 이용자 = <span style="color:#a99dff">"조기시작층" + U자형 양극화</span></div>
+      <div class="d">초1이전(유아·미취학) 46% · 초2까지 누적 70% — 평균/지연이 아니라 조기시작에 가깝다. 단 초3이후도 30%로 두꺼워, ①유아 첫 노출(스마트랜드·파닉스펀)과 ②초3~4 기초 리커버리(구몬·눈높이 이탈·엄마표 한계 후 합류) 두 진입점을 동시에 점유. 평균대(초1~2, 24%)는 상대적으로 얇다.</div>
+    </div>
+    <h3>통계청·교육부 벤치마크 (검증 출처)</h3>
+    <table>
+      <tr><th>출처</th><th>핵심 수치</th><th>성격</th></tr>
+      <tr><td>통계청 「2024 초중고 사교육비조사」(2025.3.13 발표)</td><td>초등 사교육 참여율 <b>87.7%</b>(전년比 <b>+1.7%p</b>), 영어가 1인당 사교육비 최다 과목</td><td>국가승인 통계</td></tr>
+      <tr><td>교육부 「2024 영유아 사교육비 시험조사」</td><td>만 5세 참여율 <b>81.2%</b>, 영유아 월지출 1위 = 영어 <b>41.4만원</b></td><td><span class="chip c-neg">미승인 시험조사</span></td></tr>
+      <tr><td>윤선생 자체조사(2016, 머니투데이 인용)</td><td>사교육 첫 시작 평균 <b>4.7세</b></td><td><span class="chip c-neg">기업 자체조사·이해상충</span></td></tr>
+    </table>
+    <div class="card-explain">💡 <strong>해석</strong>: 초등 영어 사교육은 이미 보편(87.7%)이고, 미취학 영어도 보편화(만5세 81.2%)됐습니다. 윤선생 멘션의 '미취학 진입 46%'는 이 큰 흐름과 정합하며, 윤선생이 마케팅에서 강조해온 '조기 시작' 포지션과도 같은 방향입니다. <b>단위 주의</b>: 87.7%는 비율, +1.7%p는 퍼센트포인트(전년 86.0%→87.7%)로 서로 다릅니다.</div>
+  </div>
+
+  <div class="card">
+    <h3>시작시점 × 동기 매트릭스 <span class="conf conf-s">정성신호</span></h3>
+    <p style="font-size:12.5px;color:var(--g500)">N=54 중 동기 단서가 잡힌 건 9건뿐(83%가 스니펫 절단으로 미상) → 방향성 참고용. 항목은 유지하되 신뢰도로 보정.</p>
+    <table>
+      <tr><th>시작속도 \ 동기</th><th class="center">흥미·기초만회</th><th class="center">결과·선행</th><th class="center">미상(단서없음)</th><th class="center">행 합</th></tr>
+      <tr><td><b>빨리</b>(초1이전)</td><td class="center">4</td><td class="center">2</td><td class="center">19</td><td class="center"><b>25</b></td></tr>
+      <tr><td><b>평균</b>(초1~2)</td><td class="center">1</td><td class="center">2</td><td class="center">10</td><td class="center"><b>13</b></td></tr>
+      <tr><td><b>늦게</b>(초3이후)</td><td class="center">0</td><td class="center">0</td><td class="center">16</td><td class="center"><b>16</b></td></tr>
+      <tr><td><b>열 합</b></td><td class="center"><b>5</b></td><td class="center"><b>4</b></td><td class="center"><b>45</b></td><td class="center"><b>54</b></td></tr>
+    </table>
+    <div class="quote"><span class="y">2026</span> [빨리×흥미] "우혁이도 너무 좋아하면서 잘 하고 있어서…"</div>
+    <div class="quote"><span class="y">2025</span> [빨리×결과] "윤성이는 6세 말 … 단순히 어리다는 이유로 뒤처지지 않고"</div>
+  </div>
+</section>
+
+<!-- SEC 04 배제사유 -->
+<section>
+  <div class="sec-head"><span class="sec-num">SEC 04 · ③</span><h2>배제사유 TOP — 고려했지만 안 고른 이유 (획득장벽)</h2></div>
+  <p class="sec-lead">'이탈'(쓰다가 그만둠 = 보유 문제)과 '배제'(고려했지만 진입 안 함 = 획득 문제)는 다르다. 배제사유를 표적 보강 수집(쿼리 17종, 1,696건)했지만, <b>진짜 자생 배제 신호 자체가 희소</b>하다는 것이 첫 번째 발견이다.</p>
+
+  <div class="warnote">
+    <strong>발견 0 — "배제사유를 말하는 자생 후기가 거의 없다."</strong> 가맹 SEO·제품 판촉(윤스패드 무상증정·전집 세트 할인 등)이 비교/단점 키워드까지 잠식한다. <b>스니펫 단계에선 진짜 배제 N≈16으로 봤으나, 이후 본문 700건을 크롤링·전수 정독하니 진짜 배제는 N=3</b>이었다(나머지는 광고·긍정 선택담). 즉 <b>네이버 블로그는 공급자 콘텐츠 98.6%라 '안 고른 학부모'를 못 담는다.</b> 이후 맘카페 2,701건으로 보강하니 진짜 배제 ~23건 확보 → <b>배제 1순위는 전집·패드가 아니라 '혼자독학·관리부담', 전집·패드는 3위</b>로 재정렬됐다. 정밀 위계·전환처는 <a href="rxr-윤선생-하부③-배제사유-20260618.html" style="color:#c4233f;font-weight:700">하부③ 배제사유 심층</a> 참조(설문이 마지막 검증).
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>배제사유 TOP — 카페 검증 위계 <span class="conf conf-d">방향성(N≈23)</span></h3>
+      <div class="chartbox"><canvas id="ch_excl"></canvas></div>
+      <div class="card-explain">💡 블로그(본문 N=3)는 배제를 못 담아, 맘카페 2,701건으로 보강해 진짜 배제 ~23건의 <strong>위계</strong>를 잡았습니다. <strong>1위는 전집·패드가 아니라 '혼자독학·관리부담'</strong>. 카페도 스니펫이라 거짓양성 92% → 정독 검증값만 표시.</div>
+    </div>
+    <div class="card">
+      <h3>대표 인용 (카페·블로그 원문)</h3>
+      <p style="font-size:13px;font-weight:700;color:var(--p-deep);margin-top:4px">① 혼자독학·관리부담 — 카페 배제 1위</p>
+      <div class="quote"><span class="y">상위1%카페</span> "윤선생은 엄마가 일일이 봐줘야 하는데 잉글리쉬무무는 학원에서 다 끝마치고 오니까…"</div>
+      <div class="quote"><span class="y">하우투</span> "혼자서 하기때문에 말하기가 너무 부족… 파닉스 정도는 윤선생하고 그다음은 학원이…"</div>
+      <p style="font-size:13px;font-weight:700;color:var(--p-deep);margin-top:8px">② 가격·영업강매 · ③ 전집·패드</p>
+      <div class="quote"><span class="y">레몬테라스</span> "윤선생 너무 부담돼서 저렴이로 바꾸고 싶어요"</div>
+      <div class="quote"><span class="y">맘이베베</span> "패드 구매해야 하고… 패드만 4개 되는데… 저만 부담 느끼고…"</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>윤선생 고유 장벽 vs 카테고리 공통 장벽</h3>
+    <table>
+      <tr><th>배제사유</th><th class="center">윤선생</th><th class="center">눈높이</th><th class="center">재능</th><th>판정</th></tr>
+      <tr><td><b>혼자독학·관리부담</b> <span style="color:var(--neg);font-size:11px">카페 배제 1위</span></td><td class="center">●●●</td><td class="center">●●</td><td class="center">●</td><td>방문·학습지 공통(윤선생서 가장 큰 배제동인)</td></tr>
+      <tr><td>전집·패드·세트 필수구매 <span style="color:var(--g500);font-size:11px">3위</span></td><td class="center">●●</td><td class="center">○</td><td class="center">○</td><td><b>윤선생 고유(단독 1위는 아님)</b></td></tr>
+      <tr><td>콩글리시·원어민 부재</td><td class="center">○ <span style="color:var(--g500)">(원어민을 강점으로 어필)</span></td><td class="center">●●</td><td class="center">●</td><td>눈높이 고유</td></tr>
+      <tr><td>약정·위약·영업압박</td><td class="center">● <span style="color:var(--g500)">(주로 이탈측)</span></td><td class="center">—</td><td class="center">●●</td><td>카테고리 공통</td></tr>
+      <tr><td>가격·가성비</td><td class="center">●</td><td class="center">●</td><td class="center">●</td><td>카테고리 공통</td></tr>
+      <tr><td>화상 거부감</td><td class="center">○ <span style="color:var(--g500)">(자생 신호 0)</span></td><td class="center">○</td><td class="center">—</td><td>신호 없음(부재≠없음)</td></tr>
+    </table>
+    <p style="font-size:12px;color:var(--g500);margin-top:6px">● 강 · ●● 매우강 · ○ 약/거의없음. N이 모두 작아 강도는 정성 판단.</p>
+    <div class="card-explain">💡 <strong>전략 함의(카페 갱신)</strong>: 배제 1위는 <strong>"혼자독학·관리부담"</strong>("돈 들여 샀는데 결국 엄마가 다 봐줘야 함")입니다. 전집·패드는 윤선생 고유 마찰점이나 단독 1위는 아닌 3위 — 관리부담과 결합될 때 배제로 전환됩니다. 한편 윤선생의 <b>약정 없음·가성비는 배제가 아니라 방어 자산</b>(약정 이탈 ~0). → 획득 메시지는 '전집 강매 없음'보다 <b>"혼자 안 해도 되게 관리해준다"</b>가 진짜 통점을 찌릅니다.</div>
+  </div>
+
+  <div class="card">
+    <h3>이탈(보유 문제) — 배제와 분리 <span class="conf conf-s">정성신호</span></h3>
+    <p style="font-size:13px;color:var(--g700)">명시적 "그만둠/끊음" 자생 멘션 N≈11(2015 윤종신 "영어 울렁증 대물림 끊자" CF 카피 6건은 이탈에서 제외). 주요 이탈 동인:</p>
+    <ul class="clean">
+      <li><b>원장·교사 회전</b> — "3개월 안 돼 원장 두 번 바뀜"(2022) → 방문/교실 BM의 구조적 리스크</li>
+      <li><b>효과 회의</b> — "오래 했는데 왜 안 늘까"(2025) → 공통 BM의 천장(기존 리포트 '아웃풋 약함'과 일치)</li>
+      <li><b>시간·이주</b> — 중국 거주·일정 충돌로 중단</li>
+    </ul>
+    <div class="card-explain">💡 <strong>획득 vs 보유</strong>: 배제(전집·패드)는 <strong>가입 전</strong> 장벽이라 광고·체험으로 풀고, 이탈(원장교체·효과회의)은 <strong>가입 후</strong> 문제라 운영·콘텐츠로 풉니다. 둘을 섞으면 엉뚱한 처방이 나옵니다.</div>
+  </div>
+</section>
+
+<!-- SEC 05 시간흐름 -->
+<section>
+  <div class="sec-head"><span class="sec-num">SEC 05 · ④</span><h2>시간흐름 2024·2025·2026</h2></div>
+  <div class="warnote" style="background:#fff8e1;border-color:#ffe9a8;border-left-color:var(--warn);color:#6b5418">
+    <strong>연도별 N 불균형 주의.</strong> 2026년 자생 멘션(919)이 2022년(55)의 17배라 <b>절대량 비교는 무의미</b>하다. 비율·구성 변화 중심으로 해석한다. 특히 2026년은 가맹 마케팅·긍정 후기 폭증으로 부정 비율이 희석된다.
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>연도별 감성 구성 추이 <span class="conf conf-d">방향성</span></h3>
+      <div class="chartbox tall"><canvas id="ch_yearsenti"></canvas></div>
+      <div class="card-explain">💡 부정 비율은 <strong>2024년이 정점(약 32%)</strong>이었다가 2025·2026년 희석됩니다. 이는 "불만이 사라졌다"가 아니라 <strong>가맹 긍정 콘텐츠가 폭증해 부정이 묻힌 것</strong>으로 보는 게 안전합니다.</div>
+    </div>
+    <div class="card">
+      <h3>토픽 출현 추이 (연도별 언급 건수) <span class="conf conf-q">정량</span></h3>
+      <div class="chartbox tall"><canvas id="ch_topictrend"></canvas></div>
+      <div class="card-explain">💡 <strong>파닉스</strong>와 <strong>화상</strong>이 2026년 급등 — 윤선생 담론의 무게중심이 '방문'에서 '화상·파닉스 입문'으로 이동 중입니다. <strong>AI·스마트베플리</strong>(음성인식)도 꾸준히 증가해, 디지털 전환 메시지가 먹히는 토양이 형성되고 있습니다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SEC 06 인식 차원 매트릭스 -->
+<section>
+  <div class="sec-head"><span class="sec-num">SEC 06 · ⑤</span><h2>인식 차원 매트릭스 — 윤선생 vs 4개 경쟁사 세부 차이</h2></div>
+  <p class="sec-lead">"강·약점 표"는 거칠다. 대신 <b>9개 공통 인식 차원</b>(브랜드가 어떤 축에서 회자되는가)을 정의하고, 5개 브랜드가 각 축에서 <b>얼마나·어떤 감성으로</b> 인식되는지 정량 비교했다. 값 = 정제 멘션 중 해당 차원 <b>언급률(%)</b> = 그 브랜드가 그 축으로 얼마나 강하게 연상되는지.</p>
+
+  <div class="card">
+    <h3>브랜드 × 인식 차원 레이더 <span class="conf conf-q">정량</span></h3>
+    <p style="font-size:12.5px;color:var(--g500)">정제 N — 윤선생 1,845 · 눈높이 944 · 재능 1,357 · 삼성영어 1,076 · 뮤엠영어 765 (네이버 블로그, 가맹 마케팅 포함 전체 풀 기준 언급률)</p>
+    <div class="chartbox" style="height:420px"><canvas id="ch_radar"></canvas></div>
+    <div class="card-explain">💡 <strong>한눈에 보는 차별점</strong>: <b>재능=자기주도(47%) 압도</b>(스스로학습 정체성), <b>눈높이=발음·원어민(33%)·접근성</b>, <b>삼성영어=효과·실력(28%)</b>, <b>뮤엠=효과+디지털화상</b>, <b>윤선생=접근성(34%)·디지털AI(31%)</b>. 윤선생은 '화상·패드' 등 디지털 접근성 축에서 독보적이나, '효과·아웃풋' 축은 경쟁사 대비 낮아(18%) — "수단은 좋은데 결과 증명은 약함"이 그대로 드러난다.</div>
+  </div>
+
+  <div class="card">
+    <h3>인식 차원 언급률(%) — 전 브랜드 <span class="conf conf-q">정량</span></h3>
+    <table style="font-size:12.8px">
+      <tr><th>인식 차원</th><th class="center">윤선생</th><th class="center">눈높이</th><th class="center">재능</th><th class="center">삼성영어</th><th class="center">뮤엠영어</th><th>해석</th></tr>
+      <tr><td><b>접근성·편의</b></td><td class="center" style="background:#eee9ff;font-weight:800">34.0</td><td class="center" style="background:#eee9ff;font-weight:800">39.8</td><td class="center">9.3</td><td class="center">4.8</td><td class="center">13.2</td><td>방문·화상=고편의(윤·눈), 학원=등원(삼·뮤 낮음)</td></tr>
+      <tr><td><b>디지털·AI</b></td><td class="center" style="background:#eee9ff;font-weight:800">31.1</td><td class="center">20.3</td><td class="center">6.0</td><td class="center">7.5</td><td class="center">12.5</td><td><b>윤선생 독보</b>(화상·스마트베플리·AI튜터)</td></tr>
+      <tr><td><b>발음·원어민성</b></td><td class="center">21.0</td><td class="center" style="background:#eee9ff;font-weight:800">32.6</td><td class="center">14.6</td><td class="center">19.2</td><td class="center">15.2</td><td><b>눈높이 우위</b>(파닉스), 단 콩글리시 약점 병존</td></tr>
+      <tr><td><b>효과·아웃풋</b></td><td class="center">18.1</td><td class="center">24.8</td><td class="center">23.7</td><td class="center" style="background:#eee9ff;font-weight:800">28.3</td><td class="center">23.4</td><td><b>윤선생 최열위</b> — 경쟁사 모두 결과를 더 강조</td></tr>
+      <tr><td><b>관리·케어</b></td><td class="center" style="background:#eee9ff;font-weight:800">15.2</td><td class="center">9.1</td><td class="center">6.8</td><td class="center">5.9</td><td class="center">6.7</td><td>윤선생 상대 우위(방문·전화관리 자산)</td></tr>
+      <tr><td><b>자기주도·습관</b></td><td class="center">11.9</td><td class="center">13.2</td><td class="center" style="background:#eee9ff;font-weight:800">46.6</td><td class="center">19.1</td><td class="center">13.2</td><td><b>재능 압도</b>(브랜드 정체성=스스로학습)</td></tr>
+      <tr><td><b>흥미·재미</b></td><td class="center">8.8</td><td class="center">11.2</td><td class="center">3.5</td><td class="center">8.5</td><td class="center">5.0</td><td>눈높이·윤선생(놀이영어) 상위</td></tr>
+      <tr><td><b>가격·가성비</b></td><td class="center">5.4</td><td class="center">8.4</td><td class="center">5.6</td><td class="center">5.4</td><td class="center">3.9</td><td>전 브랜드 낮음(가격은 배제단계서 작동)</td></tr>
+      <tr><td><b>신뢰·전통</b></td><td class="center">4.9</td><td class="center">4.3</td><td class="center">3.4</td><td class="center">2.6</td><td class="center">4.3</td><td>언급률 낮으나 부정률 차이 큼(아래)</td></tr>
+    </table>
+    <p style="font-size:12px;color:var(--g500);margin-top:6px">셀 음영 = 해당 차원 1위. 정상JLS(N=549)는 참조용 — 체계·커리큘럼(24%)·30년 전통·대형 입시형, 디지털 최약.</p>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>차원별 부정률(%) — 인식 리스크 <span class="conf conf-d">방향성</span></h3>
+      <div class="chartbox tall"><canvas id="ch_negrisk"></canvas></div>
+      <div class="card-explain">💡 차원을 언급한 글 중 <b>부정 비율</b>. <b>삼성영어=신뢰·전통(46%)·관리(30%)</b> 리스크 큼(가맹 일관성 불신), <b>재능=가격(26%)·약정</b>, <b>윤선생=가격(19%)</b>이 상대 약점이나 전반적으로 고른 편. 뮤엠 신뢰 70%는 N이 작아 정성 참고.</div>
+    </div>
+    <div class="card">
+      <h3>경쟁사 한 줄 인식 정의 + 강·약점</h3>
+      <table style="font-size:12.6px">
+        <tr><th>브랜드</th><th>인식 정의 / 강점·약점</th></tr>
+        <tr><td><b>눈높이</b><br>(대교)</td><td>"파닉스·듣기 자연습득의 방문학습지" — 발음 강점, but <b>콩글리시·"엄마가 직접 읽어줘야"·수준 낮음</b></td></tr>
+        <tr><td><b>재능</b><br>(JEI)</td><td>"스스로학습·재능펜의 자기주도 학습지" — 자기주도 정체성, but <b>약정·위약금·시장쇠퇴·'스스로=방치' 양날</b></td></tr>
+        <tr><td><b>삼성영어</b></td><td>"효과·실력형 1:1 동네 영어학원(셀레나)" — 결과 강조, but <b>가맹점 관리·신뢰 편차</b></td></tr>
+        <tr><td><b>뮤엠영어</b></td><td>"원어민 화상(뮤엠아이)+문해력 학원" — 디지털·독서 강점, but <b>관리 밀도 의심</b></td></tr>
+      </table>
+      <div class="card-explain">💡 4개 경쟁사 모두 <strong>체계·커리큘럼</strong>(학원군)·<strong>효과·실력</strong>을 강하게 내세웁니다. 윤선생은 이 축이 약하므로, <b>접근성·디지털·관리</b> 강점을 지렛대로 "결과(아웃풋)"를 증명하는 콘텐츠가 공략 포인트입니다.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="insight">
+      <div class="k">윤선생 상대 포지셔닝 — 한 문장 정의</div>
+      <div class="v">윤선생 = <span style="color:#a99dff">'접근성·디지털·관리'는 우위, '효과·아웃풋·원어민성'은 열위</span>인 브랜드</div>
+      <div class="d">화상·패드·전화관리로 <b>"매일·어디서나 영어를 챙겨주는 수단"</b>의 인식은 경쟁사 중 가장 강하다. 그러나 그 수단이 만든 <b>"결과(스스로 말하고 쓰는 아웃풋)"</b>의 인식은 삼성영어·뮤엠·재능보다 약하다. 발음·원어민성도 눈높이에 밀린다. → 수단 우위를 결과 증명으로 전환하는 것이 인식 전쟁의 핵심.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>베이직(화상) BM 경쟁 구도 — 화상·온라인 영어 4사 대비 <span class="conf conf-q">정량</span></h3>
+    <p style="font-size:12.5px;color:var(--g500)">정제 N — 캠블리키즈 880 · 시원스쿨(키즈) 238 · 윙크 732 · 천재(밀크티) 1,135. 차원 언급률(%).</p>
+    <div class="warnote">⚠️ <strong>카테고리 비대칭(핵심)</strong> — "화상 경쟁 4사"로 모았으나 <b>진짜 실시간 화상은 캠블리키즈 하나뿐</b>(화상 언급 80%). 시원스쿨=VOD 인강, 윙크·천재(밀크티)=태블릿 학습지/AI. 즉 <b>'사람이 봐주는 쌍방향 화상'의 직접 경쟁자는 캠블리키즈가 사실상 유일</b>하다.</div>
+    <div class="grid g2">
+      <div>
+        <div class="chartbox tall"><canvas id="ch_hwasang"></canvas></div>
+      </div>
+      <div>
+        <table style="font-size:12.4px">
+          <tr><th>축</th><th class="center">캠블리</th><th class="center">시원</th><th class="center">윙크</th><th class="center">천재</th><th class="center">베이직</th></tr>
+          <tr><td>원어민성</td><td class="center">●●●</td><td class="center">●</td><td class="center">●</td><td class="center">●</td><td class="center">● <span style="color:var(--g500)">(한국인)</span></td></tr>
+          <tr><td><b>한국인교사·한국어보조</b></td><td class="center">●</td><td class="center">●</td><td class="center">●</td><td class="center">●</td><td class="center" style="background:#eee9ff;font-weight:800">●●●</td></tr>
+          <tr><td><b>관리·피드백</b></td><td class="center">●</td><td class="center">●</td><td class="center">●●</td><td class="center">●●</td><td class="center" style="background:#eee9ff;font-weight:800">●●●</td></tr>
+          <tr><td><b>가격·가성비</b></td><td class="center">● <span style="color:var(--neg)">비쌈</span></td><td class="center">●●●</td><td class="center">●●</td><td class="center">●●</td><td class="center" style="background:#eee9ff;font-weight:800">●●● <span style="color:var(--g500)">월7.9만·무약정</span></td></tr>
+          <tr><td>디지털·앱</td><td class="center">●●</td><td class="center">●●</td><td class="center">●●●</td><td class="center">●●●</td><td class="center">●●</td></tr>
+          <tr><td>포맷</td><td class="center">실시간화상</td><td class="center">VOD인강</td><td class="center">태블릿</td><td class="center">태블릿/AI</td><td class="center">화상(관리형)</td></tr>
+        </table>
+        <p style="font-size:12px;color:var(--g500);margin-top:6px">캠블리 감성 긍40/중42/부18(N=880·할인코드광고 17%편향) / 시원 긍27/중62/부11 / 윙크 긍34/중41/부25 / 천재 긍28/중49/부24</p>
+      </div>
+    </div>
+    <div class="card-explain">💡 <strong>베이직의 화상 카테고리 포지션</strong>: 캠블리키즈는 <b>원어민·자신감 최강이나 비싸고·한국어 설명 없고·관리 약함</b>. 베이직은 정확히 그 빈자리 세 곳(<b>합리적 가격·한국인 교사 보조·직접 선택/관리</b>)을 채우는 <b>"캠블리의 가성비·관리형 대안"</b>입니다. 셀프형 3사(시원·윙크·천재)와는 '사람이 봐주는 쌍방향'이라는 포맷 자체가 달라 상위 카테고리에 섭니다. 단, <b>순수 디지털·원어민 축에서는 캠블리가 우위</b>이므로(윤선생 디지털 우위는 '방문·학습지 카테고리 내'의 우위), 베이직의 메시지는 '원어민 경쟁'이 아니라 '관리·가성비'로 가야 합니다.</div>
+  </div>
+</section>
+
+<!-- SEC 06.5 시간흐름 인식 변화 -->
+<section>
+  <div class="sec-head"><span class="sec-num">SEC 06.5 · ⑤</span><h2>시간흐름 인식 변화 — 누가 어느 축에서 부상/쇠퇴하나</h2></div>
+  <p class="sec-lead">인식은 고정이 아니라 움직인다. 5개 브랜드의 핵심 인식 차원이 2022→2026 어떻게 변했는지 본다. <b>연도별 N 불균형이 크므로 절대량이 아닌 "그 해 그 브랜드 멘션 중 해당 축 언급률(%)"로 정규화</b>했다.</p>
+  <div class="warnote" style="background:#fff8e1;border-color:#ffe9a8;border-left-color:var(--warn);color:#6b5418">
+    <strong>해석 주의.</strong> 2022~2023년은 삼성·뮤엠·재능의 멘션 N이 한 자릿수~수십 건이라 % 변동이 과장될 수 있다. <b>24·25·26 구간 추세</b>를 중심으로 읽고, 2026년은 전 브랜드 가맹 마케팅 폭증으로 긍정·홍보 토픽이 부풀려진 점을 감안한다.
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>디지털·AI 인식 추이 (언급률%) <span class="conf conf-d">방향성</span></h3>
+      <div class="chartbox tall"><canvas id="ch_trend_digital"></canvas></div>
+      <div class="card-explain">💡 <strong>윤선생이 디지털·AI 축을 선점·유지</strong>(화상·스마트베플리·AI튜터)하는 반면 <strong>눈높이는 이 축 인식이 뚜렷이 하락</strong>(50%→9%). 전통 방문학습지의 디지털 존재감이 약해지는 신호. 삼성·뮤엠은 2026 가맹 확장과 함께 디지털 카피를 늘리는 중.</div>
+    </div>
+    <div class="card">
+      <h3>효과·아웃풋 인식 추이 (언급률%) <span class="conf conf-d">방향성</span></h3>
+      <div class="chartbox tall"><canvas id="ch_trend_efficacy"></canvas></div>
+      <div class="card-explain">💡 <strong>윤선생의 '효과·아웃풋' 인식이 상승세</strong>(11%→22%)지만 여전히 삼성영어(33%)·뮤엠보다 낮다. "수단(디지털·관리)은 강한데 결과 담론은 뒤늦게 따라가는" 구조가 시계열로도 확인된다.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>브랜드별 인식 변화 요약 (24→26)</h3>
+    <table>
+      <tr><th>브랜드</th><th>부상하는 축 ▲</th><th>쇠퇴/약화하는 축 ▼</th><th>한 줄 변화</th></tr>
+      <tr><td><b>윤선생</b></td><td>효과·아웃풋(11→22%)·파닉스·화상·AI</td><td>—</td><td>'수단' 우위에 '결과' 담론을 더하는 중</td></tr>
+      <tr><td><b>눈높이</b></td><td>—</td><td>디지털(23→9%)·발음·원어민(2026↓)</td><td>전통 방문학습지 존재감 약화</td></tr>
+      <tr><td><b>재능</b></td><td>자기주도(33→57%)·효과(2026급등)</td><td>—</td><td>2026 급등은 과외SEO·시장쇠퇴 보도 동반 <span class="conf conf-s">정성</span></td></tr>
+      <tr><td><b>삼성영어</b></td><td>효과·실력(17→33%)</td><td>신뢰(부정 46% 잔존)</td><td>'결과형' 인식 강화 + 가맹 확장 폭증</td></tr>
+      <tr><td><b>뮤엠영어</b></td><td>원어민화상(뮤엠아이)·디지털</td><td>—</td><td>2026 멘션 급증, 디지털·문해력 포지션 강화</td></tr>
+    </table>
+    <div class="card-explain">💡 <strong>경쟁 구도 변화</strong>: 윤선생의 진짜 위협은 동반 쇠퇴 중인 눈높이·재능(방문학습지)보다, <strong>'효과·실력'(삼성)과 '원어민 화상'(뮤엠)을 키우는 학원군</strong>입니다. 윤선생의 디지털·접근성 우위가 아직 유효한 지금이 '결과 증명' 메시지로 격차를 벌릴 적기입니다.</div>
+  </div>
+</section>
+
+<!-- SEC 07 전략 -->
+<section>
+  <div class="sec-head"><span class="sec-num">SEC 07</span><h2>전략 제언 — BM별 메시지 차별화</h2></div>
+  <div class="grid g4">
+    <div class="insight"><div class="k">교실 · 방문</div><div class="v">"학원이 못 잡는 매일 습관을 집에서"</div><div class="d">1:1 관계·통학부담 회피를 전면에. 단 학습량 부담·교사 회전 리스크 관리 필요.</div></div>
+    <div class="insight"><div class="k">베이직 · 화상</div><div class="v">"선생님을 직접 고르는 무약정 화상영어"</div><div class="d">자생 만족도 1위 BM. 선생님 선택권·무약정·가성비를 주력으로. 안드로이드 제약은 사전 고지.</div></div>
+    <div class="insight"><div class="k">영어숲 · 학원</div><div class="v">"집에서 안 되던 영어, 등원해 끝까지"</div><div class="d">방문·화상의 '관리 부족'을 보완하는 중간옵션. 그룹·현장 피드백·중등 igse 연계로 체류기간 연장. 가맹 품질 편차가 과제.</div></div>
+    <div class="insight"><div class="k">공통 · 브랜드</div><div class="v">"엄마가 배운 그 윤선생, 아이 첫 영어로"</div><div class="d">세대 전승·파닉스 대명사 자산 활용. 단 '효과 회의' 천장은 아웃풋 콘텐츠로 보완.</div></div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <h3>공통 액션</h3>
+    <ul class="clean">
+      <li><b>"혼자 안 해도 되게 관리해준다"를 획득 메시지 전면에</b> — 카페 배제 1위가 '혼자독학·관리부담'. 관리·아웃풋 케어를 정조준(전집·패드 '3무'는 보조 메시지).</li>
+      <li><b>제3자 진정성 신호 확보</b> — 멘션 생태계가 가맹 마케팅에 잠식돼 '내돈내산' 신뢰 신호가 약함. 학습자 본인 증언·제3자 집계지표 노출 강화(기존 리포트 SEC07과 연속).</li>
+      <li><b>조기시작 + 초3~4 리커버리 두 진입점 동시 공략</b> — 유아(스마트랜드·파닉스펀)와 "늦었지만 기초부터" 초3~4층을 각각 다른 카피로.</li>
+      <li><b>화상영어 비교 시 '체험 부재'가 배제 트리거</b> — 무료 체험·레벨테스트를 베이직 획득 퍼널에 강화.</li>
+      <li><b>'수단 우위 → 결과 증명'으로 인식 전환(인식전쟁 핵심)</b> — 윤선생은 접근성·디지털·관리 축은 우위지만 <b>효과·아웃풋 인식이 경쟁사 최열위</b>. 삼성영어(효과·실력)·뮤엠(원어민화상)이 키우는 '결과' 담론에 맞서, 스마트베플리·AI튜터가 만든 <b>아웃풋(말하기·쓰기) 증거</b>를 전면화.</li>
+      <li><b>디지털·AI 선점 우위를 못 박기</b> — 눈높이의 디지털 인식이 하락(23→9%)하는 지금, 윤선생의 화상·AI 우위(31%)를 카테고리 표준으로 굳히는 캠페인 적기.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 부록 -->
+<section>
+  <div class="sec-head"><span class="sec-num">부록</span><h2>데이터 · 출처 · 검증</h2></div>
+  <div class="card">
+    <h3>수집·정제 파이프라인</h3>
+    <table>
+      <tr><th>단계</th><th>건수</th><th>비고</th></tr>
+      <tr><td>네이버 블로그 수집(트랙A: 윤선생+눈높이·재능)</td><td>4,630</td><td>BM·배제·영어수준·경쟁사 쿼리 33종</td></tr>
+      <tr><td>배제사유 표적 보강</td><td>+1,696</td><td>패스/대신/전집/패드/vs 쿼리 17종</td></tr>
+      <tr><td>트랙B 수집(영어숲·삼성·뮤엠·정상JLS + 경쟁사 보강)</td><td>+5,498</td><td>학원 경쟁사 + 눈높이·재능 토픽 보강 쿼리 41종</td></tr>
+      <tr><td>영어숲 표적 보강</td><td>+1,330</td><td>영어숲·스마트랜드·IGSE 쿼리 20종 (자생 N 확대 시도)</td></tr>
+      <tr><td>트랙C 수집(화상·온라인 경쟁사)</td><td>+4,374</td><td>시원스쿨·윙크·천재(밀크티)·캠블리키즈 쿼리 30종</td></tr>
+      <tr><td><b>총 수집</b></td><td><b>17,528</b></td><td>네이버 블로그(2026.06 수집), postdate 연도 태깅</td></tr>
+      <tr><td>정제 후 분석 풀(브랜드 합산)</td><td>~7,500</td><td>동음이의·무관·가맹마케팅 제거(브랜드별 적용)</td></tr>
+      <tr><td>정독 검증 코어</td><td>~480</td><td>BM별·영어숲·경쟁사 감성/토픽/배제 정독</td></tr>
+    </table>
+    <p style="font-size:12px;color:var(--g500);margin-top:8px">정제 N(인식 차원 기준): 윤선생 1,845 · 눈높이 944 · 재능 1,357 · 삼성영어 1,076 · 뮤엠영어 765 · 정상JLS 549. 로우데이터: <code>80-r-tech/85-analysis-results/yoonsam/</code> (trackA·trackB·perception-matrix·parent-organic JSON)</p>
+  </div>
+  <div class="card">
+    <h3>검증 출처</h3>
+    <p style="font-size:13px;color:var(--g700)">통계청 「2024년 초중고 사교육비조사」(2025.3.13) · 교육부 「2024 영유아 사교육비 시험조사」(미승인) · 윤선생 자체조사(2016, 머니투데이/뉴시스 인용·이해상충) · 네이버 블로그 검색 API(2026.06 수집) · 기존 RXR 리포트 <code>rxr-analysis-윤선생영어-20260615</code>.</p>
+    <div class="card-explain">💡 <strong>3중 검증 적용</strong>: 통계청·교육부 수치는 추출→공식 보도자료 크로스체크(수치·단위 %vs%p·귀속·연도·성격)→재대조를 거쳤습니다. 멘션 추정값은 모두 N과 신뢰도 라벨로 표기했습니다.</div>
+  </div>
+  <div class="warnote" style="background:#e7f8f3;border-color:#bdeede;border-left-color:var(--pos);color:#0f6b4f">
+    <strong>본 리포트 = 트랙A+B+C 통합본(9개 브랜드 커버).</strong> 트랙A(방문 vs 눈높이·재능) + 트랙B(학원 vs 삼성·뮤엠·정상JLS) + 트랙C(화상 vs 시원스쿨·윙크·천재·캠블리키즈)를 합쳐 인식 차원 매트릭스·시간흐름·BM별 경쟁 구도를 완성했다. ✅영어숲 자생 보강 완료(N=24 확정 — 학원형은 '버즈=영업'으로 자생 측정 구조적 한계 입증) ✅화상 경쟁사 완료(실질 화상 경쟁자=캠블리키즈 단독, 베이직=가성비·관리형 대안). 남은 여지: 외부 공유본(v3 추상화 용어 + 보안 잠금) 별도 제작.
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div><b>윤선생 RXR 심화분석 · 통합(트랙 A+B)</b><br>BM분리 · 영어수준 · 배제사유 · 시간흐름 · 5브랜드 인식 차원</div>
+    <div style="text-align:right">발행 2026.06.18 · <b>by Project Rent</b><br>RXR 2-Layer Brand Review — 멘션 관찰 기반 방향성 분석</div>
+  </div>
+</footer>
+
+<footer style="max-width:1200px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#fff4f6;padding:14px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #ffd0da;line-height:1.7;color:#8a2438;font-weight:700;">
+    🔒 CONFIDENTIAL · 내부 전략 검토용 기밀 문서 — 무단 외부 공유·캡처·재배포를 금합니다.
+  </div>
+  <div style="background:#fafafa;padding:18px 22px;text-align:center;border-bottom:1px solid #eee;line-height:1.7;">
+    <p style="margin:0 0 4px;">본 분석은 공개 SNS·블로그 데이터에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:#F4F3FF;padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;letter-spacing:-0.3px;">💠 RXR SNS Analysis Solution</div>
+    <p style="margin:0;color:#333;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">『프로젝트 렌트(Project Rent)』</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 SNS 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+      본 리포트에 포함된 분석 프레임, 지표 체계, 용어 정의, 산출 로직 일체는 프로젝트 렌트의 독자 기술이며,
+      무단 복제·인용·역공학·재사용을 엄격히 금합니다.
+    </p>
+  </div>
+  <div style="background:#fafafa;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">
+    📧 <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#999;font-size:11px;">© Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+Chart.register(ChartDataLabels);
+const P='#6666FF', POS='#22b07d', NEU='#b0b4c0', NEG='#e8506b', WARN='#f5a623', MINT='#23c4a8';
+const YRS=['2022','2023','2024','2025','2026'];
+const noDL={datalabels:{display:false}};
+const baseOpt=(extra={})=>Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},...extra}},{});
+
+// 연도별 자생량
+new Chart(ch_yearvol,{type:'bar',data:{labels:YRS,datasets:[{data:[55,123,205,405,919],backgroundColor:P,borderRadius:6}]},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:P,font:{weight:800,size:12}}},scales:{y:{beginAtZero:true}}}});
+
+// BM 분포
+new Chart(ch_bmvol,{type:'doughnut',data:{labels:['공통','베이직(화상)','교실(방문)','영어숲(학원)','복합'],
+ datasets:[{data:[543,443,432,379,64],backgroundColor:['#a99dff',MINT,'#2b5fd6',WARN,'#d0d0dd'],borderWidth:2,borderColor:'#fff'}]},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:12},padding:9}},datalabels:{color:'#fff',font:{weight:800,size:11},formatter:v=>v}}}});
+
+// BM별 감성 도넛
+function sentiDonut(ctx,d){return new Chart(ctx,{type:'doughnut',data:{labels:['긍','중','부'],datasets:[{data:d,backgroundColor:[POS,NEU,NEG],borderWidth:2,borderColor:'#fff'}]},
+ options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},datalabels:{color:'#fff',font:{weight:800,size:12},formatter:v=>v}}}});}
+sentiDonut(ch_s_k,[40,42,18]);
+sentiDonut(ch_s_b,[48,42,10]);
+sentiDonut(ch_s_c,[32,52,16]);
+sentiDonut(ch_s_soop,[38,50,13]);
+
+// 시작시점 vs 벤치마크
+new Chart(ch_start,{type:'bar',data:{labels:['초1이전\n(유아)','초1~2','초3~4','초4이후'],
+ datasets:[{label:'윤선생 멘션(N=54)',data:[46,24,22,7],backgroundColor:P,borderRadius:5},
+ {label:'벤치마크',data:[null,null,null,null],backgroundColor:WARN,borderRadius:5}]},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:P,font:{weight:800,size:11},formatter:v=>v?v+'%':''}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}});
+
+// 사전경로
+new Chart(ch_prior,{type:'bar',indexAxis:'y',data:{labels:['타학습지 고려군','엄마표','처음영어','영유 졸업'],
+ datasets:[{data:[57,26,12,4],backgroundColor:[P,MINT,'#a99dff',WARN],borderRadius:5}]},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',color:'#444',font:{weight:800,size:11},formatter:v=>v+'%'}},scales:{x:{beginAtZero:true,max:65,ticks:{callback:v=>v+'%'}}}}});
+
+// 배제사유
+new Chart(ch_excl,{type:'bar',indexAxis:'y',data:{labels:['혼자독학·관리부담','가격·영업강매','전집·패드 강매','효과·아웃풋 의심','경쟁사 전환','약정·해지'],
+ datasets:[{data:[7,6,4,4,2,0],backgroundColor:[NEG,'#f06b86','#f5a623','#f5a623',NEU,'#e8e8ee'],borderRadius:5}]},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',color:'#444',font:{weight:800,size:11},formatter:v=>'N='+v}},scales:{x:{beginAtZero:true,max:9,title:{display:true,text:'카페 정독 진짜 배제(N≈23)',font:{size:11}}}}}});
+
+// 연도별 감성 구성(%)
+const ys={긍:[10,26,27,67,141],중:[34,85,113,271,732],부:[11,12,65,67,46],총:[55,123,205,405,919]};
+const pct=k=>ys[k].map((v,i)=>Math.round(v/ys.총[i]*100));
+new Chart(ch_yearsenti,{type:'bar',data:{labels:YRS,datasets:[
+ {label:'긍정',data:pct('긍'),backgroundColor:POS,stack:'s'},
+ {label:'중립',data:pct('중'),backgroundColor:NEU,stack:'s'},
+ {label:'부정',data:pct('부'),backgroundColor:NEG,stack:'s'}]},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:12}}},datalabels:{color:'#fff',font:{weight:700,size:10},formatter:v=>v>=8?v+'%':''}},scales:{x:{stacked:true},y:{stacked:true,max:100,ticks:{callback:v=>v+'%'}}}}});
+
+// 토픽 추이
+new Chart(ch_topictrend,{type:'line',data:{labels:YRS,datasets:[
+ {label:'파닉스',data:[8,8,26,54,155],borderColor:P,backgroundColor:P,tension:.3},
+ {label:'화상·비대면',data:[19,48,57,45,202],borderColor:MINT,backgroundColor:MINT,tension:.3},
+ {label:'AI·스마트베플리',data:[0,3,1,11,20],borderColor:WARN,backgroundColor:WARN,tension:.3},
+ {label:'전집·패드',data:[1,2,4,14,15],borderColor:NEG,backgroundColor:NEG,tension:.3}]},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:14}},datalabels:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+// 인식 차원 레이더 (5개 브랜드 × 9차원 언급률)
+const DIMS=['발음·원어민','관리·케어','가격·가성비','자기주도','디지털·AI','효과·아웃풋','흥미·재미','신뢰·전통','접근성·편의'];
+const BR={
+ '윤선생':[21.0,15.2,5.4,11.9,31.1,18.1,8.8,4.9,34.0],
+ '눈높이':[32.6,9.1,8.4,13.2,20.3,24.8,11.2,4.3,39.8],
+ '재능':[14.6,6.8,5.6,46.6,6.0,23.7,3.5,3.4,9.3],
+ '삼성영어':[19.2,5.9,5.4,19.1,7.5,28.3,8.5,2.6,4.8],
+ '뮤엠영어':[15.2,6.7,3.9,13.2,12.5,23.4,5.0,4.3,13.2]};
+const RC={'윤선생':'#6666FF','눈높이':'#23c4a8','재능':'#f5a623','삼성영어':'#e8506b','뮤엠영어':'#9b8cff'};
+new Chart(ch_radar,{type:'radar',data:{labels:DIMS,datasets:Object.keys(BR).map(b=>({
+ label:b,data:BR[b],borderColor:RC[b],backgroundColor:RC[b]+'22',borderWidth:b==='윤선생'?3:1.5,
+ pointRadius:b==='윤선생'?3:2,pointBackgroundColor:RC[b]}))},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:12},boxWidth:14}},datalabels:{display:false}},
+ scales:{r:{beginAtZero:true,max:50,ticks:{stepSize:10,callback:v=>v+'%',font:{size:9}},pointLabels:{font:{size:11,weight:700}}}}}});
+
+// 차원별 부정률
+const NEGD={
+ '윤선생':[12,15,19,12,9,13,8,14,8],'눈높이':[8,5,13,6,5,6,5,10,7],
+ '재능':[5,20,26,5,15,6,15,22,14],'삼성영어':[11,30,12,17,21,10,5,46,23],'뮤엠영어':[15,14,20,16,14,13,0,70,4]};
+new Chart(ch_negrisk,{type:'bar',data:{labels:DIMS,datasets:Object.keys(NEGD).map(b=>({
+ label:b,data:NEGD[b],backgroundColor:RC[b],borderRadius:3}))},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},datalabels:{display:false}},
+ scales:{y:{beginAtZero:true,max:75,ticks:{callback:v=>v+'%'}},x:{ticks:{font:{size:9}}}}}});
+
+// 디지털·AI 인식 추이 (언급률%)
+function trendChart(ctx,series){return new Chart(ctx,{type:'line',data:{labels:YRS,datasets:Object.keys(series).map(b=>({
+ label:b,data:series[b],borderColor:RC[b],backgroundColor:RC[b],borderWidth:b==='윤선생'?3:1.6,tension:.3,pointRadius:2}))},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},datalabels:{display:false}},
+ scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}});}
+trendChart(ch_trend_digital,{
+ '윤선생':[27,35,41,29,31],'눈높이':[50,18,23,15,9],'재능':[5,12,7,8,5],'삼성영어':[0,7,20,5,7],'뮤엠영어':[13,18,24,14,12]});
+trendChart(ch_trend_efficacy,{
+ '윤선생':[13,10,11,18,22],'눈높이':[39,23,30,28,20],'재능':[5,6,0,8,31],'삼성영어':[25,15,17,12,33],'뮤엠영어':[7,29,34,16,23]});
+
+// 화상 경쟁사 차원 비교 (그룹 막대)
+const HAX=['원어민성','관리·케어','디지털·AI','효과·아웃풋','가격언급','접근성'];
+const HW={'캠블리키즈':[33.6,4.3,84.5,29.5,20.3,75.8],'시원스쿨':[6.0,1.5,41.2,13.6,4.5,39.4],
+ '윙크':[9.1,6.9,37.0,13.2,11.6,25.5],'천재(밀크티)':[4.1,10.2,41.8,15.2,13.7,17.3]};
+const HC={'캠블리키즈':'#6666FF','시원스쿨':'#23c4a8','윙크':'#f5a623','천재(밀크티)':'#e8506b'};
+new Chart(ch_hwasang,{type:'bar',data:{labels:HAX,datasets:Object.keys(HW).map(b=>({
+ label:b,data:HW[b],backgroundColor:HC[b],borderRadius:3}))},
+ options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},datalabels:{display:false}},
+ scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}},x:{ticks:{font:{size:10}}}}}});
+</script>
+</body>
+</html>

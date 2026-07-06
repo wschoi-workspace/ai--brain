@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ARISA 보고 품질 진단 · 2주</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{--bg:#0F0F0F;--panel:#1A1A1A;--card:#212121;--bd:#2E2E2E;--tx:#F5F0EB;--mu:#9A948C;
+--ac:#6C5CE7;--lt:#A29BFE;--gn:#8FA37E;--am:#D9A34B;--co:#E17055;--bl:#6F8AA3;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:'Pretendard Variable',sans-serif;
+font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:48px 28px 80px}
+.rpt-head{padding:8px 0 28px;border-bottom:1px solid var(--bd);margin-bottom:32px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ac);font-weight:500}
+h1{font-size:34px;font-weight:600;margin:12px 0 8px;letter-spacing:-.02em}
+.sub{color:var(--mu);font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:28px;margin-bottom:22px}
+.accent-top{border-top:2px solid var(--ac)}
+.tag{font-size:12px;font-weight:600;color:var(--lt);letter-spacing:.03em;margin-bottom:16px}
+.subtag{font-size:12px;font-weight:600;color:var(--mu);margin:24px 0 12px;letter-spacing:.04em;text-transform:uppercase}
+.lead{font-size:17px;line-height:1.7;font-weight:300}.lead b{font-weight:600;color:#fff}
+.lead2{font-size:14px;color:#d8d2c9;margin-bottom:16px}.lead2 b{color:#fff;font-weight:600}
+.note{font-size:12.5px;color:var(--mu);margin-top:14px;line-height:1.65}.note b{color:var(--lt);font-weight:500}
+.statbar{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-top:20px}
+.stat{background:var(--panel);padding:16px 12px;text-align:center}
+.stat b{display:block;font-size:26px;font-weight:700;color:#fff}
+.stat span{display:block;font-size:11px;color:var(--mu);margin-top:4px}
+.stat small{display:block;font-size:10px;color:#6a655e;margin-top:2px}
+table{width:100%;border-collapse:collapse}
+.crit td,.crit th{text-align:left;padding:9px 10px;font-size:13px;border-bottom:1px solid #262626;vertical-align:middle}
+.crit th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);font-weight:500}
+.crit .ek{font-weight:600;white-space:nowrap}.crit .ek small{display:block;font-size:10px;color:#6a655e;font-weight:300}
+.crit .ea{color:#c9c3ba}.crit .ex{text-align:center;color:var(--mu);font-size:12px}
+.crit tr.req .ex{color:var(--ac);font-weight:600}.crit tr.opt .ex{color:var(--bl)}
+.crit .ef{white-space:nowrap;width:120px}.crit .ef span{font-size:11px;color:var(--mu);margin-left:6px}
+.minibar{display:inline-block;width:70px;height:6px;background:#2a2a2a;border-radius:3px;overflow:hidden;vertical-align:middle}
+.minibar i{display:block;height:100%;background:var(--ac)}
+.frames{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:6px}
+.frame{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:13px}
+.frame b{font-size:13px;color:#fff}.frame span{display:block;font-size:10.5px;color:var(--lt);margin:2px 0 7px}
+.frame p{font-size:11.5px;color:#c2bcb3;line-height:1.5}.frame small{display:block;font-size:10px;color:var(--mu);margin-top:6px}
+.form-block{margin-bottom:26px}
+h3{font-size:16px;font-weight:600;margin-bottom:10px;color:#fff}
+.ver{font-size:11px;color:var(--am);border:1px solid var(--am);border-radius:5px;padding:1px 7px;font-weight:500;vertical-align:middle}
+.chiprow{margin:6px 0;font-size:12px}.chiprow b{color:var(--mu);font-size:11px;margin-right:8px;text-transform:uppercase}
+.chip{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;margin:2px}
+.chip.req{background:rgba(108,92,231,.18);color:var(--lt);border:1px solid rgba(108,92,231,.4)}
+.chip.opt{background:rgba(111,138,163,.15);color:#a9bccc;border:1px solid rgba(111,138,163,.3)}
+.chip.non{background:#242424;color:#6a655e;border:1px solid #333}
+.ecards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:16px}
+.ecard{background:var(--card);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.ecard-h{background:#262626;padding:9px 13px;font-weight:600;font-size:13px}.ecard-h small{color:#6a655e;font-weight:300;font-size:10px}
+.ex-bad,.ex-good{padding:10px 13px;font-size:12px;line-height:1.5;border-bottom:1px solid #262626}
+.ex-bad span,.ex-good span{display:block;font-size:10px;font-weight:600;margin-bottom:3px}
+.ex-bad{color:#d8b0a5}.ex-bad span{color:var(--co)}
+.ex-good{color:#c2d0b8}.ex-good span{color:var(--gn)}
+.ex-anchor{padding:8px 13px;font-size:11px;color:var(--mu);background:#1c1c1c}
+.wkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.wk{background:var(--card);border:1px solid var(--bd);border-left:2px solid var(--ac);border-radius:8px;padding:12px 14px}
+.wk b{display:block;font-size:13px;color:#fff;margin-bottom:3px}.wk span{font-size:11.5px;color:var(--mu)}
+.heatwrap{overflow-x:auto}
+.heat{font-size:11px;min-width:760px}
+.heat th{padding:6px 3px;font-size:10px;color:var(--mu);text-align:center;font-weight:500;border-bottom:1px solid var(--bd)}
+.heat th.req{color:var(--lt)}.heat th.opt{color:var(--bl)}
+.heat td.pn{font-weight:600;font-size:12px;white-space:nowrap;padding-right:10px}.heat td.pn small{display:block;font-size:9px;color:#6a655e;font-weight:300}
+.heat td.h{width:26px;height:26px;border:1px solid var(--bg);border-radius:3px}
+.heat td.pr{font-weight:700;text-align:center;font-size:13px;padding-left:8px}
+.h{display:inline-block}.h.d0{background:#242424}.h.d1{background:rgba(108,92,231,.3)}
+.h.d2{background:rgba(108,92,231,.6)}.h.d3{background:var(--ac)}
+.legend{margin-top:12px;font-size:11px;color:var(--mu);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.legend .h{width:14px;height:14px;border-radius:3px}
+.lg-req{color:var(--lt)}.lg-opt{color:var(--bl)}
+.defects{display:flex;flex-direction:column;gap:9px}
+.defect{display:flex;align-items:center;gap:12px;font-size:13px}
+.defect span{width:150px;color:#d8d2c9}.defect b{width:44px;text-align:right;font-weight:700}
+.dbar{flex:1;height:9px;background:#242424;border-radius:5px;overflow:hidden}
+.dbar i{display:block;height:100%;background:linear-gradient(90deg,var(--co),var(--am))}
+.teams{display:flex;flex-direction:column;gap:11px}
+.teamrow{display:flex;align-items:center;gap:12px;font-size:13px}
+.tn{width:64px;font-weight:600}.tbar{flex:0 0 200px;height:12px;background:#242424;border-radius:6px;overflow:hidden}
+.tbar i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--lt))}
+.tv{color:var(--mu);font-size:12px}
+.pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.pcard{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px}
+.pcard.collecting{opacity:.5}.coll{font-size:12px;color:var(--mu);margin-top:8px}
+.pc-h{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.pc-h b{font-size:15px;color:#fff}.pc-h span{display:block;font-size:11px;color:var(--mu);margin-top:2px}
+.gauge{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.gauge::before{content:'';position:absolute;inset:4px;background:var(--card);border-radius:50%}
+.gauge span{position:relative;font-size:14px;font-weight:700;color:#fff}
+.pc-map{display:flex;gap:3px;margin-bottom:12px}
+.pc-map .m{flex:1;height:16px;border-radius:2px}
+.m.d0{background:#242424}.m.d1{background:rgba(108,92,231,.3)}.m.d2{background:rgba(108,92,231,.6)}.m.d3{background:var(--ac)}
+.pc-miss{font-size:12px;margin-bottom:10px}.pc-miss small{color:var(--mu);margin-right:8px;text-transform:uppercase;font-size:10px}
+.mc{display:inline-block;background:rgba(225,112,85,.15);color:#e0a596;border:1px solid rgba(225,112,85,.3);border-radius:5px;padding:1px 7px;font-size:11px;margin:2px}
+.ok{color:var(--gn);font-size:12px}
+.pc-exc{font-size:11.5px;color:#a8a29a;line-height:1.55;background:#1b1b1b;border-radius:7px;padding:10px 12px;font-style:italic}
+.acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:8px}
+.act{background:var(--card);border:1px solid var(--bd);border-left:2px solid var(--ac);border-radius:8px;padding:14px}
+.act b{font-size:13.5px;color:#fff}.act p{font-size:12px;color:#bdb7ae;margin-top:6px;line-height:1.55}
+.indlist{margin:6px 0 0 2px;list-style:none}.indlist li{font-size:13px;color:#d8d2c9;padding:7px 0 7px 20px;position:relative;border-bottom:1px solid #242424}
+.indlist li::before{content:'→';position:absolute;left:0;color:var(--ac)}
+.foot{text-align:center;color:#6a655e;font-size:11px;margin-top:30px}
+</style></head>
+<body><div class="wrap">
+  <header class="rpt-head">
+    <div class="eyebrow">ARISA · 보고 품질 진단 · by Project Rent</div>
+    <h1>직원 업무보고 품질 진단</h1>
+    <p class="sub">지난 2주(2026-06-22 ~ 2026-07-05) · 보고자 10명 ·
+       메타보고 28건 · 좋은 보고 기준 대비 갭 분석</p>
+  </header>
+  <section class="panel accent-top">
+    <div class="tag">진단 요약 · Executive Summary</div>
+    <p class="lead">직원들은 <b>'한 일(산출물)'은 100% 적지만</b>, <b>'그래서 무엇이 달라졌나(의미)'는 20%만, '무엇을 결정해야 하나(의사결정)'는 0%만</b> 적는다. 보고가 <b>업무 나열에 머물고 사고·판단으로 올라가지 못한다.</b> 평균 해상도는 100점 만점에 <b>29점</b>.</p>
+    <div class="statbar"><div class="stat"><b>10명</b><span>보고자</span><small>2주 활동</small></div><div class="stat"><b>29</b><span>평균 해상도</span><small>/ 100</small></div><div class="stat"><b>39%</b><span>평균 커버리지</span><small>기대셋 8요소</small></div><div class="stat"><b>100%</b><span>의사결정 공란</span><small>아무도 안 씀</small></div><div class="stat"><b>80%</b><span>의미 공란</span><small>Outcome 누락</small></div><div class="stat"><b>1건</b><span>오염 보고</span><small>집계서 유실</small></div></div>
+    <p class="note">가장 빈 요소: 의사결정 0% · 해결방향 20% · 의미 20% · 판정선 = "제3자가 이 보고만 보고 다음 액션·의사결정을 할 수 있는가"</p>
+  </section>
+  <section class="panel">
+    <div class="tag">① 좋은 보고의 기준</div>
+    <p class="lead2">좋은 보고는 <b>'제3자가 이 보고만 보고 다음 액션·의사결정을 할 수 있는가'</b>를 통과한다.
+       ARISA는 이를 <b>14개 사고요소</b>로 분해하고, 각 요소를 <b>깊이 0~3</b>(0=비었거나 형식적 · 3=구체 디테일+핵심 명확)으로 잰다.</p>
+    <table class="crit">
+      <thead><tr><th>요소</th><th>깊이 0 → 3 핵심 갈림</th><th>일일</th><th>2주 충족률</th></tr></thead>
+      <tbody><tr class="non"><td class="ek">현황<small>status</small></td><td class="ea">&quot;진행중&quot; → 단계·완료율·최근 변화 명시</td><td class="ex">—</td><td class="ef"><div class="minibar"><i style="width:100%"></i></div><span>100%</span></td></tr><tr class="non"><td class="ek">목적<small>why</small></td><td class="ea">막연 → 상위 목표와의 연결 명시</td><td class="ex">—</td><td class="ef"><div class="minibar"><i style="width:50%"></i></div><span>50%</span></td></tr><tr class="req"><td class="ek">문제<small>problem</small></td><td class="ea">&quot;어렵다&quot; → 원인·범위·영향 구체화</td><td class="ex">필수</td><td class="ef"><div class="minibar"><i style="width:40%"></i></div><span>40%</span></td></tr><tr class="req"><td class="ek">해결방향<small>approach</small></td><td class="ea">&quot;열심히&quot; → 선택지·근거·결정 명시</td><td class="ex">필수</td><td class="ef"><div class="minibar"><i style="width:20%"></i></div><span>20%</span></td></tr><tr class="req"><td class="ek">산출물<small>output</small></td><td class="ea">업무명 반복 → 구체 결과물·링크</td><td class="ex">필수</td><td class="ef"><div class="minibar"><i style="width:100%"></i></div><span>100%</span></td></tr><tr class="req"><td class="ek">의미<small>outcome</small></td><td class="ea">&quot;잘됨&quot; → 무엇이 어떻게 달라졌나</td><td class="ex">필수</td><td class="ef"><div class="minibar"><i style="width:20%"></i></div><span>20%</span></td></tr><tr class="opt"><td class="ek">일정<small>timeline</small></td><td class="ea">&quot;곧&quot; → 날짜·마일스톤</td><td class="ex">선택</td><td class="ef"><div class="minibar"><i style="width:60%"></i></div><span>60%</span></td></tr><tr class="non"><td class="ek">리스크<small>risk</small></td><td class="ea">누락 → 발생가능성·대비책</td><td class="ex">—</td><td class="ef"><div class="minibar"><i style="width:10%"></i></div><span>10%</span></td></tr><tr class="opt"><td class="ek">요청<small>support</small></td><td class="ea">&quot;도와주세요&quot; → 누가·무엇을·언제</td><td class="ex">선택</td><td class="ef"><div class="minibar"><i style="width:30%"></i></div><span>30%</span></td></tr><tr class="opt"><td class="ek">의사결정<small>decision</small></td><td class="ea">모호 → 선택지+추천+기한</td><td class="ex">선택</td><td class="ef"><div class="minibar"><i style="width:0%"></i></div><span>0%</span></td></tr><tr class="non"><td class="ek">예산<small>budget</small></td><td class="ea">누락 → 금액·항목·근거</td><td class="ex">—</td><td class="ef"><div class="minibar"><i style="width:30%"></i></div><span>30%</span></td></tr><tr class="non"><td class="ek">기대효과<small>impact</small></td><td class="ea">막연 → 정량·정성 기대치</td><td class="ex">—</td><td class="ef"><div class="minibar"><i style="width:10%"></i></div><span>10%</span></td></tr><tr class="opt"><td class="ek">실행계획<small>next</small></td><td class="ea">&quot;진행&quot; → 단계별 액션·담당</td><td class="ex">선택</td><td class="ef"><div class="minibar"><i style="width:40%"></i></div><span>40%</span></td></tr><tr class="non"><td class="ek">회고<small>reflection</small></td><td class="ea">형식적 → 구체 관찰 1개 이상</td><td class="ex">—</td><td class="ef"><div class="minibar"><i style="width:40%"></i></div><span>40%</span></td></tr></tbody>
+    </table>
+    <p class="subtag">업계 표준과의 정합 — 14요소는 임의 설계가 아니다</p>
+    <div class="frames"><div class="frame"><b>PPP</b><span>Progress · Plans · Problems</span><p>산출물·의미 / 실행계획·일정 / 문제·리스크·요청</p><small>2000년대 스타트업발 주간보고 표준</small></div><div class="frame"><b>STAR</b><span>Situation · Task · Action · Result</span><p>현황·목적 / 해결방향 / 산출물·의미·기대효과</p><small>성과의 인과 사슬 서술</small></div><div class="frame"><b>SBAR</b><span>Situation · Background · Assessment · Recommendation</span><p>현황 / 문제·목적 / 해결방향·의사결정·요청</p><small>판단·권고까지 담아 즉시 의사결정 가능</small></div><div class="frame"><b>OKR check-in</b><span>Progress · Confidence · Priorities · Blockers</span><p>현황·산출물 / 리스크·기대효과 / 실행계획 / 문제·요청</p><small>달성 자신도로 위험 조기 포착</small></div><div class="frame"><b>MBE</b><span>Management by Exception</span><p>문제·리스크·의사결정 (보고 밀도 원칙)</p><small>정상은 무보고, 예외만 신호로</small></div></div>
+    <p class="note">5개 표준 프레임(각 2개 이상 출처 교차확인)이 강조하는 요소의 합집합이 14요소. 예산·회고는 표준에도 약한 축 —
+       사내 기준이 오히려 더 넓다. SBAR만이 '의사결정·요청'을 명시 요구한다.</p>
+  </section>
+  <section class="panel">
+    <div class="tag">② 제안 — 보고 기준 양식</div>
+
+    <div class="form-block">
+      <h3>일일 보고 (현행 7섹션 정련)</h3>
+      <p class="lead2">일일은 <b>가볍게</b> — 8요소만 기대하고 6요소는 <b>불요</b>(과잉보고 방지).</p>
+      <div class="chiprow"><b>필수</b> <span class="chip req">산출물</span><span class="chip req">의미</span><span class="chip req">문제</span><span class="chip req">해결방향</span></div>
+      <div class="chiprow"><b>선택</b> <span class="chip opt">일정</span><span class="chip opt">요청</span><span class="chip opt">의사결정</span><span class="chip opt">실행계획</span></div>
+      <div class="chiprow"><b>불요</b> <span class="chip non">현황</span><span class="chip non">목적</span><span class="chip non">리스크</span><span class="chip non">예산</span><span class="chip non">기대효과</span><span class="chip non">회고</span></div>
+      <p class="note">핵심 정련점: <b>Blocker(막힘) ≠ Support(필요 지원)</b> 구분 · Reflection은 '평가'가 아닌 '관찰' ·
+         산출물 다음엔 반드시 <b>의미(Outcome)</b>를 한 줄.</p>
+      <div class="ecards"><div class="ecard"><div class="ecard-h">의미 <small>outcome</small></div><div class="ex-bad"><span>✗ 낮음(0-1)</span>정리 중 ?? / 업무명만 나열 (양은정·김가은 사례)</div><div class="ex-good"><span>✓ 높음(3)</span>각 자료에 업체별 단가·제작기간·리스크·7/30 납품 타임라인 정리, 베이직 기준 재견적 방향으로 좁힘 (정예은)</div><div class="ex-anchor">&quot;잘됨&quot; → 무엇이 어떻게 달라졌나</div></div><div class="ecard"><div class="ecard-h">해결방향 <small>approach</small></div><div class="ex-bad"><span>✗ 낮음(0-1)</span>브루비 설치 → 팔로업 / 열심히 진행</div><div class="ex-good"><span>✓ 높음(3)</span>여러 제작안을 넓게 검토하기보다 상하뚜껑형 기준으로 재견적, 허니콤보드 샘플 먼저 검증하는 방향</div><div class="ex-anchor">&quot;열심히&quot; → 선택지·근거·결정 명시</div></div><div class="ecard"><div class="ecard-h">의사결정 <small>decision</small></div><div class="ex-bad"><span>✗ 낮음(0-1)</span>(공란 — 10명 전원 미작성)</div><div class="ex-good"><span>✓ 높음(3)</span>행사인력 10→15명·조명 추가·보험규모(128만원) 확정 필요 — 선택지+추천+기한 명시</div><div class="ex-anchor">모호 → 선택지+추천+기한</div></div></div>
+    </div>
+
+    <div class="form-block">
+      <h3>주간 보고 <span class="ver">v0.9 제안</span></h3>
+      <p class="lead2">현재 <b>개인 주간보고 양식은 미정의</b>(집계 대시보드만 존재). 아래를 파일럿으로 제안 —
+         이번 진단이 그 검증 데이터다. 3.0 측정설계 weekly 기대셋 + OKR check-in 차용.</p>
+      <div class="wkgrid"><div class="wk"><b>① 이번 주 핵심 Output·Outcome</b><span>만든 것 + 그게 만든 변화 (나열 아님)</span></div><div class="wk"><b>② 목표 대비 진척</b><span>현황·완료율·일정 마일스톤</span></div><div class="wk"><b>③ 반복 블로커·리스크</b><span>이번 주 되풀이된 막힘, 다음 주 위험</span></div><div class="wk"><b>④ 다음 주 집중 과제</b><span>실행계획 — 단계·담당</span></div><div class="wk"><b>⑤ 의사결정 요청</b><span>대표·팀장이 정해줄 것 (선택지+추천+기한)</span></div><div class="wk"><b>⑥ 주간 회고 + Confidence</b><span>관찰 1개 + 목표 달성 자신도 🟢🟡🔴 (OKR 차용)</span></div></div>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="tag">③ 현재 갭 — 전체</div>
+    <p class="lead2">아래는 채점된 10명 × 14요소 <b>충족 히트맵</b>. 진할수록 깊이(0~3)가 높다.
+       빈 칸이 <b>안 쓰인 사고</b>다.</p>
+    <div class="heatwrap">
+      <table class="heat">
+        <thead><tr><th class="pn">직원</th><th class="—">현황</th><th class="—">목적</th><th class="req">문제</th><th class="req">해결방향</th><th class="req">산출물</th><th class="req">의미</th><th class="opt">일정</th><th class="—">리스크</th><th class="opt">요청</th><th class="opt">의사결정</th><th class="—">예산</th><th class="—">기대효과</th><th class="opt">실행계획</th><th class="—">회고</th><th class="pr">해상도</th></tr></thead>
+        <tbody><tr><td class="pn">배성원<small>사업기획</small></td><td class="h d2" title="현황 깊이2"></td><td class="h d2" title="목적 깊이2"></td><td class="h d0" title="문제 미충족"></td><td class="h d0" title="해결방향 미충족"></td><td class="h d2" title="산출물 깊이2"></td><td class="h d0" title="의미 미충족"></td><td class="h d2" title="일정 깊이2"></td><td class="h d0" title="리스크 미충족"></td><td class="h d2" title="요청 깊이2"></td><td class="h d0" title="의사결정 미충족"></td><td class="h d2" title="예산 깊이2"></td><td class="h d0" title="기대효과 미충족"></td><td class="h d2" title="실행계획 깊이2"></td><td class="h d2" title="회고 깊이2"></td><td class="pr">33</td></tr><tr><td class="pn">김도영<small>사업기획</small></td><td class="h d2" title="현황 깊이2"></td><td class="h d2" title="목적 깊이2"></td><td class="h d0" title="문제 미충족"></td><td class="h d0" title="해결방향 미충족"></td><td class="h d3" title="산출물 깊이3"></td><td class="h d3" title="의미 깊이3"></td><td class="h d2" title="일정 깊이2"></td><td class="h d0" title="리스크 미충족"></td><td class="h d2" title="요청 깊이2"></td><td class="h d0" title="의사결정 미충족"></td><td class="h d0" title="예산 미충족"></td><td class="h d0" title="기대효과 미충족"></td><td class="h d2" title="실행계획 깊이2"></td><td class="h d0" title="회고 미충족"></td><td class="pr">48</td></tr><tr><td class="pn">김가은<small>공간팀</small></td><td class="h d2" title="현황 깊이2"></td><td class="h d0" title="목적 미충족"></td><td class="h d0" title="문제 미충족"></td><td class="h d0" title="해결방향 미충족"></td><td class="h d2" title="산출물 깊이2"></td><td class="h d0" title="의미 미충족"></td><td class="h d1" title="일정 깊이1"></td><td class="h d0" title="리스크 미충족"></td><td class="h d0" title="요청 미충족"></td><td class="h d0" title="의사결정 미충족"></td><td class="h d0" title="예산 미충족"></td><td class="h d0" title="기대효과 미충족"></td><td class="h d0" title="실행계획 미충족"></td><td class="h d0" title="회고 미충족"></td><td class="pr">14</td></tr><tr><td class="pn">김예진<small>공간팀</small></td><td class="h d2" title="현황 깊이2"></td><td class="h d0" title="목적 미충족"></td><td class="h d0" title="문제 미충족"></td><td class="h d0" title="해결방향 미충족"></td><td class="h d2" title="산출물 깊이2"></td><td class="h d0" title="의미 미충족"></td><td class="h d0" title="일정 미충족"></td><td class="h d0" title="리스크 미충족"></td><td class="h d2" title="요청 깊이2"></td><td class="h d0" title="의사결정 미충족"></td><td class="h d2" title="예산 깊이2"></td><td class="h d0" title="기대효과 미충족"></td><td class="h d0" title="실행계획 미충족"></td><td class="h d2" title="회고 깊이2"></td><td class="pr">17</td></tr><tr><td class="pn">정예은<small>기획팀</small></td><td class="h d3" title="현황 깊이3"></td><td class="h d3" title="목적 깊이3"></td><td class="h d3" title="문제 깊이3"></td><td class="h d3" title="해결방향 깊이3"></td><td class="h d3" title="산출물 깊이3"></td><td class="h d3" title="의미 깊이3"></td><td class="h d3" title="일정 깊이3"></td><td class="h d0" title="리스크 미충족"></td><td class="h d0" title="요청 미충족"></td><td class="h d0" title="의사결정 미충족"></td><td class="h d3" title="예산 깊이3"></td><td class="h d3" title="기대효과 깊이3"></td><td class="h d3" title="실행계획 깊이3"></td><td class="h d3" title="회고 깊이3"></td><td class="pr">75</td></tr><tr><td class="pn">양지혜<small>기획팀</small></td><td class="h d2" title="현황 깊이2"></td><td class="h d2" title="목적 깊이2"></td><td class="h d0" title="문제 미충족"></td><td class="h d0" title="해결방향 미충족"></td><td class="h d2" title="산출물 깊이2"></td><td class="h d0" title="의미 미충족"></td><td class="h d2" title="일정 깊이2"></td><td class="h d0" title="리스크 미충족"></td><td class="h d0" title="요청 미충족"></td><td class="h d0" title="의사결정 미충족"></td><td class="h d0" title="예산 미충족"></td><td class="h d0" title="기대효과 미충족"></td><td class="h d0" title="실행계획 미충족"></td><td class="h d0" title="회고 미충족"></td><td class="pr">17</td></tr><tr><td class="pn">조나연<small>기획팀</small></td><td class="h d2" title="현황 깊이2"></td><td class="h d2" title="목적 깊이2"></td><td class="h d2" title="문제 깊이2"></td><td class="h d2" title="해결방향 깊이2"></td><td class="h d2" title="산출물 깊이2"></td><td class="h d0" title="의미 미충족"></td><td class="h d0" title="일정 미충족"></td><td class="h d2" title="리스크 깊이2"></td><td class="h d0" title="요청 미충족"></td><td class="h d0" title="의사결정 미충족"></td><td class="h d0" title="예산 미충족"></td><td class="h d0" title="기대효과 미충족"></td><td class="h d0" title="실행계획 미충족"></td><td class="h d2" title="회고 깊이2"></td><td class="pr">25</td></tr><tr><td class="pn">윤혜정<small>운영팀</small></td><td class="h d2" title="현황 깊이2"></td><td class="h d0" title="목적 미충족"></td><td class="h d2" title="문제 깊이2"></td><td class="h d0" title="해결방향 미충족"></td><td class="h d2" title="산출물 깊이2"></td><td class="h d0" title="의미 미충족"></td><td class="h d2" title="일정 깊이2"></td><td class="h d0" title="리스크 미충족"></td><td class="h d0" title="요청 미충족"></td><td class="h d0" title="의사결정 미충족"></td><td class="h d0" title="예산 미충족"></td><td class="h d0" title="기대효과 미충족"></td><td class="h d2" title="실행계획 깊이2"></td><td class="h d0" title="회고 미충족"></td><td class="pr">33</td></tr><tr><td class="pn">양은정<small>운영팀</small></td><td class="h d2" title="현황 깊이2"></td><td class="h d0" title="목적 미충족"></td><td class="h d0" title="문제 미충족"></td><td class="h d0" title="해결방향 미충족"></td><td class="h d3" title="산출물 깊이3"></td><td class="h d0" title="의미 미충족"></td><td class="h d0" title="일정 미충족"></td><td class="h d0" title="리스크 미충족"></td><td class="h d0" title="요청 미충족"></td><td class="h d0" title="의사결정 미충족"></td><td class="h d0" title="예산 미충족"></td><td class="h d0" title="기대효과 미충족"></td><td class="h d0" title="실행계획 미충족"></td><td class="h d0" title="회고 미충족"></td><td class="pr">10</td></tr><tr><td class="pn">김준호<small>운영팀</small></td><td class="h d1" title="현황 깊이1"></td><td class="h d0" title="목적 미충족"></td><td class="h d2" title="문제 깊이2"></td><td class="h d0" title="해결방향 미충족"></td><td class="h d2" title="산출물 깊이2"></td><td class="h d0" title="의미 미충족"></td><td class="h d0" title="일정 미충족"></td><td class="h d0" title="리스크 미충족"></td><td class="h d0" title="요청 미충족"></td><td class="h d0" title="의사결정 미충족"></td><td class="h d0" title="예산 미충족"></td><td class="h d0" title="기대효과 미충족"></td><td class="h d0" title="실행계획 미충족"></td><td class="h d0" title="회고 미충족"></td><td class="pr">14</td></tr></tbody>
+      </table>
+    </div>
+    <div class="legend"><span class="h d0"></span>미충족<span class="h d1"></span>1<span class="h d2"></span>2<span class="h d3"></span>3 ·
+      상단 색 = <span class="lg-req">필수</span> <span class="lg-opt">선택</span></div>
+
+    <p class="subtag">ARISA 5대 결함 발생률</p>
+    <div class="defects"><div class="defect"><span>의사결정 미작성</span><div class="dbar"><i style="width:100%"></i></div><b>100%</b></div><div class="defect"><span>의미(Outcome) 미작성</span><div class="dbar"><i style="width:80%"></i></div><b>80%</b></div><div class="defect"><span>문제 미작성</span><div class="dbar"><i style="width:60%"></i></div><b>60%</b></div><div class="defect"><span>산출물 미작성</span><div class="dbar"><i style="width:0%"></i></div><b>0%</b></div></div>
+    <p class="note">산출물은 전원 작성(0% 결함)하지만 <b>의사결정 100%·의미 80%·문제 60%가 공란</b> —
+       '나열은 하되 판단·의미로 올라가지 못한다'는 5대 결함이 실제 데이터로 확인된다.
+       의사결정 0%는 <b>Decision Log(decisions.jsonl)가 비어 있던 이유</b>와 정확히 일치한다.</p>
+  </section>
+  <section class="panel">
+    <div class="tag">④ 팀별 비교</div>
+    <div class="teams"><div class="teamrow"><span class="tn">사업기획</span><div class="tbar"><i style="width:100%"></i></div><span class="tv">해상도 40 · 커버리지 56% · 2명</span></div><div class="teamrow"><span class="tn">기획팀</span><div class="tbar"><i style="width:98%"></i></div><span class="tv">해상도 39 · 커버리지 46% · 3명</span></div><div class="teamrow"><span class="tn">운영팀</span><div class="tbar"><i style="width:48%"></i></div><span class="tv">해상도 19 · 커버리지 29% · 3명</span></div><div class="teamrow"><span class="tn">공간팀</span><div class="tbar"><i style="width:40%"></i></div><span class="tv">해상도 16 · 커버리지 25% · 2명</span></div></div>
+    <p class="note">팀 간 격차가 크다 — 최고 팀과 최저 팀의 해상도 차이가 2배 이상.
+       개인 편차(뒤 카드)가 팀 평균을 좌우한다.</p>
+  </section>
+  <section class="panel">
+    <div class="tag">⑤ 개인별 진단</div>
+    <div class="pcards">
+    <div class="pcard">
+      <div class="pc-h"><div class="gauge" style="background:conic-gradient(#D9A34B 118.8deg,#2a2a2a 0)"><span>33</span></div><div><b>배성원</b><span>사업기획 ·
+        3일 보고 · 37건</span></div></div>
+      <div class="pc-map"><i class="m d2" title="현황"></i><i class="m d2" title="목적"></i><i class="m d0" title="문제"></i><i class="m d0" title="해결방향"></i><i class="m d2" title="산출물"></i><i class="m d0" title="의미"></i><i class="m d2" title="일정"></i><i class="m d0" title="리스크"></i><i class="m d2" title="요청"></i><i class="m d0" title="의사결정"></i><i class="m d2" title="예산"></i><i class="m d0" title="기대효과"></i><i class="m d2" title="실행계획"></i><i class="m d2" title="회고"></i></div>
+      <div class="pc-miss"><small>필수 누락</small><span class="mc">의미</span><span class="mc">문제</span><span class="mc">해결방향</span></div>
+      <div class="pc-exc">"[업무 나열] 6/30(화)
+- 무역업협회에 프로젝트렌트 무역업등록번호 발급 완료
+- 중소기업팝업스토어, 백화점 행사 현장정보 요청. 자료회신은 하였으나, 미비해서 추가로 요청할 계획
+-  CJ KBO건 정부사업 비용처리를 위한, 사업비 변경신청 PMS에 등록변경 완료(K-Start up)
+- 이후 CJ KBO건 내부 미팅 및 행사 세부일정 타임라인 확인
+ (9일 이송계획, 11일 철수계획)
+- CJ KBO건 내부미팅 진행
+ …"</div>
+    </div>
+    <div class="pcard">
+      <div class="pc-h"><div class="gauge" style="background:conic-gradient(#D9A34B 172.8deg,#2a2a2a 0)"><span>48</span></div><div><b>김도영</b><span>사업기획 ·
+        1일 보고 · 18건</span></div></div>
+      <div class="pc-map"><i class="m d2" title="현황"></i><i class="m d2" title="목적"></i><i class="m d0" title="문제"></i><i class="m d0" title="해결방향"></i><i class="m d3" title="산출물"></i><i class="m d3" title="의미"></i><i class="m d2" title="일정"></i><i class="m d0" title="리스크"></i><i class="m d2" title="요청"></i><i class="m d0" title="의사결정"></i><i class="m d0" title="예산"></i><i class="m d0" title="기대효과"></i><i class="m d2" title="실행계획"></i><i class="m d0" title="회고"></i></div>
+      <div class="pc-miss"><small>필수 누락</small><span class="mc">문제</span><span class="mc">해결방향</span></div>
+      <div class="pc-exc">"[업무 나열] 2026-07-01 업무 정리 
+[2026-06-30 오후 8:35] 김 도영: 1. 섬 팝업 브랜드명 변경 + 38섬 최신 데이터 반영 (완료)
+· 생산물: 컨셉덱 배포용 HTML, 지역별 상품콘텐츠 워드 — 제목 전체 ‘섬세한 식탁’ → ‘썸띵한상’ 교체
+· 의미: 새 기준(38섬+중단 2)으로 지역·유형(상품22·프로그램11·미정5) 정정 → 산출물 신뢰성 확보
+
+2. 참여섬 상품 워드를 ‘운영 중심’으로 …"</div>
+    </div>
+    <div class="pcard">
+      <div class="pc-h"><div class="gauge" style="background:conic-gradient(#E17055 50.4deg,#2a2a2a 0)"><span>14</span></div><div><b>김가은</b><span>공간팀 ·
+        2일 보고 · 10건</span></div></div>
+      <div class="pc-map"><i class="m d2" title="현황"></i><i class="m d0" title="목적"></i><i class="m d0" title="문제"></i><i class="m d0" title="해결방향"></i><i class="m d2" title="산출물"></i><i class="m d0" title="의미"></i><i class="m d1" title="일정"></i><i class="m d0" title="리스크"></i><i class="m d0" title="요청"></i><i class="m d0" title="의사결정"></i><i class="m d0" title="예산"></i><i class="m d0" title="기대효과"></i><i class="m d0" title="실행계획"></i><i class="m d0" title="회고"></i></div>
+      <div class="pc-miss"><small>필수 누락</small><span class="mc">의미</span><span class="mc">문제</span><span class="mc">해결방향</span></div>
+      <div class="pc-exc">"[업무 나열] 오늘한일
+1. 답십리 : 브루비 설치 -&gt; 현장 인수인계 / 설치 팔로업
+2. 답십리 : 가구 이슈 정리 / 가구 내부 배선 타공 팔로업
+3. 사무실 : 커피 가구 도어 빠찌링 보수
+4. 세스크멘슬 : 주방가구 도면 정리 (세스크멘슬 주방업체 미팅자료)
+5. 둔촌주공상가 : 시안작업 / 현장 미팅 자료 준비|
+6. 답십리 : 브루비 설치 지출결의서 작ㅅ어
+[상세: 세스크멘슬 : 주방가구 도면 정리 (세스크멘슬 주…"</div>
+    </div>
+    <div class="pcard">
+      <div class="pc-h"><div class="gauge" style="background:conic-gradient(#E17055 61.2deg,#2a2a2a 0)"><span>17</span></div><div><b>김예진</b><span>공간팀 ·
+        1일 보고 · 5건</span></div></div>
+      <div class="pc-map"><i class="m d2" title="현황"></i><i class="m d0" title="목적"></i><i class="m d0" title="문제"></i><i class="m d0" title="해결방향"></i><i class="m d2" title="산출물"></i><i class="m d0" title="의미"></i><i class="m d0" title="일정"></i><i class="m d0" title="리스크"></i><i class="m d2" title="요청"></i><i class="m d0" title="의사결정"></i><i class="m d2" title="예산"></i><i class="m d0" title="기대효과"></i><i class="m d0" title="실행계획"></i><i class="m d2" title="회고"></i></div>
+      <div class="pc-miss"><small>필수 누락</small><span class="mc">의미</span><span class="mc">문제</span><span class="mc">해결방향</span></div>
+      <div class="pc-exc">"[업무 나열] 저 오늘 KBO t-5설치 예상견적 산출해서 팀장님 드렸고, 답십리카페 (리진) 디자인팀 도와서 메뉴판 폼보드 컷팅했어.
+그리고 LA 문화원 모델링 업데이트 해서 팀장님 드렸고, 
+예스카페 아시바부분 캐드 쳤어 (서포트)
+그리고 올드타운 did 판넬 발주한거 결제 올렸어.
+[상세: KBO t-5설치 예상견적 산출] cj측에서 에어스트림 위에 보라색상 조명이 나왔으면 좋겠다고 해서, 보라색 t-5 사입금액과 전기업…"</div>
+    </div>
+    <div class="pcard">
+      <div class="pc-h"><div class="gauge" style="background:conic-gradient(#8FA37E 270.0deg,#2a2a2a 0)"><span>75</span></div><div><b>정예은</b><span>기획팀 ·
+        6일 보고 · 30건</span></div></div>
+      <div class="pc-map"><i class="m d3" title="현황"></i><i class="m d3" title="목적"></i><i class="m d3" title="문제"></i><i class="m d3" title="해결방향"></i><i class="m d3" title="산출물"></i><i class="m d3" title="의미"></i><i class="m d3" title="일정"></i><i class="m d0" title="리스크"></i><i class="m d0" title="요청"></i><i class="m d0" title="의사결정"></i><i class="m d3" title="예산"></i><i class="m d3" title="기대효과"></i><i class="m d3" title="실행계획"></i><i class="m d3" title="회고"></i></div>
+      <div class="pc-miss"><small>필수 누락</small><span class="ok">필수 완비 ✓</span></div>
+      <div class="pc-exc">"[업무 나열] 오늘은 애비뉴엘 청명주 VIP 패키지 제작 방향을 정리하기 위한 자료를 만들었다.
+산출물로는 청명주 VIP 패키지 제작 기획안, 제작 방식 비교 정리본, 오동나무/허니콤보드 상세 견적 비교 자료, ALT별 예상 제작 예산표를 정리했다.
+각 자료에는 업체별 단가, 제작 기간, 샘플비, 장단점, 리스크, 7/30 납품 기준 타임라인을 정리했다. 특히 여러 제작안을 넓게 검토하기보다 상하뚜껑형 베이직 기준으로 재견적을…"</div>
+    </div>
+    <div class="pcard">
+      <div class="pc-h"><div class="gauge" style="background:conic-gradient(#E17055 61.2deg,#2a2a2a 0)"><span>17</span></div><div><b>양지혜</b><span>기획팀 ·
+        6일 보고 · 27건</span></div></div>
+      <div class="pc-map"><i class="m d2" title="현황"></i><i class="m d2" title="목적"></i><i class="m d0" title="문제"></i><i class="m d0" title="해결방향"></i><i class="m d2" title="산출물"></i><i class="m d0" title="의미"></i><i class="m d2" title="일정"></i><i class="m d0" title="리스크"></i><i class="m d0" title="요청"></i><i class="m d0" title="의사결정"></i><i class="m d0" title="예산"></i><i class="m d0" title="기대효과"></i><i class="m d0" title="실행계획"></i><i class="m d0" title="회고"></i></div>
+      <div class="pc-miss"><small>필수 누락</small><span class="mc">의미</span><span class="mc">문제</span><span class="mc">해결방향</span></div>
+      <div class="pc-exc">"[업무 나열] 1. 청명주 ai 연출샷 이미지 디벨롭 작업 완료(대표님 공유 완료) 2. KBO 유니폼 발주 파일 제작 및 주문(현재 미입금 상태로, 내일 오전 빠른 입금 필요), 카라반 사이니지 발주 및 시공 일정 조율(진행중/시공 일정은 가능하나 퍼플 시트지 사용 가능한지 파악 불가하여 샘플 보내서 테스트작업 하기로 함. 시트지 주문 완료) 3. 리진 폰트 서치(진행중), 린넨 발주 업체 견적 및 일정 체크 완료 4. KR…"</div>
+    </div>
+    <div class="pcard">
+      <div class="pc-h"><div class="gauge" style="background:conic-gradient(#E17055 90.0deg,#2a2a2a 0)"><span>25</span></div><div><b>조나연</b><span>기획팀 ·
+        4일 보고 · 12건</span></div></div>
+      <div class="pc-map"><i class="m d2" title="현황"></i><i class="m d2" title="목적"></i><i class="m d2" title="문제"></i><i class="m d2" title="해결방향"></i><i class="m d2" title="산출물"></i><i class="m d0" title="의미"></i><i class="m d0" title="일정"></i><i class="m d2" title="리스크"></i><i class="m d0" title="요청"></i><i class="m d0" title="의사결정"></i><i class="m d0" title="예산"></i><i class="m d0" title="기대효과"></i><i class="m d0" title="실행계획"></i><i class="m d2" title="회고"></i></div>
+      <div class="pc-miss"><small>필수 누락</small><span class="mc">의미</span></div>
+      <div class="pc-exc">"[업무 나열] 마시로우 회의, 마시로우 디자인 발표자료 만들고 리서치, 주류 나무 지함 패키지 리서치, 웬떡 당호밥 상세페이지 수정 및 추가, 이사님께 주간, 일일업무보고 html 제작 후 전달
+[상세: 마시로우 디자인 발표자료 만들고 리서치] 은정님이 마시로우 기획 재조정&gt; 디자인 레퍼런스 및 기획, 리서치, 발표 회의 자료 제작, 클로드코드 사용
+[상세: 주류 나무 지함 패키지 리서치] 대표님이 주류 나무지함 패키지 리서치…"</div>
+    </div>
+    <div class="pcard">
+      <div class="pc-h"><div class="gauge" style="background:conic-gradient(#D9A34B 118.8deg,#2a2a2a 0)"><span>33</span></div><div><b>윤혜정</b><span>운영팀 ·
+        2일 보고 · 23건</span></div></div>
+      <div class="pc-map"><i class="m d2" title="현황"></i><i class="m d0" title="목적"></i><i class="m d2" title="문제"></i><i class="m d0" title="해결방향"></i><i class="m d2" title="산출물"></i><i class="m d0" title="의미"></i><i class="m d2" title="일정"></i><i class="m d0" title="리스크"></i><i class="m d0" title="요청"></i><i class="m d0" title="의사결정"></i><i class="m d0" title="예산"></i><i class="m d0" title="기대효과"></i><i class="m d2" title="실행계획"></i><i class="m d0" title="회고"></i></div>
+      <div class="pc-miss"><small>필수 누락</small><span class="mc">의미</span><span class="mc">해결방향</span></div>
+      <div class="pc-exc">"[업무 나열] 오늘 오전에는 내일 출장가는 여수 여수 미팅 준비를 위해서 성우님과 도영님과 대표님과 회의를 진행을 하였고 그 이전에는 기획팀 업무분장을 위해서 잠시 시간을 보냈는데 어 업무 중요도에 따라서 순위를 정해주고 일을 진행하도록 했고 리젠 카페 오픈 관련사항 팔로워 했고 그다음에는 CJ KBO 프로젝트 관련해서 연관된 어 인력 견적 요청 다시 했고. 어 FA 모스트에 어 스케줄표 다시 정리해서 공유해 줬고. 성원님께도…"</div>
+    </div>
+    <div class="pcard">
+      <div class="pc-h"><div class="gauge" style="background:conic-gradient(#E17055 36.0deg,#2a2a2a 0)"><span>10</span></div><div><b>양은정</b><span>운영팀 ·
+        2일 보고 · 13건</span></div></div>
+      <div class="pc-map"><i class="m d2" title="현황"></i><i class="m d0" title="목적"></i><i class="m d0" title="문제"></i><i class="m d0" title="해결방향"></i><i class="m d3" title="산출물"></i><i class="m d0" title="의미"></i><i class="m d0" title="일정"></i><i class="m d0" title="리스크"></i><i class="m d0" title="요청"></i><i class="m d0" title="의사결정"></i><i class="m d0" title="예산"></i><i class="m d0" title="기대효과"></i><i class="m d0" title="실행계획"></i><i class="m d0" title="회고"></i></div>
+      <div class="pc-miss"><small>필수 누락</small><span class="mc">의미</span><span class="mc">문제</span><span class="mc">해결방향</span></div>
+      <div class="pc-exc">"[업무 나열] 정리 중 ??
+[상세: 테스팅 일정 잡기] 대관 
+연월일시 매장 재방문 및 점검
+
+대표님께 현장운영 바스켓 기준  디테일 버전 전달 완료 
+
+마시 기획안 예산 수정안 전달 완료 
+디자인 방향성 잡힘
+네이버 페이 폼 서칭 및 만드는 법 서칭 (클로드와 진행 ) 
+
+런칭 일정 딜레이 고민 
+마시 기획안 관련 컬쳐마켓 섭외 진행 필요 
+아랑재 업무 진행 
+소제예찬 업무 진행 필요 
+식음료 교육 결제 진행 대표님 회신 …"</div>
+    </div>
+    <div class="pcard">
+      <div class="pc-h"><div class="gauge" style="background:conic-gradient(#E17055 50.4deg,#2a2a2a 0)"><span>14</span></div><div><b>김준호</b><span>운영팀 ·
+        1일 보고 · 4건</span></div></div>
+      <div class="pc-map"><i class="m d1" title="현황"></i><i class="m d0" title="목적"></i><i class="m d2" title="문제"></i><i class="m d0" title="해결방향"></i><i class="m d2" title="산출물"></i><i class="m d0" title="의미"></i><i class="m d0" title="일정"></i><i class="m d0" title="리스크"></i><i class="m d0" title="요청"></i><i class="m d0" title="의사결정"></i><i class="m d0" title="예산"></i><i class="m d0" title="기대효과"></i><i class="m d0" title="실행계획"></i><i class="m d0" title="회고"></i></div>
+      <div class="pc-miss"><small>필수 누락</small><span class="mc">의미</span><span class="mc">해결방향</span></div>
+      <div class="pc-exc">"[업무 나열] 김준호
+[상세: 바스켓 공간소개서 의자 개수 마이크 개수 수정] 바스켓 공간소개서에 나와있는 데이터와 실제 매장 데이터가 달라서 수정했어. 원래 의자 40개, 마이크 2개로 되어있었는데 매장에서 확인해본 결과 의자 80개, 마이크 1개로 확인되어서 바스켓 공간소개서를 수정했어
+[상세: 올드타운 지하창고 정리 계획안 수정] 올드타운 지하창고가 어지러워서 정리해야해서 그거에 대한 계획안을 수정했어. 물건들을 카테고리…"</div>
+    </div></div>
+    <p class="note">해상도 색: <b style="color:#8FA37E">녹색 60+</b> · <b style="color:#D9A34B">황색 30~59</b> ·
+       <b style="color:#E17055">적색 30미만</b>. 미니맵 14칸 = 14요소 깊이. 발췌는 실제 원문(왜곡 없음).</p>
+  </section>
+  <section class="panel">
+    <div class="tag">⑥ 개선 액션</div>
+    <h3>조직 레벨</h3>
+    <div class="acts"><div class="act"><b>입력 UX 오염 수정</b><p>이름칸에 보고 원문이 통째로 들어가 1건이 집계에서 조용히 유실. 봇 이름 검증 강화(이미 일부 반영) + 재발 감지.</p></div><div class="act"><b>의사결정 유도</b><p>10명 전원 decision 공란 → 보고 완료 시 '대표가 정해줄 것 있나요?' 1문항 상시 노출. Decision Log 축적으로 연결.</p></div><div class="act"><b>주간양식 v0.9 도입</b><p>개인 주간보고 양식을 파일럿으로 시작 — 이번 진단이 baseline. 4주 뒤 재측정으로 해상도 변화 추적.</p></div><div class="act"><b>의미(Outcome) 한 줄 강제</b><p>산출물 다음에 '그래서 무엇이 달라졌나'를 Completion 질문으로. 80% 공란 → 목표 절반 감소.</p></div></div>
+    <h3>개인 레벨 — 각자 '다음 한 요소'</h3>
+    <ul class="indlist"><li>산출물은 잘 쓴다 → 다음 단계는 <b>의미(Outcome) 한 줄</b> 붙이기 (대부분 공통 과제)</li><li>정예은(해상도 75)의 보고를 팀 <b>모범 사례</b>로 공유 — 산출물+방향+의미+일정을 한 흐름으로</li><li>공간팀·운영팀은 <b>나열 → 문제·해결방향</b> 전환이 1순위</li></ul>
+  </section>
+<p class="foot">ARISA 보고 품질 진단 · 채점 = 14요소×깊이 0-3 (측정설계 v2) · 모든 수치는 diagnosis-scored JSON 소급 · by Project Rent</p>
+</div></body></html>

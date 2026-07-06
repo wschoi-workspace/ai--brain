@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Rent — 전략 프로젝트 제작 가이드라인</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A;
+  --bg-2: #111;
+  --bg-3: #222;
+  --fg: #F5F0EB;
+  --fg-2: #C9C2BA;
+  --fg-3: #7A7570;
+  --line: #333;
+  --line-2: #2a2a2a;
+  --accent: #6C5CE7;
+  --accent-light: #A29BFE;
+  --warm: #E9DCC8;
+  --rust: #B86C4A;
+  --green: #8FA37E;
+  --blue: #6F8AA3;
+  --amber: #D9A34B;
+  --coral: #E17055;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--fg-2);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+}
+
+/* ── Slide ── */
+.slide {
+  width: 100%;
+  min-height: 100vh;
+  padding: 80px 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid var(--line-2);
+}
+.slide-cover { background: var(--bg-2); text-align: center; padding: 120px 80px; }
+.slide-section { background: var(--bg); }
+.slide-dark { background: var(--bg-2); }
+.slide-head { margin-bottom: 48px; }
+.slide-body { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+
+/* ── Typography ── */
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  font-weight: 400;
+}
+h1 {
+  font-size: 64px;
+  font-weight: 200;
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  color: var(--fg);
+  margin-bottom: 24px;
+}
+h2 {
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--fg);
+  margin-bottom: 20px;
+}
+h3 {
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  margin-bottom: 16px;
+}
+h4 {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--fg);
+  margin-bottom: 12px;
+}
+p { margin-bottom: 12px; }
+.sub-copy {
+  font-size: 16px;
+  color: var(--fg-3);
+  font-weight: 300;
+  line-height: 1.6;
+  margin-top: 8px;
+}
+.text-large {
+  font-size: 20px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--fg-2);
+}
+.text-hero {
+  font-size: 28px;
+  line-height: 1.5;
+  font-weight: 300;
+  color: var(--fg);
+}
+.text-statement {
+  font-size: 24px;
+  line-height: 1.5;
+  font-weight: 300;
+  color: var(--fg);
+  max-width: 640px;
+}
+
+/* ── Layout ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 24px; }
+
+/* ── Card ── */
+.card {
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  padding: 32px;
+}
+.card-accent { border-left: 3px solid var(--accent); }
+.card-warm { border-left: 3px solid var(--warm); }
+.card-rust { border-left: 3px solid var(--rust); }
+.card-green { border-left: 3px solid var(--green); }
+.card-coral { border-left: 3px solid var(--coral); }
+
+/* ── Divider ── */
+.divider { width: 48px; height: 2px; background: var(--accent); margin: 32px 0; }
+.divider-warm { background: var(--warm); }
+.divider-center { margin: 32px auto; }
+
+/* ── Flow ── */
+.flow-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.flow-node {
+  padding: 16px 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--fg);
+  font-weight: 500;
+  min-width: 200px;
+}
+.flow-node-accent { border-color: var(--accent); color: var(--accent); }
+.flow-node-warm { border-color: var(--warm); }
+.flow-node-active { border-color: var(--accent); background: rgba(108,92,231,0.08); }
+.flow-arrow {
+  color: var(--fg-3);
+  font-size: 18px;
+  padding: 6px 0;
+  text-align: center;
+}
+
+/* ── Table ── */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+th, td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 13px;
+  font-weight: 300;
+}
+th {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  font-weight: 400;
+  border-bottom: 1px solid var(--line);
+}
+td { color: var(--fg-2); }
+td strong { color: var(--fg); font-weight: 500; }
+
+/* ── Blockquote ── */
+blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 24px 32px;
+  background: var(--bg-3);
+  border-radius: 0 8px 8px 0;
+  margin: 24px 0;
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--fg);
+  font-weight: 300;
+}
+
+/* ── Tag ── */
+.tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  margin-right: 8px;
+  margin-bottom: 6px;
+}
+.tag-accent { background: rgba(108,92,231,0.15); color: var(--accent); }
+.tag-warm { background: rgba(233,220,200,0.12); color: var(--warm); }
+.tag-rust { background: rgba(184,108,74,0.15); color: var(--rust); }
+.tag-green { background: rgba(143,163,126,0.15); color: var(--green); }
+.tag-coral { background: rgba(225,112,85,0.15); color: var(--coral); }
+
+/* ── Chapter Card ── */
+.ch-card {
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ch-num {
+  font-size: 36px;
+  font-weight: 200;
+  color: var(--accent);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.ch-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--fg);
+  line-height: 1.3;
+}
+.ch-sub {
+  font-size: 12px;
+  color: var(--fg-3);
+  line-height: 1.5;
+}
+.ch-rule {
+  font-size: 13px;
+  color: var(--fg-2);
+  line-height: 1.6;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-2);
+}
+.ch-rule strong { color: var(--warm); font-weight: 500; }
+
+/* ── Checklist ── */
+.checklist { list-style: none; }
+.checklist li {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 15px;
+  color: var(--fg);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  line-height: 1.5;
+}
+.checklist li::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--fg-3);
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── Compare ── */
+.compare-good {
+  border-left: 3px solid var(--green);
+  padding: 20px 24px;
+  background: rgba(143,163,126,0.05);
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 16px;
+}
+.compare-bad {
+  border-left: 3px solid var(--coral);
+  padding: 20px 24px;
+  background: rgba(225,112,85,0.05);
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 16px;
+}
+.compare-label {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+
+/* ── Footer ── */
+.slide-footer {
+  position: absolute;
+  bottom: 32px;
+  left: 120px;
+  right: 120px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+/* ── Nav ── */
+.nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 100;
+}
+.nav-bar button {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--fg-3);
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+.nav-bar button:hover { border-color: var(--fg-3); color: var(--fg-2); }
+.nav-counter {
+  font-size: 11px;
+  color: var(--fg-3);
+  letter-spacing: 0.1em;
+  min-width: 60px;
+  text-align: center;
+}
+
+@media print {
+  .nav-bar { display: none; }
+  .slide { page-break-after: always; min-height: auto; padding: 40px 60px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ S01: COVER ═══ -->
+<div class="slide slide-cover" id="s01">
+  <div class="eyebrow">Project Rent &mdash; Junior Manual v1.0</div>
+  <h1 style="font-size: 52px;">전략 프로젝트<br>제작 가이드라인</h1>
+  <div class="divider divider-warm divider-center"></div>
+  <p class="sub-copy" style="max-width: 520px; margin: 0 auto;">
+    보고서는 디자인을 만드는 일이 아닙니다.<br>
+    상대방의 의사결정을 설계하는 일입니다.
+  </p>
+  <div class="slide-footer">
+    <span>Internal &mdash; Team Only</span>
+    <span>by Project Rent</span>
+  </div>
+</div>
+
+<!-- ═══ S02: PRINCIPLE ═══ -->
+<div class="slide slide-section" id="s02">
+  <div class="slide-head">
+    <div class="eyebrow">00 &mdash; The Most Important Principle</div>
+    <h2>가장 중요한 원칙</h2>
+  </div>
+  <div class="slide-body">
+    <div class="text-statement" style="margin-bottom: 40px;">
+      우리가 만드는 모든 페이지는<br>
+      <strong style="color: var(--accent);">"그래서 상대가 어떤 판단을 하도록 만들 것인가?"</strong><br>
+      를 먼저 생각해야 합니다.
+    </div>
+    <blockquote style="max-width: 640px; border-left-color: var(--warm);">
+      우리는 보고서를 만드는 사람이 아니라,<br>
+      발주처가 '이 방향이 맞다'고 <strong>스스로 확신하게 만드는 사람</strong>이다.
+    </blockquote>
+    <div style="margin-top: 40px;">
+      <div class="card" style="max-width: 640px; padding: 24px 32px; border-left: 3px solid var(--accent);">
+        <p style="color: var(--fg); font-size: 18px; font-weight: 500; margin: 0;">
+          "한 페이지는 하나의 메시지만 전달한다."
+        </p>
+        <p style="color: var(--fg-3); font-size: 13px; margin: 8px 0 0;">
+          한 페이지에 다섯 가지를 설명하려는 것이 주니어의 가장 흔한 실수입니다.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>02</span>
+  </div>
+</div>
+
+<!-- ═══ S03: FISA STRUCTURE ═══ -->
+<div class="slide slide-dark" id="s03">
+  <div class="slide-head">
+    <div class="eyebrow">01 &mdash; Report Structure</div>
+    <h2>보고서의 기본 구조</h2>
+    <p class="sub-copy">모든 챕터는 반드시 이 구조를 따릅니다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap: 64px;">
+      <div class="flow-vertical" style="gap: 0;">
+        <div class="flow-node flow-node-active" style="width: 280px;">FACT</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node-active" style="width: 280px;">INSIGHT</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node-active" style="width: 280px;">STRATEGY</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node-active" style="width: 280px;">ACTION</div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <span class="tag tag-accent">FACT</span>
+            <span style="color: var(--fg); font-weight: 500;">현재 어떤 상황인가?</span>
+          </div>
+          <p style="margin: 0; font-size: 13px;">절대 의견을 쓰지 않는다. 객관적인 사실만 정리한다.<br>
+          <span style="color: var(--fg-3);">시장 규모 / 트렌드 / 현황 / 데이터 / 사례 / 인터뷰</span></p>
+        </div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <span class="tag tag-warm">INSIGHT</span>
+            <span style="color: var(--fg); font-weight: 500;">우리가 읽어낸 의미는?</span>
+          </div>
+          <p style="margin: 0; font-size: 13px;">단순 요약이 아니라 <strong>패턴</strong>을 읽는다.<br>
+          <span style="color: var(--warm); font-style: italic;">"사람들은 명상을 원하는 것이 아니라 삶의 리듬을 회복하고 싶어한다."</span></p>
+        </div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <span class="tag tag-rust">STRATEGY</span>
+            <span style="color: var(--fg); font-weight: 500;">우리는 무엇을 제안하는가?</span>
+          </div>
+          <p style="margin: 0; font-size: 13px;">여기서 처음으로 <strong>우리 의견</strong>이 들어간다.</p>
+        </div>
+        <div class="card">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <span class="tag tag-green">ACTION</span>
+            <span style="color: var(--fg); font-weight: 500;">실제로 무엇을 만들 것인가?</span>
+          </div>
+          <p style="margin: 0; font-size: 13px;">공간 / 운영 / 프로그램 / 비즈니스 등 실행 항목.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>03</span>
+  </div>
+</div>
+
+<!-- ═══ S04: THREE QUESTIONS ═══ -->
+<div class="slide slide-section" id="s04">
+  <div class="slide-head">
+    <div class="eyebrow">02 &mdash; Before You Design</div>
+    <h2>페이지를 만들기 전에<br>반드시 해야 하는 질문</h2>
+    <p class="sub-copy">디자인보다 먼저 이 질문을 합니다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid-3">
+      <div class="card card-accent" style="text-align: center; padding: 40px 32px;">
+        <div style="font-size: 48px; font-weight: 200; color: var(--accent); margin-bottom: 16px;">Q1</div>
+        <h4>이 페이지는<br>무엇을 증명하는가?</h4>
+      </div>
+      <div class="card card-warm" style="text-align: center; padding: 40px 32px;">
+        <div style="font-size: 48px; font-weight: 200; color: var(--warm); margin-bottom: 16px;">Q2</div>
+        <h4>이 페이지를 보고<br>발주자는 무슨 결정을<br>내리게 되는가?</h4>
+      </div>
+      <div class="card card-rust" style="text-align: center; padding: 40px 32px;">
+        <div style="font-size: 48px; font-weight: 200; color: var(--rust); margin-bottom: 16px;">Q3</div>
+        <h4>이 페이지가 없으면<br>논리가 끊기는가?</h4>
+        <p style="color: var(--fg-3); font-size: 13px; margin-top: 12px;">
+          끊긴다면 필요.<br>아니라면 <strong style="color: var(--coral);">삭제</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>04</span>
+  </div>
+</div>
+
+<!-- ═══ S05: CHAPTER MAP (1~4) ═══ -->
+<div class="slide slide-dark" id="s05">
+  <div class="slide-head">
+    <div class="eyebrow">03 &mdash; Chapter Structure</div>
+    <h2>챕터별 제작 원칙</h2>
+    <p class="sub-copy">Chapter 1 ~ 4: WHY부터 BUSINESS FRAMEWORK까지</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid-4">
+      <div class="ch-card">
+        <div class="ch-num">01</div>
+        <div class="ch-title">WHY<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">왜 해야 하는가</span></div>
+        <div class="ch-sub">
+          <span class="tag tag-green" style="margin: 0;">Do</span><br>
+          시대 변화 / 시장 변화 / 사회 변화 / 프로젝트 필요성
+        </div>
+        <div class="ch-rule">
+          <strong>Don't:</strong> 바로 공간 이야기
+        </div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-num">02</div>
+        <div class="ch-title">VISION<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">무엇이 될 것인가</span></div>
+        <div class="ch-sub">
+          <span class="tag tag-green" style="margin: 0;">Do</span><br>
+          미래 모습 / 역할 정의 / Positioning / 철학
+        </div>
+        <div class="ch-rule">
+          <strong>Don't:</strong> 컨셉을 설명하지 말 것.<br>방향을 설명할 것.
+        </div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-num">03</div>
+        <div class="ch-title">STRATEGY<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">어떻게 갈 것인가</span></div>
+        <div class="ch-sub">
+          <span class="tag tag-green" style="margin: 0;">Do</span><br>
+          고객 / 경험 / 브랜드 / 방문 구조 / 핵심 가치
+        </div>
+        <div class="ch-rule">
+          <strong>Don't:</strong> 프로그램 나열 금지
+        </div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-num">04</div>
+        <div class="ch-title">BUSINESS<br>FRAMEWORK<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">사업 철학</span></div>
+        <div class="ch-sub">
+          <span class="tag tag-green" style="margin: 0;">Do</span><br>
+          왜 사업을 해야 하는가 → 어디까지 가능한가 → 무엇은 하지 않을 것인가
+        </div>
+        <div class="ch-rule">
+          가장 중요한 것은 <strong>Boundary</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>05</span>
+  </div>
+</div>
+
+<!-- ═══ S06: CHAPTER MAP (5~8) ═══ -->
+<div class="slide slide-section" id="s06">
+  <div class="slide-head">
+    <div class="eyebrow">03 &mdash; Chapter Structure (cont.)</div>
+    <h2>챕터별 제작 원칙</h2>
+    <p class="sub-copy">Chapter 5 ~ 8: MARKET부터 SPACE까지</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid-4">
+      <div class="ch-card">
+        <div class="ch-num">05</div>
+        <div class="ch-title">MARKET<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">시장 사례</span></div>
+        <div class="ch-sub">
+          사례를 모으는 장이 아니라<br><strong style="color: var(--fg);">사례를 통해 우리 전략을 증명하는 장</strong>
+        </div>
+        <div class="ch-rule">
+          사례마다 반드시 <strong>Insight 추출</strong>
+        </div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-num">06</div>
+        <div class="ch-title">BUSINESS<br>MODEL<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">수익 모델</span></div>
+        <div class="ch-sub">
+          아이디어 나열이 아니라<br>모든 BM을 <strong style="color: var(--fg);">5축 평가</strong>
+        </div>
+        <div class="ch-rule">
+          <strong>수익성 / 운영성 / 차별성 / 확장성 / 적합성</strong>
+        </div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-num">07</div>
+        <div class="ch-title">SCENARIO<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">컨셉 제안</span></div>
+        <div class="ch-sub">
+          반드시 <strong style="color: var(--fg);">A / B / C 비교</strong>
+        </div>
+        <div class="ch-rule">
+          <strong>비교 없는 제안은 설득력이 약하다</strong>
+        </div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-num">08</div>
+        <div class="ch-title">SPACE<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">공간 설계</span></div>
+        <div class="ch-sub">
+          <strong style="color: var(--fg);">공간은 전략의 결과다</strong><br>
+          공간을 먼저 만들면 안 된다
+        </div>
+        <div class="ch-rule">
+          순서: <strong>Business → Experience → Space</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>06</span>
+  </div>
+</div>
+
+<!-- ═══ S07: CHAPTER MAP (9~12) ═══ -->
+<div class="slide slide-dark" id="s07">
+  <div class="slide-head">
+    <div class="eyebrow">03 &mdash; Chapter Structure (cont.)</div>
+    <h2>챕터별 제작 원칙</h2>
+    <p class="sub-copy">Chapter 9 ~ 12: OPERATION부터 IMPACT까지</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid-4">
+      <div class="ch-card">
+        <div class="ch-num">09</div>
+        <div class="ch-title">OPERATION<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">운영 설계</span></div>
+        <div class="ch-sub">
+          공간 운영이 아니라<br><strong style="color: var(--fg);">반복 방문까지 설계</strong>
+        </div>
+        <div class="ch-rule">
+          <strong>사람 → 프로그램 → 운영 시스템 → 커뮤니티 → 반복 방문</strong>
+        </div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-num">10</div>
+        <div class="ch-title">FINANCIAL<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">재무 검증</span></div>
+        <div class="ch-sub">
+          숫자를 만드는 장이 아니라<br><strong style="color: var(--fg);">전략이 현실적으로 가능한지 검증</strong>하는 장
+        </div>
+        <div class="ch-rule">&nbsp;</div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-num">11</div>
+        <div class="ch-title">ROADMAP<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">단계별 성장</span></div>
+        <div class="ch-sub">
+          한 번에 완성하지 않는다<br><strong style="color: var(--fg);">Phase 기준</strong>으로 설계
+        </div>
+        <div class="ch-rule">&nbsp;</div>
+      </div>
+      <div class="ch-card">
+        <div class="ch-num">12</div>
+        <div class="ch-title">IMPACT<br><span style="font-weight: 300; color: var(--fg-2); font-size: 14px;">파급 효과</span></div>
+        <div class="ch-sub">
+          이 프로젝트가 세상을 어떻게 바꾸는가
+        </div>
+        <div class="ch-rule">
+          <strong>프로젝트 → 조직 → 도시 → 국가 → 글로벌</strong> 확장
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>07</span>
+  </div>
+</div>
+
+<!-- ═══ S08: MARKET — GOOD vs BAD ═══ -->
+<div class="slide slide-section" id="s08">
+  <div class="slide-head">
+    <div class="eyebrow">04 &mdash; Market Chapter Deep Dive</div>
+    <h2>사례 리서치의 올바른 방법</h2>
+    <p class="sub-copy">사례를 통해 우리 전략을 증명한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap: 40px;">
+      <div>
+        <div class="compare-bad">
+          <div class="compare-label" style="color: var(--coral);">Bad Example</div>
+          <p style="color: var(--fg); margin: 0;">"이런 사례가 있다."</p>
+          <p style="color: var(--fg-3); margin: 8px 0 0; font-size: 13px;">끝. &mdash; Insight 없음.</p>
+        </div>
+        <div class="compare-bad">
+          <div class="compare-label" style="color: var(--coral);">Bad Research</div>
+          <p style="color: var(--fg); margin: 0;">사례 30개 수집</p>
+          <p style="color: var(--fg-3); margin: 8px 0 0; font-size: 13px;">끝. &mdash; 자료 수집 = 리서치라는 착각.</p>
+        </div>
+      </div>
+      <div>
+        <div class="compare-good">
+          <div class="compare-label" style="color: var(--green);">Good Example</div>
+          <p style="color: var(--fg); margin: 0;">"이 사례에서 우리가 가져와야 하는 것은 <strong style="color: var(--green);">멤버십 구조</strong>이다."</p>
+          <p style="color: var(--fg-3); margin: 8px 0 0; font-size: 13px;">사례 → 우리 전략과 연결.</p>
+        </div>
+        <div class="compare-good">
+          <div class="compare-label" style="color: var(--green);">Good Research</div>
+          <div class="flow-vertical" style="align-items: flex-start; gap: 4px; margin-top: 8px;">
+            <span style="color: var(--fg);">사례 5개</span>
+            <span class="flow-arrow" style="padding: 2px 0;">↓</span>
+            <span style="color: var(--fg);">공통 패턴 추출</span>
+            <span class="flow-arrow" style="padding: 2px 0;">↓</span>
+            <span style="color: var(--green); font-weight: 500;">우리 전략과 연결</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <blockquote style="margin-top: 32px; border-left-color: var(--warm); max-width: 640px;">
+      리서치는 자료 수집이 아니라<br>
+      <strong>"우리 전략을 증명하는 근거를 찾는 과정"</strong>이다.
+    </blockquote>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>08</span>
+  </div>
+</div>
+
+<!-- ═══ S09: BM 5-AXIS ═══ -->
+<div class="slide slide-dark" id="s09">
+  <div class="slide-head">
+    <div class="eyebrow">05 &mdash; Business Model Evaluation</div>
+    <h2>BM 5축 평가 프레임</h2>
+    <p class="sub-copy">모든 비즈니스 모델은 반드시 이 5가지로 평가합니다.</p>
+  </div>
+  <div class="slide-body">
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px;">
+      <div class="card" style="text-align: center; padding: 32px 16px;">
+        <div style="font-size: 32px; font-weight: 200; color: var(--accent); margin-bottom: 12px;">01</div>
+        <h4 style="font-size: 16px;">수익성</h4>
+        <p style="font-size: 12px; color: var(--fg-3); margin: 0;">Revenue<br>Potential</p>
+      </div>
+      <div class="card" style="text-align: center; padding: 32px 16px;">
+        <div style="font-size: 32px; font-weight: 200; color: var(--accent); margin-bottom: 12px;">02</div>
+        <h4 style="font-size: 16px;">운영성</h4>
+        <p style="font-size: 12px; color: var(--fg-3); margin: 0;">Operational<br>Feasibility</p>
+      </div>
+      <div class="card" style="text-align: center; padding: 32px 16px;">
+        <div style="font-size: 32px; font-weight: 200; color: var(--accent); margin-bottom: 12px;">03</div>
+        <h4 style="font-size: 16px;">차별성</h4>
+        <p style="font-size: 12px; color: var(--fg-3); margin: 0;">Differenti-<br>ation</p>
+      </div>
+      <div class="card" style="text-align: center; padding: 32px 16px;">
+        <div style="font-size: 32px; font-weight: 200; color: var(--accent); margin-bottom: 12px;">04</div>
+        <h4 style="font-size: 16px;">확장성</h4>
+        <p style="font-size: 12px; color: var(--fg-3); margin: 0;">Scala-<br>bility</p>
+      </div>
+      <div class="card" style="text-align: center; padding: 32px 16px;">
+        <div style="font-size: 32px; font-weight: 200; color: var(--accent); margin-bottom: 12px;">05</div>
+        <h4 style="font-size: 16px;">적합성</h4>
+        <p style="font-size: 12px; color: var(--fg-3); margin: 0;">Context<br>Fit</p>
+      </div>
+    </div>
+    <p style="margin-top: 24px; color: var(--fg-3); font-size: 13px;">* 프로젝트 특성에 따라 종교 적합성, 법률 적합성 등 추가 축 적용</p>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>09</span>
+  </div>
+</div>
+
+<!-- ═══ S10: SPACE SEQUENCE ═══ -->
+<div class="slide slide-section" id="s10">
+  <div class="slide-head">
+    <div class="eyebrow">06 &mdash; Space Design Sequence</div>
+    <h2>공간은 전략의 결과다</h2>
+    <p class="sub-copy">공간을 먼저 만들면 안 됩니다. 항상 이 순서를 따릅니다.</p>
+  </div>
+  <div class="slide-body">
+    <div style="display: flex; justify-content: center; margin-bottom: 48px;">
+      <div class="flow-vertical" style="gap: 0;">
+        <div class="flow-node" style="width: 320px; border-color: var(--accent); background: rgba(108,92,231,0.08);">
+          <div style="font-size: 11px; letter-spacing: 0.2em; color: var(--fg-3); text-transform: uppercase; margin-bottom: 4px;">Step 1</div>
+          Business
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node" style="width: 320px; border-color: var(--warm);">
+          <div style="font-size: 11px; letter-spacing: 0.2em; color: var(--fg-3); text-transform: uppercase; margin-bottom: 4px;">Step 2</div>
+          Experience
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node" style="width: 320px; border-color: var(--rust);">
+          <div style="font-size: 11px; letter-spacing: 0.2em; color: var(--fg-3); text-transform: uppercase; margin-bottom: 4px;">Step 3</div>
+          Space
+        </div>
+      </div>
+    </div>
+    <div class="grid-2" style="max-width: 800px; margin: 0 auto;">
+      <div class="card card-coral">
+        <div class="eyebrow" style="color: var(--coral);">Common Mistake</div>
+        <p style="color: var(--fg); margin: 0;">인테리어 컨셉부터 시작한다.<br>"여기에 카페를 넣으면 예쁘겠다."</p>
+      </div>
+      <div class="card card-green">
+        <div class="eyebrow" style="color: var(--green);">Correct Approach</div>
+        <p style="color: var(--fg); margin: 0;">비즈니스 모델이 정해지고,<br>경험이 설계된 후에 공간이 따라온다.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>10</span>
+  </div>
+</div>
+
+<!-- ═══ S11: OPERATION DESIGN ═══ -->
+<div class="slide slide-dark" id="s11">
+  <div class="slide-head">
+    <div class="eyebrow">07 &mdash; Operation Design</div>
+    <h2>운영은 공간 운영이 아니다</h2>
+    <p class="sub-copy">반복 방문까지 설계해야 운영입니다.</p>
+  </div>
+  <div class="slide-body">
+    <div style="display: flex; justify-content: center;">
+      <div style="display: grid; grid-template-columns: 60px 1fr; gap: 0; max-width: 600px; width: 100%;">
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--accent); margin-top: 6px;"></div>
+          <div style="width: 1px; flex: 1; background: var(--line);"></div>
+        </div>
+        <div style="padding: 0 0 32px 16px;">
+          <h4 style="color: var(--accent);">사람</h4>
+          <p style="color: var(--fg-3); font-size: 13px; margin: 0;">누가 오는가? 누가 운영하는가?</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--accent-light);"></div>
+          <div style="width: 1px; flex: 1; background: var(--line);"></div>
+        </div>
+        <div style="padding: 0 0 32px 16px;">
+          <h4>프로그램</h4>
+          <p style="color: var(--fg-3); font-size: 13px; margin: 0;">무엇을 경험하는가?</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--warm);"></div>
+          <div style="width: 1px; flex: 1; background: var(--line);"></div>
+        </div>
+        <div style="padding: 0 0 32px 16px;">
+          <h4>운영 시스템</h4>
+          <p style="color: var(--fg-3); font-size: 13px; margin: 0;">어떻게 돌아가는가?</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--rust);"></div>
+          <div style="width: 1px; flex: 1; background: var(--line);"></div>
+        </div>
+        <div style="padding: 0 0 32px 16px;">
+          <h4>커뮤니티</h4>
+          <p style="color: var(--fg-3); font-size: 13px; margin: 0;">어떻게 연결되는가?</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--green);"></div>
+        </div>
+        <div style="padding: 0 0 0 16px;">
+          <h4 style="color: var(--green);">반복 방문</h4>
+          <p style="color: var(--fg-3); font-size: 13px; margin: 0;">왜 다시 오는가?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>11</span>
+  </div>
+</div>
+
+<!-- ═══ S12: PAGE CHECKLIST ═══ -->
+<div class="slide slide-section" id="s12">
+  <div class="slide-head">
+    <div class="eyebrow">08 &mdash; Page Checklist</div>
+    <h2>페이지 제작 체크리스트</h2>
+    <p class="sub-copy">모든 페이지는 제작 전에 체크합니다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap: 40px;">
+      <div>
+        <ul class="checklist">
+          <li>이 페이지의 목적은 무엇인가?</li>
+          <li>이 페이지는 무엇을 증명하는가?</li>
+          <li>데이터인가, 의견인가 구분했는가?</li>
+          <li>Insight가 있는가?</li>
+        </ul>
+      </div>
+      <div>
+        <ul class="checklist">
+          <li>다음 페이지와 논리가 연결되는가?</li>
+          <li>결론이 너무 빨리 나오지 않았는가?</li>
+          <li style="color: var(--coral);">이 페이지가 없어도 보고서가 이해된다면 &mdash; <strong>삭제</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>12</span>
+  </div>
+</div>
+
+<!-- ═══ S13: DESIGN GUIDE ═══ -->
+<div class="slide slide-dark" id="s13">
+  <div class="slide-head">
+    <div class="eyebrow">09 &mdash; Design Principle</div>
+    <h2>디자인 가이드</h2>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap: 48px;">
+      <div>
+        <div class="text-statement" style="margin-bottom: 32px;">
+          디자인은<br>예쁘게 만드는 게 아닙니다.
+        </div>
+        <blockquote style="border-left-color: var(--accent);">
+          좋은 디자인은<br>논리가 <strong>5초 안에</strong> 이해됩니다.
+        </blockquote>
+      </div>
+      <div>
+        <div class="card card-coral" style="margin-bottom: 20px;">
+          <div class="eyebrow" style="color: var(--coral);">Common Mistake</div>
+          <p style="color: var(--fg); margin: 0;">한 페이지에 다섯 가지를 설명하려 한다.</p>
+        </div>
+        <div class="card card-green">
+          <div class="eyebrow" style="color: var(--green);">Correct Approach</div>
+          <p style="color: var(--fg); margin: 0;">페이지마다 하나의 질문에만 답한다.</p>
+          <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line-2);">
+            <p style="font-size: 13px; color: var(--fg-2); margin: 0 0 4px;">
+              &bull; 이 페이지는 무엇을 증명하는가?
+            </p>
+            <p style="font-size: 13px; color: var(--fg-2); margin: 0;">
+              &bull; 다음 페이지로 왜 넘어가야 하는가?
+            </p>
+            <p style="font-size: 13px; color: var(--fg-3); margin: 12px 0 0;">
+              이 두 가지가 명확하면,<br>보고서는 자연스럽게 하나의 스토리가 됩니다.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>13</span>
+  </div>
+</div>
+
+<!-- ═══ S14: FULL CHAPTER MAP ═══ -->
+<div class="slide slide-section" id="s14">
+  <div class="slide-head">
+    <div class="eyebrow">10 &mdash; Full Chapter Map</div>
+    <h2>전체 챕터 한 눈에 보기</h2>
+  </div>
+  <div class="slide-body">
+    <table>
+      <tr>
+        <th style="width: 8%;">CH</th>
+        <th style="width: 14%;">Title</th>
+        <th style="width: 28%;">핵심 질문</th>
+        <th style="width: 28%;">필수 포함</th>
+        <th style="width: 22%;">절대 금지</th>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">01</strong></td>
+        <td><strong>WHY</strong></td>
+        <td>왜 해야 하는가?</td>
+        <td>시대/시장/사회 변화, 필요성</td>
+        <td style="color: var(--coral);">바로 공간 이야기</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">02</strong></td>
+        <td><strong>VISION</strong></td>
+        <td>무엇이 될 것인가?</td>
+        <td>미래 모습, 역할, Positioning, 철학</td>
+        <td style="color: var(--coral);">컨셉 설명 (방향을 설명할 것)</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">03</strong></td>
+        <td><strong>STRATEGY</strong></td>
+        <td>어떻게 갈 것인가?</td>
+        <td>고객, 경험, 브랜드, 방문 구조</td>
+        <td style="color: var(--coral);">프로그램 나열</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">04</strong></td>
+        <td><strong>BIZ FRAMEWORK</strong></td>
+        <td>사업 철학은?</td>
+        <td>Why → 범위 → Boundary</td>
+        <td style="color: var(--coral);">사업 설명 (철학을 설명할 것)</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">05</strong></td>
+        <td><strong>MARKET</strong></td>
+        <td>근거는 있는가?</td>
+        <td>사례 + Insight 추출</td>
+        <td style="color: var(--coral);">"이런 사례가 있다" 끝</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">06</strong></td>
+        <td><strong>BIZ MODEL</strong></td>
+        <td>어떻게 수익을 내는가?</td>
+        <td>5축 평가 (수익/운영/차별/확장/적합)</td>
+        <td style="color: var(--coral);">아이디어 나열</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">07</strong></td>
+        <td><strong>SCENARIO</strong></td>
+        <td>어떤 방향인가?</td>
+        <td>A/B/C 비교</td>
+        <td style="color: var(--coral);">비교 없는 단일 제안</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">08</strong></td>
+        <td><strong>SPACE</strong></td>
+        <td>어떤 공간인가?</td>
+        <td>Business → Experience → Space</td>
+        <td style="color: var(--coral);">공간 먼저</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">09</strong></td>
+        <td><strong>OPERATION</strong></td>
+        <td>어떻게 운영하는가?</td>
+        <td>사람 → 프로그램 → 시스템 → 커뮤니티 → 재방문</td>
+        <td style="color: var(--coral);">공간 운영만</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">10</strong></td>
+        <td><strong>FINANCIAL</strong></td>
+        <td>현실적으로 가능한가?</td>
+        <td>전략의 현실 검증</td>
+        <td style="color: var(--coral);">숫자 만들기</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">11</strong></td>
+        <td><strong>ROADMAP</strong></td>
+        <td>어떤 순서로 하는가?</td>
+        <td>Phase별 단계 성장</td>
+        <td style="color: var(--coral);">한 번에 완성</td>
+      </tr>
+      <tr>
+        <td><strong style="color: var(--accent);">12</strong></td>
+        <td><strong>IMPACT</strong></td>
+        <td>세상이 어떻게 바뀌는가?</td>
+        <td>프로젝트 → 조직 → 도시 → 국가 → 글로벌</td>
+        <td></td>
+      </tr>
+    </table>
+  </div>
+  <div class="slide-footer">
+    <span>Project Rent &mdash; 전략 프로젝트 가이드라인</span>
+    <span>14</span>
+  </div>
+</div>
+
+<!-- ═══ S15: CLOSING ═══ -->
+<div class="slide slide-cover" id="s15" style="background: var(--bg-2);">
+  <div class="eyebrow" style="color: var(--fg-3);">Project Rent &mdash; Our Principle</div>
+  <h1 style="font-size: 44px; max-width: 720px; margin: 0 auto 24px;">보고서는<br>디자인을 만드는 일이 아니라<br><span style="color: var(--accent);">의사결정을 설계하는 일</span>이다</h1>
+  <div class="divider divider-warm divider-center"></div>
+  <blockquote style="border: none; background: none; text-align: center; padding: 0; max-width: 600px; margin: 24px auto 0; font-size: 16px; color: var(--fg-2);">
+    "우리는 보고서를 만드는 사람이 아니라,<br>
+    발주처가 '이 방향이 맞다'고<br>
+    스스로 확신하게 만드는 사람이다."
+  </blockquote>
+  <div class="slide-footer">
+    <span>Internal &mdash; Team Only</span>
+    <span>by Project Rent</span>
+  </div>
+</div>
+
+<!-- ── Nav ── -->
+<div class="nav-bar">
+  <button onclick="prevSlide()">← Prev</button>
+  <span class="nav-counter" id="navCounter">1 / 15</span>
+  <button onclick="nextSlide()">Next →</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let current = 0;
+function goTo(i) {
+  current = Math.max(0, Math.min(i, slides.length - 1));
+  slides[current].scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('navCounter').textContent = (current + 1) + ' / ' + slides.length;
+}
+function prevSlide() { goTo(current - 1); }
+function nextSlide() { goTo(current + 1); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevSlide(); }
+});
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      current = Array.from(slides).indexOf(e.target);
+      document.getElementById('navCounter').textContent = (current + 1) + ' / ' + slides.length;
+    }
+  });
+}, { threshold: 0.5 });
+slides.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>불교 Brand Analysis — 인식 변화 진단</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root{--bg:#1A1A1A;--bg-2:#111;--bg-3:#222;--fg:#F5F0EB;--fg-2:#C9C2BA;--fg-3:#7A7570;--accent:#6C5CE7;--warm:#E9DCC8;--green:#8FA37E;--coral:#E17055;--blue:#6F8AA3;--amber:#D9A34B;--line:#333;--line-2:#2a2a2a;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{overflow:hidden;width:100%;height:100%}
+  body{font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;background:#000;color:var(--fg);font-weight:300;letter-spacing:-0.01em}
+  .deck{width:100vw;height:100vh;position:relative;overflow:hidden}
+  .slide{position:absolute;inset:0;background:var(--bg);overflow:hidden;padding:60px 80px 80px;display:none;flex-direction:column}
+  .slide.active{display:flex}
+  .slide.dark{background:var(--bg-2)}
+  .slide.cover,.slide.peak{justify-content:center}
+  .slide.mid{justify-content:center;align-items:center;text-align:center}
+  /* head */
+  .slide-head{flex-shrink:0}
+  .sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px}
+  .eyebrow{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--fg-3);font-weight:400}
+  h1{font-size:62px;font-weight:200;line-height:1.18;letter-spacing:-0.03em}
+  h2{font-size:36px;font-weight:300;line-height:1.2;letter-spacing:-0.025em}
+  .subcopy{font-size:16px;color:var(--fg-2);font-weight:300;line-height:1.65;margin-top:14px;max-width:880px}
+  .hl{color:var(--accent);font-weight:500}        /* 청보라 — 슬라이드당 핵심 1곳 */
+  .w{color:var(--warm)}.g{color:var(--green)}.c{color:var(--coral)}
+  /* body */
+  .slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-height:0}
+  .note{font-size:12px;color:var(--fg-3);margin-top:16px;line-height:1.6}
+  /* footer */
+  .slide-footer{position:absolute;bottom:30px;left:80px;right:80px;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;border-top:1px solid var(--line-2);padding-top:14px}
+  /* cover/peak text */
+  .lead{font-size:38px;font-weight:200;line-height:1.4;letter-spacing:-0.02em}
+  .mega{font-size:150px;font-weight:700;line-height:1;letter-spacing:-0.04em}
+  .sub-s{font-size:15px;color:var(--fg-3);margin-top:14px;line-height:1.6}
+  .divider{width:46px;height:2px;background:var(--accent);margin:24px 0}.divider.c{margin:24px auto}
+  /* kpi */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:var(--bg-3);border:1px solid var(--line-2);border-radius:12px;padding:24px;text-align:center}
+  .kpi .v{font-size:40px;font-weight:200;line-height:1;color:var(--fg)}
+  .kpi .v.g{color:var(--green)}.kpi .v.c{color:var(--coral)}.kpi .v.w{color:var(--warm)}.kpi .v.a{color:var(--accent)}
+  .kpi .l{font-size:12.5px;color:var(--fg-3);margin-top:10px;line-height:1.5}
+  /* bars */
+  .bars{width:100%}
+  .bar-row{display:grid;grid-template-columns:160px 1fr 96px;align-items:center;gap:16px;margin-bottom:14px}
+  .bar-row .name{font-size:16px;color:var(--fg);font-weight:400}
+  .bar-track{height:30px;background:var(--bg-3);border-radius:7px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:7px;display:flex;align-items:center;padding-left:12px;font-size:13px;color:#111;font-weight:600}
+  .bar-row .val{font-size:13px;color:var(--fg-3);text-align:right}
+  .clbl{font-size:12px;color:var(--fg-3);letter-spacing:.05em;margin-bottom:16px}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:16px}
+  thead th{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--fg-3);text-align:center;padding:12px;border-bottom:1px solid var(--line);font-weight:400}
+  thead th:first-child{text-align:left}
+  tbody td{padding:13px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);text-align:center}
+  tbody td:first-child{text-align:left;color:var(--fg);font-weight:400}
+  td.b{color:var(--fg);font-weight:600}td.dn{color:var(--coral)}
+  /* cards */
+  .row{display:grid;grid-template-columns:repeat(var(--n,2),1fr);gap:14px}
+  .card{background:var(--bg-3);border:1px solid var(--line-2);border-radius:12px;padding:22px 24px}
+  .card .t{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:8px}
+  .card .t.g{color:var(--green)}.card .t.c{color:var(--coral)}
+  .card .b{font-size:13.5px;color:var(--fg-2);line-height:1.7}.card .b li{margin:4px 0 4px 15px}
+  .card .d{font-size:11.5px;color:var(--fg-3);margin-top:8px}
+  /* vec */
+  .vec{display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid var(--line-2)}
+  .vec:last-child{border-bottom:none}
+  .vec .f{font-size:15px;color:var(--fg-3);text-decoration:line-through;text-decoration-color:var(--fg-3);min-width:160px}
+  .vec .a{color:var(--fg-3);font-size:16px}.vec .t{font-size:16px;color:var(--fg)}
+  /* quad/map */
+  .map{position:relative;width:540px;height:380px;margin:0 auto}
+  .map .ax{position:absolute;background:var(--line)}.map .ax.x{left:0;right:0;top:50%;height:1px}.map .ax.y{top:0;bottom:0;left:50%;width:1px}
+  .albl{position:absolute;font-size:11px;color:var(--fg-3);letter-spacing:.08em}
+  .dot{position:absolute;transform:translate(-50%,-50%);text-align:center}
+  .dot .pt{width:16px;height:16px;border-radius:50%;margin:0 auto 5px}
+  .dot .nm{font-size:13px;font-weight:500;color:var(--fg);white-space:nowrap}
+  /* act */
+  .act{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--line-2)}
+  .act:last-child{border-bottom:none}
+  .act .n{width:34px;height:34px;background:var(--bg-3);border:1px solid var(--line);color:var(--fg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;flex-shrink:0}
+  .act .ti{font-size:16px;font-weight:500;color:var(--fg)}
+  .act .p{font-size:13.5px;color:var(--fg-2);line-height:1.6;margin-top:2px}
+  .act .d{font-size:11.5px;color:var(--fg-3);margin-top:3px}
+  /* nav */
+  #prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:120;transition:width .3s}
+  .nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:18px;z-index:100;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:40px;padding:7px 20px;backdrop-filter:blur(10px)}
+  .nav button{background:none;border:none;color:var(--fg);font-size:12px;letter-spacing:.1em;cursor:pointer;opacity:.6;padding:3px 8px;font-family:inherit;text-transform:uppercase}.nav button:hover{opacity:1}
+  .nav .ct{font-size:12px;color:var(--fg-3);letter-spacing:1px;min-width:60px;text-align:center}
+  .editing [contenteditable]{outline:1px dashed var(--accent);outline-offset:3px}
+  @media print{html,body{overflow:visible;height:auto}.slide{display:flex!important;page-break-after:always;height:100vh}.nav,#prog{display:none!important}}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div class="deck">
+
+<!-- 01 COVER -->
+<div class="slide cover">
+  <div style="position:absolute;top:0;left:80px;width:1px;height:160px;background:var(--accent)"></div>
+  <div class="eyebrow" style="color:var(--accent)">Buddhism · Brand Analysis 2026</div>
+  <h1 style="margin:16px 0 22px" contenteditable>불교는 '종교'에서<br><span class="w">'삶의 방식'</span>으로 옮겨가고 있다</h1>
+  <div class="subcopy" style="font-size:19px" contenteditable>탈종교화·웰니스·힙불교가 만든 인식의 이동, 그리고 그 변화가 봉은사에 던지는 기회를 데이터로 추적한다.</div>
+  <div class="sub-s" style="margin-top:30px">네이버 블로그 멘션 2,809건 + 종교·웰니스 시장 데이터 분석 &nbsp;|&nbsp; by Project Rent · 2026.06</div>
+  <div class="slide-footer"><span>Project Rent</span><span>01 / 23</span></div>
+</div>
+
+<!-- 02 질문 (Peak) -->
+<div class="slide mid dark">
+  <div class="eyebrow">The Question</div>
+  <div class="lead" contenteditable>종교 인구는 줄고 불교 신자는 늙어간다.<br>그런데 왜 불교박람회에 <span class="hl">2030이 80%</span>나 모일까?</div>
+  <div class="sub-s">이 역설에서 시작한다 — 불교에 대한 인식이 근본적으로 바뀌고 있다.</div>
+  <div class="slide-footer"><span>Project Rent</span><span>02 / 23</span></div>
+</div>
+
+<!-- 03 Context ① 종교 축소 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Context — 시장 ①</span><span class="eyebrow">03</span></div>
+    <h2 contenteditable>종교 시장은 <span class="c">빠르게 마르고</span> 있다</h2>
+    <div class="subcopy" contenteditable>종교 자체에 대한 거부가 아니라 '제도 종교'라는 형식의 이탈이다. 특히 2030세대에서 무종교가 압도적이며, 신규 신자 유입 시장 자체가 마르고 있다.</div></div>
+  <div class="slide-body"><div class="kpi-grid">
+    <div class="kpi"><div class="v c">40%</div><div class="l">전체 종교 보유율<br>2004년 54%→2025년</div></div>
+    <div class="kpi"><div class="v c">64–72%</div><div class="l">2030세대 무종교 비율<br>(18-29세 72%·30대 64%)</div></div>
+    <div class="kpi"><div class="v c">26.6%</div><div class="l">개신교 '가나안 성도'<br>2012년 10.5%→2023(20대 45%)</div></div>
+    <div class="kpi"><div class="v">8%</div><div class="l">불교 18-29세 침투율<br>(전 종교 중 최저)</div></div>
+  </div><div class="note">출처: 한국갤럽 「한국인의 종교 1983-2025」, 한국리서치 종교인식조사(2025), 목회데이터연구소(2023)</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>03 / 23</span></div>
+</div>
+
+<!-- 04 Context ② 웰니스 폭발 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Context — 시장 ②</span><span class="eyebrow">04</span></div>
+    <h2 contenteditable>그런데 <span class="g">영성·웰니스는 폭발</span>한다</h2>
+    <div class="subcopy" contenteditable>종교는 줄지만, 종교가 다루던 '마음·의미·리듬'의 수요는 오히려 커진다. 명상·마인드풀니스는 웰니스 시장에서 가장 빠르게 자라는 부문이다.</div></div>
+  <div class="slide-body"><div class="kpi-grid">
+    <div class="kpi"><div class="v g">6.8조$</div><div class="l">글로벌 웰니스 경제<br>2024 (+7.9%, 2029년 9.8조 전망)</div></div>
+    <div class="kpi"><div class="v g">+12.4%</div><div class="l">정신웰니스 성장률<br>(2019~24 연평균, 부문 최고)</div></div>
+    <div class="kpi"><div class="v g">22억$</div><div class="l">명상앱 시장 2025<br>(Calm 매출 5.96억$)</div></div>
+    <div class="kpi"><div class="v g">17.3%</div><div class="l">미국 성인 명상률 2022<br>(2012년 4.1%의 4.2배)</div></div>
+  </div><div class="note">출처: Global Wellness Institute 2025, Nature Scientific Reports(2024). 국내 '마보' 앱 누적 95만 다운로드·45만 가입(2025)</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>04 / 23</span></div>
+</div>
+
+<!-- 05 Context ③ 힙불교 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Context — 시장 ③</span><span class="eyebrow">05</span></div>
+    <h2 contenteditable>그 사이에서 <span class="w">'힙불교'</span>가 터졌다</h2>
+    <div class="subcopy" contenteditable>불교는 이미 종교가 아니라 '위트·위로·웰니스 콘텐츠'로 소비되고 있다. 무종교 MZ까지 끌어들이는 문화 현상으로, 수요는 통계로 입증된다.</div></div>
+  <div class="slide-body"><div class="kpi-grid">
+    <div class="kpi"><div class="v w">80%</div><div class="l">서울국제불교박람회 2024<br>관람객 2030 비율(총 10만명, 전년 3배)</div></div>
+    <div class="kpi"><div class="v w">61.7만</div><div class="l">템플스테이 2024 역대최대<br>(연인원 +13%, 누적 760만)</div></div>
+    <div class="kpi"><div class="v w">셰프의<br>테이블</div><div class="l">정관스님 사찰음식<br>넷플릭스 다큐 제임스비어드상(방송)·佛 셰프 200명 순례</div></div>
+    <div class="kpi"><div class="v w">완판</div><div class="l">불교 굿즈·밈<br>'개탈 티셔츠'·'번뇌 타월' 오픈런</div></div>
+  </div><div class="note">사례: 뉴진스님(EDM 디제잉) — "천주교 신자인데 반차 쓰고 관람", 종교 경계를 넘는 콘텐츠 파워. 'AI 스님 고민상담'·'부처핸접' 밈 확산. 출처: 한국불교문화사업단(2025), 서울국제불교박람회</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>05 / 23</span></div>
+</div>
+
+<!-- 06 기대 이동 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Context — 변화의 방향</span><span class="eyebrow">06</span></div>
+    <h2 contenteditable>사람들이 종교에 <span class="hl">기대하는 것</span>이 바뀌었다</h2>
+    <div class="subcopy" contenteditable>영적 욕구는 남았으나 그것을 제도 종교 밖(명상·웰니스·리추얼)에서 채우려 한다. 이 변화의 방향이 불교의 형식과 정확히 맞물린다는 점이 핵심이다.</div></div>
+  <div class="slide-body">
+    <div class="vec"><span class="f">구원 · 내세</span><span class="a">→</span><span class="t">위로 · 마음챙김 · 삶의 의미</span></div>
+    <div class="vec"><span class="f">믿음 (신앙고백)</span><span class="a">→</span><span class="t">체험 · 수행 · 라이프스타일</span></div>
+    <div class="vec"><span class="f">노년층 종교</span><span class="a">→</span><span class="t">힙불교 · 2030 · 박람회 80%</span></div>
+    <div class="vec"><span class="f">강요 · 헌금 부담</span><span class="a">→</span><span class="t">부담 없음 · 낮은 진입장벽 (불교 최대 강점)</span></div>
+    <div class="note">현대인이 종교에 기대하는 것이 '구원'에서 '위로·의미'로 이동 — 강요·교리 없이 명상·치유를 주는 불교 형식과 구조적으로 정합.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>06 / 23</span></div>
+</div>
+
+<!-- 07 방법 (전환+method) -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Method</span><span class="eyebrow">07</span></div>
+    <h2 contenteditable>그래서 — 사람들이 불교를 <span class="hl">어떻게 말하는지</span> 직접 들었다</h2>
+    <div class="subcopy" contenteditable>네이버 블로그 멘션 2,809건을 불교·기독교·명상웰니스 3군으로 나눠 크롤링하고, 감성·진정성·토픽·포지셔닝으로 분석했다.</div></div>
+  <div class="slide-body"><div class="row" style="--n:3">
+    <div class="card"><div class="t">불교 · 1,084건</div><div class="b">템플스테이·사찰음식·명상·힙불교·봉은사 검색어로 수집</div></div>
+    <div class="card"><div class="t">기독교 · 786건</div><div class="b">교회 청년·신앙·성당·천주교 영성</div></div>
+    <div class="card"><div class="t">명상·웰니스 · 939건</div><div class="b">명상앱·마음챙김·번아웃 힐링·마인드풀니스</div></div>
+  </div><div class="note">분석축: 감성(긍정/부정) · 진정성(직접 체험 후기 vs 포교·광고성) · 토픽 7종 · 포지셔닝 2축(전통↔현대 / 종교↔웰니스)</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>07 / 23</span></div>
+</div>
+
+<!-- 08 긍정률 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Finding ① — 감성</span><span class="eyebrow">08</span></div>
+    <h2 contenteditable>불교 긍정률은 <span class="hl">기독교의 2배</span></h2>
+    <div class="subcopy" contenteditable>긍정 멘션 비율과 긍정/부정 비(P/N)에서 불교는 종교 카테고리 안에서 압도적이다. 명상·웰니스에는 못 미치지만 기독교와는 격차가 크다.</div></div>
+  <div class="slide-body"><div class="clbl">긍정 멘션 비율 (%) · 괄호=긍정/부정 비</div><div class="bars">
+    <div class="bar-row"><span class="name">명상·웰니스</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--green)">51.7%</div></div><span class="val">P/N 24.2</span></div>
+    <div class="bar-row"><span class="name">불교</span><div class="bar-track"><div class="bar-fill" style="width:71%;background:var(--accent)">36.8%</div></div><span class="val">P/N 16.6</span></div>
+    <div class="bar-row"><span class="name">기독교</span><div class="bar-track"><div class="bar-fill" style="width:35%;background:var(--fg-3)">18.1%</div></div><span class="val">P/N 9.5</span></div>
+  </div><div class="note">불교 1,084건 중 긍정 36.8% — 기독교(18.1%)의 약 2배. 기독교 멘션은 부정보다 포교·정보성 비중이 높아 긍정률 자체가 낮다.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>08 / 23</span></div>
+</div>
+
+<!-- 09 진정성 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Finding ② — 진정성</span><span class="eyebrow">09</span></div>
+    <h2 contenteditable>불교는 <span class="hl">체험으로 이야기</span>된다</h2>
+    <div class="subcopy" contenteditable>진정성 지수는 '직접 해본 경험'으로 이야기되는 정도를 측정한다. 불교는 템플스테이·사찰음식·명상처럼 실제 경험 후기가 47%로, 포교·정보 중심인 기독교(13%)와 대비된다.</div></div>
+  <div class="slide-body"><div class="clbl">진정성 지수 (체험 기반 · 0~100) · 괄호=경험 후기 비율</div><div class="bars">
+    <div class="bar-row"><span class="name">불교</span><div class="bar-track"><div class="bar-fill" style="width:62%;background:var(--accent)">61.7</div></div><span class="val">경험 47%</span></div>
+    <div class="bar-row"><span class="name">명상·웰니스</span><div class="bar-track"><div class="bar-fill" style="width:55%;background:var(--green)">54.5</div></div><span class="val">경험 30%</span></div>
+    <div class="bar-row"><span class="name">기독교</span><div class="bar-track"><div class="bar-fill" style="width:45%;background:var(--fg-3)">45.3</div></div><span class="val">경험 13%</span></div>
+  </div><div class="note">진정성 = 경험 신호('다녀왔', '해봤', '먹어봤') 비율과 포교·광고 신호의 역수를 결합한 근사 지표. 불교의 비대칭 우위 = '말이 아니라 경험으로 이야기됨'.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>09 / 23</span></div>
+</div>
+
+<!-- 10 토픽 + 부정 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Finding ③ — 토픽</span><span class="eyebrow">10</span></div>
+    <h2 contenteditable>불교 멘션은 이미 <span class="hl">현대가 전통의 3배</span></h2>
+    <div class="subcopy" contenteditable>사람들이 말하는 불교는 '수행·명상 × 힙·현대 × 웰니스'다. 전통·역사(12.9%)는 오히려 후순위이며, 부정 토픽(불신·고루)은 합쳐도 3.5%에 불과하다.</div></div>
+  <div class="slide-body"><div class="clbl">불교 멘션 토픽 분포 (%, 중복 집계)</div><div class="bars">
+    <div class="bar-row"><span class="name">수행·명상</span><div class="bar-track"><div class="bar-fill" style="width:85%;background:var(--accent)">42.6</div></div><span class="val"></span></div>
+    <div class="bar-row"><span class="name">힙·현대화</span><div class="bar-track"><div class="bar-fill" style="width:75%;background:var(--warm);color:#111">37.5</div></div><span class="val"></span></div>
+    <div class="bar-row"><span class="name">F&B·웰니스</span><div class="bar-track"><div class="bar-fill" style="width:69%;background:var(--green)">34.3</div></div><span class="val"></span></div>
+    <div class="bar-row"><span class="name">공동체·위로</span><div class="bar-track"><div class="bar-fill" style="width:27%;background:var(--blue)">13.6</div></div><span class="val"></span></div>
+    <div class="bar-row"><span class="name">전통·역사</span><div class="bar-track"><div class="bar-fill" style="width:26%;background:var(--fg-3)">12.9</div></div><span class="val"></span></div>
+    <div class="bar-row"><span class="name">부정(불신+고루)</span><div class="bar-track"><div class="bar-fill" style="width:7%;background:var(--coral)">3.5</div></div><span class="val">방어선</span></div>
+  </div><div class="note">약점은 '비호감'이 아니라 '아직 닿지 않은 거리'. 단, 부정 3.5%는 과잉 상업화 시 재점화될 수 있는 방어선이다.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>10 / 23</span></div>
+</div>
+
+<!-- 11 호감도 + 교세역전 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Reputation</span><span class="eyebrow">11</span></div>
+    <h2 contenteditable>호감은 <span class="hl">1위</span>, 그러나 신자수와 역전돼 있다</h2>
+    <div class="subcopy" contenteditable>불교는 호감도 54.4점으로 1위, 개신교(34.7)와 20점 격차다. 신자 수 순위(개신교 1위)와 호감 순위(불교 1위)가 뒤집힌 '교세-호감 역전'이 한국 종교 지형의 핵심이다.</div></div>
+  <div class="slide-body"><table>
+    <thead><tr><th>종교</th><th>신자 비율</th><th>호감도(100점)</th><th>비종교인 호감1위</th><th>매우 부정</th></tr></thead>
+    <tbody>
+      <tr><td>불교</td><td>16~18%</td><td class="b">54.4 (1위)</td><td class="b">20%</td><td>18%</td></tr>
+      <tr><td>천주교</td><td>6~11%</td><td>52.7 (2위)</td><td>13%</td><td>19%</td></tr>
+      <tr><td>개신교</td><td>16~20%</td><td class="dn">34.7 (꼴찌)</td><td class="dn">6%</td><td class="dn">49%</td></tr>
+    </tbody></table>
+    <div class="note">개신교 '매우 부정' 49%는 불교(18%)의 2.7배. 천주교는 2021년 1위였으나 4년 연속 불교에 밀려 2위. 줄어드는 시장에서 '많음'보다 '호감'이 미래 자산. 출처: 한국리서치 종교인식조사 2023·2025</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>11 / 23</span></div>
+</div>
+
+<!-- 12 3군 KPI -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Competition — KPI</span><span class="eyebrow">12</span></div>
+    <h2 contenteditable>3군 멘션 KPI <span class="hl">정면 비교</span></h2>
+    <div class="subcopy" contenteditable>불교는 진정성·라이프스타일성에서, 명상·웰니스는 긍정·현대성에서 1위다. 기독교는 거의 모든 지표에서 열위. 불교의 무기는 '체험으로 이야기되는 깊이'다.</div></div>
+  <div class="slide-body"><table style="font-size:15px">
+    <thead><tr><th>지표</th><th>불교</th><th>명상·웰니스</th><th>기독교</th></tr></thead>
+    <tbody>
+      <tr><td>긍정률</td><td class="b">36.8%</td><td>51.7%</td><td class="dn">18.1%</td></tr>
+      <tr><td>진정성 (경험 기반)</td><td class="b">61.7</td><td>54.5</td><td class="dn">45.3</td></tr>
+      <tr><td>경험 후기 비율</td><td class="b">47.1%</td><td>30.2%</td><td class="dn">12.5%</td></tr>
+      <tr><td>현대성</td><td>83.5</td><td class="b">96.3</td><td>50.9</td></tr>
+      <tr><td>라이프스타일성</td><td class="b">56.1</td><td>32.8</td><td>23.6</td></tr>
+    </tbody></table>
+    <div class="note">현대성·라이프스타일성 = 토픽 분포에서 (힙·현대+웰니스) 비중으로 산출한 포지셔닝 좌표. 불교는 '종교적 깊이'를 유지한 채 현대로 이동한 유일한 군.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>12 / 23</span></div>
+</div>
+
+<!-- 13 개신교 반면교사 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Competition — 반면교사</span><span class="eyebrow">13</span></div>
+    <h2 contenteditable>개신교의 비호감은 <span class="c">'강요 → 이탈'</span>의 결과다</h2>
+    <div class="subcopy" contenteditable>개신교 부정 이미지는 우연이 아니라 조직 결속을 강요한 구조적 결과다. 불교(봉은사)의 차별화는 정확히 그 반대 지점에서 나온다.</div></div>
+  <div class="slide-body"><table>
+    <thead><tr><th>개신교가 미움받는 이유</th><th>→ 불교의 반대 포지션</th></tr></thead>
+    <tbody>
+      <tr><td>전도·강요 (길거리 전도)</td><td class="b">권하지 않음 · 스스로 찾아옴</td></tr>
+      <tr><td>헌금·재정 압박</td><td class="b">부담 없는 참여 · 체험형</td></tr>
+      <tr><td>정치화 (집회·특정 목사)</td><td class="b">탈정치 · 내면 지향</td></tr>
+      <tr><td>대형교회 세습·배타성</td><td class="b">포용 · 상호의존 교리</td></tr>
+    </tbody></table>
+    <div class="note">개신교 가나안 성도 26.6%(20대 45%)·청년 이탈은 강요의 결과. 단 경고도 같다 — 불교가 '힙'을 좇아 과잉 상업화로 흐르면 '대형교회 상업화 비판'을 답습할 수 있다.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>13 / 23</span></div>
+</div>
+
+<!-- 14 명상웰니스 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Competition — 가장 강한 경쟁자</span><span class="eyebrow">14</span></div>
+    <h2 contenteditable>명상·웰니스 — 현대성 최고, <span class="hl">깊이 없음</span></h2>
+    <div class="subcopy" contenteditable>가장 강력한 경쟁자이자, 불교가 채울 수 있는 가장 큰 빈틈. 명상앱이 못 주는 '깊이'를 봉은사는 공간과 관계로 줄 수 있다.</div></div>
+  <div class="slide-body"><div class="row">
+    <div class="card"><div class="t g">강점</div><div class="b"><li>긍정률·현대성 최고(96.3)</li><li>웰니스 6.8조$ 매크로 위에 포지셔닝</li><li>앱·구독으로 접근성 압도(Calm·Headspace)</li></div></div>
+    <div class="card"><div class="t c">약점 = 불교의 기회</div><div class="b"><li>의미·공동체·깊이 부재(라이프 32.8)</li><li>불교 콘텐츠를 탈맥락 차용</li><li>경험의 일회성·이탈 쉬움</li></div></div>
+  </div><div class="note">서구 마인드풀니스(MBSR·Headspace·Calm)는 본래 불교 명상 전통(우 바 킨·틱낫한)에 뿌리를 둔다. 일본 보즈바(스님이 바텐더), 미국 샘 해리스 'Waking Up' 앱('종교 없는 영성')이 '불교×일상' 모델의 벤치마크.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>14 / 23</span></div>
+</div>
+
+<!-- 15 담론 지형 매트릭스 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Discourse — 담론 지형</span><span class="eyebrow">15</span></div>
+    <h2 contenteditable>시장은 호의적, 그러나 <span class="hl">담론장은 다툰다</span></h2>
+    <div class="subcopy" contenteditable>대중의 호감(멘션)과 별개로, 학계·언론·종단·스님은 불교의 방향을 두고 논쟁 중이다. 5개 행위자 × 3대 쟁점으로 보면 '상업성이 노골적일수록 비판이 강해지는' 그라데이션이 드러난다.</div></div>
+  <div class="slide-body"><table style="font-size:14px">
+    <thead><tr><th>행위자</th><th>현대화·힙불교</th><th>상업화</th><th>웰니스화</th></tr></thead>
+    <tbody>
+      <tr><td>학계</td><td><span class="w">△</span> 양가</td><td><span class="c">✕</span> 우려</td><td><span class="w">△</span> 분열</td></tr>
+      <tr><td>언론</td><td><span class="g">○</span> 조건부 환영</td><td><span class="c">✕</span> 비판</td><td><span class="g">◎</span> 환영</td></tr>
+      <tr><td>종단 지도부</td><td><span class="g">◎</span> 적극 옹호</td><td><span class="g">○</span> 추진</td><td><span class="g">○</span> 수용</td></tr>
+      <tr><td>실천 스님·지식인</td><td><span class="g">○</span> 실천하나 경계</td><td><span class="w">△</span> 본질 방어</td><td><span class="c">✕</span> 강한 비판</td></tr>
+      <tr><td>대중</td><td><span class="g">◎</span> 열광</td><td><span class="w">△</span> 소비·일부 불만</td><td><span class="g">◎</span> 수요</td></tr>
+    </tbody></table>
+    <div class="note">◎열광 ○긍정 △양가 ✕우려 — 웰니스화는 환영, 힙불교는 조건부, 직접 상업화는 비판. 대표 발언: 법보신문 "사적재화형 종교", 한경비즈니스 "잡화점", 인경 스님 "근본정신에 어긋난다".</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>15 / 26</span></div>
+</div>
+
+<!-- 16 액셀 vs 브레이크 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Discourse — 구조</span><span class="eyebrow">16</span></div>
+    <h2 contenteditable>갈등이 아니라 <span class="hl">분업</span>이다</h2>
+    <div class="subcopy" contenteditable>매트릭스를 세로로 읽으면 보인다. 종단 지도부는 액셀(확장), 교계 지식인·실천 스님은 브레이크(진정성). 대립이 아니라 역할 분담 — 둘 다 '포교 기회'라는 대전제는 공유한다.</div></div>
+  <div class="slide-body"><div class="row">
+    <div class="card" style="border-left:3px solid var(--green)"><div class="t g">액셀 · 종단 지도부</div><div class="b">재정·교세·세대 위기를 현대화로 돌파. "근기에 맞춘 <span style="color:var(--fg)">방편</span>" 논리. 31년만 조직개편·미디어홍보실·뉴진스님 법명 부여.</div></div>
+    <div class="card" style="border-left:3px solid var(--coral)"><div class="t c">브레이크 · 지식인·실천 스님</div><div class="b">형식 변화는 수용하되 신행·수행·계율 <span style="color:var(--fg)">본질 침식</span> 경계. "관심이 신심으로 이어지는가". 정면 반대는 마음챙김 세속화에 집중.</div></div>
+  </div><div class="note">두 진영의 공통 논리축 = <span style="color:var(--fg)">"화제성 ≠ 신심"</span>. 강성용 "파티 끝나면 무엇이 남나" · 2025 통계상 2030 신자 수 변화 없음 — 환영하는 쪽도 이 데이터를 경계한다.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>16 / 26</span></div>
+</div>
+
+<!-- 17 글로벌 경고 → 방어선 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Discourse — 글로벌 경고</span><span class="eyebrow">17</span></div>
+    <h2 contenteditable>상업화가 진정성을 죽이는 <span class="hl">4단계</span></h2>
+    <div class="subcopy" contenteditable>국내의 추상적 경고는 글로벌 사례에서 구체적 인과로 입증된다. 'McMindfulness'(론 퍼서, 한국 태고종 수계 교사)와 일본 사찰의 실패가 봉은사의 방어선 근거다.</div></div>
+  <div class="slide-body">
+    <div class="act"><div class="n">1</div><div><div class="ti">탈맥락화</div><div class="p">윤리·공동체·해방을 '짐'으로 떼고 측정·판매 가능한 기법만 추출 — "Buddhist meditation without the Buddhism"</div></div></div>
+    <div class="act"><div class="n">2</div><div><div class="ti">도구화</div><div class="p">추출된 실천을 생산성·스트레스 관리에 종속. "시장의 에토스에 닻을 내림"</div></div></div>
+    <div class="act"><div class="n">3</div><div><div class="ti">개인화·책임전가</div><div class="p">고통 원인을 구조 → 개인으로 이전 (Žižek: 자본주의의 완벽한 이데올로기적 보충물)</div></div></div>
+    <div class="act"><div class="n">4</div><div><div class="ti">신뢰 붕괴</div><div class="p">본질 잃은 종교 = '돈 받는 거래' → 이탈. 일본 장례불교 30년간 2,300만명 이탈</div></div></div>
+  </div>
+  <div class="note">봉은사 방어선 4원칙 — ①맥락 동반(상업 접점마다 '왜 사찰인가') ②총량·분리(상업/수행 공간 분리) ③투명성(요금·보시) ④참여(개인 웰니스 넘어 공동체). <span style="color:var(--fg)">진정성이 곧 방어선</span>이다.</div>
+  <div class="slide-footer"><span>Project Rent</span><span>17 / 26</span></div>
+</div>
+
+<!-- 18 포지셔닝 맵 + 빈자리 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Positioning</span><span class="eyebrow">15</span></div>
+    <h2 contenteditable>네 칸 중 <span class="hl">한 칸이 비어 있다</span></h2>
+    <div class="subcopy" contenteditable>전통↔현대 / 종교↔웰니스 두 축으로 보면, 명상(현대·얕음)과 기독교(깊음·올드) 사이 '현대적이면서 수행의 깊이를 가진' 자리는 비어 있다.</div></div>
+  <div class="slide-body"><div class="map">
+    <div class="ax x"></div><div class="ax y"></div>
+    <div class="albl" style="right:6px;top:51.5%">현대 →</div><div class="albl" style="left:6px;top:51.5%">← 전통</div>
+    <div class="albl" style="left:51%;top:4px">라이프 ↑</div><div class="albl" style="left:51%;bottom:4px">↓ 종교</div>
+    <div class="dot" style="left:50.9%;top:76.4%"><div class="pt" style="background:var(--fg-3)"></div><div class="nm">기독교</div></div>
+    <div class="dot" style="left:90%;top:67.2%"><div class="pt" style="background:var(--green)"></div><div class="nm">명상·웰니스</div></div>
+    <div class="dot" style="left:83.5%;top:43.9%"><div class="pt" style="background:var(--accent);box-shadow:0 0 0 8px rgba(108,92,231,.2)"></div><div class="nm" style="color:var(--accent)">불교</div></div>
+    <div class="dot" style="left:78%;top:20%"><div class="pt" style="border:1px dashed var(--accent)"></div><div class="nm" style="color:var(--warm)">빈 자리</div><div style="font-size:10px;color:var(--fg-3)">현대적 깊이</div></div>
+  </div><div class="note">빈 포지션 = '현대적 깊이(Life OS로서의 불교)'. 명상앱의 현대성 + 사찰의 수행 깊이를 동시에 가진 자리는 아직 누구도 점유하지 못했다.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>15 / 23</span></div>
+</div>
+
+<!-- 16 PEAK -->
+<div class="slide peak mid dark">
+  <div class="lead" contenteditable>"불교는 종교 시장에선 지고 있지만,<br><span class="hl">라이프스타일 시장</span>에선 이기고 있다."</div>
+  <div class="slide-footer"><span>Project Rent</span><span>16 / 23</span></div>
+</div>
+
+<!-- 17 봉은사 전환 -->
+<div class="slide mid">
+  <div class="eyebrow">For Bongeunsa</div>
+  <div class="lead" contenteditable>그 빈 자리에 설 수 있는<br><span class="hl">거의 유일한 후보</span> — 봉은사</div>
+  <div class="sub-s">도심 입지(접근성 약점 해소) + 1,200년 수행 자산(깊이)</div>
+  <div class="slide-footer"><span>Project Rent</span><span>17 / 23</span></div>
+</div>
+
+<!-- 18 전략 구조 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Strategy — 구조</span><span class="eyebrow">18</span></div>
+    <h2 contenteditable>본원이 깊이를 지키고, 문화센터가 <span class="hl">번역</span>한다</h2>
+    <div class="subcopy" contenteditable>ARISA 세션의 'Sacred Core + Cultural Gateway' 구조가 데이터와 정확히 맞물린다. 문화센터는 믿게 하는 곳이 아니라 불교적 삶의 감각을 부담 없이 경험하게 하는 입구다.</div></div>
+  <div class="slide-body"><div class="row">
+    <div class="card"><div class="t">본원 · Sacred Core</div><div class="b">실제 수행·법문·공동체의 중심. 진짜 변화가 일어나는 깊이. 가볍게 만들지 않는다.</div></div>
+    <div class="card"><div class="t">문화센터 · Cultural Gateway</div><div class="b">불교적 삶의 감각을 부담 없이 경험하는 입구. "가볍게 들어와 깊게 머무는" 동선.</div></div>
+  </div><div class="note">데이터의 '낮은 진입장벽(강요 없음) × 진정성(체험)'이 이 구조와 정확히 일치한다.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>18 / 23</span></div>
+</div>
+
+<!-- 19 4대 액션 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Strategy — 액션</span><span class="eyebrow">19</span></div>
+    <h2 contenteditable>봉은사를 위한 <span class="hl">4대 전략 액션</span></h2>
+    <div class="subcopy" contenteditable>모든 액션은 멘션·시장 데이터에 근거한다. 핵심은 '부정 극복'이 아니라 이미 있는 호감을 경험으로 전환하는 것이다.</div></div>
+  <div class="slide-body">
+    <div class="act"><div class="n">1</div><div><div class="ti">호감의 활성화 (Not 부정 극복)</div><div class="p">불교는 비호감이 아니다. 잠재 호감을 실제 방문·경험으로 전환하는 접점 설계.</div><div class="d">근거: 호감도 54.4(1위) · 부정 토픽 3.5%</div></div></div>
+    <div class="act"><div class="n">2</div><div><div class="ti">진정성을 콘텐츠 원칙으로</div><div class="p">보는 전시가 아니라 '직접 하는'(수행·다도·사찰음식) 참여형. 불교의 비대칭 우위는 체험이다.</div><div class="d">근거: 진정성 61.7(1위) · 경험 후기 47%</div></div></div>
+    <div class="act"><div class="n">3</div><div><div class="ti">현대성 × 깊이의 결합</div><div class="p">명상앱의 현대성 + 사찰의 깊이. "멋있고 존중할 만한 수행"으로 번역.</div><div class="d">근거: 현대성 83.5 · 라이프스타일성 56.1(1위)</div></div></div>
+    <div class="act"><div class="n">4</div><div><div class="ti">2030·무종교를 '신자' 아닌 '이용자'로</div><div class="p">개종이 아니라 문화·웰니스 접점으로 흡수. 박람회 MZ 80%가 증명한 길.</div><div class="d">근거: 2030 무종교 64~72% · 박람회 MZ 80%</div></div></div>
+  </div>
+  <div class="slide-footer"><span>Project Rent</span><span>19 / 23</span></div>
+</div>
+
+<!-- 20 리스크 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Risk</span><span class="eyebrow">20</span></div>
+    <h2 contenteditable>지켜야 할 선 — <span class="c">과잉 상업화</span></h2>
+    <div class="subcopy" contenteditable>앞서 본 글로벌 4단계(17p)가 국내에서 재현되면, '힙'은 개신교의 '대형교회 상업화 비판'을 답습한다. 관람료('통행세') 논란이 남긴 교훈처럼, 수행을 가볍게 만들면 안 된다.</div></div>
+  <div class="slide-body"><div class="card" style="border-left:3px solid var(--coral);padding:26px 28px">
+    <div class="t c">진정성이 곧 방어선이다</div>
+    <div class="b" style="font-size:14px;margin-top:6px">왜 수행이 어려운지, 왜 반복이 중요한지를 '멋있게' 전하되 본질은 지킨다. 멘션의 불신·상업화 <span style="color:var(--fg)">2.2%</span>를 낮게 유지하는 것이 봉은사 브랜딩의 방어선.</div>
+  </div><div class="note">2023년 5월 전국 65개 사찰 관람료 폐지로 '통행세' 논란은 일단락. 그러나 상업화 비판은 '힙'이 본질을 가릴 때 언제든 재점화될 수 있다.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>20 / 23</span></div>
+</div>
+
+<!-- 21 다음 단계 -->
+<div class="slide">
+  <div class="slide-head"><div class="sec-head"><span class="eyebrow">Next</span><span class="eyebrow">21</span></div>
+    <h2 contenteditable>외부 인식 × <span class="hl">내부 의지</span></h2>
+    <div class="subcopy" contenteditable>이 진단은 '시장이 그렇다'는 외부 데이터다. 봉은사 내부의 의지(설문·인터뷰)와 교차해야 비로소 방향이 확정된다.</div></div>
+  <div class="slide-body"><div class="row" style="--n:3">
+    <div class="card"><div class="t" style="font-size:15px">내부 설문 (진행 중)</div><div class="b">구성원 방향성 설문 배포 — 내부 공감대 정량화</div></div>
+    <div class="card"><div class="t" style="font-size:15px">이해관계자 인터뷰</div><div class="b">리더층 24문항 심층 — 비전·레드라인·운영 의지</div></div>
+    <div class="card"><div class="t" style="font-size:15px">마스터플랜 통합</div><div class="b">외부 진단 × 내부 의지 → 공간·운영 방향</div></div>
+  </div><div class="note">외부는 준비됐다 — 불교 인식은 봉은사에 유리하게 이동했고, 빈 자리도 명확하다.</div></div>
+  <div class="slide-footer"><span>Project Rent</span><span>21 / 23</span></div>
+</div>
+
+<!-- 22 요약 + Closing -->
+<div class="slide peak mid dark">
+  <div class="eyebrow">Summary</div>
+  <div class="lead" style="font-size:34px" contenteditable>불교는 '종교'에서 '삶의 방식'으로 이동했고,<br><span class="hl">'현대적 깊이'</span>라는 빈 자리는 비어 있다.</div>
+  <div class="sub-s" style="max-width:720px">호감도 1위(54.4) · 긍정률 ×2 · 진정성 1위(61.7) · 부정 3.5% — 봉은사는 도심 입지와 수행 자산으로 그 자리에 설 유일한 후보다. 남은 것은 내부의 의지다.</div>
+  <div class="slide-footer"><span>Project Rent</span><span>22 / 23</span></div>
+</div>
+
+<!-- 23 CREDIT -->
+<div class="slide mid">
+  <div class="eyebrow">Appendix · Method & Sources</div>
+  <div class="subcopy" style="text-align:center;max-width:820px;margin-top:18px">네이버 블로그 멘션 2,809건(불교 1,084·기독교 786·명상웰니스 939) 크롤링 → 감성·진정성·토픽 7종 분류 → 포지셔닝 2축 산출(키워드 휴리스틱 기반). 시장 데이터: 한국갤럽·한국리서치 종교인식조사(2025), 목회데이터연구소(2023), Global Wellness Institute(2025), 한국불교문화사업단(2025), Nature(2024). 담론(15~17p): McMahan(2008)·Purser(2019)·Žižek(2001)·Seung Soo Kim, 법보신문·불교IN·조계종, 경향·한경비즈니스.</div>
+  <div class="sub-s" style="text-align:center;margin-top:28px">불교 Brand Analysis &nbsp;|&nbsp; by Project Rent &nbsp;|&nbsp; 2026.06</div>
+  <div class="slide-footer"><span>Project Rent</span><span>23 / 23</span></div>
+</div>
+
+</div>
+
+<div class="nav">
+  <button onclick="go(-1)">Prev</button>
+  <span class="ct" id="ct">01 / 23</span>
+  <button onclick="go(1)">Next</button>
+  <button onclick="toggleEdit()" id="eb">Edit</button>
+</div>
+<script>
+const S=document.querySelectorAll('.slide');let c=0,editing=false;
+S.forEach((s,i)=>{const f=s.querySelector('.slide-footer span:last-child');if(f)f.textContent=String(i+1).padStart(2,'0')+' / '+String(S.length).padStart(2,'0');});
+function show(i){S.forEach(s=>s.classList.remove('active'));c=Math.max(0,Math.min(i,S.length-1));S[c].classList.add('active');
+  document.getElementById('ct').textContent=String(c+1).padStart(2,'0')+' / '+String(S.length).padStart(2,'0');
+  document.getElementById('prog').style.width=((c+1)/S.length*100)+'%';}
+function go(d){show(c+d);}
+function toggleEdit(){editing=!editing;document.body.classList.toggle('editing',editing);
+  document.querySelectorAll('[contenteditable]').forEach(e=>e.contentEditable=editing);
+  document.getElementById('eb').textContent=editing?'Done':'Edit';}
+document.addEventListener('keydown',e=>{
+  if(editing&&e.key!=='Escape')return;
+  if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)){e.preventDefault();go(1);}
+  if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();go(-1);}
+  if(e.key==='Home')show(0);if(e.key==='End')show(S.length-1);
+  if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+  if(e.key==='h'||e.key==='H')document.querySelector('.nav').style.display=document.querySelector('.nav').style.display==='none'?'flex':'none';
+  if(e.key==='e'||e.key==='E')toggleEdit();
+  if(e.key==='Escape'&&editing)toggleEdit();
+});
+document.addEventListener('click',e=>{if(editing||e.target.closest('.nav'))return;const x=e.clientX/window.innerWidth;if(x>0.7)go(1);else if(x<0.3)go(-1);});
+show(0);
+</script>
+</body>
+</html>

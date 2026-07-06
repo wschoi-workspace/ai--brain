@@ -1,0 +1,75 @@
+openapi: 3.1.0
+info:
+  title: SNS 카드뉴스 소스 수집 웹훅
+  description: >
+    ChatGPT 커스텀GPT가 정리한 카드뉴스 구조화 JSON을 Google Apps Script 웹앱으로 전송한다.
+    웹앱은 공유시크릿을 검증한 뒤 Google Drive(SNS_Automation/input)에 .json으로 저장한다.
+  version: 1.0.0
+servers:
+  # ↓ Apps Script 웹앱 배포 URL로 교체 (예: https://script.google.com/macros/s/AKfyc.../exec)
+  - url: https://script.google.com/macros/s/REPLACE_WITH_DEPLOYMENT_ID/exec
+paths:
+  /:
+    post:
+      operationId: saveCardNewsSource
+      summary: 카드뉴스 소스 JSON 저장
+      description: 카드뉴스 구조화 JSON을 Drive에 저장한다. 저장 성공 시 ok=true와 파일명을 반환.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardNewsSource"
+      responses:
+        "200":
+          description: 처리 결과
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  fileId: { type: string }
+                  name: { type: string }
+                  error: { type: string }
+components:
+  schemas:
+    CardNewsSource:
+      type: object
+      required: [secret, topic, core_message, card_news]
+      properties:
+        secret:
+          type: string
+          description: 공유시크릿 (.env SNS_WEBHOOK_SECRET 와 동일 값)
+        topic: { type: string }
+        core_message: { type: string }
+        target_audience: { type: string }
+        tone: { type: string }
+        card_news:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            type: object
+            required: [card_id, title, main_message, points]
+            properties:
+              card_id: { type: integer }
+              title: { type: string }
+              main_message: { type: string }
+              points:
+                type: array
+                minItems: 3
+                maxItems: 3
+                items:
+                  type: object
+                  required: [point_title, description]
+                  properties:
+                    point_title: { type: string }
+                    description: { type: string }
+        caption_draft: { type: string }
+        hashtags:
+          type: array
+          items: { type: string }
+        source_quotes:
+          type: array
+          items: { type: string }

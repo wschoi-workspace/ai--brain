@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봉은사 BM 종합 — 분석 + 고도화 전략 (출력용)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{
+  --bg:#FFFFFF;--bg-2:#F2F1ED;--bg-3:#F6F5F1;
+  --fg:#1A1A1A;--fg-2:#2B2B2B;--fg-3:#655F57;
+  --line:#D5D0C8;--line-2:#E6E2DB;
+  --accent:#6C5CE7;--accent-light:#5848C8;--accent-sub:rgba(108,92,231,.07);
+  --warm:#917B4A;--green:#5C7A4A;--blue:#4A6A88;--amber:#A8761A;--red:#C24E34;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#E9E7E2;color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:400;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+.slide{width:1280px;min-height:720px;margin:0 auto 20px;background:var(--bg);padding:54px 72px 70px;display:flex;flex-direction:column;position:relative;border:1px solid var(--line-2);overflow:hidden}
+.slide--dark{background:var(--bg-2)}
+.slide--cover{justify-content:center;align-items:flex-start;background:var(--bg-2)}
+.runhead{position:absolute;top:20px;left:72px;right:72px;display:flex;justify-content:space-between;font-size:9.5px;letter-spacing:.22em;color:var(--fg-3);text-transform:uppercase}
+.runhead .r{color:var(--accent-light)}
+.slide-footer{position:absolute;bottom:24px;left:72px;right:72px;display:flex;justify-content:space-between;font-size:9.5px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;border-top:1px solid var(--line-2);padding-top:12px}
+.slide-head{flex-shrink:0;margin-top:26px}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:18px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px;border-bottom:1px solid var(--line-2);margin-bottom:22px}
+.eyebrow{font-size:10.5px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+h2{font-size:32px;font-weight:500;letter-spacing:-0.025em;line-height:1.18}
+h2 .hl{color:var(--accent)}
+.sub{font-size:14px;color:var(--fg-2);line-height:1.6;margin-top:13px;max-width:980px;font-weight:400}
+.sub b{color:var(--fg);font-weight:500}
+.note{font-size:10.5px;color:var(--fg-3);margin-top:14px;line-height:1.55}
+.src{font-size:10px;color:var(--fg-3);margin-top:12px;border-top:1px solid var(--line-2);padding-top:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:var(--bg-3);border:1px solid var(--line-2);padding:20px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:12px;color:var(--fg-2);line-height:1.55}
+.card .lab{font-size:10px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase;margin-bottom:9px}
+.card ul{margin:6px 0 0 15px}.card li{font-size:11.5px;color:var(--fg-2);line-height:1.55;margin-bottom:3px}
+.card li b{color:var(--fg);font-weight:500}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:20px;text-align:center}
+.kpi .kl{font-size:10px;letter-spacing:.14em;color:var(--fg-3);text-transform:uppercase;margin-bottom:9px}
+.kpi .kv{font-size:30px;font-weight:400;color:var(--accent);line-height:1;letter-spacing:-.02em}
+.kpi .kv.g{color:var(--green)}.kpi .kv.a{color:var(--amber)}.kpi .kv.fg{color:var(--fg)}
+.kpi .ku{font-size:14px;font-weight:400;color:var(--fg-2)}
+.kpi .ks{font-size:11px;color:var(--fg-3);margin-top:8px;line-height:1.4}
+.callout{background:var(--accent-sub);border-left:3px solid var(--accent);padding:16px 20px;margin-top:14px}
+.callout p{font-size:13px;color:var(--fg-2);line-height:1.55}
+.callout strong{color:var(--accent-light)}
+.scope{background:rgba(92,122,74,.06);border:1px solid rgba(92,122,74,.28);padding:20px 24px;margin-top:0}
+.scope h4{font-size:14px;color:var(--green);font-weight:500;margin-bottom:8px}
+.scope p{font-size:12.5px;color:var(--fg-2);line-height:1.6}.scope b{color:var(--fg)}
+table.t{width:100%;border-collapse:collapse;font-size:11.5px}
+table.t th{font-size:9.5px;letter-spacing:.1em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:8px 10px 10px;font-weight:400;border-bottom:1px solid var(--line)}
+table.t td{padding:8px 10px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:middle;line-height:1.45}
+table.t td:first-child{color:var(--fg);font-weight:400}
+table.t .ok{color:var(--green);font-weight:600}table.t .no{color:var(--red);font-weight:600}table.t .mid{color:var(--amber);font-weight:600}
+table.t tr.mtg td{background:rgba(108,92,231,.06)}
+/* 신호등 */
+.sig{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle}
+.sig.o{background:var(--green)}.sig.m{background:var(--amber)}.sig.x{background:var(--red)}
+.sig-l{display:inline-flex;align-items:center;gap:6px}
+.legend{display:flex;gap:20px;flex-wrap:wrap;font-size:11px;color:var(--fg-3);margin:4px 0 16px}
+/* concept */
+.concept{background:var(--bg-3);border:1px solid var(--line-2);border-top:3px solid var(--accent);padding:22px}
+.concept .tag{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.concept h4{font-size:17px;font-weight:500;margin-bottom:4px}
+.concept .en{font-size:11px;color:var(--fg-3);margin-bottom:12px}
+.concept .row{display:flex;justify-content:space-between;font-size:11.5px;padding:5px 0;border-bottom:1px solid var(--line-2)}
+.concept .row span:first-child{color:var(--fg-3)}.concept .row span:last-child{color:var(--fg-2)}
+/* layer */
+.layer{display:flex;flex-direction:column;gap:8px}
+.lyr{display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:center;background:var(--bg-3);border:1px solid var(--line-2);padding:14px 18px}
+.lyr.base{border-left:3px solid var(--green)}.lyr.core{border-left:3px solid var(--accent)}.lyr.gate{border-left:3px solid var(--blue)}.lyr.prem{border-left:3px solid var(--amber)}
+.lyr .lt{font-size:13px;font-weight:500;color:var(--fg)}
+.lyr .ld{font-size:12px;color:var(--fg-2);line-height:1.5}
+.lyr .lt .sm{display:block;font-size:10px;color:var(--fg-3);font-weight:400;margin-top:2px}
+/* step */
+.step{display:grid;grid-template-columns:40px 1fr;gap:16px;align-items:center;background:var(--bg-3);border:1px solid var(--line-2);padding:16px 20px;margin-bottom:10px}
+.step.s1{border-left:3px solid var(--red)}.step.s2{border-left:3px solid var(--amber)}.step.s3{border-left:3px solid var(--green)}
+.step .n{font-size:22px;font-weight:400;color:var(--accent-light)}
+.step .t{font-size:14px;font-weight:500;color:var(--fg)}
+.step .d{font-size:12px;color:var(--fg-2);margin-top:2px;line-height:1.5}
+.step .d .ex{color:var(--fg-3)}
+/* up */
+.up{background:var(--bg-3);border:1px solid var(--line-2);border-top:2px solid var(--accent);padding:18px}
+.up h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:10px}
+.up .lens{margin-bottom:9px}
+.up .lens .lt{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.up .lens.b .lt{color:var(--accent-light)}.up .lens.l .lt{color:var(--blue)}
+.up .lens .lv{font-size:11.5px;color:var(--fg-2);line-height:1.5}
+.up .res{font-size:11.5px;color:var(--fg);margin-top:9px;padding-top:9px;border-top:1px solid var(--line-2)}
+.up .res b{color:var(--accent-light)}
+/* law layers (분석덱 호환) */
+.law{padding:6px}
+.law-layer{border:1px solid var(--line-2);padding:15px 18px;position:relative;margin-bottom:10px}
+.law-layer.o{border-color:var(--green);background:rgba(92,122,74,.04)}
+.law-layer.m{border-color:var(--amber);background:rgba(168,118,26,.04);margin-left:26px}
+.law-layer.i{border-color:var(--red);background:rgba(194,78,52,.04);margin-left:52px}
+.law-lab{position:absolute;top:-9px;left:14px;background:var(--bg);padding:0 7px;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase}
+.law-layer.o .law-lab{color:var(--green)}.law-layer.m .law-lab{color:var(--amber)}.law-layer.i .law-lab{color:var(--red)}
+.law-layer p{font-size:12px;color:var(--fg-2);line-height:1.5}.law-layer p b{color:var(--fg)}
+/* cover */
+.cover-label{font-size:11px;letter-spacing:.4em;color:var(--accent-light);text-transform:uppercase}
+.cover-title{font-size:56px;font-weight:400;line-height:1.07;letter-spacing:-.035em;margin:24px 0 18px}
+.cover-title b{font-weight:600;color:var(--fg)}
+.cover-sub{font-size:16px;color:var(--fg-2);line-height:1.6;max-width:840px}
+.cover-meta{margin-top:42px;display:flex;gap:42px;flex-wrap:wrap}
+.cover-meta .m .ml{font-size:9.5px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:6px}
+.cover-meta .m .mv{font-size:13px;color:var(--fg)}
+/* part divider */
+.part{justify-content:center;align-items:flex-start;background:var(--bg-2)}
+.part .pn{font-size:13px;letter-spacing:.35em;color:var(--accent-light);text-transform:uppercase}
+.part .pt{font-size:48px;font-weight:400;letter-spacing:-.03em;margin:18px 0 14px;line-height:1.1}
+.part .pt b{font-weight:600}
+.part .pd{font-size:15px;color:var(--fg-2);max-width:720px;line-height:1.6}
+@page{size:1280px 720px;margin:0}
+@media print{
+  html,body{background:#fff}
+  .slide{width:1280px;height:720px;min-height:720px;margin:0;border:none;page-break-after:always;break-after:page}
+  .slide:last-child{page-break-after:auto}
+}
+</style>
+</head>
+<body>
+<!-- 통합 표지 -->
+<section class="slide slide--cover">
+  <div class="cover-label">Bongeunsa Cultural Center · Business Model Compendium</div>
+  <h1 class="cover-title">봉은사 비즈니스모델<br><b>종합 분석 · 고도화 전략</b></h1>
+  <p class="cover-sub">종교시설 BM 종합 → 봉은사 재해석 → 사찰법·수익성·활성화 평가 → 막힌 BM 재해석 → 불교·로컬 고도화. 두 파트를 하나로 묶은 출력·재검토용 종합본.</p>
+  <div class="cover-meta">
+    <div class="m"><div class="ml">구성</div><div class="mv">Part 1 분석 (13) · Part 2 고도화 (12)</div></div>
+    <div class="m"><div class="ml">대상</div><div class="mv">봉은문화회관 8,868㎡ · 강남 삼성동</div></div>
+    <div class="m"><div class="ml">수행 / Date</div><div class="mv">Project Rent · 2026.06</div></div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 종합본</span><span>by Project Rent</span></div>
+</section>
+<!-- PART 1 간지 -->
+<section class="slide part">
+  <div class="pn">Part 1</div>
+  <div class="pt">BM <b>종합 · 재해석 · 평가</b></div>
+  <div class="pd">종교시설이 할 수 있는 비즈니스모델을 종합하고, 봉은사 8,868㎡로 재해석한 뒤 사찰법 가능여부·수익성·활성화 3축으로 평가한다.</div>
+  <div class="slide-footer"><span>봉은사 BM 종합본 · Part 1</span><span>by Project Rent</span></div>
+</section>
+
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">Framework</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">분석 프레임 · 3축 평가</span><span class="eyebrow">02</span></div>
+    <h2>"무엇이 <span class="hl">가능하고·돈 되고·흥하는가</span>"를 한 판에</h2>
+    <p class="sub">봉은사는 '왜 봉은사인가'(기회)를 충분히 증명했다. 이제 흩어진 BM 리서치를 하나의 평가 프레임으로 종합해, 12개 비즈니스모델을 <b>세 축</b>으로 동시에 비교한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3">
+      <div class="card" style="border-top:2px solid var(--green)"><div class="lab">축 1</div><h4>사찰법 가능여부</h4><p>전통사찰법 제6조(영업 금지)·시행령 제7조(허용 3종)·도시공원법(판매 회색)상 <b style="color:var(--fg)">O 가능 / △ 조건부 / X 불가</b>. 직영이 임대보다 유리.</p></div>
+      <div class="card" style="border-top:2px solid var(--amber)"><div class="lab">축 2</div><h4>수익성</h4><p>일본 8대 수익원 안정성·객단가 + 봉은사 트래픽 전환 추정. <b style="color:var(--fg)">상 / 중 / 하</b>. "임대+납골당이 BM의 80% 기반".</p></div>
+      <div class="card" style="border-top:2px solid var(--blue)"><div class="lab">축 3</div><h4>활성화 가능성</h4><p>MZ·외국인·강남 배후의 수요 신호 강도. <b style="color:var(--fg)">상 / 중 / 하</b>. brand-analysis "라이프스타일 시장 1위" 근거.</p></div>
+    </div>
+    <div class="callout"><p><strong>핵심 긴장.</strong> 가장 <b style="color:var(--fg)">안정적인 수익원</b>(임대·납골당)과 가장 <b style="color:var(--fg)">활성화되는 콘텐츠</b>(사찰음식·체험·디지털)는 다르다 — 둘을 레이어로 결합하는 것이 봉은사 BM 설계의 본질.</p></div>
+    <div class="src">평가 근거: 법적-행정적-검토(전통사찰법·세법), 일본-종교공간-심층리서치(8대 수익원), consulting-report-bongeunsa(brand-analysis·트래픽).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · Framework</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">01 — BM 카탈로그</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">종교시설 BM 카탈로그 ① · 기반형</span><span class="eyebrow">03</span></div>
+    <h2>안정 기반 — 임대·<span class="hl">납골당</span>이 글로벌 BM의 80%</h2>
+    <p class="sub">전 세계 종교시설의 '돈 버는 기둥'은 화려한 콘텐츠가 아니라 부동산 임대와 추모(납골당)다. 객단가는 낮아도 안정성·반복성·도시 적합도가 압도적이다.</p>
+  </div>
+  <div class="slide-body">
+    <table class="t">
+      <thead><tr><th>BM 유형</th><th>대표 글로벌 사례</th><th>객단가 / 규모</th><th>특성</th></tr></thead>
+      <tbody>
+        <tr><td>부동산 임대(상업·호텔)</td><td>삼쓰데라×칸데오호텔(50년 정기차지권) · 아카기신사×맨션</td><td class="ok">연 수억엔</td><td>안정성 최고 · 도시형 핵심</td></tr>
+        <tr><td>납골당·영대공양</td><td>츠키지 혼간지 합동묘 · 에타이(영대공양)</td><td class="ok">30만~100만엔/구</td><td>에타이 = 30평 연 4,000만엔 매출</td></tr>
+        <tr><td>헤리티지 관광(입장료)</td><td>사그라다 파밀리아 · 바티칸 박물관</td><td>€17~50/인</td><td>연 €120~150M, 볼륨 기반</td></tr>
+        <tr><td>적응적 재사용(전환)</td><td>Kruisherenhotel(수도원→호텔) · Church Brew Works</td><td>€180~800/박</td><td>건축 원형 보존이 차별점</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><p><strong>봉은사 적용.</strong> 임대(서울시 허가 필요)와 <b style="color:var(--fg)">납골당(종교법인 신고만으로 설치, 강남 화장률 95%)</b>이 가장 안정적인 두 기둥. 단 입장료 관광은 '관람료=통행세' 트라우마와 충돌 — 무료 개방 + 콘텐츠 수익화가 한국형.</p></div>
+    <div class="src">출처: 일본-종교공간-심층리서치 · 종교공간-비즈니스모델-상세팩트시트.</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · BM 카탈로그</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">01 — BM 카탈로그</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">종교시설 BM 카탈로그 ② · 콘텐츠·프리미엄형</span><span class="eyebrow">04</span></div>
+    <h2>브랜딩·성장 — F&amp;B·체험·<span class="hl">멤버십</span>이 사람을 부른다</h2>
+    <p class="sub">콘텐츠형 BM은 수익의 중심이라기보다 비신자·MZ·외국인을 끌어들이는 브랜딩 장치다. 단 강남 입지에선 멤버십·기업연수가 고객단가로 수익까지 끌어올린다.</p>
+  </div>
+  <div class="slide-body">
+    <table class="t">
+      <thead><tr><th>BM 유형</th><th>대표 사례</th><th>객단가</th><th>역할</th></tr></thead>
+      <tbody>
+        <tr><td>F&amp;B — 사찰음식·전통다원</td><td>발우공양(미쉐린) · 츠키지 아침식사</td><td>3.6~7만원</td><td>브랜딩 + 수익</td></tr>
+        <tr><td>명상·수행 체험</td><td>신쇼지 좌선·다도 · 템플스테이</td><td>¥500~8,000</td><td>브랜딩(MZ 흡인)</td></tr>
+        <tr><td>전시·박물관</td><td>신쇼지 선과 정원 뮤지엄</td><td>¥1,500~</td><td>볼거리·인스타</td></tr>
+        <tr><td>디지털 아트·야간</td><td>teamLab×도지 · 고다이지</td><td>¥600~2,500</td><td>시즌 화제성</td></tr>
+        <tr><td>기업 연수(웰니스)</td><td>TERA WORK · 코쇼지</td><td>인당 수만엔</td><td>강남 기업 밀집 = 최적</td></tr>
+        <tr><td>프리미엄 멤버십 라운지</td><td>The Set(월 $1,000) · Six Senses Place</td><td>월 회비형</td><td>고객단가·리텐션</td></tr>
+        <tr><td>이벤트 대관 / 숙박</td><td>미도회관(1,000석) / 고야산 숙방</td><td>건당~/¥5K~</td><td>대관 회색 · 숙박 불가</td></tr>
+      </tbody>
+    </table>
+    <div class="src">출처: 일본-종교공간-심층리서치 · 33-주거커뮤니티(멤버십) · 종교공간-비즈니스모델-상세팩트시트.</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · BM 카탈로그</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">02 — 재해석</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">봉은사 재해석 · 가능 / 조건부 / 불가</span><span class="eyebrow">05</span></div>
+    <h2>12개 BM을 봉은사로 <span class="hl">번역</span>하면</h2>
+    <p class="sub">같은 BM도 전통사찰법·도시공원법·직영 구조를 통과해야 한다. "불교문화 중심이면 가능, 일반 상업이면 불가"가 갈림선이다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3">
+      <div class="card" style="border-top:2px solid var(--green)"><div class="lab" style="color:var(--green)">바로 가능 (6)</div><ul>
+        <li>납골당·영대공양 (신고)</li><li>전통다원 (시행령 명시)</li><li>사찰음식 레스토랑 (선례)</li><li>전통문화 상품 (불교상품)</li><li>명상·수행 체험 (교육·포교)</li><li>기업 연수 (웰니스 교육)</li>
+      </ul></div>
+      <div class="card" style="border-top:2px solid var(--amber)"><div class="lab" style="color:var(--amber)">조건부 (5)</div><ul>
+        <li>부동산 임대 (서울시 허가)</li><li>전시·입장료 (무상/실비 or 과세)</li><li>프리미엄 멤버십 (불교색 유지 시)</li><li>디지털 아트 (콘텐츠 성격)</li><li>이벤트 대관 (공원법 회색)</li>
+      </ul></div>
+      <div class="card" style="border-top:2px solid var(--red)"><div class="lab" style="color:var(--red)">불가 (1)</div><ul>
+        <li>순수 숙박(숙방) — 명시 없음·위법 소지</li>
+        <li style="color:var(--fg-3);list-style:none;margin-top:8px">※ 일반 카페·일반 브랜드 판매도 불가 (전통문화 프레이밍 필수)</li>
+      </ul></div>
+    </div>
+    <div class="callout"><p><strong>게임체인저.</strong> "전통다원"·"전통문화 상품"의 범위를 어디까지 보느냐 = <b style="color:var(--fg)">문체부 유권해석</b>이 매출 천장을 20억↔90억으로 가른다. 직영이면 임대 허가 불요로 가장 안전.</p></div>
+    <div class="src">출처: 법적-행정적-검토-전통사찰법-문화재법 (제6조·시행령 제7조·제9조), 도시공원법(역사공원).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · 재해석</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">03 — 평가 매트릭스 ★</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">평가 매트릭스 · 12 BM × 3축</span><span class="eyebrow">06</span></div>
+    <h2>한눈에 보는 <span class="hl">BM 우선순위</span></h2>
+    <p class="sub">세 축 신호등 — 모두 높으면 1순위, 수익·활성화가 갈리면 레이어로 조합한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="legend" style="margin:2px 0 10px"><span class="sig-l"><i class="sig o"></i>높음/가능(O·상)</span><span class="sig-l"><i class="sig m"></i>중간/조건부(△·중)</span><span class="sig-l"><i class="sig x"></i>낮음/불가(X·하)</span></div>
+    <table class="t" style="font-size:11.5px">
+      <thead><tr><th>비즈니스모델</th><th style="text-align:center">사찰법</th><th style="text-align:center">수익성</th><th style="text-align:center">활성화</th><th>한 줄 평</th></tr></thead>
+      <tbody>
+        <tr><td>사찰음식 레스토랑</td><td style="text-align:center"><i class="sig o"></i></td><td style="text-align:center"><i class="sig o"></i></td><td style="text-align:center"><i class="sig o"></i></td><td>3축 모두 최상 — <b style="color:var(--fg)">간판 BM</b></td></tr>
+        <tr><td>납골당·영대공양</td><td style="text-align:center"><i class="sig o"></i></td><td style="text-align:center"><i class="sig o"></i></td><td style="text-align:center"><i class="sig m"></i></td><td>안정 수익 기둥 — 비힙하나 확실</td></tr>
+        <tr><td>명상·수행 체험</td><td style="text-align:center"><i class="sig o"></i></td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig o"></i></td><td>MZ 흡인 + 진정성 핵심</td></tr>
+        <tr><td>기업 연수(웰니스)</td><td style="text-align:center"><i class="sig o"></i></td><td style="text-align:center"><i class="sig o"></i></td><td style="text-align:center"><i class="sig m"></i></td><td>강남 기업 밀집 = 고단가</td></tr>
+        <tr><td>프리미엄 멤버십 라운지</td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig o"></i></td><td style="text-align:center"><i class="sig m"></i></td><td>강남 고소득·리텐션 (불교색 유지)</td></tr>
+        <tr><td>전통다원</td><td style="text-align:center"><i class="sig o"></i></td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig m"></i></td><td>법적 가장 안전한 F&amp;B</td></tr>
+        <tr><td>부동산 임대(상업)</td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig o"></i></td><td style="text-align:center"><i class="sig m"></i></td><td>안정적이나 통제력↓</td></tr>
+        <tr><td>전시·박물관</td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig o"></i></td><td>볼거리·인스타 앵커</td></tr>
+        <tr><td>디지털 아트·야간</td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig o"></i></td><td>시즌 화제성 (teamLab형)</td></tr>
+        <tr><td>전통문화 상품(뮤지엄숍)</td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig m"></i></td><td>외국인 굿즈 갭 = 기회</td></tr>
+        <tr><td>이벤트 대관</td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig m"></i></td><td style="text-align:center"><i class="sig m"></i></td><td>공원법 회색 — 신중</td></tr>
+        <tr><td>순수 숙박(숙방)</td><td style="text-align:center"><i class="sig x"></i></td><td style="text-align:center"><i class="sig x"></i></td><td style="text-align:center"><i class="sig x"></i></td><td>법적 불가 — 제외</td></tr>
+      </tbody>
+    </table>
+    <div class="src">평가: 사찰법=법무검토 / 수익성=8대 수익원·전환추정 / 활성화=brand-analysis·트래픽. 정성 평가(정량 5개년 수지는 다음 단계).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · 평가 매트릭스</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">04 — 사찰법</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">사찰법 가능여부 · 상세</span><span class="eyebrow">07</span></div>
+    <h2>제약이 곧 <span class="hl">필터</span> — 무엇이 통과하는가</h2>
+    <p class="sub">전통사찰법 제6조는 보존구역 영업을 원칙 금지하되, 시행령 제7조의 3종(불교상품·전통다원·신도편의)만 연다. 일반 상업은 차단되고, 불교문화 중심이면 통과한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2">
+      <div class="card">
+        <div class="lab">허용 / 금지 판정</div>
+        <table class="t">
+          <tr><td>전통다원 · 사찰음식</td><td class="ok">허용 (시행령 명시·선례)</td></tr>
+          <tr><td>불교·전통문화 상품</td><td class="ok">허용</td></tr>
+          <tr><td>납골당 · 명상교육</td><td class="ok">허용 (신고·포교)</td></tr>
+          <tr><td>전시 입장료 · 유상체험</td><td class="mid">조건부 (무상/실비 vs 과세)</td></tr>
+          <tr><td>부동산 임대</td><td class="mid">서울시장+조계종 허가</td></tr>
+          <tr><td>일반 카페·브랜드 판매·숙박</td><td class="no">불가 (명시 없음)</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="lab">운영구조 4안 — 직영 우위</div>
+        <table class="t">
+          <tr><th>구조</th><th>준비금50%</th><th>임대허가</th><th>통제</th></tr>
+          <tr><td>A 직영</td><td class="ok">O</td><td class="ok">불요</td><td class="ok">완전</td></tr>
+          <tr><td>B 위탁</td><td class="ok">O</td><td class="mid">계약별</td><td>높음</td></tr>
+          <tr><td>C 별도법인</td><td class="no">X</td><td class="mid">출자시</td><td class="mid">중</td></tr>
+          <tr><td>D 임대</td><td class="ok">O</td><td class="no">필수</td><td class="no">낮음</td></tr>
+        </table>
+        <div class="note">고유목적사업준비금 50% 손금산입(종교법인) → 실효세율 약 4.5~9.5%. 직영이 법적 안전·세무 효율·신속성 모두 우위.</div>
+      </div>
+    </div>
+    <div class="src">출처: 법적-행정적-검토-전통사찰법-문화재법 · -세법-사업구조. ※영업범위는 문체부 유권해석 필요(과업 범위 밖, 제언으로 분리).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · 사찰법</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">05 — 수익성</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">수익성 · 8대 수익원 + 전환 시나리오</span><span class="eyebrow">08</span></div>
+    <h2>"임대+납골당이 80% 기반, <span class="hl">F&amp;B·체험은 브랜딩</span>"</h2>
+    <p class="sub">도시형 사원의 철칙. 안정 기둥(임대·납골당)이 경상비를 떠받치고, 콘텐츠는 사람을 불러 객단가를 만든다. 봉은사 트래픽(연 365만)을 전환하면 낙관 92억.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g4" style="margin-bottom:14px">
+      <div class="kpi"><div class="kl">사찰음식 레스토랑</div><div class="kv g">25.2<span class="ku">억</span></div><div class="ks">7만원×80석×회전1.5×300일</div></div>
+      <div class="kpi"><div class="kl">전시 입장</div><div class="kv g">21.0<span class="ku">억</span></div><div class="ks">1.5만원×일400명(4%)×350일</div></div>
+      <div class="kpi"><div class="kl">전통다원</div><div class="kv g">10.5<span class="ku">억</span></div><div class="ks">2만원×일150명×350일</div></div>
+      <div class="kpi"><div class="kl">외국인 체험</div><div class="kv g">9.0<span class="ku">억</span></div><div class="ks">10만원×일30명×300일</div></div>
+    </div>
+    <div class="callout"><p><strong>낙관 시나리오 합계 = 연 92억</strong> (위 4종 + 편집숍·대관·명상·멤버십 26.4억). 과거 웨딩홀 42억 대비 <b style="color:var(--fg)">2배+</b>. 여기에 납골당·임대(안정 기반)는 별도 — 가장 안정적인 두 기둥이 빠진 콘텐츠만의 추정.</p></div>
+    <div class="note">안정성 비교(일본 8대): 임대 ★★★★★ · 납골당 ★★★★★ · F&amp;B ★★★ · 체험 ★★★ · 대관 ★★ · 디지털 ★★(시즌) · 숙박 ★★★. 단위면적 사례: 에타이 30평 → 연 4,000만엔 매출.</div>
+    <div class="src">출처: consulting-report-bongeunsa(전환 시나리오) · 일본-종교공간-심층리서치(8대 수익원). ※트래픽·전환율은 추정.</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · 수익성</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">06 — 활성화</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">활성화 가능성 · 수요 신호</span><span class="eyebrow">09</span></div>
+    <h2>수요는 이미 <span class="hl">세 방향에서</span> 들어온다</h2>
+    <p class="sub">MZ는 라이프스타일로, 외국인은 문화 학습으로, 강남은 웰니스·기업연수로. 봉은사는 세 수요가 한 공간에서 만나는 유일한 도심 사찰이다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3">
+      <div class="card" style="border-top:2px solid var(--accent)"><div class="lab">MZ — 힙불교</div><ul><li>불교박람회 2030 비중 <b style="color:var(--fg)">80%</b></li><li>사찰음식 강의 이틀 마감</li><li>멘션 2,809건 호감 1위</li><li>"라이프스타일 시장 1위"</li></ul></div>
+      <div class="card" style="border-top:2px solid var(--blue)"><div class="lab">외국인 — 문화 학습</div><ul><li>정관스님·사찰음식 글로벌 인지</li><li>코엑스 인바운드 31.6만/일</li><li>봉은사 영어 템플스테이 운영중</li><li>고슈인·굿즈 갭 = 기회</li></ul></div>
+      <div class="card" style="border-top:2px solid var(--amber)"><div class="lab">강남 — 프리미엄 웰니스</div><ul><li>강남힐링센터 = 수요 방증</li><li>GBD 오피스 상주 수만명</li><li>점심매출 48.7% (기업연수)</li><li>아파트 평당 1.2~1.6억</li></ul></div>
+    </div>
+    <div class="callout"><p><strong>활성화 핵심.</strong> 가장 '흥하는' 콘텐츠는 <b style="color:var(--fg)">사찰음식·명상체험·전시(디지털)</b> — 인스타·MZ·외국인이 동시에 반응. 단 '힙'이 진정성을 넘으면 호감(54.4)을 깎는다 → 진정성이 방어선.</p></div>
+    <div class="src">출처: consulting-report-bongeunsa(brand-analysis) · 38-samseongdong-bongeunsa-location-analysis(트래픽·강남).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · 활성화</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">07 — 컨셉 강화</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">컨셉 강화 · A / B / C 시나리오</span><span class="eyebrow">10</span></div>
+    <h2>무게중심을 어디에 두느냐, <span class="hl">세 방향</span></h2>
+    <p class="sub">같은 BM 풀이라도 컨셉의 무게중심에 따라 색이 달라진다. 안정(A)·고객단가(B)·활성화(C) 세 시나리오의 트레이드오프.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3">
+      <div class="concept" style="border-top-color:var(--green)"><div class="tag" style="color:var(--green)">A · 안정</div><h4>정신문화 거점</h4><div class="en">Sacred Anchor</div>
+        <div class="row"><span>중심</span><span>납골당·수행·전시</span></div>
+        <div class="row"><span>수익</span><span class="ok">상 (안정 기반)</span></div>
+        <div class="row"><span>활성화</span><span class="mid">중</span></div>
+        <div class="row"><span>리스크</span><span class="ok">최저 (정통성)</span></div>
+        <div class="row" style="border:none"><span>한 줄</span><span>가장 안전·정통</span></div>
+      </div>
+      <div class="concept" style="border-top-color:var(--accent)"><div class="tag">B · 고객단가</div><h4>강남 어반 생츄어리</h4><div class="en">Urban Sanctuary</div>
+        <div class="row"><span>중심</span><span>멤버십·명상·기업연수</span></div>
+        <div class="row"><span>수익</span><span class="ok">상 (고단가)</span></div>
+        <div class="row"><span>활성화</span><span class="mid">중 (강남)</span></div>
+        <div class="row"><span>리스크</span><span class="mid">중 (멤버십 사찰법)</span></div>
+        <div class="row" style="border:none"><span>한 줄</span><span>강남 프리미엄</span></div>
+      </div>
+      <div class="concept" style="border-top-color:var(--blue)"><div class="tag" style="color:var(--blue)">C · 활성화</div><h4>글로벌 불교문화 허브</h4><div class="en">Cultural Gateway</div>
+        <div class="row"><span>중심</span><span>사찰음식·외국인·디지털</span></div>
+        <div class="row"><span>수익</span><span class="mid">중 (분산)</span></div>
+        <div class="row"><span>활성화</span><span class="ok">상 (인스타·외국인)</span></div>
+        <div class="row"><span>리스크</span><span class="mid">중 (과잉상업화)</span></div>
+        <div class="row" style="border:none"><span>한 줄</span><span>가장 흥함·화제</span></div>
+      </div>
+    </div>
+    <div class="callout"><p><strong>택일이 아니다.</strong> A는 기반, C는 입구, B는 프리미엄. 셋은 배타적이지 않고 <b style="color:var(--fg)">레이어로 쌓을 때</b> 서로를 보완한다 — 다음 장의 하이브리드.</p></div>
+    <div class="src">컨셉은 BM 평가 매트릭스 + brand-analysis 'Sacred Core + Cultural Gateway' 구조 기반.</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · 컨셉 강화</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">07 — 추천</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">추천 · 하이브리드 4레이어</span><span class="eyebrow">11</span></div>
+    <h2>기반은 <span class="hl">지키고</span>, 입구는 연다 — 4레이어 믹스</h2>
+    <p class="sub">일본 "임대+납골당 80% 기반" 철칙과 brand-analysis "Sacred Core + Cultural Gateway"를 결합. 안정 기둥 위에 활성화·프리미엄을 얹는다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="layer">
+      <div class="lyr base"><div class="lt">① 기반 <span class="sm">Base · 안정 수익</span></div><div class="ld"><b style="color:var(--fg)">납골당·영대공양 + (선택) 부동산 임대</b> — 경상비를 떠받치는 두 기둥. 강남 화장률 95%, 직영 신고로 진입. 비힙하지만 가장 확실.</div></div>
+      <div class="lyr core"><div class="lt">② 코어 <span class="sm">Core · 진정성</span></div><div class="ld"><b style="color:var(--fg)">사찰음식 레스토랑 + 명상·수행 체험</b> — 3축 최상 간판 BM. 봉은사 호감(54.4)·진정성(61.7)을 경험으로 전환. 진정성 방어선.</div></div>
+      <div class="lyr gate"><div class="lt">③ 게이트웨이 <span class="sm">Gateway · 활성화</span></div><div class="ld"><b style="color:var(--fg)">전시·디지털 아트 + 외국인 체험·전통문화 상품</b> — 비신자·MZ·외국인을 끌어들이는 입구. 인스타·화제성. 굿즈 갭 = 기회.</div></div>
+      <div class="lyr prem"><div class="lt">④ 프리미엄 <span class="sm">Premium · 고단가</span></div><div class="ld"><b style="color:var(--fg)">강남 웰니스 멤버십 + 기업 연수</b> — GBD 고소득·기업 밀집을 객단가·리텐션으로. 불교색 유지가 사찰법·진정성 양쪽의 조건.</div></div>
+    </div>
+    <div class="callout"><p><strong>왜 하이브리드인가.</strong> 안정(A)만 가면 활성화가 죽고, 활성화(C)만 가면 수익·정통성이 흔들린다. <b style="color:var(--fg)">4레이어가 서로의 약점을 메운다</b> — 기반이 리스크를, 게이트웨이가 집객을, 프리미엄이 단가를 책임진다.</p></div>
+    <div class="src">정합 근거: 일본 8대 수익원 교훈 + brand-analysis Sacred Core·Cultural Gateway + 평가 매트릭스 상위 BM.</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · 추천</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 분석</span><span class="r">08 — 로드맵</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">실행 로드맵 · 3-Track</span><span class="eyebrow">12</span></div>
+    <h2>합법 영역부터 → <span class="hl">유권해석</span>으로 천장을 연다</h2>
+    <p class="sub">전부 한 번에 열지 않는다. 사찰법이 명확한 영역부터 시작해 검증하고, 유권해석으로 범위를 넓히며, 외국인 허브로 확장한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3">
+      <div class="card" style="border-top:2px solid var(--green)"><div class="lab">Track 1 · 0~12개월</div><h4>합법 영역 즉시 가동</h4><p>전통다원 · 사찰음식 · 명상체험 · 납골당 · 전시. 시행령 제7조 명확. 직영 개시신고 + 구분회계.</p></div>
+      <div class="card" style="border-top:2px solid var(--accent)"><div class="lab">Track 2 · 12~18개월</div><h4>유권해석 후 확장</h4><p>전통문화 상품(뮤지엄숍) · 멤버십 · 기업연수 추가. 기본선(42억) 초과 → 92억 지향. 유권해석으로 천장 확정.</p></div>
+      <div class="card" style="border-top:2px solid var(--blue)"><div class="lab">Track 3 · 18개월~</div><h4>글로벌 허브 확장</h4><p>외국인 프로그램 · 디지털 아트 · 국제 행사. 봉은사 대체불가 자산 극대화.</p></div>
+    </div>
+    <div class="callout"><p><strong>선결 게이트.</strong> ① 문체부 종무실 "전통다원·전통문화상품" 범위 <b style="color:var(--fg)">유권해석</b> ② 조계종 총무원 사전 동의 ③ 직영 세무설계(개시신고·구분회계). 이 셋이 모든 트랙의 공통 관문 — 과업 범위 밖이라 '제언'으로 분리.</p></div>
+    <div class="src">출처: consulting-report-bongeunsa(3-Track) · 법무·세무 검토(선결조건).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석 · 로드맵</span><span>by Project Rent</span></div>
+</section>
+<section class="slide slide--cover">
+  <div class="cover-label">Bongeunsa Cultural Center · Business Model Analysis</div>
+  <h1 class="cover-title" style="font-size:44px">제약을 통과한 BM만<br><b>봉은사의 것이 된다.</b></h1>
+  <p class="cover-sub">사찰법·수익성·활성화를 모두 통과하는 BM은 명확하다 — 사찰음식·납골당·수행체험이 기둥, 전시·외국인·멤버십이 확장. 안정을 지키고 입구를 여는 하이브리드가 봉은사의 답이다.</p>
+  <div class="cover-meta">
+    <div class="m"><div class="ml">다음 단계</div><div class="mv">수익원별 5개년 재무 모델 · 내부 의지(설문·인터뷰)</div></div>
+    <div class="m"><div class="ml">Prepared by</div><div class="mv">Project Rent · 2026.06</div></div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 분석</span><span>by Project Rent</span></div>
+</section>
+<section class="slide part">
+  <div class="pn">Part 2</div>
+  <div class="pt">BM <b>고도화 전략</b></div>
+  <div class="pd">막힌 BM을 합법화 공식으로 재해석하고, 가능한 BM을 불교 특화 × 로컬 특화 두 렌즈로 고도화한다.</div>
+  <div class="slide-footer"><span>봉은사 BM 종합본 · Part 2</span><span>by Project Rent</span></div>
+</section>
+<section class="slide slide--dark">
+  <div class="runhead"><span>봉은사 BM 고도화</span><span class="r">Insight</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">핵심 통찰</span><span class="eyebrow">02</span></div>
+    <h2>막히는 건 <span class="hl">업종이 아니라 형식</span>이다</h2>
+    <p class="sub">전통사찰법은 '카페·호텔·숍'이라는 형식을 막을 뿐, '쉼·미식·쇼핑'이라는 욕구를 막지 않는다. 같은 욕구를 불교·전통·수행의 옷으로 갈아입히면 거의 다 열린다 — 그리고 그 번역이 곧 차별화다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2">
+      <div class="card" style="border-top:2px solid var(--accent-light)"><div class="lab">무기 1 · 불교 특화</div><h4>정통성 · 의례 · 진정성</h4><p>1,200년 역사·보물(은입사향완·삼불좌상)·판전·선릉 능침사·연등회·다도·발우공양. <b style="color:var(--fg)">어떤 상업시설도 흉내낼 수 없는</b> 대체 불가 자산이자 진정성 방어선.</p></div>
+      <div class="card" style="border-top:2px solid var(--blue)"><div class="lab">무기 2 · 로컬 특화</div><h4>강남 객단가 · 직장인 · 외국인</h4><p>GBD 직장인 75~80만·강남 고소득(1인 소비 3,500~4,000만)·외국인 인바운드(코엑스 14~25만/일)·삼성동 전통문화 공백. <b style="color:var(--fg)">수익과 활성화를 동시에</b>.</p></div>
+    </div>
+    <div class="callout"><p><strong>고도화의 곱셈.</strong> 봉은사 BM의 경쟁력 = <b style="color:var(--fg)">불교 특화 × 로컬 특화</b>. 불교만이면 활성화가 약하고, 로컬만이면 진정성이 없다. 둘을 곱할 때 "강남 한복판 천년 사찰만의 것"이 된다.</p></div>
+    <div class="src">근거: 38-삼성동 입지·개발·갭분석 · bongeunsa-traffic-research · consulting-report-bongeunsa(brand-analysis).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 · Insight</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 고도화</span><span class="r">01 — 합법화 공식</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">막힌 BM 재해석 · 합법화 3-Step</span><span class="eyebrow">03</span></div>
+    <h2>불가 BM을 여는 <span class="hl">3단계 공식</span></h2>
+    <p class="sub">호스텔→템플스테이 검토에서 도출한 패턴. 세 단계를 통과하면 전통사찰법 §7-3(신도 편의시설)·정부 템플스테이 트랙으로 들어가 '영업 행위'가 아닌 '종교·수행 부수'가 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="step s1"><div class="n">1</div><div><div class="t">형식 → 본질</div><div class="d">상업 형식을 종교·전통·수행 본질로 재정의. <span class="ex">호스텔 → 수행 리트릿 / 카페 → 전통다원</span></div></div></div>
+    <div class="step s2"><div class="n">2</div><div><div class="t">단독 → 부수</div><div class="d">단독 상품을 프로그램의 從(종)으로. <span class="ex">객실 판매 → 템플스테이에 부수된 숙박</span></div></div></div>
+    <div class="step s3"><div class="n">3</div><div><div class="t">불특정 → 한정</div><div class="d">불특정 영업을 신도·회원 한정 + 실비로. <span class="ex">일반 투숙 → 불자·회원 우선 + 체험비 구조</span></div></div></div>
+    <div class="callout"><p><strong>경계선.</strong> 부수성·실비가 유지되면 합법, 숙박·판매가 主이고 프로그램이 명목이면 '영업 숙박/판매'로 재성격화돼 막힌다. <b style="color:var(--fg)">진짜 불가는 일반카페·일반판매·독립숙박 세 형식뿐.</b></p></div>
+    <div class="src">근거: 전통사찰법 §6·§7-3, 호스텔 법적 검토(템플스테이 트랙·고야산 숙방). ※영업범위는 문체부 유권해석 필요.</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 · 합법화 공식</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 고도화</span><span class="r">01 — 재해석 매트릭스</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">막힌 BM → 열린 모델</span><span class="eyebrow">04</span></div>
+    <h2>형식을 바꾸면 <span class="hl">8개가 열린다</span></h2>
+    <p class="sub">불가로 평가됐던 BM을 합법화 공식으로 번역. 욕구는 그대로 두고 옷만 불교·전통·수행으로 갈아입힌다.</p>
+  </div>
+  <div class="slide-body">
+    <table class="t">
+      <thead><tr><th>막혔던 형식</th><th>불가 사유</th><th>→ 열린 봉은사 모델</th><th style="text-align:center">판정</th></tr></thead>
+      <tbody>
+        <tr><td>호스텔·게스트하우스</td><td class="no">독립 숙박업(§6+공원법)</td><td>도심 수행 리트릿 (템플스테이 확장)</td><td style="text-align:center" class="ok">○</td></tr>
+        <tr><td>일반 카페</td><td class="no">영업행위</td><td>전통다원 + 사찰 비건 브런치</td><td style="text-align:center" class="ok">○</td></tr>
+        <tr><td>편집숍·브랜드 판매</td><td class="no">일반 판매</td><td>뮤지엄숍 + 고슈인 한국판·작가 콜라보</td><td style="text-align:center" class="ok">○</td></tr>
+        <tr><td>웨딩홀·이벤트 대관</td><td class="mid">공원법 회색</td><td>불교 화혼례·천도재 + 기업 명상 대관 + 갤러리·세미나(교양시설)</td><td style="text-align:center" class="mid">△~○</td></tr>
+        <tr><td>헬스장·피트니스</td><td class="no">영업행위</td><td>선(禪) 웰니스 — 명상·선요가·108배·행선</td><td style="text-align:center" class="ok">○</td></tr>
+        <tr><td>코워킹·공유오피스</td><td class="mid">회색</td><td>템플 워케이션 라운지 (회원제 수행+업무)</td><td style="text-align:center" class="mid">△</td></tr>
+        <tr><td>바·주류</td><td class="no">정서·사찰법 충돌</td><td>무알콜 '다선(茶禪) 바' + 야간 명상</td><td style="text-align:center" class="mid">△</td></tr>
+        <tr><td>반려동물 카페·호텔</td><td class="no">영업행위</td><td>반려동물 천도재·추모 (종교 의례, 납골당 시너지)</td><td style="text-align:center" class="ok">○</td></tr>
+      </tbody>
+    </table>
+    <div class="src">판정 근거: 전통사찰법 §6·§7(전통다원·전통문화상품·신도편의)·교양시설(전시·세미나)·종교의례(혼례·천도재). 독립숙박·일반카페·일반판매 형식만 진짜 불가.</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 · 재해석 매트릭스</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 고도화</span><span class="r">02 — 고도화 프레임</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">가능 BM 고도화 · 2렌즈</span><span class="eyebrow">05</span></div>
+    <h2>이미 가능한 BM도 <span class="hl">두 렌즈로 더 멀리</span></h2>
+    <p class="sub">평범한 사찰음식집·명상센터가 아니다. 각 BM에 불교 정통성과 강남 로컬 맥락을 곱하면, 봉은사만의 고부가 모델이 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2">
+      <div class="card" style="border-top:2px solid var(--accent-light)"><div class="lab">불교 특화 렌즈</div><h4>"진짜"를 판다</h4><ul>
+        <li><b>정통성</b> — 1,200년·발우공양·다도 전통</li><li><b>의례</b> — 천도재·연등·법회를 콘텐츠로</li><li><b>진정성</b> — 호감 54.4·진정성 61.7 (방어선)</li><li><b>상징</b> — 보물 판전·선릉 능침사 스토리</li>
+      </ul></div>
+      <div class="card" style="border-top:2px solid var(--blue)"><div class="lab">로컬 특화 렌즈</div><h4>"강남만의"를 판다</h4><ul>
+        <li><b>객단가</b> — 강남 고소득·프리미엄 지불의사</li><li><b>직장인</b> — GBD 75~80만 시간대별 공략</li><li><b>외국인</b> — 코엑스 인바운드·굿즈 갭</li><li><b>공백</b> — 삼성동 전통문화·주말·야간 부재</li>
+      </ul></div>
+    </div>
+    <div class="callout"><p><strong>적용 규칙.</strong> 다음 3장에서 가능 BM을 <b style="color:var(--fg)">코어 · 기반/프리미엄 · 게이트웨이</b>로 묶어, 각각 불교 렌즈와 로컬 렌즈로 고도화한 모델을 제시한다.</p></div>
+    <div class="src">렌즈 자산: consulting-report-bongeunsa(brand-analysis) · 38-삼성동(입지·고소득·외국인) · bongeunsa-traffic.</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 · 프레임</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 고도화</span><span class="r">02 — 고도화 ① 코어</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">가능 BM 고도화 ① · Core (진정성)</span><span class="eyebrow">06</span></div>
+    <h2>간판 — 사찰음식 · 수행 · <span class="hl">다선</span></h2>
+    <p class="sub">3축 평가 최상위 BM들. 봉은사 진정성을 직접 경험으로 전환하는 코어 레이어.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3">
+      <div class="up"><h4>사찰음식 → 선(禪) 다이닝</h4>
+        <div class="lens b"><div class="lt">불교</div><div class="lv">발우공양 정신·제철 사찰음식·다도 페어링</div></div>
+        <div class="lens l"><div class="lt">로컬</div><div class="lv">강남 7만원+ 파인다이닝 · GBD 직장인 점심정식 · 외국인 미식 오마카세</div></div>
+        <div class="res"><b>3라인 믹스</b> — 미쉐린 지향 디너 / 직장인 정식 / 외국인 코스</div>
+      </div>
+      <div class="up"><h4>명상·수행 → 도심 수행 클럽</h4>
+        <div class="lens b"><div class="lt">불교</div><div class="lv">참선·간화선 전통·스님 지도·판전 사경</div></div>
+        <div class="lens l"><div class="lt">로컬</div><div class="lv">GBD 점심 15분 명상 · 퇴근후 리트릿 · 강남힐링센터 수요</div></div>
+        <div class="res"><b>시간대별·회원제</b> — 직장인 + 외국인 영어 + 기업 단체</div>
+      </div>
+      <div class="up"><h4>전통다원 → 다선(茶禪) 티하우스</h4>
+        <div class="lens b"><div class="lt">불교</div><div class="lv">다선일미·사찰 발효차·다도 의례</div></div>
+        <div class="lens l"><div class="lt">로컬</div><div class="lv">별마당·코엑스 대비 '느린' 프리미엄 · 외국인 다도체험</div></div>
+        <div class="res"><b>티 오마카세</b> — 강남 유일의 '멈춤'의 공간</div>
+      </div>
+    </div>
+    <div class="callout"><p><strong>코어 원칙.</strong> 사찰음식·수행은 봉은사 호감(54.4)·진정성(61.7)을 돈으로 바꾸는 <b style="color:var(--fg)">진정성 엔진</b>. '힙'보다 '진짜'가 우선 — 과잉상업화는 방어선(부정 3.5%)을 깬다.</p></div>
+    <div class="src">근거: brand-analysis(호감·진정성) · 38-mz불교(사찰음식 수요) · 38-삼성동(GBD·외국인).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 · 코어</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 고도화</span><span class="r">02 — 고도화 ② 기반·프리미엄</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">가능 BM 고도화 ② · Base & Premium</span><span class="eyebrow">07</span></div>
+    <h2>안정과 고단가 — 납골당 · 연수 · <span class="hl">멤버십</span></h2>
+    <p class="sub">경상비를 떠받치는 안정 기둥(납골당)과 강남 고소득을 객단가로 바꾸는 프리미엄 레이어.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3">
+      <div class="up" style="border-top-color:var(--green)"><h4>납골당 → 도심 프리미엄 추모</h4>
+        <div class="lens b"><div class="lt">불교</div><div class="lv">49재·천도재·영가천도 의례 결합 · 1,200년 정통성=신뢰</div></div>
+        <div class="lens l"><div class="lt">로컬</div><div class="lv">강남 고소득 프리미엄 봉안 · 도심 접근성(잦은 방문) · 반려동물 추모</div></div>
+        <div class="res"><b>안정 기둥</b> — 신고 설치·화장률 95%·일본 BM 80%</div>
+      </div>
+      <div class="up" style="border-top-color:var(--amber)"><h4>기업 연수 → Corporate Zen</h4>
+        <div class="lens b"><div class="lt">불교</div><div class="lv">선(禪) 리더십·명상 기반 스트레스 관리</div></div>
+        <div class="lens l"><div class="lt">로컬</div><div class="lv">GBC 맞은편·트레이드타워 등 기업 밀집 · 임원 리트릿</div></div>
+        <div class="res"><b>강남 기업 전용</b> — 인당 고단가, 도보 거리 최적</div>
+      </div>
+      <div class="up" style="border-top-color:var(--amber)"><h4>멤버십 → 어반 생츄어리</h4>
+        <div class="lens b"><div class="lt">불교</div><div class="lv">수행 라운지·다도·명상 회원 우선(신도편의)</div></div>
+        <div class="lens l"><div class="lt">로컬</div><div class="lv">강남 고소득·설화수 '전통+프리미엄' 성공 모델·The Set 회비형</div></div>
+        <div class="res"><b>월 회비형</b> — 객단가·리텐션 (불교색 유지가 조건)</div>
+      </div>
+    </div>
+    <div class="callout"><p><strong>균형.</strong> 납골당이 <b style="color:var(--fg)">리스크(경상비)</b>를 책임지고, 연수·멤버십이 <b style="color:var(--fg)">단가</b>를 끌어올린다 — 코어(진정성)가 흥행해도 기반이 없으면 무너진다는 일본 교훈("임대+납골당 80%")의 적용.</p></div>
+    <div class="src">근거: 일본-종교공간(8대 수익원) · 38-삼성동(고소득·기업밀집) · 33-주거(멤버십).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 · 기반·프리미엄</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 고도화</span><span class="r">02 — 고도화 ③ 게이트웨이</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">가능 BM 고도화 ③ · Gateway (활성화)</span><span class="eyebrow">08</span></div>
+    <h2>입구 — 전시 · 굿즈 · <span class="hl">시즌 이벤트</span></h2>
+    <p class="sub">비신자·MZ·외국인을 끌어들이는 활성화 레이어. 봉은사의 문화재·연중 행사를 콘텐츠로 전환한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3">
+      <div class="up" style="border-top-color:var(--blue)"><h4>전시 → 선과 정원 뮤지엄</h4>
+        <div class="lens b"><div class="lt">불교</div><div class="lv">보물(은입사향완·삼불좌상)·판전 경판·불교미술 1,200년 사료</div></div>
+        <div class="lens l"><div class="lt">로컬</div><div class="lv">삼성동 갤러리 공백 · 코엑스 관람객 연계 · 야간 판전 투어 · 디지털 불교아트(teamLab형)</div></div>
+        <div class="res"><b>신쇼지 벤치마크</b> — 인스타·외국인 앵커</div>
+      </div>
+      <div class="up" style="border-top-color:var(--blue)"><h4>상품 → 봉은 셀렉트</h4>
+        <div class="lens b"><div class="lt">불교</div><div class="lv">봉은사 전용 굿즈·사경첩·연등 모티브</div></div>
+        <div class="lens l"><div class="lt">로컬</div><div class="lv">외국인 굿즈 갭(고슈인 한국판 스탬프북)·작가 콜라보·코엑스 관광객</div></div>
+        <div class="res"><b>수집 시스템</b> — "가져갈 것 없음" 페인 해결</div>
+      </div>
+      <div class="up" style="border-top-color:var(--blue)"><h4>행사 → 연중 시즌 캘린더</h4>
+        <div class="lens b"><div class="lt">불교</div><div class="lv">연등회(2~3만)·국화축제(1.5~2만)·제야 타종·부처님오신날(3~5만)</div></div>
+        <div class="lens l"><div class="lt">로컬</div><div class="lv">강남 도심 시즌 명소·외국인 포토스팟·별마당 연계</div></div>
+        <div class="res"><b>반복 트래픽</b> — 봄 연등 / 가을 국화 / 겨울 타종</div>
+      </div>
+    </div>
+    <div class="callout"><p><strong>게이트웨이 원칙.</strong> 전시·굿즈·이벤트는 수익보다 <b style="color:var(--fg)">집객·브랜딩</b>. 봉은사 연 365만 트래픽과 코엑스 인접을 '한 번 보고 떠남'에서 '머물고 다시 옴'으로 바꾸는 입구.</p></div>
+    <div class="src">근거: bongeunsa-traffic(행사 규모) · 38-삼성동(갤러리 공백·코엑스) · 외국인 페인포인트(굿즈 갭).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 · 게이트웨이</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 고도화</span><span class="r">03 — 자산 맵</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">봉은사 고유 자산 → BM 연결</span><span class="eyebrow">09</span></div>
+    <h2>가진 것을 <span class="hl">돈으로 잇는</span> 지도</h2>
+    <p class="sub">봉은사가 이미 보유한 자산이 각각 어떤 고도화 BM에 연결되는지. 새로 만들 게 아니라 가진 것을 번역한다.</p>
+  </div>
+  <div class="slide-body">
+    <table class="t">
+      <thead><tr><th>봉은사 고유 자산</th><th>유형</th><th>→ 연결 BM</th></tr></thead>
+      <tbody>
+        <tr><td>1,200년 역사 · 보물 · 판전</td><td class="ok">불교</td><td>선과 정원 뮤지엄 · 야간 문화재 투어</td></tr>
+        <tr><td>발우공양·사찰음식 전통</td><td class="ok">불교</td><td>선 다이닝 (3라인) · 다선 티하우스</td></tr>
+        <tr><td>템플스테이(연 3~5천명)·참선</td><td class="ok">불교</td><td>도심 수행 클럽 · 수행 리트릿 숙박</td></tr>
+        <tr><td>연등회·국화축제·타종·신년기도</td><td class="ok">불교</td><td>연중 시즌 이벤트 캘린더</td></tr>
+        <tr><td>신도 5~10만 · 천도재 의례</td><td class="ok">불교</td><td>프리미엄 추모 · 멤버십 신도편의</td></tr>
+        <tr><td>코엑스 도보3분 · 외국인 인바운드</td><td class="mid">로컬</td><td>외국인 체험·미식 · 봉은 셀렉트 굿즈</td></tr>
+        <tr><td>GBD 직장인 75~80만 · GBC 맞은편</td><td class="mid">로컬</td><td>점심 명상·정식 · Corporate Zen</td></tr>
+        <tr><td>강남 고소득 · 강남힐링센터 수요</td><td class="mid">로컬</td><td>어반 생츄어리 멤버십 · 선 웰니스</td></tr>
+        <tr><td>삼성동 전통문화·주말·야간 공백</td><td class="mid">로컬</td><td>전 BM의 차별화 — "강남 유일"</td></tr>
+      </tbody>
+    </table>
+    <div class="src">근거: 38-samseongdong-bongeunsa-location-analysis · bongeunsa-traffic-research · consulting-report-bongeunsa.</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 · 자산 맵</span><span>by Project Rent</span></div>
+</section>
+<section class="slide">
+  <div class="runhead"><span>봉은사 BM 고도화</span><span class="r">04 — 숙박 재평가</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">숙박 평가 정정 · 매트릭스 업데이트</span><span class="eyebrow">10</span></div>
+    <h2>"불가"였던 숙박, <span class="hl">패키지로는 가능</span></h2>
+    <p class="sub">BM 분석 덱에서 숙박=X(불가)로 평가했으나, 형식을 나누면 결론이 갈린다 — 독립 숙박업은 불가, 템플스테이·수행 연계는 가능.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2">
+      <div class="card">
+        <div class="lab">평가 정정</div>
+        <table class="t">
+          <tr><th>형태</th><th style="text-align:center">사찰법</th><th>근거</th></tr>
+          <tr><td>독립 호스텔·게스트하우스</td><td style="text-align:center" class="no">X</td><td>§6 영업제한 + 역사공원 숙박 불포함</td></tr>
+          <tr><td>템플스테이·수행 연계 숙박</td><td style="text-align:center" class="ok">○</td><td>봉은사 1박2일 운영중·정부 트랙</td></tr>
+          <tr><td>불자·회원 한정 수련 패키지</td><td style="text-align:center" class="mid">△~○</td><td>§7-3 신도 편의시설·실비 구조</td></tr>
+        </table>
+        <div class="note">→ 매트릭스의 '숙박 X'는 '독립숙박 X / 수행연계 △~○'로 분할 정정.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent)">
+        <div class="lab">합법 설계 4원칙</div>
+        <ul>
+          <li><b>① 부수성</b> — 숙박은 명상·차담 프로그램에 부수, 단독 객실 판매 금지</li>
+          <li><b>② 실비</b> — 체험비 구조(시장 숙박요금형 분리과금 회피)</li>
+          <li><b>③ 한정</b> — 불자·회원 우선/한정 라인으로 신도편의 성격 강화</li>
+          <li><b>④ 절차</b> — 객실 증설 시 §9의2 허가 + 사업단 재심사 + 보건소·세무 사전조회</li>
+        </ul>
+        <div class="note">벤치마크: 일본 고야산 숙방(정진식·아침근행·명상 연계).</div>
+      </div>
+    </div>
+    <div class="callout"><p><strong>새 모델.</strong> 강남 직장인의 <b style="color:var(--fg)">"퇴근 후 1박 명상 리트릿"</b>, 외국인의 <b style="color:var(--fg)">"도심 숙방 체험"</b> — 게이트웨이·코어와 묶이는 고부가 패키지.</p></div>
+    <div class="src">근거: 사찰 숙박 법적 검토(전통사찰법·관광진흥법·공중위생법·템플스테이 트랙·고야산 숙방).</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 · 숙박 재평가</span><span>by Project Rent</span></div>
+</section>
+<section class="slide slide--dark">
+  <div class="runhead"><span>봉은사 BM 고도화</span><span class="r">Synthesis</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">종합 · 고도화된 BM 풀</span><span class="eyebrow">11</span></div>
+    <h2>네 레이어로 <span class="hl">다시 쌓는다</span></h2>
+    <p class="sub">막힌 BM 재해석 + 가능 BM 고도화를 합치면, 봉은사 BM 풀이 4레이어로 정렬된다. 안정을 지키고 입구를 열되, 모든 칸이 '봉은사 버전'이다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g4">
+      <div class="card" style="border-top:2px solid var(--green)"><div class="lab" style="color:var(--green)">기반 · 안정</div><ul><li>도심 프리미엄 추모</li><li>(선택) 부동산 임대</li><li>반려동물 천도재</li></ul></div>
+      <div class="card" style="border-top:2px solid var(--accent)"><div class="lab" style="color:var(--accent-light)">코어 · 진정성</div><ul><li>선 다이닝 (3라인)</li><li>도심 수행 클럽</li><li>다선 티하우스</li><li>수행 리트릿 숙박</li></ul></div>
+      <div class="card" style="border-top:2px solid var(--blue)"><div class="lab" style="color:var(--blue)">게이트웨이 · 활성화</div><ul><li>선과 정원 뮤지엄</li><li>봉은 셀렉트 굿즈</li><li>시즌 이벤트 캘린더</li><li>불교 화혼례·세미나 대관</li></ul></div>
+      <div class="card" style="border-top:2px solid var(--amber)"><div class="lab" style="color:var(--amber)">프리미엄 · 고단가</div><ul><li>어반 생츄어리 멤버십</li><li>Corporate Zen 연수</li><li>선 웰니스 스튜디오</li></ul></div>
+    </div>
+    <div class="callout"><p><strong>한 줄 결론.</strong> 봉은사에서 막히는 건 업종이 아니라 형식이다. <b style="color:var(--fg)">같은 욕구를 불교·로컬 버전으로 번역</b>하면 거의 다 열리고, 그 번역 자체가 강남 어디에도 없는 차별화이자 진정성 방어선이 된다.</p></div>
+    <div class="src">종합: 막힌 BM 재해석(8) + 가능 BM 고도화(12) + 숙박 재평가. 다음 단계 = 레이어별 5개년 재무 모델.</div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 · Synthesis</span><span>by Project Rent</span></div>
+</section>
+<section class="slide slide--cover">
+  <div class="cover-label">Bongeunsa · Business Model Upgrade Strategy</div>
+  <h1 class="cover-title" style="font-size:42px">같은 욕구를,<br><b>봉은사 버전으로 번역한다.</b></h1>
+  <p class="cover-sub">쉼·미식·쇼핑·운동·일·추모 — 강남이 원하는 모든 욕구를 불교·전통·수행의 옷으로 갈아입히면 합법이 되고, 차별화가 되고, 진정성이 된다. 제약은 한계가 아니라 봉은사만의 해자다.</p>
+  <div class="cover-meta">
+    <div class="m"><div class="ml">다음 단계</div><div class="mv">레이어별 5개년 재무 모델 · 내부 의지 확인</div></div>
+    <div class="m"><div class="ml">Prepared by</div><div class="mv">Project Rent · 2026.06</div></div>
+  </div>
+  <div class="slide-footer"><span>봉은사 BM 고도화 전략</span><span>by Project Rent</span></div>
+</section>
+</body>
+</html>

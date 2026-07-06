@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봉은문화센터 미래 방향 설문조사</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root{
+    --fg:#1A1A1A;--fg-2:#403c37;--fg-3:#8a857d;
+    --accent:#6C5CE7;--accent-d:#5A4BD1;--accent-sub:#F2F0FB;
+    --line:#e2ded7;--line-2:#eee;--paper:#fff;--bg:#f3f1ec;--card:#faf9f6;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;color:var(--fg-2);font-weight:400;line-height:1.6;-webkit-text-size-adjust:100%}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .3s;z-index:50}
+  .wrap{max-width:680px;margin:0 auto;padding:28px 20px 130px}
+  .intro{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:26px 24px;margin-bottom:8px}
+  .eyebrow{font-size:11px;letter-spacing:.26em;color:var(--accent);font-weight:600;text-transform:uppercase;margin-bottom:12px}
+  h1{font-size:23px;font-weight:600;color:var(--fg);letter-spacing:-.02em;line-height:1.32}
+  .intro p{font-size:14px;color:var(--fg-2);margin-top:12px}
+  .intro .meta{font-size:12px;color:var(--fg-3);margin-top:14px;border-top:1px solid var(--line-2);padding-top:12px}
+  .partdiv{margin:22px 4px 8px;padding-bottom:7px;border-bottom:2px solid var(--accent)}
+  .partdiv .pt{font-size:11px;letter-spacing:.2em;color:var(--accent);font-weight:700}
+  .partdiv h3{font-size:16px;color:var(--fg);font-weight:600;margin-top:2px}
+  .qcard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:12px}
+  .qcard.req-miss{border-color:#e7a;box-shadow:0 0 0 2px rgba(225,112,85,.12)}
+  .qnum{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 7px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;border-radius:6px;margin-right:8px}
+  .qtitle{font-size:15.5px;font-weight:600;color:var(--fg);line-height:1.45;display:inline}
+  .qsmall{font-size:12px;color:var(--fg-3);font-weight:400}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .chip{border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px;color:var(--fg-2);cursor:pointer;user-select:none;transition:all .12s;background:#fff;line-height:1.3}
+  .chip:hover{border-color:var(--accent)}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .chips.scale .chip{flex:1;text-align:center;min-width:58px;padding:10px 4px;font-size:12px}
+  .ta{width:100%;min-height:84px;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:14px;color:var(--fg);resize:vertical;margin-top:10px}
+  .ta:focus{outline:none;border-color:var(--accent)}
+  .subbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:14px 20px;display:flex;align-items:center;gap:14px;justify-content:center}
+  .subbar .cnt{font-size:13px;color:var(--fg-3)}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:13px 30px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s}
+  .btn:hover{background:var(--accent-d)}
+  .btn:disabled{background:#c9c4d8;cursor:not-allowed}
+  .miss-note{font-size:12.5px;color:#c0492f;text-align:center;display:none}
+  .done{display:none;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:48px 28px;text-align:center}
+  .done .ic{width:60px;height:60px;border-radius:50%;background:var(--accent-sub);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 18px}
+  .done h2{font-size:22px;color:var(--fg);font-weight:600}
+  .done p{font-size:14px;color:var(--fg-2);margin-top:10px}
+  .foot{text-align:center;font-size:11px;letter-spacing:.15em;color:var(--fg-3);text-transform:uppercase;margin-top:22px}
+  @media(max-width:480px){.wrap{padding:20px 14px 130px}.chips.scale{gap:4px}.chips.scale .chip{min-width:0;font-size:11px;padding:9px 2px}}
+</style>
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<div class="wrap">
+  <div class="intro" id="introCard">
+    <div class="eyebrow">봉은문화센터 미래 방향 설문</div>
+    <h1>봉은사 문화센터의 미래 방향에 대한<br>여러분의 생각을 여쭙습니다</h1>
+    <p>이 설문은 봉은사 문화센터가 앞으로 <b>어떤 공간이 되면 좋을지</b>에 대한 사회적 의견을 모으기 위한 것입니다. 정답은 없으며, 솔직한 생각이 가장 큰 도움이 됩니다.</p>
+    <div class="meta">· 익명 · 약 5분 · 총 22문항(객관식) + 자유 의견</div>
+  </div>
+  <div id="questions"></div>
+  <div class="done" id="doneCard">
+    <div class="ic">✓</div>
+    <h2>소중한 의견 감사합니다</h2>
+    <p>응답이 정상적으로 제출되었습니다.<br>여러분의 생각이 봉은사 문화센터의 미래를 만듭니다.</p>
+  </div>
+  <div class="foot">Project Rent · 봉은문화센터 미래 방향 조사</div>
+</div>
+
+<div class="subbar" id="subbar">
+  <div style="text-align:center">
+    <span class="cnt" id="cnt">0 / 22 응답</span>
+    <div class="miss-note" id="missNote">미응답 문항이 있습니다. 표시된 곳을 확인해 주세요.</div>
+  </div>
+  <button class="btn" id="submitBtn" disabled>제출하기</button>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzicyjGPyh7M5RsCZ6Buo1tGvT0E9ciSX_t-ZrgvCgSjRsH1Tblnyj5S65QWYONOIfElA/exec"; // 봉은 설문 수집 엔드포인트
+
+const AGREE = ["매우<br>동의","동의","보통","비동의","전혀<br>비동의"];
+
+const Q = [
+  {part:"PART 1", ptitle:"응답자 정보"},
+  {id:"q1", type:"single", title:"연령대", options:["10대","20대","30대","40대","50대","60대 이상"]},
+  {id:"q2", type:"single", title:"종교", options:["없음","불교","기독교","천주교","기타"]},
+  {id:"q3", type:"single", title:"최근 3년 내 사찰 방문 경험", options:["없음","1~2회","3~5회","6회 이상"]},
+
+  {part:"PART 2", ptitle:"현대 사회와 정신문화에 대한 인식"},
+  {id:"q4", type:"multi", max:3, title:"현재 사회에서 사람들이 가장 부족하게 느끼는 것은 무엇이라고 생각하십니까?", small:"(최대 3개)", options:["마음의 여유","정신적 안정","깊은 인간관계","공동체","삶의 방향성","자기 성찰","자연과의 연결","휴식","소속감","경제적 안정"]},
+  {id:"q5", type:"scale", title:"“현대 사회에는 사람들이 삶을 돌아보고 마음을 정리할 수 있는 공간이 더 필요하다.”", small:"(동의 정도)", labels:AGREE},
+  {id:"q6", type:"scale", title:"“서울에는 누구나 부담 없이 방문할 수 있는 상징적인 정신문화 공간이 필요하다.”", small:"(동의 정도)", labels:AGREE},
+
+  {part:"PART 3", ptitle:"불교와 봉은사에 대한 인식"},
+  {id:"q7", type:"multi", max:3, title:"불교에 대해 가장 먼저 떠오르는 이미지는 무엇입니까?", small:"(최대 3개)", options:["명상","수행","스님","마음의 안정","전통문화","사찰음식","템플스테이","힙한 문화","노년층 종교","잘 모르겠다"]},
+  {id:"q8", type:"multi", max:2, title:"앞으로 한국 불교가 가장 강화해야 할 것은 무엇이라고 생각하십니까?", small:"(최대 2개)", options:["수행","명상","청년 세대와의 연결","공동체","정신건강","문화 콘텐츠","환경·지속가능성","사회공헌","국제 교류","전통문화"]},
+  {id:"q9", type:"scale", title:"“불교를 공부하거나 수행하는 삶은 사회적으로 더 존중받을 가치가 있다.”", small:"(동의 정도)", labels:AGREE},
+  {id:"q10", type:"single", title:"다음 중 가장 공감하는 문장은 무엇입니까?", options:["불교는 전통을 지키는 데 집중해야 한다","불교는 현대 문화와 적극적으로 결합해야 한다","불교는 수행의 본질은 지키되 표현은 현대화해야 한다","불교는 종교를 넘어 삶의 철학으로 확장되어야 한다"]},
+
+  {part:"PART 4", ptitle:"봉은사 문화센터의 역할"},
+  {id:"q11", type:"multi", max:2, title:"봉은사 문화센터가 가장 우선적으로 수행해야 할 역할은 무엇이라고 생각하십니까?", small:"(최대 2개)", options:["명상·수행 체험","정신적 쉼터","한국 문화 소개","청년 프로그램","공동체 형성","문화 콘텐츠","사찰음식","웰니스 프로그램","외국인 대상 한국문화 체험"]},
+  {id:"q12", type:"single", title:"다음 중 가장 적절한 구조는 무엇이라고 생각하십니까?", options:["본원과 문화센터가 비슷한 역할을 해야 한다","본원은 수행 중심, 문화센터는 문화 체험 중심이어야 한다","본원은 수행 중심, 문화센터는 현대인을 위한 입문 공간이어야 한다","본원은 종교 공간, 문화센터는 누구나 이용 가능한 생활문화 공간이어야 한다"]},
+  {id:"q13", type:"multi", max:3, title:"봉은사 문화센터는 사람들에게 어떤 가치를 제공해야 한다고 생각하십니까?", small:"(최대 3개)", options:["휴식","명상","관계 형성","공동체","삶의 방향성","자기 성찰","문화 경험","한국적 미감","지속가능한 삶"]},
+  {id:"q14", type:"multi", max:3, title:"서울 한복판에 이런 공간이 있다면 가장 방문해보고 싶은 프로그램은 무엇입니까?", small:"(최대 3개)", options:["명상 프로그램","사찰음식","차(Tea) 프로그램","철학 강연","북클럽","산책 프로그램","전시","웰니스 프로그램","전통문화 체험","야간 프로그램"]},
+
+  {part:"PART 5", ptitle:"상업성 · 운영 방향"},
+  {id:"q15", type:"single", title:"봉은사 문화센터 내 수익시설 운영에 대해 어떻게 생각하십니까?", options:["적극 필요하다","어느 정도 필요하다","최소한만 필요하다","없는 것이 좋다"]},
+  {id:"q16", type:"multi", title:"다음 중 문화센터 내 있어도 괜찮다고 생각하는 시설은 무엇입니까?", small:"(복수 선택)", options:["사찰음식 레스토랑","카페","티하우스","서점","향·차 판매 공간","전시숍","명상 프로그램","웰니스 프로그램","디자인 굿즈샵"]},
+  {id:"q17", type:"single", title:"다음 중 가장 우려되는 것은 무엇입니까?", options:["지나친 상업화","종교성 약화","관광지화","전통 훼손","수익성 부족","특별한 우려 없음"]},
+
+  {part:"PART 6", ptitle:"봉은사의 미래 방향"},
+  {id:"q18", type:"single", title:"봉은사는 앞으로 서울에서 어떤 공간이 되어야 한다고 생각하십니까?", options:["대표 사찰","문화 랜드마크","정신문화 랜드마크","관광 명소","명상·웰니스 허브","공동체 플랫폼"]},
+  {id:"q19", type:"single", title:"외국인에게 봉은사는 어떤 공간으로 기억되면 좋겠습니까?", options:["한국 전통문화 체험 공간","불교 문화 체험 공간","서울 대표 명상 공간","한국 정신문화 공간","한국형 라이프스타일 공간"]},
+  {id:"q20", type:"single", title:"봉은사가 앞으로 가장 상징적으로 보여줘야 할 가치는 무엇이라고 생각하십니까?", options:["수행","마음의 안정","공동체","삶의 지혜","지속가능한 삶","자연과의 조화","한국 정신문화"]},
+  {id:"q21", type:"single", title:"다음 중 가장 공감하는 미래 방향은 무엇입니까?", options:["수행 중심 사찰","문화 중심 사찰","수행을 기반으로 한 문화 플랫폼","한국 정신문화를 대표하는 복합 플랫폼"]},
+  {id:"q22", type:"single", title:"봉은사가 앞으로 가장 우선적으로 투자해야 할 분야는 무엇이라고 생각하십니까?", options:["수행 프로그램","명상 프로그램","문화 콘텐츠","커뮤니티 프로그램","사찰음식","공간 리뉴얼","외국인 프로그램"]},
+
+  {sub:true, id:"qfree", type:"text", title:"마지막으로, 봉은사 문화센터에 대해 <b>자유롭게 의견</b>을 남겨 주세요.", small:"(선택)", ph:"바라는 점, 우려되는 점, 떠오르는 아이디어 등 무엇이든 좋습니다"},
+];
+
+const REQUIRED = ["q1","q2","q3","q4","q5","q6","q7","q8","q9","q10","q11","q12","q13","q14","q15","q16","q17","q18","q19","q20","q21","q22"];
+const answers = {};
+
+function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+const qWrap = document.getElementById("questions");
+let qNum = 0;
+Q.forEach(q=>{
+  if(q.part){ qWrap.appendChild(el("div","partdiv","<div class='pt'>"+q.part+"</div><h3>"+q.ptitle+"</h3>")); return; }
+  if(!q.sub) qNum++;
+  const card = el("div","qcard"); card.id="card_"+q.id;
+  const numLabel = q.sub ? "·" : String(qNum);
+  card.innerHTML = `<span class="qnum">${numLabel}</span><span class="qtitle">${q.title} ${q.small?'<span class=qsmall>'+q.small+'</span>':''}</span>`;
+  if(q.type==="scale"){
+    const ch=el("div","chips scale");
+    q.labels.forEach((lb,i)=>{const c=el("div","chip","<span>"+lb+"</span>");c.onclick=()=>pickSingle(ch,c,q.id,i+1);ch.appendChild(c);});
+    card.appendChild(ch);
+  } else if(q.type==="single"){
+    const ch=el("div","chips");
+    q.options.forEach(op=>{const c=el("div","chip",op);c.onclick=()=>pickSingle(ch,c,q.id,op);ch.appendChild(c);});
+    card.appendChild(ch);
+  } else if(q.type==="multi"){
+    answers[q.id]=[];
+    const ch=el("div","chips");
+    q.options.forEach(op=>{const c=el("div","chip",op);c.onclick=()=>toggleMulti(c,q,op);ch.appendChild(c);});
+    card.appendChild(ch);
+  } else if(q.type==="text"){
+    answers[q.id]="";
+    const ta=el("textarea","ta");ta.placeholder=q.ph||"자유롭게 적어 주세요 (선택)";
+    ta.oninput=()=>{answers[q.id]=ta.value;};
+    card.appendChild(ta);
+  }
+  qWrap.appendChild(card);
+});
+
+function pickSingle(ch,c,id,val){ch.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));c.classList.add("on");answers[id]=val;update();clearMiss("card_"+id);}
+function toggleMulti(c,q,op){
+  const arr=answers[q.id];
+  if(c.classList.contains("on")){c.classList.remove("on");answers[q.id]=arr.filter(x=>x!==op);}
+  else{ if(q.max && arr.length>=q.max) return; c.classList.add("on"); arr.push(op); }
+  update(); if(answers[q.id].length>0)clearMiss("card_"+q.id);
+}
+function isAnswered(id){
+  const v=answers[id]; const q=Q.find(x=>x.id===id);
+  if(q && q.type==="multi") return v && v.length>0;
+  return v!==undefined && v!==null && v!=="";
+}
+function update(){
+  const done=REQUIRED.filter(isAnswered).length;
+  document.getElementById("cnt").textContent=done+" / "+REQUIRED.length+" 응답";
+  document.getElementById("prog").style.width=(done/REQUIRED.length*100)+"%";
+  document.getElementById("submitBtn").disabled=done<REQUIRED.length;
+}
+function clearMiss(cardId){const c=document.getElementById(cardId);if(c)c.classList.remove("req-miss");document.getElementById("missNote").style.display="none";}
+
+document.getElementById("submitBtn").onclick=async()=>{
+  const miss=REQUIRED.filter(id=>!isAnswered(id));
+  if(miss.length){
+    miss.forEach(id=>{const c=document.getElementById("card_"+id);if(c)c.classList.add("req-miss");});
+    document.getElementById("missNote").style.display="block";
+    const first=document.getElementById("card_"+miss[0]); if(first)first.scrollIntoView({behavior:"smooth",block:"center"});
+    return;
+  }
+  const payload=buildPayload();
+  const btn=document.getElementById("submitBtn"); btn.disabled=true; btn.textContent="제출 중...";
+  try{ if(APPS_SCRIPT_URL){ await fetch(APPS_SCRIPT_URL,{method:"POST",body:JSON.stringify(payload)}); } else { console.log("[데모 모드] payload:",payload); } }
+  catch(e){ console.warn("전송 경고:",e); }
+  document.getElementById("introCard").style.display="none";
+  qWrap.style.display="none";
+  document.getElementById("subbar").style.display="none";
+  document.getElementById("doneCard").style.display="block";
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+
+function buildPayload(){
+  const labels={q1:"Q1_연령",q2:"Q2_종교",q3:"Q3_사찰방문",q4:"Q4_부족한것",q5:"Q5_공간필요_동의",q6:"Q6_정신문화공간_동의",q7:"Q7_불교이미지",q8:"Q8_불교강화",q9:"Q9_수행존중_동의",q10:"Q10_불교방향공감",q11:"Q11_센터우선역할",q12:"Q12_본원센터구조",q13:"Q13_제공가치",q14:"Q14_방문프로그램",q15:"Q15_수익시설",q16:"Q16_허용시설",q17:"Q17_우려",q18:"Q18_서울에서공간",q19:"Q19_외국인기억",q20:"Q20_상징가치",q21:"Q21_미래방향공감",q22:"Q22_우선투자"};
+  const p={timestamp:new Date().toISOString()};
+  Object.keys(labels).forEach(id=>{ const v=answers[id]; p[labels[id]]=Array.isArray(v)?v.join(", "):v; });
+  p["자유의견"]=answers.qfree||"";
+  return p;
+}
+update();
+</script>
+</body>
+</html>

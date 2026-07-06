@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROJECT RENT IR DECK V10 — Retail Intelligence Infrastructure</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111111; --bg-3: #222222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333333; --line-2: #2A2A2A;
+  --accent: #6C5CE7; --accent-light: #A29BFE; --accent-dark: #5A4BD1;
+  --warm: #E9DCC8; --rust: #B86C4A; --green: #8FA37E; --blue: #6F8AA3; --amber: #D9A34B; --red: #E17055;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  background: var(--bg); color: var(--fg);
+  font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+  font-weight: 300; letter-spacing: -0.01em; line-height: 1.7;
+  overflow: hidden; width: 100%; height: 100%;
+}
+.deck { width: 100%; height: 100%; position: relative; }
+.slide {
+  width: 1920px; height: 1080px; position: absolute; top: 0; left: 0;
+  transform-origin: top left; display: none; padding: 72px 100px; overflow: hidden;
+}
+.slide.active { display: flex; flex-direction: column; }
+.slide.has-strip { padding-top: 84px; padding-bottom: 84px; }
+h1 { font-size: 108px; font-weight: 200; line-height: 0.98; letter-spacing: -0.04em; }
+h2 { font-size: 44px; font-weight: 500; line-height: 1.12; letter-spacing: -0.025em; color: var(--fg); }
+h3 { font-size: 32px; font-weight: 300; line-height: 1.2; letter-spacing: -0.02em; }
+.body-text { font-size: 20px; font-weight: 300; line-height: 1.7; color: var(--fg-2); }
+.eyebrow { font-size: 11px; letter-spacing: 0.3em; color: var(--fg-3); text-transform: uppercase; font-weight: 400; }
+.label { font-size: 11px; letter-spacing: 0.25em; color: var(--fg-3); text-transform: uppercase; font-weight: 400; }
+.sec-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 24px; border-bottom: 1px solid var(--line-2); margin-bottom: 40px; flex-shrink: 0; }
+.strip-top { position: absolute; top: 0; left: 0; right: 0; height: 48px; background: #111111; border-bottom: 1px solid #2A2A2A; padding: 0 100px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+.strip-top .sec { font-size: 11px; letter-spacing: 0.25em; color: #7A7570; text-transform: uppercase; display: flex; align-items: center; gap: 12px; }
+.strip-top .sec .bar { width: 24px; height: 2px; background: #6C5CE7; }
+.strip-top .sec .en { color: #6C5CE7; letter-spacing: 0.3em; font-weight: 600; }
+.strip-top .deck-label { font-size: 11px; color: #7A7570; letter-spacing: 0.15em; }
+.strip-bot { position: absolute; bottom: 0; left: 0; right: 0; height: 48px; background: #111111; border-top: 1px solid #2A2A2A; padding: 0 100px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #7A7570; letter-spacing: 0.1em; z-index: 10; }
+.strip-bot .pg { color: #6C5CE7; font-weight: 600; letter-spacing: 0.15em; }
+.card { background: var(--bg-3); border: 1px solid var(--line-2); padding: 28px; display: flex; flex-direction: column; justify-content: center; }
+.card-accent { border-top: 2px solid var(--accent); }
+.kpi { background: var(--bg-3); border: 1px solid var(--line-2); padding: 24px; text-align: center; }
+.kpi-label { font-size: 10px; letter-spacing: 0.2em; color: var(--fg-3); text-transform: uppercase; margin-bottom: 8px; }
+.kpi-value { font-size: 36px; font-weight: 200; color: var(--accent); line-height: 1.1; letter-spacing: -0.02em; }
+.kpi-unit { font-size: 16px; font-weight: 300; color: var(--fg-2); }
+.kpi-sub { font-size: 11px; color: var(--fg-3); margin-top: 6px; }
+.g { display: grid; gap: 14px; }
+.g2 { grid-template-columns: 1fr 1fr; } .g3 { grid-template-columns: 1fr 1fr 1fr; }
+.g4 { grid-template-columns: 1fr 1fr 1fr 1fr; } .g5 { grid-template-columns: repeat(5,1fr); }
+.g-23 { grid-template-columns: 2fr 3fr; } .g-32 { grid-template-columns: 3fr 2fr; }
+.g-gap { gap: 24px; } .flex-grow { flex: 1; min-height: 0; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { font-size: 10px; letter-spacing: 0.2em; color: var(--fg-3); text-transform: uppercase; text-align: left; padding: 10px 14px 14px; font-weight: 400; border-bottom: 1px solid var(--line); }
+td { padding: 12px 14px; border-bottom: 1px solid var(--line-2); color: var(--fg-2); font-size: 13px; }
+td:first-child { color: var(--fg); font-weight: 400; }
+.text-center { text-align: center; } .text-right { text-align: right; }
+.bar-chart { display: flex; align-items: flex-end; gap: 20px; height: 240px; padding-top: 20px; }
+.bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
+.bar { width: 100%; background: var(--accent); border-radius: 2px 2px 0 0; min-height: 4px; position: relative; }
+.bar.dim { background: var(--line); }
+.bar-label { font-size: 11px; color: var(--fg-3); margin-top: 8px; letter-spacing: 0.1em; }
+.bar-value { font-size: 13px; color: var(--fg); margin-bottom: 6px; font-weight: 500; }
+.callout { background: rgba(108,92,231,.08); border-left: 3px solid var(--accent); padding: 20px 24px; }
+.callout p { color: var(--fg-2); font-size: 15px; margin: 0; line-height: 1.7; }
+.callout strong { color: var(--accent-light); }
+.step { display: flex; gap: 18px; padding: 16px 0; border-bottom: 1px solid var(--line-2); }
+.step:last-child { border-bottom: none; }
+.step-num { width: 32px; height: 32px; background: var(--accent); color: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+.step-content h4 { font-size: 16px; font-weight: 500; color: var(--fg); margin: 0 0 4px; }
+.step-content p { font-size: 13px; color: var(--fg-2); margin: 0; }
+.accent { color: var(--accent); } .accent-light { color: var(--accent-light); }
+.green { color: var(--green); } .amber { color: var(--amber); } .rust { color: var(--rust); } .warm { color: var(--warm); } .fg3 { color: var(--fg-3); }
+.bold { font-weight: 500; } .light { font-weight: 200; }
+.nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 48px; background: rgba(17,17,17,.92); backdrop-filter: blur(10px); border-top: 1px solid var(--line-2); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; z-index: 100; font-size: 11px; letter-spacing: 0.2em; color: var(--fg-3); text-transform: uppercase; }
+.nav-bar button { background: none; border: 1px solid var(--line-2); color: var(--fg-3); padding: 6px 16px; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 150ms; }
+.nav-bar button:hover { border-color: var(--fg-3); color: var(--fg); }
+.nav-center { display: flex; align-items: center; gap: 16px; }
+.slide-counter { font-variant-numeric: tabular-nums; }
+.cover-slide { justify-content: center; align-items: flex-start; padding: 100px 120px; }
+.cover-slide h1 { margin-bottom: 28px; }
+.cover-slide .sub { font-size: 18px; color: var(--fg-2); max-width: 920px; line-height: 1.7; font-weight: 300; }
+.cover-slide .meta { font-size: 11px; letter-spacing: 0.3em; color: var(--fg-3); text-transform: uppercase; margin-top: 56px; }
+.closing-slide { justify-content: center; align-items: center; text-align: center; }
+.hero-num { font-size: 72px; font-weight: 200; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
+.hero-num .unit { font-size: 24px; font-weight: 300; color: var(--fg-2); }
+.phase { display: inline-block; padding: 3px 12px; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 400; }
+.phase-done { background: rgba(143,163,126,.12); color: var(--green); }
+.phase-now { background: rgba(108,92,231,.12); color: var(--accent-light); border: 1px solid rgba(108,92,231,.2); }
+.phase-future { background: rgba(122,117,112,.08); color: var(--fg-3); }
+tr.highlight td { background: rgba(108,92,231,.06); color: var(--fg); }
+tr.highlight td:first-child { color: var(--accent); font-weight: 500; }
+.divider { border: none; border-top: 1px solid var(--line-2); margin: 16px 0; }
+.budget-row { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid #2A2A2A; }
+.budget-label { width: 240px; font-size: 14px; color: #F5F0EB; font-weight: 500; flex-shrink: 0; }
+.budget-sub { font-size: 11px; color: var(--fg-3); font-weight: 300; margin-top: 2px; }
+.budget-bar-bg { flex: 1; height: 28px; background: #222; border: 1px solid #333; position: relative; overflow: hidden; border-radius: 2px; }
+.budget-bar-fill { height: 100%; border-radius: 2px; }
+.budget-bar-fill.b-accent { background: #6C5CE7; } .budget-bar-fill.b-green { background: #8FA37E; }
+.budget-bar-fill.b-amber { background: #D9A34B; } .budget-bar-fill.b-blue { background: #6F8AA3; }
+.budget-bar-fill.b-rust { background: #B86C4A; } .budget-bar-fill.b-dim { background: #7A7570; }
+.budget-value { width: 130px; text-align: right; font-size: 15px; color: #6C5CE7; font-weight: 500; font-variant-numeric: tabular-nums; }
+.stack-row { display: flex; align-items: center; gap: 16px; padding: 12px 0; }
+.stack-year { width: 80px; font-size: 14px; color: #F5F0EB; font-weight: 500; }
+.stack-bar { flex: 1; height: 32px; display: flex; overflow: hidden; border-radius: 2px; }
+.stack-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: #111; min-width: 30px; }
+.stack-total { width: 90px; text-align: right; font-size: 14px; color: #C9C2BA; }
+.flywheel { position: relative; width: 700px; height: 480px; margin: 16px auto 0; }
+.flywheel .node { position: absolute; width: 150px; height: 150px; border-radius: 50%; border: 2px solid #333; background: #222; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 10px; }
+.flywheel .node.active { border-color: #6C5CE7; box-shadow: 0 0 24px rgba(108,92,231,.15); }
+.flywheel .node .n-num { font-size: 11px; letter-spacing: 0.2em; color: #6C5CE7; font-weight: 600; }
+.flywheel .node .n-title { font-size: 14px; font-weight: 500; color: #F5F0EB; margin-top: 4px; }
+.flywheel .node .n-sub { font-size: 10px; color: #7A7570; margin-top: 2px; line-height:1.4; }
+.flywheel .center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+.flywheel .center .c-title { font-size: 17px; font-weight: 500; color: #6C5CE7; letter-spacing: 0.1em; }
+.flywheel .center .c-sub { font-size: 11px; color: #7A7570; margin-top: 4px; }
+.flywheel .arrow { position: absolute; color: #7A7570; font-size: 22px; }
+.ir-flow { display: flex; align-items: stretch; gap: 0; margin-top: 24px; }
+.ir-fstep { flex: 1; background: #222; border: 1px solid #2A2A2A; padding: 24px 18px; position: relative; display: flex; flex-direction: column; justify-content: center; }
+.ir-fstep::after { content: '\2192'; position: absolute; right: -13px; top: 50%; transform: translateY(-50%); color: #6C5CE7; font-size: 18px; z-index: 1; }
+.ir-fstep:last-child::after { display: none; }
+.ir-fstep .fs-num { font-size: 26px; font-weight: 200; color: #6C5CE7; }
+.ir-fstep .fs-title { font-size: 15px; font-weight: 500; color: #F5F0EB; margin-top: 8px; }
+.ir-fstep .fs-desc { font-size: 11px; color: #7A7570; margin-top: 6px; line-height: 1.5; }
+.cgrid { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.cgrid th { padding: 14px 16px; font-size: 11px; letter-spacing: 0.15em; color: #7A7570; text-transform: uppercase; text-align: left; border-bottom: 2px solid #333; background: #111; }
+.cgrid th.own { background: rgba(108,92,231,.08); color: #6C5CE7; border-bottom-color: #6C5CE7; }
+.cgrid td { padding: 14px 16px; font-size: 13px; color: #C9C2BA; border-bottom: 1px solid #2A2A2A; vertical-align: top; }
+.cgrid td.own { background: rgba(108,92,231,.04); color: #F5F0EB; font-weight: 500; }
+.cgrid td b { color: #F5F0EB; font-weight: 500; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chip { display: inline-block; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; border-radius: 2px; font-weight: 500; }
+.chip.c-accent { background: rgba(108,92,231,.1); color: #A29BFE; border: 1px solid rgba(108,92,231,.2); }
+.chip.c-green { background: rgba(143,163,126,.1); color: #8FA37E; border: 1px solid rgba(143,163,126,.2); }
+.chip.c-amber { background: rgba(217,163,75,.1); color: #D9A34B; border: 1px solid rgba(217,163,75,.2); }
+.ir-blist { list-style: none; padding: 0; }
+.ir-blist li { padding: 11px 0 11px 22px; position: relative; font-size: 14px; color: #C9C2BA; border-bottom: 1px solid #2A2A2A; line-height: 1.5; }
+.ir-blist li::before { content: ''; position: absolute; left: 0; top: 19px; width: 6px; height: 6px; background: #6C5CE7; border-radius: 50%; }
+.ir-blist li b { color: #F5F0EB; font-weight: 500; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+.split.flex-grow > div, .g-23.flex-grow > div, .g-32.flex-grow > div { display: flex; flex-direction: column; justify-content: center; }
+.split-dark { background: var(--bg-2); border: 1px solid var(--line-2); padding: 36px; display: flex; flex-direction: column; justify-content: center; }
+.pmap { position: relative; width: 100%; height: 440px; border: 1px solid var(--line-2); background: var(--bg-2); }
+.pmap .axis-x { position: absolute; bottom: -28px; width: 100%; text-align: center; font-size: 11px; color: var(--fg-3); letter-spacing: .1em; }
+.pmap .axis-y { position: absolute; left: -150px; top: 50%; transform: rotate(-90deg); font-size: 11px; color: var(--fg-3); letter-spacing: .1em; width: 300px; text-align:center; }
+.pmap .gl-v { position:absolute; left:50%; top:0; bottom:0; width:1px; background:var(--line-2); }
+.pmap .gl-h { position:absolute; top:50%; left:0; right:0; height:1px; background:var(--line-2); }
+.pmap .dot { position: absolute; transform: translate(-50%,-50%); text-align: center; }
+.pmap .dot .d-mark { width: 16px; height: 16px; border-radius: 50%; margin: 0 auto 6px; }
+.pmap .dot .d-label { font-size: 12px; color: var(--fg-2); white-space: nowrap; }
+.pmap .dot.us .d-mark { background: var(--accent); box-shadow: 0 0 0 6px rgba(108,92,231,.15); }
+.pmap .dot.us .d-label { color: var(--accent-light); font-weight: 600; }
+.pmap .dot.other .d-mark { background: var(--fg-3); }
+.src { font-size: 11px; color: var(--fg-3); margin-top: 14px; line-height: 1.5; }
+.src b { color: var(--fg-2); font-weight: 500; }
+@media print {
+  .nav-bar, .brand-mark, .confidential { display: none; }
+  .slide { display: flex !important; page-break-after: always; position: relative; transform: none !important; left: 0 !important; top: 0 !important; }
+  body { overflow: visible; }
+  .strip-top, .strip-bot { position: absolute; }
+}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- S01 COVER -->
+<section class="slide cover-slide active" data-type="core">
+  <div class="eyebrow" style="margin-bottom:40px;">PROJECT RENT · IR DECK 2026 · CONFIDENTIAL</div>
+  <h1 style="font-size:84px;line-height:1.08;">온라인은 <span class="fg3">무엇을 클릭했는지</span><br>알려준다.<br>오프라인은 <span class="accent">왜 움직였는지</span><br>보여준다.</h1>
+  <p class="sub" style="margin-top:36px;">프로젝트렌트는 오프라인 매장을 <span class="accent-light bold">소비자 행동을 이해하는 인터페이스</span>로 바꾼다.<br>미디어화 → 데이터 수집 → 인사이트 → 커머스로 이어지는 <span class="bold" style="color:var(--fg);">Retail Intelligence Infrastructure</span>.</p>
+  <div class="meta">Retail Intelligence Infrastructure &nbsp;·&nbsp; 오프라인 소비자 행동 데이터 플랫폼 &nbsp;·&nbsp; by Project Rent</div>
+</section>
+
+<!-- S02 WHY NOW -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>WHY NOW <span class="en">02</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">WHY NOW · 왜 지금인가</div><h2>온라인 데이터가 비싸지고 닫히는 지금,<br><span class="accent">오프라인 행동 데이터의 가치가 역전</span>되고 있다</h2></div></div>
+  <div class="g g4 g-gap flex-grow" style="align-items:stretch;">
+    <div class="card card-accent"><div class="label accent">01 · 비용</div><h3 style="font-size:24px;margin:14px 0 10px;">온라인 CAC 급등</h3><p class="body-text" style="font-size:14px;">이커머스 고객획득비용 <b class="accent-light">'23→'25 40~60%↑</b>. Meta CPM은 2020 대비 <b class="accent-light">+89%</b>. 유료 트래픽만으로는 성장이 멈춘다.</p></div>
+    <div class="card card-accent"><div class="label accent">02 · 데이터</div><h3 style="font-size:24px;margin:14px 0 10px;">쿠키리스 가속</h3><p class="body-text" style="font-size:14px;">Safari·Firefox는 이미 3rd-party 쿠키 차단 — <b class="accent-light">웹의 절반이 쿠키리스</b>. iOS ATT로 앱 추적 제한. 퍼스트파티 데이터만 남는다.</p></div>
+    <div class="card card-accent"><div class="label accent">03 · 공간</div><h3 style="font-size:24px;margin:14px 0 10px;">상업부동산 공실</h3><p class="body-text" style="font-size:14px;">고금리·이커머스 전환으로 오프라인 공실 증가 → <b class="accent-light">실험 가능한 거점 공급</b>이 늘어난다.</p></div>
+    <div class="card card-accent"><div class="label accent">04 · 행동</div><h3 style="font-size:24px;margin:14px 0 10px;">체험소비·팝업 폭발</h3><p class="body-text" style="font-size:14px;">2024 국내 팝업 <b class="accent-light">3,077개 (+80% YoY)</b>. 브랜드가 오프라인에서 고객을 직접 만나려 한다.</p></div>
+  </div>
+  <div class="callout" style="margin-top:24px;"><p>온라인 데이터가 <strong>비싸지고(CAC) · 닫히는(쿠키리스)</strong> 바로 그 순간, 가장 순수한 퍼스트파티 데이터인 <strong>오프라인 행동</strong>이 답이 된다. — 이 변곡점은 지금 처음 열렸다.</p></div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">02 / 16</span></div>
+</section>
+
+<!-- S03 PROBLEM -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>PROBLEM <span class="en">03</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">PROBLEM · 무엇이 비어 있나</div><h2>소비의 80%는 오프라인에서 일어나는데,<br><span class="accent">'왜 샀는가'는 아무도 모른다</span></h2></div></div>
+  <div class="g g-23 g-gap flex-grow" style="align-items:stretch;">
+    <div class="split-dark" style="display:flex;flex-direction:column;justify-content:center;">
+      <div style="display:flex;gap:40px;">
+        <div><div class="hero-num">80<span class="unit">%</span></div><div class="kpi-sub" style="margin-top:10px;">소비 지출이 오프라인에서 발생</div></div>
+        <div><div class="hero-num" style="color:var(--red);">90<span class="unit">%</span></div><div class="kpi-sub" style="margin-top:10px;">측정·타겟팅은 온라인에 편중</div></div>
+      </div>
+      <hr class="divider" style="margin:28px 0;">
+      <p class="body-text">온라인은 <b style="color:var(--fg)">무엇을 클릭했는지</b>까지만 안다.<br>오프라인 매장에서 일어나는 <b class="accent-light">머무름·망설임·선택의 맥락</b> — 즉 <b class="accent-light">'왜 움직였는가'</b>는 측정되지 않은 채 사라진다.</p>
+    </div>
+    <div>
+      <div class="eyebrow" style="margin-bottom:14px;">오프라인이 블랙박스인 이유</div>
+      <ul class="ir-blist">
+        <li><b>행동·맥락 데이터의 부재.</b> 누가 들어와 무엇 앞에서 멈췄고 왜 떠났는지 — 기록되지 않는다.</li>
+        <li><b>측정 인프라의 공백.</b> POS는 '결과(매출)'만 남기고 '과정(행동)'은 버린다.</li>
+        <li><b>온·오프 연결의 단절.</b> 오프라인 경험이 온라인 구매로 이어졌는지 증명할 길이 없다.</li>
+        <li><b>'감'에 의존한 의사결정.</b> 그래서 오프라인 마케팅은 검증 없이 반복된다.</li>
+      </ul>
+      <div class="callout" style="margin-top:20px;"><p>매장은 매일 거대한 행동 데이터를 만들지만, <strong>그것을 수집·해석하는 인프라가 없다.</strong></p></div>
+    </div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">03 / 16</span></div>
+</section>
+
+<!-- S04 STAKES -->
+<section class="slide has-strip closing-slide" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>STAKES <span class="en">04</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="eyebrow" style="margin-bottom:30px;">STAKES · 방치의 대가</div>
+  <h2 style="font-size:52px;max-width:1300px;">한국 오프라인 마케팅 <span class="accent">10조 원+</span>이<br>여전히 <span class="rust">'감'으로</span> 집행되고 있다</h2>
+  <p class="body-text" style="max-width:900px;margin-top:32px;">측정되지 않으니 최적화되지 않고, 최적화되지 않으니 같은 실수가 반복된다.<br>이 비효율을 데이터로 바꾸는 회사가 시장의 새로운 인프라가 된다.</p>
+  <div class="g g3 g-gap" style="margin-top:48px;width:1100px;">
+    <div class="kpi"><div class="kpi-label">국내 오프라인 마케팅</div><div class="kpi-value">10조<span class="kpi-unit">원+</span></div><div class="kpi-sub">OOH 4.3조 + 카페·리테일 6조</div></div>
+    <div class="kpi"><div class="kpi-label">국내 디지털 광고 ('25)</div><div class="kpi-value">11.3조<span class="kpi-unit">원</span></div><div class="kpi-sub">출처: KOBACO</div></div>
+    <div class="kpi"><div class="kpi-label">측정 가능 비율</div><div class="kpi-value" style="color:var(--red);">~0<span class="kpi-unit">%</span></div><div class="kpi-sub">행동 단위 측정 인프라 부재</div></div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">04 / 16</span></div>
+</section>
+
+<!-- S05 SOLUTION -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>SOLUTION <span class="en">05</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">SOLUTION · 우리의 답</div><h2>매장을 <span class="accent">'소비자를 이해하는 인터페이스'</span>로 바꾼다</h2></div></div>
+  <p class="body-text" style="max-width:1300px;">미디어는 목적이 아니라 <b class="accent-light">데이터 수집 장치</b>다. 매장에서 일어나는 행동을 수집·해석해 인사이트로 바꾸고, 그 인사이트로 다시 판매와 경험을 최적화하는 <b style="color:var(--fg)">선순환 인프라</b>.</p>
+  <div class="ir-flow flex-grow" style="align-items:stretch;margin-top:32px;">
+    <div class="ir-fstep"><div class="fs-num">01</div><div class="fs-title">미디어화</div><div class="fs-desc">유휴 공간을 브랜드 경험 거점으로 — 고객을 만나는 인터페이스 구축</div></div>
+    <div class="ir-fstep"><div class="fs-num">02</div><div class="fs-title">행동 데이터 수집</div><div class="fs-desc">방문·체류·관심·선택을 비식별로 기록 (RXR 엔진)</div></div>
+    <div class="ir-fstep"><div class="fs-num">03</div><div class="fs-title">인사이트</div><div class="fs-desc">취향 세그먼트·맥락 분석으로 '왜'를 해석</div></div>
+    <div class="ir-fstep"><div class="fs-num">04</div><div class="fs-title">커머스·경험</div><div class="fs-desc">인사이트로 판매·리타겟·공간을 최적화</div></div>
+    <div class="ir-fstep"><div class="fs-num">05</div><div class="fs-title">진화</div><div class="fs-desc">데이터가 쌓일수록 정교해지는 자기강화 루프</div></div>
+  </div>
+  <div class="g g3 g-gap" style="margin-top:28px;">
+    <div class="callout"><p><strong>측정 가능</strong>한 오프라인 — 행동 단위로 검증되는 첫 인프라</p></div>
+    <div class="callout"><p><strong>모방 어려움</strong> — 데이터·특허·풀스택의 결합</p></div>
+    <div class="callout"><p><strong>누적되는 자산</strong> — 쓸수록 똑똑해지는 행동 데이터</p></div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">05 / 16</span></div>
+</section>
+
+<!-- S06 PRODUCT RXR -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>PRODUCT <span class="en">06</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">PRODUCT · 핵심 엔진</div><h2>RXR — <span class="accent">오프라인의 행동 애널리틱스 엔진</span></h2></div></div>
+  <div class="split flex-grow" style="align-items:stretch;">
+    <div class="split-dark">
+      <div class="eyebrow" style="margin-bottom:16px;">기술 스택</div>
+      <ul class="ir-blist">
+        <li><b>Physical AI · LAS</b> — 방문객의 스타일·행동을 실시간 취향 세그먼트로 분류 (<b class="accent-light">32종+</b>)</li>
+        <li><b>비식별 처리</b> — 개인정보보호법 완전 준수, 식별 없이 패턴만</li>
+        <li><b>특허 제10-2545502호</b> — 라이프스타일 AI 세그멘테이션 (등록)</li>
+        <li><b>OMO Attribution</b> — 오프라인 경험 → 온라인 매출의 연결을 증명</li>
+      </ul>
+      <div class="chips"><span class="chip c-accent">Alpha/Beta 구축 중</span><span class="chip c-green">특허 등록 완료</span><span class="chip c-amber">CTO 영입 (전 퓨리오사)</span></div>
+    </div>
+    <div>
+      <div class="eyebrow" style="margin-bottom:16px;">이미 검증된 성과 (RXR 기존 데이터)</div>
+      <div class="g g2 g-gap">
+        <div class="kpi"><div class="kpi-label">가나초콜릿하우스</div><div class="kpi-value">4,500<span class="kpi-unit">%</span></div><div class="kpi-sub">마케팅 효율</div></div>
+        <div class="kpi"><div class="kpi-label">비욘드</div><div class="kpi-value">100<span class="kpi-unit">%</span></div><div class="kpi-sub">재방문 희망률</div></div>
+        <div class="kpi"><div class="kpi-label">Apple TV+ 파친코</div><div class="kpi-value">88<span class="kpi-unit">%</span></div><div class="kpi-sub">시청 희망률</div></div>
+        <div class="kpi"><div class="kpi-label">삼성스토어</div><div class="kpi-value">+44<span class="kpi-unit">%</span></div><div class="kpi-sub">방문객 활성화</div></div>
+      </div>
+      <div class="callout" style="margin-top:20px;"><p>RXR은 솔루션이 아니라 <strong>회사의 심장</strong>이다. 모든 거점이 이 엔진의 데이터 소스가 된다.</p></div>
+    </div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">06 / 16</span></div>
+</section>
+
+<!-- S07 HOW (OMO Journey) -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>HOW IT WORKS <span class="en">07</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">HOW IT WORKS · OMO 저니맵</div><h2>매장 진입부터 온라인 구매 증명까지 <span class="accent">하나의 흐름</span></h2></div></div>
+  <div class="ir-flow flex-grow" style="align-items:stretch;margin-top:24px;">
+    <div class="ir-fstep"><div class="fs-num">01</div><div class="fs-title">매장 진입</div><div class="fs-desc">브랜드 경험 거점에 방문 — 인터페이스 접점 시작</div></div>
+    <div class="ir-fstep"><div class="fs-num">02</div><div class="fs-title">AI 취향 식별</div><div class="fs-desc">LAS가 비식별로 취향 세그먼트 분류</div></div>
+    <div class="ir-fstep"><div class="fs-num">03</div><div class="fs-title">체험 데이터</div><div class="fs-desc">관심·체류·선택 행동을 기록</div></div>
+    <div class="ir-fstep"><div class="fs-num">04</div><div class="fs-title">리타겟</div><div class="fs-desc">귀가 후 온라인 경로로 재연결</div></div>
+    <div class="ir-fstep"><div class="fs-num">05</div><div class="fs-title">온라인 구매</div><div class="fs-desc">디지털 전환으로 매출 발생</div></div>
+    <div class="ir-fstep"><div class="fs-num">06</div><div class="fs-title">Attribution 증명</div><div class="fs-desc">"이 경험이 매출 X%를 만들었다"를 입증</div></div>
+  </div>
+  <div class="callout" style="margin-top:32px;"><p>각 단계가 <strong>행동 데이터</strong>를 남긴다. 그 데이터가 다시 RXR을 학습시키고, 브랜드에게는 <strong>압도적 ROAS 증명</strong>을 제공한다.</p></div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">07 / 16</span></div>
+</section>
+
+<!-- S08 MARKET -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>MARKET <span class="en">08</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">MARKET · 시장 규모</div><h2>리테일 미디어는 <span class="accent">2030년 $312B</span>로 가는데,<br>오프라인 인텔리전스 레이어는 아직 비어 있다</h2></div></div>
+  <div class="g g3 g-gap flex-grow" style="align-items:stretch;">
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center;"><div class="label">TAM · 글로벌 리테일 미디어</div><div class="hero-num" style="margin:14px 0;">$312<span class="unit">B</span></div><p class="body-text" style="font-size:14px;">2025 $184B → 2030 $312B, <b class="accent-light">CAGR 11%</b>. 그 성장의 연료가 곧 '퍼스트파티 데이터'.</p></div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center;"><div class="label">SAM · 국내 오프라인 마케팅</div><div class="hero-num" style="margin:14px 0;color:var(--accent-light);">10조<span class="unit">원+</span></div><p class="body-text" style="font-size:14px;">OOH 4.3조 + 카페·리테일 6조. 국내 디지털 광고는 별도 11.3조('25).</p></div>
+    <div class="card card-accent" style="display:flex;flex-direction:column;justify-content:center;"><div class="label accent">SOM · 3년 내 초기 획득</div><div class="hero-num" style="margin:14px 0;">30억<span class="unit">원+</span></div><p class="body-text" style="font-size:14px;">직영·제휴 거점 10개소 × 연 3억+ (bottom-up). 데이터 자산은 별도 누적.</p></div>
+  </div>
+  <div class="src"><b>출처:</b> 글로벌 리테일 미디어 — Forrester(2025), <i>Global Retail Media Forecast 2025–2030</i>. 국내 디지털 광고 11.3조 — KOBACO(2025). 국내 오프라인/SOM — 내부 추정(bottom-up). ※ 단위: USD(글로벌)·KRW(국내).</div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">08 / 16</span></div>
+</section>
+
+<!-- S09 TRACTION -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>TRACTION <span class="en">09</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">TRACTION · 이미 통하고 있다</div><h2>비전이 아니라 <span class="accent">실적</span>으로 증명한다 — 6명, 40억, 6년 흑자</h2></div></div>
+  <div class="g g-32 g-gap flex-grow" style="align-items:stretch;">
+    <div>
+      <div class="eyebrow" style="margin-bottom:14px;">매출 추이 (억원)</div>
+      <div class="bar-chart">
+        <div class="bar-col"><span class="bar-value">3.7</span><div class="bar dim" style="height:9%;"></div><span class="bar-label">'19</span></div>
+        <div class="bar-col"><span class="bar-value">11.5</span><div class="bar dim" style="height:29%;"></div><span class="bar-label">'20</span></div>
+        <div class="bar-col"><span class="bar-value">27</span><div class="bar dim" style="height:68%;"></div><span class="bar-label">'21</span></div>
+        <div class="bar-col"><span class="bar-value">27</span><div class="bar dim" style="height:68%;"></div><span class="bar-label">'22</span></div>
+        <div class="bar-col"><span class="bar-value">30</span><div class="bar dim" style="height:75%;"></div><span class="bar-label">'23</span></div>
+        <div class="bar-col"><span class="bar-value bold">40</span><div class="bar" style="height:100%;"></div><span class="bar-label accent">'24</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="g g2 g-gap">
+        <div class="kpi"><div class="kpi-label">2024 매출</div><div class="kpi-value">40<span class="kpi-unit">억</span></div></div>
+        <div class="kpi"><div class="kpi-label">영업이익률</div><div class="kpi-value">21.6<span class="kpi-unit">%</span></div></div>
+        <div class="kpi"><div class="kpi-label">CAGR ('19~'24)</div><div class="kpi-value">183<span class="kpi-unit">%</span></div></div>
+        <div class="kpi"><div class="kpi-label">연속 흑자</div><div class="kpi-value">6<span class="kpi-unit">년</span></div></div>
+      </div>
+      <div class="callout" style="margin-top:20px;"><p><strong>6명 · 40억 · 인당 6.7억.</strong> 외부 자본 없이 흑자로 쌓아온 실행력 — 그 위에 데이터 레이어를 얹는다.</p></div>
+      <div class="chips" style="margin-top:16px;"><span class="chip c-green">300+ 팝업</span><span class="chip c-green">직영 8거점</span><span class="chip c-accent">현대·롯데·배민·매일유업·OB</span></div>
+    </div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">09 / 16</span></div>
+</section>
+
+<!-- S10 BUSINESS MODEL -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>BUSINESS MODEL <span class="en">10</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">BUSINESS MODEL · 어떻게 버나</div><h2>데이터 수집 → <span class="accent">데이터 SaaS</span> → 커머스. 같은 데이터가 3번 돈을 번다</h2></div></div>
+  <div class="ir-flow" style="margin-top:8px;align-items:stretch;">
+    <div class="ir-fstep"><div class="phase phase-now">현재 · 40억</div><div class="fs-title" style="margin-top:10px;">① 데이터 수집 (RaaS)</div><div class="fs-desc">브랜드가 거점·팝업을 구매 → 광고비+공간 수수료. 동시에 행동 데이터 축적.</div></div>
+    <div class="ir-fstep"><div class="phase phase-future">'26~'27</div><div class="fs-title" style="margin-top:10px;">② 데이터 SaaS</div><div class="fs-desc">LAS 취향·행동 리포트를 구독 모델로 — Recurring Revenue.</div></div>
+    <div class="ir-fstep"><div class="phase phase-future">'27~'28</div><div class="fs-title" style="margin-top:10px;">③ OMO 커머스</div><div class="fs-desc">방문자 전용 결제·추천 — Transaction Revenue.</div></div>
+  </div>
+  <div class="g g-23 g-gap flex-grow" style="margin-top:28px;align-items:center;">
+    <div>
+      <div class="eyebrow" style="margin-bottom:8px;">매출 믹스 전환 (Service→Recurring·Commerce)</div>
+      <div class="stack-row"><div class="stack-year">2024</div><div class="stack-bar"><div class="stack-seg" style="width:59%;background:#7A7570;">서비스 59%</div><div class="stack-seg" style="width:31%;background:#6F8AA3;">제품 31%</div><div class="stack-seg" style="width:10%;background:#E9DCC8;color:#333;">공간 10%</div></div><div class="stack-total">40억</div></div>
+      <div class="stack-row"><div class="stack-year accent bold">2028</div><div class="stack-bar" style="height:36px;"><div class="stack-seg" style="width:20%;background:#7A7570;">서비스 20%</div><div class="stack-seg" style="width:25%;background:#6C5CE7;">SaaS 25%</div><div class="stack-seg" style="width:30%;background:#8FA37E;">커머스 30%</div><div class="stack-seg" style="width:25%;background:#B86C4A;">데이터/기타 25%</div></div><div class="stack-total accent bold">310억</div></div>
+    </div>
+    <div class="callout"><p>매장당 경제성: 거점 1개가 <strong>광고·SaaS·커머스</strong> 3중으로 수익화. NRR·CAC payback 등 SaaS 지표는 <strong style="color:var(--amber)">[확인 필요 · Beta 후 확정]</strong>.</p></div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">10 / 16</span></div>
+</section>
+
+<!-- S11 COMPETITION / MOAT -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>COMPETITION · MOAT <span class="en">11</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">COMPETITION · MOAT · 왜 우리가 이기나</div><h2>경쟁은 '공간' 또는 '매출'을 보지만,<br>우리는 <span class="accent">행동 데이터를 축적</span>한다</h2></div></div>
+  <div class="g g-32 g-gap flex-grow" style="align-items:stretch;">
+    <table class="cgrid">
+      <thead><tr><th>구분</th><th>대기업 유통</th><th>공간 중개</th><th class="own">Project Rent</th></tr></thead>
+      <tbody>
+        <tr><td>핵심 자산</td><td>POS 매출</td><td>공실 매칭</td><td class="own">300+ 케이스 <b>행동 데이터</b></td></tr>
+        <tr><td>측정</td><td>구매 결과만</td><td>불가</td><td class="own"><b>행동·맥락 + OMO 증명</b></td></tr>
+        <tr><td>AI/IP</td><td>외부 의존</td><td>없음</td><td class="own"><b>RXR 자체 · 특허 등록</b></td></tr>
+        <tr><td>풀스택</td><td>유통만</td><td>중개만</td><td class="own"><b>기획·운영·데이터·커머스</b></td></tr>
+        <tr><td>쿠키리스 대응</td><td>✕</td><td>✕</td><td class="own"><b>오프라인 퍼스트파티</b></td></tr>
+      </tbody>
+    </table>
+    <div>
+      <div class="eyebrow" style="margin-bottom:14px;">해자 (Moat)</div>
+      <ul class="ir-blist">
+        <li><b>데이터 네트워크 효과.</b> 거점이 늘수록 데이터가 늘고, AI가 정교해지고, ROAS 증명이 강해져 다시 브랜드가 모인다.</li>
+        <li><b>IP 장벽.</b> 특허 제10-2545502호 + LAS 32종 세그먼트.</li>
+        <li><b>풀스택 실행.</b> 기획·공간·운영·데이터를 동시에 하는 팀은 희소하다.</li>
+      </ul>
+      <div class="callout" style="margin-top:18px;"><p>10년 뒤 우리가 가장 많이 보유할 자산은 건물도 노하우도 아닌 — <strong>한국 소비자의 오프라인 행동 데이터</strong>다.</p></div>
+    </div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">11 / 16</span></div>
+</section>
+
+<!-- S12 GO-TO-MARKET (Flywheel) -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>GO-TO-MARKET <span class="en">12</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">GO-TO-MARKET · 성장 엔진</div><h2>매장 수가 아니라 <span class="accent">데이터 플라이휠</span>로 성장한다</h2></div></div>
+  <div class="g g2 g-gap flex-grow" style="align-items:center;">
+    <div class="flywheel" style="width:100%;height:440px;margin:0;">
+      <div class="node active" style="top:0;left:50%;transform:translateX(-50%);"><span class="n-num">01</span><span class="n-title">거점 확보</span><span class="n-sub">직영·제휴 인터페이스</span></div>
+      <div class="node" style="top:140px;right:0;"><span class="n-num">02</span><span class="n-title">행동 데이터</span><span class="n-sub">방문·체류·선택 수집</span></div>
+      <div class="node" style="bottom:0;right:70px;"><span class="n-num">03</span><span class="n-title">인사이트</span><span class="n-sub">RXR 취향·맥락 해석</span></div>
+      <div class="node" style="bottom:0;left:70px;"><span class="n-num">04</span><span class="n-title">성과 증명</span><span class="n-sub">ROAS·Attribution</span></div>
+      <div class="node" style="top:140px;left:0;"><span class="n-num">05</span><span class="n-title">브랜드 유입</span><span class="n-sub">→ 더 많은 거점</span></div>
+      <div class="center"><div class="c-title">Intelligence Loop</div><div class="c-sub">쓸수록 똑똑해진다</div></div>
+      <div class="arrow" style="top:55px;right:90px;">&#8594;</div>
+      <div class="arrow" style="top:285px;right:25px;">&#8595;</div>
+      <div class="arrow" style="bottom:55px;left:50%;transform:translateX(-50%);">&#8592;</div>
+      <div class="arrow" style="top:285px;left:25px;">&#8593;</div>
+      <div class="arrow" style="top:55px;left:90px;">&#8599;</div>
+    </div>
+    <div>
+      <div class="eyebrow" style="margin-bottom:14px;">Wedge → 확장</div>
+      <ul class="ir-blist">
+        <li><b>Wedge: 성수동 직영 거점.</b> 이미 8개 거점 운영 — 검증된 트래픽·데이터 소스.</li>
+        <li><b>확장: 제휴·프랜차이즈 노드.</b> 유휴 공간을 빠르게 인텔리전스 노드로 전환.</li>
+        <li><b>락인: 데이터·ROAS 증명.</b> 브랜드가 효과를 확인하면 재집행·구독으로 이어진다.</li>
+      </ul>
+      <div class="callout" style="margin-top:18px;"><p>선형 성장(매장×매출)이 아니라 <strong>비선형 성장(데이터 네트워크 효과)</strong>. 그래서 플랫폼이다.</p></div>
+    </div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">12 / 16</span></div>
+</section>
+
+<!-- S13 TEAM -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>TEAM <span class="en">13</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">TEAM · 왜 이 팀이 해내나</div><h2>공간·브랜드·데이터를 <span class="accent">한 몸으로</span> 실행해 온 팀</h2></div></div>
+  <div class="g g-23 g-gap flex-grow" style="align-items:stretch;">
+    <div class="split-dark">
+      <div class="label accent">FOUNDER · CEO</div>
+      <h3 style="font-size:26px;margin:12px 0 6px;">최원석</h3>
+      <p class="body-text" style="font-size:14px;">산업디자이너 → 대기업 브랜더 → 필라멘트앤코 → 프로젝트렌트. 공간·브랜드·비즈니스를 잇는 <b class="accent-light">비즈니스 디자이너</b>. "성수동의 스티브 잡스"(KBS).</p>
+      <hr class="divider" style="margin:18px 0;">
+      <p class="body-text" style="font-size:13px;color:var(--fg-3);">Founder–Market Fit: 오프라인 리테일을 '미디어·데이터'로 재정의한 첫 실행가. 250+ 프로젝트로 시장을 직접 만들었다.</p>
+    </div>
+    <div>
+      <div class="g g2 g-gap" style="height:100%;align-items:stretch;">
+        <div class="card"><div class="label">CTO</div><h4 style="font-size:18px;margin:10px 0 6px;color:var(--fg);">전 퓨리오사 출신</h4><p class="body-text" style="font-size:13px;">Physical AI 엔진 개발 리드. RXR을 도구에서 플랫폼으로.</p></div>
+        <div class="card"><div class="label">ADVISORY</div><h4 style="font-size:18px;margin:10px 0 6px;color:var(--fg);">행동과학 R&amp;D</h4><p class="body-text" style="font-size:13px;">소비자 행동·취향 모델링 자문.</p></div>
+        <div class="card" style="grid-column:1/3;"><div class="label">조직</div><h4 style="font-size:18px;margin:10px 0 6px;color:var(--fg);">6명 · 전원 AX 교육 완료</h4><p class="body-text" style="font-size:13px;">소수 정예로 인당 6.7억 — AI로 레버리지되는 실행 조직. 미디어: KBS·메종코리아·롱블랙.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">13 / 16</span></div>
+</section>
+
+<!-- S14 FINANCIALS -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>FINANCIALS <span class="en">14</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">FINANCIALS · 성장의 그림</div><h2>2024 <span class="fg3">40억</span> → 2028 <span class="accent">310억</span>, 매출 믹스가 플랫폼으로 이동</h2></div></div>
+  <div class="flex-grow" style="display:flex;flex-direction:column;justify-content:center;">
+    <div class="stack-row"><div class="stack-year">2024</div><div class="stack-bar"><div class="stack-seg" style="width:59%;background:#7A7570;">서비스 59%</div><div class="stack-seg" style="width:31%;background:#6F8AA3;">제품 31%</div><div class="stack-seg" style="width:10%;background:#E9DCC8;color:#333;">10%</div></div><div class="stack-total">40억</div></div>
+    <div class="stack-row"><div class="stack-year">2025</div><div class="stack-bar"><div class="stack-seg" style="width:50%;background:#7A7570;">50%</div><div class="stack-seg" style="width:33%;background:#6F8AA3;">33%</div><div class="stack-seg" style="width:5%;background:#6C5CE7;">5</div><div class="stack-seg" style="width:7%;background:#8FA37E;">7</div><div class="stack-seg" style="width:5%;background:#B86C4A;">5</div></div><div class="stack-total">45억</div></div>
+    <div class="stack-row"><div class="stack-year">2026</div><div class="stack-bar"><div class="stack-seg" style="width:38%;background:#7A7570;">38%</div><div class="stack-seg" style="width:24%;background:#6F8AA3;">24%</div><div class="stack-seg" style="width:10%;background:#6C5CE7;">10</div><div class="stack-seg" style="width:16%;background:#8FA37E;">16</div><div class="stack-seg" style="width:12%;background:#B86C4A;">12</div></div><div class="stack-total">65억</div></div>
+    <div class="stack-row"><div class="stack-year">2027</div><div class="stack-bar"><div class="stack-seg" style="width:24%;background:#7A7570;">24%</div><div class="stack-seg" style="width:20%;background:#6F8AA3;">20%</div><div class="stack-seg" style="width:16%;background:#6C5CE7;">16</div><div class="stack-seg" style="width:22%;background:#8FA37E;">22</div><div class="stack-seg" style="width:18%;background:#B86C4A;">18</div></div><div class="stack-total">131억</div></div>
+    <div class="stack-row"><div class="stack-year accent bold">2028</div><div class="stack-bar" style="height:38px;"><div class="stack-seg" style="width:20%;background:#7A7570;">서비스 20%</div><div class="stack-seg" style="width:25%;background:#6C5CE7;">SaaS 25%</div><div class="stack-seg" style="width:30%;background:#8FA37E;">커머스 30%</div><div class="stack-seg" style="width:25%;background:#B86C4A;">데이터 25%</div></div><div class="stack-total accent bold">310억</div></div>
+  </div>
+  <div class="src"><b>핵심 가정:</b> ① 거점 10개소 확보(현 8 → +2) ② Data SaaS '26 진입·구독 전환 ③ OMO 커머스 '27 런칭. 보수적 추정이며 SaaS 단위지표(NRR·payback)는 Beta 후 <b style="color:var(--amber)">[확인 필요]</b>. 데이터 자산 가치는 별도 비계상.</div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">14 / 16</span></div>
+</section>
+
+<!-- S15 THE ASK -->
+<section class="slide has-strip" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>THE ASK <span class="en">15</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">THE ASK · 함께하자</div><h2><span class="accent">20억 원</span>으로 오프라인 인텔리전스 인프라를 완성한다</h2></div></div>
+  <div class="g g-23 g-gap flex-grow" style="align-items:stretch;">
+    <div>
+      <div class="eyebrow" style="margin-bottom:6px;">자금 사용처</div>
+      <div class="budget-row"><div class="budget-label">RXR 엔진 · 데이터 인프라<div class="budget-sub">Physical AI / LAS / Attribution</div></div><div class="budget-bar-bg"><div class="budget-bar-fill b-accent" style="width:40%;"></div></div><div class="budget-value">8억 (40%)</div></div>
+      <div class="budget-row"><div class="budget-label">거점·OMO 커머스 확장<div class="budget-sub">노드 네트워크 + 앱</div></div><div class="budget-bar-bg"><div class="budget-bar-fill b-green" style="width:25%;"></div></div><div class="budget-value" style="color:var(--green);">5억 (25%)</div></div>
+      <div class="budget-row"><div class="budget-label">인력 (CTO·데이터사이언티스트)<div class="budget-sub">엔진·분석 핵심 인력</div></div><div class="budget-bar-bg"><div class="budget-bar-fill b-amber" style="width:15%;"></div></div><div class="budget-value" style="color:var(--amber);">3억 (15%)</div></div>
+      <div class="budget-row"><div class="budget-label">거점 자산화<div class="budget-sub">보증금/권리금</div></div><div class="budget-bar-bg"><div class="budget-bar-fill b-rust" style="width:10%;"></div></div><div class="budget-value" style="color:var(--rust);">2억 (10%)</div></div>
+      <div class="budget-row" style="border-bottom:none;"><div class="budget-label">운영자금<div class="budget-sub">24개월 런웨이</div></div><div class="budget-bar-bg"><div class="budget-bar-fill b-dim" style="width:10%;"></div></div><div class="budget-value" style="color:var(--fg-3);">2억 (10%)</div></div>
+    </div>
+    <div>
+      <div class="g g2 g-gap">
+        <div class="kpi"><div class="kpi-label">Pre-money</div><div class="kpi-value">200<span class="kpi-unit">억</span></div></div>
+        <div class="kpi"><div class="kpi-label">Raising</div><div class="kpi-value">20<span class="kpi-unit">억</span></div></div>
+        <div class="kpi"><div class="kpi-label">Runway</div><div class="kpi-value">24<span class="kpi-unit">개월</span></div></div>
+        <div class="kpi"><div class="kpi-label">현 매출</div><div class="kpi-value">40<span class="kpi-unit">억</span></div></div>
+      </div>
+      <div class="eyebrow" style="margin:22px 0 10px;">도달 마일스톤</div>
+      <ul class="ir-blist">
+        <li><b>Q3'26</b> RXR Beta 출시</li>
+        <li><b>'26~'27</b> Data SaaS 구독 진입</li>
+        <li><b>'27</b> OMO 커머스 런칭 · 거점 10개소</li>
+      </ul>
+      <div class="callout" style="margin-top:16px;"><p>문의: <strong>ws.choi@project-rent.com</strong> · 010-2870-0561</p></div>
+    </div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">15 / 16</span></div>
+</section>
+
+<!-- S16 CLOSING -->
+<section class="slide has-strip closing-slide" data-type="core">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>CLOSING <span class="en">16</span></div><div class="deck-label">RETAIL INTELLIGENCE INFRASTRUCTURE</div></div>
+  <h2 style="font-size:56px;max-width:1350px;line-height:1.2;">검색어는 속일 수 있지만,<br><span class="accent">발자국은 거짓말하지 않는다</span></h2>
+  <p class="body-text" style="font-size:22px;max-width:1000px;margin-top:36px;">우리는 오프라인의 진실된 행동 데이터로<br>도시의 가치를 증명하는 <b style="color:var(--fg)">Retail Intelligence Infrastructure</b>를 만든다.</p>
+  <div class="meta" style="font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;margin-top:56px;">PROJECT RENT &nbsp;·&nbsp; ws.choi@project-rent.com &nbsp;·&nbsp; by Project Rent</div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026</span><span class="pg">16 / 16</span></div>
+</section>
+
+<!-- APPENDIX DIVIDER -->
+<section class="slide closing-slide" data-type="divider">
+  <div class="eyebrow" style="margin-bottom:24px;">APPENDIX</div>
+  <h1 style="font-size:72px;">Appendix</h1>
+  <p class="body-text" style="margin-top:20px;">RXR 파이프라인 · LAS 세그먼트 · 특허 로드맵 · OMO 저니맵 상세</p>
+</section>
+
+<!-- A1 RXR PIPELINE -->
+<section class="slide has-strip" data-type="appendix">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>APPENDIX <span class="en">A-1</span></div><div class="deck-label">RXR PIPELINE</div></div>
+  <div class="sec-head"><div><div class="eyebrow">A-1 · RXR 엔진 파이프라인</div><h2>포착 → 식별 → 연결 → 예측</h2></div></div>
+  <div class="ir-flow flex-grow" style="align-items:stretch;margin-top:24px;">
+    <div class="ir-fstep"><div class="fs-num">01</div><div class="fs-title">포착 (Capture)</div><div class="fs-desc">거점 노드에서 방문·행동 신호 수집 (비식별)</div></div>
+    <div class="ir-fstep"><div class="fs-num">02</div><div class="fs-title">식별 (Segment)</div><div class="fs-desc">LAS가 취향 세그먼트로 분류 (32종+)</div></div>
+    <div class="ir-fstep"><div class="fs-num">03</div><div class="fs-title">연결 (Bridge)</div><div class="fs-desc">오프라인 행동 ↔ 온라인 AD-ID 매칭 (특허)</div></div>
+    <div class="ir-fstep"><div class="fs-num">04</div><div class="fs-title">예측 (Predict)</div><div class="fs-desc">행동 기반 추천·ROAS 예측</div></div>
+  </div>
+  <div class="callout" style="margin-top:28px;"><p>특허 <strong>제10-2545502호</strong>가 ③ 연결 단계의 핵심 — 오프라인과 온라인을 잇는 기술적 해자.</p></div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026 · APPENDIX</span><span class="pg">A-1</span></div>
+</section>
+
+<!-- A2 LAS SEGMENTS -->
+<section class="slide has-strip" data-type="appendix">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>APPENDIX <span class="en">A-2</span></div><div class="deck-label">LAS SEGMENTATION</div></div>
+  <div class="sec-head"><div><div class="eyebrow">A-2 · LAS 라이프스타일 세그먼트</div><h2>취향을 <span class="accent">32종+ 세그먼트</span>로 — 비식별로</h2></div></div>
+  <div class="chips flex-grow" style="align-content:flex-start;gap:10px;margin-top:24px;">
+    <span class="chip c-accent">미니멀 러버</span><span class="chip c-green">하이엔드 탐험가</span><span class="chip c-amber">가성비 실속러</span><span class="chip c-accent">트렌드 얼리어답터</span><span class="chip c-green">로컬 미식가</span><span class="chip c-amber">키덜트 컬렉터</span><span class="chip c-accent">웰니스 추구</span><span class="chip c-green">아트·전시 애호</span><span class="chip c-amber">패밀리 케어</span><span class="chip c-accent">테크 이노베이터</span><span class="chip c-green">빈티지 무드</span><span class="chip c-amber">스트리트 컬처</span><span class="chip c-accent">슬로우 라이프</span><span class="chip c-green">럭셔리 시커</span><span class="chip c-amber">친환경 가치소비</span><span class="chip c-accent">… 외 17종+</span>
+  </div>
+  <div class="callout" style="margin-top:24px;"><p>개인을 식별하지 않고 <strong>패턴만</strong> 분류 — 개인정보보호법 완전 준수. 세그먼트는 거점·브랜드별로 동적 확장.</p></div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026 · APPENDIX</span><span class="pg">A-2</span></div>
+</section>
+
+<!-- A3 PATENT ROADMAP -->
+<section class="slide has-strip" data-type="appendix">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>APPENDIX <span class="en">A-3</span></div><div class="deck-label">PATENT ROADMAP</div></div>
+  <div class="sec-head"><div><div class="eyebrow">A-3 · 특허·IP 로드맵</div><h2>데이터 해자를 <span class="accent">단계적으로</span> 강화한다</h2></div></div>
+  <table class="cgrid flex-grow">
+    <thead><tr><th>단계</th><th>대상</th><th>상태</th><th class="own">해자 효과</th></tr></thead>
+    <tbody>
+      <tr><td>포착</td><td>행동 신호 수집 방식</td><td><span class="phase phase-now">진행</span></td><td class="own">데이터 소스 확보</td></tr>
+      <tr><td>식별</td><td>LAS 세그멘테이션</td><td><span class="phase phase-done">등록 제10-2545502</span></td><td class="own"><b>핵심 IP 확보</b></td></tr>
+      <tr><td>연결</td><td>오프라인↔온라인 매칭</td><td><span class="phase phase-now">출원 준비</span></td><td class="own">OMO 증명 독점</td></tr>
+      <tr><td>예측</td><td>행동 기반 추천 모델</td><td><span class="phase phase-future">R&amp;D</span></td><td class="own">정교화·전환비용</td></tr>
+    </tbody>
+  </table>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026 · APPENDIX</span><span class="pg">A-3</span></div>
+</section>
+
+<!-- A4 OMO JOURNEY DETAIL -->
+<section class="slide has-strip" data-type="appendix">
+  <div class="strip-top"><div class="sec"><span class="bar"></span>APPENDIX <span class="en">A-4</span></div><div class="deck-label">OMO ATTRIBUTION</div></div>
+  <div class="sec-head"><div><div class="eyebrow">A-4 · OMO Attribution 상세</div><h2>"이 경험이 <span class="accent">매출 X%</span>를 만들었다"를 증명하는 법</h2></div></div>
+  <div class="g g-23 g-gap flex-grow" style="align-items:stretch;">
+    <div class="split-dark">
+      <ul class="ir-blist">
+        <li><b>오프라인 접점.</b> 거점 방문 시 비식별 행동 시그널 캡처</li>
+        <li><b>브리지 매칭.</b> 동의 기반으로 온라인 경로(AD-ID)와 연결</li>
+        <li><b>전환 추적.</b> 온라인 구매까지의 경로를 귀속(attribution)</li>
+        <li><b>리포트.</b> 브랜드에게 ROAS·전환 기여도를 증명</li>
+      </ul>
+    </div>
+    <div>
+      <div class="callout"><p>기존 오프라인 마케팅은 <strong>'감'</strong>으로 끝났다. OMO Attribution은 오프라인 경험의 <strong>실제 매출 기여</strong>를 숫자로 닫는다.</p></div>
+      <div class="callout" style="margin-top:16px;"><p>이 증명이 브랜드의 <strong>재집행·구독</strong>을 부르고, 플라이휠을 가속한다.</p></div>
+      <div class="src" style="margin-top:18px;">※ 본 Appendix의 세그먼트·로드맵 수치 일부는 구축 단계 기준이며 Beta 후 갱신. 미확정 지표는 본문에서 [확인 필요]로 표기.</div>
+    </div>
+  </div>
+  <div class="strip-bot"><span>PROJECT RENT · IR 2026 · APPENDIX</span><span class="pg">A-4</span></div>
+</section>
+
+</div>
+
+<!-- NAV -->
+<div class="nav-bar">
+  <span>PROJECT RENT — RETAIL INTELLIGENCE · IR 2026</span>
+  <div class="nav-center">
+    <button onclick="navigate(-1)">◀ Prev</button>
+    <span class="slide-counter" id="counter-display">1 / 16</span>
+    <button onclick="navigate(1)">Next ▶</button>
+  </div>
+  <span>← → · F 풀스크린</span>
+</div>
+
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0;
+  const total = slides.length;
+  const CORE_COUNT = 16, APPENDIX_COUNT = 4;
+  function getLabel(idx) {
+    const t = slides[idx].dataset.type;
+    if (t === 'core') return (idx + 1) + ' / ' + CORE_COUNT;
+    if (t === 'divider') return 'APPENDIX';
+    return 'A-' + (idx - CORE_COUNT) + ' / ' + APPENDIX_COUNT;
+  }
+  function show(idx) {
+    slides.forEach((s,i) => s.classList.toggle('active', i === idx));
+    document.getElementById('counter-display').textContent = getLabel(idx);
+    cur = idx;
+  }
+  window.navigate = function(dir){ let n = cur + dir; if(n<0)n=0; if(n>=total)n=total-1; show(n); };
+  document.addEventListener('keydown', function(e){
+    if (e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){ e.preventDefault(); navigate(1); }
+    if (e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); navigate(-1); }
+    if (e.key==='Home'){ e.preventDefault(); show(0); }
+    if (e.key==='End'){ e.preventDefault(); show(total-1); }
+    if (e.key==='f'||e.key==='F'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+  });
+  let tsx = 0;
+  document.addEventListener('touchstart', e => { tsx = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e => { const d = e.changedTouches[0].screenX - tsx; if(Math.abs(d)>50) navigate(d<0?1:-1); });
+  function scaleSlides(){
+    const vw = window.innerWidth, vh = window.innerHeight - 48;
+    const s = Math.min(vw/1920, vh/1080);
+    slides.forEach(sl => { sl.style.transform = `scale(${s})`; sl.style.left = ((vw-1920*s)/2)+'px'; sl.style.top = ((vh-1080*s)/2)+'px'; });
+  }
+  scaleSlides();
+  window.addEventListener('resize', scaleSlides);
+})();
+</script>
+</body>
+</html>

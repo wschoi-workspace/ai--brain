@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공간을 미디어로 만드는 사람들 — Project Rent</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <style>
+    :root {
+      --bg: #1A1A1A;
+      --bg-2: #111111;
+      --bg-3: #222222;
+      --fg: #F5F0EB;
+      --fg-2: #C9C2BA;
+      --fg-3: #7A7570;
+      --line: #333333;
+      --line-2: #2A2A2A;
+      --accent: #6C5CE7;
+      --accent-light: #A29BFE;
+      --warm: #E9DCC8;
+      --rust: #B86C4A;
+      --green: #8FA37E;
+      --duration-fast: 150ms;
+      --duration-base: 250ms;
+      --duration-slow: 400ms;
+      --ease-out: cubic-bezier(.2, .8, .2, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      line-height: 1.9;
+      font-size: 17px;
+    }
+
+    /* ── 레이아웃 ── */
+    .article-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    /* ── 헤더 ── */
+    .article-header {
+      padding: 120px 0 80px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .article-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--fg-3);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .article-title {
+      font-size: 44px;
+      font-weight: 500;
+      color: var(--fg);
+      letter-spacing: -0.025em;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      text-wrap: balance;
+    }
+
+    .article-subtitle {
+      font-size: 18px;
+      font-weight: 300;
+      color: var(--fg-3);
+      letter-spacing: -0.01em;
+      margin-bottom: 48px;
+    }
+
+    .article-meta {
+      display: flex;
+      gap: 32px;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--fg-3);
+      text-transform: uppercase;
+    }
+
+    /* ── 본문 섹션 ── */
+    .article-section {
+      padding: 80px 0;
+      border-bottom: 1px solid var(--line);
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
+    }
+
+    .article-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--fg-3);
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .section-heading {
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--fg);
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin-bottom: 40px;
+      text-wrap: balance;
+    }
+
+    /* ── 본문 타이포 ── */
+    .body-text {
+      color: var(--fg-2);
+      font-size: 17px;
+      line-height: 1.9;
+      letter-spacing: -0.01em;
+    }
+
+    .body-text p {
+      margin-bottom: 24px;
+    }
+
+    .body-text p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* ── 인용구 ── */
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 20px 28px;
+      margin: 40px 0;
+      background: rgba(108, 92, 231, 0.05);
+    }
+
+    blockquote p {
+      font-size: 17px;
+      font-style: italic;
+      color: var(--fg);
+      line-height: 1.8;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── 강조 숫자 ── */
+    .stat-inline {
+      color: var(--accent);
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── 4-Layer 서비스 리스트 ── */
+    .layer-list {
+      margin: 40px 0;
+      border-top: 1px solid var(--line-2);
+    }
+
+    .layer-item {
+      display: flex;
+      gap: 24px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--line-2);
+      align-items: flex-start;
+    }
+
+    .layer-num {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      flex-shrink: 0;
+      padding-top: 2px;
+      width: 28px;
+    }
+
+    .layer-content {
+      flex: 1;
+    }
+
+    .layer-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--fg);
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .layer-desc {
+      font-size: 14px;
+      color: var(--fg-3);
+      line-height: 1.7;
+    }
+
+    /* ── Perception Redefine 프레임워크 ── */
+    .framework-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 40px 0;
+    }
+
+    .framework-step {
+      background: var(--bg-3);
+      border: 1px solid var(--line-2);
+      padding: 20px;
+    }
+
+    .fw-step-num {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--fg-3);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .fw-step-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--accent-light);
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .fw-step-desc {
+      font-size: 12px;
+      color: var(--fg-3);
+      line-height: 1.6;
+    }
+
+    /* ── 클라이언트 태그 ── */
+    .client-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 24px 0;
+    }
+
+    .client-tag {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--fg-3);
+      text-transform: uppercase;
+      border: 1px solid var(--line-2);
+      padding: 6px 12px;
+    }
+
+    /* ── 클로징 ── */
+    .article-closing {
+      padding: 100px 0 80px;
+      text-align: center;
+    }
+
+    .closing-quote {
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--fg);
+      letter-spacing: -0.02em;
+      line-height: 1.5;
+      margin-bottom: 48px;
+      font-style: italic;
+      text-wrap: balance;
+    }
+
+    .closing-brand {
+      font-size: 11px;
+      letter-spacing: 0.35em;
+      color: var(--fg-3);
+      text-transform: uppercase;
+    }
+
+    /* ── 사이드 네비 (고정) ── */
+    .side-nav {
+      position: fixed;
+      top: 50%;
+      right: 30px;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .side-nav a {
+      display: block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--line);
+      transition: background var(--duration-fast) var(--ease-out),
+                  transform var(--duration-fast) var(--ease-out);
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .side-nav a.active,
+    .side-nav a:hover {
+      background: var(--accent);
+      transform: scale(1.4);
+    }
+
+    /* ── 브랜드 마크 ── */
+    .brand-mark {
+      position: fixed;
+      top: 24px;
+      right: 30px;
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      color: var(--fg-3);
+      text-transform: uppercase;
+      z-index: 100;
+    }
+
+    /* ── 푸터 ── */
+    footer {
+      border-top: 1px solid var(--line-2);
+      padding: 48px 0;
+    }
+
+    .footer-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .footer-logo {
+      font-size: 11px;
+      letter-spacing: 0.4em;
+      color: var(--fg-3);
+      text-transform: uppercase;
+    }
+
+    .footer-meta {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--fg-3);
+      text-transform: uppercase;
+    }
+
+    /* ── 도입부 (첫 섹션은 별도 처리) ── */
+    .intro-section {
+      padding: 80px 0;
+      border-bottom: 1px solid var(--line);
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
+    }
+
+    .intro-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── 반응형 ── */
+    @media (max-width: 768px) {
+      .article-title { font-size: 30px; }
+      .section-heading { font-size: 22px; }
+      .framework-steps { grid-template-columns: repeat(2, 1fr); }
+      .side-nav { display: none; }
+      .brand-mark { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .article-wrap { padding: 0 24px; }
+      .framework-steps { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .article-section,
+      .intro-section {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+
+    @media print {
+      .side-nav, .brand-mark { display: none; }
+      .article-section, .intro-section { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 브랜드 마크 -->
+  <div class="brand-mark">Project Rent</div>
+
+  <!-- 사이드 네비 -->
+  <nav class="side-nav" aria-label="섹션 이동">
+    <a href="#intro" title="도입"></a>
+    <a href="#chapter-1" title="오프라인은 미디어다"></a>
+    <a href="#chapter-2" title="만드는 것과 생각하는 것의 차이"></a>
+    <a href="#chapter-3" title="AI 시대에 생각이 차별화다"></a>
+    <a href="#chapter-4" title="기획부터 측정까지"></a>
+    <a href="#chapter-5" title="경험이 증명되는 세상"></a>
+  </nav>
+
+  <main>
+    <div class="article-wrap">
+
+      <!-- 헤더 -->
+      <header class="article-header">
+        <p class="article-eyebrow">Company Essay — Project Rent</p>
+        <h1 class="article-title">공간을 미디어로<br>만드는 사람들</h1>
+        <p class="article-subtitle">프로젝트 렌트가 추구하는 것에 대하여</p>
+        <div class="article-meta">
+          <span>2026</span>
+          <span>Project Rent</span>
+        </div>
+      </header>
+
+      <!-- 도입 -->
+      <section id="intro" class="intro-section">
+        <div class="body-text">
+          <p>2018년, 성수동 6.5평 매장에서 시작했다.</p>
+          <p>"좋은 팝업을 만들자"는 목표가 아니었다. 오프라인 경험이 어떻게 비즈니스를 움직이는지 증명하자는 것이었다.</p>
+          <p>8년간 <span class="stat-inline">250+</span> 프로젝트를 하면서 확신하게 된 것이 있다. 공간은 단순한 장소가 아니다. 잘 설계된 공간은 사람의 행동을 바꾼다. 인식을 바꾼다. 그리고 그것은 측정 가능하다.</p>
+        </div>
+      </section>
+
+      <!-- 1장 -->
+      <section id="chapter-1" class="article-section">
+        <p class="section-label">Chapter 01</p>
+        <h2 class="section-heading">오프라인은 비용이 아니라 미디어다</h2>
+        <div class="body-text">
+          <p>디지털 광고는 클릭을 측정한다. 노출을, 전환율을, 클릭당 비용을 측정한다. 정확하고 빠르다.</p>
+          <p>그런데 사람의 마음은 클릭으로 움직이지 않는다.</p>
+          <p>사람은 여전히 공간에서 결정한다. 만져보고, 냄새 맡고, 분위기를 느끼고. 그 자리에 있었다는 사실 자체가 기억을 만든다. 브랜드를 기억이 아니라 경험으로 저장하게 만든다.</p>
+
+          <blockquote>
+            <p>온라인이 도달(Reach)의 시대였다면, 지금은 경험(Experience)의 시대다.</p>
+          </blockquote>
+
+          <p>우리는 이 경험을 측정 가능한 미디어로 전환하는 회사다.</p>
+          <p>성수동을 '매거진 같은 거리'로 만들었다. 각 매장이 한 페이지, 각 팝업이 하나의 스토리. 사람들은 그 거리를 읽듯이 걷고, 읽듯이 기억한다. 공간이 미디어가 된 순간이다.</p>
+        </div>
+      </section>
+
+      <!-- 2장 -->
+      <section id="chapter-2" class="article-section">
+        <p class="section-label">Chapter 02</p>
+        <h2 class="section-heading">만드는 것과 생각하는 것의 차이</h2>
+        <div class="body-text">
+          <p>대부분의 팝업 대행사는 "예쁘게 만들었는가"를 묻는다. 비주얼이 좋은가, 방문자가 많은가, 사진이 잘 나왔는가.</p>
+          <p>우리는 "이 경험이 정말 사람을 움직였는가"를 묻는다.</p>
+          <p>다른 질문이 다른 결과를 만든다. 질문이 틀리면 아무리 정교한 실행도 목적지에 도달하지 못한다.</p>
+
+          <blockquote>
+            <p>RXR 특허(<span class="stat-inline">10-2545502</span>). 오프라인 경험이 행동 변화로 이어지고, 그것이 매출에 연결되는 과정을 측정하는 시스템이다. 국내 유일이다.</p>
+          </blockquote>
+
+          <p><span class="stat-inline">300+</span> 프로젝트에서 축적된 데이터가 우리의 진짜 자산이다. 어떤 공간에서 어떤 경험이 어떤 결과를 만들었는지. 그 패턴을 우리는 알고 있다.</p>
+          <p>"감이 좋다"를 넘어서, "왜 이 경험이 효과적이었는가"를 구조화한다. 그것이 실행을 반복 가능하게 만들고, 개선 가능하게 만든다.</p>
+        </div>
+      </section>
+
+      <!-- 3장 -->
+      <section id="chapter-3" class="article-section">
+        <p class="section-label">Chapter 03</p>
+        <h2 class="section-heading">AI 시대에 생각이 차별화다</h2>
+        <div class="body-text">
+          <p>AX(AI 업무전환) 교육을 하면서 깨달은 것이 있다.</p>
+          <p>AI가 보편화되면 실행의 품질은 평준화된다. 누구나 그럴듯한 기획서를 만들 수 있다. 누구나 깔끔한 제안서를 출력할 수 있다. 빠르게, 저렴하게.</p>
+          <p>그때 남는 건 "왜 이렇게 했는가"다. 생각의 깊이다.</p>
+
+          <blockquote>
+            <p>해상도(Resolution). 같은 것을 보고도 보이는 변수의 수가 다르다. 시간축의 길이가 다르다. 맥락이 닿는 범위가 다르다.</p>
+          </blockquote>
+
+          <p>우리는 클라이언트의 브랜드를 높은 해상도로 보는 파트너다. 피상적인 현상 너머에 있는 진짜 문제를 보고, 그 문제에 가장 적절한 경험을 설계한다.</p>
+          <p>"만드는 사람"이 아니라 "해석하는 사람"으로서 함께 한다.</p>
+        </div>
+      </section>
+
+      <!-- 4장 -->
+      <section id="chapter-4" class="article-section">
+        <p class="section-label">Chapter 04</p>
+        <h2 class="section-heading">기획부터 측정까지, 하나의 흐름으로</h2>
+        <div class="body-text">
+          <p>Perception Redefine. 우리가 경험 설계에 사용하는 방법론이다. 새로운 의미를 붙이는 것이 아니라, 기존 인식을 재정의한다.</p>
+        </div>
+
+        <div class="framework-steps">
+          <div class="framework-step">
+            <p class="fw-step-num">01 — Decode</p>
+            <p class="fw-step-name">진짜 욕망 해석</p>
+            <p class="fw-step-desc">소비자가 말하는 것과 원하는 것은 다르다. 드러나지 않은 욕망을 읽는다.</p>
+          </div>
+          <div class="framework-step">
+            <p class="fw-step-num">02 — Calibrate</p>
+            <p class="fw-step-name">포지션 조정</p>
+            <p class="fw-step-desc">브랜드가 어디에 있는지, 어디로 가야 하는지를 정렬한다.</p>
+          </div>
+          <div class="framework-step">
+            <p class="fw-step-num">03 — Scene</p>
+            <p class="fw-step-name">장면 설계</p>
+            <p class="fw-step-desc">기억으로 남을 특정 순간을 의도적으로 설계한다.</p>
+          </div>
+          <div class="framework-step">
+            <p class="fw-step-num">04 — Orchestrate</p>
+            <p class="fw-step-name">경험 실행</p>
+            <p class="fw-step-desc">공간, 콘텐츠, 운영을 하나의 흐름으로 조율한다.</p>
+          </div>
+        </div>
+
+        <div class="body-text">
+          <p>이 방법론 위에서 우리는 네 가지 방식으로 일한다.</p>
+        </div>
+
+        <div class="layer-list">
+          <div class="layer-item">
+            <span class="layer-num">01</span>
+            <div class="layer-content">
+              <p class="layer-title">직영 공간 네트워크</p>
+              <p class="layer-desc">성수, 논현, 이대. 브랜드가 자신의 이야기를 실험할 수 있는 공간.</p>
+            </div>
+          </div>
+          <div class="layer-item">
+            <span class="layer-num">02</span>
+            <div class="layer-content">
+              <p class="layer-title">End-to-End 프로젝트</p>
+              <p class="layer-desc">기획→콘텐츠→운영→측정까지. 단발이 아닌 전체 흐름.</p>
+            </div>
+          </div>
+          <div class="layer-item">
+            <span class="layer-num">03</span>
+            <div class="layer-content">
+              <p class="layer-title">RXR 분석</p>
+              <p class="layer-desc">경험의 비즈니스 가치를 측정한다. 특허 시스템으로.</p>
+            </div>
+          </div>
+          <div class="layer-item">
+            <span class="layer-num">04</span>
+            <div class="layer-content">
+              <p class="layer-title">AX 교육</p>
+              <p class="layer-desc">조직의 사고력을 강화한다. AI 도구가 아니라 AI 시대의 판단력.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="body-text">
+          <p>현대자동차부터 Apple TV+ 파친코, 한국관광공사 K-Fashion(도쿄/파리)까지. 기업, 정부, 글로벌을 넘나드는 이유는 하나다.</p>
+          <p>공간이 미디어가 되는 원리는 어디서나 같기 때문이다.</p>
+        </div>
+
+        <div class="client-tags">
+          <span class="client-tag">Hyundai Motor</span>
+          <span class="client-tag">Apple TV+</span>
+          <span class="client-tag">한국관광공사</span>
+          <span class="client-tag">도쿄 K-Fashion</span>
+          <span class="client-tag">파리 K-Fashion</span>
+        </div>
+      </section>
+
+      <!-- 5장 -->
+      <section id="chapter-5" class="article-section">
+        <p class="section-label">Chapter 05</p>
+        <h2 class="section-heading">경험이 증명되는 세상</h2>
+        <div class="body-text">
+          <p>우리가 꿈꾸는 세상이 있다.</p>
+          <p>모든 물리적 공간이 스토리를 가지고, 그 스토리의 영향력이 증명되는 세상. "좋았다"는 감상을 넘어, "이 경험이 브랜드에 얼마의 가치를 만들었다"가 당연하게 말해지는 세상.</p>
+          <p>오프라인이 사라지는 게 아니다. 오프라인의 역할이 바뀌는 것이다.</p>
+
+          <blockquote>
+            <p>판매의 장소에서, 경험의 미디어로.</p>
+          </blockquote>
+
+          <p>우리는 그 전환의 한가운데에 있다. 2018년 성수동 6.5평에서 시작한 질문이 지금도 우리를 움직인다.</p>
+          <p>오프라인 경험은 비즈니스를 어떻게 움직이는가.</p>
+          <p>그 답을 계속 만들어가고 있다.</p>
+        </div>
+      </section>
+
+      <!-- 클로징 -->
+      <div class="article-closing">
+        <p class="closing-quote">"공간이 미디어가 되는 순간,<br>브랜드는 비로소 경험이 됩니다."</p>
+        <p class="closing-brand">by Project Rent</p>
+      </div>
+
+    </div><!-- /article-wrap -->
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-logo">Project Rent</span>
+      <span class="footer-meta">© 2026 · project-rent.com</span>
+    </div>
+  </footer>
+
+  <script>
+    // 스크롤 리빌
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+    document.querySelectorAll('.article-section, .intro-section').forEach(el => {
+      observer.observe(el);
+    });
+
+    // 사이드 네비 활성화
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.side-nav a');
+
+    const navObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + entry.target.id) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+    }, { threshold: 0.4 });
+
+    sections.forEach(s => navObserver.observe(s));
+  </script>
+
+</body>
+</html>

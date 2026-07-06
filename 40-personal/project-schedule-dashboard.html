@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Schedule Dashboard — 2026.07.03</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#1A1A1A;--bg2:#111;--bg3:#222;--bg4:#2A2A2A;
+  --fg:#F5F0EB;--fg2:#C9C2BA;--fg3:#7A7570;
+  --accent:#6C5CE7;--accent-lt:#A29BFE;--accent-sub:rgba(108,92,231,.12);
+  --green:#8FA37E;--green-bg:rgba(143,163,126,.12);
+  --amber:#E2A952;--amber-bg:rgba(226,169,82,.12);
+  --red:#E25252;--red-bg:rgba(226,82,82,.12);
+  --blue:#5B9BD5;--blue-bg:rgba(91,155,213,.12);
+  --line:#333;--line2:#2A2A2A;
+  --radius:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--fg);
+  font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.container{max-width:1200px;margin:0 auto;padding:32px 24px}
+
+/* Header */
+.header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:32px;
+  padding-bottom:20px;border-bottom:1px solid var(--line)}
+.header-left h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.header-left .sub{font-size:12px;color:var(--fg3);margin-top:4px}
+.header-right{text-align:right}
+.header-right .date{font-size:11px;color:var(--accent-lt);font-weight:600;letter-spacing:.05em}
+.header-right .credit{font-size:10px;color:var(--fg3);margin-top:2px}
+
+/* Stats row */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.stat-card{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--radius);padding:16px 18px}
+.stat-card .label{font-size:10px;color:var(--fg3);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.stat-card .value{font-size:28px;font-weight:800;margin-top:4px;letter-spacing:-.02em}
+.stat-card .detail{font-size:10.5px;color:var(--fg3);margin-top:2px}
+.stat-card.active .value{color:var(--accent-lt)}
+.stat-card.wait .value{color:var(--amber)}
+.stat-card.done .value{color:var(--green)}
+.stat-card.urgent .value{color:var(--red)}
+
+/* Urgent banner */
+.urgent-banner{background:var(--red-bg);border:1px solid rgba(226,82,82,.25);border-radius:var(--radius);
+  padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;gap:12px}
+.urgent-banner .icon{font-size:18px;flex-shrink:0}
+.urgent-banner .text{font-size:12px;color:var(--fg)}
+.urgent-banner .text strong{color:var(--red);font-weight:700}
+.urgent-banner .text .date-tag{display:inline-block;background:var(--red);color:#fff;font-size:10px;
+  font-weight:700;border-radius:4px;padding:2px 6px;margin-left:6px}
+
+/* Section title */
+.section-title{font-size:11px;font-weight:700;color:var(--fg3);letter-spacing:.12em;
+  text-transform:uppercase;margin:28px 0 14px;padding-left:2px}
+
+/* Project cards */
+.project-grid{display:flex;flex-direction:column;gap:10px}
+.project-card{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius);
+  padding:16px 20px;display:grid;grid-template-columns:44px 1fr 160px 200px;gap:16px;align-items:center;
+  transition:border-color .15s}
+.project-card:hover{border-color:var(--accent)}
+.project-card .id{font-size:10px;font-weight:700;color:var(--fg3);background:var(--bg4);
+  border-radius:6px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  letter-spacing:.05em}
+.project-card .info h3{font-size:14px;font-weight:700;letter-spacing:-.01em}
+.project-card .info .desc{font-size:11px;color:var(--fg3);margin-top:3px;line-height:1.4}
+.project-card .deadline{text-align:center}
+.project-card .deadline .dl-label{font-size:9px;color:var(--fg3);letter-spacing:.06em;text-transform:uppercase}
+.project-card .deadline .dl-value{font-size:13px;font-weight:700;margin-top:2px}
+.project-card .action{font-size:11px;color:var(--fg2);line-height:1.5;padding-left:16px;
+  border-left:2px solid var(--line2)}
+
+/* Status badges */
+.badge{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:3px 8px;margin-top:6px}
+.badge.active{background:var(--accent-sub);color:var(--accent-lt)}
+.badge.wait{background:var(--amber-bg);color:var(--amber)}
+.badge.done{background:var(--green-bg);color:var(--green)}
+.badge.urgent{background:var(--red-bg);color:var(--red)}
+.badge.review{background:var(--blue-bg);color:var(--blue)}
+
+/* Progress bar */
+.progress-bar{width:100%;height:4px;background:var(--bg4);border-radius:2px;margin-top:8px;overflow:hidden}
+.progress-bar .fill{height:100%;border-radius:2px;transition:width .3s}
+.fill.accent{background:var(--accent-lt)}
+.fill.green{background:var(--green)}
+.fill.amber{background:var(--amber)}
+
+/* Deadline coloring */
+.dl-overdue{color:var(--red)!important}
+.dl-soon{color:var(--amber)!important}
+.dl-ok{color:var(--green)!important}
+
+/* Todos section */
+.todo-section{margin-top:36px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius);padding:20px 24px}
+.todo-section h2{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.todo-section h2 .count{font-size:10px;color:var(--accent-lt);background:var(--accent-sub);
+  border-radius:4px;padding:2px 8px;font-weight:700}
+.todo-group{margin-bottom:16px}
+.todo-group:last-child{margin-bottom:0}
+.todo-group .group-label{font-size:10px;font-weight:700;color:var(--fg3);letter-spacing:.08em;
+  text-transform:uppercase;margin-bottom:8px}
+.todo-item{font-size:12px;color:var(--fg2);padding:6px 0;border-bottom:1px solid var(--line2);
+  display:flex;align-items:center;gap:8px}
+.todo-item:last-child{border-bottom:none}
+.todo-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot.today{background:var(--red)}
+.dot.week{background:var(--amber)}
+.dot.ongoing{background:var(--accent-lt)}
+.dot.done{background:var(--green)}
+.todo-item.completed{color:var(--fg3);text-decoration:line-through}
+
+/* Footer */
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line2);
+  display:flex;justify-content:space-between;align-items:center}
+.footer .left{font-size:10px;color:var(--fg3)}
+.footer .right{font-size:10px;color:var(--fg3)}
+
+@media(max-width:900px){
+  .project-card{grid-template-columns:1fr;gap:10px}
+  .project-card .deadline{text-align:left}
+  .project-card .action{border-left:none;padding-left:0;border-top:1px solid var(--line2);padding-top:10px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>Project Schedule Dashboard</h1>
+    <div class="sub">11 Projects Tracked / Active Todos 8</div>
+  </div>
+  <div class="header-right">
+    <div class="date">2026. 07. 03 (Thu)</div>
+    <div class="credit">by Project Rent</div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat-card active">
+    <div class="label">Active</div>
+    <div class="value">4</div>
+    <div class="detail">진행 중인 프로젝트</div>
+  </div>
+  <div class="stat-card wait">
+    <div class="label">Waiting</div>
+    <div class="value">4</div>
+    <div class="detail">블로커 / 정보 대기</div>
+  </div>
+  <div class="stat-card done">
+    <div class="label">Complete</div>
+    <div class="value">3</div>
+    <div class="detail">완료 / 검토 대기</div>
+  </div>
+  <div class="stat-card urgent">
+    <div class="label">Urgent</div>
+    <div class="value">1</div>
+    <div class="detail">마감 7일 이내</div>
+  </div>
+</div>
+
+<!-- Urgent Banner -->
+<div class="urgent-banner">
+  <div class="icon">!!</div>
+  <div class="text">
+    <strong>봉은문화센터</strong> M3 방향성 보고 마감 경과 <span class="date-tag">7/2 (어제)</span> &nbsp;|&nbsp; 최종 납품 <span class="date-tag">8/16</span> &nbsp;|&nbsp; 현재 진행률 45%
+  </div>
+</div>
+
+<!-- ACTIVE PROJECTS -->
+<div class="section-title">Active Projects</div>
+<div class="project-grid">
+
+  <!-- 15 봉은사 -->
+  <div class="project-card">
+    <div class="id">#15</div>
+    <div class="info">
+      <h3>봉은문화센터 활용전략 수립</h3>
+      <div class="desc">계약 5,000만원 / 90일 / 12챕터 마스터플랜</div>
+      <span class="badge urgent">URGENT</span>
+      <div class="progress-bar"><div class="fill amber" style="width:45%"></div></div>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Deadline</div>
+      <div class="dl-value dl-overdue">M3: 7/2 (경과)</div>
+      <div class="dl-value dl-soon" style="margin-top:4px;font-size:11px">최종: 8/16</div>
+    </div>
+    <div class="action">Phase A 비전 정의 착수<br>리서치/진단 완료, 전략/실행 뼈대 단계<br>5Phase 42건 산출물 로드맵</div>
+  </div>
+
+  <!-- 28 AI교육 -->
+  <div class="project-card">
+    <div class="id">#28</div>
+    <div class="info">
+      <h3>AI 교육 사업 (AX)</h3>
+      <div class="desc">소상공인 대상 AI 업무전환 교육 프로그램</div>
+      <span class="badge active">ACTIVE</span>
+      <div class="progress-bar"><div class="fill accent" style="width:75%"></div></div>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Next</div>
+      <div class="dl-value dl-ok">뉴스레터 정식 가동</div>
+    </div>
+    <div class="action">제안서+데모3종+슬라이드V2(30장) 완성<br>주간 뉴스레터 7회차+직무별 케이스북<br>EP03~07 HTML 제작 대기</div>
+  </div>
+
+  <!-- 29 세스크멘슬 -->
+  <div class="project-card">
+    <div class="id">#29</div>
+    <div class="info">
+      <h3>세스크멘슬 브랜드 컨셉빌딩</h3>
+      <div class="desc">Korean Charcuterie Stew / 장인의 번역+존중</div>
+      <span class="badge active">ACTIVE</span>
+      <div class="progress-bar"><div class="fill accent" style="width:65%"></div></div>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Last Update</div>
+      <div class="dl-value" style="color:var(--fg2)">6/29</div>
+    </div>
+    <div class="action">Manifesto 최종 검수 + 클라이언트 공유<br>제안서 v3 (6/29 회의 반영)<br>Lunch/Dinner 가격 시뮬레이션</div>
+  </div>
+
+  <!-- R_define -->
+  <div class="project-card">
+    <div class="id">R</div>
+    <div class="info">
+      <h3>R_define (IR Deck)</h3>
+      <div class="desc">프로젝트렌트 & 최원석 정의 / Physical Ad-Tech Network</div>
+      <span class="badge active">ACTIVE</span>
+      <div class="progress-bar"><div class="fill accent" style="width:80%"></div></div>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Last Update</div>
+      <div class="dl-value" style="color:var(--fg2)">6/16</div>
+    </div>
+    <div class="action">IR V10 실데이터 채우기<br>고유 행동 프로필/이벤트 실측치<br>성과수치 외부공유 가부 확정</div>
+  </div>
+
+</div>
+
+<!-- WAITING PROJECTS -->
+<div class="section-title">Waiting / Blocked</div>
+<div class="project-grid">
+
+  <!-- 26 카드뉴스 -->
+  <div class="project-card">
+    <div class="id">#26</div>
+    <div class="info">
+      <h3>SNS 카드뉴스 자동화</h3>
+      <div class="desc">GPT → Drive → Claude → Canva Autofill 파이프라인</div>
+      <span class="badge wait">BLOCKED</span>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Blocker</div>
+      <div class="dl-value" style="color:var(--amber);font-size:11px">Canva 자격증명 수동 발급</div>
+    </div>
+    <div class="action">스캐폴딩 완료, Canva 봇 차단으로<br>Client ID/Secret 수작업 필요</div>
+  </div>
+
+  <!-- 30 넵킨 -->
+  <div class="project-card">
+    <div class="id">#30</div>
+    <div class="info">
+      <h3>넵킨 매거진 브랜드 강화</h3>
+      <div class="desc">독립 관점 21p 제안서 + 보안 공유본 PDF</div>
+      <span class="badge wait">WAITING</span>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Waiting For</div>
+      <div class="dl-value" style="color:var(--amber);font-size:11px">에디터(이나리) 논의</div>
+    </div>
+    <div class="action">협찬 정책 / 분리 속도 / 발행 빈도<br>바이오 수정 포함</div>
+  </div>
+
+  <!-- 31 GUBI -->
+  <div class="project-card">
+    <div class="id">#31</div>
+    <div class="info">
+      <h3>GUBI x 답십리 전시기획</h3>
+      <div class="desc">20p 풀버전 + 14p 축약본 HTML PT 완성</div>
+      <span class="badge wait">WAITING</span>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Waiting For</div>
+      <div class="dl-value" style="color:var(--amber);font-size:11px">전시장 4곳 상세정보</div>
+    </div>
+    <div class="action">면적/사진 업데이트<br>OUVRE 성과 수치 확정<br>일정/예산 섹션 추가</div>
+  </div>
+
+  <!-- 32 리진 -->
+  <div class="project-card">
+    <div class="id">#32</div>
+    <div class="info">
+      <h3>LI-TSIN 답십리 컬처살롱</h3>
+      <div class="desc">배꽃 아이덴티티 + 12장 PT v3 완성</div>
+      <span class="badge wait">WAITING</span>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Waiting For</div>
+      <div class="dl-value" style="color:var(--amber);font-size:11px">공간 스펙/예산/오픈 시점</div>
+    </div>
+    <div class="action">TBD 실수치 채움<br>외부 공유 시 보안 PDF 처리</div>
+  </div>
+
+</div>
+
+<!-- COMPLETED / REVIEW -->
+<div class="section-title">Completed / Review</div>
+<div class="project-grid">
+
+  <!-- 17 더셀렉츠 -->
+  <div class="project-card">
+    <div class="id">#17</div>
+    <div class="info">
+      <h3>더셀렉츠 글로벌 팝업 (KOCCA)</h3>
+      <div class="desc">RFP 1단계+2단계 v3 전략 제언 완성</div>
+      <span class="badge done">CLOSED</span>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Deadline</div>
+      <div class="dl-value dl-overdue">6/4 (경과)</div>
+    </div>
+    <div class="action">Conditional GO 판정<br>마감일 경과로 종료 추정</div>
+  </div>
+
+  <!-- 30 불교 -->
+  <div class="project-card">
+    <div class="id">#30b</div>
+    <div class="info">
+      <h3>불교 Brand Analysis</h3>
+      <div class="desc">네이버 2,809건 멘션 분석 / 봉은사 전략 상위 근거</div>
+      <span class="badge done">DONE</span>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Completed</div>
+      <div class="dl-value dl-ok">6/14</div>
+    </div>
+    <div class="action">후속: 봉은사 내부 설문 × 외부 진단 교차 분석</div>
+  </div>
+
+  <!-- 33 Traffic -->
+  <div class="project-card">
+    <div class="id">#33</div>
+    <div class="info">
+      <h3>Traffic Developer 강의자료</h3>
+      <div class="desc">40장 슬라이드 HTML+PPTX / 통계 3중 검증 완료</div>
+      <span class="badge review">REVIEW</span>
+    </div>
+    <div class="deadline">
+      <div class="dl-label">Completed</div>
+      <div class="dl-value dl-ok">6/24</div>
+    </div>
+    <div class="action">사용자 검토 후 헤드카피/사례 수정<br>강의 PC Pretendard 폰트 설치 확인</div>
+  </div>
+
+</div>
+
+<!-- Active Todos -->
+<div class="todo-section">
+  <h2>Active Todos <span class="count">8 items</span></h2>
+
+  <div class="todo-group">
+    <div class="group-label">Today</div>
+    <div class="todo-item"><span class="dot today"></span>labor-cost-simulator Netlify 배포 (v3)</div>
+    <div class="todo-item"><span class="dot today"></span>업무보고봇 직원 테스트 결과 확인</div>
+  </div>
+
+  <div class="todo-group">
+    <div class="group-label">This Week</div>
+    <div class="todo-item"><span class="dot week"></span>ARISA Mac Mini 서버 셋업 (clone → uvicorn → Cloudflare Tunnel → GPT Actions)</div>
+    <div class="todo-item"><span class="dot week"></span>업무보고봇 카카오워크 써머리 출력 기능 추가</div>
+    <div class="todo-item"><span class="dot week"></span>업무보고봇 구글드라이브 개인폴더 저장 구조 설계</div>
+    <div class="todo-item"><span class="dot week"></span>봉은사 최종보고서 작업 시작 (납기 임박)</div>
+    <div class="todo-item"><span class="dot week"></span>넵킨 v3 에디터(이나리) 논의: 협찬 정책 / 분리 속도 / 발행 빈도</div>
+  </div>
+
+  <div class="todo-group">
+    <div class="group-label">Ongoing</div>
+    <div class="todo-item"><span class="dot ongoing"></span>업무보고봇 운영 모니터링 (PID lock 적용 완료)</div>
+  </div>
+
+  <div class="todo-group">
+    <div class="group-label">Recently Completed</div>
+    <div class="todo-item completed"><span class="dot done"></span>봉은사 계약서 기반 RFP 분석</div>
+    <div class="todo-item completed"><span class="dot done"></span>GPT 일일업무보고 봇 v2</div>
+    <div class="todo-item completed"><span class="dot done"></span>ARISA v2 GitHub push</div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="left">Generated by Claude Code / 2026-07-03 / 11 projects scanned</div>
+  <div class="right">by Project Rent</div>
+</div>
+
+</div>
+</body>
+</html>
