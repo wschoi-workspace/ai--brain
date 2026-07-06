@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pathlib import Path
 # -*- coding: utf-8 -*-
 """아랑재 × Basket 원본 타임라인(주차 채움색 막대) → 표준 마스터 포맷으로 변환.
 입력: ~/Downloads/아랑재_바스켓_프로젝트타임라인.xlsx
@@ -14,8 +15,8 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-SRC="/Users/choi_ai/Downloads/아랑재_바스켓_프로젝트타임라인.xlsx"
-OUT="/Users/choi_ai/do-better-workspace/00-system/01-templates/아랑재_변환.xlsx"
+SRC=str(Path.home()/"Downloads")+"/아랑재_바스켓_프로젝트타임라인.xlsx"
+OUT=str(Path.home()/"do-better-workspace")+"/00-system/01-templates/아랑재_변환.xlsx"
 YEAR=2026; TODAY=dt.date(2026,6,23)
 ACCENT="6C5CE7"; ACCENT_D="5A4BD1"; REQ_FILL="EDE9FE"; LINE="D9D5E8"
 thin=Side(style="thin",color=LINE); border=Border(left=thin,right=thin,top=thin,bottom=thin)

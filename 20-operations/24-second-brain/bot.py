@@ -38,10 +38,10 @@ except Exception:  # noqa: BLE001
     _mem = None
 
 # ─── 경로 ───
-BASE = Path("/Users/choi_ai/do-better-workspace/20-operations/24-second-brain")
+BASE = Path("/Users/server-mini/do-better-workspace/20-operations/24-second-brain")
 INBOX = BASE / "00_inbox"
-PROJECTS_DIR = Path("/Users/choi_ai/do-better-workspace/10-projects")
-EMP_PATH = Path("/Users/choi_ai/do-better-workspace/00-system/02-scripts/arisa-employees.json")
+PROJECTS_DIR = Path("/Users/server-mini/do-better-workspace/10-projects")
+EMP_PATH = Path("/Users/server-mini/do-better-workspace/00-system/02-scripts/arisa-employees.json")
 
 # ─── 설정 (launchd EnvironmentVariables로 주입) ───
 TOKEN = os.getenv("SECOND_BRAIN_BOT_TOKEN", "")
@@ -53,7 +53,7 @@ TYPES = "idea | memo | task | project_issue | decision | reminder | question | r
 
 # ARISA 공유 코어 (Phase 1) — 봇 간 복붙되던 기능 배관 단일 출처
 import sys  # noqa: E402
-sys.path.insert(0, "/Users/choi_ai/do-better-workspace/00-system/02-scripts")
+sys.path.insert(0, "/Users/server-mini/do-better-workspace/00-system/02-scripts")
 from shared.logging import TokenRedactingFilter  # noqa: E402
 
 # 포맷은 second-brain 기존 그대로 유지, 토큰 마스킹 필터만 공유 클래스로 교체

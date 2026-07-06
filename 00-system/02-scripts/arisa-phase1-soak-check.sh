@@ -9,8 +9,8 @@
 #  3) shared 패키지 import 정상
 set -uo pipefail
 
-PY=/Users/choi_ai/do-better-workspace/20-operations/24-second-brain/.venv311/bin/python
-SCRIPTS=/Users/choi_ai/do-better-workspace/00-system/02-scripts
+PY=$HOME/do-better-workspace/20-operations/24-second-brain/.venv311/bin/python
+SCRIPTS=$HOME/do-better-workspace/00-system/02-scripts
 TODAY=$(date '+%Y-%m-%d')
 PROBLEMS=0
 

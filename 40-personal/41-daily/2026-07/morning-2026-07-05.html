@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모닝 브리핑 — 2026년 7월 5일</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a2e;
+    --surface2: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --text: #eee;
+    --text-dim: #999;
+    --green: #00c853;
+    --yellow: #ffd600;
+    --red: #ff1744;
+    --blue: #448aff;
+    --border: #2a2a4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  .header {
+    text-align: center;
+    padding: 2rem 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #e94560, #0f3460);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .date {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-top: 0.3rem;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .stat-card .number {
+    font-size: 2rem;
+    font-weight: 800;
+  }
+  .stat-card .label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+  }
+  .stat-card.urgent .number { color: var(--red); }
+  .stat-card.pending .number { color: var(--yellow); }
+  .stat-card.schedule .number { color: var(--blue); }
+  .stat-card.project .number { color: var(--green); }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-title .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+  }
+  .icon-mail { background: rgba(233,69,96,0.2); }
+  .icon-cal { background: rgba(68,138,255,0.2); }
+  .icon-money { background: rgba(255,214,0,0.2); }
+  .icon-project { background: rgba(0,200,83,0.2); }
+  .icon-todo { background: rgba(233,69,96,0.2); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  th {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid rgba(42,42,74,0.5);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  a.mail-link {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--text-dim);
+    transition: all 0.2s;
+  }
+  a.mail-link:hover {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-red { background: rgba(255,23,68,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(255,214,0,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(0,200,83,0.15); color: var(--green); }
+  .badge-blue { background: rgba(68,138,255,0.15); color: var(--blue); }
+  .badge-gray { background: rgba(153,153,153,0.15); color: var(--text-dim); }
+
+  .conflict { color: var(--yellow); font-weight: 600; }
+  .time { color: var(--blue); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  .todo-list {
+    list-style: none;
+    counter-reset: todo;
+  }
+  .todo-list li {
+    counter-increment: todo;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid rgba(42,42,74,0.5);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .todo-list li:last-child { border-bottom: none; }
+  .todo-list li::before {
+    content: counter(todo);
+    background: var(--accent);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .empty-state {
+    color: var(--text-dim);
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>☀️ 모닝 브리핑</h1>
+  <div class="date">2026년 7월 5일 (일)</div>
+</div>
+
+<div class="stats">
+  <div class="stat-card urgent">
+    <div class="number">3</div>
+    <div class="label">회신 필요</div>
+  </div>
+  <div class="stat-card pending">
+    <div class="number">3</div>
+    <div class="label">발신/대기</div>
+  </div>
+  <div class="stat-card schedule">
+    <div class="number">2</div>
+    <div class="label">오늘 일정</div>
+  </div>
+  <div class="stat-card project">
+    <div class="number">2</div>
+    <div class="label">송금 예정 (7/8)</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-mail">📬</span> 업무 메일 (최근 3일)
+  </div>
+
+  <h4 style="color:var(--red); margin-bottom:0.5rem; font-size:0.85rem;">🔴 회신 필요</h4>
+  <table>
+    <tr><th>발신자</th><th>제목</th><th>요약</th><th>상태</th></tr>
+    <tr>
+      <td>고위드</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f27a3d06bcac94" target="_blank">[고위드] 카드 한도 초과 예상</a></td>
+      <td>신한 F_CEO(0654) 한도 소진율 99.9% — 잔여 2,621원 / 총 한도 250만원. 선결제 또는 한도 상향 필요</td>
+      <td><span class="badge badge-red">긴급 조치</span></td>
+    </tr>
+    <tr>
+      <td>이수경 (CJ ENM)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f25e01ed11aba7" target="_blank">[CJ ENM IP-X] KBO 올스타전 룰렛이벤트 제작물 SB 전달의 건</a></td>
+      <td>X배너·팻말 각 2개 이상 + 룰렛 SB 제작 요청. 온스타일 브랜딩 톤앤매너 기준, AI 이미지는 내용만 참고</td>
+      <td><span class="badge badge-red">회신 필요</span></td>
+    </tr>
+    <tr>
+      <td>沼田 典子 (WORLDMODE)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f257a3f0322b7f" target="_blank">Re: 御礼【お打ち合わせ日程変更のご相談】</a></td>
+      <td>성수 팝업 스몰스타트 패키지의 메뉴 가격 책정 요청 (마진 반영 예정, 타사 안내와의 정합성 확인 요청)</td>
+      <td><span class="badge badge-red">회신 필요</span></td>
+    </tr>
+  </table>
+
+  <h4 style="color:var(--yellow); margin:1rem 0 0.5rem; font-size:0.85rem;">📋 발신/회신 대기</h4>
+  <table>
+    <tr><th>발신자</th><th>제목</th><th>상태</th></tr>
+    <tr>
+      <td>전제훈</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f27634e561196a" target="_blank">[프로젝트렌트] 롯데시네마 월드타워 DUNE 3 테마공간 견적 송부의 건</a></td>
+      <td><span class="badge badge-yellow">1차 견적 송부 — 롯데시네마 회신 대기</span></td>
+    </tr>
+    <tr>
+      <td>배성원</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f215284fe3a106" target="_blank">Re: [CJ ENM IP-X] KBO 구단별 이동형 팝업 제안서 요청 건</a></td>
+      <td><span class="badge badge-yellow">계약서 전달 (행사 7/10~11) — 회신 대기</span></td>
+    </tr>
+    <tr>
+      <td>전제훈 → K Zone</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f2746080a27f2c" target="_blank">Re: LA한국문화원 현지 미팅 관련의 건 (사전확인 안건 송부)</a></td>
+      <td><span class="badge badge-yellow">김태완 본부장 — 7/7(월) 담당 부장 복귀 후 답변 예정</span></td>
+    </tr>
+  </table>
+
+  <h4 style="color:var(--blue); margin:1rem 0 0.5rem; font-size:0.85rem;">📊 모니터링/참고</h4>
+  <table>
+    <tr><th>발신자</th><th>제목</th><th>조치</th></tr>
+    <tr>
+      <td>전제훈</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f277e59d648d76" target="_blank">[프로젝트렌트] LA 공간 프로젝트 진행 검토의 건</a></td>
+      <td><span class="badge badge-blue">RFP 자료 파트너 공유 — 참고</span></td>
+    </tr>
+    <tr>
+      <td>정다이 (유니원)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f20a4283a17f64" target="_blank">LA한국문화원 현지 미팅 관련의 건 (미팅 안건·참석자 공유)</a></td>
+      <td><span class="badge badge-blue">출장 미팅 안건 확인</span></td>
+    </tr>
+    <tr>
+      <td>蘇 (so4you)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f25b035374a6e6" target="_blank">Re: 御礼【お打ち合わせ日程変更のご相談】</a></td>
+      <td><span class="badge badge-blue">성수 팝업 스몰스타트 메뉴 구상 공유</span></td>
+    </tr>
+    <tr>
+      <td>서울투자진흥재단</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f26b6ef9d02eda" target="_blank">Core기업 글로벌 투자 계약 법률 자문 지원 (~7/15 18시)</a></td>
+      <td><span class="badge badge-blue">지원 여부 검토</span></td>
+    </tr>
+    <tr>
+      <td>서울투자진흥재단</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f25850cb0c58db" target="_blank">2026년 Core20 일반트랙 모집 (~7/21 16:00)</a></td>
+      <td><span class="badge badge-blue">지원 여부 검토</span></td>
+    </tr>
+    <tr>
+      <td>HR Portal (자동)</td>
+      <td><a class="mail-link" href="https://mail.google.com/mail/u/0/#inbox/19f2021f8cf49570" target="_blank">[월말 리포트] 2026년 6월 — PROJECT RENT HR</a></td>
+      <td><span class="badge badge-gray">발송 완료 — 참고</span></td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-cal">📅</span> 오늘 일정 (7/5 일)
+  </div>
+  <table>
+    <tr><th>시간</th><th>일정</th><th>비고</th></tr>
+    <tr>
+      <td class="time">종일</td>
+      <td>LA문화원 출장 (대표님/제훈)</td>
+      <td>7/5 ~ 7/10</td>
+    </tr>
+    <tr>
+      <td class="time">12:00–13:00</td>
+      <td>다도</td>
+      <td></td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-cal">📅</span> 내일 일정 (7/6 월)
+  </div>
+  <table>
+    <tr><th>시간</th><th>일정</th><th>비고</th></tr>
+    <tr>
+      <td class="time">종일</td>
+      <td>LA문화원 출장 (대표님/제훈)</td>
+      <td>계속 (~7/10) · LA 현지 미팅 예정</td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-money">💰</span> 임대료 송금 알림 (3일 이내)
+  </div>
+  <table>
+    <tr><th>송금일</th><th>장소</th><th>금액</th><th>받는 사람</th><th>계좌</th></tr>
+    <tr>
+      <td>7/8 (수)</td>
+      <td>GS타워</td>
+      <td>매출의 12%</td>
+      <td>주식회사 지에스</td>
+      <td>우리은행 982-018207-01-001 (후불: 5일 매출공유 → 10일 청구 → 15일 납부)</td>
+    </tr>
+    <tr>
+      <td>7/8 (수)</td>
+      <td>대전 소제점</td>
+      <td>매출의 10%</td>
+      <td>에너넷</td>
+      <td>⚠️ 미확인 (연락처 042-584-3631)</td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">
+    <span class="icon icon-todo">✅</span> 오늘 할 일 우선순위
+  </div>
+  <ol class="todo-list">
+    <li>고위드 신한카드 F_CEO(0654) 한도 조치 — 선결제 또는 한도 상향 (잔여 2,621원)</li>
+    <li>CJ ENM 올스타전 룰렛이벤트 제작물 대응 회신 — X배너·팻말 각 2개+, 온스타일 톤앤매너</li>
+    <li>WORLDMODE 누마타 — 성수 팝업 패키지 메뉴 가격 책정 회신</li>
+    <li>7/8 매출정산 준비 — GS타워 매출공유(5일 기한), 에너넷 계좌 정보 확인</li>
+    <li>롯데시네마 DUNE 3 견적 · CJ ENM KBO 계약서(행사 7/10~11) 회신 팔로업</li>
+  </ol>
+</div>
+
+<div class="footer">
+  Generated by Claude Code · /morning · 2026-07-05
+</div>
+
+</body>
+</html>

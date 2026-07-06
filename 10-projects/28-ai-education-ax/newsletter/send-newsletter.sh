@@ -4,15 +4,16 @@
 
 set -euo pipefail
 
-BASE="/Users/choi_ai/do-better-workspace/10-projects/28-ai-education-ax/newsletter"
-LOG_DIR="/Users/choi_ai/do-better-workspace/40-personal/41-daily/logs"
+BASE="/Users/server-mini/do-better-workspace/10-projects/28-ai-education-ax/newsletter"
+PY="/Users/server-mini/do-better-workspace/20-operations/24-second-brain/.venv311/bin/python"
+LOG_DIR="/Users/server-mini/do-better-workspace/40-personal/41-daily/logs"
 LOG_FILE="$LOG_DIR/ax-newsletter-$(date +%Y-%m-%d).log"
 
 mkdir -p "$LOG_DIR"
-export PATH="/usr/local/bin:/usr/bin:/bin:/Users/choi_ai/.npm-global/bin:$PATH"
+export PATH="/usr/local/bin:/usr/bin:/bin:/Users/server-mini/.npm-global/bin:$PATH"
 
 {
   echo "[$(date)] ax-newsletter 발송 시작"
-  /usr/bin/python3 "$BASE/send-newsletter.py" --audience employees
+  "$PY" "$BASE/send-newsletter.py" --audience employees
   echo "[$(date)] ax-newsletter 발송 종료"
 } >> "$LOG_FILE" 2>&1

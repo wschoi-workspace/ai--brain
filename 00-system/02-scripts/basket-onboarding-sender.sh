@@ -5,12 +5,13 @@
 # 진도는 .send-state 파일의 인덱스로 추적. 8개 모두 보내면 자동으로 멈춤.
 
 set -uo pipefail
-export PATH="/usr/local/bin:/usr/bin:/bin:/Users/choi_ai/.npm-global/bin:$PATH"
+# 경로는 $HOME 기반 — 계정 이관(choi_ai→server-mini 등) 시에도 깨지지 않게 (2026-07-04)
+export PATH="/usr/local/bin:/usr/bin:/bin:$HOME/.npm-global/bin:$PATH"
 
-DIR="/Users/choi_ai/do-better-workspace/20-operations/25-basket-ops-manual/onboarding-daily"
+DIR="$HOME/do-better-workspace/20-operations/25-basket-ops-manual/onboarding-daily"
 STATE="$DIR/.send-state"
 LOG="$DIR/send.log"
-TGCLI="/Users/choi_ai/.npm-global/bin/tgcli"
+TGCLI="$HOME/.npm-global/bin/tgcli"
 
 # 수신자: 양은정(basket) / 준호 김 / 윤혜정
 RECIPIENTS=(5953458732 5828702712 8452510149)

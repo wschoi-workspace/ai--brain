@@ -4,13 +4,13 @@ basket-ops-bot.py — Basket 운영팀 일일업무 보고 봇 (전용)
 
 흐름(혼합 입력):
   운영자가 텔레그램에 자유롭게 보고 입력
-   → OpenAI가 12섹션으로 구조화 + 부족/모호한 핵심만 되물음(최대 2개)
+   → OpenAI가 11섹션으로 구조화 + 부족/모호한 핵심만 되물음(최대 2개)
    → 운영자 보완 → 요약 확인
    → 구글 시트(일일보고 리스트)에 1행 append
    → 승인·결재 필요 건(③송금·승인 / ⑤장비 견적·AS / ⑩입점)은 매니저에게 별도 강조 전송
 
 기존 daily-report-bot.py 패턴 재사용: python-telegram-bot · OpenAI · gws CLI Sheets append.
-구글 시트 컬럼 순서 = basket-업무보고-양식.xlsx '일일보고(리스트)'와 동일(13열).
+구글 시트 컬럼 순서 = basket-업무보고-양식.xlsx '일일보고(리스트)'와 동일(15열: store_id·날짜·작성자·매출·지출·③~⑪·업로드시각).
 
 필요 .env:
   BASKET_BOT_TOKEN            전용 텔레그램 봇 토큰(@BotFather)
@@ -56,9 +56,10 @@ CHECKLIST_PATH = WORKSPACE / "20-operations" / "25-basket-ops-manual" / "basket-
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 # ARISA 공유 코어 (Phase 1) — 토큰 마스킹·gws·명부 배관 단일 출처
-sys.path.insert(0, "/Users/choi_ai/do-better-workspace/00-system/02-scripts")
+sys.path.insert(0, "/Users/server-mini/do-better-workspace/00-system/02-scripts")
 from shared.logging import TokenRedactingFilter  # noqa: E402
 from shared import gws as _gws  # noqa: E402
+from shared import report_queue as _rq  # noqa: E402
 from shared.employee import load_employees as _load_emp  # noqa: E402
 for _h in logging.getLogger().handlers:
     _h.addFilter(TokenRedactingFilter())  # 기존엔 필터 없어 토큰 평문 노출 — 보안 개선
@@ -79,7 +80,7 @@ def _author(update) -> str:
         return "운영자"
     return _emp_by_tid(u.id) or u.full_name or "운영자"
 
-# 12섹션 (시트 컬럼 순서와 매핑)
+# 11섹션 (시트 컬럼 순서와 매핑)
 SECTIONS = [
     ("sales",      "매출"),
     ("jichul",     "③ 지출 총합"),
@@ -167,9 +168,18 @@ def gpt_structure(text: str, prev: dict | None = None) -> dict:
         logger.error(f"GPT structure error: {e}")
         return (prev or {}) | {"notes": text, "clarify": []}
 
+def _basket_append(tab: str, row: list, dedup_cols: list, author: str = "") -> bool:
+    """append + 실패 시 로컬 큐 보관(백필 배치가 자동 재시도). 유실 방지 단일 경로."""
+    ok, kind = _gws.append_to_sheet_ex(SHEET_ID, f"{tab}!A1", row,
+                                       value_input_option="USER_ENTERED", timeout=20)
+    if not ok:
+        key = f"{datetime.now().strftime('%Y-%m-%d')}|{author or STORE_ID}"
+        _rq.enqueue([_rq.make_entry("basket", SHEET_ID, f"{tab}!A1", row, key,
+                                    dedup_cols, vio="USER_ENTERED", last_error=kind)])
+    return ok
+
 def append_sheet(row: list) -> bool:
-    return _gws.append_to_sheet(SHEET_ID, f"{SHEET_TAB}!A1", row,
-                                value_input_option="USER_ENTERED", timeout=20)
+    return _basket_append(SHEET_TAB, row, [1, 2, 14], author=str(row[2]) if len(row) > 2 else "")
 
 def build_row(d: dict, author: str) -> list:
     now = datetime.now()
@@ -180,12 +190,21 @@ def build_row(d: dict, author: str) -> list:
         now.strftime("%H:%M"),
     ]
 
+def _md(s) -> str:
+    """레거시 Markdown 안전 이스케이프(동적 텍스트용) — 사용자/LLM 내용의 _ * ` [ 로 인한
+    Telegram 400(파싱 실패→메시지 조용히 유실)을 방지. 정적 볼드 라벨은 이스케이프하지 않는다."""
+    s = str(s or "")
+    for ch in ("\\", "_", "*", "`", "["):
+        s = s.replace(ch, "\\" + ch)
+    return s
+
+
 def summary_text(d: dict, author: str) -> str:
-    lines = [f"📋 *{datetime.now():%y%m%d} 일일보고* — {author}", ""]
+    lines = [f"📋 *{datetime.now():%y%m%d} 일일보고* — {_md(author)}", ""]
     for key, label in SECTIONS:
         v = (d.get(key) or "").strip()
         if v:
-            lines.append(f"*{label}*\n{v}")
+            lines.append(f"*{label}*\n{_md(v)}")
     return "\n".join(lines) if len(lines) > 2 else "내용이 비어 있습니다."
 
 def _trunc(s: str, n: int) -> str:
@@ -194,17 +213,17 @@ def _trunc(s: str, n: int) -> str:
 
 def daily_summary(d: dict, author: str) -> str:
     """제출 완료 → 대표 푸시용 일일보고 요약 (매출·결재필요·업무·특이)."""
-    L = [f"🧺 *Basket 일일보고* {datetime.now():%y%m%d} · {author}", ""]
+    L = [f"🧺 *Basket 일일보고* {datetime.now():%y%m%d} · {_md(author)}", ""]
     if (d.get("sales") or "").strip():
         sales = d["sales"].strip()
-        L.append("💰 매출 " + sales + ("원" if sales[-1:].isdigit() else ""))
-    appr = [f"• {label}: {d.get(key).strip()}" for key, label in APPROVAL_KEYS.items() if (d.get(key) or "").strip()]
+        L.append("💰 매출 " + _md(sales) + ("원" if sales[-1:].isdigit() else ""))
+    appr = [f"• {label}: {_md(d.get(key).strip())}" for key, label in APPROVAL_KEYS.items() if (d.get(key) or "").strip()]
     if appr:
         L += ["", "🔔 *결재 필요*"] + appr
     if (d.get("worklog") or "").strip():
-        L += ["", "📌 *업무*\n" + _trunc(d["worklog"], 240)]
+        L += ["", "📌 *업무*\n" + _md(_trunc(d["worklog"], 240))]
     if (d.get("notes") or "").strip():
-        L.append("📍 *특이*\n" + _trunc(d["notes"], 180))
+        L.append("📍 *특이*\n" + _md(_trunc(d["notes"], 180)))
     return "\n".join(L)
 
 
@@ -250,6 +269,9 @@ async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if "다시" in choice:
         await update.message.reply_text("다시 적어 주세요.", reply_markup=ReplyKeyboardRemove())
         return WAITING_REPORT
+    # 확인 버튼("✅ 등록")이 아닌 자유 텍스트는 '수정 의도'로 보고 새 내용으로 재구조화(옛 구조 저장 방지)
+    if not ("등록" in choice or "✅" in choice or choice.lower() in ("ok", "확인", "저장", "네", "넵", "응")):
+        return await recv_report(update, ctx)
     d = ctx.user_data["d"]; author = ctx.user_data.get("author", "운영자")
     # 빈 행 가드: 실제 보고 섹션이 전부 비거나(빈 입력·GPT 구조화 실패) 무의미 토큰뿐이면 저장하지 않는다.
     _TRIVIAL = {"기록완료", "완료", "끝", "기록", "없음", "없습니다", "done", "ok", "오케이", "넵", "네"}
@@ -263,10 +285,13 @@ async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     # 대표에게 일일보고 요약 푸시
     if MANAGER_ID:
         try:
-            await ctx.bot.send_message(chat_id=MANAGER_ID, text=daily_summary(d, author), parse_mode="Markdown")
+            summary = daily_summary(d, author)
+            if not ok:
+                summary += "\n⚠️ 시트 저장 실패 → 로컬 큐 보관, 자동 재시도 예정"
+            await ctx.bot.send_message(chat_id=MANAGER_ID, text=summary, parse_mode="Markdown")
         except Exception as e:
             logger.error(f"manager summary fail: {e}")
-    msg = "✅ 일일보고 등록 완료." + ("" if ok else " (⚠️ 시트 저장 실패 — 관리자 확인 필요)")
+    msg = "✅ 일일보고 등록 완료." + ("" if ok else " (⚠️ 시트 저장 지연 — 자동 재시도 예정, 다시 보내실 필요 없어요)")
     if MANAGER_ID:
         msg += "\n📤 요약을 대표에게 전달했습니다."
     await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
@@ -277,8 +302,7 @@ async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 def append_progress(author: str, text: str) -> bool:
     now = datetime.now()
     row = [STORE_ID, now.strftime("%y%m%d"), now.strftime("%H:%M"), author, text]
-    return _gws.append_to_sheet(SHEET_ID, f"{PROGRESS_TAB}!A1", row,
-                                value_input_option="USER_ENTERED", timeout=20)
+    return _basket_append(PROGRESS_TAB, row, [1, 2, 3], author=author)
 
 async def cmd_jot(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     text = (update.message.text or "").partition(" ")[2].strip()
@@ -287,15 +311,14 @@ async def cmd_jot(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
     author = _author(update)
     ok = append_progress(author, text)
-    await update.message.reply_text("📝 진행 기록됨" + ("" if ok else " (⚠️ 시트 저장 실패)"))
+    await update.message.reply_text("📝 진행 기록됨" + ("" if ok else " (⚠️ 시트 저장 지연 — 자동 재시도 예정)"))
 
 
 # ---- /todo (요일별 체크리스트) ----
 def log_todo(ko: str, author: str, incomplete: str) -> bool:
     now = datetime.now()
     row = [now.strftime("%y%m%d"), ko, author, incomplete, now.strftime("%H:%M")]
-    return _gws.append_to_sheet(SHEET_ID, f"{TODO_TAB}!A1", row,
-                                value_input_option="USER_ENTERED", timeout=20)
+    return _basket_append(TODO_TAB, row, [0, 2, 4], author=author)
 
 async def cmd_todo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ko = WEEKDAY_KO[datetime.now().weekday()]
@@ -318,7 +341,7 @@ async def recv_todo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ok = log_todo(ko, author, incomplete)
     msg = "✅ 체크 완료 기록." if not incomplete else "✅ 기록 완료 — 미완료/이슈 접수했습니다."
     if not ok:
-        msg += " (⚠️ 시트 저장 실패)"
+        msg += " (⚠️ 시트 저장 지연 — 자동 재시도 예정)"
     # 미완료에 이슈가 있으면 매니저에 알림
     if incomplete and MANAGER_ID:
         try:

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+from pathlib import Path
 """하부①②③ → 외부 공유본 + 잠금본 일괄 빌더 (통합본과 동일 보안 처리)."""
 import re, base64, datetime, os
-K="/Users/choi_ai/do-better-workspace/30-knowledge/"
+K=str(Path.home()/"do-better-workspace"/"30-knowledge")+"/"
 PW="projectrent2026"
 EXPIRY=(datetime.date(2026,6,19)+datetime.timedelta(days=30)).isoformat()
 

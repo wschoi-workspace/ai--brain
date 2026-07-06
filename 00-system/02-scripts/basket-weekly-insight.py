@@ -18,6 +18,8 @@ import json, os, sys, subprocess, urllib.request, urllib.parse, html as _html
 from datetime import datetime, timedelta
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from shared import gws as _gws  # noqa: E402
 from openai import OpenAI
 
 WORKSPACE = Path(__file__).resolve().parents[2]
@@ -45,10 +47,9 @@ SECTIONS = [("approval","③송금·승인"),("notes","④특이"),("equipment",
             ("purchase","⑨구매"),("tenant","⑩입점"),("reflection","⑪복기")]
 
 def read_sheet():
-    cmd = ["gws","sheets","+read","--spreadsheet",SHEET_ID,"--range",f"{SHEET_TAB}!A1:P200"]
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=40)
-    data = json.loads(r.stdout)
-    return data.get("values", [])
+    """일일보고 시트 읽기(shared.gws = 재시도+auth분류 단일출처).
+    실패 시 []; 헤더행은 항상 있으므로 빈 결과는 main()에서 인증장애로 처리."""
+    return _gws.values_get(SHEET_ID, f"{SHEET_TAB}!A1:P200", timeout=40)
 
 def parse_won(s):
     s = "".join(ch for ch in str(s) if ch.isdigit())
@@ -72,14 +73,15 @@ def collect(rows, days=7):
             continue
         secs = {k: r[i+5].strip() for i,(k,_) in enumerate(SECTIONS)}
         sales = parse_won(r[3])
-        substantive = bool(sales) or any(secs.values())
+        expense = parse_won(r[4])
+        substantive = bool(sales) or bool(expense) or any(secs.values())
         if not substantive:
             empty += 1
             continue
         if sales:
             sales_by_day[ymd] = sales_by_day.get(ymd, 0) + sales
         reports.append({"date": ymd, "wd": WK[d.weekday()], "author": r[2].strip(),
-                        "sales": sales, "time": r[14].strip(), "secs": secs})
+                        "sales": sales, "expense": expense, "time": r[14].strip(), "secs": secs})
     return reports, sales_by_day, empty, start, today
 
 LLM_SYS = """너는 Basket 매장(카페+편의점+대관 복합공간, GS타워 직장인 상권)의 주간 운영 분석가다.
@@ -99,7 +101,7 @@ def llm_extract(reports):
         return {"headline":"", "decision_queue":[], "themes":[], "pipeline":[], "data_quality":[]}
     lines = []
     for r in reports:
-        lines.append(f"[{r['date']} {r['wd']} {r['author']} {r['time']}] 매출={r['sales']}")
+        lines.append(f"[{r['date']} {r['wd']} {r['author']} {r['time']}] 매출={r['sales']} 지출={r.get('expense',0)}")
         for k, lab in SECTIONS:
             if r["secs"].get(k):
                 lines.append(f"  {lab}: {r['secs'][k]}")
@@ -154,12 +156,13 @@ def build_html(kpi, ins, sales_by_day, start, today):
         dataq=li_items(ins.get("data_quality",[]),"q"))
 
 def telegram_text(kpi, ins, start, today):
-    t = [f"🧺 *Basket 주간 인사이트* ({start.month}/{start.day}~{today.month}/{today.day})",
-         f"💰 매출 합계 {kpi['sales_sum']:,}원 · 보고 {kpi['n_real']}/{kpi['n_total']}건"]
+    # parse_mode 미사용(아래 send_telegram) — LLM/사용자 텍스트의 * _ 로 인한 Telegram 400 방지
+    t = [f"🧺 Basket 주간 인사이트 ({start.month}/{start.day}~{today.month}/{today.day})",
+         f"💰 매출 {kpi['sales_sum']:,}원 · 지출 {kpi.get('expense_sum',0):,}원 · 보고 {kpi['n_real']}/{kpi['n_total']}건"]
     if ins.get("headline"): t.append(f"📌 {ins['headline']}")
     dq = ins.get("decision_queue",[])
     if dq:
-        t.append("\n*대표 결재·의사결정 큐*")
+        t.append("\n▶ 대표 결재·의사결정 큐")
         for it in dq[:6]:
             st = f" ({it.get('status')})" if isinstance(it,dict) and it.get('status') else ""
             t.append(f"• {it.get('item') if isinstance(it,dict) else it}{st}")
@@ -169,7 +172,7 @@ def telegram_text(kpi, ins, start, today):
 
 def send_telegram(text):
     if not (BOT_TOKEN and MANAGER_ID): return False, "no token/chat"
-    data = urllib.parse.urlencode({"chat_id":MANAGER_ID,"text":text,"parse_mode":"Markdown"}).encode()
+    data = urllib.parse.urlencode({"chat_id":MANAGER_ID,"text":text}).encode()
     try:
         with urllib.request.urlopen(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", data=data, timeout=20) as r:
             return json.loads(r.read()).get("ok",False), "sent"
@@ -179,9 +182,21 @@ def send_telegram(text):
 def main():
     dry = "--dry-run" in sys.argv
     rows = read_sheet()
+    # 헤더행은 항상 존재 → 빈 결과는 시트 읽기 실패(gws 인증/네트워크 장애)로 간주.
+    # (과거엔 read_sheet의 json.loads가 크래시나면서 주간잡이 알림 없이 조용히 죽었음)
+    if not rows:
+        alert = ("⚠️ Basket 주간 인사이트 생성 실패\n"
+                 "일일보고 시트 읽기 실패(gws 인증 장애 의심) — 이번 주 인사이트를 만들지 못했습니다.\n"
+                 "→ 서버에서 `gws auth login --services drive,sheets,gmail,calendar,docs,slides,tasks` 재인증 필요.")
+        print(alert)
+        if not dry:
+            ok, msg = send_telegram(alert)
+            print(f"[telegram alert] ok={ok} {msg}")
+        return
     reports, sbd, empty, start, today = collect(rows, days=7)
     kpi = {"n_real":len(reports), "n_total":len(reports)+empty, "empty":empty,
-           "sales_sum":sum(r["sales"] for r in reports)}
+           "sales_sum":sum(r["sales"] for r in reports),
+           "expense_sum":sum(r.get("expense",0) for r in reports)}
     ins = llm_extract(reports)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out = OUT_DIR / f"weekly-insight-{today.strftime('%y%m%d')}.html"

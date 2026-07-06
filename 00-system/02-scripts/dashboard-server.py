@@ -330,10 +330,32 @@ def set_pin(uid, new_pin):
         p.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
     return True
 
+def emp_team(name):
+    """직원의 소속 팀(arisa-employees.json by_name[…].team)."""
+    return (load_emp().get("by_name", {}).get(name, {}) or {}).get("team")
+
+def is_leader(uid):
+    """팀 리더 여부(대표 제외한 순수 리더도 True, 대표도 True)."""
+    return bool(lead_teams_of(uid))
+
+def project_teams(p):
+    """프로젝트에 걸린 팀 집합 = PM + 멤버들의 소속 팀."""
+    people = list(p.get("members") or [])
+    if p.get("pm"): people.append(p["pm"])
+    return {t for t in (emp_team(x) for x in people) if t}
+
+def can_manage(uid, p):
+    """멤버 배정 권한: 대표 / 담당 PM / (본인 리더팀이 이 프로젝트에 걸린) 팀 리더."""
+    if is_admin(uid) or uid == p.get("pm"):
+        return True
+    return bool(set(lead_teams_of(uid)) & project_teams(p))
+
 def can_view(uid, p):
-    return is_admin(uid) or uid == p.get("pm") or uid in (p.get("members") or [])
+    # 리더는 '본인 팀이 걸린' 프로젝트를 멤버가 아니어도 열람(멤버 배정 위해)
+    return is_admin(uid) or uid == p.get("pm") or uid in (p.get("members") or []) or can_manage(uid, p)
 
 def can_edit(uid, p):
+    # 내용(업무·이슈·브리프) 편집은 기존대로 담당 PM·대표만 — 리더는 멤버 배정만
     return is_admin(uid) or uid == p.get("pm")
 
 class H(BaseHTTPRequestHandler):
@@ -508,14 +530,19 @@ class H(BaseHTTPRequestHandler):
         if path == "/api/projects":
             uid = (q.get("user") or [""])[0]
             if not load_users().get(uid): return self._send(401, {"ok": False, "error": "unknown user"})
-            vis = [p for p in load_projects() if can_view(uid, p)]
-            return self._send(200, {"ok": True, "projects": vis, "admin": is_admin(uid)})
+            vis = []
+            for p in load_projects():
+                if can_view(uid, p):
+                    q = dict(p); q["canManage"] = can_manage(uid, p); q["canEdit"] = can_edit(uid, p)
+                    vis.append(q)
+            return self._send(200, {"ok": True, "projects": vis, "admin": is_admin(uid),
+                                    "canCreate": is_admin(uid) or is_leader(uid)})
         if path == "/api/project":
             uid = (q.get("user") or [""])[0]; pid = (q.get("id") or [""])[0]
             p = get_project(pid)
             if not p: return self._send(404, {"ok": False, "error": "not found"})
             if not can_view(uid, p): return self._send(403, {"ok": False, "error": "forbidden"})
-            return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p)})
+            return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p)})
         return self._send(404, {"ok": False, "error": "not found"})
 
     def do_POST(self):
@@ -555,10 +582,25 @@ class H(BaseHTTPRequestHandler):
             existing = get_project(p["id"])
             if existing and not can_edit(uid, existing):
                 return self._send(403, {"ok": False, "error": "수정 권한 없음(담당 PM·대표만)"})
-            if not existing and not is_admin(uid):
-                return self._send(403, {"ok": False, "error": "생성은 대표만"})
+            if not existing and not (is_admin(uid) or is_leader(uid)):
+                return self._send(403, {"ok": False, "error": "생성은 대표·팀 리더만"})
             save_project(p)
             return self._send(200, {"ok": True})
+        if path == "/api/project/members":
+            # 멤버(열람 직원) 배정 전용 — 내용은 안 건드림. 대표·PM·해당 팀 리더만.
+            pid = b.get("id", ""); members = b.get("members")
+            p = get_project(pid)
+            if not p: return self._send(404, {"ok": False, "error": "not found"})
+            if not can_manage(uid, p):
+                return self._send(403, {"ok": False, "error": "멤버 배정 권한 없음(대표·PM·해당 팀 리더만)"})
+            if not isinstance(members, list):
+                return self._send(400, {"ok": False, "error": "members 배열이 필요합니다"})
+            known = set(load_users().keys())
+            clean = [m for m in members if m in known]
+            if p.get("pm") and p["pm"] not in clean: clean.append(p["pm"])  # PM은 항상 유지
+            p["members"] = clean
+            save_project(p)
+            return self._send(200, {"ok": True, "members": clean})
         if path == "/api/project/delete":
             pid = b.get("id", "")
             if not is_admin(uid): return self._send(403, {"ok": False, "error": "삭제는 대표만"})

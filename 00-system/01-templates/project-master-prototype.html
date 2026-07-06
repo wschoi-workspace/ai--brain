@@ -256,6 +256,12 @@ body.view-detail #view-login,body.view-detail #view-portfolio{display:none}
 .pf-card .pc-del{position:absolute;bottom:13px;right:14px;font-size:11px;color:var(--fg-3);cursor:pointer;opacity:0;transition:.12s}
 .pf-card:hover .pc-del{opacity:1}
 .pf-card .pc-del:hover{color:var(--rust)}
+.pf-card .pc-mem-line{font-size:11px;color:var(--fg-3);margin-top:8px;line-height:1.5}
+.pf-card .pc-mem-line b{color:var(--fg-2);font-weight:600;margin-right:4px}
+.pf-card .pc-mem{position:absolute;bottom:13px;left:14px;font-size:11px;color:var(--accent-lt);cursor:pointer;font-weight:600;opacity:0;transition:.12s}
+.pf-card:hover .pc-mem{opacity:1}
+.pf-card .pc-mem:hover{color:var(--accent)}
+.modal .m-hint{font-size:10.5px;color:var(--fg-3);margin:4px 0 2px}
 .pf-card.add{display:flex;align-items:center;justify-content:center;border-style:dashed;color:var(--fg-3);font-size:13px;font-weight:600;min-height:130px}
 .pf-card.add:hover{color:var(--accent);transform:none}
 .pf-empty{padding:38px 30px;color:var(--fg-3);font-size:12px}
@@ -482,6 +488,21 @@ body.readonly .topbar .ver{color:var(--rust)}
     <div class="m-actions">
       <button class="btn" onclick="closeAddModal()">취소</button>
       <button class="btn primary" id="add-confirm" onclick="confirmAddProject()" disabled>추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBER ASSIGN MODAL (기존 프로젝트 열람 권한 배정) -->
+<div class="modal-bg" id="members-modal">
+  <div class="modal">
+    <h3>👥 멤버 배정</h3>
+    <div class="m-sub" id="mem-proj-name"></div>
+    <div class="m-hint">이 프로젝트를 열람할 직원을 선택하세요. (PM은 항상 포함)</div>
+    <div class="m-members" id="mem-list"></div>
+    <div class="m-info" id="mem-info" style="margin-top:8px"></div>
+    <div class="m-actions">
+      <button class="btn" onclick="closeMembersModal()">취소</button>
+      <button class="btn primary" id="mem-save" onclick="saveMembers()">저장</button>
     </div>
   </div>
 </div>
@@ -1056,10 +1077,12 @@ function distributeTasks(){
 const SERVED=!!window.SERVED, API=window.API_BASE||'/api';
 const PROJ_KEY='pm_projects_v1';
 let CURRENT_USER=null, CURRENT_PIN='', CURRENT_ROLE='', CURRENT_PROJECT=null, CURRENT_CAN_EDIT=false, PROJECTS_CACHE=[];
+let CURRENT_ADMIN=false, CURRENT_LEAD_TEAMS=[], CURRENT_CAN_CREATE=false;
 function slug(s){ return (String(s||'proj').toLowerCase().replace(/[^a-z0-9가-힣]+/g,'-').replace(/^-+|-+$/g,'')||'proj'); }
 async function apiGet(p){ const r=await fetch(API+p,{cache:'no-store'}); return r.json(); }
 async function apiPost(p,body){ const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); return r.json(); }
 function amAdmin(){ return CURRENT_ROLE==='대표'||CURRENT_ROLE==='admin'; }
+function amManager(){ return CURRENT_ADMIN || (CURRENT_LEAD_TEAMS&&CURRENT_LEAD_TEAMS.length>0); }
 function setView(v){ const light=document.body.classList.contains('theme-light');
   document.body.className=v+(light?' theme-light':'')+((v==='view-detail'&&!CURRENT_CAN_EDIT)?' readonly':''); }
 // ── 로컬 모드(standalone 파일)용 저장소 ──
@@ -1079,8 +1102,8 @@ function localVisible(name){ const all=allProjects(); const u=users()[name];
   if(u&&(u.role==='대표'||u.role==='admin')) return all; return all.filter(p=>(p.members||[]).includes(name)); }
 // ── 데이터 로드(서버/로컬 분기) ──
 async function loadPortfolio(){
-  if(SERVED){ const r=await apiGet('/projects?user='+encodeURIComponent(CURRENT_USER)); PROJECTS_CACHE=r.ok?(r.projects||[]):[]; }
-  else PROJECTS_CACHE=localVisible(CURRENT_USER);
+  if(SERVED){ const r=await apiGet('/projects?user='+encodeURIComponent(CURRENT_USER)); PROJECTS_CACHE=r.ok?(r.projects||[]):[]; CURRENT_CAN_CREATE=!!r.canCreate; }
+  else { PROJECTS_CACHE=localVisible(CURRENT_USER); CURRENT_CAN_CREATE=amAdmin(); }
   renderPortfolio();
 }
 function ddayChip(p){ if(!p.dday) return ''; const d=daysBetween(TODAY,parseD(p.dday)); return d>0?`D-${d}`:d===0?'D-DAY':`D+${-d}`; }
@@ -1091,6 +1114,8 @@ function pfCard(p){
     <div class="pc-top"><div class="pc-name">${esc(p.name)||'(이름 없음)'}</div>${p.dday?`<span class="pc-dday">${ddayChip(p)}</span>`:''}</div>
     <div class="pc-desc">${desc}</div>
     <div class="pc-meta"><span><b>일정</b> ${esc(sched)}</span><span><b>PM</b> ${esc(p.pm)||'—'}</span><span><b>업무</b> ${(p.tasks||[]).length}</span></div>
+    <div class="pc-mem-line"><b>멤버</b> ${(p.members||[]).map(esc).join(', ')||'<span style="color:var(--fg-3)">미배정</span>'}</div>
+    ${p.canManage?`<span class="pc-mem" title="멤버 배정" onclick="event.stopPropagation();openMembersModal('${esc(p.id)}')">👥 멤버 배정</span>`:''}
     ${amAdmin()?`<span class="pc-del" title="삭제" onclick="event.stopPropagation();deleteProject('${esc(p.id)}')">🗑 삭제</span>`:''}
   </div>`;
 }
@@ -1100,9 +1125,11 @@ function renderPortfolio(){
   $('#pf-user').innerHTML=`<b>${esc(CURRENT_USER)}</b>${admin?' · 대표':' · '+esc(CURRENT_ROLE||'직원')}`;
   $('#pf-cnt').textContent=`${list.length}개`;
   $('#pf-adminbadge').innerHTML=admin?'<span class="pf-badge">대표 · 전체 열람·수정</span>':'';
+  const canCreate=admin||CURRENT_CAN_CREATE;
+  if(!admin && CURRENT_LEAD_TEAMS.length) $('#pf-adminbadge').innerHTML=`<span class="pf-badge">팀 리더 · ${esc(CURRENT_LEAD_TEAMS.join('/'))} 멤버 배정</span>`;
   let cards=list.map(pfCard).join('');
-  if(admin) cards+=`<div class="pf-card add" onclick="openAddModal()">＋ 프로젝트 추가</div>`;
-  $('#pf-cards').innerHTML= (list.length||admin)? cards : '<div class="pf-empty">배정된 프로젝트가 없습니다.</div>';
+  if(canCreate) cards+=`<div class="pf-card add" onclick="openAddModal()">＋ 프로젝트 추가</div>`;
+  $('#pf-cards').innerHTML= (list.length||canCreate)? cards : '<div class="pf-empty">배정된 프로젝트가 없습니다.</div>';
 }
 async function openProject(id){
   let p,canEdit;
@@ -1153,6 +1180,7 @@ async function doLogin(){
     const r=await apiPost('/login',{id,pin});
     if(!r.ok){ $('#login-err').textContent=r.error||'로그인 실패'; return; }
     CURRENT_USER=id; CURRENT_PIN=pin; CURRENT_ROLE=r.role||'직원';
+    CURRENT_ADMIN=!!r.admin; CURRENT_LEAD_TEAMS=r.lead_teams||[];
   } else {
     const u=users()[id];
     if(!u){ $('#login-err').textContent='등록되지 않은 ID입니다.'; return; }
@@ -1202,6 +1230,48 @@ async function confirmAddProject(){
     closeAddModal(); await loadPortfolio();
   } else {
     const arr=allProjects(); arr.push(proj); saveProjects(arr); PROJECTS_CACHE=localVisible(CURRENT_USER); closeAddModal(); renderPortfolio();
+  }
+}
+
+// ───────── 멤버 배정(기존 프로젝트) ─────────
+let _memProjId=null, _memSet=new Set(), _memPm='';
+function closeMembersModal(){ $('#members-modal').classList.remove('show'); _memProjId=null; }
+async function openMembersModal(id){
+  let p;
+  if(SERVED){
+    const r=await apiGet('/project?id='+encodeURIComponent(id)+'&user='+encodeURIComponent(CURRENT_USER));
+    if(!r.ok){ alert(r.error||'열기 실패'); return; }
+    if(!r.canManage){ alert('멤버 배정 권한이 없습니다.'); return; }
+    p=r.project;
+  } else {
+    p=PROJECTS_CACHE.find(x=>x.id===id)||allProjects().find(x=>x.id===id);
+    if(!p){ alert('프로젝트를 찾을 수 없습니다.'); return; }
+  }
+  _memProjId=id; _memPm=p.pm||''; _memSet=new Set(p.members||[]);
+  $('#mem-proj-name').textContent=(p.name||id)+' · PM '+(p.pm||'—');
+  $('#mem-info').textContent='';
+  const names=Object.keys(window.EMPLOYEES||users()||{});
+  $('#mem-list').innerHTML=names.map(n=>{
+    const on=_memSet.has(n)?' on':''; const pm=(n===_memPm)?' style="opacity:.6;pointer-events:none"':'';
+    const tag=(n===_memPm)?' (PM)':'';
+    return `<span class="m-chip${on}" data-n="${esc(n)}"${pm} onclick="toggleMemberEdit(this)">${esc(n)}${tag}</span>`;
+  }).join('')||'<span style="color:var(--fg-3);font-size:10.5px">직원 목록 없음</span>';
+  $('#members-modal').classList.add('show');
+}
+function toggleMemberEdit(el){ const n=el.dataset.n; if(_memSet.has(n)){_memSet.delete(n);el.classList.remove('on');} else {_memSet.add(n);el.classList.add('on');} }
+async function saveMembers(){
+  if(!_memProjId) return;
+  const members=[..._memSet]; if(_memPm && !members.includes(_memPm)) members.push(_memPm);
+  if(SERVED){
+    $('#mem-save').disabled=true; $('#mem-info').textContent='저장 중…';
+    const r=await apiPost('/project/members',{user:CURRENT_USER,pin:CURRENT_PIN,id:_memProjId,members});
+    $('#mem-save').disabled=false;
+    if(!r.ok){ $('#mem-info').textContent='저장 실패: '+(r.error||''); return; }
+    closeMembersModal(); await loadPortfolio();
+  } else {
+    const arr=allProjects(); const i=arr.findIndex(x=>x.id===_memProjId);
+    if(i>=0){ arr[i].members=members; saveProjects(arr); }
+    PROJECTS_CACHE=localVisible(CURRENT_USER); closeMembersModal(); renderPortfolio();
   }
 }
 

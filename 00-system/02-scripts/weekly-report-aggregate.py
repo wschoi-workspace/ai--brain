@@ -847,6 +847,27 @@ def main():
     args = ap.parse_args()
     ws, we = week_range(args.week)
     print(f"주간 범위: {ws} ~ {we}")
+
+    # 가드: 시트 접근 사전 프로브 — gws 인증 장애 시 '빈 주간리포트'를 조용히 발송하는 것 방지
+    # (메타 A1은 헤더라 항상 존재. []면 읽기 실패로 간주 — 07-03 invalid_rapt 사고 참조)
+    if not _gws.values_get(DAILY_SHEET, "메타!A1:A1", retries=2):
+        alert = ("⚠️ 주간리포트 생성 중단\n"
+                 "구글시트 읽기 실패(gws 인증 장애 의심) — 빈 리포트 발송을 막았습니다.\n"
+                 "→ 서버에서 `gws auth login --services drive,sheets,gmail,calendar,docs,slides,tasks` 재인증 후 수동 재실행: "
+                 "python weekly-report-aggregate.py --week last")
+        print(alert)
+        if not args.no_telegram and MANAGER_BOT_TOKEN and MANAGER_CHAT_ID:
+            try:
+                import urllib.request
+                _req = urllib.request.Request(
+                    f"https://api.telegram.org/bot{MANAGER_BOT_TOKEN}/sendMessage",
+                    data=json.dumps({"chat_id": MANAGER_CHAT_ID, "text": alert}).encode(),
+                    headers={"Content-Type": "application/json"})
+                urllib.request.urlopen(_req, timeout=20)
+            except Exception as e:  # noqa: BLE001
+                print(f"⚠️ 알림 발송 실패: {e}")
+        sys.exit(1)
+
     data = build_dashboard_data(ws, we)
     print(f"집계: {data['summary']['total_reports']}건 · {data['summary']['active_people']}명 "
           f"· 미매칭 {len(data['unmatched_names'])}")

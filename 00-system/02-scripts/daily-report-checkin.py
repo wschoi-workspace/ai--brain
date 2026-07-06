@@ -2,10 +2,13 @@
 """일일보고 정착 점검 — 매일 밤 22:00, 오늘 보고 현황(N/10·미보고자)을 대표 텔레그램 발송.
 
 가이드 정착 추적용: 누가 보고했고 누가 빠졌는지 매일 밤 대표에게 1줄 요약.
-런타임: .venv311 (gws subprocess + stdlib). 사용: python daily-report-checkin.py [--dry]
+완료 판정 = 데일리 업무보고(메타 + 핵심업무)만. 바스켓 매출보고는 완료에서 제외하고 별도 줄로 표시
+(reminder와 동일 기준; 매출만 올린 매장스텝도 '미완료'로 집계).
+토요일(2026-07-04 대표 지시): 일일 점검 대신 이번 주(월~토) 인별 보고일수 '주간 써머리'를 발송.
+런타임: .venv311 (gws subprocess + stdlib). 사용: python daily-report-checkin.py [--dry] [--weekly]
 """
 import os, sys, json, subprocess, urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parent
@@ -22,10 +25,15 @@ DAILY = os.environ.get("DAILY_REPORT_SHEET_ID", "")
 BASKET = os.environ.get("BASKET_REPORT_SHEET_ID", "")
 MGR_TOKEN = os.environ.get("DAILY_REPORT_MANAGER_BOT_TOKEN", "")
 MGR_CHAT = os.environ.get("DAILY_REPORT_MANAGER_CHAT_ID", "")
+# 요약 CC: 대표 외 추가 수신자(예: 기획팀 리더 윤혜정). 직원과 같은 daily-report-bot으로 발송
+# (윤혜정은 manager-bot엔 chat 없음 — daily-report-bot으로만 도달 가능).
+BOT_TOKEN = os.environ.get("DAILY_REPORT_BOT_TOKEN", "")
+SUMMARY_CC = [x.strip() for x in os.environ.get("DAILY_REPORT_SUMMARY_CC", "").split(",") if x.strip()]
 EMP = json.loads((SCRIPTS / "arisa-employees.json").read_text(encoding="utf-8"))
 BY_NAME = EMP.get("by_name", {})
 TARGETS = [nm for tid, nm in EMP.get("by_telegram_id", {}).items() if nm != "최원석"]  # 보고 대상(대표 제외)
-ALIAS = {"yang eun jung": "양은정", "준호 김": "김준호", "bro callme": "최원석"}
+sys.path.insert(0, str(SCRIPTS))
+from shared.normalize import normalize_name  # noqa: E402  이름 정규화 단일출처(별칭·오염제거)
 
 
 def gws_get(sid, rng):
@@ -39,49 +47,126 @@ def gws_get(sid, rng):
             return json.loads(r.stdout or "{}").get("values", [])
     except Exception as e:
         sys.stderr.write(f"[gws] {rng}: {e}\n")
-    return []
+    return None  # 읽기 실패(인증/네트워크) — 정상 빈 결과([])와 구분해 상위에서 발송 중단
 
 
 def norm(s):
-    s = (s or "").strip()
-    for n in BY_NAME:
-        if n.replace(" ", "").lower() == s.replace(" ", "").lower():
-            return n
-    return ALIAS.get(s.lower(), s)
+    return normalize_name(s, BY_NAME)
 
 
-def main():
-    today = datetime.now().strftime("%Y-%m-%d")
-    today_yy = datetime.now().strftime("%y%m%d")
-    reported = set()
-    for r in gws_get(DAILY, "메타!A:B"):
-        if len(r) >= 2 and r[0].startswith(today):
-            reported.add(norm(r[1]))
-    for r in gws_get(BASKET, "일일보고!A:C"):
-        if len(r) >= 3 and r[1].strip() == today_yy:
-            reported.add(norm(r[2]))
+def _tg(token, chat, text):
+    body = json.dumps({"chat_id": chat, "text": text}).encode()
+    urllib.request.urlopen(urllib.request.Request(
+        f"https://api.telegram.org/bot{token}/sendMessage",
+        data=body, headers={"Content-Type": "application/json"}), timeout=20)
 
-    done = [n for n in TARGETS if n in reported]
-    todo = [n for n in TARGETS if n not in reported]
-    msg = f"🌙 일일보고 점검 · {today}\n\n오늘 {len(done)}/{len(TARGETS)}명 보고 완료"
-    if todo:
-        msg += "\n⬜ 미보고: " + ", ".join(todo)
-    else:
-        msg += "\n✅ 전원 완료! 🎉"
+
+def send_summary(msg):
+    """대표 + CC(윤혜정 등)에게 요약 발송. --dry면 출력만."""
     print(msg)
-
     if "--dry" in sys.argv:
         print("\n(--dry: 텔레그램 미발송)")
         return
     if MGR_TOKEN and MGR_CHAT:
-        body = json.dumps({"chat_id": MGR_CHAT, "text": msg}).encode()
-        req = urllib.request.Request(f"https://api.telegram.org/bot{MGR_TOKEN}/sendMessage",
-                                     data=body, headers={"Content-Type": "application/json"})
         try:
-            urllib.request.urlopen(req, timeout=20)
-            print("✅ 텔레그램 발송")
+            _tg(MGR_TOKEN, MGR_CHAT, msg)
+            print("✅ 대표 발송")
         except Exception as e:
-            print(f"⚠️ 발송 실패: {e}")
+            print(f"⚠️ 대표 발송 실패: {e}")
+    # 요약 CC(기획팀 리더 등) — daily-report-bot으로 동일 요약 공유
+    for cc in SUMMARY_CC:
+        if not BOT_TOKEN:
+            break
+        try:
+            _tg(BOT_TOKEN, cc, msg)
+            print(f"✅ 요약 공유 발송 → {cc}")
+        except Exception as e:
+            print(f"⚠️ 요약 공유 실패({cc}): {e}")
+
+
+def weekly_summary(meta_rows, core_rows, now):
+    """토요일 주간 써머리 — 이번 주(월~토) 인별 보고일수·주간 보고율."""
+    monday = (now - timedelta(days=now.weekday())).date()
+    days = [(monday + timedelta(days=i)) for i in range(now.weekday() + 1)]
+    day_strs = [d.strftime("%Y-%m-%d") for d in days]
+    # 인별 보고일 집합 (메타+핵심업무 어느 쪽이든 그 날짜에 있으면 보고한 것)
+    by_person = {n: set() for n in TARGETS}
+    for rows in (meta_rows, core_rows):
+        for r in rows:
+            if len(r) >= 2 and str(r[0]) in day_strs:
+                n = norm(r[1])
+                if n in by_person:
+                    by_person[n].add(str(r[0]))
+    total_days = len(days)
+    total_slots = total_days * len(TARGETS)
+    total_reports = sum(len(v) for v in by_person.values())
+    rate = round(total_reports / total_slots * 100) if total_slots else 0
+    rng = f"{days[0].strftime('%m/%d')}(월)~{days[-1].strftime('%m/%d')}(토)"
+    lines = [f"📊 주간 업무보고 써머리 · {rng}", "",
+             f"주간 보고율 {rate}% ({total_reports}/{total_slots} 인·일)"]
+    for n, ds in sorted(by_person.items(), key=lambda x: (-len(x[1]), x[0])):
+        k = len(ds)
+        mark = "🟢" if k >= total_days - 1 else ("🟡" if k >= total_days // 2 else "🔴")
+        lines.append(f"{mark} {n} {k}/{total_days}일")
+    none_at_all = [n for n, ds in by_person.items() if not ds]
+    if none_at_all:
+        lines.append("")
+        lines.append("⬜ 이번 주 무보고: " + ", ".join(sorted(none_at_all)))
+    return "\n".join(lines)
+
+
+def main():
+    now = datetime.now()
+    today = now.strftime("%Y-%m-%d")
+    today_yy = now.strftime("%y%m%d")
+    # 토요일엔 일일 점검 대신 주간 써머리 발송(대표 지시 2026-07-04). --weekly로 강제 가능(테스트용).
+    weekly = "--weekly" in sys.argv or now.weekday() == 5
+    # 완료 판정 = 데일리 업무보고(메타 + 핵심업무)만. 바스켓 매출보고는 별도 집계(완료에 미포함).
+    meta_rows = gws_get(DAILY, "메타!A:B")
+    core_rows = gws_get(DAILY, "핵심업무!A:B")
+    # 가드: 시트 읽기 실패(gws 인증/네트워크 장애) 시 '전원 미보고' 허위 요약을 막고 대표에게 장애만 알림
+    if meta_rows is None or core_rows is None:
+        alert = (f"⚠️ 일일보고 점검 실패 · {today}\n"
+                 f"구글시트 읽기 실패(gws 인증 장애 의심). 오늘 현황을 집계하지 못했습니다.\n"
+                 f"→ 서버에서 `gws auth login --services drive,sheets,gmail,calendar,docs,slides,tasks` 재인증 필요\n"
+                 f"(--full은 cloud-platform 스코프 때문에 매일 재인증 요구가 재발하니 금지).")
+        print(alert)
+        if "--dry" not in sys.argv and MGR_TOKEN and MGR_CHAT:
+            try:
+                _tg(MGR_TOKEN, MGR_CHAT, alert)
+                print("✅ 장애 알림 발송")
+            except Exception as e:
+                print(f"⚠️ 알림 발송 실패: {e}")
+        return
+
+    if weekly:
+        send_summary(weekly_summary(meta_rows, core_rows, now))
+        return
+
+    reported = set()
+    for r in meta_rows:
+        if len(r) >= 2 and str(r[0]).startswith(today):
+            reported.add(norm(r[1]))
+    for r in core_rows:
+        if len(r) >= 2 and str(r[0]).startswith(today):
+            reported.add(norm(r[1]))
+    # 바스켓 매출보고(참고용, 완료 판정에는 미포함). 읽기 실패는 참고정보라 무시(None→[])
+    basket = set()
+    for r in (gws_get(BASKET, "일일보고!A:C") or []):
+        if len(r) >= 3 and str(r[1]).strip() == today_yy:
+            basket.add(norm(r[2]))
+
+    done = [n for n in TARGETS if n in reported]
+    todo = [n for n in TARGETS if n not in reported]
+    basket_only = [n for n in TARGETS if n in basket and n not in reported]
+    msg = f"🌙 일일보고 점검 · {today}\n\n업무보고 {len(done)}/{len(TARGETS)}명 완료"
+    if todo:
+        msg += "\n⬜ 미보고: " + ", ".join(todo)
+    else:
+        msg += "\n✅ 전원 완료! 🎉"
+    if basket_only:
+        msg += "\n🧺 매출보고만(업무보고 미완): " + ", ".join(basket_only)
+    send_summary(msg)
 
 
 if __name__ == "__main__":
