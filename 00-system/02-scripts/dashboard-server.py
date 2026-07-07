@@ -112,6 +112,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
   var a2s=document.getElementById('arisa2-status');
   var SESS=null, curTab='projects', curScope='', loaded={projects:false,brief:false,weekly:false,decision:false};
   var SESS_KEYS=['pm_sess','brief_sess','weekly_sess','team_brief_sess','team_weekly_sess'];
+  var CLEAR_KEYS=SESS_KEYS.concat(['arisa_sess','arisa_token']);
   function tabBtn(t){ return document.querySelector('.tab[data-t="'+t+'"]'); }
   function srcFor(t){
     if(t==='projects') return '/projects';
@@ -129,6 +130,18 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
     curScope=scope; loaded.brief=false; loaded.weekly=false;
     frames.brief.src='about:blank'; frames.weekly.src='about:blank';
     if(curTab==='brief'||curTab==='weekly'){ frames[curTab].src=srcFor(curTab); loaded[curTab]=true; }
+  }
+  function arisa2Login(s){
+    // PIN 단일화(users.json symlink) 덕에 같은 자격으로 ARISA 2.0 토큰 발급 → Decision Window 게이트 자동 통과
+    fetch('/arisa2/api/login?name='+encodeURIComponent(s.name)+'&pin='+encodeURIComponent(s.pin||''),{method:'POST'})
+      .then(function(r){ return r.ok?r.json():null; })
+      .then(function(d){
+        if(d && d.ok){
+          localStorage.setItem('arisa_sess',JSON.stringify(d.user));
+          localStorage.setItem('arisa_token',d.token);
+          if(loaded.decision){ frames.decision.src=srcFor('decision'); } // 이미 열려 있었으면 재로드
+        }
+      }).catch(function(){});
   }
   function checkArisa2(){
     fetch('/arisa2/api/health',{method:'GET'}).then(function(r){
@@ -151,7 +164,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
     SESS_KEYS.forEach(function(k){ localStorage.setItem(k,j); });
     gate.style.display='none'; shell.style.display='flex';
     who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-pin-c">PIN변경</a> <a id="lg-out">로그아웃</a>';
-    document.getElementById('lg-out').onclick=function(){ SESS_KEYS.forEach(function(k){localStorage.removeItem(k);}); location.reload(); };
+    document.getElementById('lg-out').onclick=function(){ CLEAR_KEYS.forEach(function(k){localStorage.removeItem(k);}); location.reload(); };
     document.getElementById('lg-pin-c').onclick=changePin;
     var lt=s.lead_teams||[];
     if(s.admin){
@@ -161,6 +174,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
       sel.onchange=function(){ loadScope(sel.value); };
       curScope='';
       checkArisa2();
+      arisa2Login(s);
     } else if(lt.length){
       tabBtn('brief').style.display=''; tabBtn('weekly').style.display='';
       curScope=lt[0];
@@ -313,15 +327,20 @@ class H(BaseHTTPRequestHandler):
             n = int(self.headers.get("Content-Length", 0) or 0)
             body = self.rfile.read(n) if n else b""
         headers = {}
-        ct = self.headers.get("Content-Type")
-        if ct:
-            headers["Content-Type"] = ct
+        for h in ("Content-Type", "Authorization"):  # Bearer 토큰 전달(ARISA 2.0 인증)
+            v = self.headers.get(h)
+            if v:
+                headers[h] = v
         try:
             req = Request(url, data=body, headers=headers, method=method)
             with urlopen(req, timeout=30) as resp:
                 resp_body = resp.read()
+                ctype = resp.headers.get("Content-Type", "application/octet-stream")
+                if "text/html" in ctype:
+                    # SPA의 API 베이스를 프록시 프리픽스로 재작성 → /arisa2/api/* 로 호출
+                    resp_body = resp_body.replace(b"var API='';", b"var API='/arisa2';")
                 self.send_response(resp.status)
-                self.send_header("Content-Type", resp.headers.get("Content-Type", "application/octet-stream"))
+                self.send_header("Content-Type", ctype)
                 self.send_header("Content-Length", str(len(resp_body)))
                 self.send_header("Cache-Control", "no-store")
                 self.end_headers()

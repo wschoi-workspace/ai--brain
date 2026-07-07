@@ -279,7 +279,7 @@ body.readonly .topbar .ver{color:var(--rust)}
 .modal h3{font-size:15px;font-weight:800;margin-bottom:4px}
 .modal .m-sub{font-size:11px;color:var(--fg-3);margin-bottom:14px}
 .modal label{display:block;font-size:10.5px;color:var(--fg-3);margin:12px 0 5px}
-.modal input[type=file],.modal input[type=text]{width:100%;font-family:inherit;font-size:12px;background:var(--bg-2);border:1px solid var(--line);border-radius:7px;color:var(--fg);padding:9px 10px}
+.modal input[type=file],.modal input[type=text],.modal input[type=date]{width:100%;font-family:inherit;font-size:12px;background:var(--bg-2);border:1px solid var(--line);border-radius:7px;color:var(--fg);padding:9px 10px}
 .modal .m-members{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .modal .m-chip{font-size:10.5px;padding:5px 10px;border-radius:14px;border:1px solid var(--line);cursor:pointer;color:var(--fg-2);user-select:none}
 .modal .m-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -479,10 +479,18 @@ body.readonly .topbar .ver{color:var(--rust)}
 <div class="modal-bg" id="add-modal">
   <div class="modal">
     <h3>➕ 프로젝트 추가</h3>
-    <div class="m-sub">프로젝트 마스터 엑셀(00_Brief + 팀 시트)을 올리면 카드가 추가됩니다. (이 브라우저에 저장)</div>
-    <label>① 프로젝트 엑셀 (.xlsx)</label>
+    <div class="m-sub">엑셀 업로드 또는 직접 입력으로 프로젝트를 생성합니다.</div>
+    <label>① 프로젝트 엑셀 (.xlsx) — 선택</label>
     <input type="file" id="add-file" accept=".xlsx,.xls">
-    <div class="m-info" id="add-info">엑셀을 선택하면 미리보기가 표시됩니다.</div>
+    <div class="m-info" id="add-info">엑셀을 선택하면 미리보기가 표시됩니다. 엑셀 없이 아래 직접 입력으로도 생성됩니다.</div>
+    <label>①-b 직접 입력 (엑셀 없이 생성)</label>
+    <input type="text" id="add-name" placeholder="프로젝트명 (필수)">
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <input type="text" id="add-pm" placeholder="PM (기본: 본인)" style="flex:1">
+      <input type="date" id="add-start" title="시작일" style="flex:1">
+      <input type="date" id="add-end" title="종료일" style="flex:1">
+    </div>
+    <input type="text" id="add-desc" placeholder="한 줄 설명 (선택)" style="margin-top:6px">
     <label>② 열람 가능 직원 (선택 — 미선택 시 추가자·대표만)</label>
     <div class="m-members" id="add-members"></div>
     <div class="m-actions">
@@ -1196,10 +1204,12 @@ function logout(){ CURRENT_USER=null; CURRENT_PIN=''; CURRENT_ROLE=''; CURRENT_P
 
 // ── 프로젝트 추가 모달 ──
 let _addParsed=null, _addMembers=new Set();
+function _addCheckReady(){ $('#add-confirm').disabled=!(_addParsed || $('#add-name').value.trim()); }
 function openAddModal(){
   _addParsed=null; _addMembers=new Set();
   $('#add-file').value=''; $('#add-confirm').disabled=true;
-  $('#add-info').textContent='엑셀을 선택하면 미리보기가 표시됩니다.';
+  ['add-name','add-pm','add-start','add-end','add-desc'].forEach(id=>{ $('#'+id).value=''; });
+  $('#add-info').textContent='엑셀을 선택하면 미리보기가 표시됩니다. 엑셀 없이 아래 직접 입력으로도 생성됩니다.';
   const names=Object.keys(window.EMPLOYEES||users()||{});
   $('#add-members').innerHTML=names.map(n=>`<span class="m-chip" data-n="${esc(n)}" onclick="toggleMember(this)">${esc(n)}</span>`).join('')||'<span style="color:var(--fg-3);font-size:10.5px">직원 목록 없음</span>';
   $('#add-modal').classList.add('show');
@@ -1216,8 +1226,15 @@ $('#add-file').addEventListener('change',async e=>{
   $('#add-info').innerHTML=`<b>${esc(b.name)||'(이름 미상)'}</b> · PM ${esc(b.pm)||'—'} · 업무 ${_addParsed.tasks.length}건 · 이슈 ${_addParsed.issues.length}건`;
   $('#add-confirm').disabled=false;
 });
+$('#add-name').addEventListener('input',_addCheckReady);
 async function confirmAddProject(){
-  if(!_addParsed){ return; }
+  if(!_addParsed && !$('#add-name').value.trim()){ return; }
+  if(!_addParsed){
+    // 직접 입력 생성(엑셀 없이) — 상세는 열어서 채우면 됨
+    _addParsed={ brief:{ name:$('#add-name').value.trim(), pm:$('#add-pm').value.trim()||CURRENT_USER||'',
+      start:$('#add-start').value||'', end:$('#add-end').value||'', dday:$('#add-end').value||'',
+      status:'In Progress', summary:$('#add-desc').value.trim() }, tasks:[], issues:[] };
+  }
   const b=_addParsed.brief||{};
   const desc=(b.summary||'').split(/(?<=[.!?。])\s+|\n/).filter(Boolean).slice(0,2);
   while(desc.length<2) desc.push('');
