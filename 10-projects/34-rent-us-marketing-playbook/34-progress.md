@@ -15,6 +15,14 @@ Economy에서 더 강한 무기.
 
 ## 작업 로그
 
+### 2026-07-08
+- [x] **업체 디렉토리 G·H(E) 완료** — 병렬 리서치 에이전트 5기(G 3분할: 피플카운팅/설문·패널/브랜드리프트, H 2분할: 사진·비디오/UGC·숏폼·편집), 맥미니 무인 실행.
+  - `research/vendor-directory-G-H.md` 신규: G·H 총 **36개 named 업체**(G 21·H 15, A~F 81곳과 합산 117곳) — A~F와 동일 포맷(업체명·공식링크 WebFetch 실재 확인·기본서비스·가격·서비스종류 + 선택 가이드·비고), 죽은 링크 0.
+  - 씨앗(`tool-la-alternatives.md` G·H) 대비 상충 갱신: ① **RetailNext "유저당 $40~50/월" [추정] 폐기**(공식: 센서당 과금·per-user 무료) ② DMAK 숏폼 자체 공식가 $5,000~(씨앗 "$500~3,000"은 업계 일반 범위로 재분류) ③ Upwork 편집 시급 전체 범위 $15~150+/hr로 확장.
+  - 신규 확인: **V-Count 이벤트 단기 렌탈 모델**(행사 후 반납 — 팝업용 유일한 공식 단기 실측 옵션), Placer.ai freemium, Dor 월납·30일 환불, LinkedIn brand lift 2문항 $90K 구간, Splento LA 정액 $99~139/h, VidChops 숏폼 환산 ~$31/편, Aislelabs 카운팅+이메일 캡처 결합.
+  - URL 교체 4건(Vemcount→vemcogroup.com, SM Audience /mp/audience/, YouGov 301, LinkedIn 헬프 문서) + Fash(403)→Bark 대체.
+  - 잔여 [확인필요]: ShopperTrak 계약 금액대, YouGov BrandIndex 단독가, Aislelabs 시작가, Splento $99 vs $139 혼재, Snappr 시작가, RetailNext 부대비용.
+
 ### 2026-07-07
 - [x] **업체 디렉토리(D) 완료** — 병렬 리서치 에이전트 6기(카테고리 A~F 각 1기), 맥미니 무인 실행.
   - `research/vendor-directory-A-F.md` 신규: A~F 총 **81개 named 업체** — 업체명·공식링크(전 링크 WebFetch 실재 확인, 죽은 링크 0)·기본서비스·가격·가능한 마케팅 서비스종류 + 섹션별 선택 가이드.
