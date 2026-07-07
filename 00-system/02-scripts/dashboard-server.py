@@ -425,7 +425,7 @@ class H(BaseHTTPRequestHandler):
                         biz.append(ds)
                 except ValueError:
                     pass
-            recent = biz[-4:]  # 오늘 + 직전 3영업일
+            recent = biz[-7:]  # 오늘 + 직전 6영업일 (최근 일주일 이력)
             sel = (q.get("date") or [""])[0]
             target = BRIEF_DIR / f"daily-brief-{sel}.html"
             if not (sel and target.exists()):
@@ -464,7 +464,7 @@ class H(BaseHTTPRequestHandler):
                         biz.append(ds)
                 except ValueError:
                     pass
-            recent = biz[-4:]
+            recent = biz[-7:]  # 최근 일주일 이력 (팀)
             sel = (q.get("date") or [""])[0]
             target = BRIEF_DIR / f"daily-brief-{sel}-{team}.html"
             if not (sel and target.exists()):
