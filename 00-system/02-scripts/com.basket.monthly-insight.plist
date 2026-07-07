@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Basket 월간 매장 인사이트 — launchd 월간 자동생성 + 대표 월간 요약 텔레그램 push
+  설치(맥미니 server-mini):
+    cp 00-system/02-scripts/com.basket.monthly-insight.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.basket.monthly-insight.plist
+  매월 1일 09:30 → 직전 달 리뷰 → insights/monthly-insight-YYMM.html + 대표 텔레그램.
+  (.env에 BASKET_REPORT_SHEET_ID·BASKET_MANAGER_CHAT_ID·BASKET_BOT_TOKEN·OPENAI_API_KEY 필요)
+  주의: gws OAuth 인증 만료 시 시트 못 읽어 실패 → `gws auth login` 필요(reference_macmini_ssh).
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.basket.monthly-insight</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/server-mini/do-better-workspace/20-operations/24-second-brain/.venv311/bin/python</string>
+        <string>-u</string>
+        <string>/Users/server-mini/do-better-workspace/00-system/02-scripts/basket-monthly-insight.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/server-mini/do-better-workspace</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/server-mini/.npm-global/bin:/Users/server-mini/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Day</key><integer>1</integer>
+        <key>Hour</key><integer>9</integer>
+        <key>Minute</key><integer>30</integer>
+    </dict>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/tmp/basket-monthly-insight.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/basket-monthly-insight.log</string>
+</dict>
+</plist>
