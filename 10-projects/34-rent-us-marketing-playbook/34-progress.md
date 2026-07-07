@@ -15,6 +15,21 @@ Economy에서 더 강한 무기.
 
 ## 작업 로그
 
+### 2026-07-07
+- [x] **추가리서치(C) 완료** — 병렬 리서치 에이전트 3기(미션1 효과채널 / 미션2 a·b 캡처·전환 / 미션2 c+미션3 ESP·케이스), 맥미니 무인 실행.
+  - `research/us-effective-marketing.md` 신규: 8개 채널 ROI 증거 기반 정리. **통설 3개 검증에서 무너짐** —
+    이메일 "$42/$1"은 DMA UK 2019 **£42가 달러로 와전**(원출처는 Litmus 2020 $36, 전부 자기보고 서베이 —
+    다만 복수 독립 조사가 일관되게 최상위, 리테일 45:1로 1위) · SMS "98% 오픈율"은 전달률 와전(실측 CTR 2.9~14.5%) ·
+    인플루언서 "$5.78 ROI"는 매출 아닌 EMV. 이벤트 구매의향 85%→61%(EventTrack 2026 하향).
+    인용 30개 URL 전부 WebFetch 실재 확인.
+  - `research/email-db-acquisition-plan.md` 신규: 방문객→회원가입 3단계(a 현장캡처 14개 업체 / b 옵트인 전환 7개 /
+    c ESP 5사 비교) + 참고 케이스 9건(Glossier 팝업 전환 70%+ · Vacation Inc. waitlist 15,000 · Starbucks 매출 57% ·
+    AnyRoad Diageo NPS +16pt · Leap · Fever). 업체 공식링크 47개 WebFetch 200 확인, 죽은 링크 0.
+  - 핵심 발견: ① Beaconstac→Uniqode 리브랜딩(2024.1), Mailchimp Subscribe 태블릿 앱 단종 [추정] ② 팝업 폼 전환율
+    보수 기준 2~3%·스핀휠 13~30%, 현장 QR은 명분 부착 시 2~6%→40%+ ③ ESP 권고 = **Klaviyo(활성 리드·플로우) +
+    Brevo(장기 보관, 유일한 발송량 과금 $9/월~) 이원화**, 자동화 플로우가 캠페인 대비 이메일당 매출 22배(Omnisend) ④
+    가장 신뢰되는 채널(대면 이벤트 80%)과 최고 ROI 채널(이메일)이 분리 → 팝업→이메일 DB→너처링 파이프라인이 둘을 잇는 구조.
+
 ### 2026-07-06
 - [x] **최종검증(B) 완료** — 병렬 검증 에이전트 11기(A~H 8기 + 플레이북 섹션4/5/6 3기)로
   두 파일 전 수치를 인용 출처 URL 직접 대조(WebFetch, 부재 시 WebSearch 재삼각검증).
@@ -54,6 +69,8 @@ Economy에서 더 강한 무기.
 
 ## 액션 아이템
 - [ ] (사용자) 센터피스 표 리뷰 → 섹션 0~3·8 방향 확정 → HTML 덱 지시
+- [ ] (사용자) 추가리서치(C) 산출물 리뷰 → 플레이북 섹션 6 연계 통합 여부 결정 (통합은 사용자 세션에서)
+- [ ] [확인필요] 잔여(추가리서치 C): Mailchimp Subscribe 단종 여부 App Store 직접 확인 · Omnisend 30% 프로모션 종료 시점 · Luma 게스트 export/API 상세 · Eventbrite 참석자 이메일 마케팅 활용 약관
 - [ ] RFQ 견적 요청 리스트 발송 검토: Secret Media Network(Fever)·The Infatuation·LA Times Studios·Intersection(LA Metro)·JCDecaux(LAX)·Captivate·Attentive·Placer.ai (리드타임 2~4주)
 - [x] [확인필요] 태그 항목 재검증(2026-07-06 최종검증 B에서 처리): Business Wire 내셔널은 출처 간 상이로 [추정] 유지(초과단가는 $195 확정), Yelp GM 월납 $159 확정, Storefront는 PopUp Immo가 2016 인수로 확정 — 잔여: Tock 신구가·Partiful 수수료·BrandBox 종료 여부(공개 출처 부재로 [확인필요] 유지)
 - [ ] 환율 기준 확정(문서는 ₩1,400/USD [추정] 사용)
