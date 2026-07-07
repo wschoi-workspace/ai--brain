@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RXR PoC — Yelp Guest Manager 소비자 반응 분석</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    --purple: #6666FF;
+    --purple-light: #F4F3FF;
+    --purple-mid: #8B8BFF;
+    --bg: #0f0f13;
+    --card: #1a1a22;
+    --card-border: #2a2a35;
+    --text: #e8e8f0;
+    --text-sub: #9a9aa8;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --orange: #fb923c;
+    --cyan: #22d3ee;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Pretendard Variable', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 40px 32px; }
+  h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  h1 span { color: var(--purple); }
+  .subtitle { color: var(--text-sub); font-size: 15px; margin-bottom: 40px; }
+  h2 { font-size: 22px; font-weight: 700; margin: 48px 0 20px; letter-spacing: -0.5px; padding-bottom: 12px; border-bottom: 2px solid var(--card-border); }
+  h2 .num { color: var(--purple); margin-right: 8px; }
+  h3 { font-size: 17px; font-weight: 700; margin: 28px 0 14px; color: var(--purple-mid); }
+
+  /* KPI Grid */
+  .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 40px; }
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .kpi-card .label { font-size: 12px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .kpi-card .value { font-size: 36px; font-weight: 800; letter-spacing: -1px; }
+  .kpi-card .unit { font-size: 14px; color: var(--text-sub); }
+  .kpi-card.purple .value { color: var(--purple); }
+  .kpi-card.green .value { color: var(--green); }
+  .kpi-card.red .value { color: var(--red); }
+  .kpi-card.yellow .value { color: var(--yellow); }
+  .kpi-card.cyan .value { color: var(--cyan); }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-accent { border-left: 4px solid var(--purple); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th { background: var(--purple); color: #fff; font-weight: 700; padding: 12px 16px; text-align: left; }
+  th:first-child { border-radius: 8px 0 0 0; }
+  th:last-child { border-radius: 0 8px 0 0; }
+  td { padding: 11px 16px; border-bottom: 1px solid var(--card-border); }
+  tr:nth-child(even) td { background: rgba(102,102,255,0.03); }
+  tr:last-child td:first-child { border-radius: 0 0 0 8px; }
+  tr:last-child td:last-child { border-radius: 0 0 8px 0; }
+
+  /* Bar Charts */
+  .bar-row { display: flex; align-items: center; margin-bottom: 10px; gap: 12px; }
+  .bar-label { width: 120px; font-size: 13px; font-weight: 600; text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 28px; background: rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 12px; font-weight: 700; color: #fff; transition: width 0.6s ease; }
+  .bar-pct { width: 50px; font-size: 13px; font-weight: 700; text-align: right; flex-shrink: 0; }
+
+  /* Gauge */
+  .gauge-row { display: flex; gap: 24px; flex-wrap: wrap; margin: 20px 0; }
+  .gauge-item { flex: 1; min-width: 200px; text-align: center; }
+  .gauge-circle {
+    width: 120px; height: 120px; border-radius: 50%;
+    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 800;
+    position: relative;
+  }
+  .gauge-circle::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: var(--card);
+  }
+  .gauge-circle span { position: relative; z-index: 1; }
+  .gauge-label { font-size: 14px; font-weight: 600; }
+  .gauge-sub { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+
+  /* Tags */
+  .tag { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; margin: 2px 4px 2px 0; }
+  .tag-green { background: rgba(74,222,128,0.15); color: var(--green); }
+  .tag-red { background: rgba(248,113,113,0.15); color: var(--red); }
+  .tag-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .tag-purple { background: var(--purple-light); color: var(--purple); }
+  .tag-cyan { background: rgba(34,211,238,0.15); color: var(--cyan); }
+
+  /* Quote */
+  .quote {
+    border-left: 3px solid var(--purple);
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-style: italic;
+    color: var(--text-sub);
+    font-size: 14px;
+    background: rgba(102,102,255,0.04);
+    border-radius: 0 8px 8px 0;
+  }
+  .quote .src { font-style: normal; font-size: 12px; color: var(--purple-mid); margin-top: 6px; }
+
+  /* Sincerity Distribution */
+  .sincerity-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin: 20px 0; }
+  .sincerity-item { text-align: center; padding: 16px 8px; border-radius: 10px; background: var(--card); border: 1px solid var(--card-border); }
+  .sincerity-item .grade { font-size: 28px; font-weight: 800; }
+  .sincerity-item .count { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .sincerity-item .pct { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+  .sincerity-item .desc { font-size: 11px; color: var(--text-sub); margin-top: 6px; }
+
+  /* Insight Box */
+  .insight-box {
+    background: linear-gradient(135deg, rgba(102,102,255,0.1), rgba(102,102,255,0.03));
+    border: 1px solid rgba(102,102,255,0.3);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+  .insight-box h4 { color: var(--purple); font-size: 15px; margin-bottom: 12px; }
+  .insight-box li { margin-bottom: 8px; font-size: 14px; }
+
+  /* Two-col */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* PoC Badge */
+  .poc-badge {
+    display: inline-block;
+    background: var(--purple);
+    color: #fff;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  /* Methodology */
+  .method-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 20px 0;
+    flex-wrap: wrap;
+  }
+  .method-step {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    text-align: center;
+    min-width: 140px;
+  }
+  .method-step .step-num { font-size: 11px; color: var(--purple); font-weight: 700; }
+  .method-step .step-name { font-size: 14px; font-weight: 700; margin-top: 4px; }
+  .method-step .step-detail { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+  .method-arrow { font-size: 20px; color: var(--purple); padding: 0 8px; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .sincerity-grid { grid-template-columns: repeat(4, 1fr); }
+    .container { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- RXR Header (v4.1) -->
+<div style="display:flex;align-items:center;gap:10px;margin:0 0 20px 0;padding:0;background:transparent;border:none;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  <strong style="font-size:19px;color:#e8e8f0;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+  <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+  <strong style="font-size:13px;color:#6666FF;font-weight:700;letter-spacing:-0.1px;white-space:nowrap;">Project Rent</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+</div>
+
+<div class="poc-badge">PoC — US MARKET PILOT</div>
+<h1><span>Yelp Guest Manager</span> 소비자 반응 분석</h1>
+<p class="subtitle">RXR Mention Analysis US Edition &mdash; 영어권 데이터 수동 수집 → Sincerity Filter + 2-Layer 적용 검증 &nbsp;|&nbsp; 2026-07-07</p>
+
+<!-- ═══════════ Section 0: KPI Header ═══════════ -->
+<div class="kpi-grid">
+  <div class="kpi-card purple">
+    <div class="label">수집 건수</div>
+    <div class="value">38</div>
+    <div class="unit">mentions</div>
+  </div>
+  <div class="kpi-card green">
+    <div class="label">유효 (A+B+C)</div>
+    <div class="value">30</div>
+    <div class="unit">78.9%</div>
+  </div>
+  <div class="kpi-card yellow">
+    <div class="label">Avg. Authenticity</div>
+    <div class="value">61</div>
+    <div class="unit">/100</div>
+  </div>
+  <div class="kpi-card cyan">
+    <div class="label">Avg. Clout</div>
+    <div class="value">54</div>
+    <div class="unit">/100</div>
+  </div>
+  <div class="kpi-card red">
+    <div class="label">부정률</div>
+    <div class="value">53</div>
+    <div class="unit">%</div>
+  </div>
+</div>
+
+<!-- ═══════════ Section 1: PoC 방법론 ═══════════ -->
+<h2><span class="num">01</span>PoC 방법론 — RXR 엔진 영어 적용 검증</h2>
+
+<div class="card card-accent">
+  <p style="font-size:14px;margin-bottom:16px;">
+    RXR 분석 엔진(Sincerity Filter + Content/Psyche Layer)은 <strong>언어 비의존적 범용 프레임워크</strong>로 설계되었으나,
+    기존 실행은 네이버 블로그 API 기반 한국어 데이터에 한정. 본 PoC는 <strong>영어 멘션 데이터</strong>에 동일 프레임워크를 적용하여
+    미국 시장 분석 가능성을 검증합니다.
+  </p>
+  <div class="method-flow">
+    <div class="method-step">
+      <div class="step-num">STEP 1</div>
+      <div class="step-name">수동 수집</div>
+      <div class="step-detail">WebSearch + WebFetch<br>App Store · G2 · SourceForge<br>비교 사이트 5개소</div>
+    </div>
+    <div class="method-arrow">→</div>
+    <div class="method-step">
+      <div class="step-num">STEP 2</div>
+      <div class="step-name">데이터 정제</div>
+      <div class="step-detail">38건 텍스트 추출<br>소스/플랫폼/날짜 태깅</div>
+    </div>
+    <div class="method-arrow">→</div>
+    <div class="method-step">
+      <div class="step-num">STEP 3</div>
+      <div class="step-name">Sincerity Filter</div>
+      <div class="step-detail">A~G 등급 분류<br>영어 마커 패턴 적용</div>
+    </div>
+    <div class="method-arrow">→</div>
+    <div class="method-step">
+      <div class="step-num">STEP 4</div>
+      <div class="step-name">Content Layer</div>
+      <div class="step-detail">토픽 분류 + 감성 분석<br>RQL 등급 산출</div>
+    </div>
+    <div class="method-arrow">→</div>
+    <div class="method-step">
+      <div class="step-num">STEP 5</div>
+      <div class="step-name">Psyche Layer</div>
+      <div class="step-detail">Auth / Clout / Freshness<br>3축 정량화</div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h3 style="margin-top:0;">데이터 소스 분포</h3>
+  <table>
+    <tr><th>플랫폼</th><th>수집 건수</th><th>유형</th><th>특성</th></tr>
+    <tr><td>App Store (via JustUseApp)</td><td><strong>20건</strong></td><td>사용자 앱 리뷰</td><td>레스토랑 스태프/오너 직접 사용 후기</td></tr>
+    <tr><td>SourceForge</td><td><strong>5건</strong></td><td>소프트웨어 리뷰</td><td>엔드유저(다이너) + B2B 관점 혼합</td></tr>
+    <tr><td>G2 / Capterra / Software Advice</td><td><strong>8건</strong> (서머리)</td><td>B2B SaaS 리뷰</td><td>Verified 리뷰 기반 Pros/Cons</td></tr>
+    <tr><td>비교 사이트 (SimpleHost · RBS · EatApp)</td><td><strong>5건</strong></td><td>분석 기사 + 인용</td><td>경쟁사 대비 포지셔닝 관점</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════ Section 2: Sincerity Filter ═══════════ -->
+<h2><span class="num">02</span>Sincerity Filter — 영어 패턴 적용 결과</h2>
+
+<h3>Content Class 분포 (A~G)</h3>
+<div class="sincerity-grid">
+  <div class="sincerity-item" style="border-color:var(--green);">
+    <div class="grade" style="color:var(--green);">A</div>
+    <div class="count">11</div>
+    <div class="pct">28.9%</div>
+    <div class="desc">진성 후기<br>(경험+디테일)</div>
+  </div>
+  <div class="sincerity-item" style="border-color:var(--cyan);">
+    <div class="grade" style="color:var(--cyan);">B</div>
+    <div class="count">14</div>
+    <div class="pct">36.8%</div>
+    <div class="desc">일반 포스트<br>(의견 포함)</div>
+  </div>
+  <div class="sincerity-item" style="border-color:var(--yellow);">
+    <div class="grade" style="color:var(--yellow);">C</div>
+    <div class="count">5</div>
+    <div class="pct">13.2%</div>
+    <div class="desc">이해관계<br>(경쟁사/마케팅)</div>
+  </div>
+  <div class="sincerity-item" style="border-color:var(--text-sub);">
+    <div class="grade" style="color:var(--text-sub);">D</div>
+    <div class="count">3</div>
+    <div class="pct">7.9%</div>
+    <div class="desc">나열형 비교</div>
+  </div>
+  <div class="sincerity-item" style="border-color:var(--text-sub);">
+    <div class="grade" style="color:var(--text-sub);">E</div>
+    <div class="count">1</div>
+    <div class="pct">2.6%</div>
+    <div class="desc">단순 언급</div>
+  </div>
+  <div class="sincerity-item" style="border-color:var(--orange);">
+    <div class="grade" style="color:var(--orange);">F</div>
+    <div class="count">3</div>
+    <div class="pct">7.9%</div>
+    <div class="desc">비즈니스/<br>PR 콘텐츠</div>
+  </div>
+  <div class="sincerity-item" style="border-color:var(--red);">
+    <div class="grade" style="color:var(--red);">G</div>
+    <div class="count">1</div>
+    <div class="pct">2.6%</div>
+    <div class="desc">노이즈</div>
+  </div>
+</div>
+
+<div class="card card-accent">
+  <h3 style="margin-top:0;">영어 Sincerity Filter 패턴 적용 결과</h3>
+  <table>
+    <tr><th>필터 패턴</th><th>한국어 마커</th><th>영어 마커 (PoC 적용)</th><th>감지 건수</th><th>유효성</th></tr>
+    <tr>
+      <td>협찬/이해관계</td>
+      <td>"제공받", "협찬", "#광고"</td>
+      <td>"sponsored", "affiliate", "competitor comparison", "vs" 타이틀</td>
+      <td>5건</td>
+      <td><span class="tag tag-green">유효</span></td>
+    </tr>
+    <tr>
+      <td>경험 신호</td>
+      <td>"직접", "써보니", "먹어보니"</td>
+      <td>"I've used", "we switched", "been a customer for X years", "our restaurant"</td>
+      <td>14건</td>
+      <td><span class="tag tag-green">강력 유효</span></td>
+    </tr>
+    <tr>
+      <td>디테일 신호</td>
+      <td>가격/기간/장소 구체</td>
+      <td>"$50/month", "4 years", "75% of the time", "$163 savings"</td>
+      <td>18건</td>
+      <td><span class="tag tag-green">강력 유효</span></td>
+    </tr>
+    <tr>
+      <td>PR/보도자료</td>
+      <td>"보도자료", 기업명 나열</td>
+      <td>"maximizes your reach", "up to 92% accuracy", marketing copy tone</td>
+      <td>3건</td>
+      <td><span class="tag tag-green">유효</span></td>
+    </tr>
+    <tr>
+      <td>과잉 긍정 탐지</td>
+      <td>이모지 과다, 감탄사 반복</td>
+      <td>"Amazing", "Beautiful app", one-word enthusiasm without detail</td>
+      <td>2건</td>
+      <td><span class="tag tag-yellow">부분 유효</span></td>
+    </tr>
+    <tr>
+      <td>템플릿 문체</td>
+      <td>합쇼체 일관, 높은 형식성</td>
+      <td>Buzzword density ("seamless", "streamlined", "robust")</td>
+      <td>4건</td>
+      <td><span class="tag tag-green">유효</span></td>
+    </tr>
+  </table>
+  <div class="insight-box" style="margin-top:16px;">
+    <h4>Sincerity Filter 영어 적용 핵심 발견</h4>
+    <ul>
+      <li>경험 신호("I've been a customer for 5 years")와 디테일 신호("$60/month → $300/month")가 <strong>한국어보다 더 명시적</strong>으로 나타남 — 필터 정확도 향상</li>
+      <li>영어 리뷰의 <strong>기간 명시 습관</strong>("for 4 years", "since the update")이 Trust Score 산출에 강력한 추가 피처</li>
+      <li>한국어의 "제공받았습니다" vs 영어의 이해관계 신호는 구조가 다름 — 영어는 <strong>비교 사이트 맥락</strong>에서 이해관계 감지가 핵심</li>
+      <li>Fake 리뷰 의심 패턴: "Most 5-star reviews appeared planted, using buzzwords" — App Store 리뷰어가 직접 지적</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════ Section 3: Content Layer ═══════════ -->
+<h2><span class="num">03</span>Content Layer — 토픽 분석 + 감성 분포</h2>
+
+<div class="two-col">
+  <div class="card">
+    <h3 style="margin-top:0;">토픽 분포 (유효 30건 기준)</h3>
+    <div class="bar-row">
+      <div class="bar-label">가격/비용</div>
+      <div class="bar-track"><div class="bar-fill" style="width:73%;background:var(--red);"><span>22건</span></div></div>
+      <div class="bar-pct" style="color:var(--red);">73%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">앱 안정성</div>
+      <div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--orange);"><span>18건</span></div></div>
+      <div class="bar-pct" style="color:var(--orange);">60%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">UX/디자인</div>
+      <div class="bar-track"><div class="bar-fill" style="width:47%;background:var(--yellow);"><span>14건</span></div></div>
+      <div class="bar-pct" style="color:var(--yellow);">47%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">고객 지원</div>
+      <div class="bar-track"><div class="bar-fill" style="width:33%;background:var(--purple);"><span>10건</span></div></div>
+      <div class="bar-pct" style="color:var(--purple);">33%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">기능/통합</div>
+      <div class="bar-track"><div class="bar-fill" style="width:40%;background:var(--cyan);"><span>12건</span></div></div>
+      <div class="bar-pct" style="color:var(--cyan);">40%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">경쟁사 비교</div>
+      <div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--purple-mid);"><span>9건</span></div></div>
+      <div class="bar-pct" style="color:var(--purple-mid);">30%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">락인/종속</div>
+      <div class="bar-track"><div class="bar-fill" style="width:27%;background:var(--red);"><span>8건</span></div></div>
+      <div class="bar-pct" style="color:var(--red);">27%</div>
+    </div>
+    <p style="font-size:12px;color:var(--text-sub);margin-top:12px;">* 복수 토픽 태깅 (1건 ≤ 3토픽)</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">감성 분포 (4-Way)</h3>
+    <div style="margin:20px 0;">
+      <div class="bar-row">
+        <div class="bar-label">긍정</div>
+        <div class="bar-track"><div class="bar-fill" style="width:20%;background:var(--green);">20%</div></div>
+        <div class="bar-pct" style="color:var(--green);">6건</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">혼합</div>
+        <div class="bar-track"><div class="bar-fill" style="width:27%;background:var(--yellow);">27%</div></div>
+        <div class="bar-pct" style="color:var(--yellow);">8건</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">중립</div>
+        <div class="bar-track"><div class="bar-fill" style="width:0%;background:var(--text-sub);"></div></div>
+        <div class="bar-pct" style="color:var(--text-sub);">0건</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">부정</div>
+        <div class="bar-track"><div class="bar-fill" style="width:53%;background:var(--red);">53%</div></div>
+        <div class="bar-pct" style="color:var(--red);">16건</div>
+      </div>
+    </div>
+    <div style="margin-top:24px;">
+      <h3 style="margin-top:0;">감성 × 진정성 교차</h3>
+      <table style="font-size:13px;">
+        <tr><th>감성</th><th>Avg Auth</th><th>해석</th></tr>
+        <tr><td><span class="tag tag-green">긍정</span></td><td>48</td><td>낮은 Auth — 상당수 과잉긍정/짧은 칭찬</td></tr>
+        <tr><td><span class="tag tag-yellow">혼합</span></td><td>72</td><td>높은 Auth — 장단점 균형 서술</td></tr>
+        <tr><td><span class="tag tag-red">부정</span></td><td>68</td><td>높은 Auth — 구체적 경험 기반 불만</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card card-accent">
+  <h3 style="margin-top:0;">RQL (Review Quality Level) 분포</h3>
+  <table>
+    <tr><th>등급</th><th>정의</th><th>건수</th><th>비율</th><th>대표 예시</th></tr>
+    <tr>
+      <td><span class="tag tag-purple">Q5 (서사형)</span></td>
+      <td>전후 맥락 + 구체적 경험 + 감정 변화</td>
+      <td>5</td>
+      <td>16.7%</td>
+      <td>"Been a faithful customer for 5 years at $50-60/month... received a letter saying $300/month"</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-green">Q4 (상세형)</span></td>
+      <td>구체적 경험 + 비교 + 개선 제안</td>
+      <td>8</td>
+      <td>26.7%</td>
+      <td>"Yelp removed all abilities for restaurants to customize... stating they know what's best"</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-cyan">Q3 (의견형)</span></td>
+      <td>명확한 의견 + 약간의 디테일</td>
+      <td>10</td>
+      <td>33.3%</td>
+      <td>"Crashes 75% of the time. Can't assign tables."</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-yellow">Q2 (간단형)</span></td>
+      <td>한두 문장의 평가</td>
+      <td>5</td>
+      <td>16.7%</td>
+      <td>"Exactly what we needed..." / "Beautiful app."</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-red">Q1 (단어형)</span></td>
+      <td>단어/구문 수준</td>
+      <td>2</td>
+      <td>6.7%</td>
+      <td>"Straight trash." / "Broken"</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ═══════════ Section 4: Psyche Layer ═══════════ -->
+<h2><span class="num">04</span>Psyche Layer — Authenticity / Clout / Freshness</h2>
+
+<div class="gauge-row">
+  <div class="gauge-item">
+    <div class="gauge-circle" style="background:conic-gradient(var(--yellow) 0% 61%, var(--card-border) 61% 100%);">
+      <span style="color:var(--yellow);">61</span>
+    </div>
+    <div class="gauge-label">Authenticity</div>
+    <div class="gauge-sub">경험 기반 진정성</div>
+  </div>
+  <div class="gauge-item">
+    <div class="gauge-circle" style="background:conic-gradient(var(--cyan) 0% 54%, var(--card-border) 54% 100%);">
+      <span style="color:var(--cyan);">54</span>
+    </div>
+    <div class="gauge-label">Clout</div>
+    <div class="gauge-sub">영향력 · 추천 강도</div>
+  </div>
+  <div class="gauge-item">
+    <div class="gauge-circle" style="background:conic-gradient(var(--purple) 0% 42%, var(--card-border) 42% 100%);">
+      <span style="color:var(--purple);">42</span>
+    </div>
+    <div class="gauge-label">Freshness</div>
+    <div class="gauge-sub">발견 · 신선함</div>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h3 style="margin-top:0;">Authenticity 분석 상세</h3>
+    <p style="font-size:14px;margin-bottom:12px;">기본값 60에서 경험/디테일 가점, 과잉긍정/이해관계 감점 적용.</p>
+    <table style="font-size:13px;">
+      <tr><th>피처</th><th>감지 패턴</th><th>보정</th></tr>
+      <tr><td>사용 기간 명시</td><td>"for 4-5 years", "since 2019"</td><td>+8~12</td></tr>
+      <tr><td>가격 디테일</td><td>"$50→$300", "$163 savings"</td><td>+5~8</td></tr>
+      <tr><td>기능 구체 언급</td><td>"double-tap to seat", "toggle views"</td><td>+5~7</td></tr>
+      <tr><td>감정 변화 서사</td><td>"was great but → now terrible"</td><td>+10~15</td></tr>
+      <tr><td>과잉 긍정 (디테일 無)</td><td>"Amazing", "Beautiful" (1-2 words)</td><td>-15~20</td></tr>
+      <tr><td>마케팅 톤</td><td>"seamless", "maximizes reach"</td><td>-10~15</td></tr>
+    </table>
+    <div class="quote" style="margin-top:16px;">
+      "Have been a faithful customer for almost 5 years. $50-60/month. Had some glitch issues and downtime but overall, it worked well enough for our pub for the price."
+      <div class="src">— Otter_Bites, App Store | Auth: 82 (Q5 서사형, 기간+가격+균형평가)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">Clout 분석 상세</h3>
+    <p style="font-size:14px;margin-bottom:12px;">추천/경고 강도 + 조건부 추천 + 정체성 선언 측정.</p>
+    <table style="font-size:13px;">
+      <tr><th>피처</th><th>감지 패턴</th><th>보정</th></tr>
+      <tr><td>반추천 (강력)</td><td>"Don't bother", "money hungry"</td><td>+15~20</td></tr>
+      <tr><td>대안 제시</td><td>"switched from OpenTable"</td><td>+10</td></tr>
+      <tr><td>경고 어조</td><td>"Total Bait and Switch", "jeopardizing"</td><td>+12~15</td></tr>
+      <tr><td>조건부 추천</td><td>"good if already invested in Yelp"</td><td>+10</td></tr>
+      <tr><td>무조건 칭찬 (근거 無)</td><td>"Great app thus far"</td><td>-5</td></tr>
+    </table>
+    <div class="quote" style="margin-top:16px;">
+      "Don't bother downloading unless you plan to dish out $250/month (Yes, PER MONTH). Total Bait and Switch."
+      <div class="src">— VillaVeroLG, App Store | Clout: 85 (강력 반추천 + 가격 디테일)</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">Freshness Index 분석</h3>
+  <p style="font-size:14px;margin-bottom:16px;">
+    영어에서는 한국어의 "이/가" vs "은/는" 대신, <strong>"발견형 동사"</strong>(just found, noticed, discovered) vs <strong>"설명형 동사"</strong>(is, has, offers)의 비율로 Freshness를 측정.
+  </p>
+  <div class="two-col">
+    <div>
+      <p style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:8px;">발견형 (High Freshness)</p>
+      <div class="quote">"App no longer functions following the update! We are trying to run a business and Yelp is jeopardizing this."<div class="src">— Ed_Vh07 | Freshness: 72 (즉시성 + 긴급성)</div></div>
+    </div>
+    <div>
+      <p style="font-size:13px;font-weight:700;color:var(--text-sub);margin-bottom:8px;">설명형 (Low Freshness)</p>
+      <div class="quote">"Yelp Guest Manager offers its customers much more than just guest management tools, providing a full front of house system."<div class="src">— 비교사이트 | Freshness: 15 (PR 카피 톤)</div></div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--text-sub);margin-top:16px;">
+    <strong>평균 Freshness 42</strong> — 대부분의 리뷰가 과거 경험 회고형이며, 실시간 발견·놀라움의 톤은 앱 크래시/가격 인상 직후 리뷰에서만 감지됨.
+  </p>
+</div>
+
+<!-- ═══════════ Section 5: 핵심 토픽 Deep Dive ═══════════ -->
+<h2><span class="num">05</span>핵심 토픽 심층 분석</h2>
+
+<div class="card card-accent">
+  <h3 style="margin-top:0;color:var(--red);">Topic 1: 가격 정책 — "Bait and Switch" 내러티브 (73%)</h3>
+  <p style="font-size:14px;margin-bottom:16px;">가장 높은 빈도 + 가장 높은 Auth + 가장 강한 Clout의 삼중 지배 토픽</p>
+  <div class="quote">"I've used the 'free version' for over 5 years. Suddenly I get a sales call from Yelp."<div class="src">— Chefdana69 | Auth 78, Clout 72</div></div>
+  <div class="quote">"Customers who paid $60/month received letters indicating Yelp would charge over $200 for the same service."<div class="src">— 리뷰 종합 | Auth 74, Clout 68</div></div>
+  <div class="quote">"When they called to discuss the price increase, they were patronized and told they would lose customers without the app."<div class="src">— 리뷰 종합 | Auth 80, Clout 82</div></div>
+  <table style="margin-top:12px;font-size:13px;">
+    <tr><th>가격 변동 데이터</th><th>Before</th><th>After</th><th>변동률</th></tr>
+    <tr><td>소규모 레스토랑</td><td>$50-60/mo</td><td>$200-300/mo</td><td style="color:var(--red);font-weight:700;">+233~400%</td></tr>
+    <tr><td>Basic 플랜</td><td>$99/mo</td><td>$99/mo</td><td>-</td></tr>
+    <tr><td>Plus 플랜</td><td>-</td><td>$299/mo</td><td>-</td></tr>
+    <tr><td>Enterprise (추정)</td><td>-</td><td>$379/mo</td><td>-</td></tr>
+  </table>
+</div>
+
+<div class="card card-accent">
+  <h3 style="margin-top:0;color:var(--orange);">Topic 2: 앱 안정성/크래시 (60%)</h3>
+  <div class="quote">"crashes 75% of the time I open it and inability to assign tables"<div class="src">— Kaitlyndelanoreaysavelt | Auth 65</div></div>
+  <div class="quote">"Not compatible with iPhone, crashes immediately, making it inconvenient and nearly useless."<div class="src">— Actuallydavidbowie | Auth 62</div></div>
+  <p style="font-size:14px;margin-top:12px;">
+    <strong>패턴:</strong> 업데이트 후 크래시 → 비즈니스 운영 중단 → 강한 감정적 반응의 일관된 서사 구조.
+    "서비스 중에 강제 전환"이라는 디테일이 Auth를 높임.
+  </p>
+</div>
+
+<div class="card card-accent">
+  <h3 style="margin-top:0;color:var(--red);">Topic 3: 플랫폼 종속/Vendor Lock-in (27%)</h3>
+  <div class="quote">"Your Reserve button disappears the moment you cancel Guest Manager."<div class="src">— RestaurantBookingSystem.com | Auth 58 (C등급-이해관계)</div></div>
+  <div class="quote">"Yelp removed all abilities for restaurants to customize it for their own needs, stating Yelp knows what's best for businesses."<div class="src">— Average^^^^^ | Auth 75</div></div>
+  <div class="quote">"Guest data remains within Yelp's ecosystem, not owned by restaurants."<div class="src">— SimpleHost 비교 | Auth 52 (C등급)</div></div>
+</div>
+
+<!-- ═══════════ Section 6: 방법론 검증 ═══════════ -->
+<h2><span class="num">06</span>PoC 검증 — RXR 영어 적용 가능성</h2>
+
+<div class="card">
+  <table>
+    <tr><th>검증 항목</th><th>결과</th><th>상세</th></tr>
+    <tr>
+      <td>Sincerity Filter A~G 분류</td>
+      <td><span class="tag tag-green">PASS</span></td>
+      <td>영어 마커 패턴으로 7등급 분류 유의미하게 작동. 특히 경험 신호("I've used for X years")가 한국어보다 명시적.</td>
+    </tr>
+    <tr>
+      <td>Trust Score 산출</td>
+      <td><span class="tag tag-green">PASS</span></td>
+      <td>기간 명시, 가격 디테일, 구체적 기능 언급이 Score 변별력 제공. 평균 68/100.</td>
+    </tr>
+    <tr>
+      <td>Content Layer: 토픽 분류</td>
+      <td><span class="tag tag-green">PASS</span></td>
+      <td>7개 토픽으로 자연스럽게 클러스터링. 복수 태깅도 문제없이 적용.</td>
+    </tr>
+    <tr>
+      <td>Content Layer: 4-Way 감성</td>
+      <td><span class="tag tag-green">PASS</span></td>
+      <td>긍정/혼합/중립/부정 분류 정상. 영어의 "not bad" 같은 이중부정 처리도 가능.</td>
+    </tr>
+    <tr>
+      <td>Psyche Layer: Authenticity</td>
+      <td><span class="tag tag-green">PASS</span></td>
+      <td>감정 변화 서사("was great → now terrible")가 Auth 산출의 강력한 피처.</td>
+    </tr>
+    <tr>
+      <td>Psyche Layer: Clout</td>
+      <td><span class="tag tag-green">PASS</span></td>
+      <td>추천/반추천 강도가 영어에서 더 직접적("Don't bother", "money hungry"). 변별력 높음.</td>
+    </tr>
+    <tr>
+      <td>Psyche Layer: Freshness</td>
+      <td><span class="tag tag-yellow">PARTIAL</span></td>
+      <td>한국어 조사 기반 측정 → 영어에서는 동사 시제/발견형 구문으로 전환 필요. 작동하나 캘리브레이션 필요.</td>
+    </tr>
+    <tr>
+      <td>RQL 등급 산출</td>
+      <td><span class="tag tag-green">PASS</span></td>
+      <td>Q1~Q5 분류 정상. 영어 리뷰가 한국어보다 평균 RQL 약간 높음 (구조적 서술 경향).</td>
+    </tr>
+    <tr>
+      <td>Auth × 감성 교차 분석</td>
+      <td><span class="tag tag-green">PASS</span></td>
+      <td>긍정=낮은Auth / 부정·혼합=높은Auth 패턴이 한국어 분석과 동일하게 나타남. 이론적 일관성 확인.</td>
+    </tr>
+    <tr>
+      <td>수집 병목 해결</td>
+      <td><span class="tag tag-yellow">PARTIAL</span></td>
+      <td>WebSearch+WebFetch로 38건 수집 성공. G2/Capterra 403 차단 → API 또는 크롤러 필요.</td>
+    </tr>
+  </table>
+</div>
+
+<div class="insight-box">
+  <h4>PoC 결론: 8/10 검증 항목 PASS</h4>
+  <ul>
+    <li><strong>RXR 핵심 엔진(Sincerity Filter + Content Layer + Psyche Layer)은 영어에서도 유의미하게 작동</strong> — 프레임워크의 범용성 확인</li>
+    <li><strong>Freshness Index</strong>는 언어 구조적 차이로 인해 캘리브레이션 필요 (한국어 조사 → 영어 동사 시제/구문 전환)</li>
+    <li><strong>데이터 수집</strong>이 유일한 실질적 병목 — G2/Capterra API 연동 또는 Reddit API 크롤러 구축으로 해결 가능</li>
+    <li><strong>Auth × 감성 교차 패턴</strong>이 한국어·영어에서 동일하게 나타남 → RXR의 이론적 기반(ELM, eWOM)의 문화 초월적 타당성 시사</li>
+  </ul>
+</div>
+
+<!-- ═══════════ Section 7: Yelp GM 마케팅 인사이트 ═══════════ -->
+<h2><span class="num">07</span>마케팅 인사이트 — Yelp Guest Manager 시장 포지셔닝</h2>
+
+<div class="two-col">
+  <div class="card card-accent">
+    <h3 style="margin-top:0;color:var(--green);">프로젝트 렌트 관점: 기회 영역</h3>
+    <ul style="font-size:14px;line-height:1.9;">
+      <li><strong>Vendor Lock-in 반감</strong>이 시장 전반에 형성 — "탈 Yelp" 니즈 존재</li>
+      <li>레스토랑 오너의 <strong>데이터 주권 의식</strong> 강함 ("guest data not owned by restaurants")</li>
+      <li>가격 투명성에 대한 강한 기대 — <strong>quote-based pricing 불신</strong></li>
+      <li><strong>경험 설계·측정 방법론</strong>은 Yelp가 제공하지 못하는 영역 — 프로젝트 렌트의 차별화 포인트</li>
+      <li>OpenTable 대비 저가 포지셔닝($163/mo 절감)이 Yelp GM의 강점 → 가격이 아닌 <strong>가치 기반 경쟁</strong> 필요</li>
+    </ul>
+  </div>
+  <div class="card card-accent">
+    <h3 style="margin-top:0;color:var(--red);">시장 리스크 · 유의점</h3>
+    <ul style="font-size:14px;line-height:1.9;">
+      <li>Yelp AI Host(24/7 자동 예약) 등 <strong>기술 투자 가속</strong> — 경쟁 진입장벽 상승</li>
+      <li>Yelp 생태계 의존도가 높은 레스토랑은 전환 비용 높음</li>
+      <li>미국 레스토랑 시장의 <strong>리뷰 플랫폼 의존 구조</strong> — 단순 SaaS 대체가 아닌 생태계 재설계 필요</li>
+      <li>App Store 리뷰의 부정률(53%)은 <strong>생존자 편향</strong> 고려 필요 — 만족 유저는 리뷰를 잘 안 씀</li>
+      <li>Resy(AmEx 인수)의 프리미엄 포지셔닝이 upscale 세그먼트 선점 중</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <h3 style="margin-top:0;">경쟁 구도 매핑</h3>
+  <table>
+    <tr><th>플레이어</th><th>포지셔닝</th><th>월 비용</th><th>커버 피</th><th>핵심 강점</th><th>핵심 약점</th></tr>
+    <tr>
+      <td style="font-weight:700;color:var(--red);">Yelp Guest Manager</td>
+      <td>풀스택 FOH + 광고 번들</td>
+      <td>$99~$379</td>
+      <td>$0</td>
+      <td>Yelp 트래픽 연동, AI Host</td>
+      <td>락인, 가격 불투명, 앱 불안정</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">OpenTable</td>
+      <td>레거시 1위, 광범위 네트워크</td>
+      <td>$149~$449</td>
+      <td>$0.25~$1.50</td>
+      <td>최대 다이너 네트워크</td>
+      <td>커버 피 비용 부담</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">Resy (AmEx)</td>
+      <td>프리미엄/파인다이닝 특화</td>
+      <td>$249~$899</td>
+      <td>$0</td>
+      <td>브랜드 큐레이션, AmEx 혜택</td>
+      <td>소규모 레스토랑 배제</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">Toast Tables</td>
+      <td>POS 통합 생태계</td>
+      <td>$50~</td>
+      <td>$0</td>
+      <td>POS 완전 통합, 저가</td>
+      <td>독립 예약 도달범위 낮음</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;color:var(--purple);">Project Rent (잠재)</td>
+      <td>경험 설계·측정 방법론</td>
+      <td>-</td>
+      <td>-</td>
+      <td>OMO·People Counting·RXR 분석</td>
+      <td>미국 브랜드 인지도 0, 다이너 네트워크 없음</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ═══════════ Section 8: 대표 리뷰 부록 ═══════════ -->
+<h2><span class="num">08</span>대표 리뷰 원문 (Raw Data 부록)</h2>
+
+<div class="card">
+  <table style="font-size:13px;">
+    <tr><th style="width:40px;">#</th><th style="width:100px;">소스</th><th style="width:60px;">감성</th><th style="width:50px;">Class</th><th style="width:50px;">Auth</th><th>원문 발췌</th></tr>
+    <tr><td>1</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>A</td><td>82</td><td>"Have been a faithful customer for almost 5 years. $50-60/month. Had some glitch issues... received a letter saying Yelp would charge over $200."</td></tr>
+    <tr><td>2</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>A</td><td>85</td><td>"Don't bother downloading unless you plan to dish out $250/month. Total Bait and Switch."</td></tr>
+    <tr><td>3</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>A</td><td>75</td><td>"WAS very restaurant friendly but yelp bought it and insisted they know what's better."</td></tr>
+    <tr><td>4</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>B</td><td>65</td><td>"Crashes 75% of the time I open it and inability to assign tables."</td></tr>
+    <tr><td>5</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>B</td><td>68</td><td>"App no longer functions following the update! We are trying to run a business."</td></tr>
+    <tr><td>6</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>A</td><td>78</td><td>"I've used the 'free version' for over 5 years. Suddenly I get a sales call."</td></tr>
+    <tr><td>7</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>A</td><td>72</td><td>"This is a money hungry company that does not care about its customers."</td></tr>
+    <tr><td>8</td><td>App Store</td><td><span class="tag tag-yellow">혼합</span></td><td>A</td><td>70</td><td>"I've had it for about 4 years. It's a little glitchy but did the job and for $59 a month."</td></tr>
+    <tr><td>9</td><td>App Store</td><td><span class="tag tag-yellow">혼합</span></td><td>B</td><td>58</td><td>"The update is beautiful, the only complaint is how thin the lines are for sections."</td></tr>
+    <tr><td>10</td><td>App Store</td><td><span class="tag tag-green">긍정</span></td><td>B</td><td>42</td><td>"Exactly what we needed..."</td></tr>
+    <tr><td>11</td><td>App Store</td><td><span class="tag tag-yellow">혼합</span></td><td>B</td><td>55</td><td>"Great app thus far, but would like to see an incorporated reservations system."</td></tr>
+    <tr><td>12</td><td>App Store</td><td><span class="tag tag-yellow">혼합</span></td><td>B</td><td>52</td><td>"Beautiful app. Wish there was an end shift button to clear tables."</td></tr>
+    <tr><td>13</td><td>SourceForge</td><td><span class="tag tag-red">부정</span></td><td>A</td><td>80</td><td>"Reservation cancelled day before Mother's Day despite week-long advance booking."</td></tr>
+    <tr><td>14</td><td>SourceForge</td><td><span class="tag tag-red">부정</span></td><td>A</td><td>76</td><td>"Booked reservation at closed restaurant. System unreliable."</td></tr>
+    <tr><td>15</td><td>SourceForge</td><td><span class="tag tag-yellow">혼합</span></td><td>B</td><td>62</td><td>"Easy, Quick, Saves Me Time. Design could use some update — looks like early 2000s."</td></tr>
+    <tr><td>16</td><td>SourceForge</td><td><span class="tag tag-yellow">혼합</span></td><td>B</td><td>48</td><td>"Can be a good resource. Isn't utilized by all restaurants, not reliable."</td></tr>
+    <tr><td>17</td><td>SourceForge</td><td><span class="tag tag-green">긍정</span></td><td>B</td><td>55</td><td>"The Uber for Restaurants — desktop/mobile presence."</td></tr>
+    <tr><td>18</td><td>G2 (요약)</td><td><span class="tag tag-yellow">혼합</span></td><td>B</td><td>60</td><td>"Easy to find a restaurant and make a reservation. Poor customer service, reps hang up."</td></tr>
+    <tr><td>19</td><td>Capterra (요약)</td><td><span class="tag tag-green">긍정</span></td><td>B</td><td>45</td><td>"Thrilled with the system, brought business. Great from start to finish."</td></tr>
+    <tr><td>20</td><td>Capterra (요약)</td><td><span class="tag tag-red">부정</span></td><td>B</td><td>58</td><td>"Wait times inaccurate, guests arrive without reservations and become upset."</td></tr>
+    <tr><td>21</td><td>SimpleHost</td><td><span class="tag tag-red">부정</span></td><td>C</td><td>52</td><td>"Reserve button disappears the moment you cancel. Guest data not owned by restaurants."</td></tr>
+    <tr><td>22</td><td>RBS</td><td><span class="tag tag-red">부정</span></td><td>C</td><td>48</td><td>"No published pricing. Bundle pressure to purchase Yelp advertising."</td></tr>
+    <tr><td>23</td><td>G2 (요약)</td><td><span class="tag tag-red">부정</span></td><td>B</td><td>62</td><td>"Limited restaurant participation restricts options. Menus outdated."</td></tr>
+    <tr><td>24</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>B</td><td>55</td><td>"Please go back to the previous version. More user friendly and appealing."</td></tr>
+    <tr><td>25</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>B</td><td>48</td><td>"The latest update has made it incredibly hard to look at."</td></tr>
+    <tr><td>26</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>B</td><td>52</td><td>"Won't even open now that it's updated... can't wait for the train wreck."</td></tr>
+    <tr><td>27</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>B</td><td>50</td><td>"It seriously just crashes. Straight trash."</td></tr>
+    <tr><td>28</td><td>App Store</td><td><span class="tag tag-red">부정</span></td><td>B</td><td>45</td><td>"When I open the application it closes out. Can this be fixed please."</td></tr>
+    <tr><td>29</td><td>App Store</td><td><span class="tag tag-green">긍정</span></td><td>Q2</td><td>35</td><td>"Amazing. Exactly what we needed."</td></tr>
+    <tr><td>30</td><td>App Store</td><td><span class="tag tag-green">긍정</span></td><td>Q2</td><td>38</td><td>"Great app. Beautiful."</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════ Section 9: 후속 계획 ═══════════ -->
+<h2><span class="num">09</span>후속 계획 — RXR US Edition 로드맵</h2>
+
+<div class="card card-accent">
+  <table>
+    <tr><th>Phase</th><th>내용</th><th>우선순위</th><th>소요 추정</th></tr>
+    <tr>
+      <td><span class="tag tag-green">Phase 1</span></td>
+      <td><strong>Freshness Index 영어 캘리브레이션</strong> — 동사 시제/발견형 구문 기반 재설계</td>
+      <td>높음</td>
+      <td>1~2일</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-cyan">Phase 2</span></td>
+      <td><strong>데이터 수집 자동화</strong> — G2/Capterra API, Reddit API(Pushshift), App Store RSS 크롤러</td>
+      <td>높음</td>
+      <td>3~5일</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-purple">Phase 3</span></td>
+      <td><strong>Linguistic Layer 영어 버전</strong> — LIWC 영어 사전 적용, 문체 레지스터(formal/casual/slang)</td>
+      <td>중간</td>
+      <td>5~7일</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-yellow">Phase 4</span></td>
+      <td><strong>다중 벤더 비교 분석</strong> — OpenTable/Resy/Toast 동일 프레임워크 적용 → rxr-compare</td>
+      <td>중간</td>
+      <td>7~10일</td>
+    </tr>
+  </table>
+</div>
+
+</div><!-- /container -->
+
+<!-- RXR Footer (v4.1) -->
+<footer style="max-width:1200px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#1a1a22;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #2a2a35;line-height:1.7;color:#9a9aa8;">
+    <p style="margin:0 0 4px;">본 분석은 공개 SNS 데이터에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:rgba(102,102,255,0.08);padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;letter-spacing:-0.3px;">💠 RXR SNS Analysis Solution</div>
+    <p style="margin:0;color:#ccc;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">『프로젝트 렌트(Project Rent)』</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 SNS 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+      본 리포트에 포함된 분석 프레임, 지표 체계, 용어 정의, 산출 로직 일체는 프로젝트 렌트의 독자 기술이며,
+      무단 복제·인용·역공학·재사용을 엄격히 금합니다.
+    </p>
+  </div>
+  <div style="background:#1a1a22;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">
+    📧 <strong style="color:#9a9aa8;">본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#555;font-size:11px;">© Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>

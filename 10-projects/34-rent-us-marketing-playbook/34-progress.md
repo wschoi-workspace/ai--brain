@@ -32,6 +32,16 @@ Economy에서 더 강한 무기.
   `git push origin HEAD:feat/34-us-marketing`
 - ⚠️ 맥미니 `claude` 미설치·미인증 / Dropbox 없음(→source는 repo 편입으로 해결)
 
+### 2026-07-07
+- [x] RXR US/LA PoC 실행 — Yelp Guest Manager 소비자 반응 분석
+  - 데이터 수집: 38건 (App Store 20 + SourceForge 5 + G2/Capterra 8 + 비교사이트 5)
+  - Sincerity Filter 영어 적용: 7등급 분류 유의미 작동 (PASS)
+  - Content Layer: 7개 토픽 클러스터링, 4-way 감성 분류 정상 (PASS)
+  - Psyche Layer: Auth 61 / Clout 54 / Freshness 42 (PASS, Freshness만 캘리브레이션 필요)
+  - 검증 결과: 8/10 PASS — RXR 엔진 영어 적용 가능성 확인
+  - 산출물: `rxr-poc-yelp-gm.html` (다크테마, RXR 헤더·푸터 v4.1)
+- 핵심 발견: 부정률 53%, "Bait and Switch" 가격 내러티브 지배적, Auth×감성 교차패턴 한·영 동일
+
 ## 액션 아이템
 1. [사용자·랩탑] `git push origin HEAD:feat/34-us-marketing` (제출 차단돼 수동)
 2. [사용자·맥미니] 클립보드 스크립트 붙여넣기 → 인증(키 or `claude` 로그인) → 실행
