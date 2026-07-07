@@ -19,7 +19,7 @@ import json
 import html
 import argparse
 import subprocess
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from pathlib import Path
 from collections import defaultdict
 
@@ -108,9 +108,24 @@ def _gws_values_get(sheet_id: str, rng: str, retries: int = 3) -> list[list]:
 
 
 # ─── 오늘 데이터 수집 (직원별 보고 블록) ───
-def fetch_day(target: str) -> dict:
-    """target(YYYY-MM-DD)에 해당하는 직원별 보고 블록을 모은다.
+def prev_bizday_range(date_str: str) -> list[str]:
+    """브리프 날짜의 소스 보고일 = 직전 영업일~어제 전부.
+    직원은 당일 저녁(20~22시 리마인드)에 보고하므로, 아침 브리프는 전날 보고를 읽어야 한다.
+    화~토 브리프 → 어제 하루. 월 브리프 → 금+토+일 (주말 보고 포함)."""
+    d = datetime.strptime(date_str, "%Y-%m-%d")
+    out, prev = [], d - timedelta(days=1)
+    while True:
+        out.append(prev.strftime("%Y-%m-%d"))
+        if prev.weekday() < 5:  # 평일(직전 영업일)을 만나면 중단
+            break
+        prev -= timedelta(days=1)
+    return out
+
+
+def fetch_day(target: str | list[str]) -> dict:
+    """target(YYYY-MM-DD 또는 날짜 리스트)에 해당하는 직원별 보고 블록을 모은다.
     반환: {name: {team, raw, core:[{output,issue,outcome,task,blocker}], meta:{decision,support,blocker,question}, basket:[(label,val)]}}"""
+    targets = {target} if isinstance(target, str) else set(target)
     core = _gws_values_get(DAILY_SHEET, "핵심업무!A2:L5000")
     meta = _gws_values_get(DAILY_SHEET, "메타!A2:L5000")
     basket = _gws_values_get(BASKET_SHEET, "일일보고!A2:O5000")
@@ -118,7 +133,7 @@ def fetch_day(target: str) -> dict:
 
     for r in core:
         r = r + [""] * (12 - len(r))
-        if normalize_date(r[0]) != target:
+        if normalize_date(r[0]) not in targets:
             continue
         nm = normalize_name(r[1])
         if not nm:
@@ -128,7 +143,7 @@ def fetch_day(target: str) -> dict:
 
     for r in meta:
         r = r + [""] * (12 - len(r))
-        if normalize_date(r[0]) != target:
+        if normalize_date(r[0]) not in targets:
             continue
         nm = normalize_name(r[1])
         if not nm:
@@ -140,7 +155,7 @@ def fetch_day(target: str) -> dict:
 
     for r in basket:
         r = r + [""] * (15 - len(r))
-        if normalize_date(r[1]) != target:
+        if normalize_date(r[1]) not in targets:
             continue
         nm = normalize_name(r[2])
         if not nm:
@@ -302,7 +317,7 @@ def _weekday_kr(target: str) -> str:
 def build_brief_data(target: str, day: dict | None = None) -> dict:
     """대표 전체 Brief. day(fetch_day 결과)를 받으면 gws 재호출을 피한다."""
     if day is None:
-        day = fetch_day(target)
+        day = fetch_day(prev_bizday_range(target))
     blocks = [_emp_block(nm, d) for nm, d in day.items()]
     items = engine_d(blocks)
     items += _carried_decision_items(target)  # 과거 미결(open) 결정 이월 — 정해질 때까지 노출
@@ -603,11 +618,13 @@ def save_team_brief(data: dict) -> Path:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"), help="YYYY-MM-DD (기본 오늘)")
+    ap.add_argument("--source", default="", help="소스 보고일(쉼표 구분) — 기본: 직전 영업일~어제 (저녁 보고 습관 반영)")
     ap.add_argument("--open", action="store_true")
     ap.add_argument("--no-telegram", action="store_true")
     args = ap.parse_args()
-    print(f"브리프 날짜: {args.date}")
-    day = fetch_day(args.date)  # 1회 수집 → 대표·팀 brief 공용(gws 재호출 0)
+    sources = [s.strip() for s in args.source.split(",") if s.strip()] or prev_bizday_range(args.date)
+    print(f"브리프 날짜: {args.date} · 소스 보고일: {', '.join(sources)}")
+    day = fetch_day(sources)  # 1회 수집 → 대표·팀 brief 공용(gws 재호출 0)
     data = build_brief_data(args.date, day)
     print(f"추출 항목: {len(data['items'])}건 (TOP5 {len(data['top5'])}) · 보고인원 {data['active_people']} · 미매칭 {len(data['unmatched'])}")
     save_and_notify(data, args.open, args.no_telegram)
