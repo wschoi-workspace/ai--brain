@@ -1,0 +1,2852 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>US Interior Compliance OS — KCCLA · Project Rent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
+<style>
+:root{
+  --primary:#6C5CE7; --primary-lt:#A29BFE; --primary-dk:#5A4BD1;
+  --sage:#8FA37E; --gold:#D9A34B; --coral:#E17055; --slate:#6F8AA3;
+  --ink:#0F0E13; --ink2:#17161D; --card:#1E1C26; --card2:#252230;
+  --line:#332F40; --cream:#F5F0EB; --muted:#A39FB0; --dim:#726E80;
+  --mono:'SF Mono',ui-monospace,'Roboto Mono',monospace;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;
+  background:var(--ink);
+  color:var(--cream);
+  font-size:14px;
+  line-height:1.7;
+  min-height:100vh;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--ink2);}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px;}
+
+/* ── NAV ── */
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(15,14,19,0.95);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+  display:flex;align-items:center;gap:8px;
+  padding:0 24px;height:52px;
+  overflow-x:auto;
+}
+.nav::-webkit-scrollbar{height:0;}
+.nav-brand{
+  font-weight:700;font-size:13px;letter-spacing:.05em;
+  white-space:nowrap;margin-right:8px;
+}
+.nav-brand b{color:var(--primary-lt);}
+.nav-divider{width:1px;height:20px;background:var(--line);flex-shrink:0;}
+.nav-tabs{display:flex;gap:4px;flex:1;}
+.tab-btn{
+  padding:6px 14px;border-radius:6px;border:none;cursor:pointer;
+  font-family:inherit;font-size:12.5px;font-weight:600;letter-spacing:.03em;
+  background:transparent;color:var(--muted);
+  transition:all .2s;white-space:nowrap;
+}
+.tab-btn:hover{background:var(--card2);color:var(--cream);}
+.tab-btn.active{background:var(--primary);color:#fff;}
+.nav-actions{display:flex;gap:6px;margin-left:auto;flex-shrink:0;}
+.btn{
+  padding:6px 14px;border-radius:6px;border:none;cursor:pointer;
+  font-family:inherit;font-size:12px;font-weight:600;
+  transition:all .2s;white-space:nowrap;
+}
+.btn-outline{
+  background:transparent;color:var(--primary-lt);
+  border:1px solid var(--primary);
+}
+.btn-outline:hover{background:var(--primary);color:#fff;}
+.btn-solid{background:var(--primary);color:#fff;}
+.btn-solid:hover{background:var(--primary-dk);}
+
+/* ── HERO ── */
+.hero{
+  padding:48px 24px 36px;
+  max-width:980px;margin:0 auto;
+}
+.tag-pill{
+  display:inline-block;
+  padding:4px 12px;border-radius:20px;
+  background:rgba(108,92,231,.15);
+  border:1px solid rgba(108,92,231,.4);
+  color:var(--primary-lt);
+  font-size:11px;font-weight:700;letter-spacing:.12em;
+  font-family:var(--mono);
+  margin-bottom:18px;
+}
+.hero-title{
+  font-size:clamp(22px,3.5vw,32px);
+  font-weight:800;line-height:1.3;
+  margin-bottom:10px;
+}
+.hero-title em{color:var(--primary-lt);font-style:normal;}
+.hero-sub{
+  color:var(--muted);font-size:14px;max-width:600px;
+  margin-bottom:8px;
+}
+.hero-meta{
+  font-size:12px;color:var(--dim);
+  font-family:var(--mono);letter-spacing:.05em;
+  margin-bottom:32px;
+}
+
+/* ── KPI CARDS ── */
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:12px;
+  margin-bottom:12px;
+}
+@media(max-width:720px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:480px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px;
+  cursor:pointer;
+  transition:all .2s;
+}
+.kpi-card:hover{border-color:var(--primary);transform:translateY(-2px);}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.06em;margin-bottom:8px;}
+.kpi-pct{font-size:22px;font-weight:800;margin-bottom:4px;}
+.kpi-bar-bg{height:4px;background:var(--line);border-radius:2px;}
+.kpi-bar-fill{height:4px;border-radius:2px;transition:width .4s ease;}
+.kpi-count{font-size:11px;color:var(--dim);margin-top:6px;font-family:var(--mono);}
+
+/* ── DASHBOARD ── */
+.dashboard{
+  display:none;
+  max-width:980px;margin:0 auto 24px;
+  padding:0 24px;
+}
+.dashboard.open{display:block;}
+.dashboard-inner{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:24px;
+}
+.dashboard-title{
+  font-size:15px;font-weight:700;margin-bottom:20px;
+  color:var(--cream);
+}
+.dash-overall{margin-bottom:24px;}
+.dash-overall-label{
+  display:flex;justify-content:space-between;
+  font-size:13px;color:var(--muted);margin-bottom:8px;
+}
+.dash-overall-pct{font-weight:700;color:var(--primary-lt);}
+.dash-bar-bg{height:8px;background:var(--line);border-radius:4px;}
+.dash-bar-fill{
+  height:8px;border-radius:4px;
+  background:linear-gradient(90deg,var(--primary),var(--primary-lt));
+  transition:width .4s ease;
+}
+.dash-modules{display:flex;flex-direction:column;gap:14px;}
+.dash-mod-row{display:flex;align-items:center;gap:14px;}
+.dash-mod-label{
+  font-size:12px;font-weight:700;width:90px;flex-shrink:0;
+  letter-spacing:.04em;
+}
+.dash-mod-bar-bg{flex:1;height:6px;background:var(--line);border-radius:3px;}
+.dash-mod-bar-fill{height:6px;border-radius:3px;transition:width .4s ease;}
+.dash-mod-pct{
+  font-size:12px;font-family:var(--mono);
+  width:42px;text-align:right;flex-shrink:0;
+}
+.dash-mod-count{font-size:11px;color:var(--dim);font-family:var(--mono);width:60px;text-align:right;flex-shrink:0;}
+.dash-total{
+  margin-top:20px;padding-top:16px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--dim);text-align:right;font-family:var(--mono);
+}
+
+/* ── MAIN CONTENT ── */
+.main{max-width:980px;margin:0 auto;padding:0 24px 60px;}
+
+.module-section{display:none;}
+.module-section.active{display:block;}
+
+.module-header{
+  display:flex;align-items:center;gap:14px;
+  padding:24px 0 20px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:24px;
+}
+.module-accent-bar{
+  width:4px;height:40px;border-radius:2px;flex-shrink:0;
+}
+.module-title-wrap{}
+.module-num{
+  font-size:11px;font-family:var(--mono);font-weight:700;
+  letter-spacing:.1em;opacity:.7;margin-bottom:2px;
+}
+.module-title{font-size:20px;font-weight:800;}
+.module-progress-wrap{
+  margin-left:auto;text-align:right;
+}
+.module-pct-big{
+  font-size:22px;font-weight:800;line-height:1;
+  margin-bottom:4px;
+}
+.module-count-small{font-size:11px;color:var(--dim);font-family:var(--mono);}
+.module-bar-bg{
+  width:100px;height:5px;background:var(--line);border-radius:3px;margin-top:6px;margin-left:auto;
+}
+.module-bar-fill{height:5px;border-radius:3px;transition:width .4s ease;}
+
+/* ── CHECKLIST GROUPS ── */
+.checklist-group{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  margin-bottom:16px;
+  overflow:hidden;
+}
+.group-header{
+  padding:14px 18px;
+  border-bottom:1px solid var(--line);
+  font-size:12.5px;font-weight:700;letter-spacing:.06em;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.group-title{display:flex;align-items:center;gap:8px;}
+.group-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.group-count{
+  font-size:11px;font-family:var(--mono);color:var(--dim);
+  background:var(--card2);padding:2px 8px;border-radius:10px;
+}
+.checklist-items{padding:4px 0;}
+
+/* ── CHECKLIST ITEM ── */
+.checklist-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 18px;
+  border-bottom:1px solid rgba(51,47,64,.5);
+  transition:background .15s;
+}
+.checklist-item:last-child{border-bottom:none;}
+.checklist-item:hover{background:rgba(255,255,255,.02);}
+.checklist-item.checked{background:rgba(108,92,231,.04);}
+.checklist-item input[type="checkbox"]{
+  width:16px;height:16px;flex-shrink:0;
+  margin-top:2px;cursor:pointer;
+  accent-color:var(--primary);
+}
+.item-label{
+  font-size:13.5px;line-height:1.6;cursor:pointer;
+  color:var(--cream);
+}
+.checklist-item.checked .item-label{
+  color:var(--dim);text-decoration:line-through;
+}
+.item-note{
+  display:block;margin-top:3px;
+  font-size:11.5px;color:var(--muted);
+  font-family:var(--mono);
+}
+.item-ref{
+  display:inline-block;
+  font-size:11px;color:var(--primary-lt);
+  background:rgba(108,92,231,.12);
+  border:1px solid rgba(108,92,231,.25);
+  padding:1px 8px;border-radius:4px;margin-top:4px;
+  font-family:var(--mono);letter-spacing:.03em;
+}
+
+/* ── ITEM DETAIL DESC ── */
+.item-row{
+  display:flex;align-items:flex-start;gap:12px;cursor:pointer;flex:1;
+}
+.item-toggle{
+  margin-left:auto;font-size:10px;color:var(--dim);
+  transition:transform .2s;flex-shrink:0;padding-top:3px;
+  user-select:none;
+}
+.checklist-item.open .item-toggle{transform:rotate(90deg);color:var(--primary-lt);}
+.item-desc{
+  display:none;
+  margin:4px 18px 10px 46px;
+  padding:10px 14px;
+  background:var(--ink2);
+  border:1px solid var(--line);
+  border-radius:8px;
+  font-size:12.5px;
+  color:var(--muted);
+  line-height:1.7;
+}
+.checklist-item.open .item-desc{display:block;}
+.item-desc ul{margin:0;padding-left:16px;}
+.item-desc li{margin-bottom:3px;}
+.item-desc li::marker{color:var(--primary-lt);}
+.item-desc strong,.item-desc code{color:var(--cream);}
+.item-desc code{
+  font-family:var(--mono);font-size:11px;
+  background:var(--card);padding:1px 5px;border-radius:3px;
+}
+
+/* ── FOOTER ── */
+.footer{
+  text-align:center;padding:24px;
+  border-top:1px solid var(--line);
+  font-size:11px;color:var(--dim);
+  font-family:var(--mono);letter-spacing:.05em;
+}
+
+/* ── PRINT ── */
+@media print{
+  .nav,.dashboard,.btn,.tag-pill,
+  .kpi-grid{display:none!important;}
+  .module-section{display:block!important;}
+  body{background:#fff;color:#000;font-size:11px;}
+  .hero-title{font-size:18px;}
+  .checklist-group{border:1px solid #ddd;break-inside:avoid;}
+  .module-section{page-break-before:always;}
+  .module-section:first-of-type{page-break-before:avoid;}
+  input[type="checkbox"]{display:none;}
+  .checklist-item::before{
+    content:'☐';margin-right:8px;font-size:14px;
+  }
+  .checklist-item.checked::before{content:'☑';}
+  .item-label{color:#000!important;text-decoration:none!important;}
+  .checklist-item.checked .item-label{color:#666!important;}
+  .group-header{background:#f5f5f5;color:#000;}
+  .module-header{border-bottom:2px solid #000;}
+  .module-title{color:#000;}
+  .item-desc{display:block!important;margin-left:28px;border:none;background:transparent;color:#444;padding:4px 0;}
+  .item-toggle{display:none!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ── -->
+<nav class="nav">
+  <span class="nav-brand"><b>Project Rent</b></span>
+  <div class="nav-divider"></div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" data-module="m1" onclick="showModule('m1')">M1 법규</button>
+    <button class="tab-btn" data-module="m2" onclick="showModule('m2')">M2 행정</button>
+    <button class="tab-btn" data-module="m3" onclick="showModule('m3')">M3 설계</button>
+    <button class="tab-btn" data-module="m4" onclick="showModule('m4')">M4 시공</button>
+    <button class="tab-btn" data-module="m5" onclick="showModule('m5')">M5 오픈</button>
+  </div>
+  <div class="nav-actions">
+    <button class="btn btn-outline" onclick="toggleDashboard()">Dashboard</button>
+    <button class="btn btn-solid" onclick="exportJSON()">Export</button>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="tag-pill">US INTERIOR COMPLIANCE OS</div>
+  <h1 class="hero-title">미국 인테리어 시공 <em>컴플라이언스 OS</em></h1>
+  <p class="hero-sub">LA 한국문화원(KCCLA) 전시 인테리어 — 법규·행정·설계·시공·오픈 5모듈 통합 체크리스트</p>
+  <p class="hero-meta">Project Rent · 2026</p>
+
+  <div class="kpi-grid">
+    <div class="kpi-card" onclick="showModule('m1')">
+      <div class="kpi-label" style="color:var(--coral)">M1 법규</div>
+      <div class="kpi-pct" id="kpi-pct-m1" style="color:var(--coral)">0%</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar-fill" id="kpi-bar-m1" style="background:var(--coral);width:0%"></div></div>
+      <div class="kpi-count" id="kpi-count-m1">0 / 0</div>
+    </div>
+    <div class="kpi-card" onclick="showModule('m2')">
+      <div class="kpi-label" style="color:var(--primary-lt)">M2 행정</div>
+      <div class="kpi-pct" id="kpi-pct-m2" style="color:var(--primary-lt)">0%</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar-fill" id="kpi-bar-m2" style="background:var(--primary-lt);width:0%"></div></div>
+      <div class="kpi-count" id="kpi-count-m2">0 / 0</div>
+    </div>
+    <div class="kpi-card" onclick="showModule('m3')">
+      <div class="kpi-label" style="color:var(--gold)">M3 설계</div>
+      <div class="kpi-pct" id="kpi-pct-m3" style="color:var(--gold)">0%</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar-fill" id="kpi-bar-m3" style="background:var(--gold);width:0%"></div></div>
+      <div class="kpi-count" id="kpi-count-m3">0 / 0</div>
+    </div>
+    <div class="kpi-card" onclick="showModule('m4')">
+      <div class="kpi-label" style="color:var(--sage)">M4 시공</div>
+      <div class="kpi-pct" id="kpi-pct-m4" style="color:var(--sage)">0%</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar-fill" id="kpi-bar-m4" style="background:var(--sage);width:0%"></div></div>
+      <div class="kpi-count" id="kpi-count-m4">0 / 0</div>
+    </div>
+    <div class="kpi-card" onclick="showModule('m5')">
+      <div class="kpi-label" style="color:var(--slate)">M5 오픈</div>
+      <div class="kpi-pct" id="kpi-pct-m5" style="color:var(--slate)">0%</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar-fill" id="kpi-bar-m5" style="background:var(--slate);width:0%"></div></div>
+      <div class="kpi-count" id="kpi-count-m5">0 / 0</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div class="dashboard" id="dashboard">
+  <div class="dashboard-inner">
+    <div class="dashboard-title">Progress Dashboard</div>
+    <div class="dash-overall">
+      <div class="dash-overall-label">
+        <span>전체 진행률</span>
+        <span class="dash-overall-pct" id="dash-overall-pct">0%</span>
+      </div>
+      <div class="dash-bar-bg"><div class="dash-bar-fill" id="dash-overall-bar" style="width:0%"></div></div>
+    </div>
+    <div class="dash-modules">
+      <div class="dash-mod-row">
+        <span class="dash-mod-label" style="color:var(--coral)">M1 법규</span>
+        <div class="dash-mod-bar-bg"><div class="dash-mod-bar-fill" id="dash-bar-m1" style="background:var(--coral);width:0%"></div></div>
+        <span class="dash-mod-pct" id="dash-pct-m1" style="color:var(--coral)">0%</span>
+        <span class="dash-mod-count" id="dash-count-m1">0 / 0</span>
+      </div>
+      <div class="dash-mod-row">
+        <span class="dash-mod-label" style="color:var(--primary-lt)">M2 행정</span>
+        <div class="dash-mod-bar-bg"><div class="dash-mod-bar-fill" id="dash-bar-m2" style="background:var(--primary-lt);width:0%"></div></div>
+        <span class="dash-mod-pct" id="dash-pct-m2" style="color:var(--primary-lt)">0%</span>
+        <span class="dash-mod-count" id="dash-count-m2">0 / 0</span>
+      </div>
+      <div class="dash-mod-row">
+        <span class="dash-mod-label" style="color:var(--gold)">M3 설계</span>
+        <div class="dash-mod-bar-bg"><div class="dash-mod-bar-fill" id="dash-bar-m3" style="background:var(--gold);width:0%"></div></div>
+        <span class="dash-mod-pct" id="dash-pct-m3" style="color:var(--gold)">0%</span>
+        <span class="dash-mod-count" id="dash-count-m3">0 / 0</span>
+      </div>
+      <div class="dash-mod-row">
+        <span class="dash-mod-label" style="color:var(--sage)">M4 시공</span>
+        <div class="dash-mod-bar-bg"><div class="dash-mod-bar-fill" id="dash-bar-m4" style="background:var(--sage);width:0%"></div></div>
+        <span class="dash-mod-pct" id="dash-pct-m4" style="color:var(--sage)">0%</span>
+        <span class="dash-mod-count" id="dash-count-m4">0 / 0</span>
+      </div>
+      <div class="dash-mod-row">
+        <span class="dash-mod-label" style="color:var(--slate)">M5 오픈</span>
+        <div class="dash-mod-bar-bg"><div class="dash-mod-bar-fill" id="dash-bar-m5" style="background:var(--slate);width:0%"></div></div>
+        <span class="dash-mod-pct" id="dash-pct-m5" style="color:var(--slate)">0%</span>
+        <span class="dash-mod-count" id="dash-count-m5">0 / 0</span>
+      </div>
+    </div>
+    <div class="dash-total" id="dash-total">총 0 / 0 항목 완료</div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- ════════════════════════════════ M1 법규 ════════════════════════════════ -->
+  <section class="module-section active" id="section-m1">
+    <div class="module-header">
+      <div class="module-accent-bar" style="background:var(--coral)"></div>
+      <div class="module-title-wrap">
+        <div class="module-num">MODULE 01</div>
+        <div class="module-title" style="color:var(--coral)">법규 (Legal &amp; Code)</div>
+      </div>
+      <div class="module-progress-wrap">
+        <div class="module-pct-big" id="mod-pct-m1" style="color:var(--coral)">0%</div>
+        <div class="module-count-small" id="mod-count-m1">0 / 0</div>
+        <div class="module-bar-bg"><div class="module-bar-fill" id="mod-bar-m1" style="background:var(--coral);width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- CBC Title 24 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--coral)"></span>
+          <span style="color:var(--coral)">CBC Title 24 (California Building Code)</span>
+        </div>
+        <span class="group-count" id="gc-m1-cbc">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m1-cbc-1">
+          <div class="item-row">
+            <input type="checkbox" id="m1-cbc-1" onchange="onCheck(this)">
+            <span class="item-label">Part 2 Building Code 적용 범위 확인 (IBC 2021 기반 + CA amendments)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Occupancy Classification 확인 — 전시/문화시설은 <strong>A-3(Assembly)</strong> 해당</li>
+            <li>Type of Construction(I~V) 확인: 화재등급별 구조 요건</li>
+            <li>Occupant Load 산출: 전시공간 기준 <code>면적(sq ft) ÷ 30 = 최대 수용인원</code></li>
+            <li>기존 건물 개조(Alteration) 시 적용 범위: 전체 소급 vs 개조 부분만 판단</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-cbc-2">
+          <div class="item-row">
+            <input type="checkbox" id="m1-cbc-2" onchange="onCheck(this)">
+            <span class="item-label">Part 6 Energy Code — 조명 LPD(Lighting Power Density) 기준 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>LPD(Lighting Power Density) 허용치: 전시공간 Category별 W/sq ft 제한 확인</li>
+            <li>조명 제어 요건: 자동 차단(auto-off), 점유감지(occupancy sensor) 설치</li>
+            <li><strong>Title 24 에너지 서류</strong>(CF-1R/CF-2R/CF-3R) 제출 필수 여부 확인</li>
+            <li>LED 전환 시 기존 대비 에너지 절감 문서화 필요</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-cbc-3">
+          <div class="item-row">
+            <input type="checkbox" id="m1-cbc-3" onchange="onCheck(this)">
+            <span class="item-label">Part 11 Chapter 11B — California Accessibility (ADA보다 엄격) 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>California Accessibility는 연방 ADA보다 엄격 — <strong>항상 CBC 11B 기준 우선</strong></li>
+            <li>CASp(Certified Access Specialist) 검사 권장: 선제 검사 시 소송 방어에 유리</li>
+            <li>주요 차이: 통로(ADA 36" vs CBC 44"), 카운터 높이, 표지판 규격</li>
+            <li>CBC 11B 비준수 시 <strong>Unruh Act $4,000/건</strong> 자동 적용</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-cbc-4">
+          <div class="item-row">
+            <input type="checkbox" id="m1-cbc-4" onchange="onCheck(this)">
+            <span class="item-label">Part 12 Fire Code 적용 사항 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>인테리어 변경이 Fire Code 신고 트리거에 해당하는지 확인</li>
+            <li>LAFD와 사전 협의 필요 여부 판단</li>
+            <li>기존 스프링클러/감지기 시스템에 영향 없는지 확인</li>
+            <li>비상 대피로(Means of Egress) 변경 시 별도 Plan Check 필요</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-cbc-5">
+          <div class="item-row">
+            <input type="checkbox" id="m1-cbc-5" onchange="onCheck(this)">
+            <span class="item-label">Structural: 전시물 하중 검토 (suspended displays, wall-mounted)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>석고보드 벽 하중 한계: 일반 <code>15lb/anchor</code>, 블로킹 시 <code>50lb+</code></li>
+            <li>천장 매달기(Suspended): 기존 구조 하중 검토 + 구조 엔지니어 계산서 필요 여부</li>
+            <li>바닥 Live Load 확인: 일반 상업공간 <code>100 psf</code></li>
+            <li>지진 고려: <strong>Seismic Zone 4(LA)</strong> — 전시물 전도 방지 앵커링 필수</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADA 핵심 수치 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--coral)"></span>
+          <span style="color:var(--coral)">ADA 핵심 수치 요약</span>
+        </div>
+        <span class="group-count" id="gc-m1-ada">0/6</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m1-ada-1">
+          <div class="item-row">
+            <input type="checkbox" id="m1-ada-1" onchange="onCheck(this)">
+            <span class="item-label">통로 36" 최소 (44" 권장, CBC 11B: 44" 요구)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>ADA §403.5.1: 최소 36"(914mm), 24" 구간만 32"까지 축소 허용</li>
+            <li><strong>CBC 11B: 점유 50명 초과 시 44"(1118mm) 요구</strong> — LA 문화시설 대부분 해당</li>
+            <li>전시물 배치 시 통로 폭 재측정 필수: 임시 전시물 통로 침범 빈번</li>
+            <li>양방향 통행 구간은 60" 권장</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-ada-2">
+          <div class="item-row">
+            <input type="checkbox" id="m1-ada-2" onchange="onCheck(this)">
+            <span class="item-label">출입문 32" clear opening</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>ADA §404.2.3: 문 90도 열었을 때 순수 통과 폭 <code>32"(813mm)</code> 이상</li>
+            <li>측정: 문틀~문짝 사이 거리(문 두께 제외)</li>
+            <li>문 닫히는 힘: <code>5 lbs 이하</code>(fire door 제외), 닫힘 시간 최소 5초</li>
+            <li>도어 하드웨어: <strong>레버형 필수</strong>(둥근 손잡이 불가), 한 손 조작</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-ada-3">
+          <div class="item-row">
+            <input type="checkbox" id="m1-ada-3" onchange="onCheck(this)">
+            <span class="item-label">휠체어 회전 60" 직경</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>ADA §304.3: 180° 회전 시 <code>60"(1524mm)</code> 직경 원형 공간</li>
+            <li>대안: T자형 회전공간 60"×36" 사용 가능(§304.3.2)</li>
+            <li>막다른 구간(dead-end)에 반드시 회전 공간 확보</li>
+            <li>전시 레이아웃 변경 시마다 회전 공간 재검증</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-ada-4">
+          <div class="item-row">
+            <input type="checkbox" id="m1-ada-4" onchange="onCheck(this)">
+            <span class="item-label">경사로 1:12 기울기, 36" 너비</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>ADA §405.2: 최대 경사 <code>1:12(8.33%)</code>, 30" 상승 시 최소 30ft 경사로</li>
+            <li>너비: 최소 36", CBC 11B에서는 48" 권장</li>
+            <li>60"×60" 평탄 랜딩: 경사로 상·하단 + 30ft마다</li>
+            <li>핸드레일: 높이 <code>34-38"</code>, 양면 설치, 상·하단 12" 연장</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-ada-5">
+          <div class="item-row">
+            <input type="checkbox" id="m1-ada-5" onchange="onCheck(this)">
+            <span class="item-label">전시 디스플레이 높이 15–48" (forward reach range)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>ADA §308: Forward reach range <code>15-48"(381-1219mm)</code></li>
+            <li>장애물 없을 때: 15-48", 장애물 깊이 20" 이내 시 최대 48"</li>
+            <li>장애물 깊이 20-25" → 최대 높이 44"</li>
+            <li>핵심 전시물 중심선은 <strong>36-39"(휠체어 눈높이 최적)</strong> 배치 권장</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-ada-6">
+          <div class="item-row">
+            <input type="checkbox" id="m1-ada-6" onchange="onCheck(this)">
+            <span class="item-label">→ 상세 매뉴얼 참조
+              <span class="item-ref">ref: ada-compliance-manual.html</span>
+            </span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>ADA 전체 수치 테이블, 전시공간 특수 규정, 리스크 매트릭스는 별도 ADA Manual 참고</li>
+            <li>CBC 11B가 ADA보다 엄격한 항목 비교표 포함</li>
+            <li>설계/시공/최종검수 3단계 체크리스트도 ADA Manual에 포함</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fire Code -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--coral)"></span>
+          <span style="color:var(--coral)">Fire Code (LAFD)</span>
+        </div>
+        <span class="group-count" id="gc-m1-fire">0/6</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m1-fire-1">
+          <div class="item-row">
+            <input type="checkbox" id="m1-fire-1" onchange="onCheck(this)">
+            <span class="item-label">내장재 등급 확인: Class A (FSI 0–25) 필수</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>ASTM E84 Tunnel Test: <code>FSI 0-25 = Class A</code> / Class B: 26-75 / Class C: 76-200</li>
+            <li>전시공간은 <strong>Class A 필수</strong></li>
+            <li>공급업체에 ASTM E84 시험성적서 <strong>원본</strong> 요청 — 인증서 사본 불가</li>
+            <li>페인트도 내장재에 포함: 내화 등급 페인트 사용 시 인증서 확보</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-fire-2">
+          <div class="item-row">
+            <input type="checkbox" id="m1-fire-2" onchange="onCheck(this)">
+            <span class="item-label">스프링클러 시스템 기존 상태 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>기존 스프링클러 위치·커버리지 확인: 전시 구조물이 살수 방해 여부</li>
+            <li>높이 변경(천장 내림 등) 시 헤드 재배치 필요 여부</li>
+            <li>전시 조명 열원이 헤드에 영향 없는지 확인 (최소 <code>18" 이격</code>)</li>
+            <li>인테리어 작업 시 배관 파손 주의</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-fire-3">
+          <div class="item-row">
+            <input type="checkbox" id="m1-fire-3" onchange="onCheck(this)">
+            <span class="item-label">비상구 수량 확인 (49인 이하=1개, 50+=2개)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>LAMC §57.33.17: <code>49인 이하=1개</code>, <code>50-499인=2개</code>, <code>500+=3개</code></li>
+            <li>Occupant Load 산출: <code>전시면적(sq ft) ÷ 30</code></li>
+            <li>출구 간 이격거리: 대각선 길이의 1/2 이상(스프링클러 있으면 1/3)</li>
+            <li>비상 출구 폭: <code>인원 × 0.2"/person</code>(최소 36")</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-fire-4">
+          <div class="item-row">
+            <input type="checkbox" id="m1-fire-4" onchange="onCheck(this)">
+            <span class="item-label">비상구 표시등(Exit Sign) — illuminated, battery backup</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>항시 점등(illuminated), 정전 시 <code>90분 이상</code> 배터리 백업</li>
+            <li>설치 위치: 출구 위 6'8"~7'0", 바닥에서 보이는 경로 표시</li>
+            <li>문자 높이: 최소 6", 조명식 또는 자발광</li>
+            <li>경로 표시(directional): 출구까지 경로가 불명확한 곳에 추가</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-fire-5">
+          <div class="item-row">
+            <input type="checkbox" id="m1-fire-5" onchange="onCheck(this)">
+            <span class="item-label">소화기 위치 및 종류 확인 (75ft travel distance max)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>설치 간격: 이동거리 <code>75ft(22.8m)</code> 이내에 1대</li>
+            <li>종류: Class ABC, 최소 <code>2A:10B:C</code> 등급</li>
+            <li>설치 높이: 바닥에서 손잡이까지 <code>3.5-5ft</code>(ADA 접근 가능)</li>
+            <li>월 1회 육안 점검, 연 1회 전문 점검, 6년마다 내부 점검</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-fire-6">
+          <div class="item-row">
+            <input type="checkbox" id="m1-fire-6" onchange="onCheck(this)">
+            <span class="item-label">비상 조명(Emergency Lighting) 설치 여부</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>정전 시 자동 점등, 최소 <code>90분</code> 지속</li>
+            <li>바닥면 평균 <code>1 fc</code>(foot-candle), 최소 0.1 fc</li>
+            <li>비상 탈출로 전 구간 커버, 전시장 내부 포함</li>
+            <li>월 1회 30초 테스트, 연 1회 90분 풀 테스트</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zoning -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--coral)"></span>
+          <span style="color:var(--coral)">Zoning / Land Use</span>
+        </div>
+        <span class="group-count" id="gc-m1-zone">0/3</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m1-zone-1">
+          <div class="item-row">
+            <input type="checkbox" id="m1-zone-1" onchange="onCheck(this)">
+            <span class="item-label">현재 Zoning 용도지역 확인 (Commercial/Cultural)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>LADBS <strong>ZIMAS</strong>(Zoning Information &amp; Map Access System)에서 현재 zoning 확인</li>
+            <li>문화원 건물 용도: C(Commercial) 또는 PF(Public Facility) 확인</li>
+            <li>전시 용도가 현재 zoning에서 허용 use인지 확인</li>
+            <li>CUP(Conditional Use Permit) 존재 여부 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-zone-2">
+          <div class="item-row">
+            <input type="checkbox" id="m1-zone-2" onchange="onCheck(this)">
+            <span class="item-label">용도변경(Change of Use) 필요 여부 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>기존→전시/갤러리 변경 시 Change of Use permit 필요 여부</li>
+            <li>Occupancy Classification 변경(B→A-3 등) 시 추가 요건 발생 가능</li>
+            <li>용도변경 없어도 Occupant Load 증가 시 비상구/스프링클러 재검토</li>
+            <li>문화원이 이미 문화시설로 등록되어 있으면 변경 불필요 가능성</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m1-zone-3">
+          <div class="item-row">
+            <input type="checkbox" id="m1-zone-3" onchange="onCheck(this)">
+            <span class="item-label">주차 요건 확인 (ADA accessible parking)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>LA 주차 기준: Assembly use 기준 좌석/면적당 주차대수</li>
+            <li>ADA 주차: 1-25대 → 1대 accessible, 26-50대 → 2대</li>
+            <li>Accessible 주차: <code>8ft 폭 + 5ft aisle</code>, 표지판 높이 60"</li>
+            <li>Van accessible: 최소 1대, <code>11ft + 5ft aisle</code></li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ M2 행정 ════════════════════════════════ -->
+  <section class="module-section" id="section-m2">
+    <div class="module-header">
+      <div class="module-accent-bar" style="background:var(--primary-lt)"></div>
+      <div class="module-title-wrap">
+        <div class="module-num">MODULE 02</div>
+        <div class="module-title" style="color:var(--primary-lt)">행정 (Permits &amp; Admin)</div>
+      </div>
+      <div class="module-progress-wrap">
+        <div class="module-pct-big" id="mod-pct-m2" style="color:var(--primary-lt)">0%</div>
+        <div class="module-count-small" id="mod-count-m2">0 / 0</div>
+        <div class="module-bar-bg"><div class="module-bar-fill" id="mod-bar-m2" style="background:var(--primary-lt);width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Permit 유형 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--primary-lt)"></span>
+          <span style="color:var(--primary-lt)">Permit 유형</span>
+        </div>
+        <span class="group-count" id="gc-m2-permit">0/3</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m2-permit-1">
+          <div class="item-row">
+            <input type="checkbox" id="m2-permit-1" onchange="onCheck(this)">
+            <span class="item-label">필요 Permit 유형 결정: Counter / Standard / Express
+              <span class="item-note">Counter Permit: 소규모 전기/조명, $0–$500 · Standard Plan Check: 구조변경/MEP, 4–8주 · Express Permit: 경미한 인테리어, 1–2주</span>
+            </span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Counter Permit: 전기/조명 교체 등 소규모, 당일 발급, <code>$0-$500</code></li>
+            <li>Standard Plan Check: 구조변경·신규 MEP, 도면 제출, <code>4-8주</code></li>
+            <li>Express Permit: 경미한 인테리어(비구조 파티션, 페인트), <code>1-2주</code></li>
+            <li>판단 기준: 구조 변경 여부, MEP 변경 범위, 점유하중 변경 여부</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-permit-2">
+          <div class="item-row">
+            <input type="checkbox" id="m2-permit-2" onchange="onCheck(this)">
+            <span class="item-label">LADBS 온라인 접수(ePlanLA) 또는 현장 접수 결정</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li><strong>ePlanLA</strong>: 온라인 도면 제출, 진행 상황 실시간 조회</li>
+            <li>현장 접수(Walk-in): 201 N. Figueroa St., Counter Permit은 현장만 가능</li>
+            <li>Pre-consultation 예약 가능(복잡한 프로젝트)</li>
+            <li>도면 포맷: PDF, 24"×36", 축척·범례·도면번호 포함</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-permit-3">
+          <div class="item-row">
+            <input type="checkbox" id="m2-permit-3" onchange="onCheck(this)">
+            <span class="item-label">Plan Check fee 산출 (프로젝트 valuation 기반)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>산출 기준: 프로젝트 총 공사비(valuation) 기반 — LADBS fee schedule</li>
+            <li>일반적으로 valuation의 <code>0.5-2%</code> 수준</li>
+            <li>추가: LAFD review fee, Accessibility review fee, 기계/전기 별도</li>
+            <li>Express service(추가 비용)로 기간 단축 가능</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan Check 제출서류 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--primary-lt)"></span>
+          <span style="color:var(--primary-lt)">Plan Check 제출서류</span>
+        </div>
+        <span class="group-count" id="gc-m2-plancheck">0/7</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m2-plancheck-1">
+          <div class="item-row">
+            <input type="checkbox" id="m2-plancheck-1" onchange="onCheck(this)">
+            <span class="item-label">설계 도면(Floor Plan) — 1/4" = 1'-0" scale</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>축척: <code>1/4" = 1'-0"</code>(1:48) 또는 <code>1/8" = 1'-0"</code>(1:96)</li>
+            <li>필수 표기: 치수, 문 위치·방향, 벽체 유형, 재료 표시</li>
+            <li>기존 vs 신규: Demolition Plan + New Plan 구분 표기</li>
+            <li>비상구 경로, Occupant Load, 출구 너비 표기</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-plancheck-2">
+          <div class="item-row">
+            <input type="checkbox" id="m2-plancheck-2" onchange="onCheck(this)">
+            <span class="item-label">전기 도면(Electrical Plan)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>조명 배치, 콘센트·스위치 위치, 회로 배정</li>
+            <li>패널 스케줄: 회로별 부하(amperage), 브레이커 크기</li>
+            <li>특수 전원: 영상장비, 인터랙티브 설치물 전용 회로</li>
+            <li>비상 조명 및 Exit Sign 위치 표기</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-plancheck-3">
+          <div class="item-row">
+            <input type="checkbox" id="m2-plancheck-3" onchange="onCheck(this)">
+            <span class="item-label">기계 도면(Mechanical Plan) — 해당 시</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>HVAC 덕트 변경·신규 공조 설비 추가 시 필수</li>
+            <li>기존 HVAC 영향 없으면 생략 가능</li>
+            <li>환기량: ASHRAE 62.1 기준, 전시장 cfm/person</li>
+            <li>소음 등급: 갤러리 <code>NC 25-30</code> 권장</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-plancheck-4">
+          <div class="item-row">
+            <input type="checkbox" id="m2-plancheck-4" onchange="onCheck(this)">
+            <span class="item-label">내장재 사양서(Finish Schedule) with fire ratings</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>각 실/구역별 바닥·벽·천장 재료 및 색상 명기</li>
+            <li>Fire Rating 포함: 각 재료의 ASTM E84 결과(FSI + SDI)</li>
+            <li>제조사·제품번호·인증 번호 기재</li>
+            <li>마감 두께, 접착제 종류, 시공 방법 포함</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-plancheck-5">
+          <div class="item-row">
+            <input type="checkbox" id="m2-plancheck-5" onchange="onCheck(this)">
+            <span class="item-label">Title 24 Energy Compliance Forms</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>CF-1R(설계 적합), CF-2R(시공 적합), CF-3R(검증) 양식</li>
+            <li>에너지 계산서(소프트웨어 출력물) 첨부</li>
+            <li>조명만 변경 시 Lighting Only 축약 양식 사용 가능</li>
+            <li>HERS rater 필요 여부 확인(CF-3R 작성자)</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-plancheck-6">
+          <div class="item-row">
+            <input type="checkbox" id="m2-plancheck-6" onchange="onCheck(this)">
+            <span class="item-label">Accessibility Compliance (CASp report 권장)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li><strong>CASp 사전 검사 강력 권장</strong></li>
+            <li>CASp 보고서: ADA 소송 시 <code>120일 유예</code> + 합리적 항변</li>
+            <li>검사 비용: <code>$2,000-$5,000</code>(규모에 따라)</li>
+            <li>Plan Check 시 CASp 보고서 첨부 → Accessibility review 간소화</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-plancheck-7">
+          <div class="item-row">
+            <input type="checkbox" id="m2-plancheck-7" onchange="onCheck(this)">
+            <span class="item-label">Structural calculations (해당 시)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>필요: 벽체 철거/신설, 천장 매달기 하중, 중량 전시물 설치</li>
+            <li>PE 또는 SE 면허 보유자 작성 필수</li>
+            <li>Seismic 계산 포함: LA는 <strong>Seismic Design Category D</strong></li>
+            <li>경미한 비내력벽 파티션은 구조계산서 불필요</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inspection 타임라인 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--primary-lt)"></span>
+          <span style="color:var(--primary-lt)">Inspection 타임라인</span>
+        </div>
+        <span class="group-count" id="gc-m2-inspect">0/6</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m2-inspect-1">
+          <div class="item-row">
+            <input type="checkbox" id="m2-inspect-1" onchange="onCheck(this)">
+            <span class="item-label">Rough-in Inspection 일정 예약</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>전기·배관·기계 배선/배관을 벽/천장 안에 넣기 전 검사</li>
+            <li>예약: LADBS 온라인/전화, 최소 <code>1 working day</code> 전</li>
+            <li>검사관 현장 방문, 불합격 시 보정 후 재검사(re-inspection fee)</li>
+            <li><strong>검사 통과 없이 벽 닫으면 다시 열어야 함</strong></li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-inspect-2">
+          <div class="item-row">
+            <input type="checkbox" id="m2-inspect-2" onchange="onCheck(this)">
+            <span class="item-label">Framing Inspection</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>벽체 프레이밍 완료 후, 마감재 설치 전</li>
+            <li>스터드 간격(<code>16" o.c.</code>), 헤더 사이즈, 블로킹 위치</li>
+            <li>비내력벽도 화재 차단(fire blocking) 확인</li>
+            <li>파티션 높이·고정 방식 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-inspect-3">
+          <div class="item-row">
+            <input type="checkbox" id="m2-inspect-3" onchange="onCheck(this)">
+            <span class="item-label">Electrical Inspection (rough &amp; final)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Rough: 배선 경로, 와이어 규격, 박스 설치, 접지</li>
+            <li>Final: 기기 설치 후, 패널 라벨링, GFCI 작동, 전압 측정</li>
+            <li>조명 제어 시스템 시운전(commissioning) 포함</li>
+            <li>AFCI 필요 구역 확인(주거 아니면 대부분 불필요)</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-inspect-4">
+          <div class="item-row">
+            <input type="checkbox" id="m2-inspect-4" onchange="onCheck(this)">
+            <span class="item-label">Mechanical Inspection (해당 시)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>HVAC 덕트 변경·신규 장비 설치 시에만 해당</li>
+            <li>기존 시스템 유지(덕트 연장 없음)이면 생략 가능</li>
+            <li>검사: 덕트 연결, 절연, 접근 패널, 환기량</li>
+            <li>제어 시스템(thermostat, 타이머) 작동 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-inspect-5">
+          <div class="item-row">
+            <input type="checkbox" id="m2-inspect-5" onchange="onCheck(this)">
+            <span class="item-label">Drywall/Lath Inspection (before closing walls)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>석고보드 설치 후, 테이핑/머딩 전 검사</li>
+            <li>보드 두께(<code>5/8" fire-rated</code> where required), 나사 간격, 이음새</li>
+            <li>방화벽 관통부(penetration) 방화 실링 확인</li>
+            <li><strong>이 검사 통과 전 조인트 컴파운드 작업 금지</strong></li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-inspect-6">
+          <div class="item-row">
+            <input type="checkbox" id="m2-inspect-6" onchange="onCheck(this)">
+            <span class="item-label">Final Inspection 일정 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>모든 시공 완료 후 종합 검사, C of O 발급 전 필수</li>
+            <li>사전 준비: 모든 중간 검사 통과, 패널 라벨링, 안전장치 작동</li>
+            <li>소방(LAFD) 별도 final sign-off 필요할 수 있음</li>
+            <li>불합격 시 보정 항목 리스트 발급, 보정 후 재검사</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insurance -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--primary-lt)"></span>
+          <span style="color:var(--primary-lt)">Insurance (COI)</span>
+        </div>
+        <span class="group-count" id="gc-m2-ins">0/4</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m2-ins-1">
+          <div class="item-row">
+            <input type="checkbox" id="m2-ins-1" onchange="onCheck(this)">
+            <span class="item-label">General Liability: $1M per occurrence / $2M aggregate</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>최소 <code>$1M per occurrence / $2M aggregate</code></li>
+            <li>문화원 요구 시 $5M umbrella policy 추가</li>
+            <li>Products/Completed Operations 담보 포함 확인</li>
+            <li>보험 기간: 시공 시작일 ~ 완료 후 최소 1년</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-ins-2">
+          <div class="item-row">
+            <input type="checkbox" id="m2-ins-2" onchange="onCheck(this)">
+            <span class="item-label">Workers' Compensation: 법적 최소한도 이상</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>캘리포니아 법적 필수: 직원 1명 이상이면 의무</li>
+            <li>GC Workers' Comp 증서 원본 확인, 정책 번호·유효기간 체크</li>
+            <li>Sub-contractor도 각각 보유 확인</li>
+            <li><strong>미가입 시 공사 중단 + 벌금 + 형사 처벌</strong></li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-ins-3">
+          <div class="item-row">
+            <input type="checkbox" id="m2-ins-3" onchange="onCheck(this)">
+            <span class="item-label">문화원을 Additional Insured로 등재</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>문화원(KCCLA)을 COI에 Additional Insured로 추가 등재</li>
+            <li>등재 문구: "KCCLA is named as Additional Insured"</li>
+            <li>별도 endorsement 서류 발급(보험사 요청)</li>
+            <li>건물 소유주도 포함해야 할 수 있음</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-ins-4">
+          <div class="item-row">
+            <input type="checkbox" id="m2-ins-4" onchange="onCheck(this)">
+            <span class="item-label">COI 원본 문화원 시설관리팀 제출</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>COI 원본 문화원 시설관리팀 직접 제출</li>
+            <li>제출 시기: 시공 시작 최소 <code>2주 전</code></li>
+            <li>프로젝트 주소 및 프로젝트명 명기</li>
+            <li>보험 갱신 시 갱신 COI 자동 재제출 조건 확인</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 계약 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--primary-lt)"></span>
+          <span style="color:var(--primary-lt)">계약</span>
+        </div>
+        <span class="group-count" id="gc-m2-contract">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m2-contract-1">
+          <div class="item-row">
+            <input type="checkbox" id="m2-contract-1" onchange="onCheck(this)">
+            <span class="item-label">GC(General Contractor) 계약서 체결</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>AIA A101(Stipulated Sum) 또는 A102(Cost Plus) 표준 계약서 권장</li>
+            <li>필수 조항: 공사 범위(Scope), 일정, 금액, 변경 절차</li>
+            <li>보증(Warranty) 기간: 최소 1년, 전시 시설물은 연장 협의</li>
+            <li>분쟁 해결: 중재(Arbitration) vs 소송(Litigation) 조항</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-contract-2">
+          <div class="item-row">
+            <input type="checkbox" id="m2-contract-2" onchange="onCheck(this)">
+            <span class="item-label">Lien Waiver 조건 명시 (Progress + Final)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li><strong>Conditional</strong>: 결제 전 발행 — "결제 확인 시 유효"</li>
+            <li><strong>Unconditional</strong>: 결제 후 발행 — 즉시 유효</li>
+            <li>Progress Payment마다 Conditional → 결제 후 Unconditional 전환</li>
+            <li>Final Payment 시 Sub 포함 전 업체 Final Unconditional 필수</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-contract-3">
+          <div class="item-row">
+            <input type="checkbox" id="m2-contract-3" onchange="onCheck(this)">
+            <span class="item-label">Change Order 절차 합의 (서면 승인 필수)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>모든 변경은 <strong>서면(Written CO) 승인 후</strong> 진행</li>
+            <li>CO 양식: 변경 내용, 비용 변동(+/-), 일정 변동, 양측 서명</li>
+            <li>구두 합의는 법적 효력 없음</li>
+            <li>CO 누적 관리: 원 계약 대비 변경 총액 추적</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-contract-4">
+          <div class="item-row">
+            <input type="checkbox" id="m2-contract-4" onchange="onCheck(this)">
+            <span class="item-label">Payment Schedule: 착수금-중도금-잔금 비율 확정</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>일반: 착수금 <code>10-20%</code> / 중도금 <code>50-60%</code>(마일스톤별) / 잔금 <code>10-20%</code></li>
+            <li>Retention: 각 Payment의 10% 보류, Final Completion 후 지급</li>
+            <li>지급 조건: Invoice + Lien Waiver + Inspection 통과 3개 충족</li>
+            <li>최종 잔금: C of O + 펀치리스트 완료 + Final Lien Waiver 후</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-contract-5">
+          <div class="item-row">
+            <input type="checkbox" id="m2-contract-5" onchange="onCheck(this)">
+            <span class="item-label">License 확인: CSLB(CA Contractors State License Board) 유효</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li><code>cslb.ca.gov</code>에서 번호 조회 — Active/Current 상태 확인</li>
+            <li>필요 분류: B(General Building) 또는 C(Specialty) 해당</li>
+            <li>Workers' Comp 보험 CSLB 등록 상태 확인</li>
+            <li>과거 불만/제재 이력(Disciplinary Actions) 확인</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 문화원 특수 체크 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--primary-lt)"></span>
+          <span style="color:var(--primary-lt)">문화원 특수 체크</span>
+        </div>
+        <span class="group-count" id="gc-m2-kccla">0/8</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m2-kccla-1">
+          <div class="item-row">
+            <input type="checkbox" id="m2-kccla-1" onchange="onCheck(this)">
+            <span class="item-label">문화원 내부 시설관리 규정 입수 및 검토</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>문화원 자체 시설 이용/관리 규정 입수(한국어/영어 모두)</li>
+            <li>인테리어 변경 시 사전 승인 절차 확인(문화원 내부 결재)</li>
+            <li>시설 사용 제한: 부착 금지 구역, 천장 작업 제한 등</li>
+            <li>전기 용량·통신 설비 사용 범위 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-kccla-2">
+          <div class="item-row">
+            <input type="checkbox" id="m2-kccla-2" onchange="onCheck(this)">
+            <span class="item-label">외부 시공업체 등록 절차 완료</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>지정 업체 등록 양식 작성 및 제출</li>
+            <li>필요 서류: 사업자등록증, 라이선스 사본, COI, 작업자 명단</li>
+            <li>보안 심사(Background Check) 요구 여부 확인</li>
+            <li>등록 처리 기간: <code>2-4주</code> — 일정에 반영</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-kccla-3">
+          <div class="item-row">
+            <input type="checkbox" id="m2-kccla-3" onchange="onCheck(this)">
+            <span class="item-label">보안 출입증 발급 (시공 기간)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>시공 인력 전원 출입증 발급(사진 포함)</li>
+            <li>발급 절차: 신분증 사본 + 업체 확인서 → 보안팀</li>
+            <li>출입 시간대 제한: 운영시간 중 제한 구역 확인</li>
+            <li>장비/자재 반입·반출 기록 절차</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-kccla-4">
+          <div class="item-row">
+            <input type="checkbox" id="m2-kccla-4" onchange="onCheck(this)">
+            <span class="item-label">시공 시간대 협의 (운영시간 외 작업 가능 여부)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>문화원 운영: 월-금 9am-5pm, 토 10am-1pm (일반)</li>
+            <li>운영시간 중 시공: 소음·진동 수준에 따라 결정</li>
+            <li>비운영시간(야간/주말): 추가 보안·관리 비용 발생 가능</li>
+            <li>전시 오프닝/이벤트 기간 시공 중단 조건 합의</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-kccla-5">
+          <div class="item-row">
+            <input type="checkbox" id="m2-kccla-5" onchange="onCheck(this)">
+            <span class="item-label">원상복구(Restoration) 기준 문서화</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>전시 종료 후 원상복구 범위 문서화: 벽/바닥/천장/전기</li>
+            <li><strong>사진 기록</strong>: 시공 전 360도 사진 + 영상(날짜 포함)</li>
+            <li>원상복구 비용 분담 기준 합의</li>
+            <li>영구 개선(permanent improvement) 항목 명확화</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-kccla-6">
+          <div class="item-row">
+            <input type="checkbox" id="m2-kccla-6" onchange="onCheck(this)">
+            <span class="item-label">정부 자산 훼손 책임 조항 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>문화원은 <strong>대한민국 정부 자산</strong> — 훼손 시 책임 범위 확인</li>
+            <li>계약서에 면책(Indemnification) 조항 포함</li>
+            <li>시공 중 기존 시설 손상 시 보고 절차 및 보상 기준</li>
+            <li>COI로 커버 가능한 범위 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-kccla-7">
+          <div class="item-row">
+            <input type="checkbox" id="m2-kccla-7" onchange="onCheck(this)">
+            <span class="item-label">시공 전/중/후 사진 기록 절차 합의</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>시공 전: 현장 전체 + 세부 상태 사진(날짜·위치 태그)</li>
+            <li>시공 중: 주요 공정 완료 시점마다 촬영(rough-in, framing, finish)</li>
+            <li>시공 후: 완공 사진 + 원상복구 기준 대조용</li>
+            <li>공유: Google Drive/Dropbox 공유 폴더 또는 정기 보고서</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-kccla-8">
+          <div class="item-row">
+            <input type="checkbox" id="m2-kccla-8" onchange="onCheck(this)">
+            <span class="item-label">소음/진동 제한 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>LAMC: 주거지역 500ft 이내 — <code>7am-9pm(평일)</code>, <code>8am-6pm(토)</code>, 일·공휴일 금지</li>
+            <li>문화원 자체 기준이 더 엄격할 수 있음</li>
+            <li>진동 민감 장비/전시물 보호: 방진 매트, 모니터링</li>
+            <li>소음 작업 가능 시간대 사전 합의</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 제출 서류 마스터 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--primary-lt)"></span>
+          <span style="color:var(--primary-lt)">제출 서류 마스터 리스트</span>
+        </div>
+        <span class="group-count" id="gc-m2-docs">0/8</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m2-docs-1">
+          <div class="item-row">
+            <input type="checkbox" id="m2-docs-1" onchange="onCheck(this)">
+            <span class="item-label">설계도면 세트 (건축/전기/기계)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>건축(A), 전기(E), 기계(M) 도면 각 3부 이상</li>
+            <li>도면 표지: 프로젝트 정보, 도면 목록, 범례</li>
+            <li>PDF + 인쇄본 동시 제출(LADBS + 문화원)</li>
+            <li>Revision 번호·날짜 표기, 변경 내용 클라우드 표시</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-docs-2">
+          <div class="item-row">
+            <input type="checkbox" id="m2-docs-2" onchange="onCheck(this)">
+            <span class="item-label">Title 24 Compliance Documents</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>CF-1R/CF-2R/CF-3R 양식 + 에너지 계산서</li>
+            <li>조명만 변경 시 Lighting Only 축약 양식</li>
+            <li>HERS rater 필요 여부</li>
+            <li>전자 서명 가능 여부 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-docs-3">
+          <div class="item-row">
+            <input type="checkbox" id="m2-docs-3" onchange="onCheck(this)">
+            <span class="item-label">COI (보험증권)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>GL, Workers' Comp, Auto Liability(해당 시) 모든 COI</li>
+            <li>Additional Insured endorsement 별도 첨부</li>
+            <li>유효기간: 시공 기간 전체 커버</li>
+            <li>보험사 AM Best 등급 A- 이상 권장</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-docs-4">
+          <div class="item-row">
+            <input type="checkbox" id="m2-docs-4" onchange="onCheck(this)">
+            <span class="item-label">GC License 사본</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>CSLB 라이선스 카드 사본 또는 <code>cslb.ca.gov</code> 조회 캡처</li>
+            <li>Active/Current 상태, 만료일 확인</li>
+            <li>Bond 금액: <code>$15,000</code> 최소</li>
+            <li>공사 분류(Classification) 적합 여부</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-docs-5">
+          <div class="item-row">
+            <input type="checkbox" id="m2-docs-5" onchange="onCheck(this)">
+            <span class="item-label">Permit Application</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>LADBS 양식: Application for Building Permit</li>
+            <li>기재: 주소, 소유자, 공사 내용, 예상 비용, GC 정보</li>
+            <li>소유자(문화원) 서명 또는 위임장 필요</li>
+            <li>접수비(Filing Fee) 납부 영수증</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-docs-6">
+          <div class="item-row">
+            <input type="checkbox" id="m2-docs-6" onchange="onCheck(this)">
+            <span class="item-label">Lien Waiver (conditional/unconditional)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>CA Civil Code §8132-8138 표준 양식 4종 사용</li>
+            <li>Progress: Conditional Waiver and Release on Progress Payment</li>
+            <li>Final: Conditional/Unconditional on Final Payment</li>
+            <li>Sub-contractor 포함 전 업체 Waiver 수집</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-docs-7">
+          <div class="item-row">
+            <input type="checkbox" id="m2-docs-7" onchange="onCheck(this)">
+            <span class="item-label">W-9 Form</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>IRS Form W-9: GC/Sub의 TIN/EIN 확인</li>
+            <li>지급 $600 이상 시 1099-NEC 발행 의무</li>
+            <li>시공 시작 전 반드시 수령, 사본 보관</li>
+            <li>해외 업체: W-8BEN 양식 대체</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m2-docs-8">
+          <div class="item-row">
+            <input type="checkbox" id="m2-docs-8" onchange="onCheck(this)">
+            <span class="item-label">Safety Plan (OSHA)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>현장 안전 계획서: 위험 요소 식별, 대응 절차</li>
+            <li>PPE 기준, 비상 연락처, 응급처치 키트, 대피 경로</li>
+            <li><strong>IIPP</strong>(Injury and Illness Prevention Program): CA 주법 필수</li>
+            <li>GC 작성, 현장 비치, 작업자 전원 교육 서명</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ M3 설계 ════════════════════════════════ -->
+  <section class="module-section" id="section-m3">
+    <div class="module-header">
+      <div class="module-accent-bar" style="background:var(--gold)"></div>
+      <div class="module-title-wrap">
+        <div class="module-num">MODULE 03</div>
+        <div class="module-title" style="color:var(--gold)">설계 (Design Standards)</div>
+      </div>
+      <div class="module-progress-wrap">
+        <div class="module-pct-big" id="mod-pct-m3" style="color:var(--gold)">0%</div>
+        <div class="module-count-small" id="mod-count-m3">0 / 0</div>
+        <div class="module-bar-bg"><div class="module-bar-fill" id="mod-bar-m3" style="background:var(--gold);width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- ADA 설계 수치 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--gold)"></span>
+          <span style="color:var(--gold)">ADA 설계 수치 (Cross-reference)</span>
+        </div>
+        <span class="group-count" id="gc-m3-ada">0/6</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m3-ada-1">
+          <div class="item-row">
+            <input type="checkbox" id="m3-ada-1" onchange="onCheck(this)">
+            <span class="item-label">모든 통로 36" 이상 (CBC: 44") 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>도면에서 모든 보행 경로 순폭(clear width) 측정</li>
+            <li>가구·전시대·설비가 통로 침범하지 않는지 확인</li>
+            <li>양방향 통행 구간은 <code>60"</code> 확보</li>
+            <li>전시 변경 시마다 통로 폭 재측정 프로토콜 수립</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-ada-2">
+          <div class="item-row">
+            <input type="checkbox" id="m3-ada-2" onchange="onCheck(this)">
+            <span class="item-label">출입문 32" clear 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>모든 출입문(전시실, 화장실, 부대시설) 실측 확인</li>
+            <li>문턱(threshold): <code>1/4"</code> 이하(수직), <code>1/2"</code> 이하(경사 모서리)</li>
+            <li>기존 문 부적합 시 오프셋 힌지(offset hinge)로 2" 확보 가능</li>
+            <li>자동문/반자동문 설치 시 §404.3 기준 적용</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-ada-3">
+          <div class="item-row">
+            <input type="checkbox" id="m3-ada-3" onchange="onCheck(this)">
+            <span class="item-label">전시물 높이 15–48" reach range 준수</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>모든 인터랙티브 조작부를 이 범위 내에 배치</li>
+            <li>버튼, 터치스크린, 리플렛 홀더 등 관람객이 손 뻗는 모든 요소</li>
+            <li>장애물(카운터) 위 접근: 깊이 <code>20" 이하 → 최대 48"</code>, <code>20-25" → 최대 44"</code></li>
+            <li>설계 도면에 reach range 표기</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-ada-4">
+          <div class="item-row">
+            <input type="checkbox" id="m3-ada-4" onchange="onCheck(this)">
+            <span class="item-label">라벨 높이 43" center / 14pt 이상</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>중심선 <code>43" AFF</code> — 선 자세·앉은 자세 모두 가독</li>
+            <li>인쇄물 <code>14pt</code> 이상, 디지털도 동등 크기</li>
+            <li>명암 대비: <code>4.5:1</code> 이상(WCAG AA), 한글+영문 행간 1.4+</li>
+            <li>반사 방지: 매트 마감 또는 비반사 아크릴 사용</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-ada-5">
+          <div class="item-row">
+            <input type="checkbox" id="m3-ada-5" onchange="onCheck(this)">
+            <span class="item-label">인터랙티브 요소 한 손 조작 가능</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>ADA §309.4: 한 손으로, 단단히 쥐거나 비틀지 않고 조작</li>
+            <li>최대 조작력: <code>5 lbs(22.2 N)</code></li>
+            <li>터치스크린: 감압식 선호, 멀티터치 요구 금지</li>
+            <li>대체 접근: 음성 안내, 촉각 버튼 등 보조 인터페이스</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-ada-6">
+          <div class="item-row">
+            <input type="checkbox" id="m3-ada-6" onchange="onCheck(this)">
+            <span class="item-label">60" 회전 공간 동선 내 확보</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>방향 전환 지점마다 <code>60"</code> 원형 또는 T자형 확보</li>
+            <li>막다른 구간: 반드시 회전 후 되돌아 나올 수 있어야 함</li>
+            <li>전시대 사이 교차점, 출입구 앞 로비 등 핵심 지점 도면 표기</li>
+            <li>가구 배치 변경 시 회전 공간 유지 재확인</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 내장재 등급 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--gold)"></span>
+          <span style="color:var(--gold)">내장재 등급</span>
+        </div>
+        <span class="group-count" id="gc-m3-finish">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m3-finish-1">
+          <div class="item-row">
+            <input type="checkbox" id="m3-finish-1" onchange="onCheck(this)">
+            <span class="item-label">벽면: Class A (FSI 0–25) — ASTM E84 인증서 확보</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>ASTM E84: <code>FSI 0-25</code>, <code>SDI 0-450</code></li>
+            <li>인증서 원본 필수: 시험 기관명·시험일·결과 포함</li>
+            <li>벽지, 패브릭, 나무 패널 — 재료별 개별 인증</li>
+            <li>페인트: 기재(substrate) 위 도포 상태 시험 결과 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-finish-2">
+          <div class="item-row">
+            <input type="checkbox" id="m3-finish-2" onchange="onCheck(this)">
+            <span class="item-label">천장: Class A 필수</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>천장 마감재(타일, 패널, 도장)도 ASTM E84 Class A 필수</li>
+            <li>노출 천장: 기존 구조재 화재 등급 확인</li>
+            <li>조명 트랙 부착 시 천장 마감재 손상 없이 설치 가능 여부</li>
+            <li>음향 패널(acoustic panel): 별도 화재 시험 인증 필요</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-finish-3">
+          <div class="item-row">
+            <input type="checkbox" id="m3-finish-3" onchange="onCheck(this)">
+            <span class="item-label">바닥: Critical Radiant Flux ≥ 0.45 W/cm² (ASTM E648)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Critical Radiant Flux: Class I(<code>≥0.45 W/cm²</code>), Class II(<code>≥0.22 W/cm²</code>)</li>
+            <li>탈출 통로: <strong>Class I 필수</strong></li>
+            <li>전시 공간: Class II 이상, 권장 Class I</li>
+            <li>카펫: 추가 ASTM D2859(pill test) 합격 필요</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-finish-4">
+          <div class="item-row">
+            <input type="checkbox" id="m3-finish-4" onchange="onCheck(this)">
+            <span class="item-label">전시 구조물: Class A or B (FSI 0–75)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>임시 구조물(파티션, 케이스): Class A(FSI 0-25) 또는 B(26-75)</li>
+            <li>Class B 조건: 스프링클러 보호 구역 내, 소방 사전 승인</li>
+            <li>MDF·합판: 원자재 등급 ≠ 완제품 — 도장 후 재시험/인증 확인</li>
+            <li>반복 사용 구조물: 재도장 등 상태 변경 시 재인증</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-finish-5">
+          <div class="item-row">
+            <input type="checkbox" id="m3-finish-5" onchange="onCheck(this)">
+            <span class="item-label">커튼/직물: NFPA 701 합격</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>NFPA 701: 수직 연소 시험</li>
+            <li>커튼, 드레이프, 배너, 간막이 직물 모두 해당</li>
+            <li>방염 처리 후 인증: 유효기간 확인(세탁 후 재처리)</li>
+            <li>인증 라벨: 직물 부착 방염 태그 현장 보존</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 전기 용량 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--gold)"></span>
+          <span style="color:var(--gold)">전기 용량 (NEC)</span>
+        </div>
+        <span class="group-count" id="gc-m3-elec">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m3-elec-1">
+          <div class="item-row">
+            <input type="checkbox" id="m3-elec-1" onchange="onCheck(this)">
+            <span class="item-label">기존 패널 용량 확인 (amp rating)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>메인 패널 amp rating: <code>100A / 200A / 400A</code></li>
+            <li>현재 사용 용량 vs 여유 용량 계산</li>
+            <li>전시 조명·장비 추가 시 초과 여부 사전 산출</li>
+            <li>부족 시: 서브패널 추가 또는 메인 업그레이드</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-elec-2">
+          <div class="item-row">
+            <input type="checkbox" id="m3-elec-2" onchange="onCheck(this)">
+            <span class="item-label">조명 Load 계산: W/sq ft (전시: 1.0–1.5 W/sq ft typical)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Title 24 LPD: 전시공간 약 <code>1.0-1.5 W/sq ft</code></li>
+            <li>LED 트랙 조명: 개당 15-50W × 수량 = 총 부하</li>
+            <li>영상 장비: 별도 전용 회로(<code>200-2000W/대</code>)</li>
+            <li>전체 부하 합산 후 패널 여유 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-elec-3">
+          <div class="item-row">
+            <input type="checkbox" id="m3-elec-3" onchange="onCheck(this)">
+            <span class="item-label">전용 회로 필요 여부 (영상장비, 인터랙티브)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>영상장비: <code>20A</code> 전용 회로 권장</li>
+            <li>인터랙티브: UPS 연결 전용 회로</li>
+            <li>음향: 조명과 별도(전기 잡음 방지)</li>
+            <li>서버/네트워크: 비상전원 회로 연결</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-elec-4">
+          <div class="item-row">
+            <input type="checkbox" id="m3-elec-4" onchange="onCheck(this)">
+            <span class="item-label">GFCI 필요 구역 확인 (wet locations)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>NEC: 세면대 6ft 이내, 습기 구역, 옥외 인접</li>
+            <li>수조·분수 주변 GFCI 필수</li>
+            <li>바닥 콘센트: 세척 시 물 접촉 → GFCI 권장</li>
+            <li>GFCI 차단 시 전시물 전원 영향 범위 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-elec-5">
+          <div class="item-row">
+            <input type="checkbox" id="m3-elec-5" onchange="onCheck(this)">
+            <span class="item-label">비상전원/UPS 필요 여부</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>비상 조명 + Exit Sign: 내장 배터리 또는 중앙 비상전원</li>
+            <li>보안 시스템: 비상전원 필수</li>
+            <li>디지털 전시물 UPS: graceful shutdown 보장</li>
+            <li>UPS 용량: <code>부하 W × 시간(분) → VA 환산</code></li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 자재 인증 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--gold)"></span>
+          <span style="color:var(--gold)">자재 인증</span>
+        </div>
+        <span class="group-count" id="gc-m3-cert">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m3-cert-1">
+          <div class="item-row">
+            <input type="checkbox" id="m3-cert-1" onchange="onCheck(this)">
+            <span class="item-label">UL Listed: 모든 전기 제품</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>모든 전기 제품: <strong>UL 마크 필수</strong></li>
+            <li>해외 수입 미인증 → Inspection 불합격</li>
+            <li>대안: ETL, CSA도 OSHA NRTL 인정</li>
+            <li>커스텀 조명: UL Field Evaluation(<code>$500-$2,000/기구</code>)</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-cert-2">
+          <div class="item-row">
+            <input type="checkbox" id="m3-cert-2" onchange="onCheck(this)">
+            <span class="item-label">ASTM E84: 내장재 화염 등급</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>모든 내장재 시험 성적서 수집</li>
+            <li>시험 기관, 시험일, FSI, SDI 수치 확인</li>
+            <li>동일 제품 색상·두께별 결과 다를 수 있음</li>
+            <li>제조 공정 변경 시 재시험</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-cert-3">
+          <div class="item-row">
+            <input type="checkbox" id="m3-cert-3" onchange="onCheck(this)">
+            <span class="item-label">GREENGUARD Gold: 실내 공기질 (VOC 저배출)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>VOC 배출 기준: 페인트, 접착제, 실런트, 바닥재</li>
+            <li>LEED 필수, 비LEED도 건강 권장</li>
+            <li>대안: FloorScore, SCS Indoor Advantage Gold</li>
+            <li>인증 마크 + 제품 등록 번호 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-cert-4">
+          <div class="item-row">
+            <input type="checkbox" id="m3-cert-4" onchange="onCheck(this)">
+            <span class="item-label">ASTM C1396: 석고보드</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>두께, 강도, 방습, 방화 기준</li>
+            <li>전시 벽면: <code>Type X(5/8" fire-rated)</code></li>
+            <li>습기 구역: 방습 보드 또는 시멘트 보드</li>
+            <li>제조사 인증서 + 시방서 확보</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-cert-5">
+          <div class="item-row">
+            <input type="checkbox" id="m3-cert-5" onchange="onCheck(this)">
+            <span class="item-label">인증서 파일링 완료</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>모든 자재 인증서 바인더 정리(제품별 탭)</li>
+            <li>디지털 사본 공유 폴더 업로드(PDF)</li>
+            <li>Plan Check 제출용 사본 준비</li>
+            <li>완공 후 인수인계 시 바인더 포함</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 전시공간 특수 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--gold)"></span>
+          <span style="color:var(--gold)">전시공간 특수</span>
+        </div>
+        <span class="group-count" id="gc-m3-exhibit">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m3-exhibit-1">
+          <div class="item-row">
+            <input type="checkbox" id="m3-exhibit-1" onchange="onCheck(this)">
+            <span class="item-label">조명 설계: 작품 조도 50–200 lux (매체별 상이)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>유화 <code>200 lux</code>, 수채화 <code>100 lux</code>, 직물/종이 <code>50 lux</code></li>
+            <li>색온도: <code>3000-4000K</code>, <code>CRI 90+</code></li>
+            <li>디밍: DALI, DMX, 0-10V</li>
+            <li>사진: 빈티지 50-100 lux, 현대 200 lux</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-exhibit-2">
+          <div class="item-row">
+            <input type="checkbox" id="m3-exhibit-2" onchange="onCheck(this)">
+            <span class="item-label">UV 필터: 자외선 75 μW/lumen 이하</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>IESNA 권장 자외선 제한</li>
+            <li>LED: UV 거의 없음</li>
+            <li>자연광 유입부: UV 필터 필름/차단 유리</li>
+            <li>UV 측정기 정기 점검</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-exhibit-3">
+          <div class="item-row">
+            <input type="checkbox" id="m3-exhibit-3" onchange="onCheck(this)">
+            <span class="item-label">습도 관리: 45–55% RH (종이/직물 작품)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>종이/직물: <code>45-55% RH</code>, 변동 <code>±5%/24h</code></li>
+            <li>목재 프레임: 45-60% RH</li>
+            <li>HVAC 가습/제습 독립 제어</li>
+            <li>데이터 로거 설치 위치 선정</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-exhibit-4">
+          <div class="item-row">
+            <input type="checkbox" id="m3-exhibit-4" onchange="onCheck(this)">
+            <span class="item-label">온도 관리: 68–72°F (20–22°C)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li><code>20-22°C</code>, 일일 변동 <code>±2°C</code></li>
+            <li>전시 구역 독립 thermostat 권장</li>
+            <li>직사광선·조명 열원 주의</li>
+            <li>관람객 밀집 시 HVAC 용량 여유</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m3-exhibit-5">
+          <div class="item-row">
+            <input type="checkbox" id="m3-exhibit-5" onchange="onCheck(this)">
+            <span class="item-label">진동 관리: 민감 작품 방진 마운트</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>민감 작품: 방진 마운트·패드</li>
+            <li>진동원: HVAC 기계실, 엘리베이터, 도로</li>
+            <li>시공 중: 기존 전시물 포장·임시 이전</li>
+            <li>가속도계 설치 고려</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ M4 시공 ════════════════════════════════ -->
+  <section class="module-section" id="section-m4">
+    <div class="module-header">
+      <div class="module-accent-bar" style="background:var(--sage)"></div>
+      <div class="module-title-wrap">
+        <div class="module-num">MODULE 04</div>
+        <div class="module-title" style="color:var(--sage)">시공 (Construction)</div>
+      </div>
+      <div class="module-progress-wrap">
+        <div class="module-pct-big" id="mod-pct-m4" style="color:var(--sage)">0%</div>
+        <div class="module-count-small" id="mod-count-m4">0 / 0</div>
+        <div class="module-bar-bg"><div class="module-bar-fill" id="mod-bar-m4" style="background:var(--sage);width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- 공정관리 마일스톤 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--sage)"></span>
+          <span style="color:var(--sage)">공정관리 마일스톤</span>
+        </div>
+        <span class="group-count" id="gc-m4-milestone">0/8</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m4-milestone-1">
+          <div class="item-row">
+            <input type="checkbox" id="m4-milestone-1" onchange="onCheck(this)">
+            <span class="item-label">Week 1–2: Demolition / Prep</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>기존 마감재 철거: 벽지/바닥재/천장 타일</li>
+            <li>보호: 유지 구역 비닐 커버링, 먼지 차단벽</li>
+            <li>폐기물 분류: 일반 vs 유해(석면, 납)</li>
+            <li><strong>1978년 이전 건물</strong>: 석면/납 검사 필수</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-milestone-2">
+          <div class="item-row">
+            <input type="checkbox" id="m4-milestone-2" onchange="onCheck(this)">
+            <span class="item-label">Week 2–3: Rough-in (Electrical, Plumbing, HVAC)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>전기: 배선 경로, 박스 위치, 패널 연결</li>
+            <li>배관: 수도/배수 경로(해당 시)</li>
+            <li>HVAC: 덕트 연장·변경, 디퓨저 재배치</li>
+            <li>Rough-in Inspection 예약</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-milestone-3">
+          <div class="item-row">
+            <input type="checkbox" id="m4-milestone-3" onchange="onCheck(this)">
+            <span class="item-label">Week 3–4: Framing / Partition walls</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>비내력 파티션: 금속 스터드 <code>16" o.c.</code></li>
+            <li>전시 벽면: 무거운 전시물용 블로킹 추가</li>
+            <li>개구부 헤더 설치</li>
+            <li>Framing Inspection 예약</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-milestone-4">
+          <div class="item-row">
+            <input type="checkbox" id="m4-milestone-4" onchange="onCheck(this)">
+            <span class="item-label">Week 4–5: Drywall / Taping / Mudding</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>전시벽 <code>5/8" Type X</code>, 일반벽 <code>1/2"</code></li>
+            <li>전시벽 Level 5(skim coat), 일반벽 Level 4</li>
+            <li>코너비드 선택</li>
+            <li>Drywall Inspection 합격 후 조인트 작업</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-milestone-5">
+          <div class="item-row">
+            <input type="checkbox" id="m4-milestone-5" onchange="onCheck(this)">
+            <span class="item-label">Week 5–6: Finish (Paint, Flooring, Millwork)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>페인트: 프라이머 + 2 coats, flat/matte white</li>
+            <li>바닥재: 양생 시간 준수(<code>24-48h</code>)</li>
+            <li>밀웍: 선반, 카운터, 수납</li>
+            <li>완료 구역 보호</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-milestone-6">
+          <div class="item-row">
+            <input type="checkbox" id="m4-milestone-6" onchange="onCheck(this)">
+            <span class="item-label">Week 6–7: Fixture installation / Lighting</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>조명: 트랙·스팟·다운라이트 설치</li>
+            <li>에이밍: 전시물 확정 후 조정</li>
+            <li>마감판 설치</li>
+            <li>AV 장비 시운전</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-milestone-7">
+          <div class="item-row">
+            <input type="checkbox" id="m4-milestone-7" onchange="onCheck(this)">
+            <span class="item-label">Week 7–8: Punch list / Final inspection</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>전체 워크스루 품질 점검</li>
+            <li>펀치리스트(사진 첨부)</li>
+            <li>보수 후 재워크스루</li>
+            <li>Final Inspection 신청</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-milestone-8">
+          <div class="item-row">
+            <input type="checkbox" id="m4-milestone-8" onchange="onCheck(this)">
+            <span class="item-label">Buffer: 1주 여유</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>자재 배송 지연, 재검사, 날씨 대비</li>
+            <li>전시물 에이밍 미세 조정</li>
+            <li>문화원 피드백 반영</li>
+            <li>오프닝 리허설 일정 확보</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 단계별 Inspection -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--sage)"></span>
+          <span style="color:var(--sage)">단계별 Inspection</span>
+        </div>
+        <span class="group-count" id="gc-m4-insp">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m4-insp-1">
+          <div class="item-row">
+            <input type="checkbox" id="m4-insp-1" onchange="onCheck(this)">
+            <span class="item-label">Rough-in Inspection 통과</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>전기: 배선 규격, 박스 매립, 접지</li>
+            <li>배관: 누수 시험, 경사도, 행거</li>
+            <li>Permit card 비치 확인</li>
+            <li>불합격 → 보수 → Re-inspection</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-insp-2">
+          <div class="item-row">
+            <input type="checkbox" id="m4-insp-2" onchange="onCheck(this)">
+            <span class="item-label">Framing Inspection 통과</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>스터드·헤더·블로킹·fire blocking</li>
+            <li>전시벽 블로킹 위치 구조계산서 일치</li>
+            <li>rough opening 도면 일치</li>
+            <li>상부 고정 방식 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-insp-3">
+          <div class="item-row">
+            <input type="checkbox" id="m4-insp-3" onchange="onCheck(this)">
+            <span class="item-label">MEP (Mechanical/Electrical/Plumbing) Inspection 통과</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>M: 덕트 연결·실링, 절연</li>
+            <li>E: 패널 라벨링, 회로, 접지</li>
+            <li>P: 배수 시험, 급수 압력</li>
+            <li>개별/통합 검사</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-insp-4">
+          <div class="item-row">
+            <input type="checkbox" id="m4-insp-4" onchange="onCheck(this)">
+            <span class="item-label">Drywall Inspection 통과 (벽 닫기 전)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>종류·두께 도면 일치</li>
+            <li>나사: 벽 <code>12" o.c.</code>, 천장 <code>8" o.c.</code></li>
+            <li>관통부 firestopping 확인</li>
+            <li><strong>통과 전 테이핑/머딩 금지</strong></li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-insp-5">
+          <div class="item-row">
+            <input type="checkbox" id="m4-insp-5" onchange="onCheck(this)">
+            <span class="item-label">Final Inspection 통과</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Permit card 전 단계 서명</li>
+            <li>Exit Sign, 비상조명, 소화기</li>
+            <li>통로·문·표지판 실측</li>
+            <li>패널 라벨·커버·<code>36" 전면</code> 확보</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 시공 품질 기준 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--sage)"></span>
+          <span style="color:var(--sage)">시공 품질 기준</span>
+        </div>
+        <span class="group-count" id="gc-m4-quality">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m4-quality-1">
+          <div class="item-row">
+            <input type="checkbox" id="m4-quality-1" onchange="onCheck(this)">
+            <span class="item-label">벽면 Level 4 finish (전시 벽면 Level 5)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Level 4: 테이프 + 3 coats + 비드 — 일반벽</li>
+            <li><strong>Level 5</strong>: + skim coat — 전시벽</li>
+            <li>ASTM C840 기준</li>
+            <li>실제 조명에서 결함 육안 검사</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-quality-2">
+          <div class="item-row">
+            <input type="checkbox" id="m4-quality-2" onchange="onCheck(this)">
+            <span class="item-label">바닥 평활도: FF50/FL25 이상</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>FF: 평탄도, FL: 수평도</li>
+            <li>상업 <code>FF50/FL25</code>, 전시 <code>FF50+/FL30+</code></li>
+            <li>F-number 측정기 또는 레이저 레벨</li>
+            <li>전시대 수평 재조정 필요 여부</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-quality-3">
+          <div class="item-row">
+            <input type="checkbox" id="m4-quality-3" onchange="onCheck(this)">
+            <span class="item-label">페인트: 2 coats minimum, 균일 도포</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>프라이머 + 마감 2 coats = 3 layers</li>
+            <li>전시벽 <code>flat/matte</code>, 일반벽 eggshell</li>
+            <li>순백 기본, 특수 색상 클라이언트 확인</li>
+            <li>WFT 게이지 도막 두께 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-quality-4">
+          <div class="item-row">
+            <input type="checkbox" id="m4-quality-4" onchange="onCheck(this)">
+            <span class="item-label">전시 벽면 백색도: 95%+ reflectance white</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>반사율 <code>95%+</code> 순백 도료</li>
+            <li>분광광도계 또는 데이터시트</li>
+            <li>BM Decorator's White, SW Extra White</li>
+            <li>CRI 90+ 조명 하 색상 조합 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-quality-5">
+          <div class="item-row">
+            <input type="checkbox" id="m4-quality-5" onchange="onCheck(this)">
+            <span class="item-label">조명 균제도(Uniformity Ratio) 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>최대/최소 조도 <code>≤ 3:1</code></li>
+            <li>시뮬레이션 vs 실측 비교</li>
+            <li>스팟: <code>±15°</code> 조준, 스필 최소화</li>
+            <li>lux meter 전시물·라벨 실측</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 현장 관리 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--sage)"></span>
+          <span style="color:var(--sage)">현장 관리</span>
+        </div>
+        <span class="group-count" id="gc-m4-site">0/7</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m4-site-1">
+          <div class="item-row">
+            <input type="checkbox" id="m4-site-1" onchange="onCheck(this)">
+            <span class="item-label">OSHA 안전 계획 수립</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>29 CFR 1926 준수</li>
+            <li>위험: 고소, 전기, 분진, 화학물질</li>
+            <li>비상 대피 계획 현장 게시</li>
+            <li>사고: 중상 <code>8h</code>, 사망 즉시 보고</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-site-2">
+          <div class="item-row">
+            <input type="checkbox" id="m4-site-2" onchange="onCheck(this)">
+            <span class="item-label">PPE 착용 기준 게시</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>기본: 안전모, 보안경, 안전화</li>
+            <li>분진: N95 마스크</li>
+            <li>소음 <code>85dB+</code>: 귀마개</li>
+            <li>게시판: 한글+영어</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-site-3">
+          <div class="item-row">
+            <input type="checkbox" id="m4-site-3" onchange="onCheck(this)">
+            <span class="item-label">MSDS(SDS) 자재안전보건자료 비치</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>모든 화학물질 SDS 비치</li>
+            <li>현장 사무실 열람 가능</li>
+            <li>태블릿 전자 SDS</li>
+            <li>신규 자재 즉시 추가</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-site-4">
+          <div class="item-row">
+            <input type="checkbox" id="m4-site-4" onchange="onCheck(this)">
+            <span class="item-label">일일 현장 정리 (Clean site policy)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>잔재물·포장재·공구 정리</li>
+            <li>탈출로 방해물 제거</li>
+            <li>가연물 밀폐 보관</li>
+            <li>주간 현장 사진 기록</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-site-5">
+          <div class="item-row">
+            <input type="checkbox" id="m4-site-5" onchange="onCheck(this)">
+            <span class="item-label">폐기물 처리: LADBS 규정 준수</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>분리수거: 금속, 목재, 콘크리트, 일반</li>
+            <li>유해 폐기물: 전문 업체 위탁</li>
+            <li><code>75%</code> 재활용 목표</li>
+            <li>manifest <code>3년+</code> 보관</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-site-6">
+          <div class="item-row">
+            <input type="checkbox" id="m4-site-6" onchange="onCheck(this)">
+            <span class="item-label">소음 시간대 제한 준수 (7am–9pm weekdays)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li><code>7am-9pm(평일)</code>, <code>8am-6pm(토)</code>, 일·공휴일 금지</li>
+            <li>해머링, 드릴링, 절단, 콘크리트</li>
+            <li>문화원 자체 기준 확인</li>
+            <li>민원 즉시 대응 체계</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m4-site-7">
+          <div class="item-row">
+            <input type="checkbox" id="m4-site-7" onchange="onCheck(this)">
+            <span class="item-label">먼지/분진 관리 (인접 공간 보호)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>차단벽: 폴리에틸렌 시트</li>
+            <li>부압(negative pressure)</li>
+            <li>HVAC 리턴 커버링</li>
+            <li>인접 공간 출입구 밀폐</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ M5 오픈 ════════════════════════════════ -->
+  <section class="module-section" id="section-m5">
+    <div class="module-header">
+      <div class="module-accent-bar" style="background:var(--slate)"></div>
+      <div class="module-title-wrap">
+        <div class="module-num">MODULE 05</div>
+        <div class="module-title" style="color:var(--slate)">오픈 (Completion &amp; Handover)</div>
+      </div>
+      <div class="module-progress-wrap">
+        <div class="module-pct-big" id="mod-pct-m5" style="color:var(--slate)">0%</div>
+        <div class="module-count-small" id="mod-count-m5">0 / 0</div>
+        <div class="module-bar-bg"><div class="module-bar-fill" id="mod-bar-m5" style="background:var(--slate);width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Certificate of Occupancy -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--slate)"></span>
+          <span style="color:var(--slate)">Certificate of Occupancy</span>
+        </div>
+        <span class="group-count" id="gc-m5-co">0/3</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m5-co-1">
+          <div class="item-row">
+            <input type="checkbox" id="m5-co-1" onchange="onCheck(this)">
+            <span class="item-label">Final Inspection 통과 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>green tag 수령</li>
+            <li>불합격(red tag) → 보수 → 재검사</li>
+            <li>Permit card 전 검사 기록 확인</li>
+            <li>LAFD 별도 sign-off 여부</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-co-2">
+          <div class="item-row">
+            <input type="checkbox" id="m5-co-2" onchange="onCheck(this)">
+            <span class="item-label">Certificate of Occupancy 또는 Temporary C of O 발급</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>LADBS 건물 사용 허가</li>
+            <li>Temporary: 경미 미완성 시 <code>30-180일</code></li>
+            <li><strong>없이 사용 시 과태료+중단 명령</strong></li>
+            <li>원본 현장 게시 의무</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-co-3">
+          <div class="item-row">
+            <input type="checkbox" id="m5-co-3" onchange="onCheck(this)">
+            <span class="item-label">용도 일치 확인 (Assembly / Cultural)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>C of O 용도 = 실제 사용 확인</li>
+            <li>전시: <code>A-3(Assembly)</code></li>
+            <li>최대 수용인원 전시 안내 반영</li>
+            <li>불일치 시 Change of Use</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Final Inspection 요건 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--slate)"></span>
+          <span style="color:var(--slate)">Final Inspection 요건</span>
+        </div>
+        <span class="group-count" id="gc-m5-final">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m5-final-1">
+          <div class="item-row">
+            <input type="checkbox" id="m5-final-1" onchange="onCheck(this)">
+            <span class="item-label">모든 중간 Inspection 통과 기록</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Permit card 각 단계 서명 확인</li>
+            <li>누락 → Final 불가</li>
+            <li>기록 사본 보관</li>
+            <li>LADBS 온라인 조회 가능</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-final-2">
+          <div class="item-row">
+            <input type="checkbox" id="m5-final-2" onchange="onCheck(this)">
+            <span class="item-label">소방 설비 최종 점검 (LAFD sign-off)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>LAFD: 스프링클러, 감지기, Exit Sign, 비상조명, 소화기</li>
+            <li>경보 시험: 감지기→경보→관리실 통보</li>
+            <li>밸브·소화기 위치 도면 게시</li>
+            <li>LAFD 별도 일정 예약</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-final-3">
+          <div class="item-row">
+            <input type="checkbox" id="m5-final-3" onchange="onCheck(this)">
+            <span class="item-label">ADA 접근성 최종 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>통로·문 실측(테이프 자)</li>
+            <li>표지판 높이·크기, 점자 확인</li>
+            <li>화장실: 그랩바, 세면대, 미러</li>
+            <li><strong>CASp 최종 보고서 권장</strong></li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-final-4">
+          <div class="item-row">
+            <input type="checkbox" id="m5-final-4" onchange="onCheck(this)">
+            <span class="item-label">전기 패널 라벨링 완료</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>모든 회로 명확 라벨</li>
+            <li>메인 차단기 위치, 비상 절차 게시</li>
+            <li>도어 닫힘, 잠금 작동</li>
+            <li>전면 <code>36"</code> 공간</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-final-5">
+          <div class="item-row">
+            <input type="checkbox" id="m5-final-5" onchange="onCheck(this)">
+            <span class="item-label">비상구 표시등/비상조명 작동 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Exit Sign 배터리 전환 <code>90분+</code></li>
+            <li>비상조명 자동 점등 <code>1 fc</code></li>
+            <li>월 30초 + 연 90분 테스트</li>
+            <li>기록지 비치 시작</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 운영 인수인계 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--slate)"></span>
+          <span style="color:var(--slate)">운영 인수인계</span>
+        </div>
+        <span class="group-count" id="gc-m5-handover">0/6</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m5-handover-1">
+          <div class="item-row">
+            <input type="checkbox" id="m5-handover-1" onchange="onCheck(this)">
+            <span class="item-label">시공 도면(As-built drawings) 인계</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>실제 시공 반영 도면</li>
+            <li>DWG/PDF + 인쇄본 각 2부</li>
+            <li>변경사항 모두 반영</li>
+            <li>향후 유지관리 참고</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-handover-2">
+          <div class="item-row">
+            <input type="checkbox" id="m5-handover-2" onchange="onCheck(this)">
+            <span class="item-label">자재 사양서/인증서 바인더 인계</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>제품명, 제조사, 모델, 색상</li>
+            <li>인증서 전체 포함</li>
+            <li>유지관리 지침</li>
+            <li>공급업체 연락처</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-handover-3">
+          <div class="item-row">
+            <input type="checkbox" id="m5-handover-3" onchange="onCheck(this)">
+            <span class="item-label">장비 매뉴얼 인계 (조명, HVAC, AV)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>조명: 제어, 프로그래밍, 리모컨</li>
+            <li>HVAC: 운전, 필터, 서비스 연락</li>
+            <li>AV: 설명서, 연결도, 비밀번호</li>
+            <li>보안: 코드 변경, CCTV 절차</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-handover-4">
+          <div class="item-row">
+            <input type="checkbox" id="m5-handover-4" onchange="onCheck(this)">
+            <span class="item-label">보증서(Warranty) 정리 — 1년 GC, 각 장비별</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>GC: 최소 1년</li>
+            <li>장비별: 조명 3-5년, HVAC 1-5년, 바닥 5-10년</li>
+            <li>기산일: Final Inspection 또는 C of O</li>
+            <li>청구 절차 확인</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-handover-5">
+          <div class="item-row">
+            <input type="checkbox" id="m5-handover-5" onchange="onCheck(this)">
+            <span class="item-label">비상 연락처 리스트 (GC, 전기, 배관, HVAC)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>GC 담당자(보증 기간 유효)</li>
+            <li>전기·배관·HVAC 긴급 연락</li>
+            <li>패널 옆/관리실 게시</li>
+            <li>디지털 사본 공유</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-handover-6">
+          <div class="item-row">
+            <input type="checkbox" id="m5-handover-6" onchange="onCheck(this)">
+            <span class="item-label">열쇠/출입 코드 인계</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>물리 열쇠: 전시실, 전기실 등 2벌</li>
+            <li>전자 출입: 코드 설정·변경 인계</li>
+            <li>마스터키: 문화원 + 프로젝트렌트 각 1</li>
+            <li>임시 출입 코드 폐기 확인</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Punch List -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--slate)"></span>
+          <span style="color:var(--slate)">Punch List</span>
+        </div>
+        <span class="group-count" id="gc-m5-punch">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m5-punch-1">
+          <div class="item-row">
+            <input type="checkbox" id="m5-punch-1" onchange="onCheck(this)">
+            <span class="item-label">Walk-through 수행 (GC + 문화원 + 프로젝트렌트)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>참여: GC + 문화원 + 프로젝트렌트 PM</li>
+            <li>순서: 외부→입구→전시실→부대→기계실</li>
+            <li>마감, 기능, 청결, 안전, 접근성</li>
+            <li><code>2-4시간</code></li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-punch-2">
+          <div class="item-row">
+            <input type="checkbox" id="m5-punch-2" onchange="onCheck(this)">
+            <span class="item-label">Punch List 작성 (항목별 사진 첨부)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>번호, 위치, 내용, 사진, 우선순위</li>
+            <li>전체 + 근접 확대(날짜 포함)</li>
+            <li>Fieldwire 또는 PlanGrid</li>
+            <li>참여자 서명</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-punch-3">
+          <div class="item-row">
+            <input type="checkbox" id="m5-punch-3" onchange="onCheck(this)">
+            <span class="item-label">보수 완료 확인 (전 항목)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>완료 통보 후 재점검</li>
+            <li>항목별 완료 사진 + 서명</li>
+            <li>재워크스루, 잔여 재합의</li>
+            <li>3자 최종 서명</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-punch-4">
+          <div class="item-row">
+            <input type="checkbox" id="m5-punch-4" onchange="onCheck(this)">
+            <span class="item-label">Final Lien Waiver 수령</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>GC + Sub 전원 Final Unconditional</li>
+            <li>CA Civil Code §8138</li>
+            <li>미수령 → 잔금 보류</li>
+            <li>원본 보관 + 문화원 사본</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-punch-5">
+          <div class="item-row">
+            <input type="checkbox" id="m5-punch-5" onchange="onCheck(this)">
+            <span class="item-label">잔금 지급 조건 충족 확인</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Final Inspection + C of O + 펀치 + Waiver</li>
+            <li>Retention(10%) 방출</li>
+            <li>Invoice CO 반영 확인</li>
+            <li>프로젝트 회계 마감</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 유지관리 매뉴얼 -->
+    <div class="checklist-group">
+      <div class="group-header">
+        <div class="group-title">
+          <span class="group-dot" style="background:var(--slate)"></span>
+          <span style="color:var(--slate)">유지관리 매뉴얼</span>
+        </div>
+        <span class="group-count" id="gc-m5-maint">0/5</span>
+      </div>
+      <div class="checklist-items">
+        <div class="checklist-item" id="li-m5-maint-1">
+          <div class="item-row">
+            <input type="checkbox" id="m5-maint-1" onchange="onCheck(this)">
+            <span class="item-label">전시 벽면 보수 방법 (touch-up paint spec)</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>Touch-up spec: 제품, 색상, 광택, 제조사</li>
+            <li>사포 220grit → 프라이머 → 2 coats</li>
+            <li>여분 <code>1갤런</code>(lot 일치) 보관</li>
+            <li>대면적: 전체 재도장 권장</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-maint-2">
+          <div class="item-row">
+            <input type="checkbox" id="m5-maint-2" onchange="onCheck(this)">
+            <span class="item-label">조명 교체 스케줄 및 사양</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>LED <code>50,000시간</code>(≈14년)</li>
+            <li>사양: 와트, K, CRI, 빔각, 소켓</li>
+            <li>예비 <code>10%</code> 비축</li>
+            <li>교체 기록 스프레드시트</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-maint-3">
+          <div class="item-row">
+            <input type="checkbox" id="m5-maint-3" onchange="onCheck(this)">
+            <span class="item-label">HVAC 필터 교체 주기</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>주기: <code>1-3개월</code></li>
+            <li>사양: 사이즈, <code>MERV 8-13</code></li>
+            <li>전원 차단→제거→삽입→복구</li>
+            <li>교체 기록 로그</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-maint-4">
+          <div class="item-row">
+            <input type="checkbox" id="m5-maint-4" onchange="onCheck(this)">
+            <span class="item-label">바닥재 관리 방법</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li>중성 세제 + 마이크로파이버, 주 1-2회</li>
+            <li>재코팅 <code>6-12개월</code></li>
+            <li>스크래치 터치업</li>
+            <li>입구 먼지 제거 매트</li>
+          </ul></div>
+        </div>
+        <div class="checklist-item" id="li-m5-maint-5">
+          <div class="item-row">
+            <input type="checkbox" id="m5-maint-5" onchange="onCheck(this)">
+            <span class="item-label">비상 시 대응 절차</span>
+            <span class="item-toggle">▸</span>
+          </div>
+          <div class="item-desc"><ul>
+            <li><strong>화재</strong>: 경보→대피→911→소화기</li>
+            <li><strong>지진</strong>: Drop-Cover-Hold→대피→점검</li>
+            <li><strong>정전</strong>: 비상조명→관람객 안내→비상전원</li>
+            <li><strong>수해</strong>: 전원차단→전시물보호→배관→보험</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  by Project Rent &middot; US Interior Compliance OS &middot; 2026
+</footer>
+
+<script>
+// ── CONFIG ── //
+const STORAGE_KEY = 'us-interior-compliance-os';
+
+const MODULES = {
+  m1: {
+    groups: {
+      'gc-m1-cbc':    ['m1-cbc-1','m1-cbc-2','m1-cbc-3','m1-cbc-4','m1-cbc-5'],
+      'gc-m1-ada':    ['m1-ada-1','m1-ada-2','m1-ada-3','m1-ada-4','m1-ada-5','m1-ada-6'],
+      'gc-m1-fire':   ['m1-fire-1','m1-fire-2','m1-fire-3','m1-fire-4','m1-fire-5','m1-fire-6'],
+      'gc-m1-zone':   ['m1-zone-1','m1-zone-2','m1-zone-3'],
+    }
+  },
+  m2: {
+    groups: {
+      'gc-m2-permit':    ['m2-permit-1','m2-permit-2','m2-permit-3'],
+      'gc-m2-plancheck': ['m2-plancheck-1','m2-plancheck-2','m2-plancheck-3','m2-plancheck-4','m2-plancheck-5','m2-plancheck-6','m2-plancheck-7'],
+      'gc-m2-inspect':   ['m2-inspect-1','m2-inspect-2','m2-inspect-3','m2-inspect-4','m2-inspect-5','m2-inspect-6'],
+      'gc-m2-ins':       ['m2-ins-1','m2-ins-2','m2-ins-3','m2-ins-4'],
+      'gc-m2-contract':  ['m2-contract-1','m2-contract-2','m2-contract-3','m2-contract-4','m2-contract-5'],
+      'gc-m2-kccla':     ['m2-kccla-1','m2-kccla-2','m2-kccla-3','m2-kccla-4','m2-kccla-5','m2-kccla-6','m2-kccla-7','m2-kccla-8'],
+      'gc-m2-docs':      ['m2-docs-1','m2-docs-2','m2-docs-3','m2-docs-4','m2-docs-5','m2-docs-6','m2-docs-7','m2-docs-8'],
+    }
+  },
+  m3: {
+    groups: {
+      'gc-m3-ada':     ['m3-ada-1','m3-ada-2','m3-ada-3','m3-ada-4','m3-ada-5','m3-ada-6'],
+      'gc-m3-finish':  ['m3-finish-1','m3-finish-2','m3-finish-3','m3-finish-4','m3-finish-5'],
+      'gc-m3-elec':    ['m3-elec-1','m3-elec-2','m3-elec-3','m3-elec-4','m3-elec-5'],
+      'gc-m3-cert':    ['m3-cert-1','m3-cert-2','m3-cert-3','m3-cert-4','m3-cert-5'],
+      'gc-m3-exhibit': ['m3-exhibit-1','m3-exhibit-2','m3-exhibit-3','m3-exhibit-4','m3-exhibit-5'],
+    }
+  },
+  m4: {
+    groups: {
+      'gc-m4-milestone': ['m4-milestone-1','m4-milestone-2','m4-milestone-3','m4-milestone-4','m4-milestone-5','m4-milestone-6','m4-milestone-7','m4-milestone-8'],
+      'gc-m4-insp':      ['m4-insp-1','m4-insp-2','m4-insp-3','m4-insp-4','m4-insp-5'],
+      'gc-m4-quality':   ['m4-quality-1','m4-quality-2','m4-quality-3','m4-quality-4','m4-quality-5'],
+      'gc-m4-site':      ['m4-site-1','m4-site-2','m4-site-3','m4-site-4','m4-site-5','m4-site-6','m4-site-7'],
+    }
+  },
+  m5: {
+    groups: {
+      'gc-m5-co':       ['m5-co-1','m5-co-2','m5-co-3'],
+      'gc-m5-final':    ['m5-final-1','m5-final-2','m5-final-3','m5-final-4','m5-final-5'],
+      'gc-m5-handover': ['m5-handover-1','m5-handover-2','m5-handover-3','m5-handover-4','m5-handover-5','m5-handover-6'],
+      'gc-m5-punch':    ['m5-punch-1','m5-punch-2','m5-punch-3','m5-punch-4','m5-punch-5'],
+      'gc-m5-maint':    ['m5-maint-1','m5-maint-2','m5-maint-3','m5-maint-4','m5-maint-5'],
+    }
+  }
+};
+
+// ── HELPERS ── //
+function allIdsForModule(mod) {
+  return Object.values(MODULES[mod].groups).flat();
+}
+
+function allIds() {
+  return ['m1','m2','m3','m4','m5'].flatMap(m => allIdsForModule(m));
+}
+
+function countModule(mod) {
+  const ids = allIdsForModule(mod);
+  const checked = ids.filter(id => document.getElementById(id)?.checked).length;
+  return { checked, total: ids.length };
+}
+
+function countGroup(gcId, ids) {
+  const checked = ids.filter(id => document.getElementById(id)?.checked).length;
+  return { checked, total: ids.length };
+}
+
+function pct(checked, total) {
+  if (total === 0) return 0;
+  return Math.round(checked / total * 100);
+}
+
+// ── SAVE / LOAD ── //
+function saveState() {
+  const state = {};
+  allIds().forEach(id => {
+    const el = document.getElementById(id);
+    if (el) state[id] = el.checked;
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    Object.entries(state).forEach(([id, checked]) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.checked = checked;
+        updateItemStyle(el);
+      }
+    });
+  } catch(e) { console.warn('State load failed', e); }
+}
+
+// ── ITEM STYLE ── //
+function updateItemStyle(checkbox) {
+  const li = checkbox.closest('.checklist-item');
+  if (li) {
+    li.classList.toggle('checked', checkbox.checked);
+  }
+}
+
+// ── ON CHECK ── //
+function onCheck(checkbox) {
+  updateItemStyle(checkbox);
+  saveState();
+  updateAllProgress();
+}
+
+// ── PROGRESS UPDATE ── //
+function updateAllProgress() {
+  let totalChecked = 0, totalAll = 0;
+
+  ['m1','m2','m3','m4','m5'].forEach(mod => {
+    const { checked, total } = countModule(mod);
+    const p = pct(checked, total);
+
+    // KPI cards
+    document.getElementById(`kpi-pct-${mod}`).textContent = p + '%';
+    document.getElementById(`kpi-bar-${mod}`).style.width = p + '%';
+    document.getElementById(`kpi-count-${mod}`).textContent = `${checked} / ${total}`;
+
+    // Module header
+    document.getElementById(`mod-pct-${mod}`).textContent = p + '%';
+    document.getElementById(`mod-count-${mod}`).textContent = `${checked} / ${total}`;
+    document.getElementById(`mod-bar-${mod}`).style.width = p + '%';
+
+    // Dashboard
+    document.getElementById(`dash-pct-${mod}`).textContent = p + '%';
+    document.getElementById(`dash-bar-${mod}`).style.width = p + '%';
+    document.getElementById(`dash-count-${mod}`).textContent = `${checked} / ${total}`;
+
+    totalChecked += checked;
+    totalAll += total;
+
+    // Group counts
+    Object.entries(MODULES[mod].groups).forEach(([gcId, ids]) => {
+      const gc = countGroup(gcId, ids);
+      const el = document.getElementById(gcId);
+      if (el) el.textContent = `${gc.checked}/${gc.total}`;
+    });
+  });
+
+  // Overall dashboard
+  const overallPct = pct(totalChecked, totalAll);
+  document.getElementById('dash-overall-pct').textContent = overallPct + '%';
+  document.getElementById('dash-overall-bar').style.width = overallPct + '%';
+  document.getElementById('dash-total').textContent = `총 ${totalChecked} / ${totalAll} 항목 완료`;
+}
+
+// ── TAB NAVIGATION ── //
+function showModule(mod) {
+  // Hide all sections
+  document.querySelectorAll('.module-section').forEach(s => s.classList.remove('active'));
+  // Show target
+  document.getElementById('section-' + mod).classList.add('active');
+  // Update tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.module === mod);
+  });
+}
+
+// ── DASHBOARD TOGGLE ── //
+function toggleDashboard() {
+  document.getElementById('dashboard').classList.toggle('open');
+}
+
+// ── KEYBOARD ── //
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.key === '1') showModule('m1');
+  if (e.key === '2') showModule('m2');
+  if (e.key === '3') showModule('m3');
+  if (e.key === '4') showModule('m4');
+  if (e.key === '5') showModule('m5');
+  if (e.key === 'd' || e.key === 'D') toggleDashboard();
+});
+
+// ── EXPORT JSON ── //
+function exportJSON() {
+  const state = {};
+  allIds().forEach(id => {
+    const el = document.getElementById(id);
+    if (el) state[id] = el.checked;
+  });
+
+  const data = {
+    exported: new Date().toISOString(),
+    project: 'KCCLA Interior Compliance',
+    by: 'Project Rent',
+    state
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `compliance-os-backup-${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── TOGGLE DETAIL DESC ── //
+document.addEventListener('click', e => {
+  const row = e.target.closest('.item-row');
+  if (!row) return;
+  if (e.target.tagName === 'INPUT') return;
+  e.preventDefault();
+  row.closest('.checklist-item').classList.toggle('open');
+});
+
+// ── INIT ── //
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  updateAllProgress();
+});
+</script>
+</body>
+</html>
