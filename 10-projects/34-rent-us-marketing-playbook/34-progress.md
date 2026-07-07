@@ -16,6 +16,11 @@ Economy에서 더 강한 무기.
 ## 작업 로그
 
 ### 2026-07-07
+- [x] **업체 디렉토리(D) 완료** — 병렬 리서치 에이전트 6기(카테고리 A~F 각 1기), 맥미니 무인 실행.
+  - `research/vendor-directory-A-F.md` 신규: A~F 총 **81개 named 업체** — 업체명·공식링크(전 링크 WebFetch 실재 확인, 죽은 링크 0)·기본서비스·가격·가능한 마케팅 서비스종류 + 섹션별 선택 가이드.
+  - 씨앗(`tool-la-alternatives.md`) 대비 상충 9건 최신 공식가로 갱신: ① **6AM City는 LA/CA 미커버**(9개 주 확인 — LA 대안 부적격) ② Adomni Uber OOH 카탑 축소/종료 정황 ③ Fizz 파일럿→정식 광고 상품 ④ StackAdapt 실효 미니멈 $5~10K/월 [추정] ⑤ Reddit CPM 하한 $3.50~ ⑥ Nextdoor "무최소+10:1 룰" ⑦ Business Wire 초과단가 $195~365 범위 ⑧ 엘리베이터/시네마 스크린 수(Vertical Impression·Screenverse·NCM) ⑨ Resy 신규 티어(Essential $269/Premium $399).
+  - 신규 확인: beehiiv Ad Network 최소 $15K(공식), GRIN 가격 공개 전환($399~/월), Billo 공식 pricing 소멸(비공시 전환), DailyHive LA 부재(404)→Doing Things Media(Overheard LA) 대체.
+  - 잔여 [확인필요]: Tock 예약제 신구가(공식 403), Partiful 유료 티켓 정률, Resy 계약조건, Captivate CPM(2018 자료).
 - [x] **추가리서치(C) 완료** — 병렬 리서치 에이전트 3기(미션1 효과채널 / 미션2 a·b 캡처·전환 / 미션2 c+미션3 ESP·케이스), 맥미니 무인 실행.
   - `research/us-effective-marketing.md` 신규: 8개 채널 ROI 증거 기반 정리. **통설 3개 검증에서 무너짐** —
     이메일 "$42/$1"은 DMA UK 2019 **£42가 달러로 와전**(원출처는 Litmus 2020 $36, 전부 자기보고 서베이 —
