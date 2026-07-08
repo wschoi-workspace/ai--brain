@@ -46,6 +46,8 @@ DAILY_SHEET = os.environ.get("DAILY_REPORT_SHEET_ID", "")
 BASKET_SHEET = os.environ.get("BASKET_REPORT_SHEET_ID", "")
 MANAGER_BOT_TOKEN = os.environ.get("DAILY_REPORT_MANAGER_BOT_TOKEN", "")
 MANAGER_CHAT_ID = os.environ.get("DAILY_REPORT_MANAGER_CHAT_ID", "")
+# 알림 속 대시보드 링크 — .env의 DASHBOARD_BASE_URL 우선 (daily-brief-aggregate.py와 동일 정책)
+DASHBOARD_BASE_URL = os.environ.get("DASHBOARD_BASE_URL", "https://server-mini-macmini.tail7739de.ts.net")
 
 # 차트 6색 팔레트 (project-rent)
 PALETTE = ["#6C5CE7", "#A29BFE", "#6F8AA3", "#8FA37E", "#D9A34B", "#E17055", "#B0B0B0"]
@@ -826,8 +828,8 @@ def _telegram_summary(data: dict, html_path: Path):
            f"• 활성 {s['active_people']}명 · 미해결 의사결정 {s['open_decisions']}건\n")
     if top_blockers:
         msg += "\n🔔 공통 블로커\n" + "\n".join(f"– {b}" for b in top_blockers[:3])
-    # 폰에서 열리는 원격 URL(Tailscale). 로컬 파일 경로는 모바일에서 안 열림.
-    msg += "\n\n📄 https://macbookair.tail7739de.ts.net/dashboard"
+    # 폰에서 열리는 원격 URL — 고정 URL은 .env DASHBOARD_BASE_URL로 관리
+    msg += f"\n\n📄 {DASHBOARD_BASE_URL}/dashboard"
     try:
         import urllib.request
         url = f"https://api.telegram.org/bot{MANAGER_BOT_TOKEN}/sendMessage"

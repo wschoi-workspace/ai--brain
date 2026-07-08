@@ -48,10 +48,10 @@ MANAGER_BOT_TOKEN = os.environ.get("DAILY_REPORT_MANAGER_BOT_TOKEN", "")
 MANAGER_CHAT_ID = os.environ.get("DAILY_REPORT_MANAGER_CHAT_ID", "")
 # 팀 리더 알림은 직원봇으로 발신(리더는 직원봇에 연결됨 — 관리자봇 미접속).
 LEADER_BOT_TOKEN = os.environ.get("DAILY_REPORT_BOT_TOKEN", "")
-# ⚠️ 임시: ts.net이 한국 통신사 DNS에서 안 풀려 Cloudflare quick tunnel URL로 교체(2026-06-30).
-# quick tunnel URL은 재시작 시 변경됨 → named tunnel 고정 도메인 확보 후 이 상수만 교체.
-# (.env의 DASHBOARD_BASE_URL이 있으면 그것 우선 — named 전환 시 .env로 관리)
-DASHBOARD_BASE_URL = os.environ.get("DASHBOARD_BASE_URL", "https://crossword-international-comparative-operations.trycloudflare.com")
+# 링크 URL은 .env의 DASHBOARD_BASE_URL이 우선. 기본값은 tailnet(대표 기기 전용) —
+# 리더는 tailnet 밖이라 named tunnel 고정 도메인 완성 시 .env 한 줄로 교체(cloudflare-migration-checklist.md).
+# (구 trycloudflare quick tunnel URL은 2026-07-08 사망 확인 — 링크 미작동 장애 원인)
+DASHBOARD_BASE_URL = os.environ.get("DASHBOARD_BASE_URL", "https://server-mini-macmini.tail7739de.ts.net")
 
 TEAM_ORDER = ["경영", "사업기획", "공간팀", "기획팀", "운영팀", "감사"]
 NAME_ALIASES = {
@@ -217,7 +217,8 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
 [urgency] high=오늘 안 보면 손실/기한 / mid=이번 주 / low=인지만
 
 반드시 아래 JSON만 출력:
-{"items":[{"category":"decision|intervention|risk|project|growth",
+{"headline":"오늘 이 조직/팀이 가장 주목해야 할 핵심을 한 문장으로(의사결정·리스크 우선). 근거 없으면 빈 문자열.",
+ "items":[{"category":"decision|intervention|risk|project|growth",
   "title":"대표가 30초에 읽는 한 줄 요약",
   "detail":"무엇을 결정/개입/주시해야 하나 (구체)",
   "urgency":"high|mid|low",
@@ -226,12 +227,14 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
   "related":"근거가 된 산출물/이슈 한 줄"}]}"""
 
 
-def engine_d(blocks: list[str]) -> list[dict]:
+def engine_d(blocks: list[str]) -> dict:
+    """LLM 5범주 추출 + 오늘 핵심 한줄(headline). 반환 {"items":[...], "headline":str}."""
+    empty = {"items": [], "headline": ""}
     if not blocks:
-        return []
+        return empty
     key = os.environ.get("OPENAI_API_KEY", "")
     if not key:
-        return []
+        return empty
     text = "\n\n".join(blocks)[:12000]
     try:
         from openai import OpenAI
@@ -242,10 +245,11 @@ def engine_d(blocks: list[str]) -> list[dict]:
             messages=[{"role": "system", "content": BRIEF_PROMPT},
                       {"role": "user", "content": f"[오늘 직원 보고 전체]\n{text}"}],
         )
-        items = json.loads(resp.choices[0].message.content or "{}").get("items", [])
+        result = json.loads(resp.choices[0].message.content or "{}")
+        headline = (result.get("headline") or "").strip()
         # 정규화·검증
         out = []
-        for it in items:
+        for it in result.get("items", []):
             cat = (it.get("category") or "").strip()
             if cat not in CAT_META:
                 continue
@@ -258,10 +262,16 @@ def engine_d(blocks: list[str]) -> list[dict]:
                 "project": (it.get("project") or "").strip() or None,
                 "related": (it.get("related") or "").strip(),
             })
-        return out
+        return {"items": out, "headline": headline}
     except Exception as e:
         sys.stderr.write(f"[engine_d err] {e}\n")
-        return []
+        return empty
+
+
+def _decision_summary(items: list[dict]) -> list[dict]:
+    """상단 요약존용 — decision·intervention 항목을 urgency순으로 정렬."""
+    ds = [it for it in items if it["category"] in ("decision", "intervention")]
+    return sorted(ds, key=lambda x: URG_RANK.get(x["urgency"], 1))
 
 
 def pick_top5(items: list[dict]) -> list[dict]:
@@ -314,12 +324,32 @@ def _weekday_kr(target: str) -> str:
     return ["월", "화", "수", "목", "금", "토", "일"][datetime.strptime(target, "%Y-%m-%d").weekday()]
 
 
+def _people_summary(day: dict) -> list[dict]:
+    """활성 보고자만, TEAM_ORDER→이름 순 정렬한 개인별 원문 정리(브리프 하단 써머리용).
+    LLM 미경유 — 시트 원문 그대로 구조화(fidelity)."""
+    out = []
+    for nm, d in day.items():
+        if not (d["raw"] or d["core"] or d["basket"]):
+            continue
+        out.append({
+            "name": nm,
+            "team": d["team"] or team_of(nm),
+            "core": [c for c in d["core"] if any((v or "").strip() for v in c.values())],
+            "meta": {k: v for k, v in d["meta"].items()
+                     if (v or "").strip() and k != "reflection"},
+            "basket": d["basket"][:6],
+        })
+    out.sort(key=lambda p: (TEAM_ORDER.index(p["team"]) if p["team"] in TEAM_ORDER else 99, p["name"]))
+    return out
+
+
 def build_brief_data(target: str, day: dict | None = None) -> dict:
     """대표 전체 Brief. day(fetch_day 결과)를 받으면 gws 재호출을 피한다."""
     if day is None:
         day = fetch_day(prev_bizday_range(target))
     blocks = [_emp_block(nm, d) for nm, d in day.items()]
-    items = engine_d(blocks)
+    res = engine_d(blocks)
+    items = res["items"]
     items += _carried_decision_items(target)  # 과거 미결(open) 결정 이월 — 정해질 때까지 노출
     unmatched = sorted({nm for nm in day if nm not in BY_NAME})
     counts = {c: sum(1 for it in items if it["category"] == c) for c in CAT_META}
@@ -327,10 +357,13 @@ def build_brief_data(target: str, day: dict | None = None) -> dict:
         "date": target,
         "weekday": _weekday_kr(target),
         "active_people": len([nm for nm, d in day.items() if (d["raw"] or d["core"] or d["basket"])]),
+        "headline": res["headline"],
+        "decision_summary": _decision_summary(items),
         "items": items,
         "top5": pick_top5(items),
         "counts": counts,
         "unmatched": unmatched,
+        "people": _people_summary(day),
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
@@ -339,17 +372,21 @@ def build_team_brief_data(target: str, team: str, day: dict) -> dict:
     """팀 스코프 Brief — 그 팀 직원 보고만 Engine D로. 보고 0건이면 LLM 호출 skip."""
     tday = {nm: d for nm, d in day.items() if d.get("team") == team}
     blocks = [_emp_block(nm, d) for nm, d in tday.items()]
-    items = engine_d(blocks) if blocks else []
+    res = engine_d(blocks) if blocks else {"items": [], "headline": ""}
+    items = res["items"]
     counts = {c: sum(1 for it in items if it["category"] == c) for c in CAT_META}
     return {
         "date": target,
         "team": team,
         "weekday": _weekday_kr(target),
         "active_people": len([nm for nm, d in tday.items() if (d["raw"] or d["core"] or d["basket"])]),
+        "headline": res["headline"],
+        "decision_summary": _decision_summary(items),
         "items": items,
         "top5": pick_top5(items),
         "counts": counts,
         "unmatched": [],  # 팀 brief는 팀 필터라 매칭된 직원만 — 미매칭 경고 불필요
+        "people": _people_summary(tday),
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
@@ -386,6 +423,60 @@ def _item_card(it: dict) -> str:
       <div class="ic-d">{_esc(it["detail"])}</div>
       <div class="ic-m">{src}{proj}</div>{rel}
     </div>'''
+
+
+_META_LABELS = [  # (key, 라벨, CSS 클래스)
+    ("blocker", "🚧 블로커", "pm-amber"),
+    ("decision", "🔴 의사결정요청", "pm-red"),
+    ("support", "🙋 지원요청", ""),
+    ("question", "❓ 오늘의질문", ""),
+]
+
+
+def _person_card(p: dict) -> str:
+    """개인별 업무 써머리 카드 — 시트 원문(핵심업무/메타/매장보고) 그대로."""
+    rows = []
+    for i, c in enumerate(p["core"]):
+        num = chr(0x2460 + i) if i < 10 else f"{i+1}."
+        out_bits = [b for b in (c.get("output", "").strip(), c.get("outcome", "").strip()) if b]
+        out_line = f'<span class="pt-out">→ {_esc(" · ".join(out_bits))}</span>' if out_bits else ""
+        issue = f'<div class="pp-issue">⚠ {_esc(c["issue"].strip())}</div>' if c.get("issue", "").strip() else ""
+        rows.append(f'<div class="pp-task">{num} {_esc(c.get("task", "").strip() or "(업무명 미기재)")}{out_line}{issue}</div>')
+    for label, v in p.get("basket", []):
+        rows.append(f'<div class="pp-task"><span class="pt-out">{_esc(label)}: {_esc(v[:120])}</span></div>')
+    metas = []
+    for key, label, cls in _META_LABELS:
+        v = (p["meta"].get(key) or "").strip()
+        if v:
+            metas.append(f'<div class="{cls}">{label} · {_esc(v[:200])}</div>')
+    meta_html = f'<div class="pp-meta">{"".join(metas)}</div>' if metas else ""
+    return f'''<div class="card">
+      <div class="pp-head"><span class="pp-name">{_esc(p["name"])}</span><span class="pp-team">{_esc(p["team"])}</span></div>
+      {"".join(rows) or '<div class="muted">보고 내용 없음</div>'}{meta_html}
+    </div>'''
+
+
+def _people_section(data: dict) -> str:
+    """브리프 하단 개인별 업무 써머리 — 대표는 팀별 그룹, 팀 브리프는 카드 나열."""
+    people = data.get("people") or []
+    body = ""
+    if not people:
+        body = '<div class="muted">오늘 보고한 인원이 없습니다.</div>'
+    elif data.get("team"):
+        body = f'<div class="pp-grid">{"".join(_person_card(p) for p in people)}</div>'
+    else:
+        chunks, cur = [], None
+        for p in people:
+            if p["team"] != cur:
+                if cur is not None:
+                    chunks.append("</div>")
+                chunks.append(f'<div class="pp-team-head">{_esc(p["team"])}</div><div class="pp-grid">')
+                cur = p["team"]
+            chunks.append(_person_card(p))
+        chunks.append("</div>")
+        body = "".join(chunks)
+    return (f'<h2 class="sec" style="border-color:var(--accent)"><span style="color:var(--accent)">●</span>'
+            f' 개인별 업무 써머리 <span class="cnt">{len(people)}명</span></h2>{body}')
 
 
 def render_brief_html(data: dict) -> str:
@@ -427,6 +518,23 @@ def render_brief_html(data: dict) -> str:
                     f' <span class="cnt">{data["counts"][c]}</span></h2><div class="grid">{body}</div>')
     secs_html = "".join(secs)
 
+    # 상단 요약존 — 팀/파트 한줄 써머리 + 오늘 의사결정·개입
+    headline = _esc(data.get("headline") or "")
+    dsum = data.get("decision_summary") or []
+    summary_zone = ""
+    if headline or dsum:
+        hl = f'<div class="sz-hl">{headline}</div>' if headline else ''
+        if dsum:
+            dz_cards = "".join(
+                f'<div class="dz-card">{_urg_badge(it["urgency"])}<b>{_esc(it["title"])}</b>'
+                f'<span class="dz-src">{_esc(it["source_employee"])}'
+                f'{" · " + _esc(it["project"]) if it["project"] else ""}</span></div>'
+                for it in dsum)
+            dz = f'<div class="sz-label">오늘 의사결정 · 개입</div><div class="dz-grid">{dz_cards}</div>'
+        else:
+            dz = '<div class="sz-label">오늘 의사결정 · 개입</div><div class="muted">오늘 결정·개입 필요사항 없음</div>'
+        summary_zone = f'<div class="summary-zone">{hl}{dz}</div>'
+
     cnt = data["counts"]
     unmatched = ""
     if data["unmatched"]:
@@ -467,7 +575,25 @@ h2.sec .cnt{{margin-left:auto;color:var(--muted);font-size:12px;font-weight:400}
 .urg-mid{{background:rgba(217,163,75,.14);color:var(--amber);border:1px solid rgba(217,163,75,.35)}}
 .urg-low{{background:var(--bg-3);color:var(--muted);border:1px solid var(--line)}}
 .muted{{color:var(--muted);font-size:12px}}
+.summary-zone{{background:var(--bg-3);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:18px 20px;margin:18px 0 24px}}
+.sz-hl{{font-size:16px;font-weight:500;color:var(--fg);line-height:1.55;margin-bottom:16px}}
+.sz-label{{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px}}
+.dz-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}}
+.dz-card{{background:var(--bg-2);border:1px solid var(--line);border-radius:9px;padding:11px 13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}}
+.dz-card b{{font-size:13px;font-weight:500;flex:1;min-width:130px;line-height:1.4}}
+.dz-src{{font-size:11px;color:var(--muted);width:100%}}
 .warn{{background:rgba(217,163,75,.1);border:1px solid rgba(217,163,75,.3);color:var(--amber);border-radius:8px;padding:10px 14px;font-size:13px;margin:16px 0}}
+.pp-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin-bottom:6px}}
+.pp-team-head{{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin:16px 0 10px}}
+.pp-head{{display:flex;align-items:center;gap:8px;margin-bottom:10px}}
+.pp-name{{font-size:15px;font-weight:600}}
+.pp-team{{font-size:11px;color:var(--accent);background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.35);border-radius:5px;padding:1px 7px}}
+.pp-task{{font-size:13px;line-height:1.5;margin-bottom:8px}}
+.pp-task .pt-out{{display:block;font-size:12px;color:var(--muted);margin-top:2px;padding-left:18px}}
+.pp-issue{{font-size:12px;color:var(--amber);margin-top:2px;padding-left:18px}}
+.pp-meta{{border-top:1px solid var(--line);margin-top:10px;padding-top:8px;font-size:12px;line-height:1.7}}
+.pp-meta .pm-red{{color:var(--red)}}
+.pp-meta .pm-amber{{color:var(--amber)}}
 footer{{margin-top:44px;color:var(--muted);font-size:11px;text-align:center;border-top:1px solid var(--line);padding-top:16px}}
 #login-gate{{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}}
 #login-box{{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:38px 40px;width:330px;text-align:center}}
@@ -492,6 +618,7 @@ footer{{margin-top:44px;color:var(--muted);font-size:11px;text-align:center;bord
 <div id="content" style="display:none"><div class="wrap">
 <header><h1>{H1}</h1><div class="sub">{_esc(data["date"])} ({_esc(data["weekday"])}) · 생성 {_esc(data["generated_at"])}</div></header>
 {unmatched}
+{summary_zone}
 <div class="statbar">
   <div class="stat"><b>{cnt["decision"]}</b><small>결정</small></div>
   <div class="stat"><b>{cnt["intervention"]}</b><small>개입</small></div>
@@ -502,6 +629,7 @@ footer{{margin-top:44px;color:var(--muted);font-size:11px;text-align:center;bord
 </div>
 <div class="hero">{hero_html}</div>
 {secs_html}
+{_people_section(data)}
 <footer>ARISA Engine D · Daily Executive Brief · {_esc(data["generated_at"])} · by Project Rent</footer>
 </div></div>
 <script>
