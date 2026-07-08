@@ -14,6 +14,7 @@ fidelity: 보고 원문(raw)·이슈·블로커·outcome·basket결재에 실제
 from __future__ import annotations
 
 import os
+import re
 import sys
 import json
 import html
@@ -324,17 +325,37 @@ def _weekday_kr(target: str) -> str:
     return ["월", "화", "수", "목", "금", "토", "일"][datetime.strptime(target, "%Y-%m-%d").weekday()]
 
 
+def _raw_details(raw: str) -> dict:
+    """보고 원문의 '[상세: 업무명] 내용' 블록을 {업무명: 상세} dict로 파싱."""
+    out = {}
+    for m in re.finditer(r"\[상세:\s*([^\]]+)\]\s*([^\[]+)", raw or ""):
+        out[m.group(1).strip()] = " ".join(m.group(2).split())
+    return out
+
+
 def _people_summary(day: dict) -> list[dict]:
     """활성 보고자만, TEAM_ORDER→이름 순 정렬한 개인별 원문 정리(브리프 하단 써머리용).
-    LLM 미경유 — 시트 원문 그대로 구조화(fidelity)."""
+    LLM 미경유 — 시트 원문 그대로 구조화(fidelity). 핵심업무 상세는 raw의 [상세:] 블록에서 보강."""
     out = []
     for nm, d in day.items():
         if not (d["raw"] or d["core"] or d["basket"]):
             continue
+        details = _raw_details(d["raw"])
+        core = []
+        for c in d["core"]:
+            if not any((v or "").strip() for v in c.values()):
+                continue
+            c = dict(c)
+            task = (c.get("task") or "").strip()
+            det = details.get(task) or next(
+                (v for k, v in details.items() if task and (task in k or k in task)), "")
+            if det:
+                c["detail"] = det
+            core.append(c)
         out.append({
             "name": nm,
             "team": d["team"] or team_of(nm),
-            "core": [c for c in d["core"] if any((v or "").strip() for v in c.values())],
+            "core": core,
             "meta": {k: v for k, v in d["meta"].items()
                      if (v or "").strip() and k != "reflection"},
             "basket": d["basket"][:6],
@@ -438,10 +459,17 @@ def _person_card(p: dict) -> str:
     rows = []
     for i, c in enumerate(p["core"]):
         num = chr(0x2460 + i) if i < 10 else f"{i+1}."
-        out_bits = [b for b in (c.get("output", "").strip(), c.get("outcome", "").strip()) if b]
+        detail = (c.get("detail") or "").strip()
+        det_line = f'<span class="pt-detail">{_esc(detail[:400])}</span>' if detail else ""
+        # output/outcome 중복 제거 + 상세와 겹치면 생략
+        out_bits, seen = [], set()
+        for b in (c.get("output", "").strip(), c.get("outcome", "").strip()):
+            if b and b not in seen and b not in detail:
+                out_bits.append(b)
+                seen.add(b)
         out_line = f'<span class="pt-out">→ {_esc(" · ".join(out_bits))}</span>' if out_bits else ""
         issue = f'<div class="pp-issue">⚠ {_esc(c["issue"].strip())}</div>' if c.get("issue", "").strip() else ""
-        rows.append(f'<div class="pp-task">{num} {_esc(c.get("task", "").strip() or "(업무명 미기재)")}{out_line}{issue}</div>')
+        rows.append(f'<div class="pp-task">{num} {_esc(c.get("task", "").strip() or "(업무명 미기재)")}{det_line}{out_line}{issue}</div>')
     for label, v in p.get("basket", []):
         rows.append(f'<div class="pp-task"><span class="pt-out">{_esc(label)}: {_esc(v[:120])}</span></div>')
     metas = []
@@ -590,6 +618,7 @@ h2.sec .cnt{{margin-left:auto;color:var(--muted);font-size:12px;font-weight:400}
 .pp-team{{font-size:11px;color:var(--accent);background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.35);border-radius:5px;padding:1px 7px}}
 .pp-task{{font-size:13px;line-height:1.5;margin-bottom:8px}}
 .pp-task .pt-out{{display:block;font-size:12px;color:var(--muted);margin-top:2px;padding-left:18px}}
+.pp-task .pt-detail{{display:block;font-size:12px;color:var(--fg);opacity:.85;line-height:1.6;margin-top:3px;padding-left:18px}}
 .pp-issue{{font-size:12px;color:var(--amber);margin-top:2px;padding-left:18px}}
 .pp-meta{{border-top:1px solid var(--line);margin-top:10px;padding-top:8px;font-size:12px;line-height:1.7}}
 .pp-meta .pm-red{{color:var(--red)}}
