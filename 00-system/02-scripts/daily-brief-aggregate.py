@@ -325,6 +325,37 @@ def _weekday_kr(target: str) -> str:
     return ["월", "화", "수", "목", "금", "토", "일"][datetime.strptime(target, "%Y-%m-%d").weekday()]
 
 
+def fetch_assignments(target: str) -> list[dict]:
+    """주간분장 탭에서 브리프 날짜가 속한 주(월~일)의 분장 항목 fetch.
+    실스키마(셸 '내 업무' AI 분장): 날짜(0)|프로젝트명(1)|팀구분(2)|담당자(3)|업무내용(4)|
+    일정완료예상(5)|결과물(6)|상태(7)|이해관계자(8)|우선순위(9)"""
+    try:
+        rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:J5000")
+    except Exception:
+        return []
+    d = datetime.strptime(target, "%Y-%m-%d").date()
+    week_start = d - timedelta(days=d.weekday())
+    week_end = week_start + timedelta(days=6)
+    items = []
+    for r in rows:
+        r = r + [""] * (10 - len(r))
+        nd = normalize_date(r[0])
+        if not nd:
+            continue
+        rd = datetime.strptime(nd, "%Y-%m-%d").date()
+        if not (week_start <= rd <= week_end):
+            continue
+        if not (r[4] or "").strip():
+            continue
+        items.append({
+            "date": nd, "project": (r[1] or "").strip(), "team": (r[2] or "").strip(),
+            "assignee": normalize_name(r[3]), "task": (r[4] or "").strip(),
+            "deadline": (r[5] or "").strip(), "status": (r[7] or "미착수").strip(),
+            "priority": (r[9] or "일반").strip(),
+        })
+    return items
+
+
 def _raw_details(raw: str) -> dict:
     """보고 원문의 '[상세: 업무명] 내용' 블록을 {업무명: 상세} dict로 파싱."""
     out = {}
@@ -333,9 +364,11 @@ def _raw_details(raw: str) -> dict:
     return out
 
 
-def _people_summary(day: dict) -> list[dict]:
+def _people_summary(day: dict, assignments: list[dict] | None = None) -> list[dict]:
     """활성 보고자만, TEAM_ORDER→이름 순 정렬한 개인별 원문 정리(브리프 하단 써머리용).
-    LLM 미경유 — 시트 원문 그대로 구조화(fidelity). 핵심업무 상세는 raw의 [상세:] 블록에서 보강."""
+    LLM 미경유 — 시트 원문 그대로 구조화(fidelity). 핵심업무 상세는 raw의 [상세:] 블록에서 보강.
+    assignments가 있으면 담당자 매칭으로 이번주 분장 항목을 개인별로 붙인다."""
+    assignments = assignments or []
     out = []
     for nm, d in day.items():
         if not (d["raw"] or d["core"] or d["basket"]):
@@ -359,13 +392,17 @@ def _people_summary(day: dict) -> list[dict]:
             "meta": {k: v for k, v in d["meta"].items()
                      if (v or "").strip() and k != "reflection"},
             "basket": d["basket"][:6],
+            "assignments": [a for a in assignments if a["assignee"] == nm],
         })
     out.sort(key=lambda p: (TEAM_ORDER.index(p["team"]) if p["team"] in TEAM_ORDER else 99, p["name"]))
     return out
 
 
-def build_brief_data(target: str, day: dict | None = None) -> dict:
-    """대표 전체 Brief. day(fetch_day 결과)를 받으면 gws 재호출을 피한다."""
+def build_brief_data(target: str, day: dict | None = None,
+                     team_datas: dict | None = None,
+                     assignments: list[dict] | None = None) -> dict:
+    """대표 전체 Brief. day(fetch_day 결과)를 받으면 gws 재호출을 피한다.
+    team_datas({팀: build_team_brief_data 결과})를 받으면 팀별 오늘 브리프 섹션(teams)을 병합한다."""
     if day is None:
         day = fetch_day(prev_bizday_range(target))
     blocks = [_emp_block(nm, d) for nm, d in day.items()]
@@ -374,6 +411,34 @@ def build_brief_data(target: str, day: dict | None = None) -> dict:
     items += _carried_decision_items(target)  # 과거 미결(open) 결정 이월 — 정해질 때까지 노출
     unmatched = sorted({nm for nm in day if nm not in BY_NAME})
     counts = {c: sum(1 for it in items if it["category"] == c) for c in CAT_META}
+    people = _people_summary(day, assignments)
+    # 팀별 병합 블록 — TEAM_ORDER 순, team_leads 외 팀(경영 등) 보고자는 '기타'로
+    teams = []
+    if team_datas:
+        covered = set(team_datas)
+        reporters = {p["name"] for p in people}
+
+        def _unreported(scope_teams):
+            """분장은 있는데 오늘 보고가 없는 사람 — {이름: 건수}"""
+            miss = {}
+            for a in (assignments or []):
+                nm = a["assignee"]
+                if nm and nm not in reporters and team_of(nm) in scope_teams:
+                    miss[nm] = miss.get(nm, 0) + 1
+            return [{"name": k, "count": v} for k, v in miss.items()]
+
+        for t in TEAM_ORDER:
+            if t in team_datas:
+                td = team_datas[t]
+                teams.append({"team": t, "headline": td["headline"], "top": td["top5"][:3],
+                              "active_people": td["active_people"], "people": td["people"],
+                              "unreported": _unreported({t})})
+        etc = [p for p in people if p["team"] not in covered]
+        etc_unrep = _unreported({t for t in set(team_of(a["assignee"]) for a in (assignments or []))
+                                 if t not in covered})
+        if etc or etc_unrep:
+            teams.append({"team": "기타", "headline": "", "top": [],
+                          "active_people": len(etc), "people": etc, "unreported": etc_unrep})
     return {
         "date": target,
         "weekday": _weekday_kr(target),
@@ -384,12 +449,14 @@ def build_brief_data(target: str, day: dict | None = None) -> dict:
         "top5": pick_top5(items),
         "counts": counts,
         "unmatched": unmatched,
-        "people": _people_summary(day),
+        "people": people,
+        "teams": teams,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
 
-def build_team_brief_data(target: str, team: str, day: dict) -> dict:
+def build_team_brief_data(target: str, team: str, day: dict,
+                          assignments: list[dict] | None = None) -> dict:
     """팀 스코프 Brief — 그 팀 직원 보고만 Engine D로. 보고 0건이면 LLM 호출 skip."""
     tday = {nm: d for nm, d in day.items() if d.get("team") == team}
     blocks = [_emp_block(nm, d) for nm, d in tday.items()]
@@ -407,7 +474,7 @@ def build_team_brief_data(target: str, team: str, day: dict) -> dict:
         "top5": pick_top5(items),
         "counts": counts,
         "unmatched": [],  # 팀 brief는 팀 필터라 매칭된 직원만 — 미매칭 경고 불필요
-        "people": _people_summary(tday),
+        "people": _people_summary(tday, assignments),
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
@@ -478,14 +545,51 @@ def _person_card(p: dict) -> str:
         if v:
             metas.append(f'<div class="{cls}">{label} · {_esc(v[:200])}</div>')
     meta_html = f'<div class="pp-meta">{"".join(metas)}</div>' if metas else ""
+    # 이번주 분장 — 담당 항목 + 상태 뱃지
+    asg_html = ""
+    if p.get("assignments"):
+        st_cls = {"완료": "as-done", "진행중": "as-doing"}
+        lines = []
+        for a in p["assignments"]:
+            dl = f' <span class="as-dl">~{_esc(a["deadline"][5:] if len(a.get("deadline",""))>=10 else a.get("deadline",""))}</span>' if a.get("deadline") else ""
+            tk = (f'[{a["project"]}] ' if a.get("project") else "") + a["task"]
+            lines.append(f'<div class="as-item"><span class="as-st {st_cls.get(a["status"], "as-todo")}">{_esc(a["status"])}</span>'
+                         f'<span class="as-task">{_esc(tk[:90])}</span>{dl}</div>')
+        asg_html = f'<div class="pp-asg"><div class="as-label">📋 이번주 분장 {len(p["assignments"])}건</div>{"".join(lines)}</div>'
     return f'''<div class="card">
       <div class="pp-head"><span class="pp-name">{_esc(p["name"])}</span><span class="pp-team">{_esc(p["team"])}</span></div>
-      {"".join(rows) or '<div class="muted">보고 내용 없음</div>'}{meta_html}
+      {"".join(rows) or '<div class="muted">보고 내용 없음</div>'}{meta_html}{asg_html}
     </div>'''
 
 
 def _people_section(data: dict) -> str:
-    """브리프 하단 개인별 업무 써머리 — 대표는 팀별 그룹, 팀 브리프는 카드 나열."""
+    """브리프 하단 — 대표는 '팀별 오늘 브리프'(팀 headline+핵심+개인카드 병합),
+    팀 브리프는 '개인별 업무 써머리'(카드 나열)."""
+    teams = data.get("teams") or []
+    if teams:
+        blocks = []
+        for tb in teams:
+            hl = f'<div class="tb-hl">{_esc(tb["headline"])}</div>' if tb.get("headline") else ""
+            chips = ""
+            if tb.get("top"):
+                cs = []
+                for it in tb["top"]:
+                    lab, col = CAT_META[it["category"]]
+                    cs.append(f'<span class="tb-chip" style="border-left:3px solid {col}">'
+                              f'{_urg_badge(it["urgency"])}{_esc(it["title"])}</span>')
+                chips = f'<div class="tb-chips">{"".join(cs)}</div>'
+            cards = (f'<div class="pp-grid">{"".join(_person_card(p) for p in tb["people"])}</div>'
+                     if tb.get("people") else '<div class="muted">오늘 보고 없음</div>')
+            unrep = ""
+            if tb.get("unreported"):
+                u = " · ".join(f'{_esc(x["name"])} {x["count"]}건' for x in tb["unreported"])
+                unrep = f'<div class="tb-unrep">📋 분장 등록·보고 없음: {u}</div>'
+            blocks.append(f'<div class="tb-block"><div class="tb-head">{_esc(tb["team"])}'
+                          f'<span class="cnt">보고 {tb["active_people"]}명</span></div>{hl}{chips}{cards}{unrep}</div>')
+        n = sum(tb["active_people"] for tb in teams)
+        return (f'<h2 class="sec" style="border-color:var(--accent)"><span style="color:var(--accent)">●</span>'
+                f' 팀별 오늘 브리프 <span class="cnt">보고 {n}명</span></h2>{"".join(blocks)}')
+
     people = data.get("people") or []
     body = ""
     if not people:
@@ -623,6 +727,25 @@ h2.sec .cnt{{margin-left:auto;color:var(--muted);font-size:12px;font-weight:400}
 .pp-meta{{border-top:1px solid var(--line);margin-top:10px;padding-top:8px;font-size:12px;line-height:1.7}}
 .pp-meta .pm-red{{color:var(--red)}}
 .pp-meta .pm-amber{{color:var(--amber)}}
+.pp-asg{{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}}
+.as-label{{font-size:11px;font-weight:600;color:var(--accent);margin-bottom:6px}}
+.as-item{{display:flex;align-items:baseline;gap:7px;font-size:12px;line-height:1.55;margin-bottom:4px}}
+.as-st{{font-size:10px;border-radius:4px;padding:1px 6px;white-space:nowrap;flex-shrink:0}}
+.as-todo{{background:rgba(225,112,85,.14);color:var(--red);border:1px solid rgba(225,112,85,.35)}}
+.as-doing{{background:rgba(217,163,75,.14);color:var(--amber);border:1px solid rgba(217,163,75,.35)}}
+.as-done{{background:var(--bg-3);color:var(--muted);border:1px solid var(--line)}}
+.as-done + .as-task{{text-decoration:line-through;color:var(--muted)}}
+.as-task{{flex:1;min-width:0}}
+.as-dl{{font-size:11px;color:var(--muted);white-space:nowrap}}
+.tb-block{{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}}
+.tb-head{{font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:8px}}
+.tb-head .cnt{{margin-left:auto;color:var(--muted);font-size:12px;font-weight:400}}
+.tb-hl{{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:10px}}
+.tb-chips{{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}}
+.tb-chip{{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;display:inline-flex;align-items:center;gap:7px;line-height:1.4}}
+.tb-block .pp-grid{{margin-bottom:0}}
+.tb-block .card{{background:var(--bg-3)}}
+.tb-unrep{{font-size:12px;color:var(--amber);margin-top:12px;border-top:1px solid var(--line);padding-top:8px}}
 footer{{margin-top:44px;color:var(--muted);font-size:11px;text-align:center;border-top:1px solid var(--line);padding-top:16px}}
 #login-gate{{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}}
 #login-box{{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:38px 40px;width:330px;text-align:center}}
@@ -782,13 +905,19 @@ def main():
     sources = [s.strip() for s in args.source.split(",") if s.strip()] or prev_bizday_range(args.date)
     print(f"브리프 날짜: {args.date} · 소스 보고일: {', '.join(sources)}")
     day = fetch_day(sources)  # 1회 수집 → 대표·팀 brief 공용(gws 재호출 0)
-    data = build_brief_data(args.date, day)
+    assignments = fetch_assignments(args.date)  # 브리프 날짜가 속한 주의 분장 → 개인카드 연동
+    print(f"주간분장: 이번주 {len(assignments)}건")
+
+    # ─── 팀 Brief 먼저 생성 (대표 브리프에 팀별 섹션으로 병합) ───
+    tdatas = {team: build_team_brief_data(args.date, team, day, assignments)
+              for team in team_leads()}
+
+    data = build_brief_data(args.date, day, team_datas=tdatas, assignments=assignments)
     print(f"추출 항목: {len(data['items'])}건 (TOP5 {len(data['top5'])}) · 보고인원 {data['active_people']} · 미매칭 {len(data['unmatched'])}")
     save_and_notify(data, args.open, args.no_telegram)
 
-    # ─── 팀 리더 Brief (team_leads 각 팀) ───
-    for team in team_leads():
-        tdata = build_team_brief_data(args.date, team, day)
+    # ─── 팀 리더 Brief 저장·알림 (team_leads 각 팀) ───
+    for team, tdata in tdatas.items():
         save_team_brief(tdata)
         if not args.no_telegram:
             _telegram_team_brief(tdata, leader_chat_ids(team))
