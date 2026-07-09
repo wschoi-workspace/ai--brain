@@ -229,8 +229,14 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   function srcFor(t){
     if(t==='projects') return '/projects';
     if(t==='decision') return '/arisa2/';
-    if(SESS.admin && curScope===''){ return t==='brief' ? '/brief' : '/weekly'; }
-    return (t==='brief' ? '/team-brief?team=' : '/team-weekly?team=') + encodeURIComponent(curScope);
+    var lt=SESS.lead_teams||[];
+    if(t==='brief'){
+      if(SESS.admin) return curScope==='' ? '/brief' : '/team-brief?team='+encodeURIComponent(curScope);
+      if(lt.length) return curScope==='' ? '/lead-brief?teams='+encodeURIComponent(lt.join(',')) : '/team-brief?team='+encodeURIComponent(curScope);
+      return '/my-brief?name='+encodeURIComponent(SESS.name);  // 직원 — 내 카드 + 팀 헤드라인
+    }
+    if(SESS.admin && curScope==='') return '/weekly';
+    return '/team-weekly?team='+encodeURIComponent(curScope||lt[0]||'');
   }
   function showTab(t){
     curTab=t;
@@ -381,13 +387,17 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       curScope='';
     } else if(lt.length){
       tabBtn('brief').style.display=''; tabBtn('weekly').style.display='';
-      curScope=lt[0];
       if(lt.length>1){
-        sel.style.display='inline-block'; sel.innerHTML='';
+        // 겸임 리더 — 기본 '담당팀 전체'(병합 한 페이지), 개별 팀은 집중 보기
+        curScope='';
+        sel.style.display='inline-block'; sel.innerHTML='<option value="">담당팀 전체</option>';
         lt.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
         sel.onchange=function(){ loadScope(sel.value); };
-      } else { sel.style.display='none'; }
-    } else { sel.style.display='none'; }
+      } else { curScope=lt[0]; sel.style.display='none'; }
+    } else {
+      tabBtn('brief').style.display='';  // 직원 — 내 브리프(본인 카드+팀 헤드라인)
+      sel.style.display='none';
+    }
     showTab('mywork');
   }
   document.querySelectorAll('.tab').forEach(function(b){ b.onclick=function(){ showTab(b.dataset.t); }; });
@@ -496,6 +506,185 @@ def emp_team(name):
 def is_leader(uid):
     """팀 리더 여부(대표 제외한 순수 리더도 True, 대표도 True)."""
     return bool(lead_teams_of(uid))
+
+
+# ── 계정별 브리프 뷰 (/my-brief 직원 · /lead-brief 겸임리더) — 브리프 JSON 서버렌더 ──
+_DBA = None
+
+def _dba():
+    """daily-brief-aggregate.py 모듈(하이픈 파일명) — 개인카드 렌더러 재사용."""
+    global _DBA
+    if _DBA is None:
+        import importlib.util
+        p = Path(__file__).resolve().parent / "daily-brief-aggregate.py"
+        spec = importlib.util.spec_from_file_location("dba_mod", str(p))
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        _DBA = m
+    return _DBA
+
+
+# 브리프 카드 스타일 (daily-brief-aggregate.py 렌더와 동일 팔레트 — pp-*/as-*/tb-* 발췌)
+BRIEF_VIEW_CSS = """
+:root{--bg:#1A1A1A;--bg-2:#202020;--bg-3:#262626;--fg:#F5F0EB;--muted:#8A857E;--line:#333;
+--accent:#6C5CE7;--green:#8FA37E;--amber:#D9A34B;--red:#E17055;--blue:#6F8AA3}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans-serif;font-weight:300;line-height:1.5;padding:32px 20px 64px}
+.wrap{max-width:1100px;margin:0 auto}
+header h1{font-weight:600;font-size:24px;letter-spacing:-.02em}
+header .sub{color:var(--muted);margin-top:4px;font-size:13px}
+.muted{color:var(--muted);font-size:12px}
+.urg{font-size:11px;border-radius:5px;padding:2px 8px;white-space:nowrap;flex-shrink:0}
+.urg-high{background:rgba(225,112,85,.16);color:var(--red);border:1px solid rgba(225,112,85,.4)}
+.urg-mid{background:rgba(217,163,75,.14);color:var(--amber);border:1px solid rgba(217,163,75,.35)}
+.urg-low{background:var(--bg-3);color:var(--muted);border:1px solid var(--line)}
+.card{background:var(--bg-3);border:1px solid var(--line);border-radius:12px;padding:16px}
+.pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.pp-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pp-name{font-size:15px;font-weight:600}
+.pp-team{font-size:11px;color:var(--accent);background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.35);border-radius:5px;padding:1px 7px}
+.pp-task{font-size:13px;line-height:1.5;margin-bottom:8px}
+.pp-task .pt-out{display:block;font-size:12px;color:var(--muted);margin-top:2px;padding-left:18px}
+.pp-task .pt-detail{display:block;font-size:12px;color:var(--fg);opacity:.85;line-height:1.6;margin-top:3px;padding-left:18px}
+.pp-issue{font-size:12px;color:var(--amber);margin-top:2px;padding-left:18px}
+.pp-meta{border-top:1px solid var(--line);margin-top:10px;padding-top:8px;font-size:12px;line-height:1.7}
+.pp-meta .pm-red{color:var(--red)}
+.pp-meta .pm-amber{color:var(--amber)}
+.pp-asg{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}
+.as-label{font-size:11px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.as-item{display:flex;align-items:baseline;gap:7px;font-size:12px;line-height:1.55;margin-bottom:4px}
+.as-st{font-size:10px;border-radius:4px;padding:1px 6px;white-space:nowrap;flex-shrink:0}
+.as-todo{background:rgba(225,112,85,.14);color:var(--red);border:1px solid rgba(225,112,85,.35)}
+.as-doing{background:rgba(217,163,75,.14);color:var(--amber);border:1px solid rgba(217,163,75,.35)}
+.as-done{background:var(--bg-3);color:var(--muted);border:1px solid var(--line)}
+.as-done + .as-task{text-decoration:line-through;color:var(--muted)}
+.as-task{flex:1;min-width:0}
+.as-dl{font-size:11px;color:var(--muted);white-space:nowrap}
+.tb-block{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.tb-head{font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.tb-head .cnt{margin-left:auto;color:var(--muted);font-size:12px;font-weight:400}
+.tb-hl{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:10px}
+.tb-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.tb-chip{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;display:inline-flex;align-items:center;gap:7px;line-height:1.4}
+#bv-gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
+#bv-box{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:38px 40px;width:330px;text-align:center}
+#bv-box h2{font-size:19px;font-weight:600;margin-bottom:6px}
+#bv-box .lg-sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+#bv-box input{width:100%;background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:12px 14px;color:var(--fg);font-size:14px;margin-bottom:10px;font-family:inherit}
+#bv-box button{width:100%;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px}
+#bv-err{color:var(--red);font-size:12px;margin-top:12px;min-height:16px}
+"""
+
+
+def _brief_json(date_str, team):
+    """daily-brief-{date}-{team}.json 로드 (없으면 None)."""
+    p = BRIEF_DIR / f"daily-brief-{date_str}-{team}.json"
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def _brief_biz_dates(team):
+    """해당 팀 브리프 JSON이 존재하는 영업일 목록(오름차순)."""
+    pat = re.compile(r"daily-brief-(\d{4}-\d{2}-\d{2})-" + re.escape(team) + r"$")
+    out = []
+    for f in sorted(BRIEF_DIR.glob(f"daily-brief-2*-{team}.json")):
+        m = pat.fullmatch(f.stem)
+        if not m:
+            continue
+        try:
+            if datetime.datetime.strptime(m.group(1), "%Y-%m-%d").weekday() < 5:
+                out.append(m.group(1))
+        except ValueError:
+            pass
+    return out
+
+
+def _brief_nav(base_url, dates, sel):
+    """최근 7영업일 날짜 버튼 nav — 기존 /brief 패턴과 동일 스타일."""
+    wk = ["월", "화", "수", "목", "금", "토", "일"]
+    btns = []
+    for ds in dates[-7:]:
+        d = datetime.datetime.strptime(ds, "%Y-%m-%d")
+        lab = f"{wk[d.weekday()]} {d.strftime('%m/%d')}"
+        on = "background:var(--accent);color:#fff;border-color:var(--accent)" if ds == sel else "color:var(--muted)"
+        btns.append(f'<a href="{base_url}&date={ds}" style="text-decoration:none;border:1px solid var(--line);'
+                    f'border-radius:7px;padding:5px 12px;font-size:12px;{on}">{lab}</a>')
+    return ('<div style="display:flex;gap:6px;margin:0 0 18px;align-items:center;flex-wrap:wrap">'
+            '<span style="color:var(--muted);font-size:11px;margin-right:4px">최근 영업일</span>'
+            + "".join(btns) + '</div>')
+
+
+def _team_block_html(dba, td, only_person=None, chips_max=3):
+    """팀 브리프 JSON → 팀 블록 HTML. only_person 지정 시 그 사람 카드만(직원 뷰)."""
+    esc = dba._esc
+    hl = f'<div class="tb-hl">{esc(td.get("headline") or "")}</div>' if td.get("headline") else ""
+    chips = ""
+    tops = (td.get("top5") or [])[:chips_max]
+    if tops:
+        cs = []
+        for it in tops:
+            col = dba.CAT_META.get(it.get("category"), ("", "var(--accent)"))[1]
+            cs.append(f'<span class="tb-chip" style="border-left:3px solid {col}">'
+                      f'{dba._urg_badge(it.get("urgency", "low"))}{esc(it.get("title", ""))}</span>')
+        chips = f'<div class="tb-chips">{"".join(cs)}</div>'
+    people = td.get("people") or []
+    if only_person is not None:
+        people = [p for p in people if p.get("name") == only_person]
+    cards = (f'<div class="pp-grid">{"".join(dba._person_card(p) for p in people)}</div>'
+             if people else "")
+    return hl, chips, cards
+
+
+def _brief_view_page(title, h1, sub, body, allow_js, deny_msg):
+    """계정별 브리프 뷰 공통 페이지 — 셸 프리셋 세션(pm_sess) 게이트 + 자체 로그인 폴백.
+    allow_js: 세션 객체 s를 받아 허용 여부를 리턴하는 JS 표현식 (예: "s.name===NAME||s.admin")"""
+    return f"""<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{title}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>{BRIEF_VIEW_CSS}</style></head>
+<body>
+<div id="bv-gate"><div id="bv-box">
+  <h2>{h1}</h2><div class="lg-sub">{sub}</div>
+  <input id="bv-id" placeholder="이름" autocomplete="username">
+  <input id="bv-pin" type="password" placeholder="PIN" autocomplete="current-password">
+  <button id="bv-btn">로그인</button><div id="bv-err"></div>
+</div></div>
+<div id="content" style="display:none"><div class="wrap">
+<header><h1>{h1}</h1><div class="sub">{sub}</div></header>
+{body}
+</div></div>
+<script>
+(function(){{
+  var gate=document.getElementById('bv-gate'), content=document.getElementById('content');
+  function allowed(s){{ return !!(s && ({allow_js})); }}
+  function enter(){{ gate.style.display='none'; content.style.display='block'; }}
+  var s=null;
+  ['pm_sess','brief_sess','team_brief_sess'].some(function(k){{
+    try{{ var v=JSON.parse(localStorage.getItem(k)||'null'); if(v&&v.name){{ s=v; return true; }} }}catch(e){{}} return false;
+  }});
+  if(allowed(s)){{ enter(); return; }}
+  if(s){{ document.getElementById('bv-err').textContent={deny_msg!r}; }}
+  function doLogin(){{
+    var id=document.getElementById('bv-id').value.trim(), pin=document.getElementById('bv-pin').value.trim();
+    var err=document.getElementById('bv-err'); err.textContent='';
+    fetch('/api/login',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id:id,pin:pin}})}})
+      .then(function(r){{return r.json();}})
+      .then(function(d){{
+        if(d.ok && allowed(d)){{ localStorage.setItem('pm_sess',JSON.stringify(Object.assign({{}},d,{{id:id,pin:pin}}))); enter(); }}
+        else if(d.ok){{ err.textContent={deny_msg!r}; }}
+        else {{ err.textContent=d.error||'로그인 실패'; }}
+      }}).catch(function(){{ err.textContent='서버 연결 실패'; }});
+  }}
+  document.getElementById('bv-btn').onclick=doLogin;
+  document.getElementById('bv-pin').addEventListener('keydown',function(e){{ if(e.key==='Enter') doLogin(); }});
+}})();
+</script>
+</body></html>"""
 
 def project_teams(p):
     """프로젝트에 걸린 팀 집합 = PM + 멤버들의 소속 팀."""
@@ -687,6 +876,75 @@ class H(BaseHTTPRequestHandler):
                    + "".join(btns) + '</div>')
             html_str = target.read_text(encoding="utf-8").replace("</header>", "</header>" + nav, 1)
             return self._send(200, html_str.encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/my-brief":
+            # 직원용 개인 브리프 — 내 카드(상세+분장) + 팀 헤드라인·핵심칩만 (동료 카드 비공개).
+            name = (q.get("name") or [""])[0]
+            if not name:
+                return self._send(400, "<h1>name 파라미터가 필요합니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            team = emp_team(name) or ""
+            try:
+                dba = _dba()
+            except Exception as e:
+                return self._send(500, f"<h1>브리프 렌더러 로드 실패: {e}</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            dates = _brief_biz_dates(team) if team else []
+            if not dates:
+                body = '<div class="muted">아직 생성된 팀 브리프가 없습니다.</div>'
+                page = _brief_view_page(f"내 브리프 · {name}", "내 오늘 브리프",
+                                        f"{name} · {team or '팀 미배정'}", body,
+                                        f"s.name==={json.dumps(name, ensure_ascii=False)}||s.admin",
+                                        "본인 전용 화면입니다")
+                return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
+            sel = (q.get("date") or [""])[0]
+            if sel not in dates:
+                sel = dates[-1]
+            td = _brief_json(sel, team) or {}
+            hl, chips, cards = _team_block_html(dba, td, only_person=name)
+            if not cards:
+                cards = ('<div class="card"><div class="muted">이 날짜에 제출한 보고가 없습니다. '
+                         '저녁 20:00·22:00 리마인드에 맞춰 보고하면 다음날 아침 브리프에 반영됩니다.</div></div>')
+            nav = _brief_nav(f"/my-brief?name={quote(name)}", dates, sel)
+            body = (nav + f'<div class="tb-block"><div class="tb-head">{dba._esc(team)}'
+                    f'<span class="cnt">{dba._esc(sel)}</span></div>{hl}{chips}{cards}</div>')
+            page = _brief_view_page(f"내 브리프 · {name}", "내 오늘 브리프",
+                                    f"{name} · {team}", body,
+                                    f"s.name==={json.dumps(name, ensure_ascii=False)}||s.admin",
+                                    "본인 전용 화면입니다")
+            return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/lead-brief":
+            # 겸임 리더용 — 담당팀들을 한 페이지로 병합 (팀 headline+핵심칩+개인카드 전체).
+            teams_p = (q.get("teams") or [""])[0]
+            teams = [t.strip() for t in teams_p.split(",") if t.strip()]
+            if not teams:
+                return self._send(400, "<h1>teams 파라미터가 필요합니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            try:
+                dba = _dba()
+            except Exception as e:
+                return self._send(500, f"<h1>브리프 렌더러 로드 실패: {e}</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            all_dates = sorted(set().union(*[set(_brief_biz_dates(t)) for t in teams]))
+            if not all_dates:
+                return self._send(404, "<h1>팀 브리프가 아직 없습니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            sel = (q.get("date") or [""])[0]
+            if sel not in all_dates:
+                sel = all_dates[-1]
+            blocks = []
+            for t in teams:
+                td = _brief_json(sel, t)
+                if not td:
+                    blocks.append(f'<div class="tb-block"><div class="tb-head">{_dba()._esc(t)}</div>'
+                                  '<div class="muted">이 날짜 브리프 없음</div></div>')
+                    continue
+                hl, chips, cards = _team_block_html(dba, td)
+                if not cards:
+                    cards = '<div class="muted">오늘 보고 없음</div>'
+                blocks.append(f'<div class="tb-block"><div class="tb-head">{dba._esc(t)}'
+                              f'<span class="cnt">보고 {td.get("active_people", 0)}명</span></div>{hl}{chips}{cards}</div>')
+            nav = _brief_nav(f"/lead-brief?teams={quote(teams_p)}", all_dates, sel)
+            teams_js = json.dumps(teams, ensure_ascii=False)
+            allow = f"(s.admin || {teams_js}.every(function(t){{return (s.lead_teams||[]).indexOf(t)>=0;}}))"
+            page = _brief_view_page(f"팀 Brief · {' · '.join(teams)}", f"{' · '.join(teams)} 오늘 브리프",
+                                    f"{sel} · 팀 리더", nav + "".join(blocks), allow,
+                                    "담당 팀 리더 전용 화면입니다")
+            return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/team-weekly":
             # 팀 주간 — 로그인은 셸이 처리(team_weekly_sess). team별 최신 파일.
             team = (q.get("team") or [""])[0]
