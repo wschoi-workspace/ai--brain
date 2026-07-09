@@ -270,7 +270,66 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     }).catch(function(){ a2s.textContent='ARISA 2.0 OFF'; a2s.className='err'; });
   }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function mwAssignHtml(lv){
+    return '<div class="mw-h">업무 분장 <span class="sub2">— 자유롭게 적으면 AI가 항목화 → 편집 후 '+lv+'에게 배분 → 승인'+(lv==='팀원'?' (대표가 배분한 내 업무를 참고해도 됩니다)':'')+'</span></div>'
+      +'<div class="mw-assign"><textarea id="mw-text" placeholder="이번주 팀 업무를 자유롭게 적으세요.&#10;예) 봉은사 마스터플랜 검토·정리본 공유, 세스크멘슬 주방도면 정리, KBO 굿즈 발주 최종확인"></textarea>'
+      +'<div class="td-actions"><button id="mw-parse">AI로 항목 정리</button></div>'
+      +'<div id="mw-todos"></div><div id="mw-msg" class="sub2"></div></div>';
+  }
+  function mwBindParse(){
+    var pb=document.getElementById('mw-parse');
+    if(!pb) return;
+    pb.onclick=function(){
+      var txt=document.getElementById('mw-text').value.trim(), msg=document.getElementById('mw-msg');
+      if(!txt){ msg.textContent='업무 내용을 입력하세요'; return; }
+      msg.textContent='AI가 항목으로 정리 중…'; pb.disabled=true;
+      fetch('/api/assign-parse',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({user:SESS.name,pin:SESS.pin,text:txt})})
+        .then(function(r){return r.json();}).then(function(d){
+          pb.disabled=false;
+          if(d.ok && d.items && d.items.length){ msg.textContent='검토 후 각 항목에 담당자를 지정하고 승인하세요.'; mwRenderTodos(d.items); }
+          else { msg.textContent='항목을 뽑지 못했습니다. 더 구체적으로 적어보세요.'; }
+        }).catch(function(){ pb.disabled=false; msg.textContent='서버 오류'; });
+    };
+  }
+  function renderLeadHome(){
+    // 리더 홈 — 팀 Todo(대표·리더 분장) + 분장 생성 + 진행중 프로젝트 + 팀원 오늘 보고
+    var box=frames.mywork;
+    box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오는 중…</div></div>';
+    var u=encodeURIComponent(SESS.name);
+    Promise.all([
+      fetch('/api/lead-home?user='+u).then(function(r){return r.json();}),
+      fetch('/api/assignees?user='+u).then(function(r){return r.json();})
+    ]).then(function(res){
+      var lh=res[0]||{}, ac=res[1]||{}, h='<div class="mw-wrap">';
+      MW_ASSIGNEES = ac.assignees || [];
+      h+='<div class="mw-h">팀 Todo · 이번주 분장 <span class="sub2">'+esc((lh.teams||[]).join(' · '))+'</span></div>';
+      var A=lh.assignments||[];
+      if(A.length){ A.forEach(function(a){
+        var st=a.status||'미착수';
+        var badge='<span class="lh-st '+(st==='완료'?'lh-done':(st==='진행중'?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
+        var urg=(a.priority==='긴급')?'<span class="mw-badge mw-urgent">긴급</span>':'';
+        var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
+        var pj=a.project?(' · '+esc(a.project)):'';
+        h+='<div class="mw-card"><div class="t">'+badge+esc(a.task)+urg+'</div><div class="m">'+esc(a.assignee||'미지정')+pj+dl+'</div></div>';
+      }); } else { h+='<div class="mw-empty">이번주 분장이 아직 없습니다. 아래에서 바로 만들 수 있습니다.</div>'; }
+      if(ac.canAssign){ h+=mwAssignHtml(ac.level||'팀원'); }
+      h+='<div class="mw-h">진행중인 프로젝트 <span class="sub2">'+(lh.projects||[]).length+'건 — 클릭하면 프로젝트 탭</span></div>';
+      var P=lh.projects||[];
+      if(P.length){ P.forEach(function(p){
+        var pr=(p.task_total?(' · 업무 '+p.task_done+'/'+p.task_total):'');
+        h+='<div class="lh-proj" data-open="projects"><div class="t">'+esc(p.name)+'</div><div class="m">PM '+esc(p.pm||'-')+(p.dday?(' · D-day '+esc(p.dday)):'')+pr+'</div></div>';
+      }); } else { h+='<div class="mw-empty">진행중인 팀 프로젝트가 없습니다.</div>'; }
+      h+='<div class="mw-h">팀원 오늘 보고 <span class="sub2">'+esc(lh.brief_date||'')+'</span></div>';
+      h+=(lh.brief_html||'<div class="mw-empty">보고가 아직 없습니다.</div>');
+      h+='</div>'; box.innerHTML=h;
+      mwBindParse();
+      box.querySelectorAll('.lh-proj').forEach(function(el){ el.onclick=function(){ showTab('projects'); }; });
+    }).catch(function(){ box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>'; });
+  }
   function renderMyWork(){
+    var lt=SESS.lead_teams||[];
+    if(!SESS.admin && lt.length){ renderLeadHome(); return; }  // 리더 → 팀 홈
     var box=frames.mywork;
     box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오는 중…</div></div>';
     var u=encodeURIComponent(SESS.name);
@@ -280,13 +339,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     ]).then(function(res){
       var mw=res[0]||{}, ac=res[1]||{}, h='<div class="mw-wrap">';
       MW_ASSIGNEES = ac.assignees || [];
-      if(ac.canAssign){
-        var _lv=ac.level||'담당자';
-        h+='<div class="mw-h">업무 분장 <span class="sub2">— 자유롭게 적으면 AI가 항목화 → 편집 후 '+_lv+'에게 배분 → 승인'+(_lv==='팀원'?' (대표가 배분한 내 업무를 참고해도 됩니다)':'')+'</span></div>';
-        h+='<div class="mw-assign"><textarea id="mw-text" placeholder="이번주 팀 업무를 자유롭게 적으세요.&#10;예) 봉은사 마스터플랜 검토·정리본 공유, 세스크멘슬 주방도면 정리, KBO 굿즈 발주 최종확인"></textarea>'
-          +'<div class="td-actions"><button id="mw-parse">AI로 항목 정리</button></div>'
-          +'<div id="mw-todos"></div><div id="mw-msg" class="sub2"></div></div>';
-      }
+      if(ac.canAssign){ h+=mwAssignHtml(ac.level||'담당자'); }
       h+='<div class="mw-h">오늘 할일 · 내 분장</div>';
       var A=mw.assignments||[];
       if(A.length){ A.forEach(function(a){
@@ -306,19 +359,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         h+='</div>';
       }); } else { h+='<div class="mw-empty">배정된 프로젝트 업무가 없습니다.</div>'; }
       h+='</div>'; box.innerHTML=h;
-      var pb=document.getElementById('mw-parse');
-      if(pb){ pb.onclick=function(){
-        var txt=document.getElementById('mw-text').value.trim(), msg=document.getElementById('mw-msg');
-        if(!txt){ msg.textContent='업무 내용을 입력하세요'; return; }
-        msg.textContent='AI가 항목으로 정리 중…'; pb.disabled=true;
-        fetch('/api/assign-parse',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({user:SESS.name,pin:SESS.pin,text:txt})})
-          .then(function(r){return r.json();}).then(function(d){
-            pb.disabled=false;
-            if(d.ok && d.items && d.items.length){ msg.textContent='검토 후 각 항목에 담당자를 지정하고 승인하세요.'; mwRenderTodos(d.items); }
-            else { msg.textContent='항목을 뽑지 못했습니다. 더 구체적으로 적어보세요.'; }
-          }).catch(function(){ pb.disabled=false; msg.textContent='서버 오류'; });
-      };}
+      mwBindParse();
     }).catch(function(){ box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>'; });
   }
   function mwAsOpts(sel){ return MW_ASSIGNEES.map(function(a){return '<option value="'+esc(a.name)+'"'+(a.name===sel?' selected':'')+'>'+esc(a.name)+' ('+esc(a.team||'')+')</option>';}).join(''); }
@@ -386,6 +427,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       sel.onchange=function(){ loadScope(sel.value); };
       curScope='';
     } else if(lt.length){
+      tabBtn('mywork').textContent='팀 홈';  // 리더 — 팀 Todo·분장·프로젝트·팀원 보고 통합
       tabBtn('brief').style.display=''; tabBtn('weekly').style.display='';
       if(lt.length>1){
         // 겸임 리더 — 기본 '담당팀 전체'(병합 한 페이지), 개별 팀은 집중 보기
@@ -525,14 +567,8 @@ def _dba():
 
 
 # 브리프 카드 스타일 (daily-brief-aggregate.py 렌더와 동일 팔레트 — pp-*/as-*/tb-* 발췌)
-BRIEF_VIEW_CSS = """
-:root{--bg:#1A1A1A;--bg-2:#202020;--bg-3:#262626;--fg:#F5F0EB;--muted:#8A857E;--line:#333;
---accent:#6C5CE7;--green:#8FA37E;--amber:#D9A34B;--red:#E17055;--blue:#6F8AA3}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans-serif;font-weight:300;line-height:1.5;padding:32px 20px 64px}
-.wrap{max-width:1100px;margin:0 auto}
-header h1{font-weight:600;font-size:24px;letter-spacing:-.02em}
-header .sub{color:var(--muted);margin-top:4px;font-size:13px}
+# 셸(리더 홈)에도 주입되므로 페이지 골격(BRIEF_PAGE_CSS)과 분리.
+BRIEF_CARD_CSS = """
 .muted{color:var(--muted);font-size:12px}
 .urg{font-size:11px;border-radius:5px;padding:2px 8px;white-space:nowrap;flex-shrink:0}
 .urg-high{background:rgba(225,112,85,.16);color:var(--red);border:1px solid rgba(225,112,85,.4)}
@@ -566,6 +602,24 @@ header .sub{color:var(--muted);margin-top:4px;font-size:13px}
 .tb-hl{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:10px}
 .tb-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .tb-chip{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;display:inline-flex;align-items:center;gap:7px;line-height:1.4}
+.lh-st{font-size:10px;border-radius:4px;padding:1px 6px;white-space:nowrap;margin-right:4px}
+.lh-todo{background:rgba(225,112,85,.14);color:var(--red);border:1px solid rgba(225,112,85,.35)}
+.lh-doing{background:rgba(217,163,75,.14);color:var(--amber);border:1px solid rgba(217,163,75,.35)}
+.lh-done{background:var(--bg-3);color:var(--muted);border:1px solid var(--line)}
+.lh-proj{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:8px;cursor:pointer}
+.lh-proj:hover{border-color:var(--accent)}
+.lh-proj .t{font-size:14px;font-weight:500}
+.lh-proj .m{font-size:12px;color:var(--muted);margin-top:3px}
+"""
+
+BRIEF_PAGE_CSS = """
+:root{--bg:#1A1A1A;--bg-2:#202020;--bg-3:#262626;--fg:#F5F0EB;--muted:#8A857E;--line:#333;
+--accent:#6C5CE7;--green:#8FA37E;--amber:#D9A34B;--red:#E17055;--blue:#6F8AA3}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans-serif;font-weight:300;line-height:1.5;padding:32px 20px 64px}
+.wrap{max-width:1100px;margin:0 auto}
+header h1{font-weight:600;font-size:24px;letter-spacing:-.02em}
+header .sub{color:var(--muted);margin-top:4px;font-size:13px}
 #bv-gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
 #bv-box{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:38px 40px;width:330px;text-align:center}
 #bv-box h2{font-size:19px;font-weight:600;margin-bottom:6px}
@@ -646,7 +700,7 @@ def _brief_view_page(title, h1, sub, body, allow_js, deny_msg):
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
-<style>{BRIEF_VIEW_CSS}</style></head>
+<style>{BRIEF_PAGE_CSS}{BRIEF_CARD_CSS}</style></head>
 <body>
 <div id="bv-gate"><div id="bv-box">
   <h2>{h1}</h2><div class="lg-sub">{sub}</div>
@@ -776,7 +830,9 @@ class H(BaseHTTPRequestHandler):
             return self._proxy_arisa2("GET")
         if path in ("/", "/index.html"):
             # 통합 셸 — 로그인 1회, 역할별 탭(프로젝트/Brief/Weekly/Decision)
-            return self._send(200, UNIFIED_SHELL.encode("utf-8"), "text/html; charset=utf-8")
+            # 리더 홈(팀 Todo·팀원 보고 카드)이 브리프 카드 스타일을 쓰므로 CARD_CSS 주입
+            html = UNIFIED_SHELL.replace("</style>", BRIEF_CARD_CSS + "</style>", 1)
+            return self._send(200, html.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/projects":
             # 포트폴리오 HTML (구 / 핸들러) — 셸 iframe 또는 직접 접속(자체 로그인)
             try:
@@ -997,6 +1053,64 @@ class H(BaseHTTPRequestHandler):
                                              "status": t.get("status"), "priority": t.get("priority"),
                                              "division": t.get("division")} for t in ts]})
             return self._send(200, {"ok": True, "user": uid, "assignments": mine, "projects": projs})
+        if path == "/api/lead-home":
+            # 리더 홈 — 팀 Todo(이번주 분장) + 진행중 프로젝트 + 팀원 오늘 보고 카드(HTML fragment)
+            uid = (q.get("user") or [""])[0]
+            if not load_users().get(uid):
+                return self._send(401, {"ok": False, "error": "unknown user"})
+            teams = lead_teams_of(uid)
+            if not teams:
+                return self._send(403, {"ok": False, "error": "리더 전용"})
+            today = datetime.date.today()
+            ws = today - datetime.timedelta(days=today.weekday())
+            we = ws + datetime.timedelta(days=6)
+            assigns = []
+            for a in _assign_read():
+                ds = (a.get("date") or "").strip()[:10]
+                try:
+                    d = datetime.date.fromisoformat(ds)
+                except ValueError:
+                    continue
+                if not (ws <= d <= we):
+                    continue
+                if a.get("team") in teams or emp_team(a.get("assignee")) in teams:
+                    assigns.append(a)
+            assigns.sort(key=lambda a: (a["status"] == "완료", a["status"] != "진행중",
+                                        a.get("deadline") or "9999", a.get("assignee") or ""))
+            projs = []
+            for p in load_projects():
+                if not (project_teams(p) & set(teams)):
+                    continue
+                tasks = p.get("tasks") or []
+                done = sum(1 for t in tasks if (t.get("status") or "") == "완료")
+                end = (p.get("end") or p.get("dday") or "").strip()
+                if end and end < today.isoformat():
+                    continue  # 종료된 프로젝트 제외
+                projs.append({"id": p.get("id"), "name": p.get("name"), "pm": p.get("pm"),
+                              "dday": p.get("dday"), "task_done": done, "task_total": len(tasks)})
+            projs.sort(key=lambda p: p.get("dday") or "9999")
+            brief_html, brief_date = "", ""
+            try:
+                dba = _dba()
+                for t in teams:
+                    ds = _brief_biz_dates(t)
+                    if ds and ds[-1] > brief_date:
+                        brief_date = ds[-1]
+                blocks = []
+                for t in teams:
+                    td = _brief_json(brief_date, t) if brief_date else None
+                    if not td:
+                        continue
+                    hl, chips, cards = _team_block_html(dba, td)
+                    if not cards:
+                        cards = '<div class="muted">이 날짜 팀 보고 없음</div>'
+                    blocks.append(f'<div class="tb-block"><div class="tb-head">{dba._esc(t)}'
+                                  f'<span class="cnt">보고 {td.get("active_people", 0)}명</span></div>{hl}{chips}{cards}</div>')
+                brief_html = "".join(blocks)
+            except Exception as e:
+                brief_html = f'<div class="muted">보고 로드 실패: {e}</div>'
+            return self._send(200, {"ok": True, "teams": teams, "assignments": assigns,
+                                    "projects": projs, "brief_html": brief_html, "brief_date": brief_date})
         if path == "/api/projects":
             uid = (q.get("user") or [""])[0]
             if not load_users().get(uid): return self._send(401, {"ok": False, "error": "unknown user"})
