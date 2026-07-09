@@ -145,23 +145,30 @@ def fetch_daily() -> dict:
     }
 
 
-def fetch_assignments(week_label: str) -> list[dict]:
-    """주간분장 탭에서 해당 주차 항목 fetch → dict 리스트.
-    컬럼: 주차(0)|팀(1)|항목번호(2)|업무내용(3)|담당자(4)|마감(5)|우선순위(6)|상태(7)|등록일(8)|소스(9)
-    """
+def fetch_assignments(week_start: date, week_end: date) -> list[dict]:
+    """주간분장 탭에서 해당 주(월~일) 항목 fetch → dict 리스트.
+    실스키마(셸 '내 업무' AI 분장, 2026-07 전환): 날짜(0)|프로젝트명(1)|팀구분(2)|담당자(3)|
+    업무내용(4)|일정완료예상(5)|결과물(6)|상태(7)|이해관계자(8)|우선순위(9)
+    (구 W주차 라벨 스키마는 폐기 — daily-brief-aggregate.fetch_assignments와 동일 기준)"""
     rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:J5000")
     items = []
     for r in rows:
         r = r + [""] * (10 - len(r))
-        if (r[0] or "").strip() != week_label:
+        nd = normalize_date(r[0])
+        if not nd:
+            continue
+        rd = datetime.strptime(nd, "%Y-%m-%d").date()
+        if not (week_start <= rd <= week_end):
+            continue
+        if not (r[4] or "").strip():
             continue
         items.append({
-            "week": r[0], "team": (r[1] or "").strip(),
-            "item_no": r[2], "task": (r[3] or "").strip(),
-            "assignee": (r[4] or "").strip(), "deadline": r[5],
-            "priority": (r[6] or "일반").strip(),
+            "date": nd, "project": (r[1] or "").strip(),
+            "team": (r[2] or "").strip(),
+            "assignee": normalize_name(r[3]),
+            "task": (r[4] or "").strip(), "deadline": (r[5] or "").strip(),
             "status": (r[7] or "미착수").strip(),
-            "registered": r[8], "source": r[9],
+            "priority": (r[9] or "일반").strip(),
         })
     return items
 
@@ -206,7 +213,8 @@ def update_assignment_status_in_sheet(assignments: list[dict]) -> int:
             continue
         for i, r in enumerate(rows):
             r = r + [""] * (10 - len(r))
-            if (r[0] or "").strip() == a["week"] and (r[3] or "").strip() == a["task"]:
+            if (normalize_date(r[0]) == a["date"] and (r[4] or "").strip() == a["task"]
+                    and normalize_name(r[3]) == a["assignee"]):
                 if (r[7] or "").strip() != a["status"]:
                     row_num = i + 2  # 1-indexed header
                     _gws.values_update(
@@ -482,8 +490,7 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
     total_decisions = sum(len(p["open_decisions"]) for p in persons)
 
     # ─── 주간분장 ↔ 일일보고 교차 매칭 ───
-    week_label = f"W{week_start.isocalendar().week:02d}"
-    assignments = fetch_assignments(week_label)
+    assignments = fetch_assignments(week_start, week_end)
     if assignments:
         assignments = match_assignments_to_daily(assignments, wk)
         updated = update_assignment_status_in_sheet(assignments)
