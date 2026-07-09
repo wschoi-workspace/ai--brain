@@ -235,10 +235,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       if(lt.length) return curScope==='' ? '/lead-brief?teams='+encodeURIComponent(lt.join(',')) : '/team-brief?team='+encodeURIComponent(curScope);
       return '/my-brief?name='+encodeURIComponent(SESS.name);  // 직원 — 내 카드 + 팀 헤드라인
     }
-    // 이번 주 — 일별 브리프 스택(주간 집계 대시보드는 /manage로 분리)
-    if(SESS.admin) return curScope==='' ? '/week-brief' : '/week-brief?team='+encodeURIComponent(curScope);
-    if(lt.length) return curScope==='' ? '/week-brief?teams='+encodeURIComponent(lt.join(',')) : '/week-brief?team='+encodeURIComponent(curScope);
-    return '/week-brief?team='+encodeURIComponent(SESS.team||'');
+    if(SESS.admin && curScope==='') return '/weekly';
+    return '/team-weekly?team='+encodeURIComponent(curScope||lt[0]||'');
   }
   function showTab(t){
     curTab=t;
@@ -417,10 +415,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     SESS=s; var j=JSON.stringify(s);
     SESS_KEYS.forEach(function(k){ localStorage.setItem(k,j); });
     gate.style.display='none'; shell.style.display='flex';
-    who.innerHTML = s.name+' ('+(s.role||'')+') '+(s.admin?'<a id="lg-manage">관리</a> ':'')+'<a id="lg-pin-c">PIN변경</a> <a id="lg-out">로그아웃</a>';
+    who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-pin-c">PIN변경</a> <a id="lg-out">로그아웃</a>';
     document.getElementById('lg-out').onclick=function(){ CLEAR_KEYS.forEach(function(k){localStorage.removeItem(k);}); location.reload(); };
     document.getElementById('lg-pin-c').onclick=changePin;
-    if(s.admin){ document.getElementById('lg-manage').onclick=function(){ window.open('/manage','_blank'); }; }
     var lt=s.lead_teams||[];
     if(s.admin){
       tabBtn('brief').style.display=''; tabBtn('weekly').style.display='';
@@ -633,9 +630,9 @@ header .sub{color:var(--muted);margin-top:4px;font-size:13px}
 """
 
 
-def _brief_json(date_str, team=None):
-    """daily-brief-{date}[-{team}].json 로드 (team 없으면 대표 브리프, 없으면 None)."""
-    p = BRIEF_DIR / (f"daily-brief-{date_str}-{team}.json" if team else f"daily-brief-{date_str}.json")
+def _brief_json(date_str, team):
+    """daily-brief-{date}-{team}.json 로드 (없으면 None)."""
+    p = BRIEF_DIR / f"daily-brief-{date_str}-{team}.json"
     if not p.exists():
         return None
     try:
@@ -860,11 +857,7 @@ class H(BaseHTTPRequestHandler):
                            if re.fullmatch(r"weekly-report-\d{4}-W\d{2}", f.stem))
             if not files:
                 return self._send(404, "<h1>주간 대시보드가 아직 없습니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
-            wk = (q.get("week") or [""])[0]  # /manage 아카이브에서 주차 선택
-            target = WEEKLY_DIR / f"weekly-report-{wk}.html"
-            if not (wk and re.fullmatch(r"\d{4}-W\d{2}", wk) and target.exists()):
-                target = files[-1]
-            return self._send(200, target.read_text(encoding="utf-8").encode("utf-8"), "text/html; charset=utf-8")
+            return self._send(200, files[-1].read_text(encoding="utf-8").encode("utf-8"), "text/html; charset=utf-8")
         if path == "/brief":
             # 대표 Daily Brief — 로그인은 HTML 내장 JS가 /api/login으로 처리(대표 admin만 입장).
             # 날짜 네비: 업무 맥락 위해 오늘 + 직전 3영업일(주말 제외)을 버튼으로 주입. ?date=로 전환.
@@ -1008,107 +1001,6 @@ class H(BaseHTTPRequestHandler):
                                     f"{sel} · 팀 리더", nav + "".join(blocks), allow,
                                     "담당 팀 리더 전용 화면입니다")
             return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
-        if path == "/week-brief":
-            # '이번 주' 탭 — 주간(월~금) 일별 브리프 스택. 팀 지정=팀 브리프 내용, 미지정=대표 다이제스트.
-            teams_p = (q.get("teams") or [""])[0]
-            team_p = (q.get("team") or [""])[0]
-            teams = [t.strip() for t in (teams_p.split(",") if teams_p else ([team_p] if team_p else [])) if t.strip()]
-            try:
-                dba = _dba()
-            except Exception as e:
-                return self._send(500, f"<h1>브리프 렌더러 로드 실패: {e}</h1>".encode("utf-8"), "text/html; charset=utf-8")
-            wparam = (q.get("week") or [""])[0]
-            try:
-                base = datetime.date.fromisoformat(wparam) if wparam else datetime.date.today()
-            except ValueError:
-                base = datetime.date.today()
-            today = datetime.date.today()
-            mon = base - datetime.timedelta(days=base.weekday())
-            days = [d for d in (mon + datetime.timedelta(days=i) for i in range(5)) if d <= today] or [mon]
-            if teams_p:
-                qbase = f"/week-brief?teams={quote(teams_p)}&"
-            elif team_p:
-                qbase = f"/week-brief?team={quote(team_p)}&"
-            else:
-                qbase = "/week-brief?"
-            prev_mon = mon - datetime.timedelta(days=7)
-            next_mon = mon + datetime.timedelta(days=7)
-            lnk = 'style="text-decoration:none;border:1px solid var(--line);border-radius:7px;padding:5px 12px;font-size:12px;color:var(--muted)"'
-            nxt = (f'<a href="{qbase}week={next_mon.isoformat()}" {lnk}>다음 주 →</a>' if next_mon <= today else "")
-            wk_nav = (f'<div style="display:flex;gap:8px;margin:0 0 18px;align-items:center">'
-                      f'<a href="{qbase}week={prev_mon.isoformat()}" {lnk}>← 이전 주</a>'
-                      f'<span style="font-size:13px;font-weight:600">{mon.strftime("%m/%d")} ~ {(mon + datetime.timedelta(days=4)).strftime("%m/%d")}</span>{nxt}</div>')
-            wkd = ["월", "화", "수", "목", "금"]
-            sections = []
-            for d in reversed(days):  # 최신일이 위
-                ds = d.isoformat()
-                head = (f'<h2 style="font-size:14px;font-weight:600;margin:26px 0 12px;border-bottom:1px solid var(--line);'
-                        f'padding-bottom:8px">{wkd[d.weekday()]} {d.strftime("%m/%d")}</h2>')
-                inner = []
-                if teams:
-                    for t in teams:
-                        td = _brief_json(ds, t)
-                        if not td:
-                            continue
-                        hl, chips, cards = _team_block_html(dba, td)
-                        if not cards:
-                            cards = '<div class="muted">보고 없음</div>'
-                        inner.append(f'<div class="tb-block"><div class="tb-head">{dba._esc(t)}'
-                                     f'<span class="cnt">보고 {td.get("active_people", 0)}명</span></div>{hl}{chips}{cards}</div>')
-                else:
-                    td = _brief_json(ds)
-                    if td:
-                        hlt = f'<div class="tb-hl">{dba._esc(td.get("headline") or "")}</div>' if td.get("headline") else ""
-                        chips = ""
-                        if td.get("top5"):
-                            cs = []
-                            for it in td["top5"][:5]:
-                                col = dba.CAT_META.get(it.get("category"), ("", "var(--accent)"))[1]
-                                cs.append(f'<span class="tb-chip" style="border-left:3px solid {col}">'
-                                          f'{dba._urg_badge(it.get("urgency", "low"))}{dba._esc(it.get("title", ""))}</span>')
-                            chips = f'<div class="tb-chips">{"".join(cs)}</div>'
-                        inner.append(f'<div class="tb-block"><div class="tb-head">전체'
-                                     f'<span class="cnt">보고 {td.get("active_people", 0)}명 · '
-                                     f'<a href="/brief?date={ds}" style="color:var(--accent)">자세히</a></span></div>{hlt}{chips}</div>')
-                sections.append(head + ("".join(inner) or '<div class="muted">이 날짜 브리프 없음</div>'))
-            if teams:
-                teams_js = json.dumps(teams, ensure_ascii=False)
-                allow = f"(s.admin || {teams_js}.every(function(t){{return (s.lead_teams||[]).indexOf(t)>=0;}}))"
-                title = f"이번 주 브리프 · {' · '.join(teams)}"
-            else:
-                allow = "s.admin"
-                title = "이번 주 브리프 · 전체"
-            page = _brief_view_page(title, title, f"{mon.strftime('%m/%d')}~{(mon + datetime.timedelta(days=4)).strftime('%m/%d')} 일별 보고",
-                                    wk_nav + "".join(sections), allow, "권한이 없는 화면입니다")
-            return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
-        if path == "/manage":
-            # 관리 페이지(대표 전용) — 주간 업무 대시보드(집계) 아카이브: 주차별 전체·팀별 링크
-            weeks = {}
-            for f in sorted(WEEKLY_DIR.glob("weekly-report-2*.html")):
-                m = re.fullmatch(r"weekly-report-(\d{4}-W\d{2})(?:-(.+))?", f.stem)
-                if not m:
-                    continue
-                wk, t = m.group(1), m.group(2)
-                weeks.setdefault(wk, {"all": False, "teams": []})
-                if t:
-                    weeks[wk]["teams"].append(t)
-                else:
-                    weeks[wk]["all"] = True
-            rows = []
-            for wk in sorted(weeks, reverse=True):
-                w = weeks[wk]
-                links = []
-                if w["all"]:
-                    links.append(f'<a href="/weekly?week={wk}" target="_blank" style="color:var(--accent)">전체</a>')
-                for t in sorted(w["teams"]):
-                    links.append(f'<a href="/team-weekly?team={quote(t)}&week={wk}" target="_blank" style="color:var(--fg)">{t}</a>')
-                rows.append(f'<div class="card" style="margin-bottom:10px;display:flex;gap:14px;align-items:center">'
-                            f'<b style="font-size:14px">{wk}</b><span style="display:flex;gap:12px;font-size:13px">{"".join(links)}</span></div>')
-            body = ('<div class="muted" style="margin-bottom:14px">주간 업무 대시보드(보고 집계·완료율·분장 달성률) 아카이브 — 링크는 새 탭으로 열립니다.</div>'
-                    + ("".join(rows) or '<div class="muted">아직 주간 대시보드가 없습니다.</div>'))
-            page = _brief_view_page("관리 · 주간 업무 대시보드", "주간 업무 대시보드 관리",
-                                    "대표 전용 · 주차별 아카이브", body, "s.admin", "대표 전용 화면입니다")
-            return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/team-weekly":
             # 팀 주간 — 로그인은 셸이 처리(team_weekly_sess). team별 최신 파일.
             team = (q.get("team") or [""])[0]
@@ -1118,11 +1010,7 @@ class H(BaseHTTPRequestHandler):
             files = sorted(f for f in WEEKLY_DIR.glob(f"weekly-report-2*-{team}.html") if pat.fullmatch(f.stem))
             if not files:
                 return self._send(404, f"<h1>{team} 팀 주간이 아직 없습니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
-            wk = (q.get("week") or [""])[0]  # /manage 아카이브에서 주차 선택
-            target = WEEKLY_DIR / f"weekly-report-{wk}-{team}.html"
-            if not (wk and re.fullmatch(r"\d{4}-W\d{2}", wk) and target.exists()):
-                target = files[-1]
-            return self._send(200, target.read_text(encoding="utf-8").encode("utf-8"), "text/html; charset=utf-8")
+            return self._send(200, files[-1].read_text(encoding="utf-8").encode("utf-8"), "text/html; charset=utf-8")
         if path == "/guide":
             # 일일업무보고 가이드 — 직원 열람용(무인증, 공개).
             gp = _WS / "20-operations" / "23-arisa" / "guide" / "daily-report-guide.html"
