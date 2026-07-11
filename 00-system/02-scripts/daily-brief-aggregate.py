@@ -66,15 +66,19 @@ BASKET_FIELDS = [
 ]
 BASKET_DECISION = {"송금·승인", "장비", "입점제안"}  # 결재성 → Decision 1급 후보
 
-# 5범주 메타: (라벨, 색)
+# 범주 메타: (라벨, 색) — Daily Report 2.0 §9 대표 브리프 체계
+# (진척=project / 지연·리스크=risk / 결정=decision / 지원=support / 이상신호=anomaly
+#  + 기존 intervention(개입)·growth(성장신호) 유지)
 CAT_META = {
     "decision":     ("Decision · 결정",   "var(--accent)"),
     "intervention": ("Intervention · 개입", "var(--amber)"),
+    "risk":         ("Risk · 리스크",     "var(--red)"),
+    "support":      ("Support · 지원 요청", "#C08BC9"),
     "project":      ("Project · 진행",    "var(--blue)"),
     "growth":       ("Growth · 성장신호",  "var(--green)"),
-    "risk":         ("Risk · 리스크",     "var(--red)"),
+    "anomaly":      ("Signal · 이상 신호", "var(--muted)"),
 }
-CAT_ORDER = ["decision", "intervention", "risk", "project", "growth"]
+CAT_ORDER = ["decision", "intervention", "risk", "support", "project", "growth", "anomaly"]
 URG_RANK = {"high": 0, "mid": 1, "low": 2}
 
 
@@ -128,7 +132,7 @@ def fetch_day(target: str | list[str]) -> dict:
     반환: {name: {team, raw, core:[{output,issue,outcome,task,blocker}], meta:{decision,support,blocker,question}, basket:[(label,val)]}}"""
     targets = {target} if isinstance(target, str) else set(target)
     core = _gws_values_get(DAILY_SHEET, "핵심업무!A2:L5000")
-    meta = _gws_values_get(DAILY_SHEET, "메타!A2:L5000")
+    meta = _gws_values_get(DAILY_SHEET, "메타!A2:O5000")  # N=Report Score, O=score_detail(type 포함)
     basket = _gws_values_get(BASKET_SHEET, "일일보고!A2:O5000")
     by = defaultdict(lambda: {"team": "", "raw": "", "core": [], "meta": {}, "basket": []})
 
@@ -143,7 +147,7 @@ def fetch_day(target: str | list[str]) -> dict:
         by[nm]["core"].append({"task": r[5], "output": r[9], "issue": r[10], "outcome": r[11]})
 
     for r in meta:
-        r = r + [""] * (12 - len(r))
+        r = r + [""] * (15 - len(r))
         if normalize_date(r[0]) not in targets:
             continue
         nm = normalize_name(r[1])
@@ -153,6 +157,12 @@ def fetch_day(target: str | list[str]) -> dict:
         by[nm]["raw"] = r[10]
         by[nm]["meta"] = {"blocker": r[5], "decision": r[7], "support": r[8],
                           "reflection": r[9], "question": r[11]}
+        # 2.0 Wave 2: Report Score(N) + score_detail(O)의 type — 브리프 개인카드 표기용
+        by[nm]["score"] = (r[13] or "").strip()
+        try:
+            by[nm]["rtype"] = (json.loads(r[14]).get("type") or "").strip() if (r[14] or "").strip() else ""
+        except Exception:
+            by[nm]["rtype"] = ""
 
     for r in basket:
         r = r + [""] * (15 - len(r))
@@ -190,6 +200,9 @@ def _emp_block(name: str, d: dict) -> str:
     if m.get("decision", "").strip(): lines.append(f"  명시적 의사결정요청: {m['decision']}")
     if m.get("support", "").strip(): lines.append(f"  지원요청: {m['support']}")
     if m.get("question", "").strip(): lines.append(f"  오늘의질문: {m['question']}")
+    # 봇이 채점한 보고유형·점수 — anomaly(활동만 나열·낮은 품질) 판단 보조 신호
+    if (d.get("rtype") or d.get("score")):
+        lines.append(f"  보고유형: {d.get('rtype') or '?'} · ReportScore: {d.get('score') or '?'}")
     for label, v in d["basket"]:
         tag = "[결재]" if label in BASKET_DECISION else ""
         lines.append(f"  basket {tag}{label}: {v[:200]}")
@@ -208,24 +221,33 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
   보이면 추출한다. 단 원문 표현을 넘는 단정 금지.
 - source_employee·project는 반드시 근거 보고에서 귀속. 모르면 project=null.
 
-[5범주]
+[7범주]
 - decision : 대표/팀장이 선택·승인해야 할 갈림길. basket의 [결재]송금·승인/장비/입점은 결재 의사결정.
 - intervention : 대표가 개입(코칭/방향제시/조율)해야 할 지점. 직원이 헤매거나 방향이 어긋난 신호.
 - risk : 놓치면 손실·지연·관계훼손이 되는 위험. 외부·금전·기한 결부된 블로커.
+- support : 직원이 명시적으로 요청한 지원(정보 확인/외부 커뮤니케이션/일정 조정/인력/예산/전문 검토).
+  intervention(대표의 판단·코칭 필요)과 구분 — support는 직원이 무엇이 필요한지 아는 상태.
 - project : 프로젝트 진행상태 변화(완료/지연/전환). outcome 기반.
 - growth : 직원 사고가 또렷해진/약했던 신호(좋은 질문, 의미연결, 반복 약점). 오늘의질문 활용.
+- anomaly : 이상 신호 — ①결과 없이 활동만 나열된 보고 ②서로 다른 보고 간 내용 충돌
+  ③특정 담당자에게 업무 과다 집중 ④리스크·결정 항목이 있어 보이는데 "없음"으로만 채워진 보고.
+  오늘 보고 범위에서 보이는 것만. 근거 없이 만들지 마라.
 
 [urgency] high=오늘 안 보면 손실/기한 / mid=이번 주 / low=인지만
 
+[decision 항목 구조 (§9-3)] decision 항목에는 보고에 근거가 있을 때만 다음을 채워라(없으면 ""):
+  recommendation=담당자의 추천안, deadline=결정이 필요한 기한, delay_impact=미결정 시 영향
+
 반드시 아래 JSON만 출력:
 {"headline":"오늘 이 조직/팀이 가장 주목해야 할 핵심을 한 문장으로(의사결정·리스크 우선). 근거 없으면 빈 문자열.",
- "items":[{"category":"decision|intervention|risk|project|growth",
+ "items":[{"category":"decision|intervention|risk|support|project|growth|anomaly",
   "title":"대표가 30초에 읽는 한 줄 요약",
   "detail":"무엇을 결정/개입/주시해야 하나 (구체)",
   "urgency":"high|mid|low",
   "source_employee":"근거 보고 직원명",
   "project":"프로젝트명 또는 null",
-  "related":"근거가 된 산출물/이슈 한 줄"}]}"""
+  "related":"근거가 된 산출물/이슈 한 줄",
+  "recommendation":"", "deadline":"", "delay_impact":""}]}"""
 
 
 def engine_d(blocks: list[str]) -> dict:
@@ -262,6 +284,10 @@ def engine_d(blocks: list[str]) -> dict:
                 "source_employee": (it.get("source_employee") or "").strip(),
                 "project": (it.get("project") or "").strip() or None,
                 "related": (it.get("related") or "").strip(),
+                # §9-3: 결정 요청 구조 (근거 있을 때만 LLM이 채움)
+                "recommendation": (it.get("recommendation") or "").strip(),
+                "deadline": (it.get("deadline") or "").strip(),
+                "delay_impact": (it.get("delay_impact") or "").strip(),
             })
         return {"items": out, "headline": headline}
     except Exception as e:
@@ -307,14 +333,19 @@ def _carried_decision_items(target: str) -> list[dict]:
         if age < 1:
             continue  # 오늘 결정은 engine_d(시트) 담당
         rel = (e.get("related_output") or "").strip()
+        opts = (e.get("options") or "").strip()
         carried.append({
             "category": "decision",
             "title": (e.get("decision_needed") or "").strip(),
-            "detail": f"{age}일째 미결" + (f" · {rel}" if rel else ""),
+            "detail": f"{age}일째 미결" + (f" · {rel}" if rel else "") + (f" · 옵션: {opts}" if opts else ""),
             "urgency": urg_map.get(e.get("urgency"), "mid"),
             "source_employee": (e.get("source_employee") or "").strip(),
             "project": (e.get("project") or "").strip() or None,
             "related": rel,
+            # §9-3: 봇 Wave 2가 축적한 결정 구조(decisions.jsonl) 표면화
+            "recommendation": (e.get("recommendation") or "").strip(),
+            "deadline": (e.get("deadline") or "").strip(),
+            "delay_impact": (e.get("delay_impact") or "").strip(),
             "carried": True,
             "age_days": age,
         })
@@ -393,6 +424,8 @@ def _people_summary(day: dict, assignments: list[dict] | None = None) -> list[di
                      if (v or "").strip() and k != "reflection"},
             "basket": d["basket"][:6],
             "assignments": [a for a in assignments if a["assignee"] == nm],
+            "score": d.get("score", ""),   # 2.0 Wave 2: Report Score
+            "rtype": d.get("rtype", ""),   # 2.0 Wave 2: 보고 유형 A/B/C
         })
     out.sort(key=lambda p: (TEAM_ORDER.index(p["team"]) if p["team"] in TEAM_ORDER else 99, p["name"]))
     return out
@@ -506,10 +539,18 @@ def _item_card(it: dict) -> str:
     src = _esc(it["source_employee"])
     proj = f' · {_esc(it["project"])}' if it["project"] else ""
     rel = f'<div class="rel">{_esc(it["related"])}</div>' if it["related"] else ""
+    # §9-3: 결정 요청 구조 — 추천안/기한/미결정 영향 (있는 것만)
+    dec_bits = []
+    for key, lab in (("recommendation", "추천안"), ("deadline", "결정 기한"),
+                     ("delay_impact", "지연 시 영향")):
+        v = (it.get(key) or "").strip()
+        if v:
+            dec_bits.append(f'<div class="rel">· {lab}: {_esc(v)}</div>')
+    dec_html = "".join(dec_bits)
     return f'''<div class="card">
       <div class="ic-h"><b>{_esc(it["title"])}</b>{_urg_badge(it["urgency"])}</div>
       <div class="ic-d">{_esc(it["detail"])}</div>
-      <div class="ic-m">{src}{proj}</div>{rel}
+      <div class="ic-m">{src}{proj}</div>{dec_html}{rel}
     </div>'''
 
 
@@ -556,8 +597,16 @@ def _person_card(p: dict) -> str:
             lines.append(f'<div class="as-item"><span class="as-st {st_cls.get(a["status"], "as-todo")}">{_esc(a["status"])}</span>'
                          f'<span class="as-task">{_esc(tk[:90])}</span>{dl}</div>')
         asg_html = f'<div class="pp-asg"><div class="as-label">📋 이번주 분장 {len(p["assignments"])}건</div>{"".join(lines)}</div>'
+    # 2.0 Wave 2: 보고 유형 배지 + Report Score (있을 때만)
+    qual_bits = []
+    tb = {"A": "🟢 일반", "B": "🟠 이슈", "C": "🔴 결정"}.get((p.get("rtype") or "").strip(), "")
+    if tb:
+        qual_bits.append(tb)
+    if (p.get("score") or "").strip():
+        qual_bits.append(f'{p["score"]}점')
+    qual = f'<span class="pp-team">{_esc(" · ".join(qual_bits))}</span>' if qual_bits else ""
     return f'''<div class="card">
-      <div class="pp-head"><span class="pp-name">{_esc(p["name"])}</span><span class="pp-team">{_esc(p["team"])}</span></div>
+      <div class="pp-head"><span class="pp-name">{_esc(p["name"])}</span><span class="pp-team">{_esc(p["team"])}</span>{qual}</div>
       {"".join(rows) or '<div class="muted">보고 내용 없음</div>'}{meta_html}{asg_html}
     </div>'''
 
@@ -660,7 +709,8 @@ def render_brief_html(data: dict) -> str:
             dz_cards = "".join(
                 f'<div class="dz-card">{_urg_badge(it["urgency"])}<b>{_esc(it["title"])}</b>'
                 f'<span class="dz-src">{_esc(it["source_employee"])}'
-                f'{" · " + _esc(it["project"]) if it["project"] else ""}</span></div>'
+                f'{" · " + _esc(it["project"]) if it["project"] else ""}'
+                f'{" · ⏰ " + _esc(it["deadline"]) if (it.get("deadline") or "").strip() else ""}</span></div>'
                 for it in dsum)
             dz = f'<div class="sz-label">오늘 의사결정 · 개입</div><div class="dz-grid">{dz_cards}</div>'
         else:
@@ -775,8 +825,10 @@ footer{{margin-top:44px;color:var(--muted);font-size:11px;text-align:center;bord
   <div class="stat"><b>{cnt["decision"]}</b><small>결정</small></div>
   <div class="stat"><b>{cnt["intervention"]}</b><small>개입</small></div>
   <div class="stat"><b>{cnt["risk"]}</b><small>리스크</small></div>
+  <div class="stat"><b>{cnt["support"]}</b><small>지원요청</small></div>
   <div class="stat"><b>{cnt["project"]}</b><small>프로젝트</small></div>
   <div class="stat"><b>{cnt["growth"]}</b><small>성장신호</small></div>
+  <div class="stat"><b>{cnt["anomaly"]}</b><small>이상신호</small></div>
   <div class="stat"><b>{data["active_people"]}</b><small>보고 인원</small></div>
 </div>
 <div class="hero">{hero_html}</div>
@@ -834,7 +886,8 @@ def _telegram_brief(data: dict):
     c = data["counts"]
     msg = (f"🗂 대표 Daily Brief {data['date']}({data['weekday']})\n"
            f"결정 {c['decision']} · 개입 {c['intervention']} · 리스크 {c['risk']} "
-           f"· 프로젝트 {c['project']} · 성장 {c['growth']}\n")
+           f"· 지원 {c['support']} · 프로젝트 {c['project']} · 성장 {c['growth']}"
+           + (f" · ⚡이상신호 {c['anomaly']}" if c.get("anomaly") else "") + "\n")
     if data["top5"]:
         msg += "\n오늘 봐야 할 것:\n"
         for it in data["top5"]:
@@ -863,7 +916,8 @@ def _telegram_team_brief(data: dict, chat_ids: list):
     c = data["counts"]
     msg = (f"👥 {team} 팀 Brief {data['date']}({data['weekday']})\n"
            f"결정 {c['decision']} · 개입 {c['intervention']} · 리스크 {c['risk']} "
-           f"· 프로젝트 {c['project']} · 성장 {c['growth']}\n")
+           f"· 지원 {c['support']} · 프로젝트 {c['project']} · 성장 {c['growth']}"
+           + (f" · ⚡이상신호 {c['anomaly']}" if c.get("anomaly") else "") + "\n")
     if data["top5"]:
         msg += "\n오늘 봐야 할 것:\n"
         for it in data["top5"]:
