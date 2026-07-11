@@ -54,6 +54,11 @@ def save_decision_log(report: dict, owner: str = DEFAULT_OWNER) -> bool:
         "owner": owner,
         "source_employee": report.get("name", ""),
         "related_output": (meta.get("related_output") or "").strip(),
+        # Wave 2 (2.0 Step9): 의사결정 요청 구조 — 옵션/추천/기한/지연영향 (없으면 "")
+        "options": (meta.get("options") or "").strip(),
+        "recommendation": (meta.get("recommendation") or "").strip(),
+        "deadline": (meta.get("deadline") or "").strip(),
+        "delay_impact": (meta.get("delay_impact") or "").strip(),
         "status": "open",
         "logged_at": datetime.now().isoformat(timespec="seconds"),
     }
