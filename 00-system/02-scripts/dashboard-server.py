@@ -51,6 +51,10 @@ try:
     from shared import gws as _asgws
 except Exception:
     _asgws = None
+try:
+    from shared.decision import load_open_decisions as _load_open_decisions
+except Exception:
+    _load_open_decisions = None
 DAILY_SHEET = os.environ.get("DAILY_REPORT_SHEET_ID", "")
 ASSIGN_TAB = "주간분장"
 
@@ -367,10 +371,31 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     var u=encodeURIComponent(SESS.name);
     Promise.all([
       fetch('/api/my-work?user='+u).then(function(r){return r.json();}),
-      fetch('/api/assignees?user='+u).then(function(r){return r.json();})
+      fetch('/api/assignees?user='+u).then(function(r){return r.json();}),
+      SESS.admin ? fetch('/api/exec-attn?user='+u).then(function(r){return r.json();}) : Promise.resolve(null)
     ]).then(function(res){
-      var mw=res[0]||{}, ac=res[1]||{}, h='<div class="mw-wrap">';
+      var mw=res[0]||{}, ac=res[1]||{}, ex=res[2], h='<div class="mw-wrap">';
       MW_ASSIGNEES = ac.assignees || [];
+      if(ex && ex.ok){
+        var D=ex.decisions||[], O=ex.overdue||[];
+        if(D.length){
+          h+='<div class="mw-h">🧾 결재·확인 필요 <span class="sub2">'+D.length+'건 — 미해결 결정·승인 요청</span></div>';
+          D.forEach(function(d){
+            var age=d.age>0?(' · '+d.age+'일 경과'):'';
+            var pj=d.project?(' · '+esc(d.project)):'';
+            h+='<div class="mw-card ex-red"><div class="t">'+esc(d.title)+'</div><div class="m">'+esc(d.who||'')+pj+age+'</div></div>';
+          });
+        }
+        if(O.length){
+          h+='<div class="mw-h">⏰ 지연 업무 <span class="sub2">'+O.length+'건 — 마감 경과·미완료 분장</span></div>';
+          O.forEach(function(a){
+            var pj=a.project?(esc(a.project)+' · '):'';
+            h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+' <span class="mw-badge mw-urgent">D+'+a.days_overdue+'</span></div>'
+              +'<div class="m">'+pj+esc(a.assignee||'미지정')+' · 마감 '+esc(a.deadline||'')+' · '+esc(a.status||'미착수')+'</div></div>';
+          });
+        }
+        if(!D.length && !O.length){ h+='<div class="mw-h">✅ 지연·결재 대기 없음</div>'; }
+      }
       if(ac.canAssign){ h+=mwAssignHtml(ac.level||'담당자'); }
       h+='<div class="mw-h">오늘 할일 · 내 분장</div>';
       var A=mw.assignments||[];
@@ -747,6 +772,8 @@ BRIEF_CARD_CSS = """
 .lh-proj .t{font-size:14px;font-weight:500}
 .lh-proj .m{font-size:12px;color:var(--muted);margin-top:3px}
 .rc-card{border-left:3px solid var(--accent)}
+.ex-red{border-left:3px solid var(--red, #E17055)}
+.ex-amber{border-left:3px solid var(--amber, #D9A34B)}
 .rc-btn{float:right;background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.4);color:var(--accent);border-radius:7px;padding:4px 11px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;margin-left:10px}
 .rc-btn:hover{background:var(--accent);color:#fff}
 """
@@ -1192,6 +1219,67 @@ class H(BaseHTTPRequestHandler):
                                              "status": t.get("status"), "priority": t.get("priority"),
                                              "division": t.get("division")} for t in ts]})
             return self._send(200, {"ok": True, "user": uid, "assignments": mine, "projects": projs})
+        if path == "/api/exec-attn":
+            # 대표창 — 지연 업무(마감 경과·미완료 분장) + 결재·확인 필요(미해결 결정)
+            uid = (q.get("user") or [""])[0]
+            if not is_admin(uid):
+                return self._send(403, {"ok": False, "error": "대표 전용"})
+            today = datetime.date.today()
+            reg_cut = today - datetime.timedelta(days=30)
+            overdue, seen = [], set()
+            for a in _assign_read():
+                if (a.get("status") or "미착수") == "완료":
+                    continue
+                dl = (a.get("deadline") or "").strip()[:10]
+                try:
+                    dld = datetime.date.fromisoformat(dl)
+                except ValueError:
+                    continue
+                if dld >= today:
+                    continue
+                ds = (a.get("date") or "").strip()[:10]
+                try:
+                    if datetime.date.fromisoformat(ds) < reg_cut:
+                        continue
+                except ValueError:
+                    pass
+                key = (a.get("project"), a.get("task"), a.get("assignee"), dl)
+                if key in seen:
+                    continue
+                seen.add(key)
+                a = dict(a)
+                a["days_overdue"] = (today - dld).days
+                overdue.append(a)
+            overdue.sort(key=lambda x: -x["days_overdue"])
+            # 결재·확인 필요 — 미해결 결정 이월 로그 + 최신 브리프 decision_summary 병합
+            decisions, titles = [], set()
+            if _load_open_decisions:
+                try:
+                    for d in _load_open_decisions(14):
+                        t = (d.get("decision_needed") or "").strip()
+                        if t and t not in titles:
+                            titles.add(t)
+                            decisions.append({"title": t, "who": d.get("source_employee") or "",
+                                              "project": d.get("project") or "",
+                                              "age": d.get("age_days", 0)})
+                except Exception:
+                    pass
+            try:
+                bfiles = sorted(f for f in BRIEF_DIR.glob("daily-brief-2*.json")
+                                if re.fullmatch(r"daily-brief-\d{4}-\d{2}-\d{2}", f.stem))
+                if bfiles:
+                    bd = json.loads(bfiles[-1].read_text(encoding="utf-8"))
+                    for it in bd.get("decision_summary") or []:
+                        t = (it.get("title") or "").strip()
+                        if t and t not in titles:
+                            titles.add(t)
+                            proj = (it.get("project") or "")
+                            proj = "" if str(proj).lower() in ("none", "null") else proj
+                            decisions.append({"title": t, "who": it.get("source_employee") or "",
+                                              "project": proj, "age": 0})
+            except Exception:
+                pass
+            return self._send(200, {"ok": True, "overdue": overdue, "decisions": decisions})
         if path == "/api/lead-home":
             # 리더 홈 — 팀 Todo(이번주 분장) + 진행중 프로젝트 + 팀원 오늘 보고 카드(HTML fragment)
             uid = (q.get("user") or [""])[0]
