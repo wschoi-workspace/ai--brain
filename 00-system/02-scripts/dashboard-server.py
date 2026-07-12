@@ -100,15 +100,105 @@ def _assign_append(assignee, task, deadline, priority, by, project="", result=""
 
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
 
+# 주간업무계획.xlsx 파싱 폴백용 파이썬 (시스템 3.9에 openpyxl 없을 때 subprocess)
+_XLSX_PY_CANDIDATES = [
+    str(_WS / "20-operations" / "24-second-brain" / ".venv311" / "bin" / "python"),
+    "/usr/bin/python3",
+]
 
-def _llm_todo(text):
+_PLAN_PARSE_SNIPPET = r'''
+import json, sys
+import openpyxl
+rows = []
+wb = openpyxl.load_workbook(sys.argv[1], data_only=True)
+for ws in wb.worksheets:
+    hdr = None
+    last_proj = ""
+    for r in ws.iter_rows(values_only=True):
+        cells = ["" if c is None else str(c).strip() for c in r]
+        if hdr is None:
+            if any("프로젝트명" in c for c in cells):
+                hdr = {}
+                for i, c in enumerate(cells):
+                    if "프로젝트명" in c: hdr["project"] = i
+                    elif "금주" in c: hdr["this"] = i
+                    elif "차주" in c: hdr["next"] = i
+                    elif "계약상황" in c: hdr["status"] = i
+                    elif "due" in c.lower() or "런칭" in c: hdr["due"] = i
+            continue
+        def g(k):
+            i = hdr.get(k)
+            return cells[i] if i is not None and i < len(cells) else ""
+        proj = g("project") or last_proj
+        if g("project"):
+            last_proj = g("project")
+        tw, nw = g("this"), g("next")
+        if not (tw or nw):
+            continue
+        rows.append({"project": proj, "this": tw, "next": nw, "status": g("status"), "due": g("due")})
+print(json.dumps(rows, ensure_ascii=False))
+'''
+
+
+def _parse_weekly_plan(path):
+    """주간업무계획.xlsx → [{project, this, next, status, due}] — 헤더('프로젝트명') 탐지,
+    프로젝트명 빈 행은 직전 상속, 금주·차주 모두 빈 행 skip.
+    인프로세스 openpyxl 우선, 없으면 venv 파이썬 subprocess 폴백."""
+    try:
+        import openpyxl  # noqa: F401
+        rows = []
+        wb = openpyxl.load_workbook(path, data_only=True)
+        for ws in wb.worksheets:
+            hdr = None
+            last_proj = ""
+            for r in ws.iter_rows(values_only=True):
+                cells = ["" if c is None else str(c).strip() for c in r]
+                if hdr is None:
+                    if any("프로젝트명" in c for c in cells):
+                        hdr = {}
+                        for i, c in enumerate(cells):
+                            if "프로젝트명" in c: hdr["project"] = i
+                            elif "금주" in c: hdr["this"] = i
+                            elif "차주" in c: hdr["next"] = i
+                            elif "계약상황" in c: hdr["status"] = i
+                            elif "due" in c.lower() or "런칭" in c: hdr["due"] = i
+                    continue
+                def g(k):
+                    i = hdr.get(k)
+                    return cells[i] if i is not None and i < len(cells) else ""
+                proj = g("project") or last_proj
+                if g("project"):
+                    last_proj = g("project")
+                tw, nw = g("this"), g("next")
+                if not (tw or nw):
+                    continue
+                rows.append({"project": proj, "this": tw, "next": nw,
+                             "status": g("status"), "due": g("due")})
+        return rows
+    except ImportError:
+        pass
+    import subprocess, tempfile
+    for py in _XLSX_PY_CANDIDATES:
+        if not Path(py).exists():
+            continue
+        try:
+            r = subprocess.run([py, "-c", _PLAN_PARSE_SNIPPET, str(path)],
+                               capture_output=True, text=True, timeout=60)
+            if r.returncode == 0 and r.stdout.strip():
+                return json.loads(r.stdout)
+        except Exception:
+            continue
+    return []
+
+
+def _llm_todo(text, max_items=12):
     """자유 텍스트 업무지시 → 실행가능 to-do 항목 리스트. OpenAI(urllib, stdlib). 실패 시 []."""
     text = (text or "").strip()
     if not (OPENAI_KEY and text):
         return []
     _today = datetime.date.today().isoformat()
     sys_p = (f"오늘은 {_today}(YYYY-MM-DD)이다. 다음 업무 지시 텍스트를 담당자가 바로 실행할 수 있는 "
-             "개별 to-do 항목으로 분해한다. 각 항목은 구체적 한 문장. 지시에 없는 내용을 지어내지 말 것. 항목 5~12개. "
+             f"개별 to-do 항목으로 분해한다. 각 항목은 구체적 한 문장. 지시에 없는 내용을 지어내지 말 것. 항목 최대 {max_items}개. "
              "**프로젝트 귀속 필수**: 항목이 특정 프로젝트에 속하면 project에 상위 프로젝트명을 넣는다. "
              "예) '봉은사 프로젝트 … (상세항목 _ BM 세부 리서치 및 아이데이션)' → 봉은사의 하위 상세항목이므로 "
              "그 항목의 project는 '봉은사'. 상위 프로젝트가 명시된 문장의 하위 항목들은 모두 같은 project를 상속한다. 불명확하면 빈칸. "
@@ -186,6 +276,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .tg-proj{flex:1;min-width:150px;background:var(--bg-3);border:1px solid var(--accent);color:var(--fg);border-radius:8px;padding:9px 12px;font-size:13px;font-weight:500;font-family:inherit}
 .tg-as{background:var(--bg-3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 10px;font-size:12px;font-family:inherit}
 .tg-add{background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;margin-top:8px;font-family:inherit}
+.mw-plan{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.mw-file{background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.4);color:var(--accent);border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.mw-file:hover{background:var(--accent);color:#fff}
 .pg-head{font-size:13px;font-weight:600;color:var(--accent);margin:16px 0 6px;display:flex;align-items:center;gap:8px}
 .pg-cnt{font-size:11px;color:var(--muted);font-weight:400}
 .pg-item{margin-left:10px;border-left:2px solid var(--line)}
@@ -285,11 +378,34 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function mwAssignHtml(lv){
     return '<div class="mw-h">업무 분장 <span class="sub2">— 자유롭게 적으면 AI가 항목화 → 편집 후 '+lv+'에게 배분 → 승인'+(lv==='팀원'?' (대표가 배분한 내 업무를 참고해도 됩니다)':'')+'</span></div>'
-      +'<div class="mw-assign"><textarea id="mw-text" placeholder="이번주 팀 업무를 자유롭게 적으세요.&#10;예) 봉은사 마스터플랜 검토·정리본 공유, 세스크멘슬 주방도면 정리, KBO 굿즈 발주 최종확인"></textarea>'
+      +'<div class="mw-assign">'
+      +'<div class="mw-plan"><label class="mw-file" for="mw-xlsx">📄 주간업무계획 업로드 (.xlsx)</label>'
+      +'<input type="file" id="mw-xlsx" accept=".xlsx" style="display:none">'
+      +'<span class="sub2">— 금주·차주 업무를 프로젝트별 검토 초안으로 자동 변환</span></div>'
+      +'<textarea id="mw-text" placeholder="이번주 팀 업무를 자유롭게 적으세요.&#10;예) 봉은사 마스터플랜 검토·정리본 공유, 세스크멘슬 주방도면 정리, KBO 굿즈 발주 최종확인"></textarea>'
       +'<div class="td-actions"><button id="mw-parse">AI로 항목 정리</button></div>'
       +'<div id="mw-todos"></div><div id="mw-msg" class="sub2"></div></div>';
   }
   function mwBindParse(){
+    var fx=document.getElementById('mw-xlsx');
+    if(fx){ fx.onchange=function(){
+      var f=fx.files&&fx.files[0], msg=document.getElementById('mw-msg');
+      if(!f) return;
+      msg.textContent='📄 '+f.name+' — 주간업무계획을 검토 초안으로 변환 중…';
+      var rd=new FileReader();
+      rd.onload=function(){
+        fetch('/api/assign-from-plan',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:SESS.name,pin:SESS.pin,b64:rd.result})})
+          .then(function(r){return r.json();}).then(function(d){
+            fx.value='';
+            if(d.ok && d.items && d.items.length){
+              msg.textContent='검토 초안 '+d.items.length+'건 생성 ('+ (d.rows||0) +'개 행) — 담당자 지정 후 등록하세요.';
+              mwRenderTodos(d.items);
+            } else { msg.textContent=d.error||'항목을 뽑지 못했습니다.'; }
+          }).catch(function(){ fx.value=''; msg.textContent='서버 오류'; });
+      };
+      rd.readAsDataURL(f);
+    };}
     var pb=document.getElementById('mw-parse');
     if(!pb) return;
     pb.onclick=function(){
@@ -1395,6 +1511,37 @@ class H(BaseHTTPRequestHandler):
                 return self._send(403, {"ok": False, "error": "분장 권한 없음"})
             items = _llm_todo(b.get("text") or "")
             return self._send(200, {"ok": True, "items": items})
+        if path == "/api/assign-from-plan":
+            # 주간업무계획.xlsx(base64) → 파싱 → AI 항목화 → 분장 검토 초안 (대표·리더 전용)
+            if not (is_admin(uid) or is_leader(uid)):
+                return self._send(403, {"ok": False, "error": "분장 권한 없음"})
+            import base64, tempfile
+            try:
+                raw = base64.b64decode((b.get("b64") or "").split(",")[-1])
+            except Exception:
+                return self._send(400, {"ok": False, "error": "파일 디코드 실패"})
+            if not raw or len(raw) > 10 * 1024 * 1024:
+                return self._send(400, {"ok": False, "error": "빈 파일 또는 10MB 초과"})
+            with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tf:
+                tf.write(raw)
+                tmp = tf.name
+            try:
+                rows = _parse_weekly_plan(tmp)
+            finally:
+                try: os.unlink(tmp)
+                except OSError: pass
+            if not rows:
+                return self._send(200, {"ok": False, "error": "표를 읽지 못했습니다 — '프로젝트명/금주/차주' 헤더가 있는 주간업무계획 형식인지 확인하세요"})
+            lines = []
+            for r in rows:
+                seg = f"[{r['project']}]" if r.get("project") else "[프로젝트 미지정]"
+                if r.get("status"): seg += f" (상황: {r['status']})"
+                if r.get("this"): seg += f" 금주: {r['this']}"
+                if r.get("next"): seg += f" / 차주: {r['next']}"
+                if r.get("due"): seg += f" / 예상 런칭: {r['due']}"
+                lines.append(seg)
+            items = _llm_todo("\n".join(lines), max_items=30)
+            return self._send(200, {"ok": True, "items": items, "rows": len(rows)})
         if path == "/api/assign-commit":
             # 편집·담당자 지정 완료된 항목 일괄 등록
             items = b.get("items") or []
