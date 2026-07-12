@@ -312,10 +312,31 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     ]).then(function(res){
       var lh=res[0]||{}, ac=res[1]||{}, h='<div class="mw-wrap">';
       MW_ASSIGNEES = ac.assignees || [];
-      h+='<div class="mw-h">팀 Todo · 이번주 분장 <span class="sub2">'+esc((lh.teams||[]).join(' · '))+'</span></div>';
       var A=lh.assignments||[];
-      if(A.length){ h+=mwAssignListHtml(A, true); }
-      else { h+='<div class="mw-empty">이번주 분장이 아직 없습니다. 아래에서 바로 만들 수 있습니다.</div>'; }
+      // 위계 분리: 받은 업무(대표→리더 본인) vs 팀 Todo(리더→팀원 배분분)
+      var _rcSeen={};
+      var received=A.filter(function(a){
+        if(a.assignee!==SESS.name) return false;
+        var k=[a.project,a.task,a.deadline,a.status].join('|');
+        if(_rcSeen[k]) return false; _rcSeen[k]=1; return true;
+      });
+      var teamTodo=A.filter(function(a){ return a.assignee!==SESS.name; });
+      if(received.length){
+        h+='<div class="mw-h">📥 받은 업무 <span class="sub2">— 대표 지시 · [상세 분장]으로 팀원에게 쪼개서 배분하세요</span></div>';
+        received.forEach(function(a,i){
+          var st=a.status||'미착수';
+          var badge='<span class="lh-st '+(st==='완료'?'lh-done':(st==='진행중'?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
+          var urg=(a.priority==='긴급')?'<span class="mw-badge mw-urgent">긴급</span>':'';
+          var pj=a.project?(esc(a.project)+' · '):'';
+          var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
+          h+='<div class="mw-card rc-card"><div class="t">'+badge+' '+esc(a.task)+urg
+            +'<button class="rc-btn" data-i="'+i+'">→ 팀원에게 상세 분장</button></div>'
+            +'<div class="m">'+pj+'대표 지시'+dl+'</div></div>';
+        });
+      }
+      h+='<div class="mw-h">팀 Todo · 이번주 분장 <span class="sub2">'+esc((lh.teams||[]).join(' · '))+'</span></div>';
+      if(teamTodo.length){ h+=mwAssignListHtml(teamTodo, true); }
+      else { h+='<div class="mw-empty">팀원에게 배분된 분장이 아직 없습니다. 아래에서 바로 만들 수 있습니다.</div>'; }
       if(ac.canAssign){ h+=mwAssignHtml(ac.level||'팀원'); }
       h+='<div class="mw-h">진행중인 프로젝트 <span class="sub2">'+(lh.projects||[]).length+'건 — 클릭하면 프로젝트 탭</span></div>';
       var P=lh.projects||[];
@@ -328,6 +349,14 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       h+='</div>'; box.innerHTML=h;
       mwBindParse();
       box.querySelectorAll('.lh-proj').forEach(function(el){ el.onclick=function(){ showTab('projects'); }; });
+      box.querySelectorAll('.rc-btn').forEach(function(b){
+        b.onclick=function(){
+          var a=received[parseInt(b.getAttribute('data-i'),10)]; if(!a) return;
+          var ta=document.getElementById('mw-text'); if(!ta) return;
+          ta.value=(a.project?('['+a.project+'] '):'')+a.task+' — 이를 실행하기 위한 상세 업무:\\n- ';
+          ta.focus(); ta.scrollIntoView({behavior:'smooth',block:'center'});
+        };
+      });
     }).catch(function(){ box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>'; });
   }
   function renderMyWork(){
@@ -717,6 +746,9 @@ BRIEF_CARD_CSS = """
 .lh-proj:hover{border-color:var(--accent)}
 .lh-proj .t{font-size:14px;font-weight:500}
 .lh-proj .m{font-size:12px;color:var(--muted);margin-top:3px}
+.rc-card{border-left:3px solid var(--accent)}
+.rc-btn{float:right;background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.4);color:var(--accent);border-radius:7px;padding:4px 11px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;margin-left:10px}
+.rc-btn:hover{background:var(--accent);color:#fff}
 """
 
 BRIEF_PAGE_CSS = """
@@ -1169,8 +1201,9 @@ class H(BaseHTTPRequestHandler):
             if not teams:
                 return self._send(403, {"ok": False, "error": "리더 전용"})
             today = datetime.date.today()
-            ws = today - datetime.timedelta(days=today.weekday())
-            we = ws + datetime.timedelta(days=6)
+            # 2주 윈도우(지난주 월~이번주 일) — 주 바뀐 직후 미완료 분장이 사라지는 문제 방지
+            ws = today - datetime.timedelta(days=today.weekday() + 7)
+            we = today - datetime.timedelta(days=today.weekday()) + datetime.timedelta(days=6)
             assigns = []
             for a in _assign_read():
                 ds = (a.get("date") or "").strip()[:10]
