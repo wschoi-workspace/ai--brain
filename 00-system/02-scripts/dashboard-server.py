@@ -176,6 +176,15 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
 .td-actions button:disabled{opacity:.5}
 button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--line)}
 .td-row{display:flex;gap:6px;align-items:center;margin-top:7px}
+.tg-box{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px}
+.tg-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.tg-label{font-size:11px;color:var(--muted);flex-shrink:0}
+.tg-proj{flex:1;min-width:150px;background:var(--bg-3);border:1px solid var(--accent);color:var(--fg);border-radius:8px;padding:9px 12px;font-size:13px;font-weight:500;font-family:inherit}
+.tg-as{background:var(--bg-3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 10px;font-size:12px;font-family:inherit}
+.tg-add{background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;margin-top:8px;font-family:inherit}
+.pg-head{font-size:13px;font-weight:600;color:var(--accent);margin:16px 0 6px;display:flex;align-items:center;gap:8px}
+.pg-cnt{font-size:11px;color:var(--muted);font-weight:400}
+.pg-item{margin-left:10px;border-left:2px solid var(--line)}
 .td-row .td-proj{width:120px;flex-shrink:0;background:var(--bg-3);border:1px solid var(--accent);color:var(--fg);border-radius:8px;padding:9px 10px;font-size:12px;font-family:inherit}
 .td-row .td-task{flex:1;min-width:140px;background:var(--bg-3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit}
 .td-row select,.td-row input[type=date]{background:var(--bg-3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 10px;font-size:12px;font-family:inherit}
@@ -305,14 +314,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       MW_ASSIGNEES = ac.assignees || [];
       h+='<div class="mw-h">팀 Todo · 이번주 분장 <span class="sub2">'+esc((lh.teams||[]).join(' · '))+'</span></div>';
       var A=lh.assignments||[];
-      if(A.length){ A.forEach(function(a){
-        var st=a.status||'미착수';
-        var badge='<span class="lh-st '+(st==='완료'?'lh-done':(st==='진행중'?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
-        var urg=(a.priority==='긴급')?'<span class="mw-badge mw-urgent">긴급</span>':'';
-        var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
-        var pj=a.project?(' · '+esc(a.project)):'';
-        h+='<div class="mw-card"><div class="t">'+badge+esc(a.task)+urg+'</div><div class="m">'+esc(a.assignee||'미지정')+pj+dl+'</div></div>';
-      }); } else { h+='<div class="mw-empty">이번주 분장이 아직 없습니다. 아래에서 바로 만들 수 있습니다.</div>'; }
+      if(A.length){ h+=mwAssignListHtml(A, true); }
+      else { h+='<div class="mw-empty">이번주 분장이 아직 없습니다. 아래에서 바로 만들 수 있습니다.</div>'; }
       if(ac.canAssign){ h+=mwAssignHtml(ac.level||'팀원'); }
       h+='<div class="mw-h">진행중인 프로젝트 <span class="sub2">'+(lh.projects||[]).length+'건 — 클릭하면 프로젝트 탭</span></div>';
       var P=lh.projects||[];
@@ -342,12 +345,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       if(ac.canAssign){ h+=mwAssignHtml(ac.level||'담당자'); }
       h+='<div class="mw-h">오늘 할일 · 내 분장</div>';
       var A=mw.assignments||[];
-      if(A.length){ A.forEach(function(a){
-        var urg=(a.priority==='긴급')?'<span class="mw-badge mw-urgent">긴급</span>':'';
-        var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
-        var pj=a.project?(' · '+esc(a.project)):'';
-        h+='<div class="mw-card"><div class="t">'+esc(a.task)+urg+'</div><div class="m">'+esc(a.status)+dl+pj+'</div></div>';
-      }); } else { h+='<div class="mw-empty">배정된 분장이 없습니다.</div>'; }
+      if(A.length){ h+=mwAssignListHtml(A, false); }
+      else { h+='<div class="mw-empty">배정된 분장이 없습니다.</div>'; }
       h+='<div class="mw-h">내 프로젝트 일정</div>';
       var P=mw.projects||[];
       if(P.length){ P.forEach(function(p){
@@ -365,33 +364,61 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   function mwAsOpts(sel){ return MW_ASSIGNEES.map(function(a){return '<option value="'+esc(a.name)+'"'+(a.name===sel?' selected':'')+'>'+esc(a.name)+' ('+esc(a.team||'')+')</option>';}).join(''); }
   function mwTodoRow(it){
     it=it||{};
-    return '<div class="td-row"><input class="td-proj" value="'+esc(it.project||'')+'" placeholder="프로젝트" title="상위 프로젝트">'
-      +'<input class="td-task" value="'+esc(it.task||'')+'" placeholder="업무 내용">'
-      +'<select class="td-as"><option value="">담당자</option>'+mwAsOpts('')+'</select>'
+    return '<div class="td-row"><input class="td-task" value="'+esc(it.task||'')+'" placeholder="업무 내용">'
+      +'<select class="td-as"><option value="">담당자</option>'+mwAsOpts(it.assignee||'')+'</select>'
       +'<input class="td-dl" type="date" value="'+esc(it.deadline||'')+'" title="마감">'
       +'<select class="td-pr"><option'+(it.priority==='긴급'?'':' selected')+'>일반</option><option'+(it.priority==='긴급'?' selected':'')+'>긴급</option></select>'
       +'<button class="td-del" title="삭제">×</button></div>';
   }
   function mwBindRow(row){ row.querySelector('.td-del').onclick=function(){ row.remove(); }; }
+  function mwGroupBox(project, items){
+    // 프로젝트 그룹 에디터 — 프로젝트명은 그룹당 1개 입력, 담당자는 항목별 개별 지정
+    return '<div class="tg-box"><div class="tg-head">'
+      +'<span class="tg-label">프로젝트</span><input class="tg-proj" value="'+esc(project)+'" placeholder="(비우면 기타)">'
+      +'<span class="tg-label">일괄 담당자</span><select class="tg-as"><option value="">선택 시 빈 담당자 채움</option>'+mwAsOpts('')+'</select>'
+      +'</div><div class="tg-rows">'+items.map(mwTodoRow).join('')+'</div>'
+      +'<button class="tg-add">+ 이 프로젝트에 항목 추가</button></div>';
+  }
+  function mwBindGroup(g){
+    g.querySelectorAll('.td-row').forEach(mwBindRow);
+    g.querySelector('.tg-add').onclick=function(){
+      var d=document.createElement('div'); d.innerHTML=mwTodoRow({}); var row=d.firstChild;
+      mwBindRow(row); g.querySelector('.tg-rows').appendChild(row);
+    };
+    g.querySelector('.tg-as').onchange=function(){
+      var v=this.value; if(!v) return;
+      g.querySelectorAll('.td-as').forEach(function(s){ if(!s.value) s.value=v; });
+      this.selectedIndex=0;
+    };
+  }
   function mwRenderTodos(items){
     var box=document.getElementById('mw-todos');
-    box.innerHTML=items.map(mwTodoRow).join('')
-      +'<div class="td-actions"><button id="mw-add" class="btn-sec">+ 항목 추가</button>'
+    var groups={}, order=[];
+    (items||[]).forEach(function(it){
+      var p=(it.project||'').trim();
+      if(!(p in groups)){ groups[p]=[]; order.push(p); }
+      groups[p].push(it);
+    });
+    if(!order.length) order.push('');
+    box.innerHTML=order.map(function(p){ return mwGroupBox(p, groups[p]||[{}]); }).join('')
+      +'<div class="td-actions"><button id="mw-addgrp" class="btn-sec">+ 새 프로젝트 그룹</button>'
       +'<button id="mw-commit">최종 승인 · 등록</button></div>';
-    box.querySelectorAll('.td-row').forEach(mwBindRow);
-    document.getElementById('mw-add').onclick=function(){
-      var d=document.createElement('div'); d.innerHTML=mwTodoRow({}); var row=d.firstChild;
-      mwBindRow(row); box.insertBefore(row, box.querySelector('.td-actions'));
+    box.querySelectorAll('.tg-box').forEach(mwBindGroup);
+    document.getElementById('mw-addgrp').onclick=function(){
+      var d=document.createElement('div'); d.innerHTML=mwGroupBox('', [{}]); var g=d.firstChild;
+      mwBindGroup(g); box.insertBefore(g, box.querySelector('.td-actions'));
     };
     document.getElementById('mw-commit').onclick=mwCommit;
   }
   function mwCommit(){
     var items=[], msg=document.getElementById('mw-msg');
-    document.querySelectorAll('#mw-todos .td-row').forEach(function(r){
-      var task=r.querySelector('.td-task').value.trim();
-      if(task) items.push({assignee:r.querySelector('.td-as').value, task:task,
-        project:r.querySelector('.td-proj').value.trim(),
-        deadline:r.querySelector('.td-dl').value, priority:r.querySelector('.td-pr').value});
+    document.querySelectorAll('#mw-todos .tg-box').forEach(function(g){
+      var proj=g.querySelector('.tg-proj').value.trim();
+      g.querySelectorAll('.td-row').forEach(function(r){
+        var task=r.querySelector('.td-task').value.trim();
+        if(task) items.push({assignee:r.querySelector('.td-as').value, task:task, project:proj,
+          deadline:r.querySelector('.td-dl').value, priority:r.querySelector('.td-pr').value});
+      });
     });
     if(!items.length){ msg.textContent='등록할 항목이 없습니다'; return; }
     if(items.some(function(i){return !i.assignee;})){ msg.textContent='모든 항목에 담당자를 지정하세요'; return; }
@@ -401,6 +428,32 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       .then(function(r){return r.json();}).then(function(d){
         if(d.added){ renderMyWork(); } else { msg.textContent=(d.errors&&d.errors.join(', '))||'등록 실패(주간분장 탭 확인)'; }
       }).catch(function(){ msg.textContent='서버 오류'; });
+  }
+  function mwAssignListHtml(A, withAssignee){
+    // 분장 완료 리스트 — 프로젝트 단위 그룹 + 완전 동일 행 표시 중복 제거(시트 무변경)
+    var seen={}, groups={}, order=[];
+    (A||[]).forEach(function(a){
+      var key=[(a.project||''),(a.task||''),(a.assignee||''),(a.deadline||''),(a.status||'')].join('|');
+      if(seen[key]) return; seen[key]=1;
+      var p=(a.project||'').trim()||'기타';
+      if(!(p in groups)){ groups[p]=[]; order.push(p); }
+      groups[p].push(a);
+    });
+    order.sort(function(a,b){ if(a==='기타') return 1; if(b==='기타') return -1; return a.localeCompare(b,'ko'); });
+    var h='';
+    order.forEach(function(p){
+      var items=groups[p];
+      h+='<div class="pg-head">📁 '+esc(p)+' <span class="pg-cnt">'+items.length+'건</span></div>';
+      items.forEach(function(a){
+        var st=a.status||'미착수';
+        var badge='<span class="lh-st '+(st==='완료'?'lh-done':(st==='진행중'?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
+        var urg=(a.priority==='긴급')?'<span class="mw-badge mw-urgent">긴급</span>':'';
+        var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
+        var who=withAssignee?esc(a.assignee||'미지정'):'';
+        h+='<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+'</div><div class="m">'+who+dl+'</div></div>';
+      });
+    });
+    return h;
   }
   function changePin(){
     var cur=prompt('현재 PIN을 입력하세요'); if(!cur) return;
