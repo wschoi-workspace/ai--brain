@@ -603,6 +603,60 @@ def is_leader(uid):
     return bool(lead_teams_of(uid))
 
 
+_PROJ_STOP = {"프로젝트", "행사", "팝업", "기획", "관련", "운영", "브랜드", "상세"}
+
+
+def _proj_tokens(s):
+    """프로젝트명 → 매칭용 토큰 집합 (영숫자·한글 단어, 일반어 제외)."""
+    toks = set()
+    for t in re.findall(r"[A-Za-z0-9]+|[가-힣]+", (s or "").lower()):
+        if len(t) >= 2 and t not in _PROJ_STOP:
+            toks.add(t)
+    return toks
+
+
+def _match_project(ap, pname):
+    """분장 프로젝트명(ap) vs 포트폴리오명(pname) — 표기 변형 허용 매칭.
+    ① 정규화 상호 포함 ② 유의 토큰 교집합 (영문 3자+/한글 2자+, 일반어 제외)."""
+    na = re.sub(r"[^a-z0-9가-힣]", "", (ap or "").lower())
+    nb = re.sub(r"[^a-z0-9가-힣]", "", (pname or "").lower())
+    if na and nb and (na in nb or nb in na):
+        return True
+    common = _proj_tokens(ap) & _proj_tokens(pname)
+    return any(len(t) >= 3 or re.fullmatch(r"[가-힣]{2,}", t) for t in common)
+
+
+def _project_assignments(pname):
+    """최근 2주 주간분장 중 프로젝트명이 매칭되는 항목 — 프로젝트 상세 '분장 업무' 섹션용.
+    (엄격한 '이번주' 필터는 주가 바뀌면 미완료 할일이 사라져 2주 윈도우 사용.)
+    완전 동일 행은 표시 중복 제거."""
+    pname = (pname or "").strip()
+    if not pname:
+        return []
+    today = datetime.date.today()
+    ws = today - datetime.timedelta(days=today.weekday() + 7)  # 지난주 월요일부터
+    we = today
+    out, seen = [], set()
+    for a in _assign_read():
+        ds = (a.get("date") or "").strip()[:10]
+        try:
+            d = datetime.date.fromisoformat(ds)
+        except ValueError:
+            continue
+        if not (ws <= d <= we):
+            continue
+        ap = (a.get("project") or "").strip()
+        if not ap or not _match_project(ap, pname):
+            continue
+        key = (ap, a.get("task"), a.get("assignee"), a.get("deadline"), a.get("status"))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(a)
+    out.sort(key=lambda a: (a.get("status") == "완료", a.get("deadline") or "9999"))
+    return out
+
+
 # ── 계정별 브리프 뷰 (/my-brief 직원 · /lead-brief 겸임리더) — 브리프 JSON 서버렌더 ──
 _DBA = None
 
@@ -1179,7 +1233,8 @@ class H(BaseHTTPRequestHandler):
             p = get_project(pid)
             if not p: return self._send(404, {"ok": False, "error": "not found"})
             if not can_view(uid, p): return self._send(403, {"ok": False, "error": "forbidden"})
-            return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p)})
+            return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
+                                    "assignments": _project_assignments(p.get("name") or "")})
         return self._send(404, {"ok": False, "error": "not found"})
 
     def do_POST(self):

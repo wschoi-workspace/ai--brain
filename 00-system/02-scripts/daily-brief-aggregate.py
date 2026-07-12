@@ -509,6 +509,8 @@ def build_team_brief_data(target: str, team: str, day: dict,
         "counts": counts,
         "unmatched": [],  # 팀 brief는 팀 필터라 매칭된 직원만 — 미매칭 경고 불필요
         "people": _people_summary(tday, assignments),
+        "assignments": [a for a in (assignments or [])
+                        if a.get("team") == team or team_of(a.get("assignee", "")) == team],
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
@@ -655,8 +657,9 @@ def _vz_asg_row(a: dict) -> str:
             f'<span class="vz-src">{_esc(a.get("assignee", ""))}</span>{dls}</div>')
 
 
-def _view_zone(data: dict) -> str:
-    """대표 브리프 최상단 — [프로젝트 단위 | 팀별 단위] 전환 뷰.
+def _view_zone(data: dict, single: bool = False) -> str:
+    """브리프 최상단 우선 파악존 — 대표: [프로젝트 단위 | 팀별 단위] 전환,
+    팀 브리프(single=True): 프로젝트 단위만(토글 없음).
     진행상황·할일을 의사결정→결재·승인→비용→리스크→보고 순으로 우선 노출."""
     items = data.get("items") or []
     assignments = data.get("assignments") or []
@@ -693,6 +696,12 @@ def _view_zone(data: dict) -> str:
         if rows or asg:
             pblocks.append(f'<div class="vz-block"><div class="vz-head">📁 {_esc(p)}</div>{rows}{asg}</div>')
     pview = "".join(pblocks) or '<div class="muted">오늘 항목이 없습니다.</div>'
+
+    if single:  # 팀 브리프 — 프로젝트 단위 뷰만 (토글·스크립트 없음)
+        return (f'<div class="view-zone">{headline}'
+                f'<div class="vz-tabs"><span class="vz-tab on" style="cursor:default">프로젝트 단위 · 진행상황과 할 일</span>'
+                f'<span class="vz-note">우선순위: 의사결정 → 결재·승인 → 비용 → 리스크 → 보고</span></div>'
+                f'{pview}</div>')
 
     # ── 팀별 단위 (컴팩트: headline + 우선 항목 + 미보고 경고) ──
     tblocks = []
@@ -841,8 +850,9 @@ def render_brief_html(data: dict) -> str:
     if data["unmatched"]:
         unmatched = f'<div class="warn">⚠️ 명부 미매칭: {_esc(", ".join(data["unmatched"]))}</div>'
 
-    # 최상단 우선 파악존 (대표 브리프 전용) — headline·결정 카드를 포함하므로 기존 요약존 대체
-    view_zone = "" if is_team else _view_zone(data)
+    # 최상단 우선 파악존 — 대표=프로젝트/팀 토글, 팀 브리프=프로젝트 단위 단일 뷰.
+    # headline·결정 카드를 포함하므로 기존 요약존 대체
+    view_zone = _view_zone(data, single=is_team)
     if view_zone:
         summary_zone = ""
 

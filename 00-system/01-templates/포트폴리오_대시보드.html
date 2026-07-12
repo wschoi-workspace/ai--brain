@@ -422,6 +422,14 @@ body.readonly .topbar .ver{color:var(--rust)}
       <button class="btn add-task" onclick="addIssue()">+ 이슈 추가</button>
     </div>
 
+    <!-- 이번주 분장 (주간분장 시트 자동 연동 — 읽기 전용) -->
+    <div class="section-h" onclick="toggleSec(this)">
+      <span class="num">09 · 자동</span><span class="t">분장 업무 (최근 2주 · 주간분장 연동)</span><span class="chev">▾</span>
+    </div>
+    <div class="fields" id="assign-sec">
+      <div id="assign-body" style="font-size:12px">서버 모드에서 주간분장과 자동 연동됩니다.</div>
+    </div>
+
     <!-- INPUT BURDEN METER -->
     <div class="burden">
       <h3>⊕ 입력 부담 지표 — 1차 검증 대상</h3>
@@ -600,6 +608,20 @@ function issueRow(it,i){
     <td><select onchange="upIssue(${i},'division',this.value)">${divopts(it.division)}</select></td>
     <td><select onchange="upIssue(${i},'status',this.value)">${opts(it.status)}</select></td>
     <td class="del" onclick="delIssue(${i})">×</td></tr>`;
+}
+function renderAssignSec(){
+  const el=document.getElementById('assign-body'); if(!el) return;
+  const A=window.CURRENT_ASSIGN||[];
+  if(!A.length){ el.innerHTML='<span style="opacity:.55">이번주 분장 항목이 없습니다. (리더·대표가 "내 업무/팀 홈 > 업무 분장"에서 등록하면 자동 표시)</span>'; return; }
+  el.innerHTML=A.map(a=>{
+    const st=a.status||'미착수';
+    const col=st==='완료'?'opacity:.5':(st==='진행중'?'color:#D9A34B;border-color:#D9A34B':'color:#E17055;border-color:#E17055');
+    const done=st==='완료'?'text-decoration:line-through;opacity:.6':'';
+    return `<div style="display:flex;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px solid rgba(128,128,128,.2)">
+      <span style="font-size:10px;border:1px solid;border-radius:4px;padding:0 6px;white-space:nowrap;${col}">${esc(st)}</span>
+      <span style="flex:1;${done}">${esc(a.task||'')}</span>
+      <span style="font-size:11px;opacity:.65;white-space:nowrap">${esc(a.assignee||'')}${a.deadline?(' · ~'+esc(a.deadline)):''}${a.priority==='긴급'?' · 🔴긴급':''}</span></div>`;
+  }).join('');
 }
 function renderIssues(){ $('#issue-body').innerHTML=state.issues.map((it,i)=>issueRow(it,i)).join(''); }
 function addIssue(){ state.issues.push({issue:'',division:'Planning',status:'Open'}); renderIssues(); render(); }
@@ -1144,16 +1166,16 @@ async function openProject(id){
   let p,canEdit;
   if(SERVED){
     const r=await apiGet('/project?id='+encodeURIComponent(id)+'&user='+encodeURIComponent(CURRENT_USER));
-    if(!r.ok){ alert(r.error||'열기 실패'); return; } p=r.project; canEdit=!!r.canEdit;
+    if(!r.ok){ alert(r.error||'열기 실패'); return; } p=r.project; canEdit=!!r.canEdit; window.CURRENT_ASSIGN=r.assignments||[];
   } else {
     p=PROJECTS_CACHE.find(x=>x.id===id)||allProjects().find(x=>x.id===id);
-    if(!p){ alert('프로젝트를 찾을 수 없습니다.'); return; } canEdit=amAdmin()||p.pm===CURRENT_USER;
+    if(!p){ alert('프로젝트를 찾을 수 없습니다.'); return; } canEdit=amAdmin()||p.pm===CURRENT_USER; window.CURRENT_ASSIGN=[];
   }
   CURRENT_PROJECT=p; CURRENT_CAN_EDIT=canEdit;
   state={brief:Object.assign({},p.brief), tasks:JSON.parse(JSON.stringify(p.tasks||[])), issues:JSON.parse(JSON.stringify(p.issues||[]))};
   window.__ganttExp=new Set();
   const ver=document.querySelector('.topbar .ver'); if(ver) ver.textContent=(p.name||'')+(canEdit?' · 수정 가능':' · 읽기 전용');
-  setView('view-detail'); afterLoad();
+  setView('view-detail'); afterLoad(); renderAssignSec();
 }
 async function saveCurrentProject(){
   if(!CURRENT_PROJECT){ alert('열린 프로젝트가 없습니다.'); return; }
