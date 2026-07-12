@@ -484,6 +484,7 @@ def build_brief_data(target: str, day: dict | None = None,
         "unmatched": unmatched,
         "people": people,
         "teams": teams,
+        "assignments": assignments or [],
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
@@ -611,6 +612,124 @@ def _person_card(p: dict) -> str:
     </div>'''
 
 
+# ─── 최상단 우선 파악존 (대표 브리프) — 프로젝트/팀 전환 뷰 ───
+_PAY_KW = ("승인", "결재", "송금", "결제", "계약")
+_COST_KW = ("비용", "지출", "예산", "견적", "단가", "금액", "발주")
+
+
+def _prio_rank(it: dict) -> int:
+    """의사결정(0) > 결재·승인(1) > 비용(2) > 리스크(3) > 개입(4) > 보고·기타(5)"""
+    txt = f'{it.get("title", "")} {it.get("detail", "")}'
+    if it.get("category") == "decision":
+        return 0
+    if any(k in txt for k in _PAY_KW):
+        return 1
+    if any(k in txt for k in _COST_KW):
+        return 2
+    if it.get("category") == "risk":
+        return 3
+    if it.get("category") == "intervention":
+        return 4
+    return 5
+
+
+def _norm_proj(p) -> str:
+    p = (str(p or "")).strip()
+    return "" if p.lower() in ("", "null", "none") else p
+
+
+def _vz_item_row(it: dict) -> str:
+    lab, col = CAT_META.get(it.get("category"), ("기타", "var(--muted)"))
+    return (f'<div class="vz-item"><span style="color:{col};flex-shrink:0">●</span>'
+            f'{_urg_badge(it.get("urgency", "low"))}<span class="vz-t">{_esc(it.get("title", ""))}</span>'
+            f'<span class="vz-src">{_esc(it.get("source_employee") or "")}</span></div>')
+
+
+def _vz_asg_row(a: dict) -> str:
+    st = a.get("status") or "미착수"
+    cls = {"완료": "as-done", "진행중": "as-doing"}.get(st, "as-todo")
+    dl = a.get("deadline") or ""
+    dls = f' <span class="as-dl">~{_esc(dl[5:] if len(dl) >= 10 else dl)}</span>' if dl else ""
+    return (f'<div class="as-item"><span class="as-st {cls}">{_esc(st)}</span>'
+            f'<span class="as-task">{_esc(a.get("task", ""))}</span>'
+            f'<span class="vz-src">{_esc(a.get("assignee", ""))}</span>{dls}</div>')
+
+
+def _view_zone(data: dict) -> str:
+    """대표 브리프 최상단 — [프로젝트 단위 | 팀별 단위] 전환 뷰.
+    진행상황·할일을 의사결정→결재·승인→비용→리스크→보고 순으로 우선 노출."""
+    items = data.get("items") or []
+    assignments = data.get("assignments") or []
+    teams = data.get("teams") or []
+    if not (items or assignments or teams):
+        return ""
+    headline = f'<div class="sz-hl">{_esc(data["headline"])}</div>' if data.get("headline") else ""
+
+    # ── 프로젝트 단위 ──
+    proj: dict = {}
+    for it in items:
+        p = _norm_proj(it.get("project")) or "프로젝트 미지정"
+        proj.setdefault(p, {"items": [], "asg": []})["items"].append(it)
+    _seen = set()
+    for a in assignments:
+        key = (a.get("project"), a.get("task"), a.get("assignee"), a.get("deadline"), a.get("status"))
+        if key in _seen:  # 이중 등록 표시 중복 제거 (시트 무변경)
+            continue
+        _seen.add(key)
+        p = _norm_proj(a.get("project")) or "프로젝트 미지정"
+        proj.setdefault(p, {"items": [], "asg": []})["asg"].append(a)
+
+    def _proj_rank(p):
+        best = min((_prio_rank(i) for i in proj[p]["items"]), default=6)
+        return (best, 1 if p == "프로젝트 미지정" else 0, p)
+
+    pblocks = []
+    for p in sorted(proj, key=_proj_rank):
+        g = proj[p]
+        rows = "".join(_vz_item_row(i) for i in sorted(g["items"], key=_prio_rank))
+        asg = "".join(_vz_asg_row(a) for a in g["asg"])
+        if asg:
+            asg = f'<div class="vz-sub">할 일 · 이번주 분장</div>{asg}'
+        if rows or asg:
+            pblocks.append(f'<div class="vz-block"><div class="vz-head">📁 {_esc(p)}</div>{rows}{asg}</div>')
+    pview = "".join(pblocks) or '<div class="muted">오늘 항목이 없습니다.</div>'
+
+    # ── 팀별 단위 (컴팩트: headline + 우선 항목 + 미보고 경고) ──
+    tblocks = []
+    for tb in teams:
+        rows = "".join(_vz_item_row(i) for i in sorted(tb.get("top") or [], key=_prio_rank))
+        hl = f'<div class="tb-hl">{_esc(tb["headline"])}</div>' if tb.get("headline") else ""
+        unrep = ""
+        if tb.get("unreported"):
+            u = " · ".join(f'{_esc(x["name"])} {x["count"]}건' for x in tb["unreported"])
+            unrep = f'<div class="tb-unrep">📋 분장 등록·보고 없음: {u}</div>'
+        tblocks.append(f'<div class="vz-block"><div class="vz-head">👥 {_esc(tb["team"])}'
+                       f'<span class="cnt">보고 {tb.get("active_people", 0)}명</span></div>{hl}{rows}{unrep}</div>')
+    tview = "".join(tblocks) or '<div class="muted">팀 데이터가 없습니다.</div>'
+
+    return f'''<div class="view-zone">
+{headline}
+<div class="vz-tabs"><button class="vz-tab on" data-v="proj">프로젝트 단위</button><button class="vz-tab" data-v="team">팀별 단위</button>
+<span class="vz-note">우선순위: 의사결정 → 결재·승인 → 비용 → 리스크 → 보고</span></div>
+<div id="vz-proj" class="vz-view on">{pview}</div>
+<div id="vz-team" class="vz-view">{tview}</div>
+</div>
+<script>
+(function(){{
+  var tabs=document.querySelectorAll('.vz-tab');
+  function show(v){{
+    tabs.forEach(function(b){{ b.classList.toggle('on', b.getAttribute('data-v')===v); }});
+    document.getElementById('vz-proj').classList.toggle('on', v==='proj');
+    document.getElementById('vz-team').classList.toggle('on', v==='team');
+    try{{ localStorage.setItem('vz_view', v); }}catch(e){{}}
+  }}
+  tabs.forEach(function(b){{ b.onclick=function(){{ show(b.getAttribute('data-v')); }}; }});
+  var saved=null; try{{ saved=localStorage.getItem('vz_view'); }}catch(e){{}}
+  if(saved==='team') show('team');
+}})();
+</script>'''
+
+
 def _people_section(data: dict) -> str:
     """브리프 하단 — 대표는 '팀별 오늘 브리프'(팀 headline+핵심+개인카드 병합),
     팀 브리프는 '개인별 업무 써머리'(카드 나열)."""
@@ -722,6 +841,11 @@ def render_brief_html(data: dict) -> str:
     if data["unmatched"]:
         unmatched = f'<div class="warn">⚠️ 명부 미매칭: {_esc(", ".join(data["unmatched"]))}</div>'
 
+    # 최상단 우선 파악존 (대표 브리프 전용) — headline·결정 카드를 포함하므로 기존 요약존 대체
+    view_zone = "" if is_team else _view_zone(data)
+    if view_zone:
+        summary_zone = ""
+
     return f'''<!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{_esc(TITLE)}</title>
@@ -796,6 +920,20 @@ h2.sec .cnt{{margin-left:auto;color:var(--muted);font-size:12px;font-weight:400}
 .tb-block .pp-grid{{margin-bottom:0}}
 .tb-block .card{{background:var(--bg-3)}}
 .tb-unrep{{font-size:12px;color:var(--amber);margin-top:12px;border-top:1px solid var(--line);padding-top:8px}}
+.view-zone{{background:var(--bg-3);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:18px 20px;margin:18px 0 24px}}
+.vz-tabs{{display:flex;gap:8px;align-items:center;margin:4px 0 14px;flex-wrap:wrap}}
+.vz-tab{{background:var(--bg-2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}}
+.vz-tab.on{{background:var(--accent);color:#fff;border-color:var(--accent)}}
+.vz-note{{font-size:11px;color:var(--muted);margin-left:auto}}
+.vz-view{{display:none}}
+.vz-view.on{{display:block}}
+.vz-block{{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;margin-bottom:10px}}
+.vz-head{{font-size:14px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}}
+.vz-head .cnt{{margin-left:auto;color:var(--muted);font-size:12px;font-weight:400}}
+.vz-item{{display:flex;align-items:baseline;gap:8px;font-size:13px;line-height:1.55;margin-bottom:5px}}
+.vz-t{{flex:1;min-width:0}}
+.vz-src{{font-size:11px;color:var(--muted);white-space:nowrap}}
+.vz-sub{{font-size:11px;font-weight:600;color:var(--accent);margin:9px 0 5px;border-top:1px solid var(--line);padding-top:8px}}
 footer{{margin-top:44px;color:var(--muted);font-size:11px;text-align:center;border-top:1px solid var(--line);padding-top:16px}}
 #login-gate{{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}}
 #login-box{{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:38px 40px;width:330px;text-align:center}}
@@ -820,6 +958,7 @@ footer{{margin-top:44px;color:var(--muted);font-size:11px;text-align:center;bord
 <div id="content" style="display:none"><div class="wrap">
 <header><h1>{H1}</h1><div class="sub">{_esc(data["date"])} ({_esc(data["weekday"])}) · 생성 {_esc(data["generated_at"])}</div></header>
 {unmatched}
+{view_zone}
 {summary_zone}
 <div class="statbar">
   <div class="stat"><b>{cnt["decision"]}</b><small>결정</small></div>
