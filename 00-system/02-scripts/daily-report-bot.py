@@ -1085,6 +1085,13 @@ async def finalize_and_send(
     completion_answers: str = "",
 ) -> int:
     """Engine C 실행 → 최종 채점(Reporting OS) → 직원 회신(거울) + 관리자 전송 + 시트 저장."""
+    # 핫픽스(2026-07-12): 보고 날짜 = 제출일. PicklePersistence로 부활한 과거 세션(/report 없이
+    # 이어짐)이 시작일 날짜로 저장되면 브리프 집계(직전 영업일 소스)에서 영구 누락된다.
+    today = datetime.now().strftime("%Y-%m-%d")
+    if report.get("date") != today:
+        logger.info(f"stale-session date fix: {report.get('date')} → {today} ({report.get('name','?')})")
+        report["date"] = today
+
     # 블로킹 호출(LLM·subprocess·urllib)은 to_thread로 오프로딩해 이벤트루프 정지를 막는다.
     await asyncio.to_thread(structure_report, report, completion_answers)
 
