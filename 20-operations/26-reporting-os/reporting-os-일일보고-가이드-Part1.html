@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Rent — 일일업무보고 가이드 Part 1</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --warm: #E9DCC8; --rust: #B86C4A; --green: #8FA37E;
+  --blue: #6F8AA3; --amber: #D9A34B; --coral: #E17055;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+  background: var(--bg); color: var(--fg-2);
+  font-size: 16px; font-weight: 300; line-height: 1.7; letter-spacing: -0.01em;
+}
+.slide {
+  width: 100%; min-height: 100vh; padding: 80px 120px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; border-bottom: 1px solid var(--line-2);
+}
+.slide-cover { background: var(--bg-2); text-align: center; padding: 120px 80px; }
+.slide-dark { background: var(--bg-2); }
+.slide-head { margin-bottom: 40px; }
+.eyebrow { font-size: 12px; letter-spacing: 0.3em; color: var(--fg-3); text-transform: uppercase; margin-bottom: 16px; font-weight: 400; }
+h1 { font-size: 64px; font-weight: 200; line-height: 1.05; letter-spacing: -0.04em; color: var(--fg); margin-bottom: 24px; }
+h2 { font-size: 44px; font-weight: 500; line-height: 1.15; letter-spacing: -0.025em; color: var(--fg); margin-bottom: 16px; }
+h3 { font-size: 30px; font-weight: 300; line-height: 1.25; letter-spacing: -0.02em; color: var(--fg); margin-bottom: 14px; }
+h4 { font-size: 20px; font-weight: 500; line-height: 1.3; color: var(--fg); margin-bottom: 10px; }
+p { margin-bottom: 12px; }
+.sub-copy { font-size: 18px; color: var(--fg-3); font-weight: 300; line-height: 1.6; margin-top: 8px; }
+.text-hero { font-size: 30px; line-height: 1.5; font-weight: 300; color: var(--fg); }
+.text-large { font-size: 20px; line-height: 1.65; font-weight: 300; color: var(--fg-2); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.card { background: var(--bg-3); border: 1px solid var(--line-2); border-radius: 8px; padding: 32px; }
+.card-accent { border-left: 3px solid var(--accent); }
+.card-green { border-left: 3px solid var(--green); }
+.card-coral { border-left: 3px solid var(--coral); }
+.card-amber { border-left: 3px solid var(--amber); }
+.card-blue { border-left: 3px solid var(--blue); }
+.divider { width: 48px; height: 2px; background: var(--accent); margin: 28px 0; }
+.divider-center { margin: 28px auto; }
+table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--line-2); font-size: 15px; font-weight: 300; vertical-align: top; }
+th { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--fg-3); font-weight: 400; border-bottom: 1px solid var(--line); }
+td { color: var(--fg-2); }
+td strong, li strong, p strong { color: var(--fg); font-weight: 500; }
+blockquote {
+  border-left: 3px solid var(--accent); padding: 22px 30px; background: var(--bg-3);
+  border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 22px; line-height: 1.7; color: var(--fg); font-weight: 300;
+}
+.compare-good { border-left: 3px solid var(--green); padding: 18px 22px; background: rgba(143,163,126,0.05); border-radius: 0 8px 8px 0; margin-bottom: 14px; }
+.compare-bad { border-left: 3px solid var(--coral); padding: 18px 22px; background: rgba(225,112,85,0.05); border-radius: 0 8px 8px 0; margin-bottom: 14px; }
+.compare-label { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; font-weight: 400; }
+.compare-bad .compare-label { color: var(--coral); }
+.compare-good .compare-label { color: var(--green); }
+.tag { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 12px; letter-spacing: 0.1em; margin-right: 8px; margin-bottom: 6px; }
+.tag-accent { background: rgba(108,92,231,0.15); color: var(--accent-light); }
+.tag-green { background: rgba(143,163,126,0.15); color: var(--green); }
+.tag-coral { background: rgba(225,112,85,0.15); color: var(--coral); }
+.tag-amber { background: rgba(217,163,75,0.15); color: var(--amber); }
+.item-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: rgba(108,92,231,0.2); color: var(--accent-light); font-size: 15px; font-weight: 600; margin-right: 12px; flex-shrink: 0; }
+.formula-box { background: var(--bg-3); border: 1px solid var(--accent); border-radius: 8px; padding: 20px 28px; margin: 16px 0; text-align: center; }
+.formula-box p { font-size: 22px; color: var(--accent-light); font-weight: 400; margin: 0; letter-spacing: 0.02em; }
+.stat-big { font-size: 56px; font-weight: 200; color: var(--fg); letter-spacing: -0.04em; line-height: 1; }
+.stat-label { font-size: 12px; color: var(--fg-3); margin-top: 10px; letter-spacing: 0.05em; }
+.stat-bad { color: var(--coral); }
+.checklist { list-style: none; }
+.checklist li { padding: 13px 0; border-bottom: 1px solid var(--line-2); font-size: 18px; color: var(--fg); display: flex; align-items: flex-start; gap: 14px; line-height: 1.5; }
+.checklist li::before { content: ''; width: 18px; height: 18px; border: 1.5px solid var(--fg-3); border-radius: 4px; flex-shrink: 0; margin-top: 3px; }
+.roadmap-week { background: var(--bg-3); border: 1px solid var(--line-2); border-radius: 8px; padding: 24px 28px; margin-bottom: 16px; }
+.roadmap-week h4 { margin-bottom: 12px; }
+.roadmap-tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; margin-right: 6px; }
+.roadmap-tag-1 { background: rgba(108,92,231,0.2); color: var(--accent-light); }
+.roadmap-tag-2 { background: rgba(217,163,75,0.2); color: var(--amber); }
+.roadmap-tag-3 { background: rgba(143,163,126,0.2); color: var(--green); }
+.selfcheck { list-style: none; counter-reset: sc; }
+.selfcheck li { padding: 14px 0; border-bottom: 1px solid var(--line-2); font-size: 19px; color: var(--fg); display: flex; align-items: center; gap: 16px; line-height: 1.5; }
+.selfcheck li::before { counter-increment: sc; content: counter(sc); display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(108,92,231,0.2); color: var(--accent-light); font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.yn-box { display: inline-block; width: 20px; height: 20px; border: 1.5px solid var(--fg-3); border-radius: 3px; margin-left: auto; flex-shrink: 0; }
+.slide-footer { position: absolute; bottom: 28px; left: 120px; right: 120px; display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.15em; color: var(--fg-3); text-transform: uppercase; }
+.nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 48px; background: var(--bg-2); border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: center; gap: 16px; z-index: 100; }
+.nav-bar button { background: none; border: 1px solid var(--line); color: var(--fg-3); padding: 6px 16px; border-radius: 4px; font-family: inherit; font-size: 12px; cursor: pointer; }
+.nav-bar button:hover { border-color: var(--fg-3); color: var(--fg-2); }
+.nav-counter { font-size: 12px; color: var(--fg-3); letter-spacing: 0.1em; min-width: 64px; text-align: center; }
+@media print { .nav-bar { display: none; } .slide { page-break-after: always; border-bottom: none; } }
+</style>
+</head>
+<body>
+
+<!-- 1. 커버 -->
+<div class="slide slide-cover">
+  <div class="eyebrow">Project Rent · 일일업무보고 교육</div>
+  <h1>매일 5분,<br>보고가 달라집니다</h1>
+  <p class="text-hero"><span style="color:var(--accent-light)">8가지 항목</span>만 채우면<br>되묻기가 사라지고, 퇴근이 빨라집니다.</p>
+  <div class="divider divider-center"></div>
+  <p class="sub-copy">일일보고 교육 가이드 · Part 1 · 2026. 07 · by Project Rent</p>
+  <div class="slide-footer"><span>Part 1 · 일일업무보고 교육 가이드</span><span>01 / 08</span></div>
+</div>
+
+<!-- 2. 글로 정리하는 힘 — 왜 구체적으로 말하는 능력이 핵심인가 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">01 · Why It Matters</div>
+    <h2>구체적으로 말할 수 있는 사람이<br>일을 잘하는 사람입니다</h2>
+  </div>
+  <div class="grid-3">
+    <div class="card card-accent">
+      <h4>앤디 그로브 <span style="font-weight:300; color:var(--fg-3);">인텔 CEO · High Output Management</span></h4>
+      <blockquote style="font-size:17px; padding:16px 20px; margin:12px 0;">"Reports are more a medium of self-discipline than a way to communicate information. Writing the report is important; reading it often is not."</blockquote>
+      <p style="color:var(--fg-3); font-size:14px; margin-top:8px;">보고서는 그 자체가 중요한 게 아니라, <strong style="color:var(--fg)">작성하는 과정에서 사고가 정리되기 때문에</strong> 중요하다.</p>
+      <p style="color:var(--fg-3); font-size:12px; margin-top:8px;">→ 보고 = 남을 위한 의무가 아니라, 내 사고를 정리하는 도구</p>
+    </div>
+    <div class="card card-green">
+      <h4>제프 베조스 <span style="font-weight:300; color:var(--fg-3);">Amazon · 6-Page Memo 문화</span></h4>
+      <blockquote style="font-size:17px; padding:16px 20px; margin:12px 0;">"PowerPoint is easy for the author but hard for the audience. You can't hide behind bullet points."</blockquote>
+      <p style="color:var(--fg-3); font-size:14px; margin-top:8px;">아마존은 모든 회의를 <strong style="color:var(--fg)">6페이지 서술형 메모</strong>로 시작합니다. 글쓰기 = 사고력 테스트.</p>
+      <p style="color:var(--fg-3); font-size:12px; margin-top:8px;">→ 글로 정리할 수 없으면, 아직 이해하지 못한 것</p>
+    </div>
+    <div class="card card-amber">
+      <h4>바바라 민토 <span style="font-weight:300; color:var(--fg-3);">McKinsey · The Pyramid Principle</span></h4>
+      <blockquote style="font-size:17px; padding:16px 20px; margin:12px 0;">"결론부터, 근거는 MECE로, 한 문장에 하나의 메시지."</blockquote>
+      <p style="color:var(--fg-3); font-size:14px; margin-top:8px;">맥킨지 신입의 첫 훈련 = <strong style="color:var(--fg)">구조화된 커뮤니케이션</strong>. 모든 직종의 기본기.</p>
+      <p style="color:var(--fg-3); font-size:12px; margin-top:8px;">→ 구조화된 보고 능력은 컨설턴트의 핵심 무기</p>
+    </div>
+  </div>
+  <blockquote style="margin-top:24px;">이 세 사람의 공통점: 보고를 '양식 채우기'가 아니라 <strong>'사고력의 증거'</strong>로 본다는 것.</blockquote>
+  <div class="slide-footer"><span>Part 1 · 일일업무보고 교육 가이드</span><span>02 / 08</span></div>
+</div>
+
+<!-- 3. 보고는 시키는 게 아니라, 성장 도구 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">02 · Growth Tool</div>
+    <h2>보고는 시키는 것이 아닙니다.<br>성장 도구입니다.</h2>
+  </div>
+  <div class="grid-2">
+    <div>
+      <h3 style="margin-bottom:20px;">피터 드러커의 질문</h3>
+      <blockquote style="font-size:18px; padding:18px 24px; margin-bottom:16px;">"지식근로자의 생산성은 '무엇이 기대되는 성과인가'를 스스로 정의할 때 시작된다."<br><span style="font-size:14px; color:var(--fg-3);">— Peter Drucker, Management Challenges for the 21st Century</span></blockquote>
+      <p class="text-large" style="margin-bottom:12px;">보고를 쓴다 = <strong>"내가 오늘 무엇을 해냈는가"를 스스로 정의하는 행위</strong></p>
+      <p class="text-large">이것이 반복되면 → 일의 방향을 스스로 잡는 사람이 됩니다.</p>
+    </div>
+    <div>
+      <div class="card card-accent" style="margin-bottom:20px;">
+        <h4>쓰는 순간, 사고가 바뀐다</h4>
+        <p class="text-large" style="margin-bottom:8px;">"뭐 했지?" → "뭐가 나왔지?" → "그래서 뭐가 달라졌지?"</p>
+        <p style="color:var(--fg-3); font-size:14px;">이 3단계를 매일 반복하면, 일하는 방식 자체가 구조화됩니다.</p>
+      </div>
+      <div class="card card-green">
+        <h4>커리어 전체에 쓰이는 능력</h4>
+        <p class="text-large" style="margin-bottom:8px;">보고 → 기획서 → 제안서 → 이메일 → 면접</p>
+        <p style="color:var(--fg-3); font-size:14px;">구조화된 커뮤니케이션은 직급이 올라갈수록 더 중요해집니다.</p>
+      </div>
+    </div>
+  </div>
+  <blockquote style="margin-top:24px;">보고를 '숙제'로 보면 괴롭습니다. <strong>'내 생각을 정리하는 5분'</strong>으로 보면, 매일 조금씩 더 잘하는 사람이 됩니다.</blockquote>
+  <div class="slide-footer"><span>Part 1 · 일일업무보고 교육 가이드</span><span>03 / 08</span></div>
+</div>
+
+<!-- 4. 왜 해야 하는가 — 주니어 관점 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">03 · 솔직한 이야기</div>
+    <h2>보고 때문에 퇴근이 늦어진 적 있나요?</h2>
+  </div>
+  <p class="text-large" style="margin-bottom:28px;">보고를 열심히 썼는데 이런 경험, 한 번쯤 있을 겁니다.</p>
+  <div class="grid-3">
+    <div class="card card-coral">
+      <h4>"그래서 뭐가 필요한 거야?"</h4>
+      <p>보고를 올렸는데 되묻기가 3~4번 오고, 그걸 답하느라 퇴근이 30분 늦어집니다.</p>
+      <p style="color:var(--fg-3); font-size:12px; margin-top:8px;">문제: 요청사항 없는 보고</p>
+    </div>
+    <div class="card card-coral">
+      <h4>"다시 써와"</h4>
+      <p>나름 정리했는데 구조가 맞지 않아서 처음부터 재작성. 같은 일을 두 번 합니다.</p>
+      <p style="color:var(--fg-3); font-size:12px; margin-top:8px;">문제: 항목 누락</p>
+    </div>
+    <div class="card card-coral">
+      <h4>"이건 의견이야, 사실이야?"</h4>
+      <p>한 문장에 사실과 추측이 섞여 있으면, 읽는 사람이 판단할 수가 없습니다.</p>
+      <p style="color:var(--fg-3); font-size:12px; margin-top:8px;">문제: 근거 구분 부재</p>
+    </div>
+  </div>
+  <blockquote style="margin-top:24px;">이 모든 문제는 <strong>성실성이 아니라 구조</strong>의 문제입니다.<br>구조를 알면, 같은 5분으로 되묻기 없는 보고를 쓸 수 있습니다.</blockquote>
+  <div class="slide-footer"><span>Part 1 · 일일업무보고 교육 가이드</span><span>04 / 08</span></div>
+</div>
+
+<!-- 3. 보고가 중요한 진짜 이유 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">04 · 보고의 본질</div>
+    <h2>보고가 중요한 진짜 이유</h2>
+    <p class="sub-copy">양식을 채우는 것이 아니라, <strong style="color:var(--fg)">내 일을 구조화해서 전달하는 훈련</strong>입니다.</p>
+  </div>
+  <div class="grid-2">
+    <div>
+      <h3 style="margin-bottom:20px;">"일 잘하는 사람"이란?</h3>
+      <p class="text-large" style="margin-bottom:16px;">실력만으로는 부족합니다.<br><strong>그 실력을 보여줄 수 있는 능력</strong>이 있어야 합니다.</p>
+      <p class="text-large" style="margin-bottom:16px;">머릿속에만 있는 성과는<br>존재하지 않는 것과 같습니다.</p>
+      <p class="text-large">보고는 단순한 양식이 아니라,<br><strong>자기 일을 명확하게 설명하는 훈련</strong>입니다.</p>
+    </div>
+    <div>
+      <div class="card card-accent" style="margin-bottom:20px;">
+        <h4>실력 × 전달력 = 인정</h4>
+        <p>실력이 100이어도 전달력이 0이면, 조직에서 보이는 성과는 0입니다.</p>
+        <p style="color:var(--fg-3); font-size:12px; margin-top:8px;">보고는 전달력을 매일 훈련하는 가장 확실한 방법입니다.</p>
+      </div>
+      <div class="card card-green">
+        <h4>보고 = 사고의 거울</h4>
+        <p>보고를 쓰다 보면 "내가 오늘 정말 뭘 한 거지?"라는 질문을 스스로 하게 됩니다. 그 질문이 일을 더 잘하게 만듭니다.</p>
+      </div>
+    </div>
+  </div>
+  <blockquote style="margin-top:24px;">보고를 잘 쓴다는 것은, <strong>자기 일을 잘 이해하고 있다는 뜻</strong>입니다.</blockquote>
+  <div class="slide-footer"><span>Part 1 · 일일업무보고 교육 가이드</span><span>05 / 08</span></div>
+</div>
+
+<!-- 4. 보고가 키우는 4가지 핵심 역량 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">05 · 4 Core Competencies</div>
+    <h2>보고가 키우는 4가지 핵심 역량</h2>
+    <p class="sub-copy">보고 양식을 채우는 것 자체가, 이 4가지 능력을 <strong style="color:var(--fg)">매일 훈련하는 것</strong>입니다.</p>
+  </div>
+  <div class="grid-2">
+    <div class="card card-accent">
+      <h4 style="margin-bottom:12px;">🎯 구체화 <span style="font-weight:300; color:var(--fg-3);">Specificity</span></h4>
+      <div class="compare-bad" style="margin-bottom:8px;"><div class="compare-label">모호한 보고</div><p>"리서치 진행함"</p></div>
+      <div class="compare-good"><div class="compare-label">구체적 보고</div><p>"업체 3곳 단가 비교표 1건"</p></div>
+      <p style="color:var(--fg-3); font-size:13px; margin-top:12px;">모호한 것을 정확하게 만드는 능력.<br>보고뿐 아니라 기획·협업·실행 전체에 필요합니다.</p>
+    </div>
+    <div class="card card-green">
+      <h4 style="margin-bottom:12px;">🧭 목적성 <span style="font-weight:300; color:var(--fg-3);">Purposefulness</span></h4>
+      <p class="text-large" style="margin-bottom:8px;">"왜 이 일을 했는가"를<br>항상 붙이는 습관</p>
+      <p style="color:var(--fg-3); font-size:13px;">목적 없는 행동은 <strong style="color:var(--coral);">바쁜 것</strong>이지<br><strong style="color:var(--green);">일하는 것</strong>이 아닙니다.</p>
+    </div>
+    <div class="card card-amber" style="margin-top:0;">
+      <h4 style="margin-bottom:12px;">🧩 구조적 사고 <span style="font-weight:300; color:var(--fg-3);">Structured Thinking</span></h4>
+      <p class="text-large" style="margin-bottom:8px;">사실과 의견 분리,<br>우선순위 판단, 리스크 예측</p>
+      <p style="color:var(--fg-3); font-size:13px;">보고 8항목을 채우는 것 자체가<br>구조적 사고 훈련입니다.</p>
+    </div>
+    <div class="card card-blue" style="margin-top:0;">
+      <h4 style="margin-bottom:12px;">💬 커뮤니케이션 <span style="font-weight:300; color:var(--fg-3);">Communication</span></h4>
+      <p class="text-large" style="margin-bottom:8px;">상대방이 추가 질문 없이<br>판단할 수 있게 전달</p>
+      <p style="color:var(--fg-3); font-size:13px;">보고·이메일·미팅·제안서 —<br>모든 업무 커뮤니케이션의 기본기입니다.</p>
+    </div>
+  </div>
+  <blockquote style="margin-top:24px;">보고는 양식이 아니라 <strong>사고방식</strong>입니다.<br>이 4가지 역량은 보고를 넘어, 일하는 모든 순간에 쓰입니다.</blockquote>
+  <div class="slide-footer"><span>Part 1 · 일일업무보고 교육 가이드</span><span>06 / 08</span></div>
+</div>
+
+<!-- 5. 보고 ≠ 한 일 설명 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">06 · 가장 중요한 것</div>
+    <h2>보고 ≠ "한 일 설명"</h2>
+  </div>
+  <blockquote>보고란, 읽는 사람이 더 좋은 <strong>판단</strong>을 내릴 수 있도록<br>필요한 정보를 <strong>구조화</strong>하여 전달하는 것입니다.</blockquote>
+  <div class="grid-2" style="margin-top:24px;">
+    <div class="card card-coral">
+      <h4>"한 일을 설명하는 것"</h4>
+      <p class="text-large">이것은 <strong>업무일지</strong>입니다.</p>
+      <p style="color:var(--fg-3)">오늘 뭐 했어요, 나열하는 것은 보고가 아닙니다.</p>
+    </div>
+    <div class="card card-green">
+      <h4>"판단하게 만드는 것"</h4>
+      <p class="text-large">이것이 <strong>보고</strong>입니다.</p>
+      <p style="color:var(--fg-3)">관리자가 읽고 바로 결정할 수 있어야 합니다.</p>
+    </div>
+  </div>
+  <p class="sub-copy" style="margin-top:20px;">한 줄 요약: <strong style="color:var(--fg)">공유는 "알려주는 것", 보고는 "판단하게 만드는 것".</strong><br>보고인데 요청사항이 없다면 — 아직 보고가 아닙니다.</p>
+  <div class="slide-footer"><span>Part 1 · 일일업무보고 교육 가이드</span><span>07 / 08</span></div>
+</div>
+
+<!-- 6. 보고 잘 쓰면 나에게 좋은 3가지 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">07 · 나에게 좋은 이유</div>
+    <h2>보고를 잘 쓰면, 나에게 돌아오는 것</h2>
+    <p class="sub-copy">보고는 관리자를 위한 것이기도 하지만, 결국 <strong style="color:var(--fg)">나를 위한 것</strong>입니다.</p>
+  </div>
+  <div class="grid-3">
+    <div class="card card-green">
+      <div style="font-size:36px; margin-bottom:12px; font-weight:200; color:var(--green);">01</div>
+      <h4>되묻기가 줄면 — 시간이 돌아온다</h4>
+      <p>되묻기 3번 = 왕복 30분. 보고를 한 번에 통과시키면 그 시간이 고스란히 내 것입니다.</p>
+      <p style="color:var(--fg-3); font-size:12px; margin-top:8px;">보고 재작성 없이 퇴근하는 날이 늘어납니다.</p>
+    </div>
+    <div class="card card-accent">
+      <div style="font-size:36px; margin-bottom:12px; font-weight:200; color:var(--accent-light);">02</div>
+      <h4>판단력이 보이면 — 더 큰 일을 맡게 된다</h4>
+      <p>"이 사람은 알아서 구조화해서 올린다" — 이런 신뢰가 쌓이면, 더 중요한 프로젝트가 올 수밖에 없습니다.</p>
+      <p style="color:var(--fg-3); font-size:12px; margin-top:8px;">보고 하나에 사고력이 드러납니다.</p>
+    </div>
+    <div class="card card-amber">
+      <div style="font-size:36px; margin-bottom:12px; font-weight:200; color:var(--amber);">03</div>
+      <h4>기록이 쌓이면 — 성과 증명이 된다</h4>
+      <p>매일 구조화된 보고 = 자동으로 쌓이는 포트폴리오. 평가, 이직, 연봉 협상 때 "뭘 했는지" 증거가 됩니다.</p>
+      <p style="color:var(--fg-3); font-size:12px; margin-top:8px;">6개월 보고를 모으면 그 자체가 성과 기록입니다.</p>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Part 1 · 일일업무보고 교육 가이드</span><span>08 / 08</span></div>
+</div>
+
+<!-- Nav -->
+<div class="nav-bar">
+  <button onclick="prevSlide()">← Prev</button>
+  <span class="nav-counter" id="navCounter">1 / 8</span>
+  <button onclick="nextSlide()">Next →</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let current = 0;
+function goTo(i) {
+  current = Math.max(0, Math.min(i, slides.length - 1));
+  slides[current].scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('navCounter').textContent = (current + 1) + ' / ' + slides.length;
+}
+function prevSlide() { goTo(current - 1); }
+function nextSlide() { goTo(current + 1); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevSlide(); }
+});
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      current = Array.from(slides).indexOf(e.target);
+      document.getElementById('navCounter').textContent = (current + 1) + ' / ' + slides.length;
+    }
+  });
+}, { threshold: 0.5 });
+slides.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
