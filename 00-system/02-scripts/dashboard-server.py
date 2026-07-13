@@ -99,6 +99,56 @@ def _assign_append(assignee, task, deadline, priority, by, project="", result=""
 
 
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+
+
+def _call_llm_json(system_prompt, user_msg):
+    """LLM API 호출 → JSON 파싱. Anthropic 우선, OpenAI fallback. 실패 시 None."""
+    def _parse_json(text):
+        m = re.search(r"```json\s*([\s\S]*?)```", text)
+        return json.loads(m.group(1) if m else text)
+    # 1) Anthropic
+    if ANTHROPIC_KEY:
+        try:
+            payload = json.dumps({
+                "model": "claude-sonnet-4-20250514",
+                "max_tokens": 2000, "temperature": 0.3,
+                "system": system_prompt,
+                "messages": [{"role": "user", "content": user_msg}]
+            }).encode("utf-8")
+            req = Request("https://api.anthropic.com/v1/messages", data=payload, headers={
+                "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01",
+                "Content-Type": "application/json"
+            }, method="POST")
+            with urlopen(req, timeout=60) as r:
+                d = json.loads(r.read())
+            return _parse_json(d["content"][0]["text"])
+        except Exception:
+            pass  # fallback to OpenAI
+    # 2) OpenAI fallback
+    if OPENAI_KEY:
+        try:
+            payload = json.dumps({
+                "model": "gpt-4o", "temperature": 0.3,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_msg}
+                ]
+            }).encode("utf-8")
+            req = Request("https://api.openai.com/v1/chat/completions", data=payload,
+                          headers={"Authorization": "Bearer " + OPENAI_KEY,
+                                   "Content-Type": "application/json"}, method="POST")
+            with urlopen(req, timeout=60) as r:
+                d = json.loads(r.read())
+            return _parse_json(d["choices"][0]["message"]["content"])
+        except Exception:
+            pass
+    return None
+
+
+# 하위 호환: 기존 _call_claude 호출부 유지
+_call_claude = _call_llm_json
+
 
 # 주간업무계획.xlsx 파싱 폴백용 파이썬 (시스템 3.9에 openpyxl 없을 때 subprocess)
 _XLSX_PY_CANDIDATES = [
@@ -226,6 +276,533 @@ def _llm_todo(text, max_items=12):
                         "priority": (it.get("priority") or "일반").strip()})
     return out
 
+# ── 보고 시뮬레이터 AI 프롬프트 ──
+
+SIMULATOR_DAILY_PROMPT = """너는 ARISA 보고 품질 시뮬레이터다. 직원의 일일보고를 6-Layer 프레임워크로 리뷰하고 ReportScore 100점을 채점한다.
+
+## 6-Layer 프레임워크
+| Layer | 핵심 질문 |
+|-------|----------|
+| Context | 이 프로젝트가 무엇인가? 왜 하는가? |
+| Progress | 현재 어디까지 왔는가? Output/Outcome |
+| Thinking | 왜 그렇게 판단했는가? 사실 vs 의견 구분 |
+| Priority | 무엇이 가장 중요한가? 오늘/내일 최중요 |
+| Risk | 문제·막힌 것·예상 위험 |
+| Decision | 대표가 결정해야 할 것, 승인·지원 요청 |
+
+## ReportScore 채점 루브릭 (100점)
+| 항목 | 배점 | 만점 기준 |
+|------|------|----------|
+| context | 20 | 프로젝트명 + 왜 하는지(목적/배경) |
+| objective | 10 | 목표 대비 % 또는 성공 기준이 숫자·상태로 있음 |
+| evidence | 15 | 판단마다 사실/의견이 구분됨 |
+| priority | 15 | 오늘 최중요 1~2개 + 내일 최중요 1개 표시 |
+| risk | 10 | 발생 문제 + 예상 위험 + 대응 ("없음" 명시 = 만점, 빈칸 = 0) |
+| decision | 20 | 옵션 + 추천안 + 기한 ("없음" 명시 = 만점, 빈칸 = 0) |
+| support | 10 | 무엇이·언제까지·왜 필요한지 ("없음" 명시 = 만점, 빈칸 = 0) |
+
+## 안티패턴 감지 (7종)
+1. output_copy: Output 텍스트가 Outcome에 그대로 복사
+2. vague_decision: "컨펌 필요"만 — 옵션/기한 없음
+3. empty_risk: Risk 빈칸 ("없음" 명시가 아닌 진짜 빈칸)
+4. no_why: 중요 업무에 "왜" 설명 없음
+5. abstract_tomorrow: "계속 진행", "추가 확인" 등 구체성 없는 내일 계획
+6. fact_opinion_mix: 사실/의견 미분리 ("클라이언트가 원하는 것 같다" 등)
+7. no_numbers: Output/Outcome에 수치(건수, %, 금액 등) 전무
+
+## ThinkingCost
+대표가 이 보고를 읽고 추가로 물어야 할 질문 수를 예측하라.
+- 0개 = ★★★★★ (5), 1개 = ★★★★☆ (4), 2개 = ★★★☆☆ (3), 3개 = ★★☆☆☆ (2), 4개 = ★☆☆☆☆ (1), 5개+ = ☆☆☆☆☆ (0)
+
+## Before/After 참고
+Bad: "도면 작업 중" → Good: "[세스크멘슬] 주방 도면 v3 — 설비팀 피드백 반영 중. 환기닥트 위치 변경으로 레이아웃 수정. 내일 오전 최종본 공유 예정"
+Bad: "컨펌 필요" → Good: "결정 요청: 자재 A안(2,000만원·내구성↑) vs B안(1,500만원·납기↑). 추천: A안 (유지보수비 절감). 기한: 7/15까지"
+Bad: "리서치 진행함" → Good: "경쟁사 3곳 벤치마킹 완료 — 가격대/메뉴구성/타깃 비교표 작성(12건). 공유 드라이브에 업로드"
+
+## 출력 형식 (반드시 이 JSON만 출력)
+```json
+{
+  "scores": {
+    "context": {"score": 0, "max": 20, "pass": false, "feedback": "..."},
+    "objective": {"score": 0, "max": 10, "pass": false, "feedback": "..."},
+    "evidence": {"score": 0, "max": 15, "pass": false, "feedback": "..."},
+    "priority": {"score": 0, "max": 15, "pass": false, "feedback": "..."},
+    "risk": {"score": 0, "max": 10, "pass": false, "feedback": "..."},
+    "decision": {"score": 0, "max": 20, "pass": false, "feedback": "..."},
+    "support": {"score": 0, "max": 10, "pass": false, "feedback": "..."}
+  },
+  "total": 0,
+  "grade": "D",
+  "patterns_detected": [
+    {"type": "패턴명", "field": "해당필드", "detail": "구체 설명"}
+  ],
+  "thinking_cost": {"predicted_questions": 0, "stars": 5, "detail": "예측 근거"},
+  "summary": "전체 코멘트 (2~3문장)",
+  "improvement_tips": ["개선 팁1", "개선 팁2", "개선 팁3"]
+}
+```
+등급: S(90~100), A(75~89), B(60~74), C(40~59), D(0~39)"""
+
+SIMULATOR_BRIEF_PROMPT = """너는 ARISA 기획안(1P-Brief) 품질 시뮬레이터다. 직원의 기획안보고를 리뷰하고 100점을 채점한다.
+
+## 1P-Brief 7항목 루브릭 (100점)
+| 항목 | 배점 | 만점 기준 |
+|------|------|----------|
+| title | 15 | "[대상]을 위한 [내용]" 형식. 한 문장으로 무엇인지 알 수 있음 |
+| summary | 20 | 대상/문제/방식/결과 4문장. 대표가 이것만 읽고 판단 가능 |
+| stakeholder | 10 | P1/P2/P3 이해관계자 + 각각 원하는 것 명시 |
+| client_value | 10 | 클라이언트가 얻는 구체적 이익(수치/상태) |
+| core_idea | 20 | 형식이 아닌 해결방식(How). "팝업을 한다"는 형식, "유휴공간을 활용한 체험형 쇼룸"이 아이디어 |
+| success_criteria | 15 | 측정 가능한 상태/숫자 (KPI). "성공적으로 마친다"는 0점 |
+| support_needed | 10 | 예산/인력/파트너/의사결정. "없음" 명시 = 만점, 빈칸 = 0 |
+
+## 기획안 안티패턴
+1. abstract_title: "[OO] 프로젝트" 같은 추상적 제목 — 대상·내용 불명
+2. no_summary: Summary 없음 또는 1문장 미만
+3. format_as_idea: "팝업을 한다", "전시를 한다"처럼 형식만 적고 해결방식(How) 없음
+4. unmeasurable_success: "성공적으로", "효과적으로" 등 측정 불가 기준
+5. missing_stakeholder: 이해관계자 미식별 또는 "우리 회사"만
+6. vague_budget: "추후 협의" 등 구체성 없는 예산/지원
+7. no_problem: 왜 이 기획이 필요한지(문제 정의) 빠짐
+
+## ThinkingCost
+대표가 "이거 진행해도 되나?"를 판단하기 위해 추가로 물어야 할 질문 수 예측.
+별점: 0개=5★, 1개=4★, 2개=3★, 3개=2★, 4개=1★, 5+개=0★
+
+## 출력 형식 (반드시 이 JSON만 출력)
+```json
+{
+  "scores": {
+    "title": {"score": 0, "max": 15, "pass": false, "feedback": "..."},
+    "summary": {"score": 0, "max": 20, "pass": false, "feedback": "..."},
+    "stakeholder": {"score": 0, "max": 10, "pass": false, "feedback": "..."},
+    "client_value": {"score": 0, "max": 10, "pass": false, "feedback": "..."},
+    "core_idea": {"score": 0, "max": 20, "pass": false, "feedback": "..."},
+    "success_criteria": {"score": 0, "max": 15, "pass": false, "feedback": "..."},
+    "support_needed": {"score": 0, "max": 10, "pass": false, "feedback": "..."}
+  },
+  "total": 0,
+  "grade": "D",
+  "patterns_detected": [
+    {"type": "패턴명", "field": "해당필드", "detail": "구체 설명"}
+  ],
+  "thinking_cost": {"predicted_questions": 0, "stars": 5, "detail": "예측 근거"},
+  "summary": "전체 코멘트 (2~3문장)",
+  "improvement_tips": ["개선 팁1", "개선 팁2", "개선 팁3"]
+}
+```
+등급: S(90~100), A(75~89), B(60~74), C(40~59), D(0~39)"""
+
+SIMULATOR_DRAFT_PROMPT = """너는 업무 보고 구조화 도우미다. 사용자가 자유롭게 서술한 업무 텍스트를 받아, 지정된 필드 구조에 맞게 정보를 추출·배분한다.
+
+## 규칙
+1. 텍스트에 실제로 언급된 정보만 추출한다. 없는 정보를 지어내지 않는다.
+2. 빈 필드는 빈 문자열 ""로 반환한다.
+3. 구체적 수치·이름·날짜가 있으면 반드시 포함한다.
+4. 리뷰/채점/평가를 하지 않는다. 정보 추출·구조화만 수행한다.
+5. 반드시 JSON만 출력한다.
+
+## daily 모드 (일일보고 8필드)
+```json
+{"context":"","output":"","outcome":"","risk":"","tomorrow":"","decision":"","support":"","evidence":""}
+```
+- context: 프로젝트명 + 왜 중요한지
+- output: 오늘 한 일의 구체적 산출물
+- outcome: 목표 대비 진행 상황
+- risk: 문제·리스크 (없으면 "없음")
+- tomorrow: 내일 할 일
+- decision: 대표에게 필요한 결정 (없으면 "없음")
+- support: 필요한 지원 (없으면 "없음")
+- evidence: 사실 vs 의견 구분
+
+## brief 모드 (기획안 7필드)
+```json
+{"title":"","summary":"","stakeholder":"","client_value":"","core_idea":"","success_criteria":"","support_needed":""}
+```
+- title: [대상]을 위한 [내용] 형식 제목
+- summary: 대상/문제/방식/결과 4문장
+- stakeholder: P1/P2/P3 이해관계자
+- client_value: 클라이언트가 얻는 이익
+- core_idea: 해결방식(How)
+- success_criteria: 측정 가능한 KPI
+- support_needed: 예산/인력/파트너 (없으면 "없음")
+
+사용자 메시지 첫 줄에 [MODE:daily] 또는 [MODE:brief]가 명시된다."""
+
+_DAILY_FIELDS = [
+    ("context", "오늘 가장 중요한 업무 (프로젝트명 + 왜)"),
+    ("output", "오늘 얻은 결과 (Output)"),
+    ("outcome", "목표 대비 현재 위치 (Outcome)"),
+    ("risk", "발견한 문제 / 리스크"),
+    ("tomorrow", "내일 가장 중요한 일"),
+    ("decision", "대표에게 필요한 결정"),
+    ("support", "필요한 지원"),
+    ("evidence", "사실·의견 구분 메모"),
+]
+_BRIEF_FIELDS = [
+    ("title", "프로젝트 제목"),
+    ("summary", "Executive Summary"),
+    ("stakeholder", "Primary Stakeholder (P1/P2/P3)"),
+    ("client_value", "Client Value"),
+    ("core_idea", "핵심 아이디어 (How)"),
+    ("success_criteria", "성공 기준 (KPI)"),
+    ("support_needed", "필요한 지원"),
+]
+
+
+def _build_simulator_input(mode, fields):
+    """사용자 입력 필드를 LLM 유저 메시지로 조합."""
+    items = _BRIEF_FIELDS if mode == "brief" else _DAILY_FIELDS
+    lines = []
+    for key, label in items:
+        val = (fields.get(key) or "").strip()
+        lines.append(f"[{label}]\n{val if val else '(빈칸)'}")
+    return "\n\n".join(lines)
+
+
+SIMULATOR_HTML = """<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>보고 시뮬레이터 — ARISA</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{--bg:#1A1A1A;--bg2:#202020;--bg3:#262626;--fg:#F5F0EB;--fg2:#C4BEB7;--muted:#8A857E;--line:#333;--accent:#6C5CE7;--red:#E17055;--green:#00b894;--amber:#FDCB6E;--coral:#E17055}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans-serif;font-weight:300;min-height:100vh}
+.wrap{max-width:1400px;margin:0 auto;padding:24px 20px}
+h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.modes{display:flex;gap:8px;margin-bottom:20px}
+.mode-btn{background:var(--bg3);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.mode-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.main{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:1200px){.main{grid-template-columns:1fr}}
+.panel{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px}
+.panel h2{font-size:16px;font-weight:600;margin-bottom:14px}
+.field{margin-bottom:14px}
+.field label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;margin-bottom:6px}
+.field .tag{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600}
+.tag-ctx{background:rgba(108,92,231,.15);color:var(--accent)}
+.tag-prg{background:rgba(0,184,148,.15);color:var(--green)}
+.tag-thk{background:rgba(253,203,110,.15);color:var(--amber)}
+.tag-pri{background:rgba(253,203,110,.15);color:var(--amber)}
+.tag-rsk{background:rgba(225,112,85,.15);color:var(--coral)}
+.tag-dec{background:rgba(225,112,85,.15);color:var(--coral)}
+.field textarea{width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;resize:vertical;line-height:1.6;min-height:64px}
+.field textarea:focus{border-color:var(--accent);outline:none}
+.guide-toggle{font-size:11px;color:var(--accent);cursor:pointer;margin-left:auto;user-select:none}
+.guide-box{display:none;margin:6px 0 0;background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6}
+.guide-box.open{display:block}
+.g-bad{color:var(--coral)}
+.g-good{color:var(--green)}
+.submit-row{margin-top:16px;display:flex;gap:10px;align-items:center}
+.submit-btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:14px 32px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.submit-btn:disabled{opacity:.5;cursor:default}
+.submit-msg{font-size:12px;color:var(--muted)}
+.draft-section{background:var(--bg3);border:1px solid var(--line);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.draft-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;user-select:none}
+.draft-header h3{font-size:13px;font-weight:600;color:var(--accent)}
+.draft-header .arrow{font-size:12px;color:var(--muted);transition:transform .2s}
+.draft-header .arrow.open{transform:rotate(180deg)}
+.draft-body{display:none;padding:0 14px 14px}
+.draft-body.open{display:block}
+.draft-body textarea{width:100%;min-height:80px;background:var(--bg);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;resize:vertical;line-height:1.6}
+.draft-body textarea:focus{border-color:var(--accent);outline:none}
+.draft-actions{display:flex;gap:8px;margin-top:10px;align-items:center}
+.draft-btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.draft-btn:disabled{opacity:.5;cursor:default}
+.draft-msg{font-size:12px;color:var(--muted)}
+.draft-hint{font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+.ai-compare{margin-top:6px;background:rgba(108,92,231,.06);border:1px solid rgba(108,92,231,.2);border-radius:8px;padding:8px 10px;display:none}
+.ai-compare.show{display:block}
+.ai-compare-label{font-size:10px;color:var(--accent);font-weight:600;margin-bottom:4px}
+.ai-compare-text{font-size:12px;color:var(--fg2);line-height:1.5}
+.ai-replace-btn{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;margin-top:6px;font-family:inherit}
+.ai-replace-btn:hover{background:var(--accent);color:#fff}
+.result-empty{color:var(--muted);font-size:14px;text-align:center;padding:60px 0}
+.score-circle{width:140px;height:140px;margin:0 auto 12px;position:relative}
+.score-circle svg{transform:rotate(-90deg)}
+.score-circle .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-circle .num{font-size:36px;font-weight:800}
+.score-circle .grade{font-size:18px;font-weight:700;margin-top:2px}
+.tc-row{text-align:center;margin-bottom:16px}
+.tc-stars{font-size:22px;letter-spacing:2px}
+.tc-detail{font-size:12px;color:var(--muted);margin-top:4px}
+.item-card{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.item-head{display:flex;justify-content:space-between;align-items:center}
+.item-name{font-size:13px;font-weight:600}
+.item-score{font-size:13px;font-weight:700}
+.item-bar{height:4px;background:var(--bg3);border-radius:2px;margin:8px 0 6px;overflow:hidden}
+.item-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+.item-fb{font-size:12px;color:var(--fg2);line-height:1.5}
+.pat-card{background:rgba(225,112,85,.08);border:1px solid rgba(225,112,85,.25);border-radius:10px;padding:10px 14px;margin-bottom:8px}
+.pat-type{font-size:12px;font-weight:700;color:var(--coral)}
+.pat-detail{font-size:12px;color:var(--fg2);margin-top:4px}
+.tips{margin-top:14px}
+.tips h3{font-size:13px;font-weight:600;margin-bottom:8px}
+.tip-item{font-size:12px;color:var(--fg2);padding:4px 0 4px 14px;border-left:2px solid var(--accent);margin-bottom:6px;line-height:1.5}
+.summary-box{background:var(--bg);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.7}
+</style></head><body>
+<div class="wrap">
+<h1>보고 시뮬레이터</h1>
+<p class="sub">Reporting OS v2 — 보고를 쓰고 AI 리뷰를 받아보세요. ReportScore 100점 채점 + ThinkingCost 예측</p>
+<div class="modes">
+  <button class="mode-btn on" data-m="daily">일일보고</button>
+  <button class="mode-btn" data-m="brief">기획안 (1P-Brief)</button>
+</div>
+<div class="main">
+  <div class="panel" id="input-panel">
+    <h2 id="input-title">일일보고 입력</h2>
+    <div class="draft-section" id="draft-section">
+      <div class="draft-header" id="draft-toggle">
+        <h3>AI 비교 보기</h3>
+        <span class="arrow" id="draft-arrow">▼</span>
+      </div>
+      <div class="draft-body" id="draft-body">
+        <div class="draft-hint">먼저 아래 폼을 직접 작성한 뒤, 같은 내용을 자유 텍스트로 입력하면 AI 드래프트와 비교할 수 있습니다.<br>내 보고와 AI 드래프트의 차이를 보며 빠진 항목을 발견하세요.</div>
+        <textarea id="draft-text" placeholder="업무를 자유롭게 설명하세요...&#10;예) 오늘 세스크멘슬 주방 도면 v3 작업했고, 설비팀 피드백 반영 중. 환기닥트 위치가 바뀌어서 레이아웃 수정해야 함. 내일 오전까지 최종본 보내야 하는데, 자재 A안 B안 중에 대표님 결정이 필요함."></textarea>
+        <div class="draft-actions">
+          <button class="draft-btn" id="draft-btn" disabled>AI 드래프트와 비교</button>
+          <span class="draft-msg" id="draft-msg"></span>
+        </div>
+      </div>
+    </div>
+    <div id="fields"></div>
+    <div class="submit-row">
+      <button class="submit-btn" id="submit-btn">AI 리뷰 받기</button>
+      <span class="submit-msg" id="submit-msg"></span>
+    </div>
+  </div>
+  <div class="panel" id="result-panel">
+    <h2>AI 리뷰 결과</h2>
+    <div id="result"><div class="result-empty">왼쪽 폼을 작성하고 "AI 리뷰 받기"를 눌러보세요.</div></div>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+var mode='daily';
+var DAILY=[
+  {key:'context',label:'오늘 가장 중요한 업무',tag:'Context',tagC:'ctx',ph:'프로젝트명 + 왜 중요한지\\n예) [세스크멘슬] 주방 도면 v3 최종화 — 설비팀 피드백 반영 기한이 오늘',
+   bad:'도면 작업 중',good:'[세스크멘슬] 주방 도면 v3 — 설비팀 피드백(환기닥트 위치 변경) 반영. 내일 오전 최종본 공유 예정'},
+  {key:'output',label:'오늘 얻은 결과 (Output)',tag:'Progress',tagC:'prg',ph:'구체적 산출물 + 수량\\n예) 경쟁사 3곳 벤치마킹 비교표 작성(12건), 드라이브 업로드 완료',
+   bad:'리서치 진행함',good:'경쟁사 3곳 벤치마킹 완료 — 가격대/메뉴구성/타깃 비교표(12건). 드라이브에 업로드'},
+  {key:'outcome',label:'목표 대비 현재 위치 (Outcome)',tag:'Thinking',tagC:'thk',ph:'Output이 목표에 어떤 의미인지\\n예) 전체 진행률 70% — 남은 건 자재 발주(A/B안 확정 대기)',
+   bad:'(Output을 그대로 복사)',good:'도면 검토 3/5건 완료(60%). 남은 2건은 구조 변경 영향 확인 후 내일 반영 예정'},
+  {key:'risk',label:'발견한 문제 / 리스크',tag:'Risk',tagC:'rsk',ph:'문제 + 영향 + 대응\\n없으면 "없음"이라고 명시 (빈칸은 0점)',
+   bad:'(빈칸)',good:'자재 납기 1주 지연 통보 — 오픈일 영향 가능. 대안업체 2곳 견적 요청 완료, 내일 비교'},
+  {key:'tomorrow',label:'내일 가장 중요한 일',tag:'Priority',tagC:'pri',ph:'★ 최중요 1개 + 기타\\n예) ★ 자재 A/B안 비교표 대표 보고 → 나머지: 도면 잔여 2건 마무리',
+   bad:'계속 진행',good:'★ 자재 A/B안 비교표 작성 → 오전 중 대표 보고. 도면 잔여 2건 오후 마무리'},
+  {key:'decision',label:'대표에게 필요한 결정',tag:'Decision',tagC:'dec',ph:'옵션 + 추천안 + 기한\\n없으면 "없음"이라고 명시',
+   bad:'컨펌 필요',good:'결정 요청: 자재 A안(2,000만·내구성↑) vs B안(1,500만·납기↑). 추천: A안. 기한: 7/15'},
+  {key:'support',label:'필요한 지원',tag:'Decision',tagC:'dec',ph:'무엇이·언제까지·왜 필요한지\\n없으면 "없음"이라고 명시',
+   bad:'(빈칸)',good:'설비업체 미팅 동석 요청 — 7/16(수) 오후. 환기 설계 변경 최종 확인 필요'},
+  {key:'evidence',label:'사실·의견 구분 메모',tag:'Thinking',tagC:'thk',ph:'판단 근거가 직접 확인인지, 추정인지\\n예) 사실: 업체가 메일로 납기지연 통보 / 의견: 대안업체가 더 빠를 것으로 예상',
+   bad:'클라이언트가 원하는 것 같다',good:'사실: 7/10 미팅에서 면적 확대 요청 직접 발언. 의견: 예산 내 가능할 것으로 판단(견적 대기 중)'}
+];
+var BRIEF=[
+  {key:'title',label:'프로젝트 제목',tag:'Context',tagC:'ctx',ph:'"[대상]을 위한 [내용]" 형식\\n예) 봉은사 방문객을 위한 도심 명상 체험 프로그램',
+   bad:'봉은사 프로젝트',good:'봉은사 방문객을 위한 도심 명상 체험 프로그램'},
+  {key:'summary',label:'Executive Summary',tag:'Context',tagC:'ctx',ph:'4문장: 대상 / 문제 / 방식 / 결과',
+   bad:'봉은사에서 프로그램을 진행합니다.',good:'대상: 25~45세 도시 직장인. 문제: 봉은사 방문자 90%가 산책만 하고 떠남(체류 20분). 방식: 점심시간 런치명상(30분) 정기 프로그램. 결과: 재방문율 40%↑, 체류시간 2배'},
+  {key:'stakeholder',label:'Primary Stakeholder',tag:'Context',tagC:'ctx',ph:'P1/P2/P3 + 각각 원하는 것',
+   bad:'우리 회사',good:'P1: 봉은사 주지스님 — 현대적 포교 확대. P2: 직장인 참가자 — 접근성 높은 명상. P3: 기업 HR — 직원 복지 콘텐츠'},
+  {key:'client_value',label:'Client Value',tag:'Context',tagC:'ctx',ph:'클라이언트가 얻는 구체적 이익',
+   bad:'좋은 프로그램을 제공합니다',good:'봉은사: 25~45세 신규 방문자 월 500명↑, 정기후원 전환 5%. 기업 HR: 직원 스트레스 지수 15% 감소(3개월 측정)'},
+  {key:'core_idea',label:'핵심 아이디어 (How)',tag:'Thinking',tagC:'thk',ph:'형식(팝업/전시)이 아닌 해결방식',
+   bad:'명상 프로그램을 합니다',good:'출퇴근 동선에 30분 명상을 끼워넣는 "런치명상" — 앱 예약+현장 안내+사후 가이드 3단계 여정 설계'},
+  {key:'success_criteria',label:'성공 기준 (KPI)',tag:'Priority',tagC:'pri',ph:'측정 가능한 숫자/상태',
+   bad:'성공적으로 마친다',good:'3개월 내 정기참가자 200명, 만족도 4.5/5.0, 재참가율 60%, 후원전환 5%'},
+  {key:'support_needed',label:'필요한 지원',tag:'Decision',tagC:'dec',ph:'예산/인력/파트너/의사결정\\n없으면 "없음"',
+   bad:'추후 협의',good:'초기 예산 1,500만원 승인(공간조성 800+운영 700). 봉은사 담당 스님 소개 연결. 기한: 8월 초'}
+];
+var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');};
+function renderFields(){
+  var items=mode==='brief'?BRIEF:DAILY, h='';
+  document.getElementById('input-title').textContent=mode==='brief'?'기획안 (1P-Brief) 입력':'일일보고 입력';
+  items.forEach(function(f){
+    h+='<div class="field"><label>'+esc(f.label)+' <span class="tag tag-'+f.tagC+'">'+esc(f.tag)+'</span>'
+      +'<span class="guide-toggle" data-k="'+f.key+'">가이드 ▼</span></label>'
+      +'<textarea id="f-'+f.key+'" placeholder="'+esc(f.ph)+'"></textarea>'
+      +'<div class="guide-box" id="g-'+f.key+'">'
+      +'<div class="g-bad">Bad: '+esc(f.bad)+'</div>'
+      +'<div class="g-good">Good: '+esc(f.good)+'</div></div></div>';
+  });
+  document.getElementById('fields').innerHTML=h;
+  document.querySelectorAll('.guide-toggle').forEach(function(el){
+    el.onclick=function(){
+      var g=document.getElementById('g-'+el.dataset.k);
+      g.classList.toggle('open');
+      el.textContent=g.classList.contains('open')?'가이드 ▲':'가이드 ▼';
+    };
+  });
+}
+function gradeColor(g){
+  if(g==='S') return 'var(--green)';
+  if(g==='A') return 'var(--accent)';
+  if(g==='B') return 'var(--amber)';
+  return 'var(--coral)';
+}
+var ITEM_LABELS={context:'Context (맥락)',objective:'Objective (목표)',evidence:'Evidence (근거)',
+  priority:'Priority (우선순위)',risk:'Risk (리스크)',decision:'Decision (결정)',support:'Support (지원)',
+  title:'제목',summary:'Executive Summary',stakeholder:'Stakeholder',client_value:'Client Value',
+  core_idea:'핵심 아이디어',success_criteria:'성공 기준',support_needed:'필요한 지원'};
+function renderResult(d){
+  var box=document.getElementById('result');
+  if(!d||!d.scores){box.innerHTML='<div class="result-empty">리뷰 결과를 가져오지 못했습니다. 다시 시도해주세요.</div>';return;}
+  var pct=d.total, gc=gradeColor(d.grade);
+  var r=Math.round(pct/100*251.2); // circumference=2*PI*40
+  var h='<div class="score-circle"><svg width="140" height="140"><circle cx="70" cy="70" r="40" fill="none" stroke="var(--bg3)" stroke-width="8"/>'
+    +'<circle cx="70" cy="70" r="40" fill="none" stroke="'+gc+'" stroke-width="8" stroke-dasharray="'+r+' 251.2" stroke-linecap="round"/></svg>'
+    +'<div class="val"><div class="num" style="color:'+gc+'">'+d.total+'</div><div class="grade" style="color:'+gc+'">'+esc(d.grade)+'</div></div></div>';
+  // ThinkingCost
+  var tc=d.thinking_cost||{};
+  var stars='';for(var i=0;i<5;i++) stars+=(i<(tc.stars||0))?'★':'☆';
+  h+='<div class="tc-row"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">ThinkingCost</div>'
+    +'<div class="tc-stars" style="color:'+gc+'">'+stars+'</div>'
+    +'<div class="tc-detail">예상 추가질문 '+(tc.predicted_questions||0)+'개'+(tc.detail?(' — '+esc(tc.detail)):'')+'</div></div>';
+  // Summary
+  if(d.summary) h+='<div class="summary-box">'+esc(d.summary)+'</div>';
+  // Item cards
+  var scores=d.scores;
+  for(var k in scores){
+    var s=scores[k], barPct=Math.round(s.score/s.max*100);
+    var barC=s.pass?'var(--green)':'var(--coral)';
+    h+='<div class="item-card"><div class="item-head"><span class="item-name">'+(s.pass?'✓':'✗')+' '+(ITEM_LABELS[k]||k)+'</span>'
+      +'<span class="item-score" style="color:'+barC+'">'+s.score+'/'+s.max+'</span></div>'
+      +'<div class="item-bar"><div class="item-bar-fill" style="width:'+barPct+'%;background:'+barC+'"></div></div>'
+      +'<div class="item-fb">'+esc(s.feedback||'')+'</div></div>';
+  }
+  // Patterns
+  var pats=d.patterns_detected||[];
+  if(pats.length){
+    h+='<h3 style="font-size:13px;font-weight:600;margin:14px 0 8px">감지된 안티패턴</h3>';
+    pats.forEach(function(p){
+      h+='<div class="pat-card"><div class="pat-type">⚠ '+esc(p.type)+(p.field?(' · '+esc(p.field)):'')+'</div>'
+        +'<div class="pat-detail">'+esc(p.detail||'')+'</div></div>';
+    });
+  }
+  // Tips
+  var tips=d.improvement_tips||[];
+  if(tips.length){
+    h+='<div class="tips"><h3>개선 팁</h3>';
+    tips.forEach(function(t){ h+='<div class="tip-item">'+esc(t)+'</div>'; });
+    h+='</div>';
+  }
+  box.innerHTML=h;
+}
+document.querySelectorAll('.mode-btn').forEach(function(b){
+  b.onclick=function(){
+    mode=b.dataset.m;
+    document.querySelectorAll('.mode-btn').forEach(function(x){x.classList.toggle('on',x.dataset.m===mode);});
+    renderFields();
+    document.getElementById('result').innerHTML='<div class="result-empty">왼쪽 폼을 작성하고 "AI 리뷰 받기"를 눌러보세요.</div>';
+  };
+});
+document.getElementById('submit-btn').onclick=function(){
+  var btn=this, msg=document.getElementById('submit-msg');
+  var items=mode==='brief'?BRIEF:DAILY, fields={}, empty=0;
+  items.forEach(function(f){
+    var v=(document.getElementById('f-'+f.key)||{}).value||'';
+    fields[f.key]=v;
+    if(!v.trim()) empty++;
+  });
+  if(empty===items.length){msg.textContent='최소 1개 항목을 입력해주세요.';return;}
+  btn.disabled=true; msg.textContent='AI가 리뷰 중… (10~20초 소요)';
+  document.getElementById('result').innerHTML='<div class="result-empty">분석 중…</div>';
+  fetch('/api/simulator/review',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({mode:mode,fields:fields})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      btn.disabled=false; msg.textContent='';
+      if(d.ok) renderResult(d.result);
+      else{document.getElementById('result').innerHTML='<div class="result-empty">'+(d.error||'리뷰 실패')+'</div>';}
+    })
+    .catch(function(){btn.disabled=false;msg.textContent='서버 연결 실패';});
+};
+renderFields();
+// --- AI 비교 보기 ---
+var draftOpen=false, aiDraft=null;
+document.getElementById('draft-toggle').onclick=function(){
+  draftOpen=!draftOpen;
+  document.getElementById('draft-body').classList.toggle('open',draftOpen);
+  document.getElementById('draft-arrow').classList.toggle('open',draftOpen);
+};
+// draft-btn 활성화: 폼에 1개 이상 입력 + 자유텍스트 입력 시
+function checkDraftReady(){
+  var items=mode==='brief'?BRIEF:DAILY, hasField=false;
+  items.forEach(function(f){if((document.getElementById('f-'+f.key)||{}).value&&(document.getElementById('f-'+f.key)||{}).value.trim()) hasField=true;});
+  var hasText=((document.getElementById('draft-text')||{}).value||'').trim().length>0;
+  document.getElementById('draft-btn').disabled=!(hasField&&hasText);
+}
+document.getElementById('draft-text').addEventListener('input',checkDraftReady);
+// 폼 필드에도 리스너 (renderFields 후 재부착)
+var origRender=renderFields;
+renderFields=function(){
+  origRender();
+  aiDraft=null; clearCompare();
+  var items=mode==='brief'?BRIEF:DAILY;
+  items.forEach(function(f){
+    var el=document.getElementById('f-'+f.key);
+    if(el) el.addEventListener('input',checkDraftReady);
+  });
+  checkDraftReady();
+};
+renderFields();
+function clearCompare(){
+  document.querySelectorAll('.ai-compare').forEach(function(el){el.classList.remove('show');el.innerHTML='';});
+}
+function showCompare(draft){
+  var items=mode==='brief'?BRIEF:DAILY;
+  items.forEach(function(f){
+    var cmp=document.getElementById('cmp-'+f.key);
+    if(!cmp) return;
+    var val=(draft[f.key]||'').trim();
+    if(!val){cmp.classList.remove('show');cmp.innerHTML='';return;}
+    cmp.classList.add('show');
+    cmp.innerHTML='<div class="ai-compare-label">AI 드래프트</div>'
+      +'<div class="ai-compare-text">'+esc(val)+'</div>'
+      +'<button class="ai-replace-btn" data-k="'+f.key+'">이 값으로 교체</button>';
+    cmp.querySelector('.ai-replace-btn').onclick=function(){
+      var ta=document.getElementById('f-'+this.dataset.k);
+      if(ta){ta.value=draft[this.dataset.k]||'';ta.style.borderColor='var(--accent)';setTimeout(function(){ta.style.borderColor='';},1500);}
+    };
+  });
+}
+// renderFields에서 compare div 삽입
+var origRender2=renderFields;
+renderFields=function(){
+  origRender2();
+  // 각 필드 아래에 비교 영역 추가
+  var items=mode==='brief'?BRIEF:DAILY;
+  items.forEach(function(f){
+    var fieldDiv=document.getElementById('f-'+f.key);
+    if(!fieldDiv) return;
+    var cmpDiv=document.createElement('div');
+    cmpDiv.className='ai-compare';cmpDiv.id='cmp-'+f.key;
+    fieldDiv.parentNode.appendChild(cmpDiv);
+  });
+};
+renderFields();
+document.getElementById('draft-btn').onclick=function(){
+  var btn=this, msg=document.getElementById('draft-msg');
+  var text=(document.getElementById('draft-text').value||'').trim();
+  if(!text){msg.textContent='텍스트를 입력해주세요.';return;}
+  btn.disabled=true; msg.textContent='AI가 구조화 중... (5~10초)';
+  clearCompare();
+  fetch('/api/simulator/draft',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({mode:mode,text:text})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      btn.disabled=false; msg.textContent='';
+      if(d.ok&&d.fields){aiDraft=d.fields;showCompare(d.fields);msg.textContent='비교 결과가 각 필드 아래에 표시됩니다.';}
+      else{msg.textContent=d.error||'드래프트 생성 실패';}
+      checkDraftReady();
+    })
+    .catch(function(){btn.disabled=false;msg.textContent='서버 연결 실패';checkDraftReady();});
+};
+})();
+</script></body></html>"""
+
 # / — 역할 인식 통합 셸: 로그인 1회 후 역할별 탭을 iframe으로 전환.
 #   대표   = [프로젝트 | 오늘 Brief | 이번 주 | Decision Window] + 팀 스코프 드롭다운
 #   리더   = [프로젝트 | 오늘 Brief(팀) | 이번 주(팀)] (2팀 리더는 드롭다운)
@@ -311,6 +888,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   <div id="tabs">
     <button class="tab on" data-t="mywork">내 업무</button>
     <button class="tab" data-t="projects">프로젝트</button>
+    <button class="tab" data-t="simulator">보고 시뮬레이터</button>
     <button class="tab" data-t="brief" style="display:none">오늘 Brief</button>
     <button class="tab" data-t="weekly" style="display:none">이번 주</button>
     <select id="scope-sel" style="display:none"></select>
@@ -320,20 +898,23 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   <iframe class="frame" id="f-projects"></iframe>
   <iframe class="frame" id="f-brief"></iframe>
   <iframe class="frame" id="f-weekly"></iframe>
+  <iframe class="frame" id="f-simulator"></iframe>
 </div>
 <script>
 (function(){
   var gate=document.getElementById('login-gate'), shell=document.getElementById('shell'), who=document.getElementById('who');
   var sel=document.getElementById('scope-sel');
   var frames={mywork:document.getElementById('f-mywork'),projects:document.getElementById('f-projects'),
-              brief:document.getElementById('f-brief'),weekly:document.getElementById('f-weekly')};
-  var SESS=null, curTab='mywork', curScope='', loaded={projects:false,brief:false,weekly:false};
+              brief:document.getElementById('f-brief'),weekly:document.getElementById('f-weekly'),
+              simulator:document.getElementById('f-simulator')};
+  var SESS=null, curTab='mywork', curScope='', loaded={projects:false,brief:false,weekly:false,simulator:false};
   var MW_ASSIGNEES=[];
   var SESS_KEYS=['pm_sess','brief_sess','weekly_sess','team_brief_sess','team_weekly_sess'];
   var CLEAR_KEYS=SESS_KEYS.concat(['arisa_sess','arisa_token']);
   function tabBtn(t){ return document.querySelector('.tab[data-t="'+t+'"]'); }
   function srcFor(t){
     if(t==='projects') return '/projects';
+    if(t==='simulator') return '/simulator';
     if(t==='decision') return '/arisa2/';
     var lt=SESS.lead_teams||[];
     if(t==='brief'){
@@ -381,6 +962,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       +'<div class="mw-assign">'
       +'<div class="mw-plan"><label class="mw-file" for="mw-xlsx">📄 주간업무계획 업로드 (.xlsx)</label>'
       +'<input type="file" id="mw-xlsx" accept=".xlsx" style="display:none">'
+      +'<a href="/guide/template.xlsx" style="color:var(--accent);font-size:12px;text-decoration:none">📥 템플릿 받기</a>'
       +'<span class="sub2">— 금주·차주 업무를 프로젝트별 검토 초안으로 자동 변환</span></div>'
       +'<textarea id="mw-text" placeholder="이번주 팀 업무를 자유롭게 적으세요.&#10;예) 봉은사 마스터플랜 검토·정리본 공유, 세스크멘슬 주방도면 정리, KBO 굿즈 발주 최종확인"></textarea>'
       +'<div class="td-actions"><button id="mw-parse">AI로 항목 정리</button></div>'
@@ -638,9 +1220,10 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     SESS=s; var j=JSON.stringify(s);
     SESS_KEYS.forEach(function(k){ localStorage.setItem(k,j); });
     gate.style.display='none'; shell.style.display='flex';
-    who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-pin-c">PIN변경</a> <a id="lg-out">로그아웃</a>';
+    who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-guide">가이드</a> <a id="lg-pin-c">PIN변경</a> <a id="lg-out">로그아웃</a>';
     document.getElementById('lg-out').onclick=function(){ CLEAR_KEYS.forEach(function(k){localStorage.removeItem(k);}); location.reload(); };
     document.getElementById('lg-pin-c').onclick=changePin;
+    document.getElementById('lg-guide').onclick=function(){ window.open('/guide-os','_blank'); };
     var lt=s.lead_teams||[];
     if(s.admin){
       tabBtn('brief').style.display=''; tabBtn('weekly').style.display='';
@@ -1293,12 +1876,39 @@ class H(BaseHTTPRequestHandler):
             if not files:
                 return self._send(404, f"<h1>{team} 팀 주간이 아직 없습니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
             return self._send(200, files[-1].read_text(encoding="utf-8").encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/simulator":
+            return self._send(200, SIMULATOR_HTML.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/guide":
             # 일일업무보고 가이드 — 직원 열람용(무인증, 공개).
             gp = _WS / "20-operations" / "23-arisa" / "guide" / "daily-report-guide.html"
             if not gp.exists():
                 return self._send(404, "<h1>가이드가 아직 없습니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
             return self._send(200, gp.read_text(encoding="utf-8").encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/guide-os":
+            # ARISA OS 통합 사용 가이드 (무인증, 공개)
+            gp = _WS / "20-operations" / "23-arisa" / "guide" / "arisa-os-guide.html"
+            if not gp.exists():
+                return self._send(404, "<h1>가이드가 아직 없습니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            return self._send(200, gp.read_text(encoding="utf-8").encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/guide-flow":
+            # 업무분장 플로우 구조도 (무인증, 공개)
+            gp = _WS / "20-operations" / "23-arisa" / "assignment-flow-구조도.html"
+            if not gp.exists():
+                return self._send(404, "<h1>구조도가 아직 없습니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            return self._send(200, gp.read_text(encoding="utf-8").encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/guide/template.xlsx":
+            # 주간업무계획 템플릿 다운로드
+            gp = _WS / "20-operations" / "23-arisa" / "guide" / "주간업무계획_템플릿.xlsx"
+            if not gp.exists():
+                return self._send(404, "<h1>템플릿이 아직 없습니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            data = gp.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            self.send_header("Content-Disposition", "attachment; filename*=UTF-8''%EC%A3%BC%EA%B0%84%EC%97%85%EB%AC%B4%EA%B3%84%ED%9A%8D_%ED%85%9C%ED%94%8C%EB%A6%BF.xlsx")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
         if path == "/api/health":
             return self._send(200, {"ok": True})
         if path == "/api/assignees":
@@ -1502,6 +2112,27 @@ class H(BaseHTTPRequestHandler):
             if len(str(new)) < 4: return self._send(400, {"ok": False, "error": "새 PIN은 4자 이상이어야 합니다."})
             set_pin(uid, new)
             return self._send(200, {"ok": True})
+        if path == "/api/simulator/review":
+            sim_mode = b.get("mode", "daily")
+            fields = b.get("fields") or {}
+            if not any((fields.get(k) or "").strip() for k in fields):
+                return self._send(400, {"ok": False, "error": "최소 1개 항목을 입력해주세요."})
+            prompt = SIMULATOR_BRIEF_PROMPT if sim_mode == "brief" else SIMULATOR_DAILY_PROMPT
+            user_msg = _build_simulator_input(sim_mode, fields)
+            result = _call_claude(prompt, user_msg)
+            if not result:
+                return self._send(500, {"ok": False, "error": "AI 리뷰에 실패했습니다. API 키를 확인하세요."})
+            return self._send(200, {"ok": True, "result": result})
+        if path == "/api/simulator/draft":
+            sim_mode = b.get("mode", "daily")
+            text = (b.get("text") or "").strip()
+            if not text:
+                return self._send(400, {"ok": False, "error": "텍스트를 입력해주세요."})
+            user_msg = f"[MODE:{sim_mode}]\n{text}"
+            result = _call_claude(SIMULATOR_DRAFT_PROMPT, user_msg)
+            if not result:
+                return self._send(500, {"ok": False, "error": "AI 드래프트 생성에 실패했습니다."})
+            return self._send(200, {"ok": True, "fields": result})
         # 이하 쓰기: user+pin 검증
         uid = b.get("user", ""); pin = b.get("pin", "")
         if not auth(uid, pin): return self._send(401, {"ok": False, "error": "인증 실패"})
