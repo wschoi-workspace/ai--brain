@@ -2117,7 +2117,12 @@ def main() -> None:
             WAITING_QUESTION: [file_handler, MessageHandler(filters.TEXT & ~filters.COMMAND, receive_question)],
             WAITING_COMPLETION: [file_handler, MessageHandler(filters.TEXT & ~filters.COMMAND, receive_completion)],
         },
-        fallbacks=[CommandHandler("cancel", cancel)],
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+            # 핫픽스(2026-07-15): 미완료 세션(pickle 부활 포함)이 살아있으면 /report가
+            # 어떤 핸들러에도 안 걸려 무반응이 되는 함정 — 진행 중에도 /report = 새로 시작.
+            CommandHandler("report", start_report),
+        ],
         name="report_conv",
         persistent=True,  # 진행 중 보고 상태를 재시작에도 보존
     )
