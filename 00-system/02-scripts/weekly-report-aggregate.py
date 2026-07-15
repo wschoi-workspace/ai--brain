@@ -179,7 +179,7 @@ def match_assignments_to_daily(assignments: list[dict], records: list[dict]) -> 
     """
     import re
     for a in assignments:
-        if a["status"] == "완료":
+        if a["status"] in ("완료", "승인"):
             continue
         # 분장 업무에서 핵심 키워드 추출 (2자 이상 단어)
         words = [w for w in re.split(r'[\s/·,\-]+', a["task"]) if len(w) >= 2]
@@ -503,7 +503,7 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
     for t in teams:
         t_assigns = assign_by_team.get(t["team"], [])
         if t_assigns:
-            done = sum(1 for a in t_assigns if a["status"] == "완료")
+            done = sum(1 for a in t_assigns if a["status"] in ("완료", "승인"))
             t["assignment_total"] = len(t_assigns)
             t["assignment_done"] = done
             t["assignment_rate"] = round(done / len(t_assigns) * 100)

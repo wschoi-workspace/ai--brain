@@ -592,7 +592,7 @@ def _person_card(p: dict) -> str:
     # 이번주 분장 — 담당 항목 + 상태 뱃지
     asg_html = ""
     if p.get("assignments"):
-        st_cls = {"완료": "as-done", "진행중": "as-doing"}
+        st_cls = {"완료": "as-done", "승인": "as-done", "진행중": "as-doing"}
         lines = []
         for a in p["assignments"]:
             dl = f' <span class="as-dl">~{_esc(a["deadline"][5:] if len(a.get("deadline",""))>=10 else a.get("deadline",""))}</span>' if a.get("deadline") else ""
@@ -649,7 +649,7 @@ def _vz_item_row(it: dict) -> str:
 
 def _vz_asg_row(a: dict) -> str:
     st = a.get("status") or "미착수"
-    cls = {"완료": "as-done", "진행중": "as-doing"}.get(st, "as-todo")
+    cls = {"완료": "as-done", "승인": "as-done", "진행중": "as-doing"}.get(st, "as-todo")
     dl = a.get("deadline") or ""
     dls = f' <span class="as-dl">~{_esc(dl[5:] if len(dl) >= 10 else dl)}</span>' if dl else ""
     return (f'<div class="as-item"><span class="as-st {cls}">{_esc(st)}</span>'
