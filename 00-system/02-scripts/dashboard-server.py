@@ -1586,6 +1586,33 @@ def _tg_chat_id(name):
     return None
 
 
+def _brief_item_detail(date_str, item, src):
+    """브리프 JSON에서 항목(title)+보고자 매칭 → 보고 원문(detail). 대표 브리프 → 팀 브리프 순."""
+    def _cands(doc):
+        out = list(doc.get("items") or []) + list(doc.get("decision_summary") or []) + list(doc.get("top5") or [])
+        for t in (doc.get("teams") or []):
+            out += list(t.get("top") or [])
+        return out
+    files = [BRIEF_DIR / f"daily-brief-{date_str}.json"] + sorted(BRIEF_DIR.glob(f"daily-brief-{date_str}-*.json"))
+    for f in files:
+        try:
+            doc = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        for c in _cands(doc):
+            if not isinstance(c, dict):
+                continue
+            title = (c.get("title") or "").strip()
+            if not title:
+                continue
+            if title != item and title not in item and item not in title:
+                continue
+            if src and (c.get("source_employee") or "").strip() not in ("", src):
+                continue
+            return (c.get("detail") or "").strip()
+    return ""
+
+
 def _tg_send(chat_id, text):
     """일일보고 봇으로 메시지 발송 — 실패해도 예외 없이 False (코멘트 저장은 유지)."""
     tok = os.environ.get("DAILY_REPORT_BOT_TOKEN", "")
@@ -2443,7 +2470,12 @@ class H(BaseHTTPRequestHandler):
             if src and src != uid:
                 cid = _tg_chat_id(src)
                 if cid:
-                    tg = _tg_send(cid, f"💬 {uid} 님의 코멘트 ({ds} 브리프)\n▸ {item}\n\n{text}\n\n— 아리사 OS 브리프에서 확인할 수 있어요")
+                    detail = _brief_item_detail(ds, item, src)
+                    quoted = f"▸ {item}" + (f"\n{detail}" if detail else "")
+                    tg = _tg_send(cid, f"💬 {uid} 님의 코멘트 ({ds} 브리프)\n\n"
+                                       f"📌 보고하신 내용\n{quoted}\n\n"
+                                       f"💬 코멘트\n{text}\n\n"
+                                       f"— 아리사 OS 브리프에서 확인할 수 있어요")
             cmt = {"date": ds, "item": item, "src": src, "author": uid, "text": text,
                    "ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "tg_sent": tg}
             arr = _load_comments(ds)
