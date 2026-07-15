@@ -1613,6 +1613,139 @@ def _brief_item_detail(date_str, item, src):
     return ""
 
 
+def _report_raw_lookup(date_str, item, src):
+    """일일보고 시트(SSOT)에서 담당자 보고 원문을 그대로 조회 — 축약 없음.
+    메타 탭(요청한 결정 H·지원 요청 I·블로커 F·질문 L) 필드와 핵심업무 행 중
+    항목과 토큰이 가장 겹치는 것을 반환. 겹침 2토큰 미만이면 '' (오매칭 방지)."""
+    if not (_asgws and DAILY_SHEET and src):
+        return ""
+    try:
+        from shared.normalize import normalize_date as _nd
+    except Exception:
+        _nd = lambda s: (s or "").strip()[:10]
+    # 브리프는 전날 저녁 제출 보고로 만들어짐 — 브리프 날짜 + 직전 3영업일까지 조회
+    dates = {date_str}
+    try:
+        d = datetime.date.fromisoformat(date_str)
+        while len(dates) < 4:
+            d -= datetime.timedelta(days=1)
+            if d.weekday() < 5:
+                dates.add(d.isoformat())
+    except ValueError:
+        pass
+    toks = _proj_tokens(item)
+    def _score(t):
+        return len(toks & _proj_tokens(t))
+    def _mine(r, width):
+        r = list(r) + [""] * (width - len(r))
+        return r if ((_nd(r[0]) or "") in dates and (r[1] or "").strip() == src) else None
+    best_txt, best = "", 0
+    try:
+        meta = _asgws.values_get(DAILY_SHEET, "메타!A2:O5000", retries=2, timeout=20)
+    except Exception:
+        meta = []
+    for r in meta:
+        r = _mine(r, 15)
+        if not r:
+            continue
+        for lab, txt in (("요청한 결정", r[7]), ("지원 요청", r[8]), ("블로커", r[5]), ("질문", r[11])):
+            txt = (txt or "").strip()
+            if txt and _score(txt) > best:
+                best, best_txt = _score(txt), f"{lab}: {txt}"
+    try:
+        core = _asgws.values_get(DAILY_SHEET, "핵심업무!A2:L5000", retries=2, timeout=20)
+    except Exception:
+        core = []
+    for r in core:
+        r = _mine(r, 12)
+        if not r:
+            continue
+        blob = " ".join([(r[5] or ""), (r[9] or ""), (r[10] or ""), (r[11] or "")])
+        s = _score(blob)
+        if s > best:
+            parts = []
+            if (r[5] or "").strip():
+                parts.append(f"[업무] {r[5].strip()}")
+            for lab, v in (("성과", r[11]), ("이슈", r[10]), ("산출물", r[9])):
+                if (v or "").strip():
+                    parts.append(f"{lab}: {v.strip()}")
+            if parts:
+                best, best_txt = s, "\n".join(parts)
+    # 메타 raw(K열 — 보고 원문 전체)에서 블록 매칭: '['헤더/빈 줄로 블록 분리 후 최다 겹침 블록
+    for r in meta:
+        r = _mine(r, 15)
+        if not r or not (r[10] or "").strip():
+            continue
+        block, blocks = [], []
+        for ln in (r[10] or "").splitlines():
+            if (ln.strip().startswith("[") or not ln.strip()) and block:
+                blocks.append("\n".join(block)); block = []
+            if ln.strip():
+                block.append(ln.rstrip())
+        if block:
+            blocks.append("\n".join(block))
+        for blk in blocks:
+            s = _score(blk)
+            if s > best:
+                best, best_txt = s, blk.strip()
+    # Basket 매장보고 시트 (송금·승인/구매 등 결재성 요청은 여기 기록됨)
+    bsid = os.environ.get("BASKET_REPORT_SHEET_ID", "")
+    if bsid:
+        try:
+            brows = _asgws.values_get(bsid, "일일보고!A2:O5000", retries=2, timeout=20)
+        except Exception:
+            brows = []
+        blabs = {3: "매출", 4: "지출", 5: "송금·승인", 6: "특이사항", 7: "장비",
+                 8: "업무보고", 9: "대관", 10: "스태프", 11: "구매", 12: "입점제안", 13: "복기"}
+        for r in brows:
+            r = list(r) + [""] * (15 - len(r))
+            if (_nd(r[1]) or "") not in dates or (r[2] or "").strip() != src:
+                continue
+            for idx, lab in blabs.items():
+                txt = (r[idx] or "").strip()
+                if txt and _score(txt) > best:
+                    best, best_txt = _score(txt), f"[매장보고 · {lab}] {txt}"
+    return best_txt if best >= 2 else ""
+
+
+def _brief_item_source(date_str, item, src):
+    """담당자가 보고한 원문 — ① 일일보고 시트 원문 → ② 브리프 JSON people.core →
+    ③ AI 요약 detail 순 폴백. 원문은 축약 없이 그대로."""
+    raw = _report_raw_lookup(date_str, item, src)
+    if raw:
+        return raw
+    toks_item = _proj_tokens(item)
+    best, best_score, n_cands = None, 0, 0
+    files = [BRIEF_DIR / f"daily-brief-{date_str}.json"] + sorted(BRIEF_DIR.glob(f"daily-brief-{date_str}-*.json"))
+    for f in files:
+        try:
+            doc = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        for p in (doc.get("people") or []):
+            if src and (p.get("name") or "").strip() != src:
+                continue
+            for e in (p.get("core") or []):
+                if not isinstance(e, dict):
+                    continue
+                n_cands += 1
+                blob = " ".join(str(e.get(k) or "") for k in ("task", "issue", "detail", "outcome", "output"))
+                score = len(toks_item & _proj_tokens(blob))
+                if score > best_score:
+                    best, best_score = e, score
+    # 겹침 2토큰↑ 신뢰, 보고 행이 1건뿐이면 1토큰도 허용 (오매칭 방지)
+    if best and (best_score >= 2 or (best_score >= 1 and n_cands == 1)):
+        parts = []
+        if (best.get("task") or "").strip():
+            parts.append(f"[업무] {best['task'].strip()}")
+        for lab, k in (("성과", "outcome"), ("이슈", "issue"), ("상세", "detail"), ("산출물", "output")):
+            if (best.get(k) or "").strip():
+                parts.append(f"{lab}: {best[k].strip()}")
+        if parts:
+            return "\n".join(parts)
+    return _brief_item_detail(date_str, item, src)
+
+
 def _tg_send(chat_id, text):
     """일일보고 봇으로 메시지 발송 — 실패해도 예외 없이 False (코멘트 저장은 유지)."""
     tok = os.environ.get("DAILY_REPORT_BOT_TOKEN", "")
@@ -1645,7 +1778,7 @@ fetch('/api/brief-comments?user='+encodeURIComponent(sess.name)+'&date='+DS)
 .then(function(r){return r.json();}).then(function(d){
   if(!d.ok) return;
   var by={};(d.comments||[]).forEach(function(c){var k=c.item+'|'+(c.src||'');(by[k]=by[k]||[]).push(c);});
-  [].slice.call(document.querySelectorAll('.vz-item')).forEach(function(el){
+  [].slice.call(document.querySelectorAll('.vz-item, .tb-chip')).forEach(function(el){
     var t=el.querySelector('.vz-t'), s=el.querySelector('.vz-src');
     if(!t) return;
     var item=t.textContent.trim(), src=s?s.textContent.trim():'';
@@ -1819,8 +1952,11 @@ def _team_block_html(dba, td, only_person=None, chips_max=3):
         cs = []
         for it in tops:
             col = dba.CAT_META.get(it.get("category"), ("", "var(--accent)"))[1]
+            src = esc(it.get("source_employee") or "")
             cs.append(f'<span class="tb-chip" style="border-left:3px solid {col}">'
-                      f'{dba._urg_badge(it.get("urgency", "low"))}{esc(it.get("title", ""))}</span>')
+                      f'{dba._urg_badge(it.get("urgency", "low"))}<span class="vz-t">{esc(it.get("title", ""))}</span>'
+                      + (f' <span class="vz-src" style="color:var(--muted);font-size:11px">{src}</span>' if src else "")
+                      + '</span>')
         chips = f'<div class="tb-chips">{"".join(cs)}</div>'
     people = td.get("people") or []
     if only_person is not None:
@@ -2139,6 +2275,7 @@ class H(BaseHTTPRequestHandler):
             page = _brief_view_page(f"팀 Brief · {' · '.join(teams)}", f"{' · '.join(teams)} 오늘 브리프",
                                     f"{sel} · 팀 리더", nav + "".join(blocks), allow,
                                     "담당 팀 리더 전용 화면입니다")
+            page = page.replace("</body>", BRIEF_CMT_JS.replace("__DATE__", sel) + "</body>", 1)
             return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/team-weekly":
             # 팀 주간 — 로그인은 셸이 처리(team_weekly_sess). team별 최신 파일.
@@ -2470,7 +2607,7 @@ class H(BaseHTTPRequestHandler):
             if src and src != uid:
                 cid = _tg_chat_id(src)
                 if cid:
-                    detail = _brief_item_detail(ds, item, src)
+                    detail = _brief_item_source(ds, item, src)
                     quoted = f"▸ {item}" + (f"\n{detail}" if detail else "")
                     tg = _tg_send(cid, f"💬 {uid} 님의 코멘트 ({ds} 브리프)\n\n"
                                        f"📌 보고하신 내용\n{quoted}\n\n"
