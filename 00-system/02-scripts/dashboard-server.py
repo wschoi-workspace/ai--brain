@@ -1519,13 +1519,21 @@ def _match_project(ap, pname):
     return any(len(t) >= 3 or re.fullmatch(r"[가-힣]{2,}", t) for t in common)
 
 
-def _project_assignments(pname):
+def _match_project_p(ap, p):
+    """분장 프로젝트명(ap) vs 프로젝트 dict — 정식 명칭 + aliases(별칭·구표기)까지 매칭."""
+    if _match_project(ap, p.get("name") or ""):
+        return True
+    return any(_match_project(ap, al) for al in (p.get("aliases") or []))
+
+
+def _project_assignments(pname, aliases=None):
     """최근 2주 주간분장 중 프로젝트명이 매칭되는 항목 — 프로젝트 상세 '분장 업무' 섹션용.
     (엄격한 '이번주' 필터는 주가 바뀌면 미완료 할일이 사라져 2주 윈도우 사용.)
-    완전 동일 행은 표시 중복 제거."""
+    완전 동일 행은 표시 중복 제거. aliases(별칭)도 매칭 대상."""
     pname = (pname or "").strip()
     if not pname:
         return []
+    names = [pname] + list(aliases or [])
     today = datetime.date.today()
     ws = today - datetime.timedelta(days=today.weekday() + 7)  # 지난주 월요일부터
     we = today
@@ -1539,7 +1547,7 @@ def _project_assignments(pname):
         if not (ws <= d <= we):
             continue
         ap = (a.get("project") or "").strip()
-        if not ap or not _match_project(ap, pname):
+        if not ap or not any(_match_project(ap, n) for n in names):
             continue
         key = (ap, a.get("task"), a.get("assignee"), a.get("deadline"), a.get("status"))
         if key in seen:
@@ -1569,7 +1577,7 @@ def _record_done_task(assign, approver):
     pn = (assign.get("project") or "").strip()
     if not pn:
         return False
-    tp = next((p for p in load_projects() if _match_project(pn, p.get("name") or "")), None)
+    tp = next((p for p in load_projects() if _match_project_p(pn, p)), None)
     if not tp:
         return False
     k = _akey(assign.get("date"), assign.get("task"), assign.get("assignee"))
@@ -2590,7 +2598,7 @@ class H(BaseHTTPRequestHandler):
             if not can_view(uid, p): return self._send(403, {"ok": False, "error": "forbidden"})
             if _sync_assign_status(p): save_project(p)  # 분장 시트(SSOT) 상태 lazy 반영
             return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
-                                    "assignments": _project_assignments(p.get("name") or "")})
+                                    "assignments": _project_assignments(p.get("name") or "", p.get("aliases"))})
         if path == "/api/brief-comments":
             uid = (q.get("user") or [""])[0]
             if not load_users().get(uid): return self._send(401, {"ok": False, "error": "unknown user"})
@@ -2725,7 +2733,7 @@ class H(BaseHTTPRequestHandler):
             for name in (b.get("names") or []):
                 name = (name or "").strip()
                 if not name: continue
-                hit = next((p for p in projs if _match_project(name, p.get("name") or "")), None)
+                hit = next((p for p in projs if _match_project_p(name, p)), None)
                 if hit:
                     res.append({"name": name, "matched": {"id": hit.get("id"), "name": hit.get("name")}})
                 else:
@@ -2808,7 +2816,7 @@ class H(BaseHTTPRequestHandler):
                 pn = (it.get("project") or "").strip()
                 if pn: by_proj.setdefault(pn, []).append(it)
             for pn, its in by_proj.items():
-                tp = target.get(pn) or next((p for p in projs if _match_project(pn, p.get("name") or "")), None)
+                tp = target.get(pn) or next((p for p in projs if _match_project_p(pn, p)), None)
                 if not tp: continue
                 n_add = _append_assign_tasks(tp, its)
                 if n_add:
