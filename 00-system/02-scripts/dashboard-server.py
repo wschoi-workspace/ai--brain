@@ -1560,6 +1560,101 @@ def _sync_assign_status(p):
     return changed
 
 
+# ── 브리프 코멘트 (대표·리더 → 보고자 피드백 + 텔레그램 회신) ──
+CMT_DIR = BRIEF_DIR / "comments"
+
+
+def _load_comments(date_str):
+    f = CMT_DIR / f"{date_str}.json"
+    try:
+        return json.loads(f.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+
+def _save_comments(date_str, arr):
+    CMT_DIR.mkdir(parents=True, exist_ok=True)
+    with _lock:
+        (CMT_DIR / f"{date_str}.json").write_text(json.dumps(arr, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def _tg_chat_id(name):
+    """직원명 → 텔레그램 chat_id (arisa-employees.json by_telegram_id 역매핑)."""
+    for cid, nm in (load_emp().get("by_telegram_id", {}) or {}).items():
+        if nm == name:
+            return cid
+    return None
+
+
+def _tg_send(chat_id, text):
+    """일일보고 봇으로 메시지 발송 — 실패해도 예외 없이 False (코멘트 저장은 유지)."""
+    tok = os.environ.get("DAILY_REPORT_BOT_TOKEN", "")
+    if not (tok and chat_id):
+        return False
+    import urllib.request
+    try:
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{tok}/sendMessage",
+            data=json.dumps({"chat_id": chat_id, "text": text}).encode("utf-8"),
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return bool(json.loads(r.read().decode()).get("ok"))
+    except Exception:
+        return False
+
+
+# 브리프 페이지 주입용 코멘트 위젯 — .vz-item(제목+보고자) 단위로 코멘트 표시·입력.
+# __DATE__ 는 서빙 시 해당 브리프 날짜로 치환. 세션은 셸이 심어둔 localStorage 키 재사용.
+BRIEF_CMT_JS = """<script>(function(){
+var DS='__DATE__', sess=null;
+['brief_sess','team_brief_sess','pm_sess'].some(function(k){
+  try{var s=JSON.parse(localStorage.getItem(k)||'null'); if(s&&s.name&&s.pin){sess=s;return true;}}catch(e){}
+  return false;});
+if(!sess) return;
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function cline(c){return '<div style="color:var(--muted,#8A857E);padding:3px 0">💬 <b style="color:var(--fg,#eee)">'
+  +esc(c.author)+'</b> '+esc(c.text)+' <span style="opacity:.6">'+esc(c.ts)+(c.tg_sent?' · TG✓':'')+'</span></div>';}
+fetch('/api/brief-comments?user='+encodeURIComponent(sess.name)+'&date='+DS)
+.then(function(r){return r.json();}).then(function(d){
+  if(!d.ok) return;
+  var by={};(d.comments||[]).forEach(function(c){var k=c.item+'|'+(c.src||'');(by[k]=by[k]||[]).push(c);});
+  [].slice.call(document.querySelectorAll('.vz-item')).forEach(function(el){
+    var t=el.querySelector('.vz-t'), s=el.querySelector('.vz-src');
+    if(!t) return;
+    var item=t.textContent.trim(), src=s?s.textContent.trim():'';
+    var wrap=document.createElement('div'); wrap.style.cssText='margin:2px 0 8px 22px;font-size:12px';
+    var list=document.createElement('div'); wrap.appendChild(list);
+    (by[item+'|'+src]||[]).forEach(function(c){ list.innerHTML+=cline(c); });
+    var btn=document.createElement('a'); btn.textContent='💬 코멘트';
+    btn.style.cssText='cursor:pointer;color:var(--accent,#6C5CE7);font-size:11px';
+    btn.onclick=function(){
+      if(wrap.querySelector('.bc-in')) return;
+      var box=document.createElement('div'); box.className='bc-in'; box.style.cssText='display:flex;gap:6px;margin-top:4px';
+      box.innerHTML='<input style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);'
+        +'border-radius:6px;padding:6px 8px;color:inherit;font:inherit;font-size:12px" placeholder="코멘트 입력 — 등록 시 '
+        +esc(src||'보고자')+' 텔레그램으로 회신">'
+        +'<button style="background:var(--accent,#6C5CE7);border:0;border-radius:6px;color:#fff;padding:6px 12px;'
+        +'font-size:12px;cursor:pointer">등록</button>';
+      var inp=box.querySelector('input'), sb=box.querySelector('button');
+      function go(){
+        var v=inp.value.trim(); if(!v) return; sb.disabled=true;
+        fetch('/api/brief-comment',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:sess.name,pin:sess.pin,date:DS,item:item,src:src,text:v})})
+        .then(function(r){return r.json();}).then(function(d2){
+          if(d2.ok){ box.remove(); list.innerHTML+=cline(d2.comment); }
+          else{ sb.disabled=false; alert(d2.error||'등록 실패'); }
+        }).catch(function(){ sb.disabled=false; alert('서버 오류'); });
+      }
+      sb.onclick=go; inp.onkeydown=function(e){ if(e.key==='Enter') go(); };
+      wrap.appendChild(box); inp.focus();
+    };
+    wrap.appendChild(btn);
+    el.parentNode.insertBefore(wrap, el.nextSibling);
+  });
+});
+})();</script>"""
+
+
 # ── 계정별 브리프 뷰 (/my-brief 직원 · /lead-brief 겸임리더) — 브리프 JSON 서버렌더 ──
 _DBA = None
 
@@ -1907,6 +2002,7 @@ class H(BaseHTTPRequestHandler):
                    '<span style="color:var(--muted);font-size:11px;margin-right:4px">최근 영업일</span>'
                    + "".join(btns) + '</div>')
             html = target.read_text(encoding="utf-8").replace("</header>", "</header>" + nav, 1)
+            html = html.replace("</body>", BRIEF_CMT_JS.replace("__DATE__", sel) + "</body>", 1)
             return self._send(200, html.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/team-brief":
             # 팀 Brief — 로그인은 셸이 처리(team_brief_sess). team별 파일 + 날짜네비.
@@ -1946,6 +2042,7 @@ class H(BaseHTTPRequestHandler):
                    '<span style="color:var(--muted);font-size:11px;margin-right:4px">최근 영업일</span>'
                    + "".join(btns) + '</div>')
             html_str = target.read_text(encoding="utf-8").replace("</header>", "</header>" + nav, 1)
+            html_str = html_str.replace("</body>", BRIEF_CMT_JS.replace("__DATE__", sel) + "</body>", 1)
             return self._send(200, html_str.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/my-brief":
             # 직원용 개인 브리프 — 내 카드(상세+분장) + 팀 헤드라인·핵심칩만 (동료 카드 비공개).
@@ -2233,6 +2330,12 @@ class H(BaseHTTPRequestHandler):
             if _sync_assign_status(p): save_project(p)  # 분장 시트(SSOT) 상태 lazy 반영
             return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
                                     "assignments": _project_assignments(p.get("name") or "")})
+        if path == "/api/brief-comments":
+            uid = (q.get("user") or [""])[0]
+            if not load_users().get(uid): return self._send(401, {"ok": False, "error": "unknown user"})
+            ds = (q.get("date") or [""])[0]
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", ds): return self._send(400, {"ok": False, "error": "date 형식"})
+            return self._send(200, {"ok": True, "comments": _load_comments(ds)})
         return self._send(404, {"ok": False, "error": "not found"})
 
     def do_POST(self):
@@ -2324,6 +2427,29 @@ class H(BaseHTTPRequestHandler):
                 lines.append(seg)
             items = _llm_todo("\n".join(lines), max_items=30)
             return self._send(200, {"ok": True, "items": items, "rows": len(rows)})
+        if path == "/api/brief-comment":
+            # 브리프 항목 코멘트 — 대표·리더. 저장(시스템 피드백) + 보고자 텔레그램 회신
+            if not (is_admin(uid) or is_leader(uid)):
+                return self._send(403, {"ok": False, "error": "코멘트 권한 없음(대표·리더)"})
+            ds = (b.get("date") or "").strip()
+            item = (b.get("item") or "").strip()
+            src = (b.get("src") or "").strip()
+            text = (b.get("text") or "").strip()
+            if not (re.fullmatch(r"\d{4}-\d{2}-\d{2}", ds) and item and text):
+                return self._send(400, {"ok": False, "error": "date·item·text 필수"})
+            if len(text) > 1000:
+                return self._send(400, {"ok": False, "error": "코멘트는 1000자 이내"})
+            tg = False
+            if src and src != uid:
+                cid = _tg_chat_id(src)
+                if cid:
+                    tg = _tg_send(cid, f"💬 {uid} 님의 코멘트 ({ds} 브리프)\n▸ {item}\n\n{text}\n\n— 아리사 OS 브리프에서 확인할 수 있어요")
+            cmt = {"date": ds, "item": item, "src": src, "author": uid, "text": text,
+                   "ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "tg_sent": tg}
+            arr = _load_comments(ds)
+            arr.append(cmt)
+            _save_comments(ds, arr)
+            return self._send(200, {"ok": True, "comment": cmt, "tg_sent": tg})
         if path == "/api/assign-project-check":
             # 분장 그룹 프로젝트명 → 기존 매칭/신규 판별 + 유사 후보 (대표·리더 전용)
             if not (is_admin(uid) or is_leader(uid)):
