@@ -1165,20 +1165,108 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   function mwCommit(){
     var items=[], msg=document.getElementById('mw-msg');
     document.querySelectorAll('#mw-todos .tg-box').forEach(function(g){
-      var proj=g.querySelector('.tg-proj').value.trim();
+      if(g.id==='mw-projconf') return;
+      var proj=g.querySelector('.tg-proj'); if(!proj) return;
+      var pv=proj.value.trim();
       g.querySelectorAll('.td-row').forEach(function(r){
         var task=r.querySelector('.td-task').value.trim();
-        if(task) items.push({assignee:r.querySelector('.td-as').value, task:task, project:proj,
+        if(task) items.push({assignee:r.querySelector('.td-as').value, task:task, project:pv,
           deadline:r.querySelector('.td-dl').value, priority:r.querySelector('.td-pr').value});
       });
     });
     if(!items.length){ msg.textContent='등록할 항목이 없습니다'; return; }
     if(items.some(function(i){return !i.assignee;})){ msg.textContent='모든 항목에 담당자를 지정하세요'; return; }
+    var names=[]; items.forEach(function(i){ var p=(i.project||'').trim(); if(p && names.indexOf(p)<0) names.push(p); });
+    if(!names.length){ mwSend(items, []); return; }
+    msg.textContent='프로젝트 확인 중…';
+    fetch('/api/assign-project-check',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({user:SESS.name,pin:SESS.pin,names:names})})
+      .then(function(r){return r.json();}).then(function(d){
+        if(!d.ok){ msg.textContent=d.error||'프로젝트 확인 실패'; return; }
+        var news=(d.results||[]).filter(function(x){return x.isNew;});
+        if(!news.length){ mwSend(items, []); return; }
+        mwRenderProjConfirm(items, news, d.all||[], d.results||[]);
+      }).catch(function(){ msg.textContent='서버 오류'; });
+  }
+  function pcPmOpts(){
+    var names=MW_ASSIGNEES.map(function(a){return a.name;});
+    if(names.indexOf(SESS.name)<0) names.unshift(SESS.name);
+    return names.map(function(n){return '<option'+(n===SESS.name?' selected':'')+'>'+esc(n)+'</option>';}).join('');
+  }
+  function mwRenderProjConfirm(items, news, all, results){
+    // 신규 프로젝트 확인 패널 — 그룹별 [신규 생성(PM·일정)] 또는 [기존에 합치기] 선택 후 확정
+    var msg=document.getElementById('mw-msg'); msg.textContent='';
+    var old=document.getElementById('mw-projconf'); if(old) old.remove();
+    var today=new Date().toISOString().slice(0,10);
+    var box=document.createElement('div'); box.id='mw-projconf'; box.className='tg-box';
+    var h='<div class="tg-head"><span class="tg-label">🆕 신규 프로젝트 확인</span>'
+      +'<span class="sub2">포트폴리오에 없는 이름입니다 — 신규 생성 또는 기존 프로젝트에 합치세요</span></div>';
+    var matchedInfo=(results||[]).filter(function(x){return x.matched && x.name!==x.matched.name;})
+      .map(function(x){ return '“'+esc(x.name)+'” → 기존 “'+esc(x.matched.name)+'”에 반영됩니다'; });
+    if(matchedInfo.length){ h+='<div class="sub2" style="padding:4px 2px">'+matchedInfo.join(' · ')+'</div>'; }
+    news.forEach(function(n,i){
+      var opts='<option value="">— 기존 프로젝트 선택 —</option>', candIds={};
+      (n.candidates||[]).forEach(function(c){ candIds[c.id]=1; opts+='<option value="'+esc(c.id)+'">'+esc(c.name)+' (유사)</option>'; });
+      (all||[]).forEach(function(c){ if(!candIds[c.id]) opts+='<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'; });
+      var dls=items.filter(function(it){return (it.project||'').trim()===n.name && it.deadline;})
+        .map(function(it){return it.deadline;}).sort();
+      var endDef=dls.length?dls[dls.length-1]:'';
+      h+='<div class="pc-row" data-name="'+esc(n.name)+'" style="padding:10px 2px;border-top:1px solid rgba(255,255,255,.08)">'
+        +'<div style="font-weight:600;margin-bottom:6px">🆕 '+esc(n.name)+'</div>'
+        +'<label><input type="radio" name="pc-act-'+i+'" value="create" checked> 신규 생성</label>'
+        +'<label style="margin-left:12px"><input type="radio" name="pc-act-'+i+'" value="merge"> 기존에 합치기</label>'
+        +'<div class="pc-create" style="margin-top:6px">'
+          +'<span class="tg-label">PM(리드)</span><select class="pc-pm">'+pcPmOpts()+'</select> '
+          +'<span class="tg-label">시작</span><input type="date" class="pc-start" value="'+today+'"> '
+          +'<span class="tg-label">종료</span><input type="date" class="pc-end" value="'+esc(endDef)+'">'
+        +'</div>'
+        +'<div class="pc-merge" style="margin-top:6px;display:none"><select class="pc-target">'+opts+'</select></div>'
+        +'</div>';
+    });
+    h+='<div class="td-actions" style="margin-top:8px"><button id="pc-ok">확정 등록</button>'
+      +'<button id="pc-cancel" class="btn-sec">취소</button></div>';
+    box.innerHTML=h;
+    var todos=document.getElementById('mw-todos'); todos.parentNode.insertBefore(box, todos.nextSibling);
+    box.querySelectorAll('.pc-row').forEach(function(row){
+      row.querySelectorAll('input[type=radio]').forEach(function(rb){ rb.onchange=function(){
+        var m=this.value==='merge';
+        row.querySelector('.pc-create').style.display=m?'none':'';
+        row.querySelector('.pc-merge').style.display=m?'':'none';
+      };});
+    });
+    document.getElementById('pc-cancel').onclick=function(){ box.remove(); };
+    document.getElementById('pc-ok').onclick=function(){
+      var acts=[], bad=null;
+      box.querySelectorAll('.pc-row').forEach(function(row){
+        var name=row.getAttribute('data-name');
+        var act=row.querySelector('input[type=radio]:checked').value;
+        if(act==='merge'){
+          var t=row.querySelector('.pc-target').value;
+          if(!t){ bad='“'+name+'”: 합칠 기존 프로젝트를 선택하세요'; return; }
+          acts.push({name:name, action:'merge', mergeId:t});
+        } else {
+          acts.push({name:name, action:'create', pm:row.querySelector('.pc-pm').value||SESS.name,
+            start:row.querySelector('.pc-start').value, end:row.querySelector('.pc-end').value});
+        }
+      });
+      if(bad){ msg.textContent=bad; return; }
+      box.remove();
+      mwSend(items, acts);
+    };
+  }
+  function mwSend(items, projectActions){
+    var msg=document.getElementById('mw-msg');
     msg.textContent='등록 중…';
     fetch('/api/assign-commit',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({user:SESS.name,pin:SESS.pin,items:items})})
+      body:JSON.stringify({user:SESS.name,pin:SESS.pin,items:items,projectActions:projectActions||[]})})
       .then(function(r){return r.json();}).then(function(d){
-        if(d.added){ renderMyWork(); } else { msg.textContent=(d.errors&&d.errors.join(', '))||'등록 실패(주간분장 탭 확인)'; }
+        if(d.added){
+          var extra=[];
+          if(d.created&&d.created.length) extra.push('신규 프로젝트 생성: '+d.created.join(', '));
+          if(d.merged&&d.merged.length) extra.push('기존 프로젝트에 합침: '+d.merged.join(', '));
+          if(extra.length) alert('등록 완료 ('+d.added+'건) — '+extra.join(' / '));
+          renderMyWork();
+        } else { msg.textContent=(d.errors&&d.errors.join(', '))||'등록 실패(주간분장 탭 확인)'; }
       }).catch(function(){ msg.textContent='서버 오류'; });
   }
   function mwAssignListHtml(A, withAssignee){
@@ -1408,6 +1496,68 @@ def _project_assignments(pname):
         out.append(a)
     out.sort(key=lambda a: (a.get("status") == "완료", a.get("deadline") or "9999"))
     return out
+
+
+# ── 분장 ↔ 프로젝트 포트폴리오 연동 ──────────────────────────
+_ASSIGN_ST_MAP = {"미착수": "Not Started", "진행중": "In Progress", "완료": "Done"}
+_ASSIGN_PROG_MAP = {"미착수": 0, "진행중": 50, "완료": 100}
+
+
+def _akey(date, task, assignee):
+    """분장 행 식별키(등록일|업무|담당자) — 프로젝트 tasks 중복 방지·상태 동기화용."""
+    return "|".join([(date or "").strip()[:10], (task or "").strip(), (assignee or "").strip()])
+
+
+def _similar_projects(name, projects, limit=3):
+    """유사 프로젝트 후보 — 이름 토큰 교집합 많은 순 최대 limit개."""
+    toks = _proj_tokens(name)
+    scored = []
+    for p in projects:
+        common = toks & _proj_tokens(p.get("name") or "")
+        if common:
+            scored.append((len(common), p))
+    scored.sort(key=lambda x: -x[0])
+    return [{"id": p.get("id"), "name": p.get("name") or p.get("id")} for _, p in scored[:limit]]
+
+
+def _append_assign_tasks(p, items):
+    """분장 항목을 프로젝트 tasks에 영구 반영 (akey 동일 항목 skip). 추가 건수 반환."""
+    tasks = p.setdefault("tasks", [])
+    seen = {t.get("akey") for t in tasks if t.get("akey")}
+    today = datetime.date.today().isoformat()
+    added = 0
+    for it in items:
+        k = _akey(today, it.get("task"), it.get("assignee"))
+        if k in seen:
+            continue
+        seen.add(k)
+        tasks.append({"division": emp_team(it.get("assignee")) or "", "task": (it.get("task") or "").strip(),
+                      "owner": (it.get("assignee") or "").strip(), "start": today,
+                      "end": (it.get("deadline") or "").strip(), "status": "Not Started",
+                      "progress": 0, "akey": k})
+        added += 1
+    return added
+
+
+def _sync_assign_status(p):
+    """akey 있는 프로젝트 tasks 상태를 주간분장 시트(SSOT) 최신 상태로 갱신. 변경 여부 반환."""
+    keyed = [t for t in (p.get("tasks") or []) if t.get("akey")]
+    if not keyed:
+        return False
+    sheet = {}
+    for a in _assign_read():
+        sheet[_akey(a.get("date"), a.get("task"), a.get("assignee"))] = a.get("status") or "미착수"
+    changed = False
+    for t in keyed:
+        st = sheet.get(t["akey"])
+        if not st:
+            continue
+        new_st = _ASSIGN_ST_MAP.get(st, "Not Started")
+        if t.get("status") != new_st:
+            t["status"] = new_st
+            t["progress"] = _ASSIGN_PROG_MAP.get(st, 0)
+            changed = True
+    return changed
 
 
 # ── 계정별 브리프 뷰 (/my-brief 직원 · /lead-brief 겸임리더) — 브리프 JSON 서버렌더 ──
@@ -2080,6 +2230,7 @@ class H(BaseHTTPRequestHandler):
             p = get_project(pid)
             if not p: return self._send(404, {"ok": False, "error": "not found"})
             if not can_view(uid, p): return self._send(403, {"ok": False, "error": "forbidden"})
+            if _sync_assign_status(p): save_project(p)  # 분장 시트(SSOT) 상태 lazy 반영
             return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
                                     "assignments": _project_assignments(p.get("name") or "")})
         return self._send(404, {"ok": False, "error": "not found"})
@@ -2173,10 +2324,71 @@ class H(BaseHTTPRequestHandler):
                 lines.append(seg)
             items = _llm_todo("\n".join(lines), max_items=30)
             return self._send(200, {"ok": True, "items": items, "rows": len(rows)})
+        if path == "/api/assign-project-check":
+            # 분장 그룹 프로젝트명 → 기존 매칭/신규 판별 + 유사 후보 (대표·리더 전용)
+            if not (is_admin(uid) or is_leader(uid)):
+                return self._send(403, {"ok": False, "error": "분장 권한 없음"})
+            projs = load_projects()
+            res = []
+            for name in (b.get("names") or []):
+                name = (name or "").strip()
+                if not name: continue
+                hit = next((p for p in projs if _match_project(name, p.get("name") or "")), None)
+                if hit:
+                    res.append({"name": name, "matched": {"id": hit.get("id"), "name": hit.get("name")}})
+                else:
+                    res.append({"name": name, "isNew": True, "candidates": _similar_projects(name, projs)})
+            return self._send(200, {"ok": True, "results": res,
+                                    "all": [{"id": p.get("id"), "name": p.get("name") or p.get("id")} for p in projs]})
         if path == "/api/assign-commit":
             # 편집·담당자 지정 완료된 항목 일괄 등록
+            # + 프로젝트 연동: projectActions(create=포트폴리오 카드 자동 생성 / merge=기존 정식 명칭으로 치환)
+            #   등록 성공 항목은 대상 프로젝트 tasks에 영구 반영(akey 중복 방지)
             items = b.get("items") or []
-            added, errs = 0, []
+            actions = {}
+            for a in (b.get("projectActions") or []):
+                n = (a.get("name") or "").strip()
+                if n: actions[n] = a
+            projs = load_projects()
+            users_known = set(load_users().keys())
+            created, merged, proj_errs = [], [], []
+            name_map = {}   # 그룹명 → 정식 프로젝트명
+            target = {}     # 정식 프로젝트명 → 프로젝트 dict
+            for n, a in actions.items():
+                if a.get("action") == "merge":
+                    tp = get_project(a.get("mergeId") or "")
+                    if not tp:
+                        proj_errs.append(f"{n}: 합칠 프로젝트를 찾지 못함"); continue
+                    name_map[n] = tp.get("name") or n
+                    target[name_map[n]] = tp
+                    merged.append(tp.get("name"))
+                elif a.get("action") == "create":
+                    if not (is_admin(uid) or is_leader(uid)):
+                        proj_errs.append(f"{n}: 생성은 대표·팀 리더만"); continue
+                    pm = (a.get("pm") or uid).strip()
+                    if pm not in users_known:
+                        proj_errs.append(f"{n}: PM({pm}) 계정 없음"); continue
+                    today = datetime.date.today()
+                    grp = [it for it in items if (it.get("project") or "").strip() == n]
+                    dls = sorted(d for d in ((it.get("deadline") or "").strip() for it in grp) if d)
+                    start = (a.get("start") or "").strip() or today.isoformat()
+                    end = (a.get("end") or "").strip() or (dls[-1] if dls else "")
+                    mem = [pm] + [m for m in sorted({(it.get("assignee") or "").strip() for it in grp})
+                                  if m in users_known and m != pm]
+                    pid = _safe(n) + "-" + today.strftime("%Y%m%d")
+                    np = get_project(pid)  # 같은 날 재커밋 시 재사용
+                    if not np:
+                        np = {"id": pid, "name": n, "desc": [], "pm": pm,
+                              "start": start, "end": end, "dday": end, "members": mem,
+                              "brief": {"name": n, "pm": pm, "status": "In Progress",
+                                        "start": start, "end": end, "dday": end,
+                                        "summary": "업무분장 등록에서 자동 생성"},
+                              "tasks": [], "issues": [], "origin": "assign"}
+                        save_project(np)
+                        created.append(n)
+                    name_map[n] = np.get("name") or n
+                    target[name_map[n]] = np
+            added, errs, ok_items = 0, list(proj_errs), []
             for it in items:
                 assignee = (it.get("assignee") or "").strip()
                 task = (it.get("task") or "").strip()
@@ -2187,12 +2399,30 @@ class H(BaseHTTPRequestHandler):
                         errs.append(f"{assignee}: 대표는 리더·본인에게만 배분"); continue
                 elif emp_team(assignee) not in set(lead_teams_of(uid)):
                     errs.append(f"{assignee}: 자기 팀원만 분장 가능"); continue
+                pn = (it.get("project") or "").strip()
+                pn = name_map.get(pn, pn)
                 ok, msg = _assign_append(assignee, task, (it.get("deadline") or "").strip(),
                                          (it.get("priority") or "일반").strip(), uid,
-                                         project=(it.get("project") or "").strip())
-                if ok: added += 1
+                                         project=pn)
+                if ok:
+                    added += 1
+                    it2 = dict(it); it2["project"] = pn
+                    ok_items.append(it2)
                 else: errs.append(msg or "append 실패")
-            return self._send(200, {"ok": added > 0, "added": added, "errors": errs})
+            # tasks 영구 반영 — 생성/합치기 대상 + 기존 매칭 프로젝트
+            tasks_synced = 0
+            by_proj = {}
+            for it in ok_items:
+                pn = (it.get("project") or "").strip()
+                if pn: by_proj.setdefault(pn, []).append(it)
+            for pn, its in by_proj.items():
+                tp = target.get(pn) or next((p for p in projs if _match_project(pn, p.get("name") or "")), None)
+                if not tp: continue
+                n_add = _append_assign_tasks(tp, its)
+                if n_add:
+                    save_project(tp); tasks_synced += n_add
+            return self._send(200, {"ok": added > 0, "added": added, "errors": errs,
+                                    "created": created, "merged": merged, "tasks_synced": tasks_synced})
         if path == "/api/assign":
             # (단건 — 하위호환) 업무분장 입력. 대표=전 직원, 리더=자기 팀원에게만
             assignee = (b.get("assignee") or "").strip()
