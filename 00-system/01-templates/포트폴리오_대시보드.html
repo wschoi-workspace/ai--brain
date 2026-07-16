@@ -28,7 +28,7 @@ body.theme-light{
 body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--fg);
   font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
 .app{display:grid;grid-template-columns:var(--left-w,420px) 7px 1fr;height:100vh}
-.app.collapsed{grid-template-columns:0 0 1fr}
+.app.collapsed{grid-template-columns:1fr}  /* left·splitter가 display:none으로 빠지므로 단일 컬럼 */
 .app.collapsed .left,.app.collapsed .splitter{display:none}
 .splitter{background:var(--line-2);cursor:col-resize;position:relative;transition:background .1s;z-index:5}
 .splitter:hover,.splitter.drag{background:var(--accent)}
@@ -266,9 +266,11 @@ body.view-detail #view-login,body.view-detail #view-portfolio{display:none}
 .pf-card.add:hover{color:var(--accent);transform:none}
 .pf-empty{padding:38px 30px;color:var(--fg-3);font-size:12px}
 .theme-btn{font-size:14px;line-height:1;padding:7px 10px}
-/* 읽기 전용(직원 열람) — 입력 패널·편집 버튼 숨김 */
+/* 읽기 전용(직원 열람) — 입력 패널·편집 버튼 숨김.
+   주의: left·splitter를 display:none하면 그리드 흐름에서 빠져 우측 패널이
+   0폭 1열로 밀려 찌그러짐 → 단일 컬럼 그리드로 전환해야 함 */
 body.readonly .left,body.readonly .splitter{display:none}
-body.readonly .app{grid-template-columns:0 0 1fr}
+body.readonly .app{grid-template-columns:1fr}
 body.readonly #save-btn,body.readonly #collapse-btn,
 body.readonly button[onclick="importXlsx()"],body.readonly button[onclick="resetAll()"]{display:none}
 body.readonly .topbar .ver{color:var(--rust)}
