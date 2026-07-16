@@ -1113,7 +1113,27 @@ let CURRENT_USER=null, CURRENT_PIN='', CURRENT_ROLE='', CURRENT_PROJECT=null, CU
 let CURRENT_ADMIN=false, CURRENT_LEAD_TEAMS=[], CURRENT_CAN_CREATE=false;
 function slug(s){ return (String(s||'proj').toLowerCase().replace(/[^a-z0-9가-힣]+/g,'-').replace(/^-+|-+$/g,'')||'proj'); }
 async function apiGet(p){ const r=await fetch(API+p,{cache:'no-store'}); return r.json(); }
-async function apiPost(p,body){ const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); return r.json(); }
+function refreshSessFromShell(){
+  // 통합 셸에서 PIN 변경/재로그인 시 iframe 메모리의 세션이 낡을 수 있음 — localStorage에서 재로드
+  try{ const s=JSON.parse(localStorage.getItem('pm_sess')||'null');
+    if(s&&s.name){ CURRENT_USER=s.name; CURRENT_PIN=s.pin||CURRENT_PIN; return true; } }catch(e){}
+  return false;
+}
+async function apiPost(p,body){
+  const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  let d; try{ d=await r.json(); }catch(e){ return {ok:false,error:'서버 응답 오류'}; }
+  if(!d.ok && /인증/.test(d.error||'') && body && body.user){
+    // 세션 스테일(예: 셸에서 PIN 변경 후 iframe 미갱신) — 최신 세션으로 1회 재시도
+    const oldU=body.user, oldP=body.pin;
+    if(refreshSessFromShell() && (CURRENT_USER!==oldU || CURRENT_PIN!==oldP)){
+      const b2=Object.assign({},body,{user:CURRENT_USER,pin:CURRENT_PIN});
+      const r2=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b2)});
+      try{ const d2=await r2.json(); if(d2.ok) return d2; d=d2; }catch(e){}
+    }
+    d.error=(d.error||'')+' — 세션이 만료됐을 수 있습니다. 페이지를 새로고침(⌘R) 후 다시 시도해주세요.';
+  }
+  return d;
+}
 function amAdmin(){ return CURRENT_ROLE==='대표'||CURRENT_ROLE==='admin'; }
 function amManager(){ return CURRENT_ADMIN || (CURRENT_LEAD_TEAMS&&CURRENT_LEAD_TEAMS.length>0); }
 function setView(v){ const light=document.body.classList.contains('theme-light');
@@ -1149,7 +1169,7 @@ function pfCard(p){
     <div class="pc-meta"><span><b>일정</b> ${esc(sched)}</span><span><b>PM</b> ${esc(p.pm)||'—'}</span><span><b>업무</b> ${(p.tasks||[]).length}</span></div>
     <div class="pc-mem-line"><b>멤버</b> ${(p.members||[]).map(esc).join(', ')||'<span style="color:var(--fg-3)">미배정</span>'}</div>
     ${p.canManage?`<span class="pc-mem" title="멤버 배정" onclick="event.stopPropagation();openMembersModal('${esc(p.id)}')">👥 멤버 배정</span>`:''}
-    ${amAdmin()?`<span class="pc-del" title="삭제" onclick="event.stopPropagation();deleteProject('${esc(p.id)}')">🗑 삭제</span>`:''}
+    ${(amAdmin()||p.pm===CURRENT_USER)?`<span class="pc-del" title="삭제" onclick="event.stopPropagation();deleteProject('${esc(p.id)}')">🗑 삭제</span>`:''}
   </div>`;
 }
 function renderPortfolio(){
@@ -1197,7 +1217,8 @@ async function saveCurrentProject(){
 function backToPortfolio(){ setView('view-portfolio'); renderPortfolio(); }
 async function deleteProject(id){
   if(SERVED){
-    if(!amAdmin()){ alert('삭제는 대표만 가능합니다.'); return; }
+    const p=(PROJECTS_CACHE||[]).find(x=>x.id===id);
+    if(!(amAdmin()||(p&&p.pm===CURRENT_USER))){ alert('삭제는 대표·담당 PM만 가능합니다.'); return; }
     if(!confirm('이 프로젝트를 서버에서 삭제할까요?')) return;
     const r=await apiPost('/project/delete',{user:CURRENT_USER,pin:CURRENT_PIN,id}); if(!r.ok){ alert('삭제 실패: '+(r.error||'')); return; }
     await loadPortfolio();

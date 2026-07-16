@@ -2935,7 +2935,9 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True, "members": clean})
         if path == "/api/project/delete":
             pid = b.get("id", "")
-            if not is_admin(uid): return self._send(403, {"ok": False, "error": "삭제는 대표만"})
+            p = get_project(pid)
+            if not (is_admin(uid) or (p and (p.get("pm") or "") == uid)):
+                return self._send(403, {"ok": False, "error": "삭제는 대표·담당 PM만"})
             f = PROJ_DIR / f"{_safe(pid)}.json"
             if f.exists(): f.unlink()
             return self._send(200, {"ok": True})
