@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이메일 DB 확보플랜 — 업체 디렉토리 (a·b·c)</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
+<style>
+:root{
+  --primary:#6C5CE7;--primary-lt:#A29BFE;--primary-dk:#5A4BD1;
+  --sage:#8FA37E;--gold:#D9A34B;--coral:#E17055;--slate:#6F8AA3;
+  --ink:#0F0E13;--ink2:#17161D;--card:#1E1C26;--card2:#252230;
+  --line:#332F40;--cream:#F5F0EB;--muted:#A39FB0;--dim:#726E80;
+  --mono:'SF Mono',ui-monospace,'Roboto Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;background:var(--ink);color:var(--cream);line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+section{padding:60px 0;border-top:1px solid var(--line)}
+a{color:var(--primary-lt);text-decoration:none}
+h2{font-size:26px;font-weight:800;letter-spacing:-.02em}
+h2 .kicker{display:block;font-size:12px;font-weight:700;color:var(--primary-lt);letter-spacing:.08em;margin-bottom:10px}
+.sub{color:var(--muted);font-size:14.5px;margin:8px 0 26px;max-width:860px}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--primary);color:#fff;font-family:var(--mono);font-weight:800;font-size:17px;margin-right:12px;vertical-align:middle}
+
+nav{position:sticky;top:0;z-index:50;background:rgba(15,14,19,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:8px;height:54px;overflow-x:auto}
+nav .brand{font-weight:800;font-size:14px;margin-right:auto;white-space:nowrap}
+nav .brand b{color:var(--primary-lt)}
+nav a{font-size:13px;color:var(--muted);padding:6px 12px;border-radius:8px;white-space:nowrap;font-weight:600}
+nav a:hover{color:var(--cream);background:var(--card)}
+
+.hero{padding:70px 0 54px;border-top:none;position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;top:-220px;right:-140px;width:560px;height:560px;background:radial-gradient(circle,rgba(108,92,231,.26),transparent 62%)}
+.hero .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--primary-lt);border:1px solid var(--primary-dk);padding:6px 14px;border-radius:100px;margin-bottom:22px}
+.hero h1{font-size:40px;line-height:1.14;font-weight:800;letter-spacing:-.02em;margin-bottom:18px}
+.hero h1 em{font-style:normal;color:var(--primary-lt)}
+.hero p{font-size:16px;color:var(--muted);max-width:780px}
+.hero p b{color:var(--gold)}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:28px}
+.flow .n{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px}
+.flow .n .k{font-family:var(--mono);color:var(--primary-lt);font-weight:800;font-size:13px}
+.flow .n .t{font-size:13.5px;font-weight:700;margin-top:2px}
+.flow .n .c{font-size:11.5px;color:var(--dim)}
+.flow .arw{color:var(--dim);font-size:18px}
+
+.vgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.vcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column}
+.vcard.flag{border-left:3px solid var(--coral)}
+.vcard.hero-pick{border-left:3px solid var(--sage);background:linear-gradient(135deg,rgba(143,163,126,.06),var(--card))}
+.vh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.vn{font-weight:800;font-size:16.5px;letter-spacing:-.01em}
+.vn small{font-weight:600;font-size:11px;color:var(--dim);margin-left:5px}
+.vlink{font-size:11px;font-family:var(--mono);color:var(--primary-lt);border:1px solid var(--primary-dk);padding:4px 11px;border-radius:100px;white-space:nowrap;transition:.15s}
+.vlink:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.vintro{font-size:13.5px;color:var(--muted);line-height:1.56;flex:1}
+.vintro b{color:var(--cream);font-weight:700}
+.vfeat{display:flex;flex-wrap:wrap;gap:6px;margin:13px 0 11px}
+.vfeat span{font-size:11px;color:var(--muted);background:var(--ink2);border:1px solid var(--line);padding:3px 9px;border-radius:6px}
+.vprice{font-family:var(--mono);font-size:12.5px;color:var(--gold);font-weight:700;border-top:1px solid var(--line);padding-top:10px}
+.vprice .tag{color:var(--dim);font-weight:600;margin-left:6px}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:22px}
+th{background:var(--card2);text-align:left;padding:11px 14px;font-size:12px;font-weight:700;color:var(--muted);border-bottom:1px solid var(--line)}
+td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(108,92,231,.06)}
+td.l{font-weight:700;color:var(--cream);width:30%}
+td.v{font-family:var(--mono);font-size:12.5px}
+td.v b{color:var(--gold)} td.v b.g{color:var(--sage)}
+.mini{font-size:12px;color:var(--dim);margin-top:8px}
+
+.box{background:linear-gradient(135deg,rgba(108,92,231,.12),rgba(108,92,231,.03));border:1px solid var(--primary-dk);border-radius:14px;padding:20px 22px;margin-top:22px;font-size:14px}
+.box.warn{background:linear-gradient(135deg,rgba(225,112,85,.10),var(--card));border-color:var(--line);border-left:3px solid var(--coral)}
+.box b{color:var(--gold)} .box.warn b{color:var(--coral)}
+.box h4{font-size:14px;margin-bottom:10px;font-family:var(--mono);letter-spacing:.03em}
+.box ul{list-style:none;margin-top:4px}
+.box li{font-size:13px;color:var(--muted);padding:6px 0;border-top:1px dashed var(--line)}
+.box li:first-child{border:none} .box li b{color:var(--cream)}
+
+.sec-head{display:flex;align-items:center;margin-bottom:6px}
+footer{padding:48px 0 66px;color:var(--dim);font-size:13px;text-align:center;border-top:1px solid var(--line)}
+footer b{color:var(--muted)}
+footer code{font-family:var(--mono);background:var(--card);padding:1px 6px;border-radius:5px;color:var(--muted)}
+@media(max-width:900px){.vgrid{grid-template-columns:1fr}.hero h1{font-size:30px}.flow .arw{display:none}}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <span class="brand">이메일 DB 확보플랜 <b>·</b> 업체 디렉토리</span>
+  <a href="#a">a. 현장 캡처</a>
+  <a href="#b">b. 옵트인 전환</a>
+  <a href="#c">c. CRM·너처링</a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <span class="tag">VENDOR DIRECTORY · 업체 26사 · 링크 전수 실재 확인</span>
+  <h1>방문객 → 회원가입 → <em>이메일 DB</em><br>업체 리스트 & 세부 소개</h1>
+  <p>각 업체 <b>공식 링크(클릭 가능) + 소개 + 핵심기능 + 가격</b>. 미국 표준 플레이 = 사전 RSVP로 50~70% 선확보 + 현장 QR/태블릿 보충. 접점 4종(폰·굿즈·태블릿·입장)을 겹쳐 깔수록 누수 없이 잡힌다.</p>
+  <div class="flow">
+    <div class="n"><div class="k">a</div><div class="t">현장 캡처</div><div class="c">이메일이 잡히는 접점 · 14사</div></div>
+    <span class="arw">→</span>
+    <div class="n"><div class="k">b</div><div class="t">옵트인 전환</div><div class="c">이메일을 받아내는 장치 · 7사</div></div>
+    <span class="arw">→</span>
+    <div class="n"><div class="k">c</div><div class="t">CRM·너처링</div><div class="c">발송·자동화·리텐션 · 5사</div></div>
+  </div>
+</div></header>
+
+<!-- ===================== A ===================== -->
+<section id="a"><div class="wrap">
+  <div class="sec-head"><span class="step-badge">a</span><h2><span class="kicker">VENUE CAPTURE</span>현장 캡처 — 방문객이 이메일을 남기는 접점</h2></div>
+  <p class="sub">접점은 4종뿐 — ① 방문객 폰(QR) ② 스태프 디바이스·굿즈(NFC) ③ 거치형 태블릿·키오스크 ④ 입장 전 체크인(RSVP).</p>
+  <div class="vgrid">
+    <div class="vcard hero-pick"><div class="vh"><span class="vn">Flowcode</span><a class="vlink" href="https://www.flowcode.com/pricing" target="_blank">공식 ↗</a></div><div class="vintro">미국 브랜드 이벤트에서 <b>가장 많이 쓰이는 QR 플랫폼</b>. QR + Flowpage(모바일 랜딩) + 폼을 한 몸으로 묶어 스캔→이메일 입력까지 원스톱.</div><div class="vfeat"><span>동적 QR</span><span>Flowpage 리드폼</span><span>스캔 분석</span><span>CRM/CDP 연동</span></div><div class="vprice">무료(코드 2개) ~ Pro Plus $25/월 ~ Growth $250/월 ~ Enterprise RFQ</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Bitly QR Codes</span><a class="vlink" href="https://bitly.com/pages/pricing" target="_blank">공식 ↗</a></div><div class="vintro">링크 단축의 Bitly가 공식 제공하는 QR 서비스. QR 개수 제한이 티어별로 빡빡해 <b>소량·저비용 운영에 적합</b>. Beaconstac과는 별개 회사.</div><div class="vfeat"><span>티어별 QR 2~200개</span><span>로고 커스텀</span><span>랜딩 참여 분석</span></div><div class="vprice">무료 ~ Core $10/월 ~ Growth $29/월 ~ Premium $199/월</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Uniqode <small>(구 Beaconstac)</small></span><a class="vlink" href="https://www.uniqode.com/pricing" target="_blank">공식 ↗</a></div><div class="vintro">G2 1위권 QR 전문 플랫폼. 2024.1 Beaconstac→Uniqode 사명 변경(제품·데이터 연속). <b>폼·랜딩 내장 동적 QR로 대량 캠페인에 강함.</b></div><div class="vfeat"><span>동적 QR+폼/랜딩</span><span>스캔 분석</span><span>디지털 명함</span><span>커스텀 도메인</span></div><div class="vprice">무료(정적) ~ Starter $9/월 ~ Core $49/월 ~ Plus <span class="tag">연납만</span></div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">QR Tiger</span><a class="vlink" href="https://www.qrcode-tiger.com/payment" target="_blank">공식 ↗</a></div><div class="vintro">가성비형 QR 생성기. <b>동적 QR 단가가 가장 낮은 축</b>이라 부스·포스터 다점포 배포용. 자체 리드폼은 없어 Klaviyo 호스티드 폼 URL 조합이 정석.</div><div class="vfeat"><span>동적 QR 12~600개</span><span>무제한 스캔</span><span>Zapier/HubSpot</span><span>API</span></div><div class="vprice">무료(3개·500스캔) ~ Regular $7/월 ~ Advanced $16/월 ~ Premium $37/월</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Popl</span><a class="vlink" href="https://popl.co" target="_blank">공식 ↗</a></div><div class="vintro">디지털 명함에서 이벤트 리드캡처로 확장한 GTM 툴. <b>"어떤 배지든 스캔"하는 유니버설 스캐너</b>로 스태프가 방문객 정보를 즉시 CRM으로 흘린다.</div><div class="vfeat"><span>유니버설 배지 스캔</span><span>리드 인리치먼트</span><span>30+ 연동</span></div><div class="vprice">개인 Pro $7.99/월 ~ · 이벤트/팀 플랜 RFQ</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Blinq</span><a class="vlink" href="https://blinq.me" target="_blank">공식 ↗</a></div><div class="vintro">글로벌 400만 유저 디지털 명함 앱. QR·NFC·Apple Wallet 공유 + AI 배지/명함 스캔 리드캡처. <b>Popl 대비 저가 대안</b>(스태프 개인 단위 캡처).</div><div class="vfeat"><span>NFC 카드/QR</span><span>AI 연락처 캡처</span><span>HubSpot/Salesforce</span></div><div class="vprice">무료 ~ Premium(7일 체험) ~ Business RFQ</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">ID&C</span><a class="vlink" href="https://www.idcband.com" target="_blank">공식 ↗</a></div><div class="vintro">30년 업력의 <b>이벤트 손목밴드 전문사</b>(코첼라 등 대형 페스티벌 납품). NFC/RFID 밴드로 입장+스탬프+리드캡처를 손목 하나에 통합.</div><div class="vfeat"><span>패브릭/실리콘/타이벡</span><span>RFID 밴드·라미네이트</span><span>커스텀 브랜딩</span></div><div class="vprice">RFQ — 벌크 NFC 밴드 실리콘 $1~3, MOQ 5천 시 $0.38~0.52 <span class="tag">[추정]</span></div></div>
+
+    <div class="vcard hero-pick"><div class="vh"><span class="vn">Klaviyo 태블릿 폼</span><a class="vlink" href="https://help.klaviyo.com/hc/en-us/articles/360026474752" target="_blank">공식 ↗</a></div><div class="vintro">전용 키오스크 앱은 없지만, 호스티드 Subscribe 페이지/임베드 폼을 iPad에 띄우는 방식이 공식 권장 패턴. <b>수집 즉시 웰컴 플로우로 직결되는 게 최대 강점.</b></div><div class="vfeat"><span>5종 폼</span><span>호스티드 페이지(QR)</span><span>수집→플로우 자동화</span></div><div class="vprice">Klaviyo 요금에 포함 (무료 250프로필 ~ $20/월 ~)</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Cvent iCapture</span><a class="vlink" href="https://www.cvent.com/en/event-marketing-management/cvent-icapture" target="_blank">공식 ↗</a></div><div class="vintro">트레이드쇼 리드캡처 1위권 앱(Cvent 산하). 130+ 배지 프로바이더 스캔, 오프라인 캡처, 리드 스코어링 — <b>B2B 행사·컨벤션형 팝업에 적합.</b></div><div class="vfeat"><span>배지 스캔 130+</span><span>표준 캡처폼</span><span>실시간 CRM/MAP 라우팅</span></div><div class="vprice">RFQ (데모 필수)</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">QuickTapSurvey</span><a class="vlink" href="https://www.quicktapsurvey.com" target="_blank">공식 ↗</a></div><div class="vintro">iPad/Android 태블릿 오프라인 설문·리드캡처 앱. 인터넷 없이 수집 후 자동 동기화 — <b>Mailchimp Subscribe 단종 후 실질적 대체재.</b></div><div class="vfeat"><span>오프라인 키오스크 모드</span><span>35+ 질문 유형</span><span>Mailchimp/Salesforce/Zapier</span></div><div class="vprice">유료(티어 비공개·RFQ성) <span class="tag">[확인필요]</span></div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">TapMango</span><a class="vlink" href="https://www.tapmango.com" target="_blank">공식 ↗</a></div><div class="vintro">태블릿 키오스크 기반 로열티 플랫폼. 매장 카운터에 상시 거치해 전화/이메일을 리워드와 교환 수집 — <b>상설 매장·장기 팝업용.</b></div><div class="vfeat"><span>브랜디드 키오스크</span><span>포인트/리워드</span><span>SMS/이메일 캠페인</span></div><div class="vprice">RFQ — 실질 월 $239~400 <span class="tag">[추정]</span></div></div>
+
+    <div class="vcard hero-pick"><div class="vh"><span class="vn">Luma</span><a class="vlink" href="https://luma.com" target="_blank">공식 ↗</a></div><div class="vintro">팝업 RSVP의 <b>사실상 표준</b>. 등록 시점에 이메일이 무조건 잡히므로 "체크인 = 캡처 완료" 구조. 캘린더 구독으로 재방문 CRM 효과까지.</div><div class="vfeat"><span>이벤트+RSVP(이메일 필수)</span><span>체크인 QR</span><span>게스트 관리</span></div><div class="vprice">무료(유료티켓 5%) ~ Plus $59/월(수수료 0%)</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Eventbrite</span><a class="vlink" href="https://www.eventbrite.com/organizer/pricing/" target="_blank">공식 ↗</a></div><div class="vintro">최대 이벤트 디스커버리 채널. 커스텀 등록 폼으로 <b>참석자 데이터를 주최자가 확보</b> — 단, 마케팅 이메일 발송은 별도 옵트인 체크박스 필수(CAN-SPAM).</div><div class="vfeat"><span>티켓팅+등록 폼</span><span>자동 리마인더</span><span>참석자 export</span></div><div class="vprice">무료 이벤트 $0 / 유료 3.7%+$1.79/티켓 + 결제 2.9%</div></div>
+
+    <div class="vcard flag"><div class="vh"><span class="vn">Mailchimp Subscribe</span><a class="vlink" href="https://mailchimp.com/mailchimp-subscribe/" target="_blank">공식 ↗</a></div><div class="vintro">과거 iPad/Android 오프라인 사인업 앱(구 Chimpadeedoo). <b style="color:var(--coral)">현재 App Store에서 내려간 단종 상태[추정]</b> — 공식 URL도 일반 앱 안내로 대체. <b>신규 도입 비추천</b> → QuickTapSurvey로 대체.</div><div class="vfeat"><span>(과거) 오프라인 수집</span><span>온라인 복귀 시 동기화</span></div><div class="vprice">신규 사용 불가 <span class="tag">[확인필요]</span></div></div>
+  </div>
+
+  <table><thead><tr><th>접점</th><th>이메일 캡처율 벤치마크</th><th>신뢰도</th></tr></thead><tbody>
+    <tr><td class="l">배지·사이니지 QR (그냥 걸기)</td><td class="v">참석자의 <b>2~6%</b></td><td class="v">[추정] 벤더 블로그</td></tr>
+    <tr><td class="l">목적성 QR (경품·스탬프·스케줄)</td><td class="v"><b class="g">40~70%</b> — "스캔할 이유"가 명확하면 급등</td><td class="v">[추정]</td></tr>
+    <tr><td class="l">구체 CTA ("Scan for exclusive~")</td><td class="v">스캔율 <b>최대 +37%</b></td><td class="v">[추정]</td></tr>
+    <tr><td class="l">체크인(RSVP) 기반</td><td class="v"><b class="g">참석자 100% 확보</b> (변수는 노쇼율 30~50%)</td><td class="v">구조적 사실</td></tr>
+    <tr><td class="l">B2B 배지스캔 앱 (iCapture 사례)</td><td class="v">리드 볼륨 +50% · 품질 +50%</td><td class="v">벤더 사례</td></tr>
+    <tr><td class="l">키오스크/태블릿</td><td class="v">공개 벤치마크 부재 → 파일럿 실측</td><td class="v">—</td></tr>
+  </tbody></table>
+  <div class="box"><b>실무 시사점</b> — 현장 QR "그냥 걸어두기"는 2~6%짜리 게임이다. ① QR에 <b>명분(경품·디지털 굿즈·스탬프)</b>을 붙여 40%+ 게임으로 바꾸고, ② <b>RSVP(Luma)로 입장 전에 이메일을 확보</b>해 현장 캡처를 보험으로 돌린다.</div>
+</div></section>
+
+<!-- ===================== B ===================== -->
+<section id="b"><div class="wrap">
+  <div class="sec-head"><span class="step-badge">b</span><h2><span class="kicker">OPT-IN CONVERSION</span>회원가입 · 옵트인 전환 — 이메일을 받아내는 장치</h2></div>
+  <p class="sub">전환율 우선순위(데이터): <b>게이미피케이션(스핀휠) &gt; 할인/경품 인센티브 &gt; 맨 뉴스레터 폼</b>. 단 스핀휠 리드는 질이 낮을 수 있어 웰컴 플로우 이탈 관리 필수.</p>
+  <div class="vgrid">
+    <div class="vcard hero-pick"><div class="vh"><span class="vn">Klaviyo Forms</span><a class="vlink" href="https://help.klaviyo.com/hc/en-us/articles/360026474752" target="_blank">공식 ↗</a></div><div class="vintro"><b>ESP에 폼이 내장된 유일한 조합형 기본값.</b> 팝업·임베드·풀페이지·배너 + 자체 스핀휠(spin-to-win)까지 지원하고, 제출 즉시 세그먼트·플로우로 직결.</div><div class="vfeat"><span>5종 폼 + spin-to-win</span><span>타겟팅/URL 조건</span><span>A/B 테스트</span><span>벤치마크 리포트</span></div><div class="vprice">Klaviyo 요금 포함 (무료 250프로필 ~ $20/월 ~)</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Typeform</span><a class="vlink" href="https://www.typeform.com/pricing/" target="_blank">공식 ↗</a></div><div class="vintro">대화형 원-퀘스천 UX로 완주율이 높은 폼 빌더. <b>현장 iPad 설문+수집을 "브랜드 경험"처럼</b> 보이게 만들 때 최적.</div><div class="vfeat"><span>대화형 폼</span><span>로직 점프</span><span>Klaviyo/CRM 연동</span></div><div class="vprice">Basic $28~39/월 ~ Plus $56~79/월 ~ Business $91~129/월</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Unbounce</span><a class="vlink" href="https://unbounce.com/pricing/" target="_blank">공식 ↗</a></div><div class="vintro">랜딩페이지 빌더의 원조. <b>QR 도착 페이지를 A/B 테스트로 최적화</b>하는 용도 — 팝업·스티키바는 Build 티어부터.</div><div class="vfeat"><span>AI 랜딩페이지</span><span>팝업/스티키바(Build+)</span><span>A/B 테스트</span><span>1,000+ 연동</span></div><div class="vprice">Starter $29/월(연납 $22) ~ Build $99 ~ Optimize $249/월</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">OptinMonster</span><a class="vlink" href="https://optinmonster.com/pricing/" target="_blank">공식 ↗</a></div><div class="vintro">팝업/옵트인 폼 전문 툴의 고전 강자. 자체 사이트에 얹는 방식이라 <b>마이크로사이트에 저비용 장착</b>. 스핀휠은 최상위 Growth 전용.</div><div class="vfeat"><span>팝업/플로팅바</span><span>이그짓 인텐트</span><span>쿠폰휠(Growth)</span><span>A/B</span></div><div class="vprice">Basic $7/월 ~ Plus $19 ~ Pro $29 ~ Growth $49/월 <span class="tag">연납가</span></div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">OptiMonk</span><a class="vlink" href="https://www.optimonk.com/pricing/" target="_blank">공식 ↗</a></div><div class="vintro">헝가리산 CRO 팝업 툴. <b>무료 티어가 후하고(10K PV) 스핀휠 템플릿이 풍부</b>해 초기 테스트용 가성비 1위.</div><div class="vfeat"><span>스핀휠/스크래치</span><span>임베드·사이드메시지</span><span>페이지뷰 과금</span></div><div class="vprice">무료(10K PV) ~ Essential $19 ~ Growth $69 ~ Premium $179/월</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Wheelio</span><a class="vlink" href="https://apps.shopify.com/wheelio-first-interactive-exit-intent-pop-up" target="_blank">공식 ↗</a></div><div class="vintro"><b>스핀휠 팝업의 원조 Shopify 앱.</b> 이메일+SMS 동시 수집, Klaviyo/Omnisend 직결 — Shopify 스토어 병행 브랜드용.</div><div class="vfeat"><span>스핀휠/스크래치/슬롯</span><span>이그짓 인텐트</span><span>할인코드 자동 발급</span></div><div class="vprice">$14.92/월(3만 노출) ~ $109.92/월(25만 노출) · 7일 체험</div></div>
+
+    <div class="vcard hero-pick"><div class="vh"><span class="vn">PassKit</span><a class="vlink" href="https://passkit.com" target="_blank">공식 ↗</a></div><div class="vintro">Apple/Google Wallet 패스 발급 API. 이메일 캡처 후 <b>"월렛 멤버십 카드"를 지급하면 폰 잠금화면에 브랜드가 상주</b> — 위치 기반 락스크린 알림으로 재방문 트리거까지. 멤버십 카드 연 0.5센트 극저원가.</div><div class="vfeat"><span>멤버십/로열티/쿠폰 패스</span><span>실시간 업데이트</span><span>위치 기반 알림</span><span>API/CRM 연동</span></div><div class="vprice">최소 $39.50/월 · 멤버십 카드 연 $0.005/개</div></div>
+  </div>
+
+  <table><thead><tr><th>인센티브 장치</th><th>전환율</th><th>출처</th></tr></thead><tbody>
+    <tr><td class="l">맨 폼 (인센티브 없음)</td><td class="v"><b>1.7%</b>(Omnisend) / 5.10%(OptiMonk)</td><td class="v">Omnisend·OptiMonk</td></tr>
+    <tr><td class="l">할인 코드 인센티브</td><td class="v"><b>2.4% — 무인센티브 대비 +41%</b> / ~7.5%</td><td class="v">Omnisend·OptiMonk</td></tr>
+    <tr><td class="l">스핀휠 (게이미피케이션)</td><td class="v"><b class="g">13.23~29.99%</b> (일반 대비 최대 +642%)</td><td class="v">OptiMonk·Wisepops</td></tr>
+    <tr><td class="l">카운트다운 타이머 부착</td><td class="v">9.86% → <b>14.41%</b></td><td class="v">OptiMonk</td></tr>
+    <tr><td class="l">경품 추첨 / 디지털 굿즈</td><td class="v">공개 벤치마크 부재 [추정: 게이미피 상단]</td><td class="v">—</td></tr>
+  </tbody></table>
+  <div class="mini">현장 사인업 기준선: 이메일 팝업 평균 <b style="color:var(--gold)">2.1%</b>(양호 3~5%·우수 5%+) · Klaviyo 목표 3%+ · 상위 10% 팝업 57.7%. ※ 전부 <b>웹 팝업</b> 기준 — "현장 대면 + 리워드 즉시지급"은 이보다 높게 나오나 공개 벤치마크 없어 파일럿 실측 필요.</div>
+
+  <div class="box warn"><h4>■ 컴플라이언스 — 폼 설계 5요점</h4><ul>
+    <li><b>이메일(CAN-SPAM)은 옵트인 의무 없음</b> — 발신자 명시·주소·원클릭 수신거부가 의무. 그래도 <b>더블옵트인</b>으로 가짜 이메일·스팸 신고를 걸러 발송 평판을 지킨다.</li>
+    <li><b>SMS(TCPA)는 정반대</b> — 사전 서면 명시 동의 필수 + 캐리어 관행상 더블옵트인(YES 회신). <b>이메일·SMS 체크박스 분리, SMS는 사전체크 금지.</b></li>
+    <li>폼에 <b>동의 문구 + Privacy Policy 링크 상시 노출</b>. 캘리포니아(CCPA)는 수집 시점 고지(notice at collection)가 요건.</li>
+    <li>경품 추첨 폼은 <b>"No Purchase Necessary" + 공식 규칙 링크</b> 필수(주별 스윕스테이크 규정). 응모=수신 동의로 자동 결합 금지.</li>
+    <li><b>수집 시각·장소·동의 문구 버전을 CRM에 저장</b>(consent record) — TCPA 소송(건당 $500~1,500) 방어의 핵심 증거.</li>
+  </ul></div>
+</div></section>
+
+<!-- ===================== C ===================== -->
+<section id="c"><div class="wrap">
+  <div class="sec-head"><span class="step-badge">c</span><h2><span class="kicker">CRM · NURTURE</span>CRM · 이메일 포워딩 · 너처링 — 확보 DB로 발송·자동화·리텐션</h2></div>
+  <p class="sub">핵심 구조 차이: Klaviyo·Mailchimp·Omnisend·Customer.io는 <b>프로필 수</b> 과금, Brevo만 <b>발송량</b> 과금. 팝업 리드는 "리스트는 빨리 크는데 발송은 간헐적"이라 Brevo 구조가 원가상 유리.</p>
+  <div class="vgrid">
+    <div class="vcard hero-pick"><div class="vh"><span class="vn">Klaviyo</span><a class="vlink" href="https://www.klaviyo.com/pricing" target="_blank">공식 ↗</a></div><div class="vintro"><b>미국 D2C·이커머스 사실상 표준 ESP.</b> 프로필 단위 과금으로 사인업 폼→플로우→세그먼트가 한 플랫폼에 통합. 2025.2부터 '활성 프로필' 기준 과금이라 리스트 위생이 비용에 직결.</div><div class="vfeat"><span>사인업 폼·QR</span><span>비주얼 플로우</span><span>예측 분석(CLV·churn)</span><span>350+ 연동</span></div><div class="vprice">무료 250프로필 · 유료 $30(1K) → <b>$60(2.5K) → $100(5K)</b>/월 · Email+SMS $35/월~</div></div>
+
+    <div class="vcard hero-pick"><div class="vh"><span class="vn">Brevo <small>(구 Sendinblue)</small></span><a class="vlink" href="https://www.brevo.com/pricing/" target="_blank">공식 ↗</a></div><div class="vintro"><b>연락처 수가 아니라 발송량 기준 과금이 유일한 구조적 차별점.</b> 리스트는 크지만 발송 빈도가 낮은 비즈니스(팝업처럼 리드가 계속 쌓이는 구조)에서 가장 저렴. 트랜잭셔널·SMS·WhatsApp까지 한 계정.</div><div class="vfeat"><span>이메일+SMS+WhatsApp</span><span>자동화</span><span>CRM(딜) 내장</span><span>연락처 10만까지 무료</span></div><div class="vprice">무료(300통/일) · Starter <b>$9/월(5천통)</b> → $29(2만통) → $69(10만통)</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Omnisend</span><a class="vlink" href="https://www.omnisend.com/pricing/" target="_blank">공식 ↗</a></div><div class="vintro"><b>이커머스 특화 저가형 ESP</b>로 이메일+SMS+웹푸시를 하나의 플로우에서 운영. Klaviyo의 60~70% 가격에 핵심 자동화를 제공하나 Shopify 등 스토어 연동 전제 기능이 많다.</div><div class="vfeat"><span>이메일·SMS·웹푸시 통합</span><span>Forms AI</span><span>제품 추천</span><span>24/7 지원</span></div><div class="vprice">무료 250명 · Standard $16/월(500명) · Pro $59/월(2.5K·이메일 무제한)</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Mailchimp</span><a class="vlink" href="https://mailchimp.com/pricing/marketing/" target="_blank">공식 ↗</a></div><div class="vintro">가장 대중적인 범용 ESP. <b>저가 진입과 쉬운 에디터가 강점</b>이나, 자동화 분기·세그먼트 깊이는 Klaviyo 대비 얕고 티어가 오르면 가격 이점이 빠르게 사라진다.</div><div class="vfeat"><span>캠페인·기본 자동화</span><span>랜딩·폼</span><span>콘텐츠 AI</span></div><div class="vprice">무료 250명 · Essentials $13/월 ~ Standard $20 ~ Premium $350/월</div></div>
+
+    <div class="vcard"><div class="vh"><span class="vn">Customer.io</span><a class="vlink" href="https://customer.io/pricing" target="_blank">공식 ↗</a></div><div class="vintro">마케터보다 <b>프로덕트/데이터 팀 지향의 메시징 자동화 플랫폼</b>. 행동 이벤트 트리거·API 유연성이 최강이지만 시작가가 높아 소규모 리스트엔 과투자.</div><div class="vfeat"><span>비주얼 워크플로</span><span>이벤트 트리거</span><span>크로스채널</span><span>Data Pipelines(CDP)</span></div><div class="vprice">Essentials $100/월~(5K프로필·100만통) · Premium $1,000/월~</div></div>
+  </div>
+
+  <table><thead><tr><th>프로필 규모 (월 2~4회 발송)</th><th>Klaviyo</th><th>Mailchimp</th><th>Brevo</th><th>Customer.io</th><th>Omnisend</th></tr></thead><tbody>
+    <tr><td class="l">2,500 프로필</td><td class="v">$60</td><td class="v">~$45 [추정]</td><td class="v"><b class="g">$9</b></td><td class="v">$100</td><td class="v">$59 정가</td></tr>
+    <tr><td class="l">5,000 프로필</td><td class="v">$100</td><td class="v">~$75 [추정]</td><td class="v"><b class="g">$9~29</b></td><td class="v">$100</td><td class="v">~$80~90</td></tr>
+  </tbody></table>
+
+  <div class="box"><h4>■ 권고 — Klaviyo + Brevo 이원화</h4><b>Klaviyo</b>(활성 리드·플로우·연동 생태계 최대) + <b>Brevo</b>(장기 보관·저빈도 뉴스레터 — 발송량 과금이라 보관 원가 사실상 0). Omnisend는 Shopify 전제라 비커머스 팝업엔 이점 반감, Customer.io는 자체 앱 이벤트가 생기는 단계(Digital Passport 상용화 이후) 재검토, Mailchimp은 신규 도입 이유 없음. <b>플로우 5종(웰컴·포스트이벤트·윈백·waitlist·월렛설치)을 캠페인보다 먼저</b> — 인력 없이도 매출의 대부분을 만든다.</div>
+
+  <table><thead><tr><th>자동화 플로우 벤치마크</th><th>자동(플로우)</th><th>일반 캠페인</th><th>배수</th></tr></thead><tbody>
+    <tr><td class="l">웰컴 — 클릭률</td><td class="v"><b>3.94%</b></td><td class="v">0.74%</td><td class="v">5.3x</td></tr>
+    <tr><td class="l">웰컴 — 전환율</td><td class="v"><b class="g">2.11%</b></td><td class="v">0.08%</td><td class="v"><b>~26x</b></td></tr>
+    <tr><td class="l">웰컴 — 이메일당 매출</td><td class="v"><b class="g">$6.16</b></td><td class="v">$0.155</td><td class="v"><b>~40x</b></td></tr>
+    <tr><td class="l">자동화 전체 — 이메일당 매출</td><td class="v">$3.41</td><td class="v">$0.155</td><td class="v"><b>22x</b></td></tr>
+    <tr><td class="l">포스트이벤트 +24h — 오픈율</td><td class="v"><b>58.0%</b> (전 플로우 최고)</td><td class="v">—</td><td class="v">—</td></tr>
+  </tbody></table>
+  <div class="mini">출처: Omnisend 2025 데이터셋 · Klaviyo 실계정 포트폴리오(BS&Co). 포스트이벤트 플로우: <b>+24h</b> 감사+리캡+NPS 1문항 → <b>+7d</b> 제품 스토리·다음 이벤트 → <b>+30d</b> 한정 오퍼·다음 팝업 waitlist·월렛 설치. 포스트퍼체이스 계열은 "고오픈·저전환"이 정상 — KPI를 전환이 아니라 오픈/설문응답률로.</div>
+</div></section>
+
+<footer><div class="wrap">
+  <p>이메일 DB 확보플랜 · 업체 디렉토리 (a·b·c) · 업체 26사 · 전 공식링크 WebFetch 실재 확인(죽은 링크 0) · <b>by Project Rent</b></p>
+  <p style="margin-top:8px">원문(전환율·출처 상세): <code>research/email-db-acquisition-plan.md</code> · 채널 효과 근거: <code>research/us-effective-marketing.md</code> · 규제 상세: 플레이북 §5</p>
+</div></footer>
+
+</body>
+</html>
