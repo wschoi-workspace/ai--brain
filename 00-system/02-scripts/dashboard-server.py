@@ -871,6 +871,13 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .st-act{cursor:pointer;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:2px 9px;margin-left:6px;color:var(--muted);white-space:nowrap}
 .st-act:hover{border-color:var(--accent);color:var(--accent)}
 .st-wait{font-size:11px;border-radius:5px;padding:1px 7px;margin-left:8px;background:rgba(244,196,48,.14);color:#f4c430}
+.st-chk{accent-color:var(--red);width:14px;height:14px;cursor:pointer;margin-left:8px;vertical-align:middle}
+#mw-bulkbar{display:none;position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--bg-2);
+  border:1px solid var(--red);border-radius:12px;padding:10px 16px;gap:12px;align-items:center;z-index:60;
+  box-shadow:0 6px 24px rgba(0,0,0,.5);font-size:13px}
+#mw-bulkbar button{border:0;border-radius:8px;padding:7px 14px;cursor:pointer;font-family:inherit;font-size:13px}
+#mw-bulkbar .bb-del{background:var(--red);color:#fff;font-weight:600}
+#mw-bulkbar .bb-clear{background:transparent;border:1px solid var(--line);color:var(--muted)}
 .mw-urgent{background:rgba(225,112,85,.16);color:var(--red)}
 .mw-proj{border-left:2px solid var(--accent);padding-left:14px;margin-bottom:16px}
 .mw-proj-name{font-size:14px;font-weight:600;margin-bottom:8px}
@@ -1061,6 +1068,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       h+='</div>'; box.innerHTML=h;
       mwBindParse();
       mwBindStatus(box);
+      mwBindBulk(box);
       box.querySelectorAll('.lh-proj').forEach(function(el){ el.onclick=function(){ showTab('projects'); }; });
       box.querySelectorAll('.rc-btn').forEach(function(b){
         b.onclick=function(){
@@ -1100,7 +1108,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           O.forEach(function(a){
             var pj=a.project?(esc(a.project)+' · '):'';
             h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+' <span class="mw-badge mw-urgent">D+'+a.days_overdue+'</span>'
-              +(a.row?mwStBtn(a,'삭제','🗑'):'')+'</div>'
+              +(a.row?(mwStBtn(a,'삭제','🗑')+mwChk(a)):'')+'</div>'
               +'<div class="m">'+pj+esc(a.assignee||'미지정')+' · 마감 '+esc(a.deadline||'')+' · '+esc(a.status||'미착수')+'</div></div>';
           });
         }
@@ -1125,6 +1133,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       h+='</div>'; box.innerHTML=h;
       mwBindParse();
       mwBindStatus(box);
+      mwBindBulk(box);
     }).catch(function(){ box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>'; });
   }
   function mwAsOpts(sel){ return MW_ASSIGNEES.map(function(a){return '<option value="'+esc(a.name)+'"'+(a.name===sel?' selected':'')+'>'+esc(a.name)+' ('+esc(a.team||'')+')</option>';}).join(''); }
@@ -1286,6 +1295,39 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   function mwStBtn(a, st, label){
     return '<a class="st-act" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'" data-st="'+st+'">'+label+'</a>';
   }
+  function mwChk(a){
+    return '<input type="checkbox" class="st-chk" title="일괄 삭제 선택" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'">';
+  }
+  function mwBindBulk(scope){
+    var chks=scope.querySelectorAll('.st-chk');
+    var bar=document.getElementById('mw-bulkbar');
+    if(!bar){ bar=document.createElement('div'); bar.id='mw-bulkbar'; document.body.appendChild(bar); }
+    bar.style.display='none';
+    if(!chks.length) return;
+    function upd(){
+      var sel=scope.querySelectorAll('.st-chk:checked');
+      if(!sel.length){ bar.style.display='none'; return; }
+      bar.style.display='flex';
+      bar.innerHTML='<span>🗑 <b>'+sel.length+'건</b> 선택됨</span>'
+        +'<button class="bb-del">선택 삭제</button><button class="bb-clear">선택 해제</button>';
+      bar.querySelector('.bb-clear').onclick=function(){
+        [].forEach.call(sel,function(c){ c.checked=false; }); upd();
+      };
+      bar.querySelector('.bb-del').onclick=function(){
+        if(!confirm('선택한 '+sel.length+'건 분장을 삭제할까요? 목록·집계·포트폴리오에서 제외됩니다. (시트 행은 삭제 표시로 보존)')) return;
+        var items=[].map.call(sel,function(c){ return {row:+c.getAttribute('data-row'),
+          task:c.getAttribute('data-task'), assignee:c.getAttribute('data-assignee')}; });
+        this.disabled=true; this.textContent='삭제 중…';
+        fetch('/api/assign-bulk-delete',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:SESS.name,pin:SESS.pin,items:items})})
+        .then(function(r){return r.json();}).then(function(d){
+          if(d.errors&&d.errors.length) alert((d.deleted||0)+'건 삭제, 일부 실패: '+d.errors.join(' / '));
+          bar.style.display='none'; renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    }
+    [].forEach.call(chks,function(c){ c.onchange=upd; });
+  }
   function mwBindStatus(scope){
     scope.querySelectorAll('.st-act').forEach(function(el){
       el.onclick=function(){
@@ -1310,7 +1352,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       var pj=a.project?(esc(a.project)+' · '):'';
       var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
       h+='<div class="mw-card"><div class="t">'+esc(a.task)
-        +mwStBtn(a,'승인','✓ 승인')+mwStBtn(a,'진행중','↩ 반려')+mwStBtn(a,'삭제','🗑')
+        +mwStBtn(a,'승인','✓ 승인')+mwStBtn(a,'진행중','↩ 반려')+mwStBtn(a,'삭제','🗑')+mwChk(a)
         +'</div><div class="m">'+pj+esc(a.assignee||'미지정')+dl+'</div></div>';
     });
     return h;
@@ -1344,9 +1386,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
             if(st==='미착수') act+=mwStBtn(a,'진행중','▶ 진행');
             act+=mwStBtn(a,'완료','✓ 완료');
           }
-          if(canDel) act+=mwStBtn(a,'삭제','🗑');
+          if(canDel) act+=mwStBtn(a,'삭제','🗑')+mwChk(a);
         }
-        if(withAssignee && a.row && canDel){ act+=mwStBtn(a,'삭제','🗑'); }
+        if(withAssignee && a.row && canDel){ act+=mwStBtn(a,'삭제','🗑')+mwChk(a); }
         h+='<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+act+'</div><div class="m">'+who+dl+'</div></div>';
       });
     });
@@ -2908,6 +2950,36 @@ class H(BaseHTTPRequestHandler):
             elif new_st == "삭제":
                 _remove_done_task(assign)  # 포트폴리오에 반영돼 있었으면 함께 제거
             return self._send(200, {"ok": True, "status": new_st, "portfolio_recorded": recorded})
+        if path == "/api/assign-bulk-delete":
+            # 체크리스트 일괄 삭제 — 스냅샷 1회 검증 후 행별 '삭제' 마킹 (+포트폴리오 제거)
+            items = b.get("items") or []
+            if not items or len(items) > 200:
+                return self._send(400, {"ok": False, "error": "items 확인(1~200건)"})
+            if not (_asgws and DAILY_SHEET):
+                return self._send(500, {"ok": False, "error": "시트 미설정"})
+            snap = {a["row"]: a for a in _assign_read()}
+            deleted, errs = 0, []
+            for it in items:
+                try:
+                    row = int(it.get("row") or 0)
+                except (TypeError, ValueError):
+                    row = 0
+                a = snap.get(row)
+                label = ((it.get("task") or "")[:16]) or f"행{row}"
+                if not a or a.get("task") != (it.get("task") or "").strip() \
+                        or a.get("assignee") != (it.get("assignee") or "").strip():
+                    errs.append(f"{label}: 행 불일치 — 새로고침 필요"); continue
+                if not _can_approve(uid, a.get("assignee")):
+                    errs.append(f"{label}: 권한 없음"); continue
+                try:
+                    ok = _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!H{row}", [["삭제"]], timeout=20)
+                except Exception:
+                    ok = False
+                if not ok:
+                    errs.append(f"{label}: 시트 업데이트 실패"); continue
+                _remove_done_task(a)
+                deleted += 1
+            return self._send(200, {"ok": deleted > 0 or not errs, "deleted": deleted, "errors": errs})
         if path == "/api/project/save":
             p = b.get("project") or {}
             if not p.get("id"): return self._send(400, {"ok": False, "error": "id 없음"})
