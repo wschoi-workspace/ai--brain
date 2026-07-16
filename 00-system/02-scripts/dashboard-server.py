@@ -1099,7 +1099,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           h+='<div class="mw-h">⏰ 지연 업무 <span class="sub2">'+O.length+'건 — 마감 경과·미완료 분장</span></div>';
           O.forEach(function(a){
             var pj=a.project?(esc(a.project)+' · '):'';
-            h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+' <span class="mw-badge mw-urgent">D+'+a.days_overdue+'</span></div>'
+            h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+' <span class="mw-badge mw-urgent">D+'+a.days_overdue+'</span>'
+              +(a.row?mwStBtn(a,'삭제','🗑'):'')+'</div>'
               +'<div class="m">'+pj+esc(a.assignee||'미지정')+' · 마감 '+esc(a.deadline||'')+' · '+esc(a.status||'미착수')+'</div></div>';
           });
         }
@@ -1290,6 +1291,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       el.onclick=function(){
         var st=el.getAttribute('data-st');
         if(st==='승인' && !confirm('승인하면 내 업무에서 정리되고 프로젝트 포트폴리오에 완료로 기록됩니다.')) return;
+        if(st==='삭제' && !confirm('이 분장을 삭제할까요? 목록·집계에서 제외되고 포트폴리오 기록도 제거됩니다. (시트 행은 삭제 표시로 보존)')) return;
         el.textContent='…';
         fetch('/api/assign-status',{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
@@ -1308,7 +1310,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       var pj=a.project?(esc(a.project)+' · '):'';
       var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
       h+='<div class="mw-card"><div class="t">'+esc(a.task)
-        +mwStBtn(a,'승인','✓ 승인')+mwStBtn(a,'진행중','↩ 반려')
+        +mwStBtn(a,'승인','✓ 승인')+mwStBtn(a,'진행중','↩ 반려')+mwStBtn(a,'삭제','🗑')
         +'</div><div class="m">'+pj+esc(a.assignee||'미지정')+dl+'</div></div>';
     });
     return h;
@@ -1335,13 +1337,16 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
         var who=withAssignee?esc(a.assignee||'미지정'):'';
         var act='';
+        var canDel = SESS.admin || (SESS.lead_teams||[]).length;
         if(!withAssignee && a.row){
           if(st==='완료'){ act='<span class="st-wait">⏳ 승인 대기</span>'; }
           else{
             if(st==='미착수') act+=mwStBtn(a,'진행중','▶ 진행');
             act+=mwStBtn(a,'완료','✓ 완료');
           }
+          if(canDel) act+=mwStBtn(a,'삭제','🗑');
         }
+        if(withAssignee && a.row && canDel){ act+=mwStBtn(a,'삭제','🗑'); }
         h+='<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+act+'</div><div class="m">'+who+dl+'</div></div>';
       });
     });
@@ -1546,6 +1551,8 @@ def _project_assignments(pname, aliases=None):
             continue
         if not (ws <= d <= we):
             continue
+        if (a.get("status") or "") == "삭제":
+            continue
         ap = (a.get("project") or "").strip()
         if not ap or not any(_match_project(ap, n) for n in names):
             continue
@@ -1562,7 +1569,25 @@ def _project_assignments(pname, aliases=None):
 _ASSIGN_ST_MAP = {"미착수": "Not Started", "진행중": "In Progress", "완료": "Done", "승인": "Done"}
 _ASSIGN_PROG_MAP = {"미착수": 0, "진행중": 50, "완료": 100, "승인": 100}
 _ASSIGN_DONE_STATES = ("완료", "승인")   # 분장 완료 판정
+_ASSIGN_HIDDEN_STATES = ("승인", "삭제")  # 내 업무·팀 목록에서 숨김
 _TASK_DONE_STATES = ("Done", "완료")     # 프로젝트 tasks 완료 판정 (영문/국문 혼재)
+
+
+def _remove_done_task(assign):
+    """삭제된 분장을 프로젝트 tasks에서 제거 (akey 매칭)."""
+    pn = (assign.get("project") or "").strip()
+    if not pn:
+        return False
+    tp = next((p for p in load_projects() if _match_project_p(pn, p)), None)
+    if not tp:
+        return False
+    k = _akey(assign.get("date"), assign.get("task"), assign.get("assignee"))
+    before = len(tp.get("tasks") or [])
+    tp["tasks"] = [t for t in (tp.get("tasks") or []) if t.get("akey") != k]
+    if len(tp["tasks"]) < before:
+        save_project(tp)
+        return True
+    return False
 
 
 def _can_approve(uid, assignee):
@@ -1640,15 +1665,22 @@ def _sync_assign_status(p):
     for a in _assign_read():
         sheet[_akey(a.get("date"), a.get("task"), a.get("assignee"))] = a.get("status") or "미착수"
     changed = False
+    removed = []
     for t in keyed:
         st = sheet.get(t["akey"])
         if not st:
+            continue
+        if st == "삭제":
+            removed.append(t["akey"])
             continue
         new_st = _ASSIGN_ST_MAP.get(st, "Not Started")
         if t.get("status") != new_st:
             t["status"] = new_st
             t["progress"] = _ASSIGN_PROG_MAP.get(st, 0)
             changed = True
+    if removed:
+        p["tasks"] = [t for t in (p.get("tasks") or []) if t.get("akey") not in removed]
+        changed = True
     return changed
 
 
@@ -2437,7 +2469,7 @@ class H(BaseHTTPRequestHandler):
         if path == "/api/my-work":
             # 개인 대시보드 — 내 분장(미완) + 내 프로젝트 일정(owner)
             uid = (q.get("user") or [""])[0]
-            mine = [a for a in _assign_read() if a["assignee"] == uid and a["status"] != "승인"]
+            mine = [a for a in _assign_read() if a["assignee"] == uid and a["status"] not in _ASSIGN_HIDDEN_STATES]
             mine.sort(key=lambda a: (a["status"] == "완료", a["status"] != "진행중", a.get("deadline") or "9999"))
             projs = []
             for p in load_projects():
@@ -2462,7 +2494,7 @@ class H(BaseHTTPRequestHandler):
                 st = (a.get("status") or "미착수")
                 if st == "완료":
                     approvals.append(a)   # 승인 대기 큐 (대표 승인용)
-                if st in _ASSIGN_DONE_STATES:
+                if st in _ASSIGN_DONE_STATES or st == "삭제":
                     continue
                 dl = (a.get("deadline") or "").strip()[:10]
                 try:
@@ -2540,7 +2572,7 @@ class H(BaseHTTPRequestHandler):
                     continue
                 if not (ws <= d <= we):
                     continue
-                if a.get("status") == "승인":
+                if a.get("status") in _ASSIGN_HIDDEN_STATES:
                     continue
                 if a.get("team") in teams or emp_team(a.get("assignee")) in teams:
                     assigns.append(a)
@@ -2845,7 +2877,7 @@ class H(BaseHTTPRequestHandler):
             except (TypeError, ValueError):
                 row = 0
             new_st = (b.get("status") or "").strip()
-            if row < 2 or new_st not in ("미착수", "진행중", "완료", "승인"):
+            if row < 2 or new_st not in ("미착수", "진행중", "완료", "승인", "삭제"):
                 return self._send(400, {"ok": False, "error": "row·status 확인"})
             # 행 재조회 — 수동 행 삭제 등으로 어긋났으면 거부
             try:
@@ -2857,9 +2889,9 @@ class H(BaseHTTPRequestHandler):
             task = (r[4] or "").strip()
             if not task or task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
                 return self._send(409, {"ok": False, "error": "행 내용이 달라졌습니다 — 새로고침 후 다시 시도"})
-            if new_st == "승인":
+            if new_st in ("승인", "삭제"):
                 if not _can_approve(uid, assignee):
-                    return self._send(403, {"ok": False, "error": "승인 권한 없음(대표·해당 팀 리더)"})
+                    return self._send(403, {"ok": False, "error": f"{new_st} 권한 없음(대표·해당 팀 리더)"})
             elif not (assignee == uid or _can_approve(uid, assignee)):
                 return self._send(403, {"ok": False, "error": "본인 분장만 변경할 수 있습니다"})
             try:
@@ -2869,10 +2901,12 @@ class H(BaseHTTPRequestHandler):
             if not ok:
                 return self._send(500, {"ok": False, "error": "시트 업데이트 실패"})
             recorded = False
+            assign = {"date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
+                      "assignee": assignee, "task": task, "deadline": (r[5] or "").strip()}
             if new_st == "승인":
-                assign = {"date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
-                          "assignee": assignee, "task": task, "deadline": (r[5] or "").strip()}
                 recorded = _record_done_task(assign, uid)
+            elif new_st == "삭제":
+                _remove_done_task(assign)  # 포트폴리오에 반영돼 있었으면 함께 제거
             return self._send(200, {"ok": True, "status": new_st, "portfolio_recorded": recorded})
         if path == "/api/project/save":
             p = b.get("project") or {}

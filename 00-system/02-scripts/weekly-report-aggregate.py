@@ -162,6 +162,8 @@ def fetch_assignments(week_start: date, week_end: date) -> list[dict]:
             continue
         if not (r[4] or "").strip():
             continue
+        if (r[7] or "").strip() == "삭제":
+            continue
         items.append({
             "date": nd, "project": (r[1] or "").strip(),
             "team": (r[2] or "").strip(),
