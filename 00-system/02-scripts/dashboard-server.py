@@ -30,6 +30,7 @@ BASE = Path(os.environ.get("DASHBOARD_BASE") or (Path(__file__).resolve().parent
 HTML = BASE / "포트폴리오_대시보드.html"
 DATA = Path(os.environ.get("DASHBOARD_DATA") or (BASE / "_data"))
 PROJ_DIR = DATA / "projects"
+DOC_DIR = DATA / "project-docs"   # 프로젝트 자료(회의록) 원문 — JSON에는 메타만
 HOST = os.environ.get("DASHBOARD_HOST", "127.0.0.1")
 PORT = int(os.environ.get("DASHBOARD_PORT", "8770"))
 # ARISA 주간 대시보드 서빙 — /weekly. 성장지표는 대표 토큰(?key=WEEKLY_KEY)일 때만 노출.
@@ -103,7 +104,7 @@ OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 
-def _call_llm_json(system_prompt, user_msg):
+def _call_llm_json(system_prompt, user_msg, max_tokens=2000):
     """LLM API 호출 → JSON 파싱. Anthropic 우선, OpenAI fallback. 실패 시 None."""
     def _parse_json(text):
         m = re.search(r"```json\s*([\s\S]*?)```", text)
@@ -113,7 +114,7 @@ def _call_llm_json(system_prompt, user_msg):
         try:
             payload = json.dumps({
                 "model": "claude-sonnet-4-20250514",
-                "max_tokens": 2000, "temperature": 0.3,
+                "max_tokens": max_tokens, "temperature": 0.3,
                 "system": system_prompt,
                 "messages": [{"role": "user", "content": user_msg}]
             }).encode("utf-8")
@@ -1607,6 +1608,13 @@ def _project_assignments(pname, aliases=None):
     return out
 
 
+# 자료 기반 AI 갱신 대상 브리프 필드 (화이트리스트 + 표시 라벨)
+_BRIEF_AI_FIELDS = {
+    "summary": "프로젝트 정의", "status": "컨디션", "start": "시작일", "end": "종료일", "dday": "D-Day",
+    "req": "클라이언트 요구사항", "goal": "목표", "kpi": "KPI",
+    "critical": "실행 주요포인트", "deliverables": "산출물", "risk": "주의사항",
+}
+
 # ── 분장 ↔ 프로젝트 포트폴리오 연동 ──────────────────────────
 _ASSIGN_ST_MAP = {"미착수": "Not Started", "진행중": "In Progress", "완료": "Done", "승인": "Done"}
 _ASSIGN_PROG_MAP = {"미착수": 0, "진행중": 50, "완료": 100, "승인": 100}
@@ -2950,6 +2958,89 @@ class H(BaseHTTPRequestHandler):
             elif new_st == "삭제":
                 _remove_done_task(assign)  # 포트폴리오에 반영돼 있었으면 함께 제거
             return self._send(200, {"ok": True, "status": new_st, "portfolio_recorded": recorded})
+        if path == "/api/project/doc-analyze":
+            # 프로젝트 자료(회의록) 업로드 + AI 브리프 갱신 제안 (diff) — PM·대표
+            pid = (b.get("id") or "").strip()
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_edit(uid, p):
+                return self._send(403, {"ok": False, "error": "자료 업데이트 권한 없음(담당 PM·대표만)"})
+            text = (b.get("text") or "").strip()
+            if len(text) < 20:
+                return self._send(400, {"ok": False, "error": "자료 내용이 너무 짧습니다(20자 이상)"})
+            truncated = len(text) > 30000
+            text = text[:30000]
+            now = datetime.datetime.now()
+            title = (b.get("title") or "").strip() or f"자료 {now.strftime('%Y-%m-%d')}"
+            ts = now.strftime("%Y%m%d-%H%M%S")
+            # ① 자료 원문 저장 (분석 실패해도 보존)
+            ddir = DOC_DIR / _safe(pid)
+            ddir.mkdir(parents=True, exist_ok=True)
+            (ddir / f"{ts}.md").write_text(f"# {title}\n({uid} · {now.strftime('%Y-%m-%d %H:%M')})\n\n{text}",
+                                           encoding="utf-8")
+            p.setdefault("docs", []).append({"ts": ts, "title": title, "by": uid, "chars": len(text)})
+            save_project(p)
+            # ② LLM 갱신 제안
+            brief = p.get("brief") or {}
+            cur = {k: (brief.get(k) if k not in ("start", "end", "dday", "status")
+                       else (brief.get(k) or p.get(k) or "")) for k in _BRIEF_AI_FIELDS}
+            sys_p = ("당신은 프로젝트 브리프 관리자다. 새 자료(회의록·문서)에 명시적 근거가 있는 필드만 갱신을 제안한다. "
+                     "자료에 근거가 없으면 절대 제안하지 않는다. 기존 값이 더 구체적이면 유지한다. 날짜는 YYYY-MM-DD. "
+                     "status는 Not Started/In Progress/On Track/At Risk/Hold/Done 중 하나. "
+                     "갱신 대상 필드와 의미: " + ", ".join(f"{k}({v})" for k, v in _BRIEF_AI_FIELDS.items()) + ". "
+                     "텍스트 필드는 기존 내용에 새 정보를 통합한 완성된 최신 값을 after로 작성(단순 요약 금지, 한국어). "
+                     '반드시 JSON만 반환: {"changes":[{"field":"...","after":"...","basis":"자료 속 근거 한 줄"}]}')
+            user_p = ("[현재 브리프]\n" + json.dumps(cur, ensure_ascii=False) +
+                      "\n\n[새 자료: " + title + "]\n" + text)
+            res = _call_llm_json(sys_p, user_p, max_tokens=3000)
+            if res is None:
+                return self._send(200, {"ok": True, "doc": {"ts": ts, "title": title}, "changes": [],
+                                        "error": "AI 분석 실패 — 자료는 저장되었습니다. 잠시 후 다시 시도하세요."})
+            changes = []
+            for c in (res.get("changes") or []):
+                f = (c.get("field") or "").strip()
+                if f not in _BRIEF_AI_FIELDS:
+                    continue
+                after = str(c.get("after") or "").strip()
+                before = str(cur.get(f) or "").strip()
+                if not after or after == before:
+                    continue
+                changes.append({"field": f, "label": _BRIEF_AI_FIELDS[f], "before": before,
+                                "after": after, "basis": str(c.get("basis") or "")[:200]})
+            return self._send(200, {"ok": True, "doc": {"ts": ts, "title": title},
+                                    "changes": changes, "truncated": truncated})
+        if path == "/api/project/doc-apply":
+            # diff 미리보기에서 선택한 변경 적용 + 변경 로그 기록 — PM·대표
+            pid = (b.get("id") or "").strip()
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_edit(uid, p):
+                return self._send(403, {"ok": False, "error": "적용 권한 없음(담당 PM·대표만)"})
+            brief = p.setdefault("brief", {})
+            entry = {"ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "by": uid,
+                     "doc": (b.get("docTitle") or "").strip(), "changes": []}
+            for c in (b.get("changes") or []):
+                f = (c.get("field") or "").strip()
+                if f not in _BRIEF_AI_FIELDS:
+                    continue
+                after = str(c.get("after") or "").strip()
+                before = str(brief.get(f) or p.get(f) or "").strip()
+                if not after or after == before:
+                    continue
+                entry["changes"].append({"field": f, "label": _BRIEF_AI_FIELDS[f],
+                                         "before": before, "after": after,
+                                         "basis": str(c.get("basis") or "")[:200]})
+                brief[f] = after
+                if f in ("start", "end", "dday", "status"):
+                    p[f] = after   # 카드·간트가 쓰는 top-level 동기화
+            if not entry["changes"]:
+                return self._send(200, {"ok": True, "applied": 0, "project": p})
+            p.setdefault("changelog", []).append(entry)
+            p["changelog"] = p["changelog"][-100:]  # 최근 100건 유지
+            save_project(p)
+            return self._send(200, {"ok": True, "applied": len(entry["changes"]), "project": p})
         if path == "/api/assign-bulk-delete":
             # 체크리스트 일괄 삭제 — 스냅샷 1회 검증 후 행별 '삭제' 마킹 (+포트폴리오 제거)
             items = b.get("items") or []
