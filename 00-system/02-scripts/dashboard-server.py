@@ -3006,13 +3006,28 @@ class H(BaseHTTPRequestHandler):
             save_project(p)
             return self._send(200, {"ok": True, "members": clean})
         if path == "/api/project/delete":
+            # 프로젝트 통째 삭제 — 카드(JSON) + 이 프로젝트로 등록된 분장(미착수/진행중/완료)도 '삭제' 마킹.
+            # 승인된 분장(완료 이력)은 보존.
             pid = b.get("id", "")
             p = get_project(pid)
             if not (is_admin(uid) or (p and (p.get("pm") or "") == uid)):
                 return self._send(403, {"ok": False, "error": "삭제는 대표·담당 PM만"})
+            assigns_deleted = 0
+            if p and _asgws and DAILY_SHEET:
+                for a in _assign_read():
+                    if (a.get("status") or "") in ("삭제", "승인"):
+                        continue
+                    ap = (a.get("project") or "").strip()
+                    if not ap or not _match_project_p(ap, p):
+                        continue
+                    try:
+                        if _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!H{a['row']}", [["삭제"]], timeout=20):
+                            assigns_deleted += 1
+                    except Exception:
+                        pass
             f = PROJ_DIR / f"{_safe(pid)}.json"
             if f.exists(): f.unlink()
-            return self._send(200, {"ok": True})
+            return self._send(200, {"ok": True, "assigns_deleted": assigns_deleted})
         return self._send(404, {"ok": False, "error": "not found"})
 
 if __name__ == "__main__":

@@ -1219,8 +1219,9 @@ async function deleteProject(id){
   if(SERVED){
     const p=(PROJECTS_CACHE||[]).find(x=>x.id===id);
     if(!(amAdmin()||(p&&p.pm===CURRENT_USER))){ alert('삭제는 대표·담당 PM만 가능합니다.'); return; }
-    if(!confirm('이 프로젝트를 서버에서 삭제할까요?')) return;
+    if(!confirm(`'${(p&&p.name)||id}' 프로젝트를 통째로 삭제할까요?\n이 프로젝트로 등록된 분장 업무(미착수·진행중·완료)도 함께 삭제 표시됩니다. (승인된 완료 이력은 보존)`)) return;
     const r=await apiPost('/project/delete',{user:CURRENT_USER,pin:CURRENT_PIN,id}); if(!r.ok){ alert('삭제 실패: '+(r.error||'')); return; }
+    alert('🗑 프로젝트 삭제 완료'+(r.assigns_deleted?` — 분장 ${r.assigns_deleted}건 함께 삭제`:''));
     await loadPortfolio();
   } else {
     const arr=allProjects(); const p=arr.find(x=>x.id===id); if(!p) return;
