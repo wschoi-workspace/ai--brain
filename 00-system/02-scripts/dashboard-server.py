@@ -2681,6 +2681,22 @@ class H(BaseHTTPRequestHandler):
             if _sync_assign_status(p): save_project(p)  # 분장 시트(SSOT) 상태 lazy 반영
             return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
                                     "assignments": _project_assignments(p.get("name") or "", p.get("aliases"))})
+        if path == "/api/project/doc":
+            # 업로드 자료(회의록) 원문 조회 — 프로젝트 열람 권한자
+            uid = (q.get("user") or [""])[0]
+            pid = (q.get("id") or [""])[0]
+            ts = (q.get("ts") or [""])[0]
+            p = get_project(pid)
+            if not p: return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_view(uid, p): return self._send(403, {"ok": False, "error": "열람 권한 없음"})
+            if not re.fullmatch(r"\d{8}-\d{6}", ts):
+                return self._send(400, {"ok": False, "error": "ts 형식"})
+            f = DOC_DIR / _safe(pid) / f"{ts}.md"
+            if not f.exists(): return self._send(404, {"ok": False, "error": "자료 파일 없음"})
+            meta = next((d for d in (p.get("docs") or []) if d.get("ts") == ts), {})
+            return self._send(200, {"ok": True, "title": meta.get("title") or ts,
+                                    "by": meta.get("by") or "", "ts": ts,
+                                    "text": f.read_text(encoding="utf-8")})
         if path == "/api/brief-comments":
             uid = (q.get("user") or [""])[0]
             if not load_users().get(uid): return self._send(401, {"ok": False, "error": "unknown user"})

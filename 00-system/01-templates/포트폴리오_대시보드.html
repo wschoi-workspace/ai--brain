@@ -510,6 +510,16 @@ body.readonly .topbar .ver{color:var(--rust)}
   </div>
 </div>
 
+<!-- DOC VIEWER MODAL — 아카이브된 회의록 원문 열람 -->
+<div class="modal-bg" id="docview-modal">
+  <div class="modal" style="max-width:720px">
+    <h3 id="docview-title">📄 자료</h3>
+    <div class="m-sub" id="docview-meta"></div>
+    <div id="docview-body" style="max-height:56vh;overflow-y:auto;white-space:pre-wrap;font-size:12.5px;line-height:1.7;color:var(--fg-2);background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:8px"></div>
+    <div class="m-actions"><button class="btn" onclick="$('#docview-modal').classList.remove('show')">닫기</button></div>
+  </div>
+</div>
+
 <!-- ADD PROJECT MODAL -->
 <div class="modal-bg" id="add-modal">
   <div class="modal">
@@ -1285,6 +1295,14 @@ async function docApply(){
   syncBriefInputs(); render(); renderDocLog(); closeDocModal();
   alert('✅ '+r.applied+'개 필드가 자료 기반으로 갱신되었습니다. (변경 이력에 기록됨)');
 }
+async function openDocView(ts){
+  const r=await apiGet('/project/doc?id='+encodeURIComponent(CURRENT_PROJECT.id)+'&ts='+encodeURIComponent(ts)+'&user='+encodeURIComponent(CURRENT_USER));
+  if(!r.ok){ alert(r.error||'자료를 열 수 없습니다'); return; }
+  $('#docview-title').textContent='📄 '+r.title;
+  $('#docview-meta').textContent=(r.ts||'').replace(/(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})\d{2}/,'$1-$2-$3 $4:$5')+(r.by?' · 업로드 '+r.by:'');
+  $('#docview-body').textContent=r.text;
+  $('#docview-modal').classList.add('show');
+}
 async function renderDocLogAfterFetch(){
   // 자료만 저장된 경우(변경 0건) 최신 docs 메타 반영
   const r=await apiGet('/project?id='+encodeURIComponent(CURRENT_PROJECT.id)+'&user='+encodeURIComponent(CURRENT_USER));
@@ -1293,7 +1311,7 @@ async function renderDocLogAfterFetch(){
 function renderDocLog(){
   const el=$('#doc-log'); if(!el) return;
   const p=CURRENT_PROJECT||{};
-  const docs=(p.docs||[]).slice(-8).reverse();
+  const docs=(p.docs||[]).slice().reverse();  // 전체 아카이브 (최신순)
   const logs=(p.changelog||[]).slice(-15).reverse();
   if(!docs.length && !logs.length){
     el.innerHTML='<div class="bs-empty">아직 업로드된 자료·변경 이력이 없습니다. 상단 [📎 자료 업데이트]로 회의록을 올리면 브리프가 자료 기반으로 갱신됩니다.</div>';
@@ -1301,8 +1319,18 @@ function renderDocLog(){
   }
   let h='';
   if(docs.length){
-    h+='<div class="lab">업로드 자료</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'
-      +docs.map(d=>`<span style="font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--fg-2)">📄 ${esc(d.title)} <span style="color:var(--fg-3)">· ${esc((d.ts||'').slice(0,8).replace(/(\d{4})(\d{2})(\d{2})/,'$2/$3'))} ${esc(d.by||'')}</span></span>`).join('')+'</div>';
+    // 날짜별 아카이브 — 클릭하면 원문 열람
+    const byDate={};
+    docs.forEach(d=>{ const day=(d.ts||'').slice(0,8).replace(/(\d{4})(\d{2})(\d{2})/,'$1-$2-$3');
+      (byDate[day]=byDate[day]||[]).push(d); });
+    h+='<div class="lab">📚 회의록 · 자료 아카이브 <span style="font-weight:400;color:var(--fg-3)">(클릭하면 원문 열람)</span></div>';
+    Object.keys(byDate).forEach(day=>{
+      h+=`<div style="margin:7px 0 4px;font-size:10.5px;color:var(--fg-3);font-weight:600">${esc(day)}</div>`
+        +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+        +byDate[day].map(d=>`<a onclick="openDocView('${esc(d.ts)}')" style="cursor:pointer;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--fg-2)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">📄 ${esc(d.title)} <span style="color:var(--fg-3)">${esc((d.ts||'').slice(9,11))}:${esc((d.ts||'').slice(11,13))} · ${esc(d.by||'')}</span></a>`).join('')
+        +'</div>';
+    });
+    h+='<div style="margin-bottom:10px"></div>';
   }
   if(logs.length){
     h+='<div class="lab">변경 이력</div>'+logs.map(e=>
