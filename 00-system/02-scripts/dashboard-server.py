@@ -1050,7 +1050,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
           var act='';
           if(a.row){
-            if(st==='완료'){ act='<span class="st-wait">⏳ 승인 대기</span>'; }
+            if(st==='완료'){ act='<span class="st-wait">⏳ 승인 대기</span>'+mwStBtn(a,'진행중','↩ 되돌리기'); }
             else{ act=mwStBtn(a,'완료','✓ 완료')+mwStBtn(a,'완료','📣 완료·보고',true); }
           }
           h+='<div class="mw-card rc-card"><div class="t">'+badge+' '+esc(a.task)+urg+act
@@ -1443,13 +1443,13 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         var act='';
         var canDel = SESS.admin || (SESS.lead_teams||[]).length;
         if(!withAssignee && a.row){
-          if(st==='완료'){ act='<span class="st-wait">⏳ 승인 대기</span>'; }
+          if(st==='완료'){ act='<span class="st-wait">⏳ 승인 대기</span>'+mwStBtn(a,'진행중','↩ 되돌리기'); }
           else{
             if(st==='미착수') act+=mwStBtn(a,'진행중','▶ 진행');
             act+=mwStBtn(a,'완료','✓ 완료');
             act+=mwStBtn(a,'완료','📣 완료·보고',true);
           }
-          if(canDel) act+=mwStBtn(a,'삭제','🗑')+mwChk(a);
+          act+=mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 본인도 삭제 가능 (잘못 등록 정리)
         }
         if(withAssignee && a.row && canDel){ act+=mwStBtn(a,'삭제','🗑')+mwChk(a); }
         h+='<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+act+'</div><div class="m">'+who+dl+'</div></div>';
@@ -1796,8 +1796,8 @@ def _sync_assign_status(p):
     return changed
 
 
-def _notify_approvers(assignee, project, task):
-    """완료 보고 멘션 — 담당 팀 리더 + 대표에게 텔레그램. 발송 성공 수 반환."""
+def _notify_approvers(assignee, msg):
+    """담당 팀 리더 + 대표에게 텔레그램 멘션. 발송 성공 수 반환."""
     team = emp_team(assignee) or ""
     leader = (load_emp().get("team_leads") or {}).get(team)
     targets = set()
@@ -1809,8 +1809,7 @@ def _notify_approvers(assignee, project, task):
     sent = 0
     for n in targets:
         cid = _tg_chat_id(n)
-        if cid and _tg_send(cid, f"✅ {assignee} 완료 보고\n▸ [{project or '기타'}] {task}\n\n"
-                                 f"아리사 OS 내 업무 '완료 승인 대기'에서 승인해주세요."):
+        if cid and _tg_send(cid, msg):
             sent += 1
     return sent
 
@@ -3066,9 +3065,13 @@ class H(BaseHTTPRequestHandler):
             task = (r[4] or "").strip()
             if not task or task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
                 return self._send(409, {"ok": False, "error": "행 내용이 달라졌습니다 — 새로고침 후 다시 시도"})
-            if new_st in ("승인", "삭제"):
+            if new_st == "승인":
                 if not _can_approve(uid, assignee):
-                    return self._send(403, {"ok": False, "error": f"{new_st} 권한 없음(대표·해당 팀 리더)"})
+                    return self._send(403, {"ok": False, "error": "승인 권한 없음(대표·해당 팀 리더)"})
+            elif new_st == "삭제":
+                # 대표·해당 팀 리더 + 본인(잘못 등록 정리) — 본인 삭제는 아래에서 리더·대표에 알림
+                if not (_can_approve(uid, assignee) or assignee == uid):
+                    return self._send(403, {"ok": False, "error": "삭제 권한 없음(대표·팀 리더·본인)"})
             elif not (assignee == uid or _can_approve(uid, assignee)):
                 return self._send(403, {"ok": False, "error": "본인 분장만 변경할 수 있습니다"})
             try:
@@ -3085,8 +3088,13 @@ class H(BaseHTTPRequestHandler):
                 recorded = _record_done_task(assign, uid)
             elif new_st == "삭제":
                 _remove_done_task(assign)  # 포트폴리오에 반영돼 있었으면 함께 제거
+                if not _can_approve(uid, assignee):
+                    # 직원 본인 삭제 — 리더·대표에게 투명하게 공유 (시트에는 삭제 표시로 보존)
+                    _notify_approvers(assignee, f"🗑 {uid} 본인 분장 삭제\n▸ [{assign['project'] or '기타'}] {task}\n\n"
+                                                f"잘못 등록된 분장 정리 — 시트에 삭제 표시로 보존됩니다.")
             elif new_st == "완료" and b.get("notify"):
-                notified = _notify_approvers(assignee, assign["project"], task)
+                notified = _notify_approvers(assignee, f"✅ {assignee} 완료 보고\n▸ [{assign['project'] or '기타'}] {task}\n\n"
+                                                       f"아리사 OS 내 업무 '완료 승인 대기'에서 승인해주세요.")
             return self._send(200, {"ok": True, "status": new_st, "portfolio_recorded": recorded,
                                     "notified": notified})
         if path == "/api/project/doc-analyze":
@@ -3191,7 +3199,7 @@ class H(BaseHTTPRequestHandler):
                 if not a or a.get("task") != (it.get("task") or "").strip() \
                         or a.get("assignee") != (it.get("assignee") or "").strip():
                     errs.append(f"{label}: 행 불일치 — 새로고침 필요"); continue
-                if not _can_approve(uid, a.get("assignee")):
+                if not (_can_approve(uid, a.get("assignee")) or a.get("assignee") == uid):
                     errs.append(f"{label}: 권한 없음"); continue
                 try:
                     ok = _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!H{row}", [["삭제"]], timeout=20)
