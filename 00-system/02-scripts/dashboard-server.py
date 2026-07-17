@@ -1035,6 +1035,10 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         if(_rcSeen[k]) return false; _rcSeen[k]=1; return true;
       });
       var teamTodo=A.filter(function(a){ return a.assignee!==SESS.name; });
+      h+=mwDailyFocusHtml(lh.daily);
+      var lhNew=mwNewTodosHtml(lh.daily);
+      if(lhNew){ h+='<div class="mw-h">🆕 새로 해야 할 일 <span class="sub2">어제 보고에서 도출 — [분장 등록]으로 확정</span></div>'+lhNew; }
+      h+=mwProjUpdatesHtml(lh.daily);
       h+=mwApprovalsHtml(lh.approvals||[]);
       if(received.length){
         h+='<div class="mw-h">📥 받은 업무 <span class="sub2">— 대표 지시 · [상세 분장]으로 팀원에게 쪼개서 배분하세요</span></div>';
@@ -1070,6 +1074,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       mwBindParse();
       mwBindStatus(box);
       mwBindBulk(box);
+      mwBindSelfAssign(box);
       box.querySelectorAll('.lh-proj').forEach(function(el){ el.onclick=function(){ showTab('projects'); }; });
       box.querySelectorAll('.rc-btn').forEach(function(b){
         b.onclick=function(){
@@ -1117,10 +1122,13 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         if(!D.length && !O.length && !(ex.approvals||[]).length){ h+='<div class="mw-h">✅ 지연·결재·승인 대기 없음</div>'; }
       }
       if(ac.canAssign){ h+=mwAssignHtml(ac.level||'담당자'); }
-      h+='<div class="mw-h">오늘 할일 · 내 분장</div>';
+      h+=mwDailyFocusHtml(mw.daily);
+      h+='<div class="mw-h">✅ 오늘 할 일 · 내 분장 <span class="sub2">🆕 제안 = 어제 보고에서 도출 — [분장 등록]으로 확정</span></div>';
       var A=mw.assignments||[];
       if(A.length){ h+=mwAssignListHtml(A, false); }
-      else { h+='<div class="mw-empty">배정된 분장이 없습니다.</div>'; }
+      h+=mwNewTodosHtml(mw.daily);
+      if(!A.length && !((mw.daily||{}).new_todos||[]).length){ h+='<div class="mw-empty">배정된 분장이 없습니다.</div>'; }
+      h+=mwProjUpdatesHtml(mw.daily);
       h+='<div class="mw-h">내 프로젝트 일정</div>';
       var P=mw.projects||[];
       if(P.length){ P.forEach(function(p){
@@ -1135,6 +1143,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       mwBindParse();
       mwBindStatus(box);
       mwBindBulk(box);
+      mwBindSelfAssign(box);
     }).catch(function(){ box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>'; });
   }
   function mwAsOpts(sel){ return MW_ASSIGNEES.map(function(a){return '<option value="'+esc(a.name)+'"'+(a.name===sel?' selected':'')+'>'+esc(a.name)+' ('+esc(a.team||'')+')</option>';}).join(''); }
@@ -1292,6 +1301,46 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           renderMyWork();
         } else { msg.textContent=(d.errors&&d.errors.join(', '))||'등록 실패(주간분장 탭 확인)'; }
       }).catch(function(){ msg.textContent='서버 오류'; });
+  }
+  function mwDailyFocusHtml(d){
+    if(!d||!d.focus) return '';
+    return '<div class="mw-h">⚡ 오늘 포커스 <span class="sub2">'+esc(d.date||'')+' 보고 기반 자동 생성</span></div>'
+      +'<div class="mw-card" style="border-left:3px solid var(--accent)"><div class="t">'+esc(d.focus)+'</div></div>';
+  }
+  function mwNewTodosHtml(d){
+    if(!d||!(d.new_todos||[]).length) return '';
+    return d.new_todos.map(function(t){
+      var pj=t.project?('['+esc(t.project)+'] '):'';
+      var dl=t.deadline?(' · 마감 '+esc(t.deadline)):'';
+      return '<div class="mw-card" style="border-style:dashed" title="'+esc(t.basis||'')+'">'
+        +'<div class="t"><span class="mw-badge" style="background:rgba(108,92,231,.16);color:var(--accent)">🆕 제안</span> '
+        +esc(t.task)
+        +'<a class="ns-add st-act" style="border-color:var(--accent);color:var(--accent)" data-task="'+esc(t.task)
+        +'" data-project="'+esc(t.project||'')+'" data-deadline="'+esc(t.deadline||'')+'">+ 분장 등록</a></div>'
+        +'<div class="m">'+pj+esc(t.basis||'어제 보고에서 도출')+dl+'</div></div>';
+    }).join('');
+  }
+  function mwProjUpdatesHtml(d){
+    if(!d||!(d.project_updates||[]).length) return '';
+    var h='<div class="mw-h">📁 프로젝트 업데이트 <span class="sub2">어제 보고 기반 프로젝트 단위 요약</span></div>';
+    d.project_updates.forEach(function(u){
+      h+='<div class="mw-card"><div class="t">'+esc(u.project||'기타')+'</div><div class="m">'+esc(u.update)+'</div></div>';
+    });
+    return h;
+  }
+  function mwBindSelfAssign(scope){
+    scope.querySelectorAll('.ns-add').forEach(function(el){
+      el.onclick=function(){
+        el.textContent='등록 중…';
+        fetch('/api/assign-self',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:SESS.name,pin:SESS.pin,task:el.getAttribute('data-task'),
+            project:el.getAttribute('data-project'),deadline:el.getAttribute('data-deadline')})})
+        .then(function(r){return r.json();}).then(function(d){
+          if(!d.ok) alert(d.error||'등록 실패');
+          renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    });
   }
   function mwStBtn(a, st, label){
     return '<a class="st-act" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'" data-st="'+st+'">'+label+'</a>';
@@ -1732,6 +1781,25 @@ def _sync_assign_status(p):
         p["tasks"] = [t for t in (p.get("tasks") or []) if t.get("akey") not in removed]
         changed = True
     return changed
+
+
+def _person_workbrief(uid, mine):
+    """개인 아침 브리프(배치 산출 my-brief-{date}-{name}.json) 최신본 로드.
+    new_todos 중 이미 분장에 등록된 항목(동일 task)은 제외. 없으면 None."""
+    pdir = BRIEF_DIR / "person"
+    if not pdir.exists():
+        return None
+    files = sorted(pdir.glob(f"my-brief-2*-{uid}.json"))
+    if not files:
+        return None
+    try:
+        d = json.loads(files[-1].read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    existing = {(a.get("task") or "").strip() for a in (mine or [])}
+    d["new_todos"] = [t for t in (d.get("new_todos") or [])
+                      if (t.get("task") or "").strip() not in existing]
+    return d
 
 
 # ── 브리프 코멘트 (대표·리더 → 보고자 피드백 + 텔레그램 회신) ──
@@ -2530,7 +2598,8 @@ class H(BaseHTTPRequestHandler):
                                   "tasks": [{"task": t.get("task"), "start": t.get("start"), "end": t.get("end"),
                                              "status": t.get("status"), "priority": t.get("priority"),
                                              "division": t.get("division")} for t in ts]})
-            return self._send(200, {"ok": True, "user": uid, "assignments": mine, "projects": projs})
+            return self._send(200, {"ok": True, "user": uid, "assignments": mine, "projects": projs,
+                                    "daily": _person_workbrief(uid, mine)})
         if path == "/api/exec-attn":
             # 대표창 — 지연 업무(마감 경과·미완료 분장) + 결재·확인 필요(미해결 결정)
             uid = (q.get("user") or [""])[0]
@@ -2662,7 +2731,8 @@ class H(BaseHTTPRequestHandler):
                 brief_html = f'<div class="muted">보고 로드 실패: {e}</div>'
             return self._send(200, {"ok": True, "teams": teams, "assignments": assigns,
                                     "projects": projs, "approvals": approvals,
-                                    "brief_html": brief_html, "brief_date": brief_date})
+                                    "brief_html": brief_html, "brief_date": brief_date,
+                                    "daily": _person_workbrief(uid, [a for a in assigns if a.get("assignee") == uid])})
         if path == "/api/projects":
             uid = (q.get("user") or [""])[0]
             if not load_users().get(uid): return self._send(401, {"ok": False, "error": "unknown user"})
@@ -2933,6 +3003,15 @@ class H(BaseHTTPRequestHandler):
                 return self._send(403, {"ok": False, "error": "자기 팀원에게만 분장할 수 있습니다"})
             ok, msg = _assign_append(assignee, task, (b.get("deadline") or "").strip(),
                                      (b.get("priority") or "일반").strip(), uid)
+            return self._send(200 if ok else 500, {"ok": ok, "error": msg})
+        if path == "/api/assign-self":
+            # 본인 분장 등록 — 개인 브리프 '새로 해야 할 일' 제안 수락용 (assignee=본인 강제)
+            task = (b.get("task") or "").strip()
+            if not task:
+                return self._send(400, {"ok": False, "error": "업무 내용 필수"})
+            ok, msg = _assign_append(uid, task, (b.get("deadline") or "").strip(),
+                                     (b.get("priority") or "일반").strip(), uid,
+                                     project=(b.get("project") or "").strip())
             return self._send(200 if ok else 500, {"ok": ok, "error": msg})
         if path == "/api/assign-status":
             # 분장 상태 변경 — 완료(본인 체크)·진행중(진행 표시/반려 복귀)·승인(리더·대표)

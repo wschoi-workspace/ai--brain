@@ -295,6 +295,72 @@ def engine_d(blocks: list[str]) -> dict:
         return empty
 
 
+PERSON_BRIEF_PROMPT = """당신은 직원 개인의 아침 업무 브리퍼다. 어제 일일보고와 현재 분장을 보고 JSON으로 정리한다.
+규칙:
+- focus: 오늘 가장 집중할 일 한 문장 (마감 임박·긴급·미완 흐름 기반, 한국어)
+- new_todos: 보고에서 도출되는 '새로 해야 할 일' 최대 5개. 이미 [현재 분장]에 있는 업무와 중복 금지.
+  보고에 명시적 근거(예정·필요·요청·후속·미완)가 있는 것만. 지어내지 말 것.
+  각 항목: {"task":"...","project":"프로젝트명(보고에서 식별될 때만)","deadline":"YYYY-MM-DD(명시된 경우만)","basis":"보고 속 근거 한 줄"}
+- project_updates: 프로젝트 단위 어제 진행 요약. 각 {"project":"...","update":"1~2문장"}
+반환: {"focus":"...","new_todos":[...],"project_updates":[...]}"""
+
+
+def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[dict]) -> dict | None:
+    """개인 아침 브리프(내 업무 탭용) — 어제 보고 + 본인 분장 → focus/new_todos/project_updates."""
+    key = os.environ.get("OPENAI_API_KEY", "")
+    if not key:
+        return None
+    mine = [a for a in assignments if a.get("assignee") == name
+            and a.get("status") not in ("승인", "삭제", "완료")]
+    lines = []
+    for c in d.get("core", []):
+        seg = f"- {c.get('task', '')}"
+        if (c.get("outcome") or "").strip(): seg += f" | 성과: {c['outcome']}"
+        if (c.get("issue") or "").strip(): seg += f" | 이슈: {c['issue']}"
+        if (c.get("detail") or "").strip(): seg += f" | 상세: {c['detail']}"
+        lines.append(seg)
+    m = d.get("meta") or {}
+    for lab, k in (("블로커", "blocker"), ("결정요청", "decision"), ("지원요청", "support"), ("질문", "question")):
+        if (m.get(k) or "").strip():
+            lines.append(f"- [{lab}] {m[k].strip()}")
+    for lab, v in d.get("basket", []):
+        lines.append(f"- [매장·{lab}] {v}")
+    if not lines:
+        return None
+    asg_txt = "\n".join(f"- [{a.get('project') or '기타'}] {a['task']} (마감 {a.get('deadline') or '-'} · {a.get('status')})"
+                        for a in mine) or "(없음)"
+    wd = ["월", "화", "수", "목", "금", "토", "일"][datetime.strptime(date_str, "%Y-%m-%d").weekday()]
+    user = (f"오늘은 {date_str}({wd})이다. '내일'·'금요일' 같은 상대 날짜는 반드시 이 기준으로 YYYY-MM-DD 변환하라.\n\n"
+            f"[어제 보고 — {name}]\n" + "\n".join(lines)[:8000] + f"\n\n[현재 분장]\n{asg_txt}")
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=key)
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini", temperature=0.1,
+            response_format={"type": "json_object"},
+            messages=[{"role": "system", "content": PERSON_BRIEF_PROMPT},
+                      {"role": "user", "content": user}])
+        r = json.loads(resp.choices[0].message.content or "{}")
+    except Exception as e:
+        sys.stderr.write(f"[person-brief {name}] {e}\n")
+        return None
+    todos = []
+    for t in (r.get("new_todos") or [])[:5]:
+        task = (t.get("task") or "").strip()
+        if not task:
+            continue
+        dl = (t.get("deadline") or "").strip()
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", dl) or dl < date_str:
+            dl = ""  # 형식 오류·과거 날짜(상대 날짜 오환산)는 버림
+        todos.append({"task": task, "project": (t.get("project") or "").strip(),
+                      "deadline": dl, "basis": (t.get("basis") or "").strip()[:150]})
+    ups = [{"project": (u.get("project") or "").strip(), "update": (u.get("update") or "").strip()}
+           for u in (r.get("project_updates") or []) if (u.get("update") or "").strip()]
+    return {"date": date_str, "name": name, "focus": (r.get("focus") or "").strip(),
+            "new_todos": todos, "project_updates": ups,
+            "generated_at": datetime.now().isoformat(timespec="seconds")}
+
+
 def _decision_summary(items: list[dict]) -> list[dict]:
     """상단 요약존용 — decision·intervention 항목을 urgency순으로 정렬."""
     ds = [it for it in items if it["category"] in ("decision", "intervention")]
@@ -1126,6 +1192,16 @@ def main():
         save_team_brief(tdata)
         if not args.no_telegram:
             _telegram_team_brief(tdata, leader_chat_ids(team))
+
+    # ─── 개인 아침 브리프 (셸 '내 업무' 탭용 — 인당 LLM 1회) ───
+    pdir = OUT_DIR / "person"
+    pdir.mkdir(parents=True, exist_ok=True)
+    for name, d in day.items():
+        pb = build_person_workbrief(args.date, name, d, assignments)
+        if pb:
+            (pdir / f"my-brief-{args.date}-{name}.json").write_text(
+                json.dumps(pb, ensure_ascii=False, indent=1), encoding="utf-8")
+            print(f"개인 브리프: {name} — 신규할일 {len(pb['new_todos'])} · 프로젝트 업데이트 {len(pb['project_updates'])}")
 
 
 if __name__ == "__main__":
