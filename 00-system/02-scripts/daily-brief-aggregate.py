@@ -302,7 +302,26 @@ PERSON_BRIEF_PROMPT = """당신은 직원 개인의 아침 업무 브리퍼다. 
   보고에 명시적 근거(예정·필요·요청·후속·미완)가 있는 것만. 지어내지 말 것.
   각 항목: {"task":"...","project":"프로젝트명(보고에서 식별될 때만)","deadline":"YYYY-MM-DD(명시된 경우만)","basis":"보고 속 근거 한 줄"}
 - project_updates: 프로젝트 단위 어제 진행 요약. 각 {"project":"...","update":"1~2문장"}
+- project는 반드시 [프로젝트 목록]에 있는 이름 또는 보고에 명시된 실제 프로젝트·브랜드명만 사용.
+  '블로커'·'현장실사'·'전기 공사' 같은 업무 라벨·공정 단계명은 project가 아니다 — 상위 프로젝트를 찾아 쓰고, 불명확하면 빈 문자열.
 반환: {"focus":"...","new_todos":[...],"project_updates":[...]}"""
+
+
+def _portfolio_names() -> list[str]:
+    """포트폴리오 프로젝트명 목록 — 개인 브리프의 project 정규화 참조용."""
+    out = []
+    pdir = WORKSPACE / "00-system" / "01-templates" / "_data" / "projects"
+    try:
+        for f in pdir.glob("*.json"):
+            try:
+                n = (json.loads(f.read_text(encoding="utf-8")).get("name") or "").strip()
+                if n:
+                    out.append(n)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return out
 
 
 def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[dict]) -> dict | None:
@@ -330,8 +349,10 @@ def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[
     asg_txt = "\n".join(f"- [{a.get('project') or '기타'}] {a['task']} (마감 {a.get('deadline') or '-'} · {a.get('status')})"
                         for a in mine) or "(없음)"
     wd = ["월", "화", "수", "목", "금", "토", "일"][datetime.strptime(date_str, "%Y-%m-%d").weekday()]
+    pnames = sorted(set(_portfolio_names() + [a.get("project") for a in assignments if a.get("project")]))
     user = (f"오늘은 {date_str}({wd})이다. '내일'·'금요일' 같은 상대 날짜는 반드시 이 기준으로 YYYY-MM-DD 변환하라.\n\n"
-            f"[어제 보고 — {name}]\n" + "\n".join(lines)[:8000] + f"\n\n[현재 분장]\n{asg_txt}")
+            f"[프로젝트 목록]\n" + ", ".join(pnames)[:1500] +
+            f"\n\n[어제 보고 — {name}]\n" + "\n".join(lines)[:8000] + f"\n\n[현재 분장]\n{asg_txt}")
     try:
         from openai import OpenAI
         client = OpenAI(api_key=key)
