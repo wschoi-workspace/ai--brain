@@ -1075,6 +1075,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       mwBindStatus(box);
       mwBindBulk(box);
       mwBindSelfAssign(box);
+      mwBindEdit(box);
       box.querySelectorAll('.lh-proj').forEach(function(el){ el.onclick=function(){ showTab('projects'); }; });
       box.querySelectorAll('.rc-btn').forEach(function(b){
         b.onclick=function(){
@@ -1144,6 +1145,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       mwBindStatus(box);
       mwBindBulk(box);
       mwBindSelfAssign(box);
+      mwBindEdit(box);
     }).catch(function(){ box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>'; });
   }
   function mwAsOpts(sel){ return MW_ASSIGNEES.map(function(a){return '<option value="'+esc(a.name)+'"'+(a.name===sel?' selected':'')+'>'+esc(a.name)+' ('+esc(a.team||'')+')</option>';}).join(''); }
@@ -1357,6 +1359,44 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   function mwChk(a){
     return '<input type="checkbox" class="st-chk" title="일괄 삭제 선택" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'">';
   }
+  function mwEditBtn(a){
+    return '<a class="ed-btn st-act" title="내용 수정" data-row="'+a.row+'" data-task="'+esc(a.task)
+      +'" data-assignee="'+esc(a.assignee||'')+'" data-project="'+esc(a.project||'')
+      +'" data-deadline="'+esc(a.deadline||'')+'">✏️</a>';
+  }
+  function mwBindEdit(scope){
+    var inS='background:var(--bg-3);border:1px solid var(--line);border-radius:7px;color:var(--fg);padding:7px 9px;font-family:inherit;font-size:12px';
+    scope.querySelectorAll('.ed-btn').forEach(function(el){
+      el.onclick=function(){
+        var card=el.closest('.mw-card');
+        var nx=card.nextElementSibling;
+        if(nx && nx.classList.contains('ed-form')){ nx.remove(); return; }
+        var d=document.createElement('div'); d.className='mw-card ed-form';
+        d.innerHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+          +'<input class="ef-task" value="'+esc(el.getAttribute('data-task'))+'" placeholder="업무 내용" style="flex:2;min-width:220px;'+inS+'">'
+          +'<input class="ef-proj" value="'+esc(el.getAttribute('data-project')||'')+'" placeholder="프로젝트" style="flex:1;min-width:130px;'+inS+'">'
+          +'<input class="ef-dl" type="date" value="'+esc(el.getAttribute('data-deadline')||'')+'" style="'+inS+'">'
+          +'<button class="ef-save" style="background:var(--accent);border:0;border-radius:7px;color:#fff;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit">저장</button>'
+          +'<button class="ef-cancel" style="background:transparent;border:1px solid var(--line);border-radius:7px;color:var(--muted);padding:7px 12px;font-size:12px;cursor:pointer;font-family:inherit">취소</button></div>';
+        card.parentNode.insertBefore(d, card.nextSibling);
+        d.querySelector('.ef-cancel').onclick=function(){ d.remove(); };
+        d.querySelector('.ef-save').onclick=function(){
+          var nt=d.querySelector('.ef-task').value.trim();
+          if(!nt){ alert('업무 내용을 입력하세요'); return; }
+          this.disabled=true; this.textContent='저장 중…';
+          fetch('/api/assign-edit',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
+              task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),
+              new_task:nt,new_project:d.querySelector('.ef-proj').value.trim(),
+              new_deadline:d.querySelector('.ef-dl').value})})
+          .then(function(r){return r.json();}).then(function(res){
+            if(!res.ok) alert(res.error||'수정 실패');
+            renderMyWork();
+          }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+        };
+      };
+    });
+  }
   function mwBindBulk(scope){
     var chks=scope.querySelectorAll('.st-chk');
     var bar=document.getElementById('mw-bulkbar');
@@ -1449,9 +1489,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
             act+=mwStBtn(a,'완료','✓ 완료');
             act+=mwStBtn(a,'완료','📣 완료·보고',true);
           }
-          act+=mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 본인도 삭제 가능 (잘못 등록 정리)
+          act+=mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 수정·삭제 가능 (잘못 등록 정정)
         }
-        if(withAssignee && a.row && canDel){ act+=mwStBtn(a,'삭제','🗑')+mwChk(a); }
+        if(withAssignee && a.row && canDel){ act+=mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a); }
         h+='<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+act+'</div><div class="m">'+who+dl+'</div></div>';
       });
     });
@@ -3044,6 +3084,57 @@ class H(BaseHTTPRequestHandler):
                                      (b.get("priority") or "일반").strip(), uid,
                                      project=(b.get("project") or "").strip())
             return self._send(200 if ok else 500, {"ok": ok, "error": msg})
+        if path == "/api/assign-edit":
+            # 분장 내용 수정(업무·프로젝트·마감) — 본인 + 대표·해당 팀 리더. 잘못 등록 정정용
+            if not (_asgws and DAILY_SHEET):
+                return self._send(500, {"ok": False, "error": "시트 미설정"})
+            try:
+                row = int(b.get("row") or 0)
+            except (TypeError, ValueError):
+                row = 0
+            new_task = (b.get("new_task") or "").strip()
+            new_project = (b.get("new_project") or "").strip()
+            new_dl = (b.get("new_deadline") or "").strip()
+            if row < 2 or not new_task:
+                return self._send(400, {"ok": False, "error": "row·업무 내용 확인"})
+            if new_dl and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", new_dl):
+                return self._send(400, {"ok": False, "error": "마감일 형식(YYYY-MM-DD)"})
+            try:
+                cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:J{row}", retries=2, timeout=20)
+            except Exception:
+                cur = []
+            r = (list(cur[0]) + [""] * 10)[:10] if cur else [""] * 10
+            assignee = (r[3] or "").strip()
+            old_task = (r[4] or "").strip()
+            if not old_task or old_task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
+                return self._send(409, {"ok": False, "error": "행 내용이 달라졌습니다 — 새로고침 후 다시 시도"})
+            if not (assignee == uid or _can_approve(uid, assignee)):
+                return self._send(403, {"ok": False, "error": "수정 권한 없음(본인·대표·해당 팀 리더)"})
+            old_project = (r[1] or "").strip()
+            try:
+                for col, old_v, new_v in (("B", old_project, new_project), ("E", old_task, new_task),
+                                          ("F", (r[5] or "").strip(), new_dl)):
+                    if new_v != old_v:
+                        if not _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!{col}{row}", [[new_v]], timeout=20):
+                            return self._send(500, {"ok": False, "error": f"{col}열 업데이트 실패"})
+            except Exception as e:
+                return self._send(500, {"ok": False, "error": str(e)[:80]})
+            # 포트폴리오 akey 정합 — 기존 반영분 제거 후 새 값으로 재기록 (상태는 시트 lazy sync가 유지)
+            removed = _remove_done_task({"date": (r[0] or "").strip(), "project": old_project,
+                                         "assignee": assignee, "task": old_task})
+            pn = new_project or old_project
+            if removed and pn:
+                tp = next((p for p in load_projects() if _match_project_p(pn, p)), None)
+                if tp:
+                    st = (r[7] or "미착수").strip()
+                    tp.setdefault("tasks", []).append({
+                        "division": emp_team(assignee) or "", "task": new_task, "owner": assignee,
+                        "start": (r[0] or "").strip()[:10], "end": new_dl,
+                        "status": _ASSIGN_ST_MAP.get(st, "Not Started"),
+                        "progress": _ASSIGN_PROG_MAP.get(st, 0),
+                        "akey": _akey((r[0] or "").strip(), new_task, assignee)})
+                    save_project(tp)
+            return self._send(200, {"ok": True})
         if path == "/api/assign-status":
             # 분장 상태 변경 — 완료(본인 체크)·진행중(진행 표시/반려 복귀)·승인(리더·대표)
             if not (_asgws and DAILY_SHEET):
