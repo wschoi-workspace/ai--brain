@@ -1051,7 +1051,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           var act='';
           if(a.row){
             if(st==='완료'){ act='<span class="st-wait">⏳ 승인 대기</span>'; }
-            else{ act=mwStBtn(a,'완료','✓ 완료'); }
+            else{ act=mwStBtn(a,'완료','✓ 완료')+mwStBtn(a,'완료','📣 완료·보고',true); }
           }
           h+='<div class="mw-card rc-card"><div class="t">'+badge+' '+esc(a.task)+urg+act
             +'<button class="rc-btn" data-i="'+i+'">→ 팀원에게 상세 분장</button></div>'
@@ -1304,8 +1304,16 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   }
   function mwDailyFocusHtml(d){
     if(!d||!d.focus) return '';
-    return '<div class="mw-h">⚡ 오늘 포커스 <span class="sub2">'+esc(d.date||'')+' 보고 기반 자동 생성</span></div>'
+    var h='<div class="mw-h">⚡ 오늘 포커스 <span class="sub2">'+esc(d.date||'')+' 보고 기반 자동 생성</span></div>'
       +'<div class="mw-card" style="border-left:3px solid var(--accent)"><div class="t">'+esc(d.focus)+'</div></div>';
+    if((d.completed||[]).length){
+      h+='<div class="mw-h">✅ 보고 기반 자동 완료 <span class="sub2">'+d.completed.length+'건 — 어제 보고에서 완료 확인, 승인 대기로 전환</span></div>';
+      d.completed.forEach(function(c){
+        h+='<div class="mw-card"><div class="t"><span class="st-wait">⏳ 승인 대기</span> '+esc(c.task)+'</div>'
+          +'<div class="m">'+(c.project?esc(c.project)+' · ':'')+esc(c.basis||'')+'</div></div>';
+      });
+    }
+    return h;
   }
   function mwNewTodosHtml(d){
     if(!d||!(d.new_todos||[]).length) return '';
@@ -1342,8 +1350,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       };
     });
   }
-  function mwStBtn(a, st, label){
-    return '<a class="st-act" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'" data-st="'+st+'">'+label+'</a>';
+  function mwStBtn(a, st, label, notify){
+    return '<a class="st-act" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')
+      +'" data-st="'+st+'"'+(notify?' data-notify="1"':'')+'>'+label+'</a>';
   }
   function mwChk(a){
     return '<input type="checkbox" class="st-chk" title="일괄 삭제 선택" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'">';
@@ -1382,14 +1391,17 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     scope.querySelectorAll('.st-act').forEach(function(el){
       el.onclick=function(){
         var st=el.getAttribute('data-st');
+        var notify=el.getAttribute('data-notify')==='1';
         if(st==='승인' && !confirm('승인하면 내 업무에서 정리되고 프로젝트 포트폴리오에 완료로 기록됩니다.')) return;
         if(st==='삭제' && !confirm('이 분장을 삭제할까요? 목록·집계에서 제외되고 포트폴리오 기록도 제거됩니다. (시트 행은 삭제 표시로 보존)')) return;
+        if(notify && !confirm('완료 처리하고 리더·대표에게 완료 보고 알림(텔레그램)을 보낼까요?')) return;
         el.textContent='…';
         fetch('/api/assign-status',{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
-            task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),status:st})})
+            task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),status:st,notify:notify})})
         .then(function(r){return r.json();}).then(function(d){
           if(!d.ok) alert(d.error||'상태 변경 실패');
+          else if(notify) alert(d.notified?('✅ 완료 처리 + 보고 알림 '+d.notified+'명 발송'):'완료 처리됨 — 알림 발송 실패(승인 대기에는 정상 반영)');
           renderMyWork();
         }).catch(function(){ alert('서버 오류'); renderMyWork(); });
       };
@@ -1435,6 +1447,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           else{
             if(st==='미착수') act+=mwStBtn(a,'진행중','▶ 진행');
             act+=mwStBtn(a,'완료','✓ 완료');
+            act+=mwStBtn(a,'완료','📣 완료·보고',true);
           }
           if(canDel) act+=mwStBtn(a,'삭제','🗑')+mwChk(a);
         }
@@ -1781,6 +1794,25 @@ def _sync_assign_status(p):
         p["tasks"] = [t for t in (p.get("tasks") or []) if t.get("akey") not in removed]
         changed = True
     return changed
+
+
+def _notify_approvers(assignee, project, task):
+    """완료 보고 멘션 — 담당 팀 리더 + 대표에게 텔레그램. 발송 성공 수 반환."""
+    team = emp_team(assignee) or ""
+    leader = (load_emp().get("team_leads") or {}).get(team)
+    targets = set()
+    if leader and leader != assignee:
+        targets.add(leader)
+    for n, u in (load_users() or {}).items():
+        if u.get("role") in ("대표", "admin") and n != assignee:
+            targets.add(n)
+    sent = 0
+    for n in targets:
+        cid = _tg_chat_id(n)
+        if cid and _tg_send(cid, f"✅ {assignee} 완료 보고\n▸ [{project or '기타'}] {task}\n\n"
+                                 f"아리사 OS 내 업무 '완료 승인 대기'에서 승인해주세요."):
+            sent += 1
+    return sent
 
 
 def _person_workbrief(uid, mine):
@@ -3046,13 +3078,17 @@ class H(BaseHTTPRequestHandler):
             if not ok:
                 return self._send(500, {"ok": False, "error": "시트 업데이트 실패"})
             recorded = False
+            notified = 0
             assign = {"date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
                       "assignee": assignee, "task": task, "deadline": (r[5] or "").strip()}
             if new_st == "승인":
                 recorded = _record_done_task(assign, uid)
             elif new_st == "삭제":
                 _remove_done_task(assign)  # 포트폴리오에 반영돼 있었으면 함께 제거
-            return self._send(200, {"ok": True, "status": new_st, "portfolio_recorded": recorded})
+            elif new_st == "완료" and b.get("notify"):
+                notified = _notify_approvers(assignee, assign["project"], task)
+            return self._send(200, {"ok": True, "status": new_st, "portfolio_recorded": recorded,
+                                    "notified": notified})
         if path == "/api/project/doc-analyze":
             # 프로젝트 자료(회의록) 업로드 + AI 브리프 갱신 제안 (diff) — PM·대표
             pid = (b.get("id") or "").strip()

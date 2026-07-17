@@ -304,7 +304,9 @@ PERSON_BRIEF_PROMPT = """당신은 직원 개인의 아침 업무 브리퍼다. 
 - project_updates: 프로젝트 단위 어제 진행 요약. 각 {"project":"...","update":"1~2문장"}
 - project는 반드시 [프로젝트 목록]에 있는 이름 또는 보고에 명시된 실제 프로젝트·브랜드명만 사용.
   '블로커'·'현장실사'·'전기 공사' 같은 업무 라벨·공정 단계명은 project가 아니다 — 상위 프로젝트를 찾아 쓰고, 불명확하면 빈 문자열.
-반환: {"focus":"...","new_todos":[...],"project_updates":[...]}"""
+- completed: [현재 분장] 번호 목록 중 어제 보고에서 '완료했다/마쳤다/발주 완료' 등 명시적으로 완료 보고된 항목만.
+  각 {"idx":분장 번호,"basis":"보고 속 완료 근거 한 줄"}. 진행 중·예정·부분 완료는 절대 포함 금지. 없으면 [].
+반환: {"focus":"...","new_todos":[...],"project_updates":[...],"completed":[...]}"""
 
 
 def _portfolio_names() -> list[str]:
@@ -346,8 +348,8 @@ def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[
         lines.append(f"- [매장·{lab}] {v}")
     if not lines:
         return None
-    asg_txt = "\n".join(f"- [{a.get('project') or '기타'}] {a['task']} (마감 {a.get('deadline') or '-'} · {a.get('status')})"
-                        for a in mine) or "(없음)"
+    asg_txt = "\n".join(f"{i}. [{a.get('project') or '기타'}] {a['task']} (마감 {a.get('deadline') or '-'} · {a.get('status')})"
+                        for i, a in enumerate(mine, 1)) or "(없음)"
     wd = ["월", "화", "수", "목", "금", "토", "일"][datetime.strptime(date_str, "%Y-%m-%d").weekday()]
     pnames = sorted(set(_portfolio_names() + [a.get("project") for a in assignments if a.get("project")]))
     user = (f"오늘은 {date_str}({wd})이다. '내일'·'금요일' 같은 상대 날짜는 반드시 이 기준으로 YYYY-MM-DD 변환하라.\n\n"
@@ -377,8 +379,18 @@ def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[
                       "deadline": dl, "basis": (t.get("basis") or "").strip()[:150]})
     ups = [{"project": (u.get("project") or "").strip(), "update": (u.get("update") or "").strip()}
            for u in (r.get("project_updates") or []) if (u.get("update") or "").strip()]
+    completed = []
+    for c in (r.get("completed") or []):
+        try:
+            a = mine[int(c.get("idx")) - 1]
+        except (TypeError, ValueError, IndexError):
+            continue
+        if a.get("status") in ("미착수", "진행중"):
+            completed.append({"row": a.get("row"), "task": a["task"],
+                              "project": a.get("project") or "",
+                              "basis": (c.get("basis") or "").strip()[:150]})
     return {"date": date_str, "name": name, "focus": (r.get("focus") or "").strip(),
-            "new_todos": todos, "project_updates": ups,
+            "new_todos": todos, "project_updates": ups, "completed": completed,
             "generated_at": datetime.now().isoformat(timespec="seconds")}
 
 
@@ -455,7 +467,7 @@ def fetch_assignments(target: str) -> list[dict]:
     week_start = d - timedelta(days=d.weekday())
     week_end = week_start + timedelta(days=6)
     items = []
-    for r in rows:
+    for i, r in enumerate(rows):
         r = r + [""] * (10 - len(r))
         nd = normalize_date(r[0])
         if not nd:
@@ -468,6 +480,7 @@ def fetch_assignments(target: str) -> list[dict]:
         if (r[7] or "").strip() == "삭제":
             continue
         items.append({
+            "row": i + 2,  # 시트 실제 행 — 보고 기반 자동 완료 처리용
             "date": nd, "project": (r[1] or "").strip(), "team": (r[2] or "").strip(),
             "assignee": normalize_name(r[3]), "task": (r[4] or "").strip(),
             "deadline": (r[5] or "").strip(), "status": (r[7] or "미착수").strip(),
@@ -1222,7 +1235,17 @@ def main():
         if pb:
             (pdir / f"my-brief-{args.date}-{name}.json").write_text(
                 json.dumps(pb, ensure_ascii=False, indent=1), encoding="utf-8")
-            print(f"개인 브리프: {name} — 신규할일 {len(pb['new_todos'])} · 프로젝트 업데이트 {len(pb['project_updates'])}")
+            print(f"개인 브리프: {name} — 신규할일 {len(pb['new_todos'])} · 프로젝트 업데이트 {len(pb['project_updates'])}"
+                  f" · 완료보고 {len(pb.get('completed') or [])}")
+            # 보고에서 완료로 언급된 분장 → 시트 '완료'(승인 대기) 자동 처리
+            for c in pb.get("completed") or []:
+                if not c.get("row"):
+                    continue
+                try:
+                    ok = _gws.values_update(DAILY_SHEET, f"주간분장!H{c['row']}", [["완료"]])
+                except Exception:
+                    ok = False
+                print(f"  ↳ 자동 완료: {c['task'][:34]} {'✓' if ok else '실패'}")
 
 
 if __name__ == "__main__":
