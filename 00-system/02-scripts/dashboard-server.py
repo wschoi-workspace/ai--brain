@@ -1819,6 +1819,32 @@ def _akey(date, task, assignee):
     return "|".join([(date or "").strip()[:10], (task or "").strip(), (assignee or "").strip()])
 
 
+def _open_assigns(p):
+    """이 프로젝트의 열린 분장(미착수·진행중) — 날짜 무관 전 기간 (P1 성급 아카이브 방지).
+
+    KBO 사례(2026-07-19): 종료일 경과만으로 아카이브했다가 후속 분장 4건 발견 → 복원.
+    아카이브 판단은 종료일이 아니라 열린 분장 유무가 먼저다. pid 일치 우선, 없으면 이름 매칭.
+    반환: [{"task","assignee","deadline","status"}] (마감 오름차순)
+    """
+    out = []
+    pid = (p.get("id") or "").strip()
+    try:
+        for a in _assign_read():
+            if (a.get("status") or "미착수") not in _ST.ASSIGN_OPEN_STATES:
+                continue
+            apid = (a.get("pid") or "").strip()
+            if apid:
+                if apid != pid:
+                    continue
+            elif not _match_project_p((a.get("project") or "").strip(), p):
+                continue
+            out.append({"task": a.get("task") or "", "assignee": a.get("assignee") or "",
+                        "deadline": a.get("deadline") or "", "status": a.get("status") or "미착수"})
+    except Exception:
+        return []
+    return sorted(out, key=lambda x: x["deadline"] or "9999")
+
+
 def _archive_log(pid, name, by, action, retro=None):
     """아카이브 전이 기록 (P1) — DATA/archive-log.jsonl append. 90-archive 풀 스크립트의 소스."""
     try:
@@ -2896,6 +2922,16 @@ class H(BaseHTTPRequestHandler):
             if _sync_assign_status(p): save_project(p)  # 분장 시트(SSOT) 상태 lazy 반영
             return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
                                     "assignments": _project_assignments(p.get("name") or "", p.get("aliases"), p.get("id") or "")})
+        if path == "/api/project/open-assigns":
+            # 아카이브 모달 사전 경고용 — 열린 분장(미착수·진행중, 전 기간)
+            uid = (q.get("user") or [""])[0]
+            if not load_users().get(uid):
+                return self._send(401, {"ok": False, "error": "unknown user"})
+            p = get_project((q.get("id") or [""])[0])
+            if not p:
+                return self._send(404, {"ok": False, "error": "not found"})
+            oa = _open_assigns(p)
+            return self._send(200, {"ok": True, "count": len(oa), "list": oa[:5]})
         if path == "/api/assign-history":
             # 분장 상태 전이 이력 (G7) — 로그인 사용자 누구나 (팀 투명성)
             uid = (q.get("user") or [""])[0]
@@ -3465,6 +3501,13 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, {"ok": True, "restored": True})
             if p.get("archived"):
                 return self._send(400, {"ok": False, "error": "이미 아카이브된 프로젝트"})
+            # 열린 분장 관문 (KBO 사례 재발 방지) — 있으면 명시 확인(force_open) 요구
+            if not b.get("force_open"):
+                oa = _open_assigns(p)
+                if oa:
+                    return self._send(200, {"ok": False, "openAssigns": len(oa),
+                                            "openList": oa[:5],
+                                            "error": f"열린 분장 {len(oa)}건 — 완료·승인 처리 후 아카이브하거나, 그래도 진행하려면 확인이 필요합니다"})
             retro_good = (b.get("retro_good") or "").strip()
             retro_bad = (b.get("retro_bad") or "").strip()
             missing = []
