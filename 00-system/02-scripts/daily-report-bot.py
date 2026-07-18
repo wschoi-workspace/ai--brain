@@ -811,6 +811,25 @@ def _rule_based_gaps(report: dict) -> list[str]:
         if _norm(tomorrow) in _ABSTRACT_NEXT or not _DEADLINE_RE.search(tomorrow):
             gaps.append("내일 할 일을 '무엇을 언제까지'가 보이게 한 줄로 적어줄 수 있나요?")
 
+    # Wave 3 (품질진단 2wk 대응): Outcome 한 줄 강제 — 산출물은 있는데 의미가 없는 경우
+    has_output_no_outcome = any(
+        ct.get("output") and not ct.get("outcome")
+        for ct in report.get("core_tasks", [])
+    )
+    if has_output_no_outcome:
+        # 가장 중요한 업무(첫 번째 core_task) 기준으로 질문
+        first_with_output = next(
+            (ct for ct in report.get("core_tasks", []) if ct.get("output") and not ct.get("outcome")),
+            None,
+        )
+        if first_with_output:
+            task_name = first_with_output.get("task", "업무")
+            gaps.append(f"'{task_name}'의 산출물로 그래서 무엇이 달라졌나요? (의미·변화 한 줄)")
+
+    # Wave 3: 의사결정 유도 — 전원 0% 공란 개선
+    if not report.get("decision_needed"):
+        gaps.append("오늘 업무 중 대표나 팀장이 정해줘야 할 것이 있나요? (없으면 '없음')")
+
     return gaps
 
 
