@@ -71,6 +71,7 @@ from shared import gws as _gws  # noqa: E402
 from shared import report_queue as _rq  # noqa: E402
 from shared.employee import load_employees as _load_emp  # noqa: E402
 from shared.decision import save_decision_log as _save_decision_log  # noqa: E402
+from shared.naming import clean_project_name as _nm_clean  # noqa: E402  (P2 네이밍 규칙)
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -1926,6 +1927,7 @@ def save_assignment_to_sheet(team: str, task: str, assignee: str,
     (구스키마 W라벨 행을 잘못된 칸에 append하던 버그 수정 — 2026-07-18)"""
     pr = "긴급" if priority in ("긴급", "최우선") else "일반"
     registry = _load_project_registry()
+    project = _nm_clean(project)  # P2 — 네이밍 규칙 자동 정리 (Team Ops Guide 2부-①)
     row = [
         datetime.now().strftime("%Y-%m-%d"), project or "", team,
         assignee or "팀", task, deadline, "", "미착수", "", pr,
@@ -1958,6 +1960,9 @@ async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )
         if parsed and parsed.get("task"):
             context.user_data["assign"]["parsed"] = parsed
+            # P2 — 프로젝트명 네이밍 규칙 자동 정리 (괄호·특수문자 → 공백)
+            pj_raw = parsed.get("project") or ""
+            parsed["project"] = _nm_clean(pj_raw)
             team = parsed.get("team", "")
             assignee = parsed.get("assignee", "")
             deadline = parsed.get("deadline", "")
@@ -1971,9 +1976,10 @@ async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                         team = emp.get("team", "")
             context.user_data["assign"]["parsed"]["team"] = team
             context.user_data["assign"]["parsed"]["assignee"] = assignee
+            _pj_note = " (규칙 자동정리)" if parsed.get("project") != pj_raw and pj_raw else ""
             await update.message.reply_text(
                 f"✅ 파싱 결과:\n"
-                f"  프로젝트: {parsed.get('project') or '—'}\n"
+                f"  프로젝트: {(parsed.get('project') or '—') + _pj_note}\n"
                 f"  팀: {team}\n"
                 f"  업무: {parsed['task']}\n"
                 f"  담당: {assignee or '팀'}\n"

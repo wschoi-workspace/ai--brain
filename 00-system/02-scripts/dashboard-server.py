@@ -57,6 +57,7 @@ try:
 except Exception:
     _load_open_decisions = None
 from shared import status as _ST  # 상태·우선순위 단일출처 (G2) — 배포 시 shared/status.py 동반 필수
+from shared import naming as _NM  # 프로젝트 네이밍 규칙 (P2) — 배포 시 shared/naming.py 동반 필수
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
     from shared.status_log import load_history as _load_st_history  # 이력 조회 (G7)
@@ -1247,8 +1248,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     var box=document.createElement('div'); box.id='mw-projconf'; box.className='tg-box';
     var h='<div class="tg-head"><span class="tg-label">🆕 신규 프로젝트 확인</span>'
       +'<span class="sub2">포트폴리오에 없는 이름입니다 — 신규 생성 또는 기존 프로젝트에 합치세요</span></div>';
-    var matchedInfo=(results||[]).filter(function(x){return x.matched && x.name!==x.matched.name;})
-      .map(function(x){ return '“'+esc(x.name)+'” → 기존 “'+esc(x.matched.name)+'”에 반영됩니다'; });
+    var matchedInfo=(results||[]).filter(function(x){return x.matched && (x.name!==x.matched.name || x.matched.archived);})
+      .map(function(x){ return '“'+esc(x.name)+'” → 기존 “'+esc(x.matched.name)+'”에 반영됩니다'
+        +(x.matched.archived?' <span style="color:#f0a05a">(📦 아카이브된 프로젝트 — 재개하려면 대표가 복원 필요)</span>':''); });
     if(matchedInfo.length){ h+='<div class="sub2" style="padding:4px 2px">'+matchedInfo.join(' · ')+'</div>'; }
     news.forEach(function(n,i){
       var opts='<option value="">— 기존 프로젝트 선택 —</option>', candIds={};
@@ -1257,8 +1259,11 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       var dls=items.filter(function(it){return (it.project||'').trim()===n.name && it.deadline;})
         .map(function(it){return it.deadline;}).sort();
       var endDef=dls.length?dls[dls.length-1]:'';
+      var nameNote='';
+      if(n.nameError){ nameNote='<div class="sub2" style="color:#f0a05a;margin-bottom:4px">⚠️ '+esc(n.nameError)+' — 이름을 수정한 뒤 등록하세요</div>'; }
+      else if(n.cleaned){ nameNote='<div class="sub2" style="margin-bottom:4px">이름 규칙 자동정리 → “'+esc(n.cleaned)+'”로 등록됩니다 (괄호·특수문자 제거)</div>'; }
       h+='<div class="pc-row" data-name="'+esc(n.name)+'" style="padding:10px 2px;border-top:1px solid rgba(255,255,255,.08)">'
-        +'<div style="font-weight:600;margin-bottom:6px">🆕 '+esc(n.name)+'</div>'
+        +'<div style="font-weight:600;margin-bottom:6px">🆕 '+esc(n.name)+'</div>'+nameNote
         +'<label><input type="radio" name="pc-act-'+i+'" value="create" checked> 신규 생성</label>'
         +'<label style="margin-left:12px"><input type="radio" name="pc-act-'+i+'" value="merge"> 기존에 합치기</label>'
         +'<div class="pc-create" style="margin-top:6px">'
@@ -1693,7 +1698,9 @@ def _resolve_pid(project):
     if not pn:
         return ""
     try:
-        hit = next((p for p in load_projects() if _match_project_p(pn, p)), None)
+        # P1 — 아카이브 프로젝트는 신규 귀속 대상에서 제외 (재개하려면 대표가 복원)
+        hit = next((p for p in load_projects()
+                    if not p.get("archived") and _match_project_p(pn, p)), None)
         return (hit.get("id") or "") if hit else ""
     except Exception:
         return ""
@@ -1812,16 +1819,47 @@ def _akey(date, task, assignee):
     return "|".join([(date or "").strip()[:10], (task or "").strip(), (assignee or "").strip()])
 
 
+def _archive_log(pid, name, by, action, retro=None):
+    """아카이브 전이 기록 (P1) — DATA/archive-log.jsonl append. 90-archive 풀 스크립트의 소스."""
+    try:
+        entry = {"ts": datetime.datetime.now().isoformat(timespec="seconds"),
+                 "pid": pid, "name": name or "", "by": by, "action": action}
+        if retro:
+            entry["retro"] = retro
+        with _lock:
+            with open(DATA / "archive-log.jsonl", "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass  # 기록 실패는 본흐름 무영향
+
+
 def _similar_projects(name, projects, limit=3):
-    """유사 프로젝트 후보 — 이름 토큰 교집합 많은 순 최대 limit개."""
+    """유사 프로젝트 후보 — 토큰 교집합 + n-gram 유사도(붙임 표기 감지) 결합, 최대 limit개."""
     toks = _proj_tokens(name)
     scored = []
     for p in projects:
-        common = toks & _proj_tokens(p.get("name") or "")
-        if common:
-            scored.append((len(common), p))
+        pn = p.get("name") or ""
+        common = len(toks & _proj_tokens(pn))
+        sim = _NM.name_similarity(name, pn)  # 붙임 표기('중기제품팝업스토')는 토큰 0이어도 잡힘
+        if common or sim >= 0.45:
+            scored.append((common + sim, p))
     scored.sort(key=lambda x: -x[0])
     return [{"id": p.get("id"), "name": p.get("name") or p.get("id")} for _, p in scored[:limit]]
+
+
+def _find_dup_project(name, projects):
+    """신규 생성 전 중복 의심 프로젝트 — 엄격 매칭 또는 n-gram 임계 초과 (활성만).
+    사람 확인(confirm/force) 전제의 경고용 — pid 귀속에는 사용하지 않는다."""
+    best, best_sim = None, 0.0
+    for p in projects:
+        if p.get("archived"):
+            continue
+        if _match_project_p(name, p):
+            return p
+        sim = _NM.name_similarity(name, p.get("name") or "")
+        if sim >= _NM.SIMILARITY_DUP and sim > best_sim:
+            best, best_sim = p, sim
+    return best
 
 
 def _append_assign_tasks(p, items):
@@ -3019,9 +3057,15 @@ class H(BaseHTTPRequestHandler):
                 if not name: continue
                 hit = next((p for p in projs if _match_project_p(name, p)), None)
                 if hit:
-                    res.append({"name": name, "matched": {"id": hit.get("id"), "name": hit.get("name")}})
+                    res.append({"name": name, "matched": {"id": hit.get("id"), "name": hit.get("name"),
+                                                          "archived": bool(hit.get("archived"))}})
                 else:
-                    res.append({"name": name, "isNew": True, "candidates": _similar_projects(name, projs)})
+                    # P2 — 신규명은 네이밍 규칙 자동 정리 결과·오류를 함께 반환 (UI 안내용)
+                    cleaned = _NM.clean_project_name(name)
+                    ok_n, err_n = _NM.validate_project_name(cleaned)
+                    res.append({"name": name, "isNew": True, "candidates": _similar_projects(name, projs),
+                                "cleaned": cleaned if cleaned != name else "",
+                                "nameError": "" if ok_n else err_n})
             return self._send(200, {"ok": True, "results": res,
                                     "all": [{"id": p.get("id"), "name": p.get("name") or p.get("id")} for p in projs]})
         if path == "/api/assign-commit":
@@ -3049,6 +3093,11 @@ class H(BaseHTTPRequestHandler):
                 elif a.get("action") == "create":
                     if not (is_admin(uid) or is_leader(uid)):
                         proj_errs.append(f"{n}: 생성은 대표·팀 리더만"); continue
+                    # P2 — 네이밍 규칙: 자동 정리 후 검증 (정리된 이름이 공식 명칭이 됨)
+                    nc = _NM.clean_project_name(n)
+                    ok_n, err_n = _NM.validate_project_name(nc)
+                    if not ok_n:
+                        proj_errs.append(f"{n}: 프로젝트명 규칙 위반 — {err_n}"); continue
                     pm = (a.get("pm") or uid).strip()
                     if pm not in users_known:
                         proj_errs.append(f"{n}: PM({pm}) 계정 없음"); continue
@@ -3059,17 +3108,18 @@ class H(BaseHTTPRequestHandler):
                     end = (a.get("end") or "").strip() or (dls[-1] if dls else "")
                     mem = [pm] + [m for m in sorted({(it.get("assignee") or "").strip() for it in grp})
                                   if m in users_known and m != pm]
-                    pid = _safe(n) + "-" + today.strftime("%Y%m%d")
+                    pid = _safe(nc) + "-" + today.strftime("%Y%m%d")
                     np = get_project(pid)  # 같은 날 재커밋 시 재사용
                     if not np:
-                        np = {"id": pid, "name": n, "desc": [], "pm": pm,
+                        np = {"id": pid, "name": nc, "desc": [], "pm": pm,
                               "start": start, "end": end, "dday": end, "members": mem,
-                              "brief": {"name": n, "pm": pm, "status": "In Progress",
+                              "brief": {"name": nc, "pm": pm, "status": "In Progress",
                                         "start": start, "end": end, "dday": end,
                                         "summary": "업무분장 등록에서 자동 생성"},
-                              "tasks": [], "issues": [], "origin": "assign"}
+                              "tasks": [], "issues": [], "origin": "assign",
+                              "aliases": [n] if n != nc else []}
                         save_project(np)
-                        created.append(n)
+                        created.append(nc)
                     name_map[n] = np.get("name") or n
                     target[name_map[n]] = np
             added, errs, ok_items = 0, list(proj_errs), []
@@ -3364,8 +3414,23 @@ class H(BaseHTTPRequestHandler):
                 return self._send(403, {"ok": False, "error": "수정 권한 없음(담당 PM·대표만)"})
             if not existing and not (is_admin(uid) or is_leader(uid)):
                 return self._send(403, {"ok": False, "error": "생성은 대표·팀 리더만"})
+            if not existing:
+                # P2 — 네이밍 규칙(Team Ops Guide 2부-①): 자동 정리 + 검증 + 중복(유사) 확인
+                cleaned = _NM.clean_project_name(p.get("name"))
+                ok_n, err_n = _NM.validate_project_name(cleaned)
+                if not ok_n:
+                    return self._send(400, {"ok": False, "error": f"프로젝트명 규칙 위반 — {err_n}"})
+                p["name"] = cleaned
+                if p.get("brief"):
+                    p["brief"]["name"] = cleaned
+                if not b.get("force"):
+                    dup = _find_dup_project(cleaned, load_projects())
+                    if dup:
+                        return self._send(200, {"ok": False, "dup": {"id": dup.get("id"),
+                                                "name": dup.get("name") or dup.get("id")},
+                                                "cleaned": cleaned})
             save_project(p)
-            return self._send(200, {"ok": True})
+            return self._send(200, {"ok": True, "name": p.get("name")})
         if path == "/api/project/members":
             # 멤버(열람 직원) 배정 전용 — 내용은 안 건드림. 대표·PM·해당 팀 리더만.
             pid = b.get("id", ""); members = b.get("members")
@@ -3381,6 +3446,43 @@ class H(BaseHTTPRequestHandler):
             p["members"] = clean
             save_project(p)
             return self._send(200, {"ok": True, "members": clean})
+        if path == "/api/project/archive":
+            # P1 — 프로젝트 아카이브 라이프사이클 (Team Ops Guide 2부-④).
+            # 완료 조건 3종(납품·정산·회고 2줄) 충족 시에만 아카이브. 삭제가 아니라 이동:
+            # 파일은 그대로 두고 archived 메타를 얹어 활성 목록·매칭에서 분리한다. 복원은 대표만.
+            pid = b.get("id", "")
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "not found"})
+            if not (is_admin(uid) or (p.get("pm") or "") == uid):
+                return self._send(403, {"ok": False, "error": "아카이브는 대표·담당 PM만"})
+            if b.get("restore"):
+                if not is_admin(uid):
+                    return self._send(403, {"ok": False, "error": "복원은 대표만"})
+                p.pop("archived", None)
+                save_project(p)
+                _archive_log(pid, p.get("name"), uid, "restore")
+                return self._send(200, {"ok": True, "restored": True})
+            if p.get("archived"):
+                return self._send(400, {"ok": False, "error": "이미 아카이브된 프로젝트"})
+            retro_good = (b.get("retro_good") or "").strip()
+            retro_bad = (b.get("retro_bad") or "").strip()
+            missing = []
+            if not b.get("delivery"): missing.append("산출물 납품")
+            if not b.get("settlement"): missing.append("정산")
+            if not retro_good: missing.append("회고(잘된 것)")
+            if not retro_bad: missing.append("회고(아쉬운 것)")
+            if missing:
+                return self._send(400, {"ok": False,
+                                        "error": "완료 조건 미충족: " + ", ".join(missing)})
+            p["archived"] = {"date": datetime.date.today().isoformat(), "by": uid,
+                             "delivery": True, "settlement": True,
+                             "retro": {"good": retro_good, "bad": retro_bad}}
+            p.setdefault("brief", {})["status"] = "Done"
+            save_project(p)
+            _archive_log(pid, p.get("name"), uid, "archive",
+                         retro={"good": retro_good, "bad": retro_bad})
+            return self._send(200, {"ok": True, "archived": p["archived"]})
         if path == "/api/project/delete":
             # 프로젝트 통째 삭제 — 카드(JSON) + 이 프로젝트로 등록된 분장(미착수/진행중/완료)도 '삭제' 마킹.
             # 승인된 분장(완료 이력)은 보존.

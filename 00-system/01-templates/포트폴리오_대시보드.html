@@ -352,6 +352,11 @@ body.readonly .topbar .ver{color:var(--rust)}
   <div class="pf-grid" id="pf-cards"></div>
   <div id="pf-timeline" class="pf-tlwrap" style="display:none"></div>
   <div id="pf-kanban" class="pf-tlwrap" style="display:none"></div>
+  <!-- P1 아카이브 — 숨김이 아니라 조회 가능한 분리 목록 (Team Ops Guide 2부-④) -->
+  <div id="pf-arch-sec" style="display:none;padding:0 30px 30px">
+    <button class="btn" id="pf-arch-toggle" onclick="pfToggleArch()" style="font-size:11px">📦 아카이브 <span id="pf-arch-cnt"></span></button>
+    <div class="pf-grid" id="pf-arch-cards" style="display:none;margin-top:14px;opacity:.8"></div>
+  </div>
 </div>
 
 <div class="app">
@@ -571,6 +576,26 @@ body.readonly .topbar .ver{color:var(--rust)}
     <div class="m-actions">
       <button class="btn" onclick="closeAddModal()">취소</button>
       <button class="btn primary" id="add-confirm" onclick="confirmAddProject()" disabled>추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHIVE MODAL (P1 — 완료 조건 3종: 납품·정산·회고) -->
+<div class="modal-bg" id="arch-modal">
+  <div class="modal">
+    <h3>📦 프로젝트 아카이브</h3>
+    <div class="m-sub" id="arch-proj-name"></div>
+    <div class="m-hint">완료 조건 3종을 모두 충족해야 아카이브됩니다. 아카이브는 삭제가 아니라 이동 — 기록은 보존되고 아카이브 목록에서 계속 조회할 수 있습니다.</div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--fg-2);cursor:pointer"><input type="checkbox" id="arch-delivery" style="accent-color:var(--accent)"> ① 산출물 납품 완료</label>
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--fg-2);cursor:pointer"><input type="checkbox" id="arch-settle" style="accent-color:var(--accent)"> ② 정산 완료</label>
+    <label>③ 회고 — 잘된 것 (필수)</label>
+    <input type="text" id="arch-good" placeholder="예: 킥오프에서 리스크 13건 선정리로 현장 이슈 최소화">
+    <label>③ 회고 — 아쉬운 것 (필수)</label>
+    <input type="text" id="arch-bad" placeholder="예: 바코드·단가표 확정 지연으로 세팅 전날 야간작업">
+    <div class="m-info" id="arch-info"></div>
+    <div class="m-actions">
+      <button class="btn" onclick="$('#arch-modal').classList.remove('show')">취소</button>
+      <button class="btn primary" id="arch-confirm" onclick="confirmArchive()">아카이브</button>
     </div>
   </div>
 </div>
@@ -1253,6 +1278,16 @@ function pfCard(p){
   const ru=pfRollup(p);
   const sched=(p.start&&p.end)?`${p.start} ~ ${p.end}`:(p.start||p.end||'일정 미정');
   const desc=(Array.isArray(p.desc)?p.desc:[p.desc||'']).filter(Boolean).map(esc).join('<br>')||'<span style="color:var(--fg-3)">설명 없음</span>';
+  const arch=p.archived;
+  if(arch){ // P1 — 아카이브 카드: 회고 표시 + 복원(대표만)
+    const retro=arch.retro||{};
+    return `<div class="pf-card" onclick="openProject('${esc(p.id)}')" style="border-style:dashed">
+      <div class="pc-top"><div class="pc-name">${esc(p.name)||'(이름 없음)'}</div><span class="pc-dday" style="background:var(--line-2);color:var(--fg-3)">📦 ${esc(arch.date||'')}</span></div>
+      <div class="pc-desc">✅ ${esc(retro.good||'')}<br>⚠️ ${esc(retro.bad||'')}</div>
+      <div class="pc-meta"><span><b>일정</b> ${esc(sched)}</span><span><b>PM</b> ${esc(p.pm)||'—'}</span><span><b>업무</b> ${ru.done}/${ru.total}</span></div>
+      ${amAdmin()?`<span class="pc-del" title="복원" onclick="event.stopPropagation();restoreProject('${esc(p.id)}')">♻️ 복원</span>`:''}
+    </div>`;
+  }
   return `<div class="pf-card" onclick="openProject('${esc(p.id)}')">
     <div class="pc-top"><div class="pc-name">${esc(p.name)||'(이름 없음)'}</div>${p.dday?`<span class="pc-dday">${ddayChip(p)}</span>`:''}</div>
     <div class="pc-desc">${desc}</div>
@@ -1260,12 +1295,14 @@ function pfCard(p){
     ${ru.total?`<div class="pc-prog"><i style="width:${ru.percent}%"></i></div>`:''}
     <div class="pc-mem-line"><b>멤버</b> ${(p.members||[]).map(esc).join(', ')||'<span style="color:var(--fg-3)">미배정</span>'}</div>
     ${p.canManage?`<span class="pc-mem" title="멤버 배정" onclick="event.stopPropagation();openMembersModal('${esc(p.id)}')">👥 멤버 배정</span>`:''}
+    ${(amAdmin()||p.pm===CURRENT_USER)?`<span class="pc-mem" title="아카이브" onclick="event.stopPropagation();openArchModal('${esc(p.id)}')">📦 아카이브</span>`:''}
     ${(amAdmin()||p.pm===CURRENT_USER)?`<span class="pc-del" title="삭제" onclick="event.stopPropagation();deleteProject('${esc(p.id)}')">🗑 삭제</span>`:''}
   </div>`;
 }
+function pfActive(){ return (PROJECTS_CACHE||[]).filter(p=>!p.archived); }
 function renderPortfolio(){
   if(!CURRENT_USER) return;
-  const list=PROJECTS_CACHE, admin=amAdmin();
+  const list=pfActive(), archived=(PROJECTS_CACHE||[]).filter(p=>p.archived), admin=amAdmin();
   $('#pf-user').innerHTML=`<b>${esc(CURRENT_USER)}</b>${admin?' · 대표':' · '+esc(CURRENT_ROLE||'직원')}`;
   $('#pf-cnt').textContent=`${list.length}개`;
   $('#pf-adminbadge').innerHTML=admin?'<span class="pf-badge">대표 · 전체 열람·수정</span>':'';
@@ -1274,8 +1311,16 @@ function renderPortfolio(){
   let cards=list.map(pfCard).join('');
   if(canCreate) cards+=`<div class="pf-card add" onclick="openAddModal()">＋ 프로젝트 추가</div>`;
   $('#pf-cards').innerHTML= (list.length||canCreate)? cards : '<div class="pf-empty">배정된 프로젝트가 없습니다.</div>';
+  // P1 — 아카이브 분리 목록 (조회 가능)
+  const as=$('#pf-arch-sec');
+  if(as){
+    as.style.display=archived.length?'':'none';
+    $('#pf-arch-cnt').textContent=archived.length?`${archived.length}개`:'';
+    $('#pf-arch-cards').innerHTML=archived.map(pfCard).join('');
+  }
   pfApplyView();
 }
+function pfToggleArch(){ const el=$('#pf-arch-cards'); el.style.display=(el.style.display==='none')?'':'none'; }
 // ── G4 타임라인 뷰 — 전 프로젝트 가로 막대(시작~종료/D-Day) + 진행률 채움 + 오늘선 ──
 function pfSetView(v){ try{localStorage.setItem('pf_view',v);}catch(e){} pfApplyView(); }
 function pfApplyView(){
@@ -1292,7 +1337,7 @@ function renderKanban(){
   const box=$('#pf-kanban'); if(!box) return;
   const ORDER=['Not Started','In Progress','On Track','At Risk','Hold','Done'];
   const groups={};
-  PROJECTS_CACHE.forEach(p=>{ const st=((p.brief&&p.brief.status)||'').trim()||'미지정'; (groups[st]=groups[st]||[]).push(p); });
+  pfActive().forEach(p=>{ const st=((p.brief&&p.brief.status)||'').trim()||'미지정'; (groups[st]=groups[st]||[]).push(p); });
   const cols=ORDER.filter(s=>groups[s]).concat(Object.keys(groups).filter(s=>!ORDER.includes(s)));
   if(!cols.length){ box.innerHTML='<div class="pf-empty">프로젝트가 없습니다.</div>'; return; }
   box.innerHTML='<div class="kb-board">'+cols.map(st=>{
@@ -1309,7 +1354,7 @@ function _tlDate(s){ const d=new Date((s||'').slice(0,10)); return isNaN(d)?null
 function renderTimeline(){
   const box=$('#pf-timeline'); if(!box) return;
   const today=new Date(new Date().toISOString().slice(0,10));
-  const rows=PROJECTS_CACHE.map(p=>{
+  const rows=pfActive().map(p=>{
     const s=_tlDate(p.start), e=_tlDate(p.end)||_tlDate(p.dday);
     return {p, s:s||e, e:e||s};
   }).filter(r=>r.s&&r.e);
@@ -1548,12 +1593,49 @@ async function confirmAddProject(){
     name:b.name||'(이름 없음)', desc, pm:b.pm||CURRENT_USER||'', start:b.start||'', end:b.end||'', dday:b.dday||'',
     members:[...members], brief:b, tasks:_addParsed.tasks, issues:_addParsed.issues };
   if(SERVED){
-    const r=await apiPost('/project/save',{user:CURRENT_USER,pin:CURRENT_PIN,project:proj});
+    let r=await apiPost('/project/save',{user:CURRENT_USER,pin:CURRENT_PIN,project:proj});
+    if(!r.ok && r.dup){ // P2 — 유사 프로젝트 중복 확인
+      if(!confirm(`이미 등록된 '${r.dup.name}'와(과) 같은 프로젝트로 보입니다.\n\n[확인] 그래도 새 프로젝트로 생성\n[취소] 생성 중단 (기존 프로젝트를 사용하세요)`)) return;
+      r=await apiPost('/project/save',{user:CURRENT_USER,pin:CURRENT_PIN,project:proj,force:true});
+    }
     if(!r.ok){ alert('추가 실패: '+(r.error||'')); return; }
     closeAddModal(); await loadPortfolio();
   } else {
     const arr=allProjects(); arr.push(proj); saveProjects(arr); PROJECTS_CACHE=localVisible(CURRENT_USER); closeAddModal(); renderPortfolio();
   }
+}
+
+// ───────── P1 아카이브 (완료 조건 3종: 납품·정산·회고) ─────────
+let _archId=null;
+function openArchModal(id){
+  const p=PROJECTS_CACHE.find(x=>x.id===id);
+  if(!p){ alert('프로젝트를 찾을 수 없습니다.'); return; }
+  _archId=id;
+  $('#arch-proj-name').textContent=(p.name||id)+' · PM '+(p.pm||'—');
+  $('#arch-delivery').checked=false; $('#arch-settle').checked=false;
+  $('#arch-good').value=''; $('#arch-bad').value=''; $('#arch-info').textContent='';
+  $('#arch-modal').classList.add('show');
+}
+async function confirmArchive(){
+  if(!_archId) return;
+  const body={user:CURRENT_USER,pin:CURRENT_PIN,id:_archId,
+    delivery:$('#arch-delivery').checked,settlement:$('#arch-settle').checked,
+    retro_good:$('#arch-good').value.trim(),retro_bad:$('#arch-bad').value.trim()};
+  if(!body.delivery||!body.settlement||!body.retro_good||!body.retro_bad){
+    $('#arch-info').textContent='완료 조건 3종(납품·정산·회고 2줄)을 모두 채워야 아카이브됩니다.'; return;
+  }
+  $('#arch-confirm').disabled=true;
+  const r=await apiPost('/project/archive',body);
+  $('#arch-confirm').disabled=false;
+  if(!r.ok){ $('#arch-info').textContent=r.error||'아카이브 실패'; return; }
+  $('#arch-modal').classList.remove('show'); _archId=null;
+  await loadPortfolio();
+}
+async function restoreProject(id){
+  if(!confirm('아카이브를 해제하고 활성 목록으로 복원할까요?')) return;
+  const r=await apiPost('/project/archive',{user:CURRENT_USER,pin:CURRENT_PIN,id,restore:true});
+  if(!r.ok){ alert(r.error||'복원 실패'); return; }
+  await loadPortfolio();
 }
 
 // ───────── 멤버 배정(기존 프로젝트) ─────────
