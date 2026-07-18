@@ -49,6 +49,13 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
 - **배포**: 베이스 해시 5파일 일치 → 백업(/tmp/*.bak-g456) → 6파일 scp → py_compile → 재시작 → 8780·/projects·arisa-os.com 200, 맥미니 status_log 실기록 확인
 - 실전 검증 예정: 내일 07:30 배치(G6 지각체크 출력 + G5 자동완료 로그), 월요일 주간 배치(G5 weekly-auto)
 
+### G7·G8 구현·배포 완료 — LOW 갭 (커밋 d4438f3)
+- **G7 태스크 이력 스레드**: status_log에 `note`(전이 근거, 200자)+`load_history`(task/assignee/pid AND 필터, 파일 역순=최신순 — ts 동초 정렬 함정 회피) → `/api/assign-history`(GET, 로그인 사용자 전체 — 팀 투명성) → 포트폴리오 상세 분장 섹션 각 행 🕘 토글 → 인라인 스레드(시각·from→to·주체·소스·자동완료 시 보고근거 문장). daily-brief 자동완료가 note=basis 기록
+- **G8 칸반 뷰**: 포트폴리오 3번째 뷰 [카드|타임라인|칸반] — brief.status(컨디션) 컬럼(BRIEF_STATES 순서, 존재 컬럼만+미지정), 미니 카드(PM·D-day·업무 done/total·롤업 진행바), 클릭→상세. 드래그 상태 변경은 미구현(권한 로직 필요 — 필요 시 후속). 원형+생성본 동시 패치
+- **검증**: load_history 단위 assert / Playwright 칸반(컬럼 정렬·카드3·토글 복귀)+이력(2행·note·source·최신순, http 서빙+API 목킹) / 맥미니 실 API 조회(deploy-check 엔트리 반환 — ⚠️ curl 한글 파라미터는 --data-urlencode 필요, 브라우저는 무관)
+- **배포**: 베이스 5파일 일치 → 백업(/tmp/*.bak-g78) → scp → py_compile → 재시작 → 8780·arisa-os.com·/projects 200
+- **갭 로드맵 종결**: G1a·G2~G8 완료. 잔여 = G1b(봇 Wave3 후) · G9 의존성(도입 비권고 유지)
+
 ## 2026-07-15 — 정식 도메인 확인 + 갱신 리마인드 체계
 
 - **정식 도메인 재확인**: `https://arisa-os.com` (2026-07-12 개통). 보조 `arisa.projectrent.co.kr`(ingress 유지), tailnet 전용 `server-mini-macmini.tail7739de.ts.net`
