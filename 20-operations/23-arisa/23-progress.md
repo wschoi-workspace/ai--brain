@@ -56,6 +56,16 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
 - **배포**: 베이스 5파일 일치 → 백업(/tmp/*.bak-g78) → scp → py_compile → 재시작 → 8780·arisa-os.com·/projects 200
 - **갭 로드맵 종결**: G1a·G2~G8 완료. 잔여 = G1b(봇 Wave3 후) · G9 의존성(도입 비권고 유지)
 
+### Wave 3 정리 + G1b 구현·배포 완료 (커밋 9e538e8·fc57a4a)
+- **Wave 3 정리 커밋(9e538e8)**: 타 세션 미커밋 +19줄(_rule_based_gaps — Outcome 한 줄 강제 + decision_needed 공란 유도 질문) 검토 후 정리 커밋. 질문 상한·우선순위(G8) 체계 안에서 동작 확인
+- **⚠️ 발견 1**: 맥미니 봇 = a27954e 시점 — **핫픽스 1b902c5(질문에 프로젝트·업무명 명시 강제)가 미배포였음** → 이번 HEAD 배포로 해소
+- **⚠️ 발견 2(미해결 버그)**: 봇 `/assign`(대표 전용 간편 분장)이 **구스키마**(W라벨|팀|...|bot)로 주간분장 시트에 append — 현 신스키마(날짜|프로젝트|...|우선순위|pid)와 컬럼 불일치 = 잘못된 칸에 기록됨. 셸 분장 UI가 주 경로라 노출 낮지만 수리 필요 — 후속 항목
+- **G1b(fc57a4a) — 보고↔프로젝트 ID Relation**: structure_report에서 프로젝트 SSOT 레지스트리(`_data/projects/*.json` 이름+별칭) 로드 → STRUCTURE_PROMPT `projects` 배열(core_tasks 순서, **목록에서만 선택·추측 금지**) → `_project_pid` 정규화 정확 매칭(이름+aliases)으로 pid 확정 → 핵심업무 시트 **후행 컬럼 N(project)·O(pid)** 축적(기존 행·dedup 인덱스 무영향) + 관리자 보고서 업무 라인 〔프로젝트〕 태그. **확인 버튼 질문은 미도입** — 목록 강제 선택으로 모호성 낮춰 무대화 자동 귀속, 오귀속 관찰 후 버튼 도입 판단
+- **검증**: 로컬 단위 assert(레지스트리 21, 정규화/변형/미존재 매칭, 시트 15컬럼 조립, 〔태그〕, 프롬프트 스키마) + 맥미니 venv py_compile + 레지스트리 25개·별칭 매칭(LA문화원/유니원→K-존) 실검증
+- **배포**: 봇 유휴(폴링만) 확인 → 백업(/tmp/daily-report-bot.py.bak-wave3-g1b) → scp → venv py_compile → kickstart(PID 24607, Application started) → 배포본=커밋본 해시 일치
+- 실전 검증 예정: 다음 보고(오늘 저녁/주말)에서 ① Wave3 질문(outcome·결정 유도) 빈도 ② projects 귀속 정확도 — 핵심업무 시트 N·O열 확인
+- [ ] 후속: 봇 /assign 신스키마 전환(+pid) / 브리프 BRIEF_PROMPT가 시트 N·O열(귀속) 소비하도록 연결
+
 ## 2026-07-15 — 정식 도메인 확인 + 갱신 리마인드 체계
 
 - **정식 도메인 재확인**: `https://arisa-os.com` (2026-07-12 개통). 보조 `arisa.projectrent.co.kr`(ingress 유지), tailnet 전용 `server-mini-macmini.tail7739de.ts.net`
