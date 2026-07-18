@@ -35,7 +35,9 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
 - **배선(dashboard-server.py)**: _assign_read A2:K / _assign_append 11값 / 승인·삭제 포트폴리오 반영 pid 우선 / 프로젝트 상세 분장 섹션 pid 일치 우선 / 인라인 편집 시 프로젝트 변경하면 K 재확정(제거는 편집 전 구 pid 사용)
 - **안전성**: 기존 쓰기 경로가 전부 셀 단위(B/E/F/H)라 K열 보존 확인. 검증: 실데이터 21프로젝트 — resolve/pid우선/이름폴백/깨진pid폴백 assert 전체 통과
 - **배포**: 베이스 해시 일치 → 백업(/tmp/dashboard-server.py.bak-g1a) → scp → py_compile → 재시작 → 8780·/projects 200, 해시 일치. K1 헤더는 맥미니 shared.gws로 1회 기록(⚠️ node PATH: `~/.local/node-v24.18.0-darwin-arm64/bin` 추가 필요했음)
-- [ ] 선택: 기존 행 K열 백필 스크립트(빈 K만 _resolve_pid로 채움) — 대표 결정 대기
+- [x] **기존 행 K열 백필 완료 (2026-07-18)**: 드라이런→적용 2단계, 95행 중 87건 백필·8건 프로젝트명 없음(빈값 유지)·매칭 실패 0
+  - 실패 2건(LA문화원·유니원) 원인 = 맥미니 프로젝트 실명 'LA 한국문화원 글로벌 K-존'과 표기 상이 → **aliases ["LA문화원","유니원"] 추가**(백업 /tmp/la-kzone.json.bak-g1a)로 해소. ⚠️ 유니원=글로벌 K-존 입찰 건으로 동일 프로젝트 판단 — 별개 프로젝트면 aliases에서 제거할 것
+  - 검증: _assign_read 95행 중 pid 87 / K-존 프로젝트 상세 분장 섹션이 pid로 실매칭 / 서버 200. 스크립트 /tmp/backfill-assign-pid.py(로컬·맥미니)
 - [ ] G1b: 보고 봇 프로젝트 확인 질문(버튼 1탭) — Wave3 정리 후
 
 ## 2026-07-15 — 정식 도메인 확인 + 갱신 리마인드 체계
