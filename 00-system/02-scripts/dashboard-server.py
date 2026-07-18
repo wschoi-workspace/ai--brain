@@ -1066,7 +1066,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       h+='<div class="mw-h">진행중인 프로젝트 <span class="sub2">'+(lh.projects||[]).length+'건 — 클릭하면 프로젝트 탭</span></div>';
       var P=lh.projects||[];
       if(P.length){ P.forEach(function(p){
-        var pr=(p.task_total?(' · 업무 '+p.task_done+'/'+p.task_total):'');
+        var pr=(p.task_total?(' · 업무 '+p.task_done+'/'+p.task_total+(p.percent!=null?(' · '+p.percent+'%'):'')):'');
         h+='<div class="lh-proj" data-open="projects"><div class="t">'+esc(p.name)+'</div><div class="m">PM '+esc(p.pm||'-')+(p.dday?(' · D-day '+esc(p.dday)):'')+pr+'</div></div>';
       }); } else { h+='<div class="mw-empty">진행중인 팀 프로젝트가 없습니다.</div>'; }
       h+='<div class="mw-h">팀원 오늘 보고 <span class="sub2">'+esc(lh.brief_date||'')+'</span></div>';
@@ -2774,13 +2774,13 @@ class H(BaseHTTPRequestHandler):
             for p in load_projects():
                 if not (project_teams(p) & set(teams)):
                     continue
-                tasks = p.get("tasks") or []
-                done = sum(1 for t in tasks if (t.get("status") or "") in _TASK_DONE_STATES)
+                ru = _ST.task_rollup(p.get("tasks"))  # G3 — 태스크 파생 진행률 롤업
                 end = (p.get("end") or p.get("dday") or "").strip()
                 if end and end < today.isoformat():
                     continue  # 종료된 프로젝트 제외
                 projs.append({"id": p.get("id"), "name": p.get("name"), "pm": p.get("pm"),
-                              "dday": p.get("dday"), "task_done": done, "task_total": len(tasks)})
+                              "dday": p.get("dday"), "task_done": ru["done"], "task_total": ru["total"],
+                              "percent": ru["percent"]})
             projs.sort(key=lambda p: p.get("dday") or "9999")
             brief_html, brief_date = "", ""
             try:
@@ -2813,6 +2813,7 @@ class H(BaseHTTPRequestHandler):
             for p in load_projects():
                 if can_view(uid, p):
                     q = dict(p); q["canManage"] = can_manage(uid, p); q["canEdit"] = can_edit(uid, p)
+                    q["rollup"] = _ST.task_rollup(p.get("tasks"))  # G3 — 태스크 파생 진행률
                     vis.append(q)
             return self._send(200, {"ok": True, "projects": vis, "admin": is_admin(uid),
                                     "canCreate": is_admin(uid) or is_leader(uid)})

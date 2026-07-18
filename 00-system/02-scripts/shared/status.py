@@ -67,3 +67,27 @@ def assign_to_progress(st) -> int:
 
 def badge_class(st) -> str:
     return ASSIGN_BADGE_CLASS.get(st or "", ASSIGN_BADGE_DEFAULT)
+
+
+def task_rollup(tasks) -> dict:
+    """프로젝트 진행률 자동 롤업 (G3 — 노션 'Task completion percent' 방식).
+
+    저장하지 않고 tasks에서 파생 계산한다. percent 산식은 포트폴리오 상세 화면의
+    기존 클라이언트 롤업과 동일: Done=100, 그 외는 task.progress(없으면 0)의 평균.
+    반환: {"total": 전체 수, "done": 완료 수, "percent": 0~100}
+    """
+    tasks = tasks or []
+    total = len(tasks)
+    if not total:
+        return {"total": 0, "done": 0, "percent": 0}
+    done, acc = 0, 0
+    for t in tasks:
+        if is_task_done(t.get("status")):
+            done += 1
+            acc += 100
+        else:
+            try:
+                acc += max(0, min(100, int(t.get("progress") or 0)))
+            except (TypeError, ValueError):
+                pass
+    return {"total": total, "done": done, "percent": round(acc / total)}

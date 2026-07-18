@@ -252,6 +252,8 @@ body.view-detail #view-login,body.view-detail #view-portfolio{display:none}
 .pf-card .pc-dday{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:6px;background:var(--accent-sub);color:var(--accent-lt);white-space:nowrap;flex:0 0 auto}
 .pf-card .pc-desc{font-size:11.5px;color:var(--fg-2);line-height:1.55;margin:10px 0 14px;min-height:36px}
 .pf-card .pc-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:10.5px;color:var(--fg-3);border-top:1px solid var(--line-2);padding-top:11px}
+.pf-card .pc-prog{height:4px;border-radius:2px;background:var(--line-2);margin-top:8px;overflow:hidden}
+.pf-card .pc-prog i{display:block;height:100%;background:var(--accent);border-radius:2px}
 .pf-card .pc-meta b{color:var(--fg-2);font-weight:600}
 .pf-card .pc-del{position:absolute;bottom:13px;right:14px;font-size:11px;color:var(--fg-3);cursor:pointer;opacity:0;transition:.12s}
 .pf-card:hover .pc-del{opacity:1}
@@ -1194,13 +1196,22 @@ async function loadPortfolio(){
   renderPortfolio();
 }
 function ddayChip(p){ if(!p.dday) return ''; const d=daysBetween(TODAY,parseD(p.dday)); return d>0?`D-${d}`:d===0?'D-DAY':`D+${-d}`; }
+function pfRollup(p){ // G3 진행률 롤업 — 서버(shared/status.py task_rollup) 값 우선, 없으면 동일 산식으로 파생
+  if(p.rollup) return p.rollup;
+  const ts=p.tasks||[]; if(!ts.length) return {total:0,done:0,percent:0};
+  let done=0,acc=0;
+  ts.forEach(t=>{ const st=t.status||''; if(st==='Done'||st==='완료'){done++;acc+=100;} else acc+=Math.max(0,Math.min(100,+t.progress||0)); });
+  return {total:ts.length,done:done,percent:Math.round(acc/ts.length)};
+}
 function pfCard(p){
+  const ru=pfRollup(p);
   const sched=(p.start&&p.end)?`${p.start} ~ ${p.end}`:(p.start||p.end||'일정 미정');
   const desc=(Array.isArray(p.desc)?p.desc:[p.desc||'']).filter(Boolean).map(esc).join('<br>')||'<span style="color:var(--fg-3)">설명 없음</span>';
   return `<div class="pf-card" onclick="openProject('${esc(p.id)}')">
     <div class="pc-top"><div class="pc-name">${esc(p.name)||'(이름 없음)'}</div>${p.dday?`<span class="pc-dday">${ddayChip(p)}</span>`:''}</div>
     <div class="pc-desc">${desc}</div>
-    <div class="pc-meta"><span><b>일정</b> ${esc(sched)}</span><span><b>PM</b> ${esc(p.pm)||'—'}</span><span><b>업무</b> ${(p.tasks||[]).length}</span></div>
+    <div class="pc-meta"><span><b>일정</b> ${esc(sched)}</span><span><b>PM</b> ${esc(p.pm)||'—'}</span><span><b>업무</b> ${ru.done}/${ru.total}${ru.total?` · ${ru.percent}%`:''}</span></div>
+    ${ru.total?`<div class="pc-prog"><i style="width:${ru.percent}%"></i></div>`:''}
     <div class="pc-mem-line"><b>멤버</b> ${(p.members||[]).map(esc).join(', ')||'<span style="color:var(--fg-3)">미배정</span>'}</div>
     ${p.canManage?`<span class="pc-mem" title="멤버 배정" onclick="event.stopPropagation();openMembersModal('${esc(p.id)}')">👥 멤버 배정</span>`:''}
     ${(amAdmin()||p.pm===CURRENT_USER)?`<span class="pc-del" title="삭제" onclick="event.stopPropagation();deleteProject('${esc(p.id)}')">🗑 삭제</span>`:''}
