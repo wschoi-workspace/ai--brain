@@ -24,11 +24,12 @@ _lock = threading.Lock()
 
 def log_status_change(source: str, by: str, to_status: str, from_status: str = "",
                       row=None, date: str = "", project: str = "", pid: str = "",
-                      task: str = "", assignee: str = "") -> bool:
+                      task: str = "", assignee: str = "", note: str = "") -> bool:
     """상태 전이 1건 append. 실패해도 예외를 올리지 않는다(운영 경로 보호).
 
     source: dashboard | dashboard-bulk-delete | project-delete | daily-brief-auto | weekly-auto
     by: 변경 주체 (계정명 또는 'auto')
+    note: 전이 근거 한 줄 (예: 자동 완료의 보고 근거 문장) — G7 이력 뷰 표시용
     """
     entry = {
         "ts": datetime.now().isoformat(timespec="seconds"),
@@ -42,6 +43,7 @@ def log_status_change(source: str, by: str, to_status: str, from_status: str = "
         "assignee": (assignee or "").strip(),
         "from": (from_status or "").strip(),
         "to": (to_status or "").strip(),
+        "note": (note or "").strip()[:200],
     }
     try:
         _LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -50,3 +52,37 @@ def log_status_change(source: str, by: str, to_status: str, from_status: str = "
         return True
     except Exception:
         return False
+
+
+def load_history(task: str = "", assignee: str = "", pid: str = "", limit: int = 50) -> list[dict]:
+    """전이 이력 조회 (G7 — 태스크 이력 뷰). 필터는 AND, 최신순.
+
+    task는 정확 일치(공백 정규화). 필터 전부 비면 최근 limit건.
+    """
+    if not _LOG_PATH.exists():
+        return []
+    tq = (task or "").strip()
+    aq = (assignee or "").strip()
+    pq = (pid or "").strip()
+    out: list[dict] = []
+    try:
+        for line in _LOG_PATH.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                e = json.loads(line)
+            except Exception:
+                continue
+            if tq and (e.get("task") or "").strip() != tq:
+                continue
+            if aq and (e.get("assignee") or "").strip() != aq:
+                continue
+            if pq and (e.get("pid") or "").strip() != pq:
+                continue
+            out.append(e)
+    except Exception:
+        return []
+    # 파일 append 순서 = 시간순 — 역순이 최신순 (같은 초 내 전이도 순서 보존)
+    out.reverse()
+    return out[:limit]

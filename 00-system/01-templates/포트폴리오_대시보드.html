@@ -258,6 +258,15 @@ body.view-detail #view-login,body.view-detail #view-portfolio{display:none}
 .tl-bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);opacity:.85;border-radius:7px}
 .tl-bar em{position:relative;font-style:normal;font-size:9px;color:#fff;margin-left:6px;text-shadow:0 0 3px rgba(0,0,0,.4)}
 .tl-bar.late{outline:1.5px solid var(--red,#E05252)}
+.kb-board{display:flex;gap:12px;align-items:flex-start;overflow-x:auto;padding-bottom:6px}
+.kb-col{flex:0 0 210px;background:rgba(128,128,128,.06);border:1px solid var(--line-2);border-radius:10px;padding:10px}
+.kb-head{font-size:11px;font-weight:700;color:var(--fg-2);margin-bottom:8px;display:flex;justify-content:space-between}
+.kb-card{background:rgba(128,128,128,.08);border:1px solid var(--line-2);border-radius:8px;padding:9px 10px;margin-bottom:8px;cursor:pointer}
+.kb-card:hover{border-color:var(--accent)}
+.kb-card .t{font-size:12px;font-weight:600;margin-bottom:3px}
+.kb-card .m{font-size:10.5px;color:var(--fg-3);margin-bottom:5px}
+.kb-card .pc-prog{height:4px;border-radius:2px;background:var(--line-2);overflow:hidden}
+.kb-card .pc-prog i{display:block;height:100%;background:var(--accent);border-radius:2px}
 .pf-head h2{font-size:14px;font-weight:700}
 .pf-head .cnt{font-size:11px;color:var(--fg-3)}
 .pf-badge{font-size:9.5px;font-weight:700;color:var(--accent-lt);background:var(--accent-sub);border-radius:6px;padding:3px 9px}
@@ -339,9 +348,10 @@ body.readonly .topbar .ver{color:var(--rust)}
       <button class="btn" onclick="logout()">로그아웃</button>
     </div>
   </div>
-  <div class="pf-head"><h2>진행 프로젝트</h2><span class="cnt" id="pf-cnt"></span><span id="pf-adminbadge"></span><span class="pf-vtg" id="pf-vtg"><button data-v="cards" onclick="pfSetView('cards')">카드</button><button data-v="tl" onclick="pfSetView('tl')">타임라인</button></span></div>
+  <div class="pf-head"><h2>진행 프로젝트</h2><span class="cnt" id="pf-cnt"></span><span id="pf-adminbadge"></span><span class="pf-vtg" id="pf-vtg"><button data-v="cards" onclick="pfSetView('cards')">카드</button><button data-v="tl" onclick="pfSetView('tl')">타임라인</button><button data-v="kb" onclick="pfSetView('kb')">칸반</button></span></div>
   <div class="pf-grid" id="pf-cards"></div>
   <div id="pf-timeline" class="pf-tlwrap" style="display:none"></div>
+  <div id="pf-kanban" class="pf-tlwrap" style="display:none"></div>
 </div>
 
 <div class="app">
@@ -669,15 +679,33 @@ function renderAssignSec(){
   const el=document.getElementById('assign-body'); if(!el) return;
   const A=window.CURRENT_ASSIGN||[];
   if(!A.length){ el.innerHTML='<span style="opacity:.55">이번주 분장 항목이 없습니다. (리더·대표가 "내 업무/팀 홈 > 업무 분장"에서 등록하면 자동 표시)</span>'; return; }
-  el.innerHTML=A.map(a=>{
+  el.innerHTML=A.map((a,i)=>{
     const st=a.status||'미착수';
     const col=st==='완료'?'opacity:.5':(st==='진행중'?'color:#D9A34B;border-color:#D9A34B':'color:#E17055;border-color:#E17055');
     const done=st==='완료'?'text-decoration:line-through;opacity:.6':'';
     return `<div style="display:flex;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px solid rgba(128,128,128,.2)">
       <span style="font-size:10px;border:1px solid;border-radius:4px;padding:0 6px;white-space:nowrap;${col}">${esc(st)}</span>
       <span style="flex:1;${done}">${esc(a.task||'')}</span>
-      <span style="font-size:11px;opacity:.65;white-space:nowrap">${esc(a.assignee||'')}${a.deadline?(' · ~'+esc(a.deadline)):''}${a.priority==='긴급'?' · 🔴긴급':''}</span></div>`;
+      <span style="font-size:11px;opacity:.65;white-space:nowrap">${esc(a.assignee||'')}${a.deadline?(' · ~'+esc(a.deadline)):''}${a.priority==='긴급'?' · 🔴긴급':''}</span>
+      <span onclick="asgHistory(${i})" style="cursor:pointer;font-size:11px;opacity:.55" title="상태 변경 이력">🕘</span></div>
+      <div id="asg-hist-${i}" style="display:none;font-size:11px;padding:4px 0 6px 24px;border-bottom:1px solid rgba(128,128,128,.2)"></div>`;
   }).join('');
+}
+// ── G7 태스크 이력 — 분장 상태 전이 스레드 (status-log 조회) ──
+async function asgHistory(i){
+  const a=(window.CURRENT_ASSIGN||[])[i]; if(!a) return;
+  const box=document.getElementById('asg-hist-'+i); if(!box) return;
+  if(box.dataset.open==='1'){ box.style.display='none'; box.dataset.open='0'; return; }
+  box.style.display=''; box.dataset.open='1';
+  box.innerHTML='<span style="opacity:.5">이력 불러오는 중…</span>';
+  try{
+    const r=await apiGet('/assign-history?user='+encodeURIComponent(CURRENT_USER||'')
+      +'&task='+encodeURIComponent(a.task||'')+'&assignee='+encodeURIComponent(a.assignee||''));
+    const h=(r&&r.history)||[];
+    box.innerHTML=h.length? h.map(e=>
+      `<div style="padding:2px 0"><span style="opacity:.55">${esc((e.ts||'').replace('T',' ').slice(0,16))}</span> ${esc(e.from||'—')} → <b>${esc(e.to||'')}</b> <span style="opacity:.55">· ${esc(e.by||'')}${e.source&&e.source!=='dashboard'?(' · '+esc(e.source)):''}</span>${e.note?`<div style="opacity:.65;padding-left:10px">└ ${esc(e.note)}</div>`:''}</div>`
+    ).join('') : '<span style="opacity:.5">기록된 상태 변경 이력이 없습니다. (2026-07-18부터 축적)</span>';
+  }catch(e){ box.innerHTML='<span style="opacity:.5">이력 조회 실패</span>'; }
 }
 function renderIssues(){ $('#issue-body').innerHTML=state.issues.map((it,i)=>issueRow(it,i)).join(''); }
 function addIssue(){ state.issues.push({issue:'',division:'Planning',status:'Open'}); renderIssues(); render(); }
@@ -1252,12 +1280,30 @@ function renderPortfolio(){
 function pfSetView(v){ try{localStorage.setItem('pf_view',v);}catch(e){} pfApplyView(); }
 function pfApplyView(){
   const v=(function(){try{return localStorage.getItem('pf_view')}catch(e){return null}})()||'cards';
-  const c=$('#pf-cards'), t=$('#pf-timeline');
-  if(!c||!t) return;
-  c.style.display=v==='tl'?'none':'';
-  t.style.display=v==='tl'?'':'none';
+  const views={cards:$('#pf-cards'), tl:$('#pf-timeline'), kb:$('#pf-kanban')};
+  if(!views.cards) return;
+  Object.keys(views).forEach(k=>{ if(views[k]) views[k].style.display=(k===v)?'':'none'; });
   document.querySelectorAll('#pf-vtg button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   if(v==='tl') renderTimeline();
+  if(v==='kb') renderKanban();
+}
+// ── G8 칸반 뷰 — 프로젝트 컨디션(brief.status)별 그룹 ──
+function renderKanban(){
+  const box=$('#pf-kanban'); if(!box) return;
+  const ORDER=['Not Started','In Progress','On Track','At Risk','Hold','Done'];
+  const groups={};
+  PROJECTS_CACHE.forEach(p=>{ const st=((p.brief&&p.brief.status)||'').trim()||'미지정'; (groups[st]=groups[st]||[]).push(p); });
+  const cols=ORDER.filter(s=>groups[s]).concat(Object.keys(groups).filter(s=>!ORDER.includes(s)));
+  if(!cols.length){ box.innerHTML='<div class="pf-empty">프로젝트가 없습니다.</div>'; return; }
+  box.innerHTML='<div class="kb-board">'+cols.map(st=>{
+    const list=groups[st];
+    return `<div class="kb-col"><div class="kb-head">${esc(st)}<span>${list.length}</span></div>`+list.map(p=>{
+      const ru=pfRollup(p);
+      return `<div class="kb-card" onclick="openProject('${esc(p.id)}')"><div class="t">${esc(p.name)}</div>`
+        +`<div class="m">${esc(p.pm||'—')}${p.dday?(' · D '+esc(p.dday)):''}${ru.total?(' · 업무 '+ru.done+'/'+ru.total+' · '+ru.percent+'%'):''}</div>`
+        +(ru.total?`<div class="pc-prog"><i style="width:${ru.percent}%"></i></div>`:'')+'</div>';
+    }).join('')+'</div>';
+  }).join('')+'</div>';
 }
 function _tlDate(s){ const d=new Date((s||'').slice(0,10)); return isNaN(d)?null:d; }
 function renderTimeline(){

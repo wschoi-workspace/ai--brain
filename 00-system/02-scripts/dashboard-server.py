@@ -59,9 +59,13 @@ except Exception:
 from shared import status as _ST  # 상태·우선순위 단일출처 (G2) — 배포 시 shared/status.py 동반 필수
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
+    from shared.status_log import load_history as _load_st_history  # 이력 조회 (G7)
 except Exception:
     def _log_st(*a, **k):
         return False
+
+    def _load_st_history(*a, **k):
+        return []
 DAILY_SHEET = os.environ.get("DAILY_REPORT_SHEET_ID", "")
 ASSIGN_TAB = "주간분장"
 
@@ -2854,6 +2858,15 @@ class H(BaseHTTPRequestHandler):
             if _sync_assign_status(p): save_project(p)  # 분장 시트(SSOT) 상태 lazy 반영
             return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
                                     "assignments": _project_assignments(p.get("name") or "", p.get("aliases"), p.get("id") or "")})
+        if path == "/api/assign-history":
+            # 분장 상태 전이 이력 (G7) — 로그인 사용자 누구나 (팀 투명성)
+            uid = (q.get("user") or [""])[0]
+            if not load_users().get(uid):
+                return self._send(401, {"ok": False, "error": "unknown user"})
+            hist = _load_st_history(task=(q.get("task") or [""])[0],
+                                    assignee=(q.get("assignee") or [""])[0],
+                                    pid=(q.get("pid") or [""])[0], limit=30)
+            return self._send(200, {"ok": True, "history": hist})
         if path == "/api/project/doc":
             # 업로드 자료(회의록) 원문 조회 — 프로젝트 열람 권한자
             uid = (q.get("user") or [""])[0]

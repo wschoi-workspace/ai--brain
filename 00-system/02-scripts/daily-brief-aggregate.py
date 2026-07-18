@@ -1283,7 +1283,8 @@ def main():
                 if ok:
                     _log_st("daily-brief-auto", "auto", "완료", from_status=c.get("from") or "",
                             row=c.get("row"), project=c.get("project") or "", pid=c.get("pid") or "",
-                            task=c.get("task") or "", assignee=c.get("assignee") or name)  # G5
+                            task=c.get("task") or "", assignee=c.get("assignee") or name,
+                            note=c.get("basis") or "")  # G5·G7 — 보고 근거 문장
                 print(f"  ↳ 자동 완료: {c['task'][:34]} {'✓' if ok else '실패'}")
 
     # ─── 지각 제출 재집계 (G6) — 직전 브리프 소스일에 새 제출이 있으면 재생성 ───
