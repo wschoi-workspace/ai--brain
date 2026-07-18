@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>노션 PM 시스템 분석 → ARISA 갭 분석 (2026-07-18)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --primary:#6C5CE7; --primary-dark:#5A4BD1; --primary-light:#F0EEFC;
+  --ink:#1A1A2E; --ink-soft:#4A4A68; --muted:#8888A0;
+  --bg:#F7F7FB; --card:#FFFFFF; --line:#E4E4F0;
+  --green:#0FA97C; --green-bg:#E7F7F1;
+  --red:#E05252; --red-bg:#FCEDED;
+  --amber:#D98E04; --amber-bg:#FCF4E4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;font-size:15px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px 80px}
+/* header */
+.hero{background:linear-gradient(135deg,#2A2450 0%,#4A3DB8 60%,var(--primary) 100%);color:#fff;padding:56px 28px 48px;margin-bottom:40px}
+.hero-inner{max-width:1080px;margin:0 auto}
+.hero .tag{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:100px;padding:4px 14px;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin-bottom:18px}
+.hero h1{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.3}
+.hero .sub{margin-top:12px;font-size:15.5px;color:rgba(255,255,255,.82);max-width:760px}
+.hero .meta{margin-top:22px;font-size:12.5px;color:rgba(255,255,255,.6)}
+/* sections */
+section{margin-bottom:52px}
+h2{font-size:21px;font-weight:800;letter-spacing:-.01em;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+h2 .num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--primary);color:#fff;font-size:14px;font-weight:700;flex:none}
+.h2-sub{color:var(--muted);font-size:13.5px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:14px}
+/* summary strip */
+.sumgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.sumcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.sumcard .k{font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:.05em;margin-bottom:6px}
+.sumcard .v{font-size:26px;font-weight:800;color:var(--primary)}
+.sumcard .d{font-size:13px;color:var(--ink-soft);margin-top:4px}
+.lead{background:var(--primary-light);border:1px solid #DCD7F8;border-radius:14px;padding:20px 24px;font-size:15px}
+.lead b{color:var(--primary-dark)}
+/* principle cards */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.pcard .pn{font-size:12px;font-weight:800;color:var(--primary);letter-spacing:.06em;margin-bottom:6px}
+.pcard h3{font-size:16px;font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
+.pcard .what{font-size:13.5px;color:var(--ink-soft);margin-bottom:10px}
+.pcard .why{font-size:13.5px;background:var(--bg);border-radius:10px;padding:10px 14px}
+.pcard .why b{color:var(--primary-dark)}
+/* matrix table */
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--line);font-size:13.5px}
+th{background:#2A2450;color:#fff;text-align:left;padding:12px 14px;font-weight:700;font-size:13px}
+td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#FBFBFE}
+.pill{display:inline-block;border-radius:100px;padding:2px 10px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.pill.win{background:var(--green-bg);color:var(--green)}
+.pill.gap{background:var(--red-bg);color:var(--red)}
+.pill.part{background:var(--amber-bg);color:var(--amber)}
+.pill.hi{background:var(--red);color:#fff}
+.pill.mid{background:var(--amber);color:#fff}
+.pill.lo{background:#B9B9CC;color:#fff}
+.pill.tgt{background:var(--primary-light);color:var(--primary-dark)}
+/* gap 3-way */
+.g3{display:grid;grid-template-columns:1fr;gap:14px}
+.gbox{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.gbox .ghead{padding:14px 22px;font-weight:800;font-size:15.5px;display:flex;align-items:center;gap:10px}
+.gbox.win .ghead{background:var(--green-bg);color:var(--green)}
+.gbox.gap .ghead{background:var(--red-bg);color:var(--red)}
+.gbox.warn .ghead{background:var(--amber-bg);color:var(--amber)}
+.gbox ul{list-style:none;padding:16px 22px}
+.gbox li{padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.gbox li:last-child{border-bottom:none}
+.gbox li .b{flex:none;margin-top:7px;width:6px;height:6px;border-radius:50%;background:var(--primary)}
+.gbox li b{letter-spacing:-.01em}
+.gbox li .note{color:var(--ink-soft)}
+/* roadmap */
+.road{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.rcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;border-top:4px solid var(--primary)}
+.rcard.m{border-top-color:var(--amber)}
+.rcard.l{border-top-color:#B9B9CC}
+.rcard h3{font-size:15px;font-weight:800;margin-bottom:12px}
+.rcard .item{padding:8px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.rcard .item:last-child{border-bottom:none}
+.rcard .item b{display:block;margin-bottom:2px}
+.rcard .item .t{font-size:12px;color:var(--muted)}
+/* discussion */
+.qcard{background:var(--card);border-left:4px solid var(--primary);border-radius:0 14px 14px 0;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 22px;margin-bottom:12px}
+.qcard .q{font-weight:800;font-size:14.5px;margin-bottom:4px}
+.qcard .a{font-size:13.5px;color:var(--ink-soft)}
+footer{border-top:1px solid var(--line);padding-top:24px;margin-top:20px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+footer b{color:var(--primary)}
+.src{font-size:12px;color:var(--muted);margin-top:10px}
+.src a{color:var(--primary);text-decoration:none}
+@media(max-width:820px){.pgrid,.sumgrid,.road{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="tag">ARISA SYSTEM ANALYSIS</div>
+    <h1>노션 PM 시스템 분석 → ARISA 갭 분석</h1>
+    <div class="sub">전 세계에서 가장 검증된 프로젝트 관리 제품인 Notion의 정보 구조·뷰 설계·자동화 원리를 렌즈로 삼아, ARISA(보고→브리프→분장→추적→의사결정)에 빠진 부분과 고려할 부분을 도출한다.</div>
+    <div class="meta">2026-07-18 · 분석 기준: Notion 공식 문서(notion.com/help) + ARISA 실운영 파일(스크립트·JSON SSOT·시트 스키마)</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- 0. Executive Summary -->
+<section>
+  <h2><span class="num">0</span>Executive Summary</h2>
+  <div class="h2-sub">한 문장 결론과 핵심 수치</div>
+  <div class="lead">
+    ARISA는 <b>"입력의 지능"(LLM 보고 코칭·결정 구조화)에서는 노션을 앞서지만</b>, 노션이 검증한 <b>"데이터의 구조"(명시적 Relation·자동 롤업·상태 표준)</b> 층이 얇다. 현재 프로젝트↔보고↔분장은 <b>토큰 매칭(휴리스틱)</b>으로 연결되어 있어, 조직·데이터가 커질수록 연결 오류가 누적되는 구조다. 가장 시급한 것은 기능 추가가 아니라 <b>ID 기반 명시적 연결 + 상태·우선순위 enum 통일</b>이라는 기반 정비다.
+  </div>
+  <div style="height:14px"></div>
+  <div class="sumgrid">
+    <div class="sumcard"><div class="k">노션 검증 효율 원리</div><div class="v">7개</div><div class="d">단일소스·롤업·표준화·위계·자동화·AI·맥락동거</div></div>
+    <div class="sumcard"><div class="k">도출된 갭</div><div class="v">9건</div><div class="d">HIGH 3 · MEDIUM 3 · LOW 3</div></div>
+    <div class="sumcard"><div class="k">이식 금지(변형 필요)</div><div class="v">4건</div><div class="d">텔레그램 입력·소규모 조직 맥락 유지</div></div>
+  </div>
+</section>
+
+<!-- 1. Notion principles -->
+<section>
+  <h2><span class="num">1</span>노션이 검증한 업무관리 효율 원리 7</h2>
+  <div class="h2-sub">기능 나열이 아닌 "왜 이 설계가 효율을 만드는가"의 원리 추출 · 출처: Notion Help Center</div>
+  <div class="pgrid">
+    <div class="pcard">
+      <div class="pn">PRINCIPLE 01</div>
+      <h3>단일 데이터소스 × 다중 뷰</h3>
+      <div class="what">하나의 데이터베이스를 Table·Board·Timeline·Calendar·List·Gallery·Chart 7가지 뷰로 표현. 각 뷰는 필터·정렬·그룹 설정을 독립적으로 저장하며, 어느 뷰에서 수정해도 전체에 즉시 반영.</div>
+      <div class="why"><b>왜 효율적인가</b> — 입력 1회, 소비 N회. 같은 데이터를 실무자는 칸반으로, 리더는 타임라인으로, 대표는 차트로 본다. "역할별로 다른 화면"을 데이터 복제 없이 구현해 이중 입력과 동기화 비용을 제거.</div>
+    </div>
+    <div class="pcard">
+      <div class="pn">PRINCIPLE 02</div>
+      <h3>Relation + Rollup 자동 집계</h3>
+      <div class="what">Relation으로 DB 간 명시적 연결(양방향 동기화, 1:N 제한 옵션), Rollup으로 연결된 데이터를 자동 집계(Count·Sum·Average·Percent 등 17종). 공식 Projects 템플릿의 "Task completion percent"가 대표 사례 — 완료 태스크 비율이 프로젝트 진행률 바로 자동 표시.</div>
+      <div class="why"><b>왜 효율적인가</b> — 집계라는 노동 자체를 소멸시킨다. 태스크 상태만 바꾸면 프로젝트 진행률·팀 부하가 저절로 갱신. 사람은 "집계"가 아니라 "판단"에만 시간을 쓴다.</div>
+    </div>
+    <div class="pcard">
+      <div class="pn">PRINCIPLE 03</div>
+      <h3>구조의 조직 표준화</h3>
+      <div class="what">Task DB 지정 시 Status·Assignee·Due date 3속성을 필수로 요구. Projects 템플릿은 Priority(Low/Medium/High 또는 P0/P1/P2)와 상태 파이프라인(Planning→In progress→…)을 표준 제공. "1 프로젝트 : N 태스크, 태스크는 단일 프로젝트 소속" 원칙.</div>
+      <div class="why"><b>왜 효율적인가</b> — 필드 값이 통일돼야 필터·정렬·자동화·집계가 전부 작동한다. 표준 enum이 없으면 그 위에 쌓는 모든 기능이 매칭 실패로 샌다.</div>
+    </div>
+    <div class="pcard">
+      <div class="pn">PRINCIPLE 04</div>
+      <h3>위계(Sub-items)와 의존성(Dependencies)</h3>
+      <div class="what">Sub-items로 태스크를 계층화(토글 중첩/평면 표시, Parents-only 필터). Dependencies는 선행-후행을 연결하고 날짜 자동 이동 3옵션("겹칠 때만 이동" / "간격 유지 이동" / "이동 안 함") + 주말 회피 지원.</div>
+      <div class="why"><b>왜 효율적인가</b> — 큰 일의 분해와 순서를 데이터로 만들면, 하나가 밀렸을 때 연쇄 일정 재계산을 시스템이 대신한다. 일정 회의가 줄어든다.</div>
+    </div>
+    <div class="pcard">
+      <div class="pn">PRINCIPLE 05</div>
+      <h3>자동화 트리거 (Database Automations)</h3>
+      <div class="what">"Status가 특정 값으로 변경"과 같은 트리거에 액션(속성 편집·담당자 지정·Slack 알림·페이지 생성)을 연결. Sprints는 자동 완성·자동 시작 + 미완료 태스크 처리 3옵션(다음 스프린트 이월/백로그/유지)까지 내장.</div>
+      <div class="why"><b>왜 효율적인가</b> — 상태 전이에 따르는 부수 작업(알림·다음 단계 생성·이월)의 비용을 0으로 만든다. "완료했다고 알려주는 일"이 사라진다.</div>
+    </div>
+    <div class="pcard">
+      <div class="pn">PRINCIPLE 06</div>
+      <h3>AI 속성 (Autofill)</h3>
+      <div class="what">DB에 AI 속성 추가 — AI Summary(자동 요약)·AI Key info(액션 아이템 추출)·AI Translation·커스텀 프롬프트. 실행 시점 선택(수동/페이지 생성 시/편집 시).</div>
+      <div class="why"><b>왜 효율적인가</b> — 사람이 쓴 비정형 내용에서 구조화된 메타데이터를 기계가 뽑는다. 입력 부담을 늘리지 않고 데이터 품질을 올리는 방향.</div>
+    </div>
+    <div class="pcard">
+      <div class="pn">PRINCIPLE 07</div>
+      <h3>맥락과 실행의 동거</h3>
+      <div class="what">모든 DB 행이 곧 문서 페이지 — 태스크 안에 논의·산출물·회의록이 함께 산다. Wiki·Docs·Projects가 한 워크스페이스에 있어 "less context switching"을 핵심 가치로 내세움. GitHub·Slack·Figma 연동으로 산재 정보를 허브화.</div>
+      <div class="why"><b>왜 효율적인가</b> — 실행(태스크)과 맥락(왜·어떻게·결과물)이 한 곳에 있으면 히스토리 탐색 비용이 급감한다. "그 파일 어디 있지"가 사라진다.</div>
+    </div>
+    <div class="pcard">
+      <div class="pn">+ 관찰</div>
+      <h3>점진적 구조화</h3>
+      <div class="what">노션은 자유 문서로 시작해 필요할 때 DB로 승격시키는 경로를 열어둔다. 템플릿·폼(Form)으로 입력 진입 장벽을 낮추고, 구조는 나중에 강화한다.</div>
+      <div class="why"><b>왜 효율적인가</b> — 처음부터 완전한 구조를 강요하면 입력이 죽는다. "일단 쓰게 하고, 구조는 시스템이 따라간다"는 순서가 채택률을 만든다. ARISA의 텔레그램 자연어 보고와 같은 철학.</div>
+    </div>
+  </div>
+  <div class="src">출처: <a href="https://www.notion.com/help/relations-and-rollups">Relations &amp; rollups</a> · <a href="https://www.notion.com/help/views-filters-and-sorts">Views, filters &amp; sorts</a> · <a href="https://www.notion.com/help/guides/getting-started-with-projects-and-tasks">Getting started with projects and tasks</a> · <a href="https://www.notion.com/help/tasks-and-dependencies">Sub-items &amp; dependencies</a> · <a href="https://www.notion.com/help/sprints">Task databases &amp; sprints</a> · <a href="https://www.notion.com/help/database-automations">Database automations</a> · <a href="https://www.notion.com/help/autofill">Notion AI for databases</a> · <a href="https://www.notion.com/product/projects">Notion Projects</a></div>
+</section>
+
+<!-- 2. matrix -->
+<section>
+  <h2><span class="num">2</span>원리별 ARISA 현황 매트릭스</h2>
+  <div class="h2-sub">ARISA 현황은 실제 운영 파일 기준으로만 기술 (daily-report-bot.py · daily-brief-aggregate.py · dashboard-server.py · 프로젝트 JSON SSOT · 분장 시트 · decisions.jsonl)</div>
+  <table>
+    <tr><th style="width:19%">노션 원리</th><th style="width:38%">ARISA 현재 상태 (실측)</th><th style="width:10%">판정</th><th>갭 요지</th></tr>
+    <tr>
+      <td><b>01 단일소스 × 다중 뷰</b></td>
+      <td>역할별 자동 뷰는 이미 구현 — 대표(전체 병합 브리프+우선파악존+지연·결재), 리더(팀 홈: 팀 Todo·AI 분장·프로젝트 패널·팀원 보고), 직원(내 업무·오늘 Brief). 단일 URL 로그인으로 화면 자동 분기. 단, 표현 형식은 카드·리스트뿐 — 태스크에 start/end 날짜가 있는데도 타임라인·칸반·캘린더 렌더 없음</td>
+      <td><span class="pill part">부분</span></td>
+      <td>"누가 보느냐"별 뷰는 우위, "어떤 형식으로 보느냐" 전환이 부재</td>
+    </tr>
+    <tr>
+      <td><b>02 Relation + Rollup</b></td>
+      <td>프로젝트 JSON에 tasks[].progress 숫자와 대시보드 프로젝트 패널 업무진행률 존재. 그러나 프로젝트↔보고↔분장 연결은 <b>_match_project 토큰 매칭(정규화 포함 or 유의토큰 교집합 + 스톱워드)</b> — ID 기반 명시 연결이 아님. "프로젝트 오인 방지"용 프롬프트 보정 커밋(f89b06c)이 이미 필요했던 상태</td>
+      <td><span class="pill gap">갭</span></td>
+      <td>연결이 휴리스틱 → 집계 신뢰도가 매칭 정확도에 종속</td>
+    </tr>
+    <tr>
+      <td><b>03 구조 표준화</b></td>
+      <td>상태 값 혼재: 프로젝트 JSON은 영문("Not Started"/"In Progress"), 분장·대시보드 뱃지는 한글(미착수/진행중/완료). 분장 시트에 우선순위 열이 있으나 표준 enum·정렬·강제 없음. 브리프 우선 정렬은 키워드 휴리스틱(결재·비용 등 문자열 탐지)</td>
+      <td><span class="pill gap">갭</span></td>
+      <td>표준 enum 부재 → 필터·집계·자동화의 기반 불안정</td>
+    </tr>
+    <tr>
+      <td><b>04 위계·의존성</b></td>
+      <td>프로젝트→태스크 1단 위계뿐. 분장 "프로젝트 그룹핑"(그룹 에디터)으로 묶음 입력은 해결. Sub-task·선후행 의존성·날짜 자동 shift 없음</td>
+      <td><span class="pill part">부분</span></td>
+      <td>10인 조직에선 의존성은 저순위 — 마감 연쇄만 고려</td>
+    </tr>
+    <tr>
+      <td><b>05 자동화 트리거</b></td>
+      <td>보고 기반 자동 완료(커밋 4321f7c — 자연어 보고→분장 완료 매칭)는 노션 자동화보다 고차원. 미완료 분장 2주 윈도우 = 스프린트 이월 사상 유사. 지연 감지(exec-attn D+N)·리마인드(20/22시) 가동. 단, <b>상태 변경 이력(audit log) 없음</b> — 언제 누가 상태를 바꿨는지 추적 불가. 지각 제출 사각지대(배치 이후 제출 영구 미반영)도 미해결</td>
+      <td><span class="pill part">부분</span></td>
+      <td>전이 자동화는 우위, 전이 "기록"이 없음</td>
+    </tr>
+    <tr>
+      <td><b>06 AI 속성</b></td>
+      <td>노션 AI autofill(요약·키정보 추출)보다 깊음 — 4-Engine 보고 코칭(팩트/해석 분리·모호 표현 차단·기한 검증), 보고 유형 A/B/C 자동분류, Report Score, 브리프 7범주 분류, 결정 4필드 구조 추출</td>
+      <td><span class="pill win">우위</span></td>
+      <td>유지 — ARISA의 차별 핵심</td>
+    </tr>
+    <tr>
+      <td><b>07 맥락과 실행의 동거</b></td>
+      <td>태스크가 한 줄 텍스트(akey = 날짜|업무|담당자)로만 존재 — 산출물·논의·경과가 태스크에 축적되지 않음. 보고 원문은 브리프(개인별 써머리)에 있으나 날짜 축으로만 쌓여 태스크·프로젝트 축의 히스토리 탐색이 어려움</td>
+      <td><span class="pill gap">갭</span></td>
+      <td>"이 업무의 경과를 한 곳에서" 보기가 안 됨</td>
+    </tr>
+  </table>
+</section>
+
+<!-- 3. gap 3-way -->
+<section>
+  <h2><span class="num">3</span>갭 3분류</h2>
+  <div class="h2-sub">이미 우위(유지) · 빠진 부분(도입 검토) · 고려 필요(그대로 이식 금지)</div>
+  <div class="g3">
+
+    <div class="gbox win">
+      <div class="ghead">✓ 이미 우위 — 노션보다 나은 것, 그대로 유지</div>
+      <ul>
+        <li><span class="b"></span><div><b>입력의 지능</b> <span class="note">— 노션은 사람이 DB 필드를 채우지만, ARISA는 텔레그램 자연어 보고를 LLM이 구조화 + 코칭(팩트/해석 분리, 모호 차단, 기한 강제). 입력 마찰이 압도적으로 낮으면서 데이터 품질을 끌어올린다</span></div></li>
+        <li><span class="b"></span><div><b>결정의 구조화</b> <span class="note">— decisions.jsonl(옵션·추천안·기한·지연영향 4필드 + 14일 이월)은 노션에 대응물이 없는 의사결정 전용 파이프라인</span></div></li>
+        <li><span class="b"></span><div><b>역할별 자동 뷰</b> <span class="note">— 단일 URL 로그인 → 대표/리더/직원 화면 자동 분기. 노션의 "저장된 뷰" 사상을 계정 단위로 이미 실현</span></div></li>
+        <li><span class="b"></span><div><b>성장 지표</b> <span class="note">— Report Score·유형 배지·보고 품질 추적은 PM 도구가 아니라 Learning OS 영역. 노션에 없음</span></div></li>
+      </ul>
+    </div>
+
+    <div class="gbox gap">
+      <div class="ghead">✕ 빠진 부분 — 노션 원리 기준 부재, 도입 검토</div>
+      <ul>
+        <li><span class="b"></span><div><b>G1 · 명시적 Relation (ID 연결)</b> <span class="pill hi">HIGH</span> <span class="pill tgt">일일보고·브리프·대시보드</span><br><span class="note">보고↔프로젝트↔분장을 토큰 매칭 대신 프로젝트 ID로 연결. 보고 시 봇이 "이 보고는 R-LAB 건인가요?" 후보 확인 → ID 저장. 모든 롤업·자동완료·히스토리의 기반</span></div></li>
+        <li><span class="b"></span><div><b>G2 · 상태·우선순위 표준 enum</b> <span class="pill hi">HIGH</span> <span class="pill tgt">전 시스템</span><br><span class="note">상태 {미착수·진행중·보류·완료} + 우선순위 {P0·P1·P2} 단일 정의를 shared/ 모듈로 두고 JSON·시트·뱃지·정렬이 전부 이것만 참조. 키워드 휴리스틱 정렬을 enum 정렬로 교체</span></div></li>
+        <li><span class="b"></span><div><b>G3 · 진행률 자동 롤업</b> <span class="pill hi">HIGH</span> <span class="pill tgt">대시보드·프로젝트 JSON</span><br><span class="note">노션 "Task completion percent" 방식 — 프로젝트 progress를 수기가 아닌 태스크 완료 수/전체 수로 자동 산출. 보고 기반 자동 완료(이미 있음)와 결합하면 "보고만 하면 프로젝트 진행률이 굴러가는" 완결 루프</span></div></li>
+        <li><span class="b"></span><div><b>G4 · 타임라인 뷰</b> <span class="pill mid">MEDIUM</span> <span class="pill tgt">대시보드 셸</span><br><span class="note">태스크 start/end·dday 데이터가 이미 있음 — 렌더만 추가하면 됨. 대표 우선파악존의 "무엇이 밀리고 있나"를 시각으로 전환</span></div></li>
+        <li><span class="b"></span><div><b>G5 · 상태 변경 이력 (audit log)</b> <span class="pill mid">MEDIUM</span> <span class="pill tgt">arisa2 Decision Window</span><br><span class="note">상태 전이를 append-only 로그로 기록(누가·언제·무엇→무엇, decisions.jsonl과 동일 패턴). 인라인 편집·본인 삭제 기능이 생긴 지금(커밋 88bfb73·7978e7c) 변경 추적이 없으면 분쟁·유실 시 복원 불가</span></div></li>
+        <li><span class="b"></span><div><b>G6 · 이월 자동화 (carry-over)</b> <span class="pill mid">MEDIUM</span> <span class="pill tgt">브리프·주간 배치</span><br><span class="note">노션 스프린트의 미완료 처리 3옵션 사상 — 주간 경계에서 미완료 분장 자동 이월 + 지각 제출 재집계(현재 "배치 이후 지각 제출 영구 미반영" 사각지대 해소 포함)</span></div></li>
+        <li><span class="b"></span><div><b>G7 · 태스크 히스토리 뷰 (맥락 동거)</b> <span class="pill lo">LOW</span> <span class="pill tgt">대시보드</span><br><span class="note">태스크 클릭 → 관련 보고 원문·산출물 링크 시간순 스레드. G1(ID 연결)이 되면 쿼리만으로 구현 가능 — 선행 조건부 저순위</span></div></li>
+        <li><span class="b"></span><div><b>G8 · 칸반 뷰</b> <span class="pill lo">LOW</span> <span class="pill tgt">대시보드</span><br><span class="note">상태 enum(G2) 이후 그룹핑 렌더로 저비용 추가 가능. 단, 10인 조직에서 리스트 대비 효용 검증 필요</span></div></li>
+        <li><span class="b"></span><div><b>G9 · 의존성 + 날짜 shift</b> <span class="pill lo">LOW</span> <span class="pill tgt">보류</span><br><span class="note">선후행 연쇄 재계산은 현재 조직 규모·업무 성격(짧은 주기 반복)에서 과잉 — 도입 보류 권고</span></div></li>
+      </ul>
+    </div>
+
+    <div class="gbox warn">
+      <div class="ghead">⚠ 고려 필요 — 노션 방식을 그대로 이식하면 안 되는 것</div>
+      <ul>
+        <li><span class="b"></span><div><b>입력은 대화, 구조는 시스템</b> <span class="note">— 노션은 사람이 DB에 직접 입력하는 모델. ARISA에서 직원에게 폼·DB 입력을 요구하면 채택률이 죽는다. G1~G3 도입 시에도 입력 채널은 텔레그램 자연어 유지, 구조화는 봇 뒤에서 (확인 질문 1개까지만 허용)</span></div></li>
+        <li><span class="b"></span><div><b>뷰 무한 증식 금지</b> <span class="note">— 노션의 "누구나 뷰를 만든다"는 유지보수 주체가 있는 조직의 것. ARISA는 역할별 고정 뷰 체계가 강점 — 형식 전환은 타임라인 1개만 선별 추가하고 뷰 커스터마이즈는 열지 않는다</span></div></li>
+        <li><span class="b"></span><div><b>Sub-task 계층 대신 프로젝트 그룹핑</b> <span class="note">— 노션식 다단 위계는 10인 조직에 관리 비용만 추가. 이미 있는 분장 프로젝트 그룹 에디터가 같은 문제를 더 싸게 푼다 — 유지</span></div></li>
+        <li><span class="b"></span><div><b>자동화는 "기록 우선, 액션 절제"</b> <span class="note">— 노션식 트리거→알림 남발은 텔레그램 채널 특성상 피로도 직결(이미 리마인드 20/22시 + 브리프 발송 존재). 신규 자동화는 알림 추가보다 로그 축적(G5)과 배치 반영(G6) 우선</span></div></li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- 4. roadmap -->
+<section>
+  <h2><span class="num">4</span>우선순위 로드맵 제안</h2>
+  <div class="h2-sub">기반(구조) → 표면(뷰) → 심화(히스토리) 순서 — 뷰보다 구조가 먼저다</div>
+  <div class="road">
+    <div class="rcard">
+      <h3>Phase 1 · 기반 정비 <span class="pill hi">HIGH</span></h3>
+      <div class="item"><b>G2 상태·우선순위 enum 통일</b><div class="t">shared/ 단일 정의 → JSON·시트·뱃지·정렬 전환. 이후 모든 작업의 전제</div></div>
+      <div class="item"><b>G1 프로젝트 ID Relation</b><div class="t">보고 봇 확인 질문 + 분장·브리프 ID 저장, 토큰 매칭은 폴백으로 강등</div></div>
+      <div class="item"><b>G3 진행률 자동 롤업</b><div class="t">완료 태스크 비율 → 프로젝트 progress 자동 산출 (보고 기반 자동 완료와 연결)</div></div>
+    </div>
+    <div class="rcard m">
+      <h3>Phase 2 · 표면 강화 <span class="pill mid">MEDIUM</span></h3>
+      <div class="item"><b>G4 타임라인 뷰</b><div class="t">대표·리더 화면, 기존 start/end 데이터 렌더</div></div>
+      <div class="item"><b>G5 상태 변경 이력</b><div class="t">append-only 전이 로그 (arisa2 Decision Window 연계)</div></div>
+      <div class="item"><b>G6 이월 자동화</b><div class="t">주간 carry-over + 지각 제출 재집계 (기존 사각지대 해소)</div></div>
+    </div>
+    <div class="rcard l">
+      <h3>Phase 3 · 심화 <span class="pill lo">LOW</span></h3>
+      <div class="item"><b>G7 태스크 히스토리 뷰</b><div class="t">G1 완료 후 쿼리 기반 — 태스크별 보고 스레드</div></div>
+      <div class="item"><b>G8 칸반 뷰</b><div class="t">효용 검증 후 선택 도입</div></div>
+      <div class="item"><b>G9 의존성·날짜 shift</b><div class="t">보류 권고 — 조직 규모 재평가 시 재검토</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. discussion -->
+<section>
+  <h2><span class="num">5</span>논의할 것</h2>
+  <div class="h2-sub">이 리포트가 답이 아니라 입력 — 아래 4가지가 후속 구현의 결정 지점</div>
+  <div class="qcard"><div class="q">Q1. Phase 1(G1·G2·G3)을 한 묶음으로 진행할까, G2(enum)만 먼저 끊을까?</div><div class="a">G1은 보고 봇 대화 흐름(확인 질문 1개 추가)에 손을 대므로 직원 체감 변화가 있음. G2·G3는 내부 구조라 무체감. 리스크를 나누려면 G2→G3→G1 순차도 가능.</div></div>
+  <div class="qcard"><div class="q">Q2. 보고 시 프로젝트 확인 질문 — 허용 가능한 마찰인가?</div><div class="a">"이 보고는 [R-LAB] 건으로 기록할까요?" 버튼 1탭 수준으로 설계 가능. 다만 질문 상한 3개 원칙과 충돌하지 않게 채점 질문과 별도 카운트 여부 결정 필요.</div></div>
+  <div class="qcard"><div class="q">Q3. 타임라인 뷰의 1차 대상은 대표인가 리더인가?</div><div class="a">대표 우선파악존 대체/보완이면 대표 먼저, 팀 일정 조율 목적이면 리더 팀 홈 먼저. 어느 쪽이 실사용될지에 따라 배치가 달라짐.</div></div>
+  <div class="qcard"><div class="q">Q4. 상태 변경 이력(G5)의 범위 — 분장만? 프로젝트·결정까지?</div><div class="a">최소는 분장 상태 전이만(인라인 편집·삭제 기능이 생긴 직후라 시급). 확장하면 프로젝트 상태·decisions 상태까지 동일 로그 포맷으로 통합 가능.</div></div>
+</section>
+
+<footer>
+  <div><b>ARISA</b> · Notion PM Gap Analysis · 2026-07-18</div>
+  <div>by Project Rent</div>
+</footer>
+
+</div>
+</body>
+</html>
