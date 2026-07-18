@@ -16,8 +16,10 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
 - **shared/status.py 신설**: ASSIGN_STATES/DONE/HIDDEN/OPEN/CLOSED, PRIORITIES, TASK_STATES/DONE("Done","완료" 혼재 보존), BRIEF_STATES, ASSIGN_TO_TASK/PROGRESS 매핑, 뱃지 클래스 + norm_assign_status/norm_priority/badge_class 등 헬퍼
 - **소비자 전환 3파일**: dashboard-server.py(_ASSIGN_* 5상수 → _ST 참조, /api/assign-status 화이트리스트, brief LLM 프롬프트 상태목록, 시트 읽기 기본값) / daily-brief-aggregate.py(CLOSED·OPEN 판정, 뱃지 dict 2곳, 읽기 기본값) / weekly-report-aggregate.py(DONE 판정 2곳, 미착수 역기입 생략, 읽기 기본값)
 - **검증**: py_compile 4파일 OK + 구 하드코딩 값과 1:1 동작보존 assert 전체 통과 + 애그리게이터 2종 임포트 스모크 OK. 잔존 하드코딩 grep = shared/status.py에만 존재
-- ⚠️ **배포 주의**: dashboard-server.py는 `from shared import status` 하드 임포트 — 맥미니 scp 시 **shared/status.py 동반 필수**, 이후 dashboard kickstart 재시작
-- ⚠️ 커밋 시 daily-report-bot.py에 다른 세션 수정분(+19줄) 섞여 있음 — 분리 커밋 필요
+- **커밋·배포 완료 (2026-07-18)**: 커밋 1cfa9a6(G2 코드 4파일)+fed6007(리포트·프로그레스) — daily-report-bot.py 타 세션 수정분은 제외 유지
+  - 맥미니 배포: 베이스 해시 3파일 일치 확인 → 백업(/tmp/*.bak-g2) → scp 4파일(shared/status.py 동반) → py_compile(Python 3.9.6) OK → dashboard kickstart 재시작(PID 23682)
+  - 검증: localhost:8780 → 200, arisa-os.com·/brief → 200, 배포본 해시 = 커밋본 해시 일치
+  - 접속 참고: LAN(192.168.219.249) ssh 타임아웃 → **macmini-ts(Tailscale)로 성공**
 
 ## 2026-07-15 — 정식 도메인 확인 + 갱신 리마인드 체계
 
