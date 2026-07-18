@@ -1299,6 +1299,13 @@ function pfCard(p){
     ${(amAdmin()||p.pm===CURRENT_USER)?`<span class="pc-del" title="삭제" onclick="event.stopPropagation();deleteProject('${esc(p.id)}')">🗑 삭제</span>`:''}
   </div>`;
 }
+function toggleSec(h){
+  // 섹션 접기/펼치기 — 호출만 있고 정의가 누락돼 있던 잠복 버그 수정(2026-07-19).
+  // 기본 collapsed인 Finance·Issue Tracker·Brief 상세가 영구히 안 열리던 원인.
+  const on=h.classList.toggle('collapsed');
+  const f=h.nextElementSibling;
+  if(f && f.classList.contains('fields')) f.classList.toggle('collapsed', on);
+}
 function pfActive(){ return (PROJECTS_CACHE||[]).filter(p=>!p.archived); }
 function renderPortfolio(){
   if(!CURRENT_USER) return;
