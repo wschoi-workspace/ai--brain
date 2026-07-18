@@ -21,6 +21,14 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
   - 검증: localhost:8780 → 200, arisa-os.com·/brief → 200, 배포본 해시 = 커밋본 해시 일치
   - 접속 참고: LAN(192.168.219.249) ssh 타임아웃 → **macmini-ts(Tailscale)로 성공**
 
+### G3 구현·배포 완료 — 진행률 자동 롤업 (커밋 958349a)
+- **shared/status.py `task_rollup(tasks)`**: 노션 'Task completion percent' 방식 — 저장하지 않고 파생 계산. {total, done, percent}. 산식 = 상세 화면 기존 클라 롤업과 동일(Done=100, 그 외 progress 0~100 클램프 평균) → 목록·상세 수치 일치
+- **표면 배선**: `/api/projects` 각 프로젝트에 `rollup` 필드 / 리더 팀 홈 projs에 `percent` 추가(기존 task_done/total 유지) + JS 표시 `업무 3/5 · 60%` / 포트폴리오 목록 카드(pfCard)에 `업무 done/total · pct%` + 청보라 진행 바(.pc-prog) — **원형+생성본 동시 패치**(pfRollup: 서버 rollup 우선, 없으면 동일 산식 JS 폴백)
+- **주의**: 원형 pfCard가 생성본보다 1줄 뒤처짐 발견(본인 PM 삭제 권한 — 생성본에만 존재). 이번엔 공통부만 패치, 원형 역동기화는 별도
+- **검증**: 단위 assert(빈/None/혼재 status/불량 progress/150 클램프) + 실데이터 5건 + Playwright 양쪽 HTML pfRollup·pfCard 렌더(53%·1/2·50%·pc-prog, 콘솔에러 0)
+- **배포**: 베이스 해시 4파일 일치 → 백업(/tmp/*.bak-g3) → scp 4파일 → py_compile OK → kickstart 재시작 → 8780·/projects·arisa-os.com 전부 200, 맥미니 task_rollup 실행 확인, 배포본=커밋본 해시 일치
+- 남은 G3 후속 후보: 대표 브리프 우선파악존 프로젝트 블록에 진행률 표기(브리프는 현재 프로젝트 JSON 미참조 — 별도 결정)
+
 ## 2026-07-15 — 정식 도메인 확인 + 갱신 리마인드 체계
 
 - **정식 도메인 재확인**: `https://arisa-os.com` (2026-07-12 개통). 보조 `arisa.projectrent.co.kr`(ingress 유지), tailnet 전용 `server-mini-macmini.tail7739de.ts.net`
