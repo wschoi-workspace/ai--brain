@@ -40,6 +40,15 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
   - 검증: _assign_read 95행 중 pid 87 / K-존 프로젝트 상세 분장 섹션이 pid로 실매칭 / 서버 200. 스크립트 /tmp/backfill-assign-pid.py(로컬·맥미니)
 - [ ] G1b: 보고 봇 프로젝트 확인 질문(버튼 1탭) — Wave3 정리 후
 
+### G4·G5·G6 구현·배포 완료 — MEDIUM 갭 일괄 (커밋 43960f1)
+- **G5 상태 변경 이력**: `shared/status_log.py` — 분장 상태 전이 append-only JSONL(`23-arisa/status-log/assign-status.jsonl`, ts/source/by/row/date/project/pid/task/assignee/from/to). 전이 5지점 배선: dashboard(/api/assign-status·일괄삭제·프로젝트삭제) + daily-brief(보고 기반 자동완료, completed에 from·pid 추가) + weekly(키워드 자동매칭). 로깅 실패 무해(try/except+더미 폴백). 첫 줄 = source=deploy-check 테스트 엔트리
+- **G6 지각 제출 재집계**: daily-brief 배치 말미 `_late_resubmission_check` — 직전 브리프(JSON glob)의 소스일을 fetch_day로 재집계, 보고인원 증가 시 해당 브리프 subprocess 재생성(`--no-telegram --no-late-check` 재귀 방지). "배치 후 지각 제출 영구 미반영" 사각지대(7/8 정예은 건) 해소. 수동 `--source` 지정 브리프는 prev_bizday_range 기준으로 재계산되는 한계 있음
+- **G4 타임라인 뷰**: 포트폴리오 목록 [카드|타임라인] 토글(localStorage 기억) — 전 프로젝트 가로 막대(시작~종료/D-Day 폴백), 진행률 채움(pfRollup 재사용), 월 눈금, 오늘선, 마감 경과+미완 100% 미만 = 빨간 테두리(지연). 원형+생성본 동시 패치
+- **부가**: daily-brief fetch_assignments A2:K 확장(pid 포함 — G1 정합)
+- **검증**: py_compile 4파일 / G5 임시경로 기록 assert / G6 prev_bizday_range 월요일 회귀 / Playwright 타임라인(막대2·지연1·눈금4·오늘선·토글 왕복, 콘솔에러 0) 양쪽 HTML
+- **배포**: 베이스 해시 5파일 일치 → 백업(/tmp/*.bak-g456) → 6파일 scp → py_compile → 재시작 → 8780·/projects·arisa-os.com 200, 맥미니 status_log 실기록 확인
+- 실전 검증 예정: 내일 07:30 배치(G6 지각체크 출력 + G5 자동완료 로그), 월요일 주간 배치(G5 weekly-auto)
+
 ## 2026-07-15 — 정식 도메인 확인 + 갱신 리마인드 체계
 
 - **정식 도메인 재확인**: `https://arisa-os.com` (2026-07-12 개통). 보조 `arisa.projectrent.co.kr`(ingress 유지), tailnet 전용 `server-mini-macmini.tail7739de.ts.net`
