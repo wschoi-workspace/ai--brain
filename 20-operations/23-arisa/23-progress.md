@@ -64,7 +64,10 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
 - **검증**: 로컬 단위 assert(레지스트리 21, 정규화/변형/미존재 매칭, 시트 15컬럼 조립, 〔태그〕, 프롬프트 스키마) + 맥미니 venv py_compile + 레지스트리 25개·별칭 매칭(LA문화원/유니원→K-존) 실검증
 - **배포**: 봇 유휴(폴링만) 확인 → 백업(/tmp/daily-report-bot.py.bak-wave3-g1b) → scp → venv py_compile → kickstart(PID 24607, Application started) → 배포본=커밋본 해시 일치
 - 실전 검증 예정: 다음 보고(오늘 저녁/주말)에서 ① Wave3 질문(outcome·결정 유도) 빈도 ② projects 귀속 정확도 — 핵심업무 시트 N·O열 확인
-- [ ] 후속: 봇 /assign 신스키마 전환(+pid) / 브리프 BRIEF_PROMPT가 시트 N·O열(귀속) 소비하도록 연결
+- [x] **후속 2건 완료 (커밋 4f1386c, 맥미니 배포·봇 재시작 PID 26363)**
+  - 봇 /assign 신스키마 전환: 구스키마(W라벨…) append 버그 수정 → 신스키마 11컬럼(+pid), ASSIGN_PARSE_PROMPT에 project 추출 추가, 우선순위 표준화(최우선→긴급, 참고 폐기 → 긴급|일반), 파싱 결과에 프로젝트 표기
+  - 브리프 귀속 소비: fetch_day 핵심업무 A2:O(N=project·O=pid) → _emp_block에 '프로젝트=' 제공 + BRIEF_PROMPT "확정 귀속 그대로 사용(추측 재귀속 금지)" 규칙 — f89b06c 오인 방지의 완결
+  - 핵심업무 탭 N1·O1 헤더("프로젝트"/"프로젝트ID") 기록 완료. 검증: /assign 행 모킹 assert + _emp_block·프롬프트 assert + venv py_compile + 봇 Application started
 
 ## 2026-07-15 — 정식 도메인 확인 + 갱신 리마인드 체계
 
