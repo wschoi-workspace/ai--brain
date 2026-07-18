@@ -1902,14 +1902,15 @@ async def cancel_meeting(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 _ASSIGN_TEAMS = ["기획팀", "공간팀", "사업기획", "운영팀", "경영"]
 
-ASSIGN_PARSE_PROMPT = """주간 업무분장 항목을 파싱해라. 입력에서 팀/업무내용/담당자/마감을 추출.
+ASSIGN_PARSE_PROMPT = """주간 업무분장 항목을 파싱해라. 입력에서 프로젝트/팀/업무내용/담당자/마감을 추출.
 담당자는 이름만(님 제거). 마감은 요일이면 이번 주 날짜(YYYY-MM-DD)로 변환.
-우선순위: "최우선"/"긴급"/"!!" → "최우선", "참고"/"FYI" → "참고", 나머지 → "일반".
+project: 프로젝트·브랜드명이 언급되면 그 이름(없으면 빈문자열. 지어내지 말 것).
+우선순위: "최우선"/"긴급"/"!!" → "긴급", 나머지 → "일반".
 
 오늘 날짜: {today}
 
 반드시 JSON만 출력:
-{{"team": "팀명", "task": "업무내용", "assignee": "담당자이름 또는 빈문자열", "deadline": "YYYY-MM-DD 또는 빈문자열", "priority": "최우선|일반|참고"}}"""
+{{"project": "프로젝트명 또는 빈문자열", "team": "팀명", "task": "업무내용", "assignee": "담당자이름 또는 빈문자열", "deadline": "YYYY-MM-DD 또는 빈문자열", "priority": "긴급|일반"}}"""
 
 
 def _week_label() -> str:
@@ -1919,12 +1920,16 @@ def _week_label() -> str:
 
 
 def save_assignment_to_sheet(team: str, task: str, assignee: str,
-                              deadline: str, priority: str) -> bool:
-    """주간분장 탭에 1행 등록."""
+                              deadline: str, priority: str, project: str = "") -> bool:
+    """주간분장 탭에 1행 등록 — 신스키마(셸 분장과 동일):
+    날짜|프로젝트명|팀|담당자|업무내용|일정|결과물|상태|이해관계자|우선순위|프로젝트ID(G1).
+    (구스키마 W라벨 행을 잘못된 칸에 append하던 버그 수정 — 2026-07-18)"""
+    pr = "긴급" if priority in ("긴급", "최우선") else "일반"
+    registry = _load_project_registry()
     row = [
-        _week_label(), team, "", task, assignee or "팀",
-        deadline, priority, "미착수",
-        datetime.now().strftime("%Y-%m-%d"), "bot",
+        datetime.now().strftime("%Y-%m-%d"), project or "", team,
+        assignee or "팀", task, deadline, "", "미착수", "", pr,
+        _project_pid(project, registry),
     ]
     return _gws.append_to_sheet(
         SHEET_ID, "주간분장!A1", row,
@@ -1968,6 +1973,7 @@ async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             context.user_data["assign"]["parsed"]["assignee"] = assignee
             await update.message.reply_text(
                 f"✅ 파싱 결과:\n"
+                f"  프로젝트: {parsed.get('project') or '—'}\n"
                 f"  팀: {team}\n"
                 f"  업무: {parsed['task']}\n"
                 f"  담당: {assignee or '팀'}\n"
@@ -2037,6 +2043,7 @@ async def assign_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     context.user_data["assign"]["parsed"] = parsed
     await update.message.reply_text(
         f"✅ 파싱 결과:\n"
+        f"  프로젝트: {parsed.get('project') or '—'}\n"
         f"  팀: {parsed['team']}\n"
         f"  업무: {parsed['task']}\n"
         f"  담당: {parsed.get('assignee') or '팀'}\n"
@@ -2082,7 +2089,7 @@ async def assign_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     ok = save_assignment_to_sheet(
         p.get("team", ""), p.get("task", ""),
         p.get("assignee", ""), p.get("deadline", ""),
-        p.get("priority", "일반"),
+        p.get("priority", "일반"), p.get("project", ""),
     )
     if ok:
         await update.message.reply_text(

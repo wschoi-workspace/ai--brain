@@ -137,20 +137,21 @@ def fetch_day(target: str | list[str]) -> dict:
     """target(YYYY-MM-DD 또는 날짜 리스트)에 해당하는 직원별 보고 블록을 모은다.
     반환: {name: {team, raw, core:[{output,issue,outcome,task,blocker}], meta:{decision,support,blocker,question}, basket:[(label,val)]}}"""
     targets = {target} if isinstance(target, str) else set(target)
-    core = _gws_values_get(DAILY_SHEET, "핵심업무!A2:L5000")
+    core = _gws_values_get(DAILY_SHEET, "핵심업무!A2:O5000")  # N=project·O=pid (G1b 귀속)
     meta = _gws_values_get(DAILY_SHEET, "메타!A2:O5000")  # N=Report Score, O=score_detail(type 포함)
     basket = _gws_values_get(BASKET_SHEET, "일일보고!A2:O5000")
     by = defaultdict(lambda: {"team": "", "raw": "", "core": [], "meta": {}, "basket": []})
 
     for r in core:
-        r = r + [""] * (12 - len(r))
+        r = r + [""] * (15 - len(r))
         if normalize_date(r[0]) not in targets:
             continue
         nm = normalize_name(r[1])
         if not nm:
             continue
         by[nm]["team"] = team_of(nm)
-        by[nm]["core"].append({"task": r[5], "output": r[9], "issue": r[10], "outcome": r[11]})
+        by[nm]["core"].append({"task": r[5], "output": r[9], "issue": r[10], "outcome": r[11],
+                               "project": (r[13] or "").strip(), "pid": (r[14] or "").strip()})
 
     for r in meta:
         r = r + [""] * (15 - len(r))
@@ -195,6 +196,7 @@ def _emp_block(name: str, d: dict) -> str:
         lines.append(f"보고원문(raw): {d['raw'][:1500]}")
     for c in d["core"]:
         seg = []
+        if (c.get("project") or "").strip(): seg.append(f"프로젝트={c['project']}")  # G1b 봇 확정 귀속
         if c["task"].strip(): seg.append(f"업무={c['task']}")
         if c["output"].strip(): seg.append(f"산출물={c['output']}")
         if c["issue"].strip(): seg.append(f"이슈={c['issue']}")
@@ -226,6 +228,7 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
 - 직원이 의사결정요청을 비워뒀어도, 원문에 "결정이 필요한 갈림길/막힌 지점/승인 대기"가
   보이면 추출한다. 단 원문 표현을 넘는 단정 금지.
 - source_employee·project는 반드시 근거 보고에서 귀속. 모르면 project=null.
+- 핵심업무에 '프로젝트=' 표기가 있으면 그것이 확정 귀속이다 — 그 이름을 project로 그대로 사용(추측 재귀속 금지).
 
 [7범주]
 - decision : 대표/팀장이 선택·승인해야 할 갈림길. basket의 [결재]송금·승인/장비/입점은 결재 의사결정.
