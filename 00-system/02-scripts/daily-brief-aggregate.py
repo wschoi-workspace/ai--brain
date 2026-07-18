@@ -87,6 +87,7 @@ sys.path.insert(0, str(SCRIPTS))
 from shared.employee import load_employees as _load_emp
 from shared import normalize as _N, gws as _gws
 from shared.decision import load_open_decisions as _load_open_decisions
+from shared import status as _ST  # 상태·우선순위 단일출처 (G2)
 
 
 def load_employees() -> dict:
@@ -332,7 +333,7 @@ def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[
     if not key:
         return None
     mine = [a for a in assignments if a.get("assignee") == name
-            and a.get("status") not in ("승인", "삭제", "완료")]
+            and a.get("status") not in _ST.ASSIGN_CLOSED_STATES]
     lines = []
     for c in d.get("core", []):
         seg = f"- {c.get('task', '')}"
@@ -385,7 +386,7 @@ def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[
             a = mine[int(c.get("idx")) - 1]
         except (TypeError, ValueError, IndexError):
             continue
-        if a.get("status") in ("미착수", "진행중"):
+        if a.get("status") in _ST.ASSIGN_OPEN_STATES:
             completed.append({"row": a.get("row"), "task": a["task"],
                               "project": a.get("project") or "",
                               "basis": (c.get("basis") or "").strip()[:150]})
@@ -483,8 +484,8 @@ def fetch_assignments(target: str) -> list[dict]:
             "row": i + 2,  # 시트 실제 행 — 보고 기반 자동 완료 처리용
             "date": nd, "project": (r[1] or "").strip(), "team": (r[2] or "").strip(),
             "assignee": normalize_name(r[3]), "task": (r[4] or "").strip(),
-            "deadline": (r[5] or "").strip(), "status": (r[7] or "미착수").strip(),
-            "priority": (r[9] or "일반").strip(),
+            "deadline": (r[5] or "").strip(), "status": _ST.norm_assign_status(r[7]),
+            "priority": _ST.norm_priority(r[9]),
         })
     return items
 
@@ -694,12 +695,11 @@ def _person_card(p: dict) -> str:
     # 이번주 분장 — 담당 항목 + 상태 뱃지
     asg_html = ""
     if p.get("assignments"):
-        st_cls = {"완료": "as-done", "승인": "as-done", "진행중": "as-doing"}
         lines = []
         for a in p["assignments"]:
             dl = f' <span class="as-dl">~{_esc(a["deadline"][5:] if len(a.get("deadline",""))>=10 else a.get("deadline",""))}</span>' if a.get("deadline") else ""
             tk = (f'[{a["project"]}] ' if a.get("project") else "") + a["task"]
-            lines.append(f'<div class="as-item"><span class="as-st {st_cls.get(a["status"], "as-todo")}">{_esc(a["status"])}</span>'
+            lines.append(f'<div class="as-item"><span class="as-st {_ST.badge_class(a["status"])}">{_esc(a["status"])}</span>'
                          f'<span class="as-task">{_esc(tk[:90])}</span>{dl}</div>')
         asg_html = f'<div class="pp-asg"><div class="as-label">📋 이번주 분장 {len(p["assignments"])}건</div>{"".join(lines)}</div>'
     # 2.0 Wave 2: 보고 유형 배지 + Report Score (있을 때만)
@@ -750,8 +750,8 @@ def _vz_item_row(it: dict) -> str:
 
 
 def _vz_asg_row(a: dict) -> str:
-    st = a.get("status") or "미착수"
-    cls = {"완료": "as-done", "승인": "as-done", "진행중": "as-doing"}.get(st, "as-todo")
+    st = _ST.norm_assign_status(a.get("status"))
+    cls = _ST.badge_class(st)
     dl = a.get("deadline") or ""
     dls = f' <span class="as-dl">~{_esc(dl[5:] if len(dl) >= 10 else dl)}</span>' if dl else ""
     return (f'<div class="as-item"><span class="as-st {cls}">{_esc(st)}</span>'

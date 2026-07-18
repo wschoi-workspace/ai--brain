@@ -112,6 +112,7 @@ NAME_ALIASES = {
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from shared.employee import load_employees as _load_emp
 from shared import normalize as _N, gws as _gws
+from shared import status as _ST  # 상태·우선순위 단일출처 (G2)
 
 
 def load_employees() -> dict:
@@ -169,8 +170,8 @@ def fetch_assignments(week_start: date, week_end: date) -> list[dict]:
             "team": (r[2] or "").strip(),
             "assignee": normalize_name(r[3]),
             "task": (r[4] or "").strip(), "deadline": (r[5] or "").strip(),
-            "status": (r[7] or "미착수").strip(),
-            "priority": (r[9] or "일반").strip(),
+            "status": _ST.norm_assign_status(r[7]),
+            "priority": _ST.norm_priority(r[9]),
         })
     return items
 
@@ -181,7 +182,7 @@ def match_assignments_to_daily(assignments: list[dict], records: list[dict]) -> 
     """
     import re
     for a in assignments:
-        if a["status"] in ("완료", "승인"):
+        if a["status"] in _ST.ASSIGN_DONE_STATES:
             continue
         # 분장 업무에서 핵심 키워드 추출 (2자 이상 단어)
         words = [w for w in re.split(r'[\s/·,\-]+', a["task"]) if len(w) >= 2]
@@ -211,7 +212,7 @@ def update_assignment_status_in_sheet(assignments: list[dict]) -> int:
     rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:J5000")
     updated = 0
     for a in assignments:
-        if a["status"] in ("미착수",):
+        if a["status"] in (_ST.ASSIGN_DEFAULT,):  # 미착수는 시트 역기입 생략
             continue
         for i, r in enumerate(rows):
             r = r + [""] * (10 - len(r))
@@ -505,7 +506,7 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
     for t in teams:
         t_assigns = assign_by_team.get(t["team"], [])
         if t_assigns:
-            done = sum(1 for a in t_assigns if a["status"] in ("완료", "승인"))
+            done = sum(1 for a in t_assigns if a["status"] in _ST.ASSIGN_DONE_STATES)
             t["assignment_total"] = len(t_assigns)
             t["assignment_done"] = done
             t["assignment_rate"] = round(done / len(t_assigns) * 100)

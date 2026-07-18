@@ -56,6 +56,7 @@ try:
     from shared.decision import load_open_decisions as _load_open_decisions
 except Exception:
     _load_open_decisions = None
+from shared import status as _ST  # 상태·우선순위 단일출처 (G2) — 배포 시 shared/status.py 동반 필수
 DAILY_SHEET = os.environ.get("DAILY_REPORT_SHEET_ID", "")
 ASSIGN_TAB = "주간분장"
 
@@ -81,8 +82,8 @@ def _assign_read():
                     "date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
                     "team": (r[2] or "").strip(), "assignee": (r[3] or "").strip(),
                     "task": (r[4] or "").strip(), "deadline": (r[5] or "").strip(),
-                    "result": (r[6] or "").strip(), "status": (r[7] or "미착수").strip(),
-                    "stakeholder": (r[8] or "").strip(), "priority": (r[9] or "일반").strip()})
+                    "result": (r[6] or "").strip(), "status": _ST.norm_assign_status(r[7]),
+                    "stakeholder": (r[8] or "").strip(), "priority": _ST.norm_priority(r[9])})
     return out
 
 
@@ -1718,11 +1719,12 @@ _BRIEF_AI_FIELDS = {
 }
 
 # ── 분장 ↔ 프로젝트 포트폴리오 연동 ──────────────────────────
-_ASSIGN_ST_MAP = {"미착수": "Not Started", "진행중": "In Progress", "완료": "Done", "승인": "Done"}
-_ASSIGN_PROG_MAP = {"미착수": 0, "진행중": 50, "완료": 100, "승인": 100}
-_ASSIGN_DONE_STATES = ("완료", "승인")   # 분장 완료 판정
-_ASSIGN_HIDDEN_STATES = ("승인", "삭제")  # 내 업무·팀 목록에서 숨김
-_TASK_DONE_STATES = ("Done", "완료")     # 프로젝트 tasks 완료 판정 (영문/국문 혼재)
+# 상태·우선순위 정의 단일출처: shared/status.py (G2 — 값 불변, 정의만 이동)
+_ASSIGN_ST_MAP = _ST.ASSIGN_TO_TASK
+_ASSIGN_PROG_MAP = _ST.ASSIGN_TO_PROGRESS
+_ASSIGN_DONE_STATES = _ST.ASSIGN_DONE_STATES   # 분장 완료 판정
+_ASSIGN_HIDDEN_STATES = _ST.ASSIGN_HIDDEN_STATES  # 내 업무·팀 목록에서 숨김
+_TASK_DONE_STATES = _ST.TASK_DONE_STATES       # 프로젝트 tasks 완료 판정 (영문/국문 혼재)
 
 
 def _remove_done_task(assign):
@@ -3144,7 +3146,7 @@ class H(BaseHTTPRequestHandler):
             except (TypeError, ValueError):
                 row = 0
             new_st = (b.get("status") or "").strip()
-            if row < 2 or new_st not in ("미착수", "진행중", "완료", "승인", "삭제"):
+            if row < 2 or new_st not in _ST.ASSIGN_STATES:
                 return self._send(400, {"ok": False, "error": "row·status 확인"})
             # 행 재조회 — 수동 행 삭제 등으로 어긋났으면 거부
             try:
@@ -3217,7 +3219,7 @@ class H(BaseHTTPRequestHandler):
                        else (brief.get(k) or p.get(k) or "")) for k in _BRIEF_AI_FIELDS}
             sys_p = ("당신은 프로젝트 브리프 관리자다. 새 자료(회의록·문서)에 명시적 근거가 있는 필드만 갱신을 제안한다. "
                      "자료에 근거가 없으면 절대 제안하지 않는다. 기존 값이 더 구체적이면 유지한다. 날짜는 YYYY-MM-DD. "
-                     "status는 Not Started/In Progress/On Track/At Risk/Hold/Done 중 하나. "
+                     "status는 " + "/".join(_ST.BRIEF_STATES) + " 중 하나. "
                      "갱신 대상 필드와 의미: " + ", ".join(f"{k}({v})" for k, v in _BRIEF_AI_FIELDS.items()) + ". "
                      "텍스트 필드는 기존 내용에 새 정보를 통합한 완성된 최신 값을 after로 작성(단순 요약 금지, 한국어). "
                      '반드시 JSON만 반환: {"changes":[{"field":"...","after":"...","basis":"자료 속 근거 한 줄"}]}')
