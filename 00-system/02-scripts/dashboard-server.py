@@ -71,19 +71,20 @@ def _assign_read():
     if not (_asgws and DAILY_SHEET):
         return []
     try:
-        rows = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A2:J5000", retries=2, timeout=20)
+        rows = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A2:K5000", retries=2, timeout=20)
     except Exception:
         return []
     out = []
     for i, r in enumerate(rows):
-        r = list(r) + [""] * (10 - len(r))
-        # 시트 헤더: 날짜·프로젝트명·팀구분·담당자·업무내용·일정(완료예상)·결과물·상태·이해관계자·우선순위
+        r = list(r) + [""] * (11 - len(r))
+        # 시트 헤더: 날짜·프로젝트명·팀구분·담당자·업무내용·일정(완료예상)·결과물·상태·이해관계자·우선순위·프로젝트ID(K, G1)
         out.append({"row": i + 2,  # 시트 실제 행 번호 (A2부터) — 상태 업데이트용
                     "date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
                     "team": (r[2] or "").strip(), "assignee": (r[3] or "").strip(),
                     "task": (r[4] or "").strip(), "deadline": (r[5] or "").strip(),
                     "result": (r[6] or "").strip(), "status": _ST.norm_assign_status(r[7]),
-                    "stakeholder": (r[8] or "").strip(), "priority": _ST.norm_priority(r[9])})
+                    "stakeholder": (r[8] or "").strip(), "priority": _ST.norm_priority(r[9]),
+                    "pid": (r[10] or "").strip()})
     return out
 
 
@@ -93,7 +94,7 @@ def _assign_append(assignee, task, deadline, priority, by, project="", result=""
         return False, "시트 미설정"
     team = emp_team(assignee) or ""
     row = [datetime.date.today().isoformat(), project, team, assignee, task, deadline,
-           result, "미착수", stakeholder, priority]
+           result, "미착수", stakeholder, priority, _resolve_pid(project)]
     try:
         ok = _asgws.append_to_sheet(DAILY_SHEET, f"{ASSIGN_TAB}!A1", row, timeout=20)
         return bool(ok), "" if ok else "주간분장 탭 없음/append 실패"
@@ -1677,10 +1678,35 @@ def _match_project_p(ap, p):
     return any(_match_project(ap, al) for al in (p.get("aliases") or []))
 
 
-def _project_assignments(pname, aliases=None):
-    """최근 2주 주간분장 중 프로젝트명이 매칭되는 항목 — 프로젝트 상세 '분장 업무' 섹션용.
+def _resolve_pid(project):
+    """분장 프로젝트명 → 프로젝트 ID (G1 — 등록 시 1회 확정, 이후 소비는 ID 우선)."""
+    pn = (project or "").strip()
+    if not pn:
+        return ""
+    try:
+        hit = next((p for p in load_projects() if _match_project_p(pn, p)), None)
+        return (hit.get("id") or "") if hit else ""
+    except Exception:
+        return ""
+
+
+def _find_project_for_assign(assign):
+    """분장 → 프로젝트 dict. pid(ID Relation) 우선, 없으면 이름 토큰 매칭 폴백 (G1)."""
+    pid = (assign.get("pid") or "").strip()
+    if pid:
+        p = get_project(pid)
+        if p:
+            return p
+    pn = (assign.get("project") or "").strip()
+    if not pn:
+        return None
+    return next((p for p in load_projects() if _match_project_p(pn, p)), None)
+
+
+def _project_assignments(pname, aliases=None, pid=""):
+    """최근 2주 주간분장 중 프로젝트가 매칭되는 항목 — 프로젝트 상세 '분장 업무' 섹션용.
     (엄격한 '이번주' 필터는 주가 바뀌면 미완료 할일이 사라져 2주 윈도우 사용.)
-    완전 동일 행은 표시 중복 제거. aliases(별칭)도 매칭 대상."""
+    완전 동일 행은 표시 중복 제거. G1: 행에 pid 있으면 ID 일치 우선, 없으면 이름 토큰 매칭."""
     pname = (pname or "").strip()
     if not pname:
         return []
@@ -1700,7 +1726,11 @@ def _project_assignments(pname, aliases=None):
         if (a.get("status") or "") == "삭제":
             continue
         ap = (a.get("project") or "").strip()
-        if not ap or not any(_match_project(ap, n) for n in names):
+        apid = (a.get("pid") or "").strip()
+        if pid and apid:
+            if apid != pid:  # ID Relation — 확정 연결 (G1)
+                continue
+        elif not ap or not any(_match_project(ap, n) for n in names):
             continue
         key = (ap, a.get("task"), a.get("assignee"), a.get("deadline"), a.get("status"))
         if key in seen:
@@ -1728,11 +1758,8 @@ _TASK_DONE_STATES = _ST.TASK_DONE_STATES       # 프로젝트 tasks 완료 판�
 
 
 def _remove_done_task(assign):
-    """삭제된 분장을 프로젝트 tasks에서 제거 (akey 매칭)."""
-    pn = (assign.get("project") or "").strip()
-    if not pn:
-        return False
-    tp = next((p for p in load_projects() if _match_project_p(pn, p)), None)
+    """삭제된 분장을 프로젝트 tasks에서 제거 (akey 매칭). 프로젝트는 pid 우선(G1)."""
+    tp = _find_project_for_assign(assign)
     if not tp:
         return False
     k = _akey(assign.get("date"), assign.get("task"), assign.get("assignee"))
@@ -1752,11 +1779,8 @@ def _can_approve(uid, assignee):
 
 
 def _record_done_task(assign, approver):
-    """승인된 분장을 프로젝트 포트폴리오 tasks에 Done으로 영구 기록."""
-    pn = (assign.get("project") or "").strip()
-    if not pn:
-        return False
-    tp = next((p for p in load_projects() if _match_project_p(pn, p)), None)
+    """승인된 분장을 프로젝트 포트폴리오 tasks에 Done으로 영구 기록. 프로젝트는 pid 우선(G1)."""
+    tp = _find_project_for_assign(assign)
     if not tp:
         return False
     k = _akey(assign.get("date"), assign.get("task"), assign.get("assignee"))
@@ -2824,7 +2848,7 @@ class H(BaseHTTPRequestHandler):
             if not can_view(uid, p): return self._send(403, {"ok": False, "error": "forbidden"})
             if _sync_assign_status(p): save_project(p)  # 분장 시트(SSOT) 상태 lazy 반영
             return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
-                                    "assignments": _project_assignments(p.get("name") or "", p.get("aliases"))})
+                                    "assignments": _project_assignments(p.get("name") or "", p.get("aliases"), p.get("id") or "")})
         if path == "/api/project/doc":
             # 업로드 자료(회의록) 원문 조회 — 프로젝트 열람 권한자
             uid = (q.get("user") or [""])[0]
@@ -3103,10 +3127,10 @@ class H(BaseHTTPRequestHandler):
             if new_dl and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", new_dl):
                 return self._send(400, {"ok": False, "error": "마감일 형식(YYYY-MM-DD)"})
             try:
-                cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:J{row}", retries=2, timeout=20)
+                cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:K{row}", retries=2, timeout=20)
             except Exception:
                 cur = []
-            r = (list(cur[0]) + [""] * 10)[:10] if cur else [""] * 10
+            r = (list(cur[0]) + [""] * 11)[:11] if cur else [""] * 11
             assignee = (r[3] or "").strip()
             old_task = (r[4] or "").strip()
             if not old_task or old_task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
@@ -3120,14 +3144,17 @@ class H(BaseHTTPRequestHandler):
                     if new_v != old_v:
                         if not _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!{col}{row}", [[new_v]], timeout=20):
                             return self._send(500, {"ok": False, "error": f"{col}열 업데이트 실패"})
+                if new_project != old_project:  # G1 — 프로젝트 변경 시 ID Relation(K) 재확정
+                    _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!K{row}", [[_resolve_pid(new_project)]], timeout=20)
             except Exception as e:
                 return self._send(500, {"ok": False, "error": str(e)[:80]})
             # 포트폴리오 akey 정합 — 기존 반영분 제거 후 새 값으로 재기록 (상태는 시트 lazy sync가 유지)
             removed = _remove_done_task({"date": (r[0] or "").strip(), "project": old_project,
-                                         "assignee": assignee, "task": old_task})
+                                         "assignee": assignee, "task": old_task,
+                                         "pid": (r[10] or "").strip()})  # r은 편집 전 읽음 → 구 프로젝트 pid
             pn = new_project or old_project
             if removed and pn:
-                tp = next((p for p in load_projects() if _match_project_p(pn, p)), None)
+                tp = _find_project_for_assign({"project": pn, "pid": _resolve_pid(pn)})
                 if tp:
                     st = (r[7] or "미착수").strip()
                     tp.setdefault("tasks", []).append({
@@ -3151,10 +3178,10 @@ class H(BaseHTTPRequestHandler):
                 return self._send(400, {"ok": False, "error": "row·status 확인"})
             # 행 재조회 — 수동 행 삭제 등으로 어긋났으면 거부
             try:
-                cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:J{row}", retries=2, timeout=20)
+                cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:K{row}", retries=2, timeout=20)
             except Exception:
                 cur = []
-            r = (list(cur[0]) + [""] * 10)[:10] if cur else [""] * 10
+            r = (list(cur[0]) + [""] * 11)[:11] if cur else [""] * 11
             assignee = (r[3] or "").strip()
             task = (r[4] or "").strip()
             if not task or task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
@@ -3177,7 +3204,8 @@ class H(BaseHTTPRequestHandler):
             recorded = False
             notified = 0
             assign = {"date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
-                      "assignee": assignee, "task": task, "deadline": (r[5] or "").strip()}
+                      "assignee": assignee, "task": task, "deadline": (r[5] or "").strip(),
+                      "pid": (r[10] or "").strip()}  # G1 — ID Relation 우선 매칭용
             if new_st == "승인":
                 recorded = _record_done_task(assign, uid)
             elif new_st == "삭제":
