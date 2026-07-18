@@ -29,6 +29,15 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
 - **배포**: 베이스 해시 4파일 일치 → 백업(/tmp/*.bak-g3) → scp 4파일 → py_compile OK → kickstart 재시작 → 8780·/projects·arisa-os.com 전부 200, 맥미니 task_rollup 실행 확인, 배포본=커밋본 해시 일치
 - 남은 G3 후속 후보: 대표 브리프 우선파악존 프로젝트 블록에 진행률 표기(브리프는 현재 프로젝트 JSON 미참조 — 별도 결정)
 
+### G1a 구현·배포 완료 — 분장↔프로젝트 ID Relation (커밋 8fae53c)
+- **범위 분할**: daily-report-bot.py에 타 세션 Wave3 미커밋(+19줄) 존재 → 봇을 건드리지 않는 **G1a(분장↔프로젝트)만** 진행. **G1b(보고 시 프로젝트 확인 질문)는 봇 Wave3 정리 후 별도**
+- **설계**: 주간분장 시트 **K열 = 프로젝트ID** 신설(헤더 '프로젝트ID' 기록 완료). 등록 시 `_resolve_pid`로 1회 매칭 확정 → K 저장, 소비는 `_find_project_for_assign`(pid 우선 → 이름 토큰 매칭 폴백). 기존 행은 pid 빈값 → 폴백으로 동작 불변(백필 없이 안전)
+- **배선(dashboard-server.py)**: _assign_read A2:K / _assign_append 11값 / 승인·삭제 포트폴리오 반영 pid 우선 / 프로젝트 상세 분장 섹션 pid 일치 우선 / 인라인 편집 시 프로젝트 변경하면 K 재확정(제거는 편집 전 구 pid 사용)
+- **안전성**: 기존 쓰기 경로가 전부 셀 단위(B/E/F/H)라 K열 보존 확인. 검증: 실데이터 21프로젝트 — resolve/pid우선/이름폴백/깨진pid폴백 assert 전체 통과
+- **배포**: 베이스 해시 일치 → 백업(/tmp/dashboard-server.py.bak-g1a) → scp → py_compile → 재시작 → 8780·/projects 200, 해시 일치. K1 헤더는 맥미니 shared.gws로 1회 기록(⚠️ node PATH: `~/.local/node-v24.18.0-darwin-arm64/bin` 추가 필요했음)
+- [ ] 선택: 기존 행 K열 백필 스크립트(빈 K만 _resolve_pid로 채움) — 대표 결정 대기
+- [ ] G1b: 보고 봇 프로젝트 확인 질문(버튼 1탭) — Wave3 정리 후
+
 ## 2026-07-15 — 정식 도메인 확인 + 갱신 리마인드 체계
 
 - **정식 도메인 재확인**: `https://arisa-os.com` (2026-07-12 개통). 보조 `arisa.projectrent.co.kr`(ingress 유지), tailnet 전용 `server-mini-macmini.tail7739de.ts.net`
