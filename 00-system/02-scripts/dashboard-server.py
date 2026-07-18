@@ -57,6 +57,11 @@ try:
 except Exception:
     _load_open_decisions = None
 from shared import status as _ST  # 상태·우선순위 단일출처 (G2) — 배포 시 shared/status.py 동반 필수
+try:
+    from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
+except Exception:
+    def _log_st(*a, **k):
+        return False
 DAILY_SHEET = os.environ.get("DAILY_REPORT_SHEET_ID", "")
 ASSIGN_TAB = "주간분장"
 
@@ -3201,6 +3206,9 @@ class H(BaseHTTPRequestHandler):
                 return self._send(500, {"ok": False, "error": str(e)[:80]})
             if not ok:
                 return self._send(500, {"ok": False, "error": "시트 업데이트 실패"})
+            _log_st("dashboard", uid, new_st, from_status=_ST.norm_assign_status(r[7]), row=row,
+                    date=(r[0] or "").strip(), project=(r[1] or "").strip(), pid=(r[10] or "").strip(),
+                    task=task, assignee=assignee)  # G5 — 상태 전이 이력
             recorded = False
             notified = 0
             assign = {"date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
@@ -3329,6 +3337,9 @@ class H(BaseHTTPRequestHandler):
                     ok = False
                 if not ok:
                     errs.append(f"{label}: 시트 업데이트 실패"); continue
+                _log_st("dashboard-bulk-delete", uid, "삭제", from_status=a.get("status") or "", row=row,
+                        date=a.get("date") or "", project=a.get("project") or "", pid=a.get("pid") or "",
+                        task=a.get("task") or "", assignee=a.get("assignee") or "")  # G5
                 _remove_done_task(a)
                 deleted += 1
             return self._send(200, {"ok": deleted > 0 or not errs, "deleted": deleted, "errors": errs})
@@ -3375,6 +3386,10 @@ class H(BaseHTTPRequestHandler):
                     try:
                         if _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!H{a['row']}", [["삭제"]], timeout=20):
                             assigns_deleted += 1
+                            _log_st("project-delete", uid, "삭제", from_status=a.get("status") or "",
+                                    row=a.get("row"), date=a.get("date") or "", project=ap,
+                                    pid=a.get("pid") or "", task=a.get("task") or "",
+                                    assignee=a.get("assignee") or "")  # G5
                     except Exception:
                         pass
             f = PROJ_DIR / f"{_safe(pid)}.json"

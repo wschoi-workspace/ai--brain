@@ -241,6 +241,23 @@ body.view-detail #view-login,body.view-detail #view-portfolio{display:none}
 .pf-user b{color:var(--fg)}
 .pf-actions{display:flex;gap:8px;align-items:center}
 .pf-head{padding:24px 30px 6px;display:flex;align-items:baseline;gap:12px}
+.pf-vtg{margin-left:auto;display:inline-flex;gap:4px}
+.pf-vtg button{font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid var(--line-2);background:transparent;color:var(--fg-2);cursor:pointer}
+.pf-vtg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.pf-tlwrap{padding:12px 30px 30px}
+.tl-box{border:1px solid var(--line-2);border-radius:10px;padding:14px 12px;overflow:hidden}
+.tl-row{display:flex;align-items:center;gap:10px;padding:5px 0;cursor:pointer}
+.tl-row:hover .tl-name{color:var(--accent-lt)}
+.tl-axis{cursor:default;border-bottom:1px solid var(--line-2);padding-bottom:8px;margin-bottom:4px}
+.tl-name{flex:0 0 170px;font-size:11.5px;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.tl-track{position:relative;flex:1;height:18px}
+.tl-axis .tl-track{height:14px}
+.tl-tick{position:absolute;top:0;font-size:9.5px;color:var(--fg-3);transform:translateX(-50%)}
+.tl-today{position:absolute;top:-2px;bottom:-2px;width:1.5px;background:var(--red,#E05252);opacity:.65}
+.tl-bar{position:absolute;top:2px;height:14px;border-radius:7px;background:var(--accent-sub);overflow:hidden;display:flex;align-items:center}
+.tl-bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);opacity:.85;border-radius:7px}
+.tl-bar em{position:relative;font-style:normal;font-size:9px;color:#fff;margin-left:6px;text-shadow:0 0 3px rgba(0,0,0,.4)}
+.tl-bar.late{outline:1.5px solid var(--red,#E05252)}
 .pf-head h2{font-size:14px;font-weight:700}
 .pf-head .cnt{font-size:11px;color:var(--fg-3)}
 .pf-badge{font-size:9.5px;font-weight:700;color:var(--accent-lt);background:var(--accent-sub);border-radius:6px;padding:3px 9px}
@@ -322,8 +339,9 @@ body.readonly .topbar .ver{color:var(--rust)}
       <button class="btn" onclick="logout()">로그아웃</button>
     </div>
   </div>
-  <div class="pf-head"><h2>진행 프로젝트</h2><span class="cnt" id="pf-cnt"></span><span id="pf-adminbadge"></span></div>
+  <div class="pf-head"><h2>진행 프로젝트</h2><span class="cnt" id="pf-cnt"></span><span id="pf-adminbadge"></span><span class="pf-vtg" id="pf-vtg"><button data-v="cards" onclick="pfSetView('cards')">카드</button><button data-v="tl" onclick="pfSetView('tl')">타임라인</button></span></div>
   <div class="pf-grid" id="pf-cards"></div>
+  <div id="pf-timeline" class="pf-tlwrap" style="display:none"></div>
 </div>
 
 <div class="app">
@@ -1228,6 +1246,47 @@ function renderPortfolio(){
   let cards=list.map(pfCard).join('');
   if(canCreate) cards+=`<div class="pf-card add" onclick="openAddModal()">＋ 프로젝트 추가</div>`;
   $('#pf-cards').innerHTML= (list.length||canCreate)? cards : '<div class="pf-empty">배정된 프로젝트가 없습니다.</div>';
+  pfApplyView();
+}
+// ── G4 타임라인 뷰 — 전 프로젝트 가로 막대(시작~종료/D-Day) + 진행률 채움 + 오늘선 ──
+function pfSetView(v){ try{localStorage.setItem('pf_view',v);}catch(e){} pfApplyView(); }
+function pfApplyView(){
+  const v=(function(){try{return localStorage.getItem('pf_view')}catch(e){return null}})()||'cards';
+  const c=$('#pf-cards'), t=$('#pf-timeline');
+  if(!c||!t) return;
+  c.style.display=v==='tl'?'none':'';
+  t.style.display=v==='tl'?'':'none';
+  document.querySelectorAll('#pf-vtg button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  if(v==='tl') renderTimeline();
+}
+function _tlDate(s){ const d=new Date((s||'').slice(0,10)); return isNaN(d)?null:d; }
+function renderTimeline(){
+  const box=$('#pf-timeline'); if(!box) return;
+  const today=new Date(new Date().toISOString().slice(0,10));
+  const rows=PROJECTS_CACHE.map(p=>{
+    const s=_tlDate(p.start), e=_tlDate(p.end)||_tlDate(p.dday);
+    return {p, s:s||e, e:e||s};
+  }).filter(r=>r.s&&r.e);
+  if(!rows.length){ box.innerHTML='<div class="pf-empty">일정(시작·종료/D-Day)이 입력된 프로젝트가 없습니다.</div>'; return; }
+  let min=new Date(Math.min(...rows.map(r=>+r.s),+today)), max=new Date(Math.max(...rows.map(r=>+r.e),+today));
+  min=new Date(+min-5*864e5); max=new Date(+max+5*864e5);
+  const span=+max-+min, pct=d=>Math.max(0,Math.min(100,(+d-+min)/span*100));
+  rows.sort((a,b)=>a.e-b.e);
+  let h='<div class="tl-box">';
+  h+='<div class="tl-row tl-axis"><div class="tl-name"></div><div class="tl-track">';
+  for(let m=new Date(min.getFullYear(),min.getMonth()+1,1); m<=max; m=new Date(m.getFullYear(),m.getMonth()+1,1))
+    h+=`<span class="tl-tick" style="left:${pct(m)}%">${m.getMonth()+1}월</span>`;
+  h+=`<span class="tl-today" style="left:${pct(today)}%"></span></div></div>`;
+  rows.forEach(r=>{
+    const ru=pfRollup(r.p), l=pct(r.s), w=Math.max(1.5,pct(r.e)-l);
+    const late=(+r.e<+today)&&ru.percent<100;
+    h+=`<div class="tl-row" onclick="openProject('${esc(r.p.id)}')"><div class="tl-name" title="${esc(r.p.name)}">${esc(r.p.name)}</div>`
+      +`<div class="tl-track"><span class="tl-today" style="left:${pct(today)}%"></span>`
+      +`<span class="tl-bar${late?' late':''}" style="left:${l}%;width:${w}%" title="${esc(r.p.start||'')} ~ ${esc(r.p.end||r.p.dday||'')} · ${ru.percent}%">`
+      +`<i style="width:${ru.percent}%"></i><em>${ru.percent}%</em></span></div></div>`;
+  });
+  h+='</div>';
+  box.innerHTML=h;
 }
 async function openProject(id){
   let p,canEdit;

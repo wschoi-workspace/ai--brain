@@ -88,6 +88,11 @@ from shared.employee import load_employees as _load_emp
 from shared import normalize as _N, gws as _gws
 from shared.decision import load_open_decisions as _load_open_decisions
 from shared import status as _ST  # 상태·우선순위 단일출처 (G2)
+try:
+    from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
+except Exception:
+    def _log_st(*a, **k):
+        return False
 
 
 def load_employees() -> dict:
@@ -389,6 +394,8 @@ def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[
         if a.get("status") in _ST.ASSIGN_OPEN_STATES:
             completed.append({"row": a.get("row"), "task": a["task"],
                               "project": a.get("project") or "",
+                              "pid": a.get("pid") or "", "from": a.get("status") or "",
+                              "assignee": a.get("assignee") or name,
                               "basis": (c.get("basis") or "").strip()[:150]})
     return {"date": date_str, "name": name, "focus": (r.get("focus") or "").strip(),
             "new_todos": todos, "project_updates": ups, "completed": completed,
@@ -459,9 +466,9 @@ def _weekday_kr(target: str) -> str:
 def fetch_assignments(target: str) -> list[dict]:
     """주간분장 탭에서 브리프 날짜가 속한 주(월~일)의 분장 항목 fetch.
     실스키마(셸 '내 업무' AI 분장): 날짜(0)|프로젝트명(1)|팀구분(2)|담당자(3)|업무내용(4)|
-    일정완료예상(5)|결과물(6)|상태(7)|이해관계자(8)|우선순위(9)"""
+    일정완료예상(5)|결과물(6)|상태(7)|이해관계자(8)|우선순위(9)|프로젝트ID(10, G1)"""
     try:
-        rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:J5000")
+        rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:K5000")
     except Exception:
         return []
     d = datetime.strptime(target, "%Y-%m-%d").date()
@@ -469,7 +476,7 @@ def fetch_assignments(target: str) -> list[dict]:
     week_end = week_start + timedelta(days=6)
     items = []
     for i, r in enumerate(rows):
-        r = r + [""] * (10 - len(r))
+        r = r + [""] * (11 - len(r))
         nd = normalize_date(r[0])
         if not nd:
             continue
@@ -485,7 +492,7 @@ def fetch_assignments(target: str) -> list[dict]:
             "date": nd, "project": (r[1] or "").strip(), "team": (r[2] or "").strip(),
             "assignee": normalize_name(r[3]), "task": (r[4] or "").strip(),
             "deadline": (r[5] or "").strip(), "status": _ST.norm_assign_status(r[7]),
-            "priority": _ST.norm_priority(r[9]),
+            "priority": _ST.norm_priority(r[9]), "pid": (r[10] or "").strip(),
         })
     return items
 
@@ -1200,12 +1207,40 @@ def save_team_brief(data: dict) -> Path:
     return html_path
 
 
+def _late_resubmission_check(brief_date: str):
+    """G6 — 지각 제출 재집계. 직전 브리프의 소스 보고일에 배치 이후 제출분이 생겼으면
+    해당 브리프를 재생성한다(텔레그램 없음). 기존 사각지대: 배치 후 지각 제출은
+    다음 배치가 다음 소스일만 읽어 어떤 브리프에도 영구 미반영되던 문제의 해소."""
+    try:
+        prev = None
+        for f in sorted(OUT_DIR.glob("daily-brief-????-??-??.json"), reverse=True):
+            d = f.stem.replace("daily-brief-", "")
+            if d < brief_date:
+                prev = (d, f)
+                break
+        if not prev:
+            return
+        pd, pf = prev
+        stored = json.loads(pf.read_text(encoding="utf-8")).get("active_people", 0)
+        day = fetch_day(prev_bizday_range(pd))
+        cur = len([nm for nm, d2 in day.items() if (d2["raw"] or d2["core"] or d2["basket"])])
+        if cur > stored:
+            print(f"⏰ 지각 제출 감지: {pd} 브리프 보고인원 {stored}→{cur} — 재생성(텔레그램 없음)")
+            subprocess.run([sys.executable, str(Path(__file__).resolve()),
+                            "--date", pd, "--no-telegram", "--no-late-check"], timeout=600)
+        else:
+            print(f"지각 제출 없음: {pd} 브리프 보고인원 {stored}명 유지")
+    except Exception as e:
+        print(f"지각 제출 체크 실패(무해): {e}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"), help="YYYY-MM-DD (기본 오늘)")
     ap.add_argument("--source", default="", help="소스 보고일(쉼표 구분) — 기본: 직전 영업일~어제 (저녁 보고 습관 반영)")
     ap.add_argument("--open", action="store_true")
     ap.add_argument("--no-telegram", action="store_true")
+    ap.add_argument("--no-late-check", action="store_true", help="지각 제출 재집계 생략 (재생성 재귀 방지, G6)")
     args = ap.parse_args()
     sources = [s.strip() for s in args.source.split(",") if s.strip()] or prev_bizday_range(args.date)
     print(f"브리프 날짜: {args.date} · 소스 보고일: {', '.join(sources)}")
@@ -1245,7 +1280,15 @@ def main():
                     ok = _gws.values_update(DAILY_SHEET, f"주간분장!H{c['row']}", [["완료"]])
                 except Exception:
                     ok = False
+                if ok:
+                    _log_st("daily-brief-auto", "auto", "완료", from_status=c.get("from") or "",
+                            row=c.get("row"), project=c.get("project") or "", pid=c.get("pid") or "",
+                            task=c.get("task") or "", assignee=c.get("assignee") or name)  # G5
                 print(f"  ↳ 자동 완료: {c['task'][:34]} {'✓' if ok else '실패'}")
+
+    # ─── 지각 제출 재집계 (G6) — 직전 브리프 소스일에 새 제출이 있으면 재생성 ───
+    if not args.no_late_check:
+        _late_resubmission_check(args.date)
 
 
 if __name__ == "__main__":

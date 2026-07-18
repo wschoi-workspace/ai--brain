@@ -113,6 +113,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from shared.employee import load_employees as _load_emp
 from shared import normalize as _N, gws as _gws
 from shared import status as _ST  # 상태·우선순위 단일출처 (G2)
+try:
+    from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
+except Exception:
+    def _log_st(*a, **k):
+        return False
 
 
 def load_employees() -> dict:
@@ -224,6 +229,10 @@ def update_assignment_status_in_sheet(assignments: list[dict]) -> int:
                         DAILY_SHEET, f"주간분장!H{row_num}",
                         [[a["status"]]], timeout=10,
                     )
+                    _log_st("weekly-auto", "auto", a["status"],
+                            from_status=_ST.norm_assign_status(r[7]), row=row_num,
+                            date=a.get("date") or "", project=a.get("project") or "",
+                            task=a.get("task") or "", assignee=a.get("assignee") or "")  # G5
                     updated += 1
                 break
     return updated
