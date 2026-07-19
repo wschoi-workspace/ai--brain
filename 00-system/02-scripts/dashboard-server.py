@@ -841,7 +841,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
 #login-err{color:var(--red);font-size:12px;margin-top:12px;min-height:16px}
 #shell{display:none;flex-direction:column;height:100vh}
 #tabs{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--bg-2);align-items:center;flex-shrink:0}
-.tab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 18px;font-size:14px;cursor:pointer;font-family:inherit;font-weight:500}
+.tab,.tab-ext{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 18px;font-size:14px;cursor:pointer;font-family:inherit;font-weight:500}
 .tab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 #scope-sel{background:var(--bg-3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit}
 #tabs .who{margin-left:auto;font-size:12px;color:var(--muted)}
@@ -915,6 +915,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     <button class="tab" data-t="simulator">보고 시뮬레이터</button>
     <button class="tab" data-t="brief" style="display:none">오늘 Brief</button>
     <button class="tab" data-t="weekly" style="display:none">이번 주</button>
+    <button class="tab-ext" id="tab-hr" style="display:none" onclick="window.open('https://rent-hr-portal.fly.dev/','_blank')">HR 포털 ↗</button>
     <select id="scope-sel" style="display:none"></select>
     <span class="who" id="who"></span>
   </div>
@@ -1533,6 +1534,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     var lt=s.lead_teams||[];
     if(s.admin){
       tabBtn('brief').style.display=''; tabBtn('weekly').style.display='';
+      document.getElementById('tab-hr').style.display='';  // HR 포털 새 창 — 대표 전용 (독립 서비스 링크, 프록시 아님)
       // Decision Window(ARISA 2.0)는 데이터 취합 백단 창구 — 대시보드 전면 노출 안 함(탭 숨김)
       sel.style.display='inline-block'; sel.innerHTML='<option value="">전체</option>';
       lt.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
