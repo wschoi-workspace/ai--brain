@@ -1116,7 +1116,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     ]).then(function(res){
       var mw=res[0]||{}, ac=res[1]||{}, ex=res[2], h='<div class="mw-wrap">';
       MW_ASSIGNEES = ac.assignees || [];
-      if(SESS.admin){ h+='<div class="mw-quick"><a class="mw-link" href="https://rent-hr-portal.fly.dev/" target="_blank" rel="noopener">🏢 HR 포털 바로가기 ↗</a></div>'; }  // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크)
+      if(SESS.admin){ h+='<div class="mw-quick"><a class="mw-link" href="https://rent-hr-portal.fly.dev/" target="_blank" rel="noopener">🏢 HR 포털 바로가기 ↗</a><a class="mw-link" href="https://rent-hr-portal.fly.dev/onboard/admin/v2" target="_blank" rel="noopener">🧾 입퇴사 온보딩 ↗</a></div>'; }  // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크), 온보딩=입퇴사 자동화 대시보드 v2
       if(ex && ex.ok){
         var D=ex.decisions||[], O=ex.overdue||[];
         if(D.length){
