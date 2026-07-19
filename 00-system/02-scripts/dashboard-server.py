@@ -895,6 +895,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .mw-proj{border-left:2px solid var(--accent);padding-left:14px;margin-bottom:16px}
 .mw-proj-name{font-size:14px;font-weight:600;margin-bottom:8px}
 .mw-empty{color:var(--muted);font-size:13px;padding:8px 0}
+.mw-quick{margin:2px 0 6px;display:flex;gap:8px;flex-wrap:wrap}
+.mw-link{display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.4);color:var(--accent);border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;text-decoration:none}
+.mw-link:hover{background:var(--accent);color:#fff}
 #arisa2-status{font-size:11px;color:var(--muted);margin-left:6px}
 #arisa2-status.ok{color:#00b894}
 #arisa2-status.err{color:var(--red)}
@@ -1113,6 +1116,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     ]).then(function(res){
       var mw=res[0]||{}, ac=res[1]||{}, ex=res[2], h='<div class="mw-wrap">';
       MW_ASSIGNEES = ac.assignees || [];
+      if(SESS.admin){ h+='<div class="mw-quick"><a class="mw-link" href="https://rent-hr-portal.fly.dev/" target="_blank" rel="noopener">🏢 HR 포털 바로가기 ↗</a></div>'; }  // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크)
       if(ex && ex.ok){
         var D=ex.decisions||[], O=ex.overdue||[];
         if(D.length){
