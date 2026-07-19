@@ -71,6 +71,7 @@ from shared import gws as _gws  # noqa: E402
 from shared import report_queue as _rq  # noqa: E402
 from shared.employee import load_employees as _load_emp  # noqa: E402
 from shared.decision import save_decision_log as _save_decision_log  # noqa: E402
+from shared.naming import clean_project_name as _nm_clean  # noqa: E402  (P2 네이밍 규칙)
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -321,6 +322,9 @@ STRUCTURE_PROMPT = """너는 ARISA, 직원의 보고를 구조화하는 거울�
 
 - outcomes: 원본 보고의 core_tasks 순서대로, 각 업무의 Outcome(그 산출물이 만든 변화·의미)
   한 줄씩. 같은 길이의 배열. **직원이 의미를 말하지 않았으면 "" (지어내기 금지).**
+- projects: core_tasks 순서대로, 각 업무가 속한 프로젝트를 아래 '프로젝트 목록'에서 골라
+  **정확히 그 이름 그대로** 적어라. 같은 길이의 배열.
+  목록에 없는 이름을 만들지 말 것. 어느 프로젝트인지 불확실하면 "" (추측 금지).
 - decision_needed: 대표·팀장이 결정해야 할 것 (없으면 "")
 - decision: decision_needed가 있을 때만 그것을 구조화(Engine D). decision_needed가 ""이면 모두 "".
     project        = 어느 프로젝트/업무에 대한 결정인가 (core_tasks의 category/task에서. 불명확하면 "")
@@ -342,7 +346,7 @@ STRUCTURE_PROMPT = """너는 ARISA, 직원의 보고를 구조화하는 거울�
   예) missing="'에너넷 미팅'은 확정된 시간·장소가 빠져 있어요"
 
 반드시 JSON만 출력:
-{"outcomes": ["", ""], "decision_needed": "",
+{"outcomes": ["", ""], "projects": ["", ""], "decision_needed": "",
  "decision": {"project": "", "decision_type": "", "urgency": "", "related_output": "",
               "options": "", "recommendation": "", "deadline": "", "delay_impact": ""},
  "support_needed": "",
@@ -577,10 +581,12 @@ def _build_sheet_rows(d: dict) -> list[tuple[str, list]]:
     d["submitted_at"] = _sid  # 재조립 시에도 동일 sid 유지(라이브 저장/큐 백필 일관)
     for ct in d.get("core_tasks", []):
         # outcome은 기존 11컬럼 뒤(12번째)에 추가 — 기존 데이터 정합 유지. sid=13번째(M열).
+        # G1b: project(N)·pid(O) 후행 컬럼 — 보고↔프로젝트 ID Relation 축적 (기존 행은 빈값 무방)
         rows.append(("핵심업무!A1", [d["date"], d["name"], d["team"], d["role"],
                      ct.get("category", ""), ct.get("task", ""), ct.get("status", ""),
                      ct.get("process", ""), ct.get("tools", ""), ct.get("output", ""),
-                     ct.get("issues", ""), ct.get("outcome", ""), _sid]))
+                     ct.get("issues", ""), ct.get("outcome", ""), _sid,
+                     ct.get("project", ""), ct.get("pid", "")]))
     for st in d.get("sub_tasks", []):
         rows.append(("서브업무!A1", [d["date"], d["name"], d["team"],
                      st.get("category", ""), st.get("task", ""), st.get("status", ""), _sid]))
@@ -811,6 +817,25 @@ def _rule_based_gaps(report: dict) -> list[str]:
         if _norm(tomorrow) in _ABSTRACT_NEXT or not _DEADLINE_RE.search(tomorrow):
             gaps.append("내일 할 일을 '무엇을 언제까지'가 보이게 한 줄로 적어줄 수 있나요?")
 
+    # Wave 3 (품질진단 2wk 대응): Outcome 한 줄 강제 — 산출물은 있는데 의미가 없는 경우
+    has_output_no_outcome = any(
+        ct.get("output") and not ct.get("outcome")
+        for ct in report.get("core_tasks", [])
+    )
+    if has_output_no_outcome:
+        # 가장 중요한 업무(첫 번째 core_task) 기준으로 질문
+        first_with_output = next(
+            (ct for ct in report.get("core_tasks", []) if ct.get("output") and not ct.get("outcome")),
+            None,
+        )
+        if first_with_output:
+            task_name = first_with_output.get("task", "업무")
+            gaps.append(f"'{task_name}'의 산출물로 그래서 무엇이 달라졌나요? (의미·변화 한 줄)")
+
+    # Wave 3: 의사결정 유도 — 전원 0% 공란 개선
+    if not report.get("decision_needed"):
+        gaps.append("오늘 업무 중 대표나 팀장이 정해줘야 할 것이 있나요? (없으면 '없음')")
+
     return gaps
 
 
@@ -900,11 +925,54 @@ def completion_evaluate(report: dict) -> tuple[dict | None, list[str]]:
     return score, merged[:cap]
 
 
+# === G1b: 보고 ↔ 프로젝트 ID Relation (노션 갭 분석 2026-07-18) ===
+# 원칙: 화면보다 데이터 먼저 — 구조화 시점에 프로젝트 귀속을 ID로 확정해 시트에 축적.
+_PROJECTS_DATA_DIR = Path(__file__).resolve().parents[2] / "00-system" / "01-templates" / "_data" / "projects"
+
+
+def _load_project_registry() -> list[dict]:
+    """프로젝트 JSON SSOT → [{id, name, aliases}]. 실패 시 [] (보고 본흐름 무영향)."""
+    out = []
+    try:
+        for f in _PROJECTS_DATA_DIR.glob("*.json"):
+            try:
+                p = json.loads(f.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if p.get("id") and p.get("name"):
+                out.append({"id": p["id"], "name": p["name"],
+                            "aliases": [a for a in (p.get("aliases") or []) if a]})
+    except Exception:
+        return []
+    return out
+
+
+def _norm_proj_name(s: str) -> str:
+    return re.sub(r"[^a-z0-9가-힣]", "", (s or "").lower())
+
+
+def _project_pid(name: str, registry: list[dict]) -> str:
+    """프로젝트명(LLM이 목록에서 고른 값) → ID. 정규화 정확 일치(이름+별칭)만 — 추측 매칭 금지."""
+    key = _norm_proj_name(name)
+    if not key:
+        return ""
+    for p in registry:
+        if _norm_proj_name(p["name"]) == key or any(_norm_proj_name(a) == key for a in p["aliases"]):
+            return p["id"]
+    return ""
+
+
 def structure_report(report: dict, completion_answers: str = "") -> None:
     """Engine C: Outcome/Decision/Support/Reflection을 채워 report를 in-place 보강."""
+    registry = _load_project_registry()
+    plist = "\n".join(
+        f"- {p['name']}" + (f" (별칭: {', '.join(p['aliases'])})" if p["aliases"] else "")
+        for p in registry
+    )
     user_msg = (
         f"원본 보고(JSON):\n{json.dumps(report, ensure_ascii=False)}\n\n"
-        f"보완 답변:\n{completion_answers or '(없음)'}"
+        f"보완 답변:\n{completion_answers or '(없음)'}\n\n"
+        f"프로젝트 목록(projects는 반드시 여기서만 선택):\n{plist or '(없음)'}"
     )
     structured = call_gpt(STRUCTURE_PROMPT, user_msg)
     if not structured:
@@ -914,6 +982,13 @@ def structure_report(report: dict, completion_answers: str = "") -> None:
     for i, oc in enumerate(outcomes):
         if i < len(report["core_tasks"]) and isinstance(oc, str):
             report["core_tasks"][i]["outcome"] = oc.strip()
+
+    # G1b: 업무별 프로젝트 귀속 — 이름은 목록에서, ID는 정확 매칭으로 확정 (실패 시 "")
+    for i, pn in enumerate(structured.get("projects") or []):
+        if i < len(report["core_tasks"]) and isinstance(pn, str):
+            pn = pn.strip()
+            report["core_tasks"][i]["project"] = pn
+            report["core_tasks"][i]["pid"] = _project_pid(pn, registry)
 
     report["decision_needed"] = (structured.get("decision_needed") or "").strip()
     dec = structured.get("decision")
@@ -942,7 +1017,8 @@ def format_report_for_manager(d: dict) -> str:
 
     lines.append("■ 핵심 업무 (Task → Output → Outcome)")
     for i, ct in enumerate(d.get("core_tasks", []), 1):
-        lines.append(f"{i}. [{ct['category']}] {ct['task']} — {ct['status']}")
+        ptag = f" 〔{ct['project']}〕" if ct.get("project") else ""  # G1b: 프로젝트 귀속 표기
+        lines.append(f"{i}. [{ct['category']}] {ct['task']} — {ct['status']}{ptag}")
         if ct.get("goal"):
             lines.append(f"   목표: {ct['goal']}")
         if ct.get("process"):
@@ -1827,14 +1903,15 @@ async def cancel_meeting(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 _ASSIGN_TEAMS = ["기획팀", "공간팀", "사업기획", "운영팀", "경영"]
 
-ASSIGN_PARSE_PROMPT = """주간 업무분장 항목을 파싱해라. 입력에서 팀/업무내용/담당자/마감을 추출.
+ASSIGN_PARSE_PROMPT = """주간 업무분장 항목을 파싱해라. 입력에서 프로젝트/팀/업무내용/담당자/마감을 추출.
 담당자는 이름만(님 제거). 마감은 요일이면 이번 주 날짜(YYYY-MM-DD)로 변환.
-우선순위: "최우선"/"긴급"/"!!" → "최우선", "참고"/"FYI" → "참고", 나머지 → "일반".
+project: 프로젝트·브랜드명이 언급되면 그 이름(없으면 빈문자열. 지어내지 말 것).
+우선순위: "최우선"/"긴급"/"!!" → "긴급", 나머지 → "일반".
 
 오늘 날짜: {today}
 
 반드시 JSON만 출력:
-{{"team": "팀명", "task": "업무내용", "assignee": "담당자이름 또는 빈문자열", "deadline": "YYYY-MM-DD 또는 빈문자열", "priority": "최우선|일반|참고"}}"""
+{{"project": "프로젝트명 또는 빈문자열", "team": "팀명", "task": "업무내용", "assignee": "담당자이름 또는 빈문자열", "deadline": "YYYY-MM-DD 또는 빈문자열", "priority": "긴급|일반"}}"""
 
 
 def _week_label() -> str:
@@ -1844,12 +1921,17 @@ def _week_label() -> str:
 
 
 def save_assignment_to_sheet(team: str, task: str, assignee: str,
-                              deadline: str, priority: str) -> bool:
-    """주간분장 탭에 1행 등록."""
+                              deadline: str, priority: str, project: str = "") -> bool:
+    """주간분장 탭에 1행 등록 — 신스키마(셸 분장과 동일):
+    날짜|프로젝트명|팀|담당자|업무내용|일정|결과물|상태|이해관계자|우선순위|프로젝트ID(G1).
+    (구스키마 W라벨 행을 잘못된 칸에 append하던 버그 수정 — 2026-07-18)"""
+    pr = "긴급" if priority in ("긴급", "최우선") else "일반"
+    registry = _load_project_registry()
+    project = _nm_clean(project)  # P2 — 네이밍 규칙 자동 정리 (Team Ops Guide 2부-①)
     row = [
-        _week_label(), team, "", task, assignee or "팀",
-        deadline, priority, "미착수",
-        datetime.now().strftime("%Y-%m-%d"), "bot",
+        datetime.now().strftime("%Y-%m-%d"), project or "", team,
+        assignee or "팀", task, deadline, "", "미착수", "", pr,
+        _project_pid(project, registry),
     ]
     return _gws.append_to_sheet(
         SHEET_ID, "주간분장!A1", row,
@@ -1878,6 +1960,9 @@ async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )
         if parsed and parsed.get("task"):
             context.user_data["assign"]["parsed"] = parsed
+            # P2 — 프로젝트명 네이밍 규칙 자동 정리 (괄호·특수문자 → 공백)
+            pj_raw = parsed.get("project") or ""
+            parsed["project"] = _nm_clean(pj_raw)
             team = parsed.get("team", "")
             assignee = parsed.get("assignee", "")
             deadline = parsed.get("deadline", "")
@@ -1891,8 +1976,10 @@ async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                         team = emp.get("team", "")
             context.user_data["assign"]["parsed"]["team"] = team
             context.user_data["assign"]["parsed"]["assignee"] = assignee
+            _pj_note = " (규칙 자동정리)" if parsed.get("project") != pj_raw and pj_raw else ""
             await update.message.reply_text(
                 f"✅ 파싱 결과:\n"
+                f"  프로젝트: {(parsed.get('project') or '—') + _pj_note}\n"
                 f"  팀: {team}\n"
                 f"  업무: {parsed['task']}\n"
                 f"  담당: {assignee or '팀'}\n"
@@ -1962,6 +2049,7 @@ async def assign_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     context.user_data["assign"]["parsed"] = parsed
     await update.message.reply_text(
         f"✅ 파싱 결과:\n"
+        f"  프로젝트: {parsed.get('project') or '—'}\n"
         f"  팀: {parsed['team']}\n"
         f"  업무: {parsed['task']}\n"
         f"  담당: {parsed.get('assignee') or '팀'}\n"
@@ -2007,7 +2095,7 @@ async def assign_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     ok = save_assignment_to_sheet(
         p.get("team", ""), p.get("task", ""),
         p.get("assignee", ""), p.get("deadline", ""),
-        p.get("priority", "일반"),
+        p.get("priority", "일반"), p.get("project", ""),
     )
     if ok:
         await update.message.reply_text(

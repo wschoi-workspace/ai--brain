@@ -87,6 +87,12 @@ sys.path.insert(0, str(SCRIPTS))
 from shared.employee import load_employees as _load_emp
 from shared import normalize as _N, gws as _gws
 from shared.decision import load_open_decisions as _load_open_decisions
+from shared import status as _ST  # 상태·우선순위 단일출처 (G2)
+try:
+    from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
+except Exception:
+    def _log_st(*a, **k):
+        return False
 
 
 def load_employees() -> dict:
@@ -131,20 +137,21 @@ def fetch_day(target: str | list[str]) -> dict:
     """target(YYYY-MM-DD 또는 날짜 리스트)에 해당하는 직원별 보고 블록을 모은다.
     반환: {name: {team, raw, core:[{output,issue,outcome,task,blocker}], meta:{decision,support,blocker,question}, basket:[(label,val)]}}"""
     targets = {target} if isinstance(target, str) else set(target)
-    core = _gws_values_get(DAILY_SHEET, "핵심업무!A2:L5000")
+    core = _gws_values_get(DAILY_SHEET, "핵심업무!A2:O5000")  # N=project·O=pid (G1b 귀속)
     meta = _gws_values_get(DAILY_SHEET, "메타!A2:O5000")  # N=Report Score, O=score_detail(type 포함)
     basket = _gws_values_get(BASKET_SHEET, "일일보고!A2:O5000")
     by = defaultdict(lambda: {"team": "", "raw": "", "core": [], "meta": {}, "basket": []})
 
     for r in core:
-        r = r + [""] * (12 - len(r))
+        r = r + [""] * (15 - len(r))
         if normalize_date(r[0]) not in targets:
             continue
         nm = normalize_name(r[1])
         if not nm:
             continue
         by[nm]["team"] = team_of(nm)
-        by[nm]["core"].append({"task": r[5], "output": r[9], "issue": r[10], "outcome": r[11]})
+        by[nm]["core"].append({"task": r[5], "output": r[9], "issue": r[10], "outcome": r[11],
+                               "project": (r[13] or "").strip(), "pid": (r[14] or "").strip()})
 
     for r in meta:
         r = r + [""] * (15 - len(r))
@@ -189,6 +196,7 @@ def _emp_block(name: str, d: dict) -> str:
         lines.append(f"보고원문(raw): {d['raw'][:1500]}")
     for c in d["core"]:
         seg = []
+        if (c.get("project") or "").strip(): seg.append(f"프로젝트={c['project']}")  # G1b 봇 확정 귀속
         if c["task"].strip(): seg.append(f"업무={c['task']}")
         if c["output"].strip(): seg.append(f"산출물={c['output']}")
         if c["issue"].strip(): seg.append(f"이슈={c['issue']}")
@@ -220,6 +228,7 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
 - 직원이 의사결정요청을 비워뒀어도, 원문에 "결정이 필요한 갈림길/막힌 지점/승인 대기"가
   보이면 추출한다. 단 원문 표현을 넘는 단정 금지.
 - source_employee·project는 반드시 근거 보고에서 귀속. 모르면 project=null.
+- 핵심업무에 '프로젝트=' 표기가 있으면 그것이 확정 귀속이다 — 그 이름을 project로 그대로 사용(추측 재귀속 금지).
 
 [7범주]
 - decision : 대표/팀장이 선택·승인해야 할 갈림길. basket의 [결재]송금·승인/장비/입점은 결재 의사결정.
@@ -332,7 +341,7 @@ def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[
     if not key:
         return None
     mine = [a for a in assignments if a.get("assignee") == name
-            and a.get("status") not in ("승인", "삭제", "완료")]
+            and a.get("status") not in _ST.ASSIGN_CLOSED_STATES]
     lines = []
     for c in d.get("core", []):
         seg = f"- {c.get('task', '')}"
@@ -385,9 +394,11 @@ def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[
             a = mine[int(c.get("idx")) - 1]
         except (TypeError, ValueError, IndexError):
             continue
-        if a.get("status") in ("미착수", "진행중"):
+        if a.get("status") in _ST.ASSIGN_OPEN_STATES:
             completed.append({"row": a.get("row"), "task": a["task"],
                               "project": a.get("project") or "",
+                              "pid": a.get("pid") or "", "from": a.get("status") or "",
+                              "assignee": a.get("assignee") or name,
                               "basis": (c.get("basis") or "").strip()[:150]})
     return {"date": date_str, "name": name, "focus": (r.get("focus") or "").strip(),
             "new_todos": todos, "project_updates": ups, "completed": completed,
@@ -458,9 +469,9 @@ def _weekday_kr(target: str) -> str:
 def fetch_assignments(target: str) -> list[dict]:
     """주간분장 탭에서 브리프 날짜가 속한 주(월~일)의 분장 항목 fetch.
     실스키마(셸 '내 업무' AI 분장): 날짜(0)|프로젝트명(1)|팀구분(2)|담당자(3)|업무내용(4)|
-    일정완료예상(5)|결과물(6)|상태(7)|이해관계자(8)|우선순위(9)"""
+    일정완료예상(5)|결과물(6)|상태(7)|이해관계자(8)|우선순위(9)|프로젝트ID(10, G1)"""
     try:
-        rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:J5000")
+        rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:K5000")
     except Exception:
         return []
     d = datetime.strptime(target, "%Y-%m-%d").date()
@@ -468,7 +479,7 @@ def fetch_assignments(target: str) -> list[dict]:
     week_end = week_start + timedelta(days=6)
     items = []
     for i, r in enumerate(rows):
-        r = r + [""] * (10 - len(r))
+        r = r + [""] * (11 - len(r))
         nd = normalize_date(r[0])
         if not nd:
             continue
@@ -483,8 +494,8 @@ def fetch_assignments(target: str) -> list[dict]:
             "row": i + 2,  # 시트 실제 행 — 보고 기반 자동 완료 처리용
             "date": nd, "project": (r[1] or "").strip(), "team": (r[2] or "").strip(),
             "assignee": normalize_name(r[3]), "task": (r[4] or "").strip(),
-            "deadline": (r[5] or "").strip(), "status": (r[7] or "미착수").strip(),
-            "priority": (r[9] or "일반").strip(),
+            "deadline": (r[5] or "").strip(), "status": _ST.norm_assign_status(r[7]),
+            "priority": _ST.norm_priority(r[9]), "pid": (r[10] or "").strip(),
         })
     return items
 
@@ -694,12 +705,11 @@ def _person_card(p: dict) -> str:
     # 이번주 분장 — 담당 항목 + 상태 뱃지
     asg_html = ""
     if p.get("assignments"):
-        st_cls = {"완료": "as-done", "승인": "as-done", "진행중": "as-doing"}
         lines = []
         for a in p["assignments"]:
             dl = f' <span class="as-dl">~{_esc(a["deadline"][5:] if len(a.get("deadline",""))>=10 else a.get("deadline",""))}</span>' if a.get("deadline") else ""
             tk = (f'[{a["project"]}] ' if a.get("project") else "") + a["task"]
-            lines.append(f'<div class="as-item"><span class="as-st {st_cls.get(a["status"], "as-todo")}">{_esc(a["status"])}</span>'
+            lines.append(f'<div class="as-item"><span class="as-st {_ST.badge_class(a["status"])}">{_esc(a["status"])}</span>'
                          f'<span class="as-task">{_esc(tk[:90])}</span>{dl}</div>')
         asg_html = f'<div class="pp-asg"><div class="as-label">📋 이번주 분장 {len(p["assignments"])}건</div>{"".join(lines)}</div>'
     # 2.0 Wave 2: 보고 유형 배지 + Report Score (있을 때만)
@@ -750,8 +760,8 @@ def _vz_item_row(it: dict) -> str:
 
 
 def _vz_asg_row(a: dict) -> str:
-    st = a.get("status") or "미착수"
-    cls = {"완료": "as-done", "승인": "as-done", "진행중": "as-doing"}.get(st, "as-todo")
+    st = _ST.norm_assign_status(a.get("status"))
+    cls = _ST.badge_class(st)
     dl = a.get("deadline") or ""
     dls = f' <span class="as-dl">~{_esc(dl[5:] if len(dl) >= 10 else dl)}</span>' if dl else ""
     return (f'<div class="as-item"><span class="as-st {cls}">{_esc(st)}</span>'
@@ -1200,12 +1210,40 @@ def save_team_brief(data: dict) -> Path:
     return html_path
 
 
+def _late_resubmission_check(brief_date: str):
+    """G6 — 지각 제출 재집계. 직전 브리프의 소스 보고일에 배치 이후 제출분이 생겼으면
+    해당 브리프를 재생성한다(텔레그램 없음). 기존 사각지대: 배치 후 지각 제출은
+    다음 배치가 다음 소스일만 읽어 어떤 브리프에도 영구 미반영되던 문제의 해소."""
+    try:
+        prev = None
+        for f in sorted(OUT_DIR.glob("daily-brief-????-??-??.json"), reverse=True):
+            d = f.stem.replace("daily-brief-", "")
+            if d < brief_date:
+                prev = (d, f)
+                break
+        if not prev:
+            return
+        pd, pf = prev
+        stored = json.loads(pf.read_text(encoding="utf-8")).get("active_people", 0)
+        day = fetch_day(prev_bizday_range(pd))
+        cur = len([nm for nm, d2 in day.items() if (d2["raw"] or d2["core"] or d2["basket"])])
+        if cur > stored:
+            print(f"⏰ 지각 제출 감지: {pd} 브리프 보고인원 {stored}→{cur} — 재생성(텔레그램 없음)")
+            subprocess.run([sys.executable, str(Path(__file__).resolve()),
+                            "--date", pd, "--no-telegram", "--no-late-check"], timeout=600)
+        else:
+            print(f"지각 제출 없음: {pd} 브리프 보고인원 {stored}명 유지")
+    except Exception as e:
+        print(f"지각 제출 체크 실패(무해): {e}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"), help="YYYY-MM-DD (기본 오늘)")
     ap.add_argument("--source", default="", help="소스 보고일(쉼표 구분) — 기본: 직전 영업일~어제 (저녁 보고 습관 반영)")
     ap.add_argument("--open", action="store_true")
     ap.add_argument("--no-telegram", action="store_true")
+    ap.add_argument("--no-late-check", action="store_true", help="지각 제출 재집계 생략 (재생성 재귀 방지, G6)")
     args = ap.parse_args()
     sources = [s.strip() for s in args.source.split(",") if s.strip()] or prev_bizday_range(args.date)
     print(f"브리프 날짜: {args.date} · 소스 보고일: {', '.join(sources)}")
@@ -1245,7 +1283,16 @@ def main():
                     ok = _gws.values_update(DAILY_SHEET, f"주간분장!H{c['row']}", [["완료"]])
                 except Exception:
                     ok = False
+                if ok:
+                    _log_st("daily-brief-auto", "auto", "완료", from_status=c.get("from") or "",
+                            row=c.get("row"), project=c.get("project") or "", pid=c.get("pid") or "",
+                            task=c.get("task") or "", assignee=c.get("assignee") or name,
+                            note=c.get("basis") or "")  # G5·G7 — 보고 근거 문장
                 print(f"  ↳ 자동 완료: {c['task'][:34]} {'✓' if ok else '실패'}")
+
+    # ─── 지각 제출 재집계 (G6) — 직전 브리프 소스일에 새 제출이 있으면 재생성 ───
+    if not args.no_late_check:
+        _late_resubmission_check(args.date)
 
 
 if __name__ == "__main__":
