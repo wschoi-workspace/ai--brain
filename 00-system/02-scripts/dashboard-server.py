@@ -91,13 +91,16 @@ def _assign_read():
     for i, r in enumerate(rows):
         r = list(r) + [""] * (11 - len(r))
         # 시트 헤더: 날짜·프로젝트명·팀구분·담당자·업무내용·일정(완료예상)·결과물·상태·이해관계자·우선순위·프로젝트ID(K, G1)
-        out.append({"row": i + 2,  # 시트 실제 행 번호 (A2부터) — 상태 업데이트용
-                    "date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
-                    "team": (r[2] or "").strip(), "assignee": (r[3] or "").strip(),
-                    "task": (r[4] or "").strip(), "deadline": (r[5] or "").strip(),
-                    "result": (r[6] or "").strip(), "status": _ST.norm_assign_status(r[7]),
-                    "stakeholder": (r[8] or "").strip(), "priority": _ST.norm_priority(r[9]),
-                    "pid": (r[10] or "").strip()})
+        a = {"row": i + 2,  # 시트 실제 행 번호 (A2부터) — 상태 업데이트용
+             "date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
+             "team": (r[2] or "").strip(), "assignee": (r[3] or "").strip(),
+             "task": (r[4] or "").strip(), "deadline": (r[5] or "").strip(),
+             "result": (r[6] or "").strip(), "status": _ST.norm_assign_status(r[7]),
+             "stakeholder": (r[8] or "").strip(), "priority": _ST.norm_priority(r[9]),
+             "pid": (r[10] or "").strip()}
+        # filament 반영 — 지연 N일(열린 분장만)을 모든 소비자(내 업무·리더 홈·대표창)에 공급
+        a["days_overdue"] = _ST.overdue_days(a["deadline"]) if _ST.is_overdue(a["deadline"], a["status"]) else 0
+        out.append(a)
     return out
 
 
@@ -910,6 +913,16 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .mw-quick{margin:2px 0 6px;display:flex;gap:8px;flex-wrap:wrap}
 .mw-link{display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.4);color:var(--accent);border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;text-decoration:none}
 .mw-link:hover{background:var(--accent);color:#fff}
+.mw-done-sec{margin:4px 0 16px;border:1px solid var(--line);border-radius:10px;background:var(--bg-2)}
+.mw-done-sec summary{cursor:pointer;color:var(--muted);font-size:13px;padding:10px 14px}
+.mw-done-sec[open] summary{border-bottom:1px solid var(--line)}
+.mw-done-sec .mw-card{border:0;border-top:1px solid var(--line);border-radius:0;margin:0}
+.mw-done-sec .mw-card:first-of-type{border-top:0}
+.pf-bar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.pf-chip{cursor:pointer;font-size:12px;border:1px solid var(--line);border-radius:16px;padding:5px 12px;color:var(--muted);background:var(--bg-2)}
+.pf-chip.on{border-color:var(--accent);color:var(--accent);background:rgba(108,92,231,.12)}
+.il-sel{background:var(--bg-3);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:2px 6px;font-size:11px;font-family:inherit;margin-left:6px;cursor:pointer;max-width:110px}
+.il-sel:hover{border-color:var(--accent);color:var(--accent)}
 #arisa2-status{font-size:11px;color:var(--muted);margin-left:6px}
 #arisa2-status.ok{color:#00b894}
 #arisa2-status.err{color:var(--red)}
@@ -1086,8 +1099,20 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
             +'<div class="m">'+pj+'대표 지시'+dl+'</div></div>';
         });
       }
+      h+=mwDueHtml(A);                              // A1 — 지난·오늘·내일 마감 모아보기
+      h+=mwUnassignedHtml(lh.unassigned||[]);       // A2 — 담당 미지정 배정 큐
       h+='<div class="mw-h">팀 Todo · 이번주 분장 <span class="sub2">'+esc((lh.teams||[]).join(' · '))+'</span></div>';
-      if(teamTodo.length){ h+=mwAssignListHtml(teamTodo, true); }
+      if(teamTodo.length){
+        // B3 — 담당자별 보기 (filament 팀 보드 사이드바 패턴: 이름 + 열린 건수)
+        var pf={}, pfo=[];
+        teamTodo.forEach(function(a){ var n=a.assignee||'미지정';
+          if(!(n in pf)){ pf[n]=0; pfo.push(n); }
+          if(a.status==='미착수'||a.status==='진행중') pf[n]++;
+        });
+        h+='<div class="pf-bar"><span class="pf-chip on" data-name="">전체 '+teamTodo.length+'</span>';
+        pfo.forEach(function(n){ h+='<span class="pf-chip" data-name="'+esc(n)+'">'+esc(n)+' '+pf[n]+'</span>'; });
+        h+='</div><div id="lh-todo-list">'+mwAssignListHtml(teamTodo, true)+'</div>';
+      }
       else { h+='<div class="mw-empty">팀원에게 배분된 분장이 아직 없습니다. 아래에서 바로 만들 수 있습니다.</div>'; }
       if(ac.canAssign){ h+=mwAssignHtml(ac.level||'팀원'); }
       h+='<div class="mw-h">진행중인 프로젝트 <span class="sub2">'+(lh.projects||[]).length+'건 — 클릭하면 프로젝트 탭</span></div>';
@@ -1104,6 +1129,16 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       mwBindBulk(box);
       mwBindSelfAssign(box);
       mwBindEdit(box);
+      mwBindInline(box);
+      box.querySelectorAll('.pf-chip').forEach(function(ch){
+        ch.onclick=function(){
+          box.querySelectorAll('.pf-chip').forEach(function(c){ c.classList.toggle('on', c===ch); });
+          var n=ch.getAttribute('data-name');
+          var list=document.getElementById('lh-todo-list'); if(!list) return;
+          list.innerHTML=mwAssignListHtml(n?teamTodo.filter(function(a){return (a.assignee||'미지정')===n;}):teamTodo, true);
+          mwBindStatus(list); mwBindBulk(box); mwBindEdit(list); mwBindInline(list);
+        };
+      });
       box.querySelectorAll('.lh-proj').forEach(function(el){ el.onclick=function(){ showTab('projects'); }; });
       box.querySelectorAll('.rc-btn').forEach(function(b){
         b.onclick=function(){
@@ -1148,8 +1183,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
               +'<div class="m">'+pj+esc(a.assignee||'미지정')+' · 마감 '+esc(a.deadline||'')+' · '+esc(a.status||'미착수')+'</div></div>';
           });
         }
+        h+=mwUnassignedHtml(ex.unassigned||[]);   // A2 — 담당 미지정 배정 큐 (대표: 리더급에게 배정)
         h+=mwApprovalsHtml(ex.approvals||[]);
-        if(!D.length && !O.length && !(ex.approvals||[]).length){ h+='<div class="mw-h">✅ 지연·결재·승인 대기 없음</div>'; }
+        if(!D.length && !O.length && !(ex.approvals||[]).length && !(ex.unassigned||[]).length){ h+='<div class="mw-h">✅ 지연·결재·승인 대기 없음</div>'; }
       }
       if(ac.canAssign){ h+=mwAssignHtml(ac.level||'담당자'); }
       h+=mwDailyFocusHtml(mw.daily);
@@ -1175,9 +1211,10 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       mwBindBulk(box);
       mwBindSelfAssign(box);
       mwBindEdit(box);
+      mwBindInline(box);
     }).catch(function(){ box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>'; });
   }
-  function mwAsOpts(sel){ return MW_ASSIGNEES.map(function(a){return '<option value="'+esc(a.name)+'"'+(a.name===sel?' selected':'')+'>'+esc(a.name)+' ('+esc(a.team||'')+')</option>';}).join(''); }
+  function mwAsOpts(sel){ return MW_ASSIGNEES.map(function(a){var lbl=a.name+' ('+(a.team||'')+(a.leader?' 리더 · 이관':'')+')';return '<option value="'+esc(a.name)+'"'+(a.name===sel?' selected':'')+'>'+esc(lbl)+'</option>';}).join(''); }
   function mwTodoRow(it){
     it=it||{};
     return '<div class="td-row"><input class="td-task" value="'+esc(it.task||'')+'" placeholder="업무 내용">'
@@ -1385,6 +1422,95 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       };
     });
   }
+  function mwOvBadge(a){
+    // 지연 N일 배지(A1 — filament) — 서버 _assign_read가 열린 분장에만 days_overdue 부여
+    return (a.days_overdue>0)?' <span class="mw-badge mw-urgent">지연 '+a.days_overdue+'일</span>':'';
+  }
+  function mwLocalDate(off){
+    var d=new Date(Date.now()+(off||0)*86400000);
+    return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+  }
+  function mwDueHtml(A){
+    // ⏰ 마감 임박(A1 — filament '오늘' 탭: 지난·오늘·내일 모아보기)
+    var t0=mwLocalDate(0), t1=mwLocalDate(1);
+    var open=(A||[]).filter(function(a){ return a.status==='미착수'||a.status==='진행중'; });
+    var late=open.filter(function(a){ return a.days_overdue>0; });
+    var soon=open.filter(function(a){ return !a.days_overdue && ((a.deadline||'').slice(0,10)===t0||(a.deadline||'').slice(0,10)===t1); });
+    if(!late.length && !soon.length) return '';
+    var h='<div class="mw-h">⏰ 마감 임박 <span class="sub2">지난 '+late.length+'건 · 오늘·내일 '+soon.length+'건 — 아래 팀 Todo에서 처리</span></div>';
+    late.concat(soon).forEach(function(a){
+      var pj=a.project?(esc(a.project)+' · '):'';
+      var tag=a.days_overdue>0?mwOvBadge(a):' <span class="mw-badge" style="background:rgba(244,196,48,.14);color:#f4c430">'+((a.deadline||'').slice(0,10)===t0?'오늘':'내일')+' 마감</span>';
+      h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+tag+'</div>'
+        +'<div class="m">'+pj+esc(a.assignee||'미지정')+' · 마감 '+esc(a.deadline||'')+' · '+esc(a.status||'')+'</div></div>';
+    });
+    return h;
+  }
+  function mwUnassignedHtml(U){
+    // ◆ 담당 미지정 배정 큐(A2 — filament 팀 보드 패턴)
+    if(!U||!U.length) return '';
+    var h='<div class="mw-h">◆ 담당 미지정 배정 <span class="sub2">'+U.length+'건 — 담당자 지정 시 시트에 바로 반영</span></div>';
+    U.forEach(function(a){
+      var pj=a.project?(esc(a.project)+' · '):'';
+      var dl=a.deadline?('마감 '+esc(a.deadline)):'마감 미정';
+      h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+mwOvBadge(a)
+        +' <select class="il-sel ua-as" data-row="'+a.row+'" data-task="'+esc(a.task)+'">'
+        +'<option value="">담당자 선택…</option>'+mwAsOpts('')+'</select>'
+        +'<a class="st-act ua-go">✓ 배정</a></div>'
+        +'<div class="m">'+pj+dl+'</div></div>';
+    });
+    return h;
+  }
+  function mwInlineSel(a){
+    // 리더·대표 인라인 편집(B2 — filament 상태·담당자 칩) — 변경 즉시 시트 반영
+    var st=a.status||'미착수';
+    var s='<select class="il-sel il-st" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'">';
+    ['미착수','진행중','완료'].forEach(function(o){ s+='<option'+(o===st?' selected':'')+'>'+o+'</option>'; });
+    s+='</select><select class="il-sel il-as" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'">'
+      +'<option value="">담당자…</option>'+mwAsOpts(a.assignee||'')+'</select>';
+    return s;
+  }
+  function mwBindInline(scope){
+    scope.querySelectorAll('.il-st').forEach(function(el){
+      el.onchange=function(){
+        fetch('/api/assign-status',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
+            task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),status:el.value})})
+        .then(function(r){return r.json();}).then(function(d){
+          if(!d.ok) alert(d.error||'상태 변경 실패');
+          renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    });
+    scope.querySelectorAll('.il-as').forEach(function(el){
+      el.onchange=function(){
+        var v=el.value; if(!v||v===el.getAttribute('data-assignee')) return;
+        el.disabled=true;
+        fetch('/api/assign-edit',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
+            task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),
+            new_task:el.getAttribute('data-task'),new_assignee:v})})
+        .then(function(r){return r.json();}).then(function(d){
+          if(!d.ok) alert(d.error||'담당자 변경 실패');
+          renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    });
+    scope.querySelectorAll('.ua-go').forEach(function(btn){
+      btn.onclick=function(){
+        var sel=btn.closest('.mw-card').querySelector('.ua-as'); var v=sel.value;
+        if(!v){ alert('담당자를 선택하세요'); return; }
+        btn.textContent='배정 중…';
+        fetch('/api/assign-edit',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+sel.getAttribute('data-row'),
+            task:sel.getAttribute('data-task'),assignee:'',new_task:sel.getAttribute('data-task'),new_assignee:v})})
+        .then(function(r){return r.json();}).then(function(d){
+          if(!d.ok) alert(d.error||'배정 실패');
+          renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    });
+  }
   function mwStBtn(a, st, label, notify){
     return '<a class="st-act" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')
       +'" data-st="'+st+'"'+(notify?' data-notify="1"':'')+'>'+label+'</a>';
@@ -1492,12 +1618,34 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     });
     return h;
   }
+  function mwAssignCard(a, withAssignee){
+    var st=a.status||'미착수';
+    var badge='<span class="lh-st '+(st==='완료'?'lh-done':(st==='진행중'?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
+    var urg=(a.priority==='긴급')?'<span class="mw-badge mw-urgent">긴급</span>':'';
+    var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
+    var who=withAssignee?esc(a.assignee||'미지정'):'';
+    var act='';
+    var canDel = SESS.admin || (SESS.lead_teams||[]).length;
+    if(!withAssignee && a.row){
+      if(st==='완료'){ act='<span class="st-wait">⏳ 승인 대기</span>'+mwStBtn(a,'진행중','↩ 되돌리기'); }
+      else{
+        if(st==='미착수') act+=mwStBtn(a,'진행중','▶ 진행');
+        act+=mwStBtn(a,'완료','✓ 완료');
+        act+=mwStBtn(a,'완료','📣 완료·보고',true);
+      }
+      act+=mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 수정·삭제 가능 (잘못 등록 정정)
+    }
+    if(withAssignee && a.row && canDel){ act+=mwInlineSel(a)+mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a); }  // B2 — 인라인 상태·담당자
+    return '<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+mwOvBadge(a)+act+'</div><div class="m">'+who+dl+'</div></div>';
+  }
   function mwAssignListHtml(A, withAssignee){
-    // 분장 완료 리스트 — 프로젝트 단위 그룹 + 완전 동일 행 표시 중복 제거(시트 무변경)
-    var seen={}, groups={}, order=[];
+    // 열린 분장 중심(A3 — filament 완료/보관함 분리) — 완료(승인 대기)는 하단 접힘.
+    // 프로젝트 단위 그룹 + 완전 동일 행 표시 중복 제거(시트 무변경)
+    var seen={}, groups={}, order=[], done=[];
     (A||[]).forEach(function(a){
       var key=[(a.project||''),(a.task||''),(a.assignee||''),(a.deadline||''),(a.status||'')].join('|');
       if(seen[key]) return; seen[key]=1;
+      if((a.status||'')==='완료'){ done.push(a); return; }
       var p=(a.project||'').trim()||'기타';
       if(!(p in groups)){ groups[p]=[]; order.push(p); }
       groups[p].push(a);
@@ -1507,27 +1655,13 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     order.forEach(function(p){
       var items=groups[p];
       h+='<div class="pg-head">📁 '+esc(p)+' <span class="pg-cnt">'+items.length+'건</span></div>';
-      items.forEach(function(a){
-        var st=a.status||'미착수';
-        var badge='<span class="lh-st '+(st==='완료'?'lh-done':(st==='진행중'?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
-        var urg=(a.priority==='긴급')?'<span class="mw-badge mw-urgent">긴급</span>':'';
-        var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
-        var who=withAssignee?esc(a.assignee||'미지정'):'';
-        var act='';
-        var canDel = SESS.admin || (SESS.lead_teams||[]).length;
-        if(!withAssignee && a.row){
-          if(st==='완료'){ act='<span class="st-wait">⏳ 승인 대기</span>'+mwStBtn(a,'진행중','↩ 되돌리기'); }
-          else{
-            if(st==='미착수') act+=mwStBtn(a,'진행중','▶ 진행');
-            act+=mwStBtn(a,'완료','✓ 완료');
-            act+=mwStBtn(a,'완료','📣 완료·보고',true);
-          }
-          act+=mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 수정·삭제 가능 (잘못 등록 정정)
-        }
-        if(withAssignee && a.row && canDel){ act+=mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a); }
-        h+='<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+act+'</div><div class="m">'+who+dl+'</div></div>';
-      });
+      items.forEach(function(a){ h+=mwAssignCard(a, withAssignee); });
     });
+    if(done.length){
+      h+='<details class="mw-done-sec"><summary>▸ 완료·승인 대기 '+done.length+'건</summary>';
+      done.forEach(function(a){ h+=mwAssignCard(a, withAssignee); });
+      h+='</details>';
+    }
     return h;
   }
   function changePin(){
@@ -2753,7 +2887,7 @@ class H(BaseHTTPRequestHandler):
         if path == "/api/health":
             return self._send(200, {"ok": True})
         if path == "/api/assignees":
-            # 계층적 분장 후보 — 대표=리더급에게만, 리더=자기 팀원에게만
+            # 계층적 분장 후보 — 대표=리더급, 리더=자기 팀원 + 타팀 리더(이관)
             uid = (q.get("user") or [""])[0]
             emp = load_emp().get("by_name", {})
             tl = load_emp().get("team_leads", {})
@@ -2769,6 +2903,17 @@ class H(BaseHTTPRequestHandler):
                 my = set(lead_teams_of(uid))
                 data = [{"name": n, "team": (v or {}).get("team", "")} for n, v in sorted(emp.items())
                         if (v or {}).get("team") in my]
+                # 타팀 리더 이관 후보 (2026-07-20): 리더→타팀 리더→그 팀원 위계 경로.
+                # 이관받은 리더의 팀 스코프로 기록돼 그 팀 홈에 잡힌다 (재분장은 기존 기능).
+                seen = {d["name"] for d in data}
+                other_leads = {}
+                for team, ldr in tl.items():
+                    if team not in my:
+                        other_leads.setdefault(ldr, []).append(team)
+                for n in sorted(other_leads):
+                    if n != uid and n not in seen:
+                        data.append({"name": n, "team": "·".join(other_leads[n]),
+                                     "leader": True})
                 level = "팀원"
             return self._send(200, {"ok": True, "canAssign": is_admin(uid) or is_leader(uid),
                                     "level": level, "assignees": data})
@@ -2797,18 +2942,12 @@ class H(BaseHTTPRequestHandler):
             reg_cut = today - datetime.timedelta(days=30)
             overdue, seen = [], set()
             approvals = []
+            unassigned, useen = [], set()  # filament 반영 — 담당 미지정 배정 큐
             for a in _assign_read():
                 st = (a.get("status") or "미착수")
                 if st == "완료":
                     approvals.append(a)   # 승인 대기 큐 (대표 승인용)
                 if st in _ASSIGN_DONE_STATES or st == "삭제":
-                    continue
-                dl = (a.get("deadline") or "").strip()[:10]
-                try:
-                    dld = datetime.date.fromisoformat(dl)
-                except ValueError:
-                    continue
-                if dld >= today:
                     continue
                 ds = (a.get("date") or "").strip()[:10]
                 try:
@@ -2816,12 +2955,17 @@ class H(BaseHTTPRequestHandler):
                         continue
                 except ValueError:
                     pass
-                key = (a.get("project"), a.get("task"), a.get("assignee"), dl)
+                if not (a.get("assignee") or "").strip():
+                    ukey = (a.get("project"), a.get("task"), a.get("deadline"))
+                    if ukey not in useen:
+                        useen.add(ukey)
+                        unassigned.append(a)
+                if not a.get("days_overdue"):
+                    continue
+                key = (a.get("project"), a.get("task"), a.get("assignee"), (a.get("deadline") or "").strip()[:10])
                 if key in seen:
                     continue
                 seen.add(key)
-                a = dict(a)
-                a["days_overdue"] = (today - dld).days
                 overdue.append(a)
             overdue.sort(key=lambda x: -x["days_overdue"])
             # 결재·확인 필요 — 미해결 결정 이월 로그 + 최신 브리프 decision_summary 병합
@@ -2853,7 +2997,7 @@ class H(BaseHTTPRequestHandler):
             except Exception:
                 pass
             return self._send(200, {"ok": True, "overdue": overdue, "decisions": decisions,
-                                    "approvals": approvals})
+                                    "approvals": approvals, "unassigned": unassigned})
         if path == "/api/lead-home":
             # 리더 홈 — 팀 Todo(이번주 분장) + 진행중 프로젝트 + 팀원 오늘 보고 카드(HTML fragment)
             uid = (q.get("user") or [""])[0]
@@ -2868,6 +3012,7 @@ class H(BaseHTTPRequestHandler):
             we = today - datetime.timedelta(days=today.weekday()) + datetime.timedelta(days=6)
             assigns = []
             approvals = []
+            unassigned = []  # filament 반영 — 담당 미지정(팀 귀속 또는 팀 공란) 배정 큐
             for a in _assign_read():
                 # 승인 대기(완료)는 날짜 무관 전체 — 리더 승인 큐
                 if (a.get("status") or "") == "완료" and (a.get("team") in teams or emp_team(a.get("assignee")) in teams):
@@ -2880,6 +3025,10 @@ class H(BaseHTTPRequestHandler):
                 if not (ws <= d <= we):
                     continue
                 if a.get("status") in _ASSIGN_HIDDEN_STATES:
+                    continue
+                if not (a.get("assignee") or "").strip() and a.get("status") in _ST.ASSIGN_OPEN_STATES \
+                        and (a.get("team") in teams or not (a.get("team") or "").strip()):
+                    unassigned.append(a)
                     continue
                 if a.get("team") in teams or emp_team(a.get("assignee")) in teams:
                     assigns.append(a)
@@ -2919,6 +3068,7 @@ class H(BaseHTTPRequestHandler):
                 brief_html = f'<div class="muted">보고 로드 실패: {e}</div>'
             return self._send(200, {"ok": True, "teams": teams, "assignments": assigns,
                                     "projects": projs, "approvals": approvals,
+                                    "unassigned": unassigned,
                                     "brief_html": brief_html, "brief_date": brief_date,
                                     "daily": _person_workbrief(uid, [a for a in assigns if a.get("assignee") == uid])})
         if path == "/api/projects":
@@ -3194,8 +3344,10 @@ class H(BaseHTTPRequestHandler):
                 if is_admin(uid):
                     if assignee not in (set(load_emp().get("team_leads", {}).values()) | {uid}):
                         errs.append(f"{assignee}: 대표는 리더·본인에게만 배분"); continue
-                elif emp_team(assignee) not in set(lead_teams_of(uid)):
-                    errs.append(f"{assignee}: 자기 팀원만 분장 가능"); continue
+                elif not (emp_team(assignee) in set(lead_teams_of(uid))
+                          or assignee in set(load_emp().get("team_leads", {}).values())):
+                    # 자기 팀원 외에 타팀 리더 이관 허용 (2026-07-20)
+                    errs.append(f"{assignee}: 자기 팀원 또는 타팀 리더(이관)에게만 분장 가능"); continue
                 pn = (it.get("project") or "").strip()
                 pn = name_map.get(pn, pn)
                 ok, msg = _assign_append(assignee, task, (it.get("deadline") or "").strip(),
@@ -3221,15 +3373,16 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"ok": added > 0, "added": added, "errors": errs,
                                     "created": created, "merged": merged, "tasks_synced": tasks_synced})
         if path == "/api/assign":
-            # (단건 — 하위호환) 업무분장 입력. 대표=전 직원, 리더=자기 팀원에게만
+            # (단건 — 하위호환) 업무분장 입력. 대표=리더·본인, 리더=자기 팀원+타팀 리더(이관)
             assignee = (b.get("assignee") or "").strip()
             task = (b.get("task") or "").strip()
             if not (assignee and task): return self._send(400, {"ok": False, "error": "담당자·업무 필수"})
             if is_admin(uid):
                 if assignee not in (set(load_emp().get("team_leads", {}).values()) | {uid}):
                     return self._send(403, {"ok": False, "error": "대표는 리더·본인에게만 배분할 수 있습니다"})
-            elif emp_team(assignee) not in set(lead_teams_of(uid)):
-                return self._send(403, {"ok": False, "error": "자기 팀원에게만 분장할 수 있습니다"})
+            elif not (emp_team(assignee) in set(lead_teams_of(uid))
+                      or assignee in set(load_emp().get("team_leads", {}).values())):
+                return self._send(403, {"ok": False, "error": "자기 팀원 또는 타팀 리더(이관)에게만 분장할 수 있습니다"})
             ok, msg = _assign_append(assignee, task, (b.get("deadline") or "").strip(),
                                      (b.get("priority") or "일반").strip(), uid)
             return self._send(200 if ok else 500, {"ok": ok, "error": msg})
@@ -3251,12 +3404,10 @@ class H(BaseHTTPRequestHandler):
             except (TypeError, ValueError):
                 row = 0
             new_task = (b.get("new_task") or "").strip()
-            new_project = (b.get("new_project") or "").strip()
-            new_dl = (b.get("new_deadline") or "").strip()
+            new_project_raw = b.get("new_project")   # 키 생략 = 변경 안 함 (담당자만 변경·미지정 배정용)
+            new_dl_raw = b.get("new_deadline")
             if row < 2 or not new_task:
                 return self._send(400, {"ok": False, "error": "row·업무 내용 확인"})
-            if new_dl and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", new_dl):
-                return self._send(400, {"ok": False, "error": "마감일 형식(YYYY-MM-DD)"})
             try:
                 cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:K{row}", retries=2, timeout=20)
             except Exception:
@@ -3264,10 +3415,23 @@ class H(BaseHTTPRequestHandler):
             r = (list(cur[0]) + [""] * 11)[:11] if cur else [""] * 11
             assignee = (r[3] or "").strip()
             old_task = (r[4] or "").strip()
+            new_project = (r[1] or "").strip() if new_project_raw is None else str(new_project_raw).strip()
+            new_dl = (r[5] or "").strip() if new_dl_raw is None else str(new_dl_raw).strip()
+            if new_dl != (r[5] or "").strip() and new_dl and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", new_dl):
+                return self._send(400, {"ok": False, "error": "마감일 형식(YYYY-MM-DD)"})
             if not old_task or old_task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
                 return self._send(409, {"ok": False, "error": "행 내용이 달라졌습니다 — 새로고침 후 다시 시도"})
-            if not (assignee == uid or _can_approve(uid, assignee)):
+            # 담당자 변경(filament 반영) — 미지정 큐 배정·리더 인라인 편집 공용
+            new_assignee = (b.get("new_assignee") or "").strip()
+            if not assignee:
+                # 미지정 행 — 배정은 대표·리더만
+                if not (is_admin(uid) or is_leader(uid)):
+                    return self._send(403, {"ok": False, "error": "미지정 배정 권한 없음(대표·리더)"})
+            elif not (assignee == uid or _can_approve(uid, assignee)):
                 return self._send(403, {"ok": False, "error": "수정 권한 없음(본인·대표·해당 팀 리더)"})
+            if new_assignee and new_assignee != assignee and not load_emp().get("by_name", {}).get(new_assignee):
+                return self._send(400, {"ok": False, "error": "담당자가 명부에 없습니다"})
+            final_assignee = new_assignee or assignee
             old_project = (r[1] or "").strip()
             try:
                 for col, old_v, new_v in (("B", old_project, new_project), ("E", old_task, new_task),
@@ -3275,6 +3439,10 @@ class H(BaseHTTPRequestHandler):
                     if new_v != old_v:
                         if not _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!{col}{row}", [[new_v]], timeout=20):
                             return self._send(500, {"ok": False, "error": f"{col}열 업데이트 실패"})
+                if final_assignee != assignee:  # D=담당자, C=팀(명부 기준 재산정)
+                    if not _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!D{row}", [[final_assignee]], timeout=20):
+                        return self._send(500, {"ok": False, "error": "D열(담당자) 업데이트 실패"})
+                    _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!C{row}", [[emp_team(final_assignee) or ""]], timeout=20)
                 if new_project != old_project:  # G1 — 프로젝트 변경 시 ID Relation(K) 재확정
                     _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!K{row}", [[_resolve_pid(new_project)]], timeout=20)
             except Exception as e:
@@ -3289,11 +3457,11 @@ class H(BaseHTTPRequestHandler):
                 if tp:
                     st = (r[7] or "미착수").strip()
                     tp.setdefault("tasks", []).append({
-                        "division": emp_team(assignee) or "", "task": new_task, "owner": assignee,
+                        "division": emp_team(final_assignee) or "", "task": new_task, "owner": final_assignee,
                         "start": (r[0] or "").strip()[:10], "end": new_dl,
                         "status": _ASSIGN_ST_MAP.get(st, "Not Started"),
                         "progress": _ASSIGN_PROG_MAP.get(st, 0),
-                        "akey": _akey((r[0] or "").strip(), new_task, assignee)})
+                        "akey": _akey((r[0] or "").strip(), new_task, final_assignee)})
                     save_project(tp)
             return self._send(200, {"ok": True})
         if path == "/api/assign-status":
