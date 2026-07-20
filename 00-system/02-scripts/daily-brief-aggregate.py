@@ -1143,12 +1143,45 @@ def save_and_notify(data: dict, do_open: bool, no_telegram: bool) -> Path:
     return html_path
 
 
+def _overdue_open_count(target: str) -> int:
+    """마감 초과·미완료 분장 수 — 모닝 발송용 (filament '오늘' 탭 반영, 2026-07-20).
+
+    fetch_assignments는 브리프 주(週)만 보므로 지난 주 등록분 지연을 놓친다.
+    여기서는 등록 30일 내 전체 행에서 열린 분장(완료·승인·삭제 제외)의 마감 경과를 센다.
+    판정은 shared/status.py SSOT(is_overdue) — 대시보드 대표창(exec-attn)과 동일 기준.
+    """
+    try:
+        rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:K5000")
+    except Exception:
+        return 0
+    today = datetime.strptime(target, "%Y-%m-%d").date()
+    reg_cut = today - timedelta(days=30)
+    n, seen = 0, set()
+    for r in rows:
+        r = r + [""] * (11 - len(r))
+        st = _ST.norm_assign_status(r[7])
+        if not (r[4] or "").strip() or not _ST.is_overdue((r[5] or "").strip(), st, today):
+            continue
+        nd = normalize_date(r[0])
+        if nd and datetime.strptime(nd, "%Y-%m-%d").date() < reg_cut:
+            continue
+        key = ((r[1] or "").strip(), (r[4] or "").strip(), (r[3] or "").strip(), (r[5] or "").strip())
+        if key in seen:
+            continue
+        seen.add(key)
+        n += 1
+    return n
+
+
 def _telegram_brief(data: dict):
     c = data["counts"]
     msg = (f"🗂 대표 Daily Brief {data['date']}({data['weekday']})\n"
            f"결정 {c['decision']} · 개입 {c['intervention']} · 리스크 {c['risk']} "
            f"· 지원 {c['support']} · 프로젝트 {c['project']} · 성장 {c['growth']}"
            + (f" · ⚡이상신호 {c['anomaly']}" if c.get("anomaly") else "") + "\n")
+    ov = _overdue_open_count(data["date"])
+    if ov:
+        msg += f"⏰ 마감 초과 {ov}건 — 대시보드 '내 업무'에서 처리\n"
     if data["top5"]:
         msg += "\n오늘 봐야 할 것:\n"
         for it in data["top5"]:

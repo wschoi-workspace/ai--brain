@@ -518,6 +518,10 @@ body.readonly .topbar .ver{color:var(--rust)}
     <div class="section-title">📋 자료 · 변경 이력</div>
     <div id="doc-log" class="brief-sum" style="margin-bottom:18px"></div>
 
+    <!-- ARISA 메모리 링크백 (B1 — filament 프로젝트 포커스 반영) -->
+    <div class="section-title">🗂 프로젝트 기록 · ARISA 메모리</div>
+    <div id="memory-hub" class="brief-sum" style="margin-bottom:18px"></div>
+
     <div class="note" id="auto-note"></div>
   </div>
 </div>
@@ -1391,15 +1395,35 @@ async function openProject(id){
   if(SERVED){
     const r=await apiGet('/project?id='+encodeURIComponent(id)+'&user='+encodeURIComponent(CURRENT_USER));
     if(!r.ok){ alert(r.error||'열기 실패'); return; } p=r.project; canEdit=!!r.canEdit; window.CURRENT_ASSIGN=r.assignments||[];
+    window.CURRENT_MEMORY=r.memory||null;
   } else {
     p=PROJECTS_CACHE.find(x=>x.id===id)||allProjects().find(x=>x.id===id);
     if(!p){ alert('프로젝트를 찾을 수 없습니다.'); return; } canEdit=amAdmin()||p.pm===CURRENT_USER; window.CURRENT_ASSIGN=[];
+    window.CURRENT_MEMORY=null;
   }
   CURRENT_PROJECT=p; CURRENT_CAN_EDIT=canEdit;
   state={brief:Object.assign({},p.brief), tasks:JSON.parse(JSON.stringify(p.tasks||[])), issues:JSON.parse(JSON.stringify(p.issues||[]))};
   window.__ganttExp=new Set();
   const ver=document.querySelector('.topbar .ver'); if(ver) ver.textContent=(p.name||'')+(canEdit?' · 수정 가능':' · 읽기 전용');
-  setView('view-detail'); afterLoad(); renderAssignSec(); renderDocLog();
+  setView('view-detail'); afterLoad(); renderAssignSec(); renderDocLog(); renderMemoryHub();
+}
+
+// ── ARISA 메모리 링크백 (B1) — 회의록·결정·진행 로그를 상세 화면에서 바로 열람 ──
+function renderMemoryHub(){
+  const el=$('#memory-hub'); if(!el) return;
+  const mem=window.CURRENT_MEMORY;
+  if(!mem||!mem.folder){ el.innerHTML='<div class="m-sub" style="font-size:11.5px;color:var(--fg-3)">연결된 ARISA 메모리 폴더가 없습니다.</div>'; return; }
+  const link=f=>'/api/project/memory-doc?id='+encodeURIComponent(CURRENT_PROJECT.id)
+    +'&user='+encodeURIComponent(CURRENT_USER)+'&f='+encodeURIComponent(f);
+  const aStyle='display:inline-block;margin:0 6px 6px 0;padding:6px 12px;border:1px solid var(--line);border-radius:8px;'
+    +'font-size:11.5px;text-decoration:none;color:var(--accent-lt)';
+  let h='<div style="font-size:11px;color:var(--fg-3);margin-bottom:6px">📁 '+esc(mem.folder)+'</div>';
+  (mem.files||[]).forEach(f=>{ h+=`<a target="_blank" style="${aStyle}" href="${link(f.file)}">${esc(f.label)}</a>`; });
+  if((mem.meetings||[]).length){
+    h+='<div style="font-size:11px;color:var(--fg-3);margin:6px 0 4px">📝 회의록 최근 '+mem.meetings.length+'건</div>';
+    mem.meetings.forEach(m=>{ h+=`<a target="_blank" style="${aStyle}" href="${link('01_meeting_logs/'+m)}">${esc(m.replace(/\.md$/,''))}</a>`; });
+  }
+  el.innerHTML=h;
 }
 
 // ───────── 자료(회의록) 업로드 → AI 브리프 갱신 + 변경 이력 ─────────
