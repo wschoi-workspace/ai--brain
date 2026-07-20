@@ -48,6 +48,19 @@ def current_mode(today=None) -> str:
     return "grace" if d <= GRACE_END else "strict"
 
 
+# 결정 단서어 — 보고 본문에 이 표현이 있으면 "결정이 필요한 사안"이 있다고 본다.
+# strict 모드의 의사결정 질문 분기(구체화 vs 존재 질문)에 사용 (2026-07-20 사용자 규칙).
+import re as _re
+DECISION_CUE_RE = _re.compile(
+    r"결정[이을]?\s*필요|필요한\s*(의사)?결정|의사결정|컨펌|승인[이을]?\s*(필요|요청)"
+    r"|정해\s*주|정해줘|결재|재가|사인[이을]?\s*필요")
+
+
+def has_decision_cue(text: str) -> bool:
+    """텍스트에 결정 단서어가 있는지 — strict 모드 의사결정 질문 분기용."""
+    return bool(DECISION_CUE_RE.search(text or ""))
+
+
 # ===== 프롬프트 블록 =====
 
 CLASSIFY_RULES = """## 1단계 — 보고 유형(report_type) 분류

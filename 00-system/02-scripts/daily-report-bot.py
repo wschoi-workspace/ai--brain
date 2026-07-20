@@ -801,8 +801,16 @@ def _rule_based_gaps(report: dict) -> list[str]:
             gaps.append(f"'{task_name}'의 산출물로 그래서 무엇이 달라졌나요? (의미·변화 한 줄)")
 
     # Wave 3: 의사결정 유도 — 전원 0% 공란 개선
+    # strict 전환(GRACE_END 이후) 강화 규칙(2026-07-20 사용자 지시): 보고 본문에
+    # 결정 단서어("결정이 필요"·컨펌·승인 등)가 보이면 존재 질문 대신 구체화 질문.
     if not report.get("decision_needed"):
-        gaps.append("오늘 업무 중 대표나 팀장이 정해줘야 할 것이 있나요? (없으면 '없음')")
+        if (_report_score.current_mode() == "strict"
+                and _report_score.has_decision_cue(
+                    json.dumps(report, ensure_ascii=False))):
+            gaps.append("보고에 결정이 필요한 사안이 보여요 — 무엇을 결정해야 하는지 "
+                        "옵션과 기한을 함께 알려줄 수 있나요?")
+        else:
+            gaps.append("오늘 업무 중 대표나 팀장이 정해줘야 할 것이 있나요? (없으면 '없음')")
 
     return gaps
 
