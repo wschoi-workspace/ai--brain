@@ -2,6 +2,21 @@
 
 ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용.
 
+## 2026-07-20 — 보고 채점 갭 해소: 유형별 이원 루브릭 + grace/strict 2모드 (맥미니 배포 완료)
+
+**문제**: 같은 일일보고가 시뮬레이터 100점 vs 텔레그램 봇 60점. 원인 3중 — ①텔레그램 플로우가 decision(20)·support(10)를 안 물어 구조적 -30점 ②봇 SCORE_PROMPT만 감점 규칙 강행(시뮬레이터는 루브릭 표만) ③모델 상이(4o-mini vs 4o).
+
+**설계 (사용자 결정)**: 봇 기준 통일 + 유예기간 순화 / **보고 유형 이원화** — 진행공유(A)·이슈(B)·의사결정(C)별 가중치 분리 (A·B는 decision 미채점 → 채널 간 구조 갭 자체가 소멸).
+
+- **`shared/report_score.py` 신설 (채점 SSOT)**: TYPE_WEIGHTS(A: ctx25/obj15/ev20/pri25/risk15 · B: +risk25/sup15 · C: decision30 포함 7항목, 각 합 100) + `GRACE_END=2026-10-20`(순화→엄격 자동 전환, 한 줄 조정) + CLASSIFY_RULES + RUBRIC_RULES_STRICT/GRACE(순화: 모호표현 60% 하한·risk 조건부 80% 상한·사실/해석 80% 하한) + `build_prompt(mode)` + `validate_scores`(int형·dict형 겸용 클램프, mode/weights 스탬프)
+- **봇(daily-report-bot.py)**: SCORE_PROMPT 상수 → 공유 코어+봇 출력블록 조립(`_score_prompt()`), rubric_evaluate → validate_scores 위임, _rule_based_score 폴백도 유형 추정(C>B>A)+유형 가중치, gaps 우선순위 유형별(A: evidence→context/objective→priority / B: risk→support→evidence / C: decision→risk→evidence), score_detail JSON에 mode·weights 추가
+- **시뮬레이터(dashboard-server.py)**: SIMULATOR_DAILY_PROMPT → 공유 코어+교육 출력블록(`_sim_daily_prompt()`, 안티패턴 7종 "감지 시 반드시 감점 반영" 연동), review 채점을 gpt-4o-mini temp0.3 고정(`_call_llm_json`에 openai_model/openai_only 추가, draft는 현행 유지), 결과 validate_scores+등급 재계산, UI에 유형 배지+순화 기준 배지
+- **캘리브레이션 (`report-score-calibrate.py` 신설)**: 동일 내용 6샘플(A/B/C×우수/미흡)×3회×2채널 36회 채점 — **전체 합격**: 채널 갭 최대 6.7점(기준 ±10), 유형 분류 100% 일치, 변별력 유지(우수 93~100 vs 미흡 25~50). 출력블록은 소스에서 런타임 추출(SSOT 복붙 방지)
+- **문서**: 정의 v1 md에 §7-1(유형별 가중치 표·2모드·모델·캘리브레이션 결과) 추가
+- **배포**: 백업(/tmp/*.bak-scoregap) → scp 4파일 → py_compile OK → dashboard·daily-report-bot kickstart → 8780 200 + **실 API E2E**(decision 위주 입력 → Type C·grace·클램프 채점 확인)
+- 유의: dashboard-server.py 로컬≠맥미니 4줄(HR 링크)이었음 → 맥미니본 역동기화 후 작업 (표준 패턴 재확인)
+- **후속**: strict 전환(10/21~) 시점에 텔레그램 플로우 결정·지원 질문 단계 추가 재검토 / 가중치 수치는 주간 대시보드 점수 분포 2~4주 관찰 후 튜닝 / 직원 공지문 별도
+
 ## 2026-07-18 — 노션 PM 시스템 갭 분석
 
 - **리포트**: `notion-pm-gap-analysis-2026-07-18.html` — 노션 공식 문서(help/relations-and-rollups·views·projects-and-tasks·tasks-and-dependencies·sprints·database-automations·autofill) 리서치 → 효율 원리 7개 추출 → ARISA 실측 대조(프로젝트 JSON SSOT·분장 시트·브리프·decisions.jsonl 기준)
@@ -511,3 +526,7 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
 
 ### 백로그 (2026-07-19 추가)
 - [ ] HR 포털 관리자 지표 연동(D안): 대표창에 미결 결제·휴가 대기 건수 + 딥링크 — HR 포털에 서비스 토큰 API 필요, **맥미니 전환 판정 후** 착수 (판정 전 fly deploy 금지)
+
+## 2026-07-19 (추가) — 셸 HR 포털 탭
+- 대표 전용 "HR 포털 ↗" 새 창 링크 탭 (5b0742d). 프록시 통합은 맥미니 SPOF·홉 추가로 기각
+- 백로그의 HR 관리자 지표 연동(D안)은 맥미니 전환 판정 완료(7/19)로 착수 가능해짐
