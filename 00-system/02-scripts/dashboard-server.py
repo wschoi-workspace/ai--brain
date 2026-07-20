@@ -43,6 +43,8 @@ WEEKLY_KEY = os.environ.get("WEEKLY_KEY", "")
 BRIEF_DIR = Path(os.environ.get("BRIEF_DIR") or (_WS / "20-operations" / "23-arisa" / "brief"))
 # 팀 리더 판정 출처 — arisa-employees.json의 team_leads(팀→리더이름) 역매핑.
 EMP_PATH = Path(__file__).resolve().parent / "arisa-employees.json"
+# ARISA 프로젝트 메모리(회의록·결정·진행 로그) 링크백 — filament 프로젝트 포커스 반영 (B1, 2026-07-20)
+MEMORY_DIR = Path(os.environ.get("ARISA_MEMORY_DIR") or (Path.home() / "arisa-project-memory" / "projects"))
 # ARISA 2.0 리버스 프록시 — /arisa2/* → localhost:ARISA2_PORT
 ARISA2_PORT = int(os.environ.get("ARISA2_PORT", "8787"))
 ARISA2_UPSTREAM = f"http://127.0.0.1:{ARISA2_PORT}"
@@ -84,20 +86,20 @@ def _assign_read():
     if not (_asgws and DAILY_SHEET):
         return []
     try:
-        rows = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A2:K5000", retries=2, timeout=20)
+        rows = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A2:L5000", retries=2, timeout=20)
     except Exception:
         return []
     out = []
     for i, r in enumerate(rows):
-        r = list(r) + [""] * (11 - len(r))
-        # 시트 헤더: 날짜·프로젝트명·팀구분·담당자·업무내용·일정(완료예상)·결과물·상태·이해관계자·우선순위·프로젝트ID(K, G1)
+        r = list(r) + [""] * (12 - len(r))
+        # 시트 헤더: 날짜·프로젝트명·팀구분·담당자·업무내용·일정(완료예상)·결과물·상태·이해관계자·우선순위·프로젝트ID(K, G1)·등록자(L, 2026-07-20)
         a = {"row": i + 2,  # 시트 실제 행 번호 (A2부터) — 상태 업데이트용
              "date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
              "team": (r[2] or "").strip(), "assignee": (r[3] or "").strip(),
              "task": (r[4] or "").strip(), "deadline": (r[5] or "").strip(),
              "result": (r[6] or "").strip(), "status": _ST.norm_assign_status(r[7]),
              "stakeholder": (r[8] or "").strip(), "priority": _ST.norm_priority(r[9]),
-             "pid": (r[10] or "").strip()}
+             "pid": (r[10] or "").strip(), "by": (r[11] or "").strip()}
         # filament 반영 — 지연 N일(열린 분장만)을 모든 소비자(내 업무·리더 홈·대표창)에 공급
         a["days_overdue"] = _ST.overdue_days(a["deadline"]) if _ST.is_overdue(a["deadline"], a["status"]) else 0
         out.append(a)
@@ -109,8 +111,9 @@ def _assign_append(assignee, task, deadline, priority, by, project="", result=""
     if not (_asgws and DAILY_SHEET):
         return False, "시트 미설정"
     team = emp_team(assignee) or ""
+    # L열 등록자(by) — 받은 업무 섹션의 출처 표시(대표 지시/리더 이관/본인 등록)용 (2026-07-20)
     row = [datetime.date.today().isoformat(), project, team, assignee, task, deadline,
-           result, "미착수", stakeholder, priority, _resolve_pid(project)]
+           result, "미착수", stakeholder, priority, _resolve_pid(project), (by or "").strip()]
     try:
         ok = _asgws.append_to_sheet(DAILY_SHEET, f"{ASSIGN_TAB}!A1", row, timeout=20)
         return bool(ok), "" if ok else "주간분장 탭 없음/append 실패"
@@ -1082,7 +1085,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       h+=mwProjUpdatesHtml(lh.daily);
       h+=mwApprovalsHtml(lh.approvals||[]);
       if(received.length){
-        h+='<div class="mw-h">📥 받은 업무 <span class="sub2">— 대표 지시 · [상세 분장]으로 팀원에게 쪼개서 배분하세요</span></div>';
+        h+='<div class="mw-h">📥 받은 업무 <span class="sub2">— 대표 지시·리더 이관 · [상세 분장]으로 팀원에게 쪼개서 배분하세요</span></div>';
         received.forEach(function(a,i){
           var st=a.status||'미착수';
           var badge='<span class="lh-st '+(st==='완료'?'lh-done':(st==='진행중'?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
@@ -1096,7 +1099,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           }
           h+='<div class="mw-card rc-card"><div class="t">'+badge+' '+esc(a.task)+urg+act
             +'<button class="rc-btn" data-i="'+i+'">→ 팀원에게 상세 분장</button></div>'
-            +'<div class="m">'+pj+'대표 지시'+dl+'</div></div>';
+            +'<div class="m">'+pj+esc(a.src||'대표 지시')+dl+'</div></div>';
         });
       }
       h+=mwDueHtml(A);                              // A1 — 지난·오늘·내일 마감 모아보기
@@ -1856,6 +1859,40 @@ def _resolve_pid(project):
         return (hit.get("id") or "") if hit else ""
     except Exception:
         return ""
+
+
+_MEMORY_FILES = (("00_project_brief.md", "📌 프로젝트 브리프"),
+                 ("02_decisions.md", "⚖️ 결정 기록"),
+                 ("03_todos.md", "✅ 할 일"),
+                 ("05_strategy_report.md", "🧭 전략 리포트"),
+                 ("06_progress_log.md", "📈 진행 로그"))
+
+
+def _memory_dir_for(p):
+    """포트폴리오 프로젝트 → arisa-project-memory/projects/<폴더> 매칭 (이름·별칭)."""
+    try:
+        if not MEMORY_DIR.exists():
+            return None
+        names = [p.get("name") or ""] + [a for a in (p.get("aliases") or []) if a]
+        for d in sorted(MEMORY_DIR.iterdir()):
+            if not d.is_dir() or d.name.startswith("_"):
+                continue
+            if any(_match_project(d.name, n) for n in names if n):
+                return d
+    except Exception:
+        pass
+    return None
+
+
+def _memory_hub(p):
+    """프로젝트 상세용 ARISA 메모리 링크백(B1) — 존재 파일 + 최근 회의록 5건."""
+    d = _memory_dir_for(p)
+    if not d:
+        return None
+    files = [{"file": f, "label": lab} for f, lab in _MEMORY_FILES if (d / f).exists()]
+    ml = d / "01_meeting_logs"
+    meetings = sorted((f.name for f in ml.glob("*.md")), reverse=True)[:5] if ml.is_dir() else []
+    return {"folder": d.name, "files": files, "meetings": meetings}
 
 
 def _find_project_for_assign(assign):
@@ -3034,6 +3071,17 @@ class H(BaseHTTPRequestHandler):
                     assigns.append(a)
             assigns.sort(key=lambda a: (a["status"] == "완료", a["status"] != "진행중",
                                         a.get("deadline") or "9999", a.get("assignee") or ""))
+            # 받은 업무 출처 라벨 (L열 등록자) — 과거 행(공란)은 종전 표기 유지 (2026-07-20)
+            for a in assigns:
+                by = (a.get("by") or "").strip()
+                if not by or is_admin(by):
+                    a["src"] = "대표 지시"
+                elif by == uid:
+                    a["src"] = "본인 등록"
+                elif is_leader(by):
+                    a["src"] = f"{by} 리더 이관"
+                else:
+                    a["src"] = f"{by} 등록"
             projs = []
             for p in load_projects():
                 if not (project_teams(p) & set(teams)):
@@ -3089,7 +3137,8 @@ class H(BaseHTTPRequestHandler):
             if not can_view(uid, p): return self._send(403, {"ok": False, "error": "forbidden"})
             if _sync_assign_status(p): save_project(p)  # 분장 시트(SSOT) 상태 lazy 반영
             return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
-                                    "assignments": _project_assignments(p.get("name") or "", p.get("aliases"), p.get("id") or "")})
+                                    "assignments": _project_assignments(p.get("name") or "", p.get("aliases"), p.get("id") or ""),
+                                    "memory": _memory_hub(p)})  # B1 — ARISA 메모리 링크백
         if path == "/api/project/open-assigns":
             # 아카이브 모달 사전 경고용 — 열린 분장(미착수·진행중, 전 기간)
             uid = (q.get("user") or [""])[0]
@@ -3125,6 +3174,35 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True, "title": meta.get("title") or ts,
                                     "by": meta.get("by") or "", "ts": ts,
                                     "text": f.read_text(encoding="utf-8")})
+        if path == "/api/project/memory-doc":
+            # ARISA 메모리 원문 열람(B1) — 프로젝트 열람 권한자, 새 탭 HTML
+            uid = (q.get("user") or [""])[0]
+            p = get_project((q.get("id") or [""])[0])
+            if not p:
+                return self._send(404, "<h1>프로젝트 없음</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            if not can_view(uid, p):
+                return self._send(403, "<h1>열람 권한 없음</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            f = (q.get("f") or [""])[0]
+            # 경로 이탈 방지 — 메모리 폴더 직속 .md 또는 01_meeting_logs/ 하위 .md만
+            if not re.fullmatch(r"(?:01_meeting_logs/)?[\w가-힣.\- ()]+\.(?:md|html)", f) or ".." in f:
+                return self._send(400, "<h1>파일명 형식</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            d = _memory_dir_for(p)
+            fp = (d / f) if d else None
+            if not (fp and fp.exists()):
+                return self._send(404, "<h1>기록 파일 없음</h1>".encode("utf-8"), "text/html; charset=utf-8")
+            import html as _h
+            if f.endswith(".html"):
+                return self._send(200, fp.read_text(encoding="utf-8").encode("utf-8"), "text/html; charset=utf-8")
+            page = ("<!DOCTYPE html><html lang=\"ko\"><head><meta charset=\"utf-8\">"
+                    "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+                    f"<title>{_h.escape(f)} · {_h.escape(p.get('name') or '')}</title>"
+                    "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css\">"
+                    "<style>body{background:#1A1A1A;color:#F5F0EB;font-family:'Pretendard Variable',sans-serif;"
+                    "max-width:860px;margin:0 auto;padding:40px 24px}pre{white-space:pre-wrap;line-height:1.7;font-size:13.5px}"
+                    "h1{font-size:16px;color:#6C5CE7;font-weight:600}</style></head><body>"
+                    f"<h1>🗂 {_h.escape(p.get('name') or '')} — {_h.escape(f)}</h1>"
+                    f"<pre>{_h.escape(fp.read_text(encoding='utf-8'))}</pre></body></html>")
+            return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/api/brief-comments":
             uid = (q.get("user") or [""])[0]
             if not load_users().get(uid): return self._send(401, {"ok": False, "error": "unknown user"})

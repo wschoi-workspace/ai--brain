@@ -69,6 +69,29 @@ def badge_class(st) -> str:
     return ASSIGN_BADGE_CLASS.get(st or "", ASSIGN_BADGE_DEFAULT)
 
 
+def overdue_days(deadline, today=None) -> int:
+    """마감 경과일 — 마감(YYYY-MM-DD)이 지났으면 경과일(≥1), 아니면 0.
+
+    filament 반영(2026-07-20): '지연 N일' 배지·오늘 섹션·모닝 발송이 모두
+    이 함수를 쓴다. 형식이 아니면(빈값·자유텍스트) 0 — 지연 아님으로 안전 처리.
+    """
+    import datetime as _dt
+    dl = (deadline or "").strip()[:10]
+    try:
+        dld = _dt.date.fromisoformat(dl)
+    except ValueError:
+        return 0
+    today = today or _dt.date.today()
+    return max(0, (today - dld).days)
+
+
+def is_overdue(deadline, status, today=None) -> bool:
+    """지연 판정 — 열린 분장(완료·승인·삭제 제외)이고 마감이 지났는가."""
+    if (status or "") in ASSIGN_CLOSED_STATES:
+        return False
+    return overdue_days(deadline, today) > 0
+
+
 def task_rollup(tasks) -> dict:
     """프로젝트 진행률 자동 롤업 (G3 — 노션 'Task completion percent' 방식).
 
