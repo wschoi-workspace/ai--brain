@@ -2,6 +2,15 @@
 
 ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용.
 
+## 2026-07-20 — 대표 브리프 카드 과축약 해소: 압축 완화 + 원문 펼쳐보기 (맥미니 배포 완료)
+
+카드가 "8일째 미결"처럼 대상이 사라질 정도로 축약돼 상황 파악 불가하던 문제 (daily-brief-aggregate.py):
+- **BRIEF_PROMPT 압축 규칙 신설**: detail을 2~4문장(배경→현재 상태(수치·날짜)→필요 액션)으로, 고유명사·수치·기한 생략 금지, "원문이 복잡하면 충분히 길게 — 길이보다 이해 우선". title도 고유명사·핵심 수치 포함 지시
+- **카드 하부 "📄 보고 원문 보기" 접기**: `_card_source_html` 신설 — 카드의 source_employee를 brief JSON `people[]`에 매칭해 당일 정리 보고 전체(핵심업무 업무/산출물/이슈/의미/상세 + 메타 블로커/결정/지원/질문 + **basket 결재·매출**) 렌더. 카드 project와 일치하는 업무 블록 상단 정렬, 매칭 실패 시 생략. `.ic-src` CSS(▸/▾ 접기, 좌보더 블록)
+- 검증: 렌더 단위테스트 3종 + **7/16 실데이터 재생성 e2e**(detail 104자·양은정 결정 카드에 원문 블록 부착 확인) → 검증용 재생성분은 원본 복원 (내일 07:30 cron부터 새 포맷 적용)
+- ⚠️ 운영 지식 확보: 수동 재생성은 **`.venv311/bin/python`**(system python3엔 openai 없음 → engine_d 빈 결과) + gws PATH 선주입 필수. 7/17·7/18은 실제 보고 0건(수집 정상)이라 이월 결정만 표시된 것
+- 범위 외: 텔레그램 발송본은 현행 유지 (HTML 브리프만)
+
 ## 2026-07-20 — 주간분장 타팀 리더 이관 (맥미니 배포 완료)
 
 분장 등록 편집기에서 리더의 담당자 후보가 자기 팀원만이던 것을 **자기 팀원 + 타팀 리더(이관)**로 확장 — 대표→리더→팀원 위계에 "리더→타팀 리더→그 팀원" 경로 추가. 이관받은 항목은 그 리더의 팀 스코프로 기록돼 팀 홈에 잡히고, 재분장은 기존 기능 그대로.
@@ -543,3 +552,39 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
 ## 2026-07-19 (추가) — 셸 HR 포털 탭
 - 대표 전용 "HR 포털 ↗" 새 창 링크 탭 (5b0742d). 프록시 통합은 맥미니 SPOF·홉 추가로 기각
 - 백로그의 HR 관리자 지표 연동(D안)은 맥미니 전환 판정 완료(7/19)로 착수 가능해짐
+
+## 2026-07-20 — filament 벤치마킹 P0+P1 6종 배포 (a10e8cf)
+
+### 배경
+- filament-ops-board.vercel.app/console 실사(로그인 최원석/0000, 6개 탭 전수) → ARISA 갭 매핑
+- 계획: ~/.claude/plans/https-filament-ops-board-vercel-app-cons-functional-bear.md
+- 확정 범위: P0+P1 전부, 채팅 단일 입구는 제외(arisa2 Decision Window와 통합 예정)
+
+### 구현 (dashboard-server.py + shared/status.py + daily-brief-aggregate.py + 포트폴리오_대시보드.html)
+- **A1 지연 감지**: status.py `is_overdue`/`overdue_days` SSOT → `_assign_read`가 전 소비자에
+  days_overdue 공급, 분장 카드 '지연 N일' 배지, 리더 홈 '⏰ 마감 임박'(지난·오늘·내일),
+  모닝 텔레그램 '마감 초과 N건' 라인(`_overdue_open_count` — exec-attn과 동일 판정)
+- **A2 미지정 큐**: exec-attn·lead-home `unassigned` + '◆ 담당 미지정 배정' 섹션,
+  assign-edit `new_assignee`(D열+C열 팀 재산정, 부분수정 구조로 개편 — 키 생략=변경 안 함)
+- **A3 완료/보관함 분리**: 분장 리스트 열린 할 일 중심 + '▸ 완료·승인 대기 N건' 접힘
+- **B1 프로젝트 허브**: `/api/project`에 memory(arisa-project-memory/projects/<폴더> 매칭,
+  브리프·결정·할일·전략·진행로그 + 회의록 최근 5), `/api/project/memory-doc` 원문 열람,
+  포트폴리오 상세 '🗂 프로젝트 기록' 섹션
+- **B2 리더 인라인 편집**: 팀 Todo 카드에 상태·담당자 셀렉트(il-sel) 즉시 시트 반영
+- **B3 담당자별 보기**: 팀 Todo 개인 필터 칩(이름+열린 건수, filament 사이드바 패턴)
+
+### 검증·배포
+- 유닛: is_overdue 경계(완료·삭제 제외, 비ISO 안전) / 봉은사 memory hub 매칭 ✓
+- 로컬 E2E(8999) + 맥미니 프로덕션(8780): exec-attn 지연 13·미지정 1 실감지,
+  lead-home(전제훈) 24건, 봉은사 링크백 파일 5·회의록 5 ✓
+- 배포: scp 4파일 → launchctl kickstart com.projectrent.dashboard → 헬스 OK
+
+### 주의사항
+- 동시 세션(주간분장 L열·타팀 리더 이관 작업)과 같은 워킹트리 병행 편집 — 커밋이 서로의
+  변경을 일부 포함(5c671d4·e9f57ac·a10e8cf). 파일 상태는 병합 무결, 히스토리만 교차
+- 포트폴리오_대시보드.html은 generate-portfolio.py 재생성 시 누적 기능 유실 — 직접 편집만
+
+### 제외/후속
+- [ ] 채팅 단일 입구 → arisa2 Decision Window Sprint에서
+- [ ] 미러 보고서(보고자별 원문 그대로) → '거울 정확성 보정' 후속 논의와 통합
+- [ ] 재무(계약·인보이스·입금) → 별도 프로젝트 규모

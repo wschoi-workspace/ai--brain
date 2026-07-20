@@ -247,11 +247,18 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
 [decision 항목 구조 (§9-3)] decision 항목에는 보고에 근거가 있을 때만 다음을 채워라(없으면 ""):
   recommendation=담당자의 추천안, deadline=결정이 필요한 기한, delay_impact=미결정 시 영향
 
+[압축 규칙 — 이해가 길이보다 우선 (2026-07-20)]
+- 축약으로 맥락이 사라지면 안 된다. 처음 읽는 사람이 title+detail만으로
+  "무슨 프로젝트의 무슨 일이, 지금 어떤 상태이고, 무엇을 해야 하는지"를 파악할 수 있어야 한다.
+- 고유명사(업체·프로젝트·인물)·수치·날짜·기한은 생략 금지 — "8일째 미결"처럼
+  대상이 사라진 요약을 만들지 마라 (무엇이 미결인지 반드시 포함).
+- 원문이 단순하면 짧게, 복잡하면 충분히 길게. 억지로 한 줄에 구겨 넣지 마라.
+
 반드시 아래 JSON만 출력:
 {"headline":"오늘 이 조직/팀이 가장 주목해야 할 핵심을 한 문장으로(의사결정·리스크 우선). 근거 없으면 빈 문자열.",
  "items":[{"category":"decision|intervention|risk|support|project|growth|anomaly",
-  "title":"대표가 30초에 읽는 한 줄 요약",
-  "detail":"무엇을 결정/개입/주시해야 하나 (구체)",
+  "title":"핵심 한 줄 (무엇에 대한 건인지 알 수 있게 고유명사·핵심 수치 포함)",
+  "detail":"2~4문장: ①배경(무슨 프로젝트의 무슨 일인지) ②현재 상태(수치·날짜·경과 포함) ③대표가 해야 할 액션. 원문 근거 범위 안에서 상황이 그려지도록 서술",
   "urgency":"high|mid|low",
   "source_employee":"근거 보고 직원명",
   "project":"프로젝트명 또는 null",
@@ -651,7 +658,59 @@ def _urg_badge(u: str) -> str:
     return f'<span class="urg urg-{u}">{lab}</span>'
 
 
-def _item_card(it: dict) -> str:
+def _card_source_html(it: dict, people_by_name: dict | None) -> str:
+    """카드 하부 '보고 원문 보기' — 근거 직원의 당일 정리 보고를 접기로 첨부 (2026-07-20).
+
+    요약이 아무리 좋아도 축약 한계가 있어, 정확한 상황 파악의 최종 수단으로
+    시트 원문 정리본(핵심업무·메타)을 그대로 보여준다. 매칭 실패 시 빈 문자열."""
+    if not people_by_name:
+        return ""
+    p = people_by_name.get((it.get("source_employee") or "").strip())
+    if not p:
+        return ""
+    proj = (it.get("project") or "").strip()
+    core = list(p.get("core") or [])
+    # 카드의 프로젝트와 일치하는 업무 블록을 맨 위로
+    if proj:
+        core.sort(key=lambda c: 0 if proj in ((c.get("project") or "") + (c.get("task") or "")) else 1)
+    bits = []
+    for c in core:
+        rows = []
+        for k, lab in (("task", "업무"), ("output", "산출물"), ("issue", "이슈"),
+                       ("outcome", "의미"), ("detail", "상세")):
+            v = (c.get(k) or "").strip()
+            if v:
+                rows.append(f'<div><b>{lab}</b> {_esc(v)}</div>')
+        if rows:
+            pj = (c.get("project") or "").strip()
+            head = f'<div class="src-pj">{_esc(pj)}</div>' if pj else ""
+            bits.append(f'<div class="src-task">{head}{"".join(rows)}</div>')
+    meta = p.get("meta") or {}
+    mrows = []
+    for k, lab, _cls in _META_LABELS:
+        v = (meta.get(k) or "").strip()
+        if v:
+            mrows.append(f'<div><b>{lab}</b> {_esc(v)}</div>')
+    if mrows:
+        bits.append(f'<div class="src-task">{"".join(mrows)}</div>')
+    # 매장(basket) 보고 — 결재·매출 등 [라벨, 값] 쌍 (core 없이 basket만 있는 보고자 대응)
+    brows = []
+    for pair in (p.get("basket") or []):
+        try:
+            lab, v = pair[0], pair[1]
+        except (IndexError, TypeError):
+            continue
+        if (v or "").strip():
+            brows.append(f'<div><b>{_esc(lab)}</b> {_esc(v)}</div>')
+    if brows:
+        bits.append(f'<div class="src-task">{"".join(brows)}</div>')
+    if not bits:
+        return ""
+    return (f'<details class="ic-src"><summary>📄 보고 원문 보기 — {_esc(p.get("name", ""))}</summary>'
+            f'<div class="ic-src-body">{"".join(bits)}</div></details>')
+
+
+def _item_card(it: dict, people_by_name: dict | None = None) -> str:
     src = _esc(it["source_employee"])
     proj = f' · {_esc(it["project"])}' if it["project"] else ""
     rel = f'<div class="rel">{_esc(it["related"])}</div>' if it["related"] else ""
@@ -663,10 +722,11 @@ def _item_card(it: dict) -> str:
         if v:
             dec_bits.append(f'<div class="rel">· {lab}: {_esc(v)}</div>')
     dec_html = "".join(dec_bits)
+    src_html = _card_source_html(it, people_by_name)
     return f'''<div class="card">
       <div class="ic-h"><b>{_esc(it["title"])}</b>{_urg_badge(it["urgency"])}</div>
       <div class="ic-d">{_esc(it["detail"])}</div>
-      <div class="ic-m">{src}{proj}</div>{dec_html}{rel}
+      <div class="ic-m">{src}{proj}</div>{dec_html}{rel}{src_html}
     </div>'''
 
 
@@ -929,11 +989,12 @@ def render_brief_html(data: dict) -> str:
         </div>''')
     hero_html = "".join(hero) or '<div class="muted">오늘 들어온 보고가 없습니다.</div>'
 
-    # 5범주 섹션
+    # 5범주 섹션 — 카드마다 근거 직원의 원문 정리본 접기 첨부 (2026-07-20)
+    people_by_name = {p.get("name"): p for p in data.get("people", []) if p.get("name")}
     secs = []
     for c in CAT_ORDER:
         lab, col = CAT_META[c]
-        cards = [_item_card(it) for it in data["items"] if it["category"] == c]
+        cards = [_item_card(it, people_by_name) for it in data["items"] if it["category"] == c]
         body = "".join(cards) or '<div class="muted">오늘 해당 없음</div>'
         secs.append(f'<h2 class="sec" style="border-color:{col}"><span style="color:{col}">●</span> {_esc(lab)}'
                     f' <span class="cnt">{data["counts"][c]}</span></h2><div class="grid">{body}</div>')
@@ -998,6 +1059,16 @@ h2.sec .cnt{{margin-left:auto;color:var(--muted);font-size:12px;font-weight:400}
 .ic-d{{font-size:13px;color:var(--fg);line-height:1.6;margin-bottom:8px}}
 .ic-m{{font-size:12px;color:var(--accent)}}
 .rel{{font-size:11px;color:var(--muted);margin-top:4px;border-top:1px solid var(--line);padding-top:6px}}
+.ic-src{{margin-top:8px;border-top:1px solid var(--line);padding-top:6px}}
+.ic-src summary{{font-size:11.5px;color:var(--muted);cursor:pointer;list-style:none}}
+.ic-src summary::-webkit-details-marker{{display:none}}
+.ic-src summary::before{{content:"▸ "}}
+.ic-src[open] summary::before{{content:"▾ "}}
+.ic-src summary:hover{{color:var(--accent)}}
+.ic-src-body{{margin-top:8px;display:flex;flex-direction:column;gap:8px}}
+.src-task{{border-left:2px solid var(--line);padding:6px 10px;font-size:12px;line-height:1.65;color:var(--fg);background:rgba(255,255,255,.02);border-radius:0 6px 6px 0}}
+.src-task b{{color:var(--muted);font-weight:600;margin-right:4px}}
+.src-pj{{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:2px}}
 .urg{{font-size:11px;border-radius:5px;padding:2px 8px;white-space:nowrap;flex-shrink:0}}
 .urg-high{{background:rgba(225,112,85,.16);color:var(--red);border:1px solid rgba(225,112,85,.4)}}
 .urg-mid{{background:rgba(217,163,75,.14);color:var(--amber);border:1px solid rgba(217,163,75,.35)}}
