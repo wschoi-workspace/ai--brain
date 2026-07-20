@@ -28,7 +28,7 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -1145,9 +1145,16 @@ async def finalize_and_send(
     """Engine C 실행 → 최종 채점(Reporting OS) → 직원 회신(거울) + 관리자 전송 + 시트 저장."""
     # 핫픽스(2026-07-12): 보고 날짜 = 제출일. PicklePersistence로 부활한 과거 세션(/report 없이
     # 이어짐)이 시작일 날짜로 저장되면 브리프 집계(직전 영업일 소스)에서 영구 누락된다.
-    today = datetime.now().strftime("%Y-%m-%d")
+    # 정책(2026-07-20, 대표 지시): 아침 9시 이전 제출은 전날 업무 보고로 귀속 —
+    # 자정 넘긴 늦은 보고가 다음날로 밀려 브리프에서 하루 늦게 잡히는 것 방지.
+    now = datetime.now()
+    if now.hour < 9:
+        today = (now - timedelta(days=1)).strftime("%Y-%m-%d")
+    else:
+        today = now.strftime("%Y-%m-%d")
     if report.get("date") != today:
-        logger.info(f"stale-session date fix: {report.get('date')} → {today} ({report.get('name','?')})")
+        logger.info(f"report date fix: {report.get('date')} → {today} "
+                    f"({report.get('name','?')}, 제출 {now.strftime('%H:%M')})")
         report["date"] = today
 
     # 블로킹 호출(LLM·subprocess·urllib)은 to_thread로 오프로딩해 이벤트루프 정지를 막는다.
