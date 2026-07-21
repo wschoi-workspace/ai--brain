@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-pop 부정 인식 45% 심층 분석 — RXR Deep Dive</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root {
+    --purple: #6666FF; --purple-light: #F4F3FF; --purple-mid: #8B8BFF;
+    --bg: #0f0f13; --card: #1a1a22; --card-border: #2a2a35;
+    --text: #e8e8f0; --text-sub: #9a9aa8;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24; --orange: #fb923c; --cyan: #22d3ee; --pink: #f472b6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Pretendard Variable',system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .container { max-width:1200px; margin:0 auto; padding:40px 32px; }
+  h1 { font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:8px; }
+  h1 span { color:var(--pink); }
+  .subtitle { color:var(--text-sub); font-size:15px; margin-bottom:40px; }
+  h2 { font-size:22px; font-weight:700; margin:48px 0 20px; letter-spacing:-0.5px; padding-bottom:12px; border-bottom:2px solid var(--card-border); }
+  h2 .num { color:var(--pink); margin-right:8px; }
+  h3 { font-size:17px; font-weight:700; margin:28px 0 14px; color:var(--purple-mid); }
+  .kpi-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:40px; }
+  .kpi-card { background:var(--card); border:1px solid var(--card-border); border-radius:12px; padding:20px; text-align:center; }
+  .kpi-card .label { font-size:12px; color:var(--text-sub); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+  .kpi-card .value { font-size:36px; font-weight:800; letter-spacing:-1px; }
+  .kpi-card .unit { font-size:14px; color:var(--text-sub); }
+  .card { background:var(--card); border:1px solid var(--card-border); border-radius:12px; padding:24px; margin-bottom:20px; }
+  .card-accent { border-left:4px solid var(--pink); }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:14px; }
+  th { background:var(--pink); color:#fff; font-weight:700; padding:12px 16px; text-align:left; }
+  th:first-child { border-radius:8px 0 0 0; } th:last-child { border-radius:0 8px 0 0; }
+  td { padding:11px 16px; border-bottom:1px solid var(--card-border); }
+  tr:nth-child(even) td { background:rgba(244,114,182,0.03); }
+  tr:last-child td:first-child { border-radius:0 0 0 8px; } tr:last-child td:last-child { border-radius:0 0 8px 0; }
+  .bar-row { display:flex; align-items:center; margin-bottom:10px; gap:12px; }
+  .bar-label { width:160px; font-size:13px; font-weight:600; text-align:right; flex-shrink:0; }
+  .bar-track { flex:1; height:28px; background:rgba(255,255,255,0.05); border-radius:6px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:6px; display:flex; align-items:center; padding-left:10px; font-size:12px; font-weight:700; color:#fff; }
+  .bar-pct { width:50px; font-size:13px; font-weight:700; text-align:right; flex-shrink:0; }
+  .quote { border-left:3px solid var(--pink); padding:12px 16px; margin:12px 0; font-style:italic; color:var(--text-sub); font-size:14px; background:rgba(244,114,182,0.04); border-radius:0 8px 8px 0; }
+  .quote .src { font-style:normal; font-size:12px; color:var(--pink); margin-top:6px; }
+  .insight-box { background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(244,114,182,0.03)); border:1px solid rgba(244,114,182,0.3); border-radius:12px; padding:24px; margin:20px 0; }
+  .insight-box h4 { color:var(--pink); font-size:15px; margin-bottom:12px; }
+  .insight-box li { margin-bottom:8px; font-size:14px; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .tag { display:inline-block; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:600; margin:2px 4px 2px 0; }
+  .tag-red { background:rgba(248,113,113,0.15); color:var(--red); }
+  .tag-pink { background:rgba(244,114,182,0.15); color:var(--pink); }
+  .tag-green { background:rgba(74,222,128,0.15); color:var(--green); }
+  .tag-yellow { background:rgba(251,191,36,0.15); color:var(--yellow); }
+  .tag-cyan { background:rgba(34,211,238,0.15); color:var(--cyan); }
+  /* Timeline */
+  .timeline { position:relative; padding-left:40px; margin:20px 0; }
+  .timeline::before { content:''; position:absolute; left:16px; top:0; bottom:0; width:2px; background:var(--pink); opacity:0.3; }
+  .tl-item { position:relative; margin-bottom:24px; }
+  .tl-item::before { content:''; position:absolute; left:-28px; top:6px; width:12px; height:12px; border-radius:50%; border:2px solid var(--pink); background:var(--bg); }
+  .tl-item.negative::before { background:var(--red); border-color:var(--red); }
+  .tl-item.positive::before { background:var(--green); border-color:var(--green); }
+  .tl-item.polarize::before { background:var(--yellow); border-color:var(--yellow); }
+  .tl-year { font-size:13px; font-weight:800; color:var(--pink); margin-bottom:4px; }
+  .tl-text { font-size:14px; }
+  .tl-tag { font-size:11px; margin-top:4px; }
+  /* Severity meter */
+  .sev-bar { display:inline-block; height:8px; border-radius:4px; margin-right:4px; }
+  .chart-container canvas { max-height:350px; }
+  /* Conversion flow */
+  .flow-step { display:inline-block; background:var(--card); border:1px solid var(--card-border); border-radius:8px; padding:10px 16px; font-size:13px; font-weight:600; text-align:center; }
+  .flow-arrow { display:inline-block; color:var(--pink); font-size:18px; padding:0 6px; vertical-align:middle; }
+  @media (max-width:768px) { .kpi-grid { grid-template-columns:repeat(2,1fr); } .two-col { grid-template-columns:1fr; } .container { padding:20px 16px; } }
+  @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- RXR Header -->
+<div style="display:flex;align-items:center;gap:10px;margin:0 0 20px 0;padding:0;background:transparent;border:none;">
+  <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;">RXR</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  <strong style="font-size:19px;color:#e8e8f0;letter-spacing:-0.6px;font-weight:900;">AI intention</strong>
+  <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;">analysis solution</strong>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:#888;font-weight:500;">_by</span>
+  <strong style="font-size:13px;color:#6666FF;font-weight:700;">Project Rent</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+</div>
+
+<h1><span>K-pop</span> 부정 인식 45% — 왜?</h1>
+<p class="subtitle">RXR Deep Dive &mdash; 미국인 K-pop 부정 감성의 구조 분석: 10대 장벽 x 양극화 타임라인 x 전환 트리거 &nbsp;|&nbsp; 2026-07-09</p>
+
+<!-- KPI -->
+<div class="kpi-grid">
+  <div class="kpi-card"><div class="label">부정 감성</div><div class="value" style="color:var(--red);">45%</div><div class="unit">8개 카테고리 중 최고</div></div>
+  <div class="kpi-card"><div class="label">심층 수집</div><div class="value" style="color:var(--pink);">131</div><div class="unit">data points</div></div>
+  <div class="kpi-card"><div class="label">부정 하위 유형</div><div class="value" style="color:var(--yellow);">12</div><div class="unit">sub-categories</div></div>
+  <div class="kpi-card"><div class="label">장벽 비율</div><div class="value" style="color:var(--red);">82%</div><div class="unit">barrier (not complaint)</div></div>
+  <div class="kpi-card"><div class="label">US 스트리밍 점유</div><div class="value" style="color:var(--cyan);">1.1</div><div class="unit">% (vs 물리앨범 7/10)</div></div>
+</div>
+
+<!-- ═══ SEC 01: 핵심 발견 ═══ -->
+<h2><span class="num">01</span>핵심 발견 — "하락이 아니라 양극화"</h2>
+
+<div class="card card-accent">
+  <p style="font-size:15px;font-weight:700;color:var(--pink);margin-bottom:12px;">K-pop은 인기가 줄어든 것이 아니다. 팬과 비팬 사이의 간극이 극단적으로 벌어졌다.</p>
+  <ul style="font-size:14px;">
+    <li><strong>미국 스트리밍 점유 1.1%</strong> — 글로벌 물리 앨범 상위 10개 중 7개가 한국 아티스트이지만, 실제 미국 스트리밍 시장에서는 1.1%에 불과. <strong>깊은 팬덤 ≠ 넓은 대중성</strong>.</li>
+    <li><strong>2024년 변곡점</strong> — 10년 만에 처음으로 앨범 판매 19.5% 감소, HYBE-ADOR 기업 전쟁, 슈가 음주운전. "버블 붕괴" 내러티브 등장.</li>
+    <li><strong>가시성-반발 루프 (학술 검증)</strong> — PMC 연구: K-pop 긍정 노출이 늘수록 비팬의 반발도 비례 증가. "양극화는 인기의 부작용이 아니라 구조적 결과."</li>
+    <li><strong>82%가 '장벽'</strong> — 부정 인식 38건 중 31건(82%)이 단순 불만이 아닌 <strong>메인스트림 수용의 구조적 장벽</strong>.</li>
+  </ul>
+</div>
+
+<!-- ═══ SEC 02: 10대 장벽 ═══ -->
+<h2><span class="num">02</span>10대 장벽 — 심각도 순위</h2>
+
+<div class="card">
+  <table>
+    <tr><th>#</th><th>장벽</th><th>심각도</th><th>유형</th><th>핵심 근거</th></tr>
+    <tr>
+      <td><strong>1</strong></td>
+      <td><strong style="color:var(--red);">뷰티 기준 + 정신건강 위기</strong></td>
+      <td><span class="sev-bar" style="width:50px;background:var(--red);"></span> 5.0</td>
+      <td><span class="tag tag-red">윤리</span></td>
+      <td>미성년 성형 압박, 섭식장애, 아이돌 자살(종현·설리). 가장 감정적으로 강렬한 비판.</td>
+    </tr>
+    <tr>
+      <td><strong>2</strong></td>
+      <td><strong style="color:var(--red);">산업 착취</strong></td>
+      <td><span class="sev-bar" style="width:48px;background:var(--red);"></span> 4.8</td>
+      <td><span class="tag tag-red">윤리</span></td>
+      <td>12-13세 계약, 에이전시 수익 70-90% 가져감, 16시간/일 훈련, 월별 체중 공개 수치.</td>
+    </tr>
+    <tr>
+      <td><strong>3</strong></td>
+      <td><strong style="color:var(--red);">팬 독성/스탠 문화</strong></td>
+      <td><span class="sev-bar" style="width:40px;background:var(--orange);"></span> 4.0</td>
+      <td><span class="tag tag-red">장벽</span></td>
+      <td>기자 살해 위협, 사생팬 스토킹, 비판 = 공격으로 인식. 비팬이 Reddit에서 "안전 공간" 탐색.</td>
+    </tr>
+    <tr>
+      <td><strong>4</strong></td>
+      <td><strong style="color:var(--orange);">인종차별 + 제도적 장벽</strong></td>
+      <td><span class="sev-bar" style="width:40px;background:var(--orange);"></span> 4.0</td>
+      <td><span class="tag tag-yellow">제도</span></td>
+      <td>BTS "Asian f*cks" 공개 비하, 그래미 5회 후보 0수상, 아시아 별도 카테고리 = 격리.</td>
+    </tr>
+    <tr>
+      <td><strong>5</strong></td>
+      <td><strong style="color:var(--orange);">문화 전용(Cultural Appropriation)</strong></td>
+      <td><span class="sev-bar" style="width:40px;background:var(--orange);"></span> 4.0</td>
+      <td><span class="tag tag-yellow">문화</span></td>
+      <td>마마무 블랙페이스, Kiss of Life 콘로우(-200K 팔로워), BLACKPINK 박스 브레이드. 흑인 팬 "배신감."</td>
+    </tr>
+    <tr>
+      <td><strong>6</strong></td>
+      <td><strong style="color:var(--orange);">남성성 낙인(Masculinity Stigma)</strong></td>
+      <td><span class="sev-bar" style="width:40px;background:var(--orange);"></span> 4.0</td>
+      <td><span class="tag tag-yellow">문화</span></td>
+      <td>남성 아이돌 메이크업 → 서양 남성성 불안. 남성 팬 "커밍아웃보다 어렵다."</td>
+    </tr>
+    <tr>
+      <td><strong>7</strong></td>
+      <td><strong style="color:var(--orange);">준사회적 관계 착취(Parasocial)</strong></td>
+      <td><span class="sev-bar" style="width:40px;background:var(--orange);"></span> 4.0</td>
+      <td><span class="tag tag-red">윤리</span></td>
+      <td>버블앱 "연인 시뮬레이션", 연애 금지 → 유사 파트너 프레이밍, 연애 발각 시 팬 공격.</td>
+    </tr>
+    <tr>
+      <td><strong>8</strong></td>
+      <td><strong style="color:var(--yellow);">제조된 비진정성</strong></td>
+      <td><span class="sev-bar" style="width:37px;background:var(--yellow);"></span> 3.7</td>
+      <td><span class="tag tag-cyan">인식</span></td>
+      <td>EXO "자작곡 내달라고 빌어야." 이중잣대: 서양 팝도 같은 작곡팀 쓰지만 "진정성 후광" 부여.</td>
+    </tr>
+    <tr>
+      <td><strong>9</strong></td>
+      <td><strong style="color:var(--yellow);">언어 장벽</strong></td>
+      <td><span class="sev-bar" style="width:35px;background:var(--yellow);"></span> 3.5</td>
+      <td><span class="tag tag-cyan">인식</span></td>
+      <td>라디오/시상식 영어 게이트키핑. 영어 전환 시 "K-pop 아님" 정체성 위기 → 양방향 패배.</td>
+    </tr>
+    <tr>
+      <td><strong>10</strong></td>
+      <td><strong style="color:var(--yellow);">과포화 + 상업화</strong></td>
+      <td><span class="sev-bar" style="width:32px;background:var(--yellow);"></span> 3.2</td>
+      <td><span class="tag tag-cyan">인식</span></td>
+      <td>NCT 포토카드 50종/앨범, HYBE 플라스틱 폐기물 2배, 2024 판매량 -19.5%. 팬도 피로.</td>
+    </tr>
+  </table>
+</div>
+
+<div class="two-col">
+  <div class="chart-container"><canvas id="barrierChart" height="300"></canvas></div>
+  <div class="card">
+    <h3 style="margin-top:0;">장벽 vs 불만 구조</h3>
+    <p style="font-size:14px;margin-bottom:12px;">부정 인식 38건을 "구조적 장벽(barrier)"과 "단순 불만(complaint)"으로 분류한 결과:</p>
+    <div class="bar-row">
+      <div class="bar-label">구조적 장벽</div>
+      <div class="bar-track"><div class="bar-fill" style="width:82%;background:var(--red);">31건</div></div>
+      <div class="bar-pct" style="color:var(--red);">82%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">단순 불만</div>
+      <div class="bar-track"><div class="bar-fill" style="width:18%;background:var(--yellow);">7건</div></div>
+      <div class="bar-pct" style="color:var(--yellow);">18%</div>
+    </div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:12px;">82%가 "메인스트림 수용을 구조적으로 막는" 장벽. 단순 취향 차이가 아닌, 윤리·제도·문화적 차원의 거부.</p>
+  </div>
+</div>
+
+<!-- ═══ SEC 03: 양극화 타임라인 ═══ -->
+<h2><span class="num">03</span>양극화 타임라인 — 2012~2026</h2>
+
+<div class="card">
+  <div class="timeline">
+    <div class="tl-item negative">
+      <div class="tl-year">2012~2018 — 기저 무시</div>
+      <div class="tl-text">"제조된 팝" 프레이밍. 서양 비평계 이중잣대: 리아나 프로듀서 의존 = OK, K-pop = "공장".</div>
+      <div class="tl-tag"><span class="tag tag-red">perception_shift</span></div>
+    </div>
+    <div class="tl-item negative">
+      <div class="tl-year">2017 — 마마무 블랙페이스</div>
+      <div class="tl-text">서울 콘서트에서 Uptown Funk 블랙페이스. SNS 분노 폭발. 문화 전용 인식의 시작점.</div>
+      <div class="tl-tag"><span class="tag tag-red">controversy</span></div>
+    </div>
+    <div class="tl-item polarize">
+      <div class="tl-year">2019 — BTS 메인스트림 진입 + Burning Sun</div>
+      <div class="tl-text">BTS SNL 출연/스타디움 투어 → "왜 이게 인기?" 반발 동시 발생. Burning Sun 스캔들(성범죄·마약·부패) → 산업 이미지 타격.</div>
+      <div class="tl-tag"><span class="tag tag-yellow">polarization</span></div>
+    </div>
+    <div class="tl-item polarize">
+      <div class="tl-year">2020 — 팬데믹: 양극화 촉매</div>
+      <div class="tl-text">아시안 혐오 범죄 +149%. 동시에 한국 방역 성공 긍정 보도 급증. K-pop 트윗 67억 건 — 비팬 "피로감"과 "혐오" 동시 폭증.</div>
+      <div class="tl-tag"><span class="tag tag-yellow">polarization</span> <span class="tag tag-red">anti-Asian hate</span></div>
+    </div>
+    <div class="tl-item negative">
+      <div class="tl-year">2020 — 차트 조작 논란</div>
+      <div class="tl-text">ARMY 조직적 스트리밍 → Billboard "인기와 차트의 괴리" 조사. 팬 튜토리얼로 24시간 스트리밍. 대중 "가짜 인기" 인식 강화.</div>
+      <div class="tl-tag"><span class="tag tag-red">controversy</span></div>
+    </div>
+    <div class="tl-item negative">
+      <div class="tl-year">2021~2023 — 그래미 5회 후보 0수상</div>
+      <div class="tl-text">BTS 스타디움 매진 + 레코드 세일즈에도 수상 0회. ARMY "인종차별" 주장. 비팬 "자격 미달" 주장. 양쪽 모두 분노.</div>
+      <div class="tl-tag"><span class="tag tag-red">racism_barriers</span></div>
+    </div>
+    <div class="tl-item negative">
+      <div class="tl-year">2024 — 변곡점의 해</div>
+      <div class="tl-text">앨범 판매 -19.5% (10년 만에 첫 감소). HYBE-ADOR 기업 전쟁 + 뉴진스 계약 해지. 슈가 음주운전. "버블 붕괴" 내러티브 등장.</div>
+      <div class="tl-tag"><span class="tag tag-red">inflection</span></div>
+    </div>
+    <div class="tl-item negative">
+      <div class="tl-year">2025 — Kiss of Life + HYBE PR스캔들</div>
+      <div class="tl-text">Kiss of Life 콘로우 → 3일 만에 -200K 팔로워. HYBE America $25M PR회사(TAG) = 헐리우드 "역바이럴" 전문. Scooter Braun CEO 해임.</div>
+      <div class="tl-tag"><span class="tag tag-red">controversy</span></div>
+    </div>
+    <div class="tl-item polarize">
+      <div class="tl-year">2026 — 그래미 "아시안 팝" 카테고리</div>
+      <div class="tl-text">신설 아시아 카테고리 → "인정 vs 격리" 논쟁. 해당 카테고리 제출 시 일반부문 불가 규정 → "2등 시민" 프레이밍.</div>
+      <div class="tl-tag"><span class="tag tag-yellow">polarization</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEC 04: 팬덤 패러독스 ═══ -->
+<h2><span class="num">04</span>팬덤 패러독스 — 깊은 팬덤 ≠ 넓은 대중성</h2>
+
+<div class="two-col">
+  <div class="card card-accent">
+    <h3 style="margin-top:0;">숫자의 모순</h3>
+    <table>
+      <tr><th>지표</th><th>수치</th><th>해석</th></tr>
+      <tr><td>IFPI 글로벌 앨범 Top 10</td><td style="color:var(--green);font-weight:700;">7/10 한국</td><td>물리 앨범 = 팬덤 충성도</td></tr>
+      <tr><td>US 스트리밍 점유</td><td style="color:var(--red);font-weight:700;">1.1%</td><td>일반 대중 청취 = 극소수</td></tr>
+      <tr><td>US 스트리밍 +182%</td><td style="color:var(--green);font-weight:700;">2018→2024</td><td>성장은 했지만 기저가 작음</td></tr>
+      <tr><td>미국 K-pop 콘서트 참석률</td><td style="color:var(--yellow);font-weight:700;">47%</td><td>팬 중 절반만 라이브 경험</td></tr>
+      <tr><td>KEI: K-pop 관심도</td><td style="color:var(--red);font-weight:700;">12%</td><td>8개 문화 항목 중 최하위</td></tr>
+      <tr><td>한국 내 디지털 소비</td><td style="color:var(--red);font-weight:700;">-6.4% YoY</td><td>본국에서도 하락 시작</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">가시성-반발 루프 (학술 근거)</h3>
+    <div class="quote">"When confronted with information contradicting their beliefs, people tend to 'backlash' by doubling down on their prior views."<div class="src">— PMC/NIH, Foreign Pop-Culture and Backlash (2023)</div></div>
+    <div class="quote">"Non-fans find K-pop 'distasteful,' seek 'safe environments' to avoid exposure, and experience 'anxiety' regarding K-pop's cultural spread."<div class="src">— PMC Academic Study on Non-fan K-pop Subreddits</div></div>
+    <p style="font-size:14px;margin-top:16px;"><strong>메커니즘:</strong> K-pop 가시성 증가 → 비팬 노출 강제 → "내가 선택하지 않은 것에 포위당함" → 적극적 거부 → 팬덤은 방어적으로 더 공격적 → 비팬 거부 강화 → <span style="color:var(--red);font-weight:700;">∞ 루프</span></p>
+  </div>
+</div>
+
+<!-- ═══ SEC 05: 전환 분석 ═══ -->
+<h2><span class="num">05</span>전환 분석 — 부정에서 긍정으로 바뀌는 순간</h2>
+
+<div class="card card-accent">
+  <h3 style="margin-top:0;">전환 패턴 (25건 분석)</h3>
+  <div style="text-align:center;margin:20px 0;">
+    <div class="flow-step">초기 거부<br><span style="font-size:11px;color:var(--red);">"난 절대 안 들어"</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">우연한 노출<br><span style="font-size:11px;color:var(--yellow);">친구/알고리즘/콘서트</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">진정한 감상<br><span style="font-size:11px;color:var(--cyan);">"생각보다 좋은데?"</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">감정적 공감<br><span style="font-size:11px;color:var(--purple);">위로/소속감/정체성</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step" style="border-color:var(--green);"><span style="color:var(--green);">전환 완료</span><br><span style="font-size:11px;color:var(--green);">커뮤니티 몰입</span></div>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h3 style="margin-top:0;">전환 트리거 Top 5</h3>
+    <div class="bar-row">
+      <div class="bar-label">친구/가족 추천</div>
+      <div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--green);">4건</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">직접 음악 노출</div>
+      <div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--cyan);">4건</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">라이브 공연</div>
+      <div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--pink);">3건</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">감정적 공감</div>
+      <div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--purple);">3건</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">커뮤니티 소속감</div>
+      <div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--yellow);">3건</div></div>
+    </div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:12px;">가장 강력한 전환 트리거 = <strong>"직접 체험"</strong> (라이브 공연 + 실제 청취). 가장 깊은 고착 = <strong>"감정적 공감 + 커뮤니티"</strong>.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">초기 편견 유형 7가지</h3>
+    <table>
+      <tr><th>편견 유형</th><th>빈도</th><th>대표 인용</th></tr>
+      <tr><td>사회적 낙인</td><td style="color:var(--red);">높음</td><td>"K-pop 팬임을 밝히기가 커밍아웃보다 어렵다"</td></tr>
+      <tr><td>제조됨/가짜</td><td style="color:var(--red);">높음</td><td>"성형, 립싱크, 진정성 없음"</td></tr>
+      <tr><td>인종 편견</td><td style="color:var(--orange);">중</td><td>"다 똑같이 생김" (anti-Asian)</td></tr>
+      <tr><td>팬덤 독성</td><td style="color:var(--orange);">중</td><td>"온라인 중독자" 연상</td></tr>
+      <tr><td>젠더 규범</td><td style="color:var(--orange);">중</td><td>"남자가 화장을 왜?"</td></tr>
+      <tr><td>언어 장벽</td><td style="color:var(--yellow);">중~저</td><td>"가사를 못 알아들으면 무슨 의미?"</td></tr>
+      <tr><td>문화 무시</td><td style="color:var(--yellow);">저</td><td>"아시아 팝 = 2류"</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="quote">"I was very sure about never liking K-pop, but then I actually listened to it. Getting into K-pop changed me to enjoy whatever I want without shame."<div class="src">— KProfiles Forum, 전환 사례</div></div>
+<div class="quote">"I was not always a K-pop believer and was actually a hater... being into Asian pop culture was not considered 'cool'."<div class="src">— Vice, "K-Pop Hater Turned Superfan"</div></div>
+<div class="quote">"Classical musicians at Eastman had no idea K-pop was this complex — harmonic sophistication, time signature changes, orchestral arrangements hidden inside pop songs."<div class="src">— ReacttotheK (500K+ 구독자), Eastman School of Music</div></div>
+
+<!-- ═══ SEC 06: 구조 진단 ═══ -->
+<h2><span class="num">06</span>구조 진단 — 부정 45%의 3중 구조</h2>
+
+<div class="insight-box">
+  <h4>K-pop 부정 인식은 3개 층위로 작동한다</h4>
+  <table style="margin:12px 0;">
+    <tr><th>층위</th><th>내용</th><th>비중</th><th>해결 가능성</th></tr>
+    <tr>
+      <td><strong style="color:var(--red);">Layer 1: 윤리적 거부</strong></td>
+      <td>산업 착취, 미성년 계약, 정신건강 위기, 문화 전용</td>
+      <td>~35%</td>
+      <td><span class="tag tag-red">산업 구조 변화 필요</span></td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--orange);">Layer 2: 문화적 마찰</strong></td>
+      <td>팬덤 독성, 남성성 낙인, 인종 장벽, 준사회적 관계</td>
+      <td>~40%</td>
+      <td><span class="tag tag-yellow">장기적 문화 노출 필요</span></td>
+    </tr>
+    <tr>
+      <td><strong style="color:var(--yellow);">Layer 3: 인식적 오해</strong></td>
+      <td>제조된 비진정성, 언어 장벽, 과포화</td>
+      <td>~25%</td>
+      <td><span class="tag tag-green">직접 체험으로 전환 가능</span></td>
+    </tr>
+  </table>
+  <p style="font-size:14px;"><strong>시사점:</strong> Layer 3(25%)만 프로젝트렌트가 직접 개입 가능한 영역. Layer 1-2(75%)는 K-pop 산업 자체가 해결해야 할 과제.</p>
+</div>
+
+<!-- ═══ SEC 07: 프로젝트렌트 시사점 ═══ -->
+<h2><span class="num">07</span>프로젝트렌트 시사점</h2>
+
+<div class="card card-accent">
+  <table>
+    <tr><th>시사점</th><th>근거</th><th>액션</th></tr>
+    <tr>
+      <td><strong>1. K-pop을 US 마케팅 앵커로 쓰지 말 것</strong></td>
+      <td>KEI 관심도 최하위(12%), 부정률 45%, 스트리밍 1.1%</td>
+      <td>K-Food(42%)·K-Beauty(+53%)를 1순위 진입 경로로. K-pop은 서브 요소.</td>
+    </tr>
+    <tr>
+      <td><strong>2. "팬덤 장벽" 경계</strong></td>
+      <td>가시성-반발 루프 학술 검증. 깊은 팬덤 = 비팬 거부 강화.</td>
+      <td>프로젝트렌트 이벤트는 "모든 사람을 위한 한국 문화" 포지셔닝. 팬덤 전용 행사 지양.</td>
+    </tr>
+    <tr>
+      <td><strong>3. 전환 트리거 활용</strong></td>
+      <td>가장 강력한 전환 = "직접 체험". 라이브 공연·실제 청취.</td>
+      <td>K-pop을 팝업 내 "체험 요소"로 배치 (DJ 세트, 안무 체험). 팬덤 아닌 호기심 자극.</td>
+    </tr>
+    <tr>
+      <td><strong>4. K-pop 타임라인은 경고</strong></td>
+      <td>깊은 팬덤 ≠ 메인스트림 수용. 같은 실수 반복 금지.</td>
+      <td>프로젝트렌트 US 진출 시 "넓고 얕은 인지도" 우선 전략. People Counting으로 실제 대중 도달 측정.</td>
+    </tr>
+  </table>
+</div>
+
+</div><!-- /.container -->
+
+<!-- Footer -->
+<footer style="max-width:1200px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#1a1a22;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #2a2a35;line-height:1.7;color:#9a9aa8;">
+    <p style="margin:0 0 4px;">본 분석은 공개 온라인 멘션 데이터 및 공식 조사 자료에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:rgba(102,102,255,0.08);padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;">RXR US Perception Analysis Solution</div>
+    <p style="margin:0;color:#ccc;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">프로젝트 렌트(Project Rent)</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+    </p>
+  </div>
+  <div style="background:#1a1a22;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">
+    <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#999;font-size:11px;">&copy; Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+Chart.register(ChartDataLabels);
+// Barrier category chart
+const ctx = document.getElementById('barrierChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['뷰티/정신건강','산업 착취','팬 독성','인종차별','문화 전용','남성성 낙인','준사회적','비진정성','언어 장벽','과포화'],
+    datasets: [{
+      label: '심각도 (5점 만점)',
+      data: [5.0, 4.8, 4.0, 4.0, 4.0, 4.0, 4.0, 3.7, 3.5, 3.2],
+      backgroundColor: ['#f87171','#f87171','#fb923c','#fb923c','#fb923c','#fb923c','#fb923c','#fbbf24','#fbbf24','#fbbf24'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { max:5.5, ticks:{ color:'#9a9aa8' }, grid:{ color:'rgba(255,255,255,0.05)' } },
+      y: { ticks:{ color:'#e8e8f0', font:{ size:12, weight:600 } }, grid:{ display:false } }
+    },
+    plugins: {
+      legend: { display:false },
+      datalabels: { color:'#fff', font:{ weight:700, size:12 }, anchor:'end', align:'left', formatter:v=>v.toFixed(1) },
+      title: { display:true, text:'10대 장벽 심각도', color:'#e8e8f0', font:{ size:15, weight:700 } }
+    }
+  }
+});
+</script>
+</body>
+</html>

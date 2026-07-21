@@ -196,7 +196,13 @@ python3 80-r-tech/84-scripts/{브랜드명}/{브랜드명}_crawl.py --days {N}
 #### 4-2. Psyche Layer (어떻게 말했는가)
 
 - **대명사 패턴**: 1인칭/복수형/장소참조
-- **조사 패턴 → Freshness Index**: "이/가"(발견) vs "은/는"(설명) 비율 (CLT 기반)
+- **Freshness Index (CLT 기반)**:
+  - **한국어**: "이/가"(발견) vs "은/는"(설명) 조사 비율 — 단일 피처
+  - **영어**: 7-피처 가중 합산 모델 (`freshness/freshness_en.py`)
+    - Discovery verbs ×25, Temporal proximity ×20, Progressive aspect ×15,
+      Proximal demonstratives ×15, Present perfect+just ×10, Exclamatory ×10, Sensory ×5
+    - 보정: 극단적 근접 +5, 원거리 표지 ≥2개 -5, 내러티브 현재 +3
+  - **팩토리**: `freshness/freshness_factory.py` — lang='ko'|'en' 분기
 - **Authenticity (0~100)**: 기본60 + 경험/디테일 가점 - 협찬/과잉긍정 감점
 - **Clout (0~100)**: 추천 표현, 조건부 추천, 정체성 선언 등
 

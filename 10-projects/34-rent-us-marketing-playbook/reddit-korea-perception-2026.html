@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reddit 미국인 한국 인식 분석 2026 — RXR US Perception Study + K-pop Deep Dive</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root {
+    --purple: #6666FF;
+    --purple-light: #F4F3FF;
+    --purple-mid: #8B8BFF;
+    --bg: #0f0f13;
+    --card: #1a1a22;
+    --card-border: #2a2a35;
+    --text: #e8e8f0;
+    --text-sub: #9a9aa8;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --orange: #fb923c;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Pretendard Variable', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 40px 32px; }
+  h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  h1 span { color: var(--purple); }
+  .subtitle { color: var(--text-sub); font-size: 15px; margin-bottom: 40px; }
+  h2 { font-size: 22px; font-weight: 700; margin: 48px 0 20px; letter-spacing: -0.5px; padding-bottom: 12px; border-bottom: 2px solid var(--card-border); }
+  h2 .num { color: var(--purple); margin-right: 8px; }
+  h3 { font-size: 17px; font-weight: 700; margin: 28px 0 14px; color: var(--purple-mid); }
+
+  /* KPI Grid */
+  .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 40px; }
+  .kpi-card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 20px; text-align: center;
+  }
+  .kpi-card .label { font-size: 12px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .kpi-card .value { font-size: 36px; font-weight: 800; letter-spacing: -1px; }
+  .kpi-card .unit { font-size: 14px; color: var(--text-sub); }
+  .kpi-card.purple .value { color: var(--purple); }
+  .kpi-card.green .value { color: var(--green); }
+  .kpi-card.red .value { color: var(--red); }
+  .kpi-card.yellow .value { color: var(--yellow); }
+  .kpi-card.cyan .value { color: var(--cyan); }
+
+  /* Cards */
+  .card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 24px; margin-bottom: 20px;
+  }
+  .card-accent { border-left: 4px solid var(--purple); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th { background: var(--purple); color: #fff; font-weight: 700; padding: 12px 16px; text-align: left; }
+  th:first-child { border-radius: 8px 0 0 0; }
+  th:last-child { border-radius: 0 8px 0 0; }
+  td { padding: 11px 16px; border-bottom: 1px solid var(--card-border); }
+  tr:nth-child(even) td { background: rgba(102,102,255,0.03); }
+  tr:last-child td:first-child { border-radius: 0 0 0 8px; }
+  tr:last-child td:last-child { border-radius: 0 0 8px 0; }
+
+  /* Bar Charts (CSS) */
+  .bar-row { display: flex; align-items: center; margin-bottom: 10px; gap: 12px; }
+  .bar-label { width: 120px; font-size: 13px; font-weight: 600; text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 28px; background: rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 12px; font-weight: 700; color: #fff; transition: width 0.6s ease; }
+  .bar-pct { width: 50px; font-size: 13px; font-weight: 700; text-align: right; flex-shrink: 0; }
+
+  /* Gauge */
+  .gauge-row { display: flex; gap: 24px; flex-wrap: wrap; margin: 20px 0; }
+  .gauge-item { flex: 1; min-width: 200px; text-align: center; }
+  .gauge-circle {
+    width: 120px; height: 120px; border-radius: 50%;
+    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 800; position: relative;
+  }
+  .gauge-circle::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: var(--card); }
+  .gauge-circle span { position: relative; z-index: 1; }
+  .gauge-label { font-size: 14px; font-weight: 600; }
+  .gauge-sub { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+
+  /* Tags */
+  .tag { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; margin: 2px 4px 2px 0; }
+  .tag-green { background: rgba(74,222,128,0.15); color: var(--green); }
+  .tag-red { background: rgba(248,113,113,0.15); color: var(--red); }
+  .tag-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .tag-purple { background: var(--purple-light); color: var(--purple); }
+  .tag-cyan { background: rgba(34,211,238,0.15); color: var(--cyan); }
+  .tag-pink { background: rgba(244,114,182,0.15); color: var(--pink); }
+
+  /* Quote */
+  .quote {
+    border-left: 3px solid var(--purple); padding: 12px 16px; margin: 12px 0;
+    font-style: italic; color: var(--text-sub); font-size: 14px;
+    background: rgba(102,102,255,0.04); border-radius: 0 8px 8px 0;
+  }
+  .quote .src { font-style: normal; font-size: 12px; color: var(--purple-mid); margin-top: 6px; }
+
+  /* Relevance Grid */
+  .relevance-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 20px 0; }
+  .relevance-item { text-align: center; padding: 16px 8px; border-radius: 10px; background: var(--card); border: 1px solid var(--card-border); }
+  .relevance-item .grade { font-size: 28px; font-weight: 800; }
+  .relevance-item .count { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .relevance-item .pct { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+  .relevance-item .desc { font-size: 11px; color: var(--text-sub); margin-top: 6px; }
+
+  /* Insight Box */
+  .insight-box {
+    background: linear-gradient(135deg, rgba(102,102,255,0.1), rgba(102,102,255,0.03));
+    border: 1px solid rgba(102,102,255,0.3); border-radius: 12px; padding: 24px; margin: 20px 0;
+  }
+  .insight-box h4 { color: var(--purple); font-size: 15px; margin-bottom: 12px; }
+  .insight-box li { margin-bottom: 8px; font-size: 14px; }
+
+  /* Two-col */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* Three-col */
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* Category Card */
+  .cat-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .cat-card .cat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .cat-card .cat-title { font-size: 16px; font-weight: 700; }
+  .cat-card .cat-count { font-size: 13px; color: var(--text-sub); }
+
+  /* Chart Container */
+  .chart-container { position: relative; margin: 20px 0; }
+  .chart-container canvas { max-height: 350px; }
+  .chart-half { width: 100%; max-width: 500px; margin: 0 auto; }
+
+  /* Method flow */
+  .method-flow { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .method-step { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px 20px; text-align: center; min-width: 140px; }
+  .method-step .step-num { font-size: 11px; color: var(--purple); font-weight: 700; }
+  .method-step .step-name { font-size: 14px; font-weight: 700; margin-top: 4px; }
+  .method-step .step-detail { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+  .method-arrow { font-size: 20px; color: var(--purple); padding: 0 8px; }
+
+  /* Gap table */
+  .gap-positive { color: var(--green); font-weight: 700; }
+  .gap-negative { color: var(--red); font-weight: 700; }
+  .gap-neutral { color: var(--yellow); font-weight: 700; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-col, .three-col { grid-template-columns: 1fr; }
+    .relevance-grid { grid-template-columns: repeat(3, 1fr); }
+    .container { padding: 20px 16px; }
+    .method-flow { flex-direction: column; }
+    .method-arrow { transform: rotate(90deg); }
+  }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* Keyboard nav */
+  .nav-hint { position: fixed; bottom: 20px; right: 20px; background: rgba(26,26,34,0.9); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 14px; font-size: 11px; color: var(--text-sub); z-index: 100; }
+
+  /* Deep Dive: Timeline */
+  .timeline { position:relative; padding-left:40px; margin:20px 0; }
+  .timeline::before { content:''; position:absolute; left:16px; top:0; bottom:0; width:2px; background:var(--pink); opacity:0.3; }
+  .tl-item { position:relative; margin-bottom:24px; }
+  .tl-item::before { content:''; position:absolute; left:-28px; top:6px; width:12px; height:12px; border-radius:50%; border:2px solid var(--pink); background:var(--bg); }
+  .tl-item.negative::before { background:var(--red); border-color:var(--red); }
+  .tl-item.positive::before { background:var(--green); border-color:var(--green); }
+  .tl-item.polarize::before { background:var(--yellow); border-color:var(--yellow); }
+  .tl-year { font-size:13px; font-weight:800; color:var(--pink); margin-bottom:4px; }
+  .tl-text { font-size:14px; }
+  .tl-tag { font-size:11px; margin-top:4px; }
+  .sev-bar { display:inline-block; height:8px; border-radius:4px; margin-right:4px; }
+  .flow-step { display:inline-block; background:var(--card); border:1px solid var(--card-border); border-radius:8px; padding:10px 16px; font-size:13px; font-weight:600; text-align:center; }
+  .flow-arrow { display:inline-block; color:var(--pink); font-size:18px; padding:0 6px; vertical-align:middle; }
+  .dd-accent { border-left: 4px solid var(--pink); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- RXR Header (v4.1 dark) -->
+<div style="display:flex;align-items:center;gap:10px;margin:0 0 20px 0;padding:0;background:transparent;border:none;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  <strong style="font-size:19px;color:#e8e8f0;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+  <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+  <strong style="font-size:13px;color:#6666FF;font-weight:700;letter-spacing:-0.1px;white-space:nowrap;">Project Rent</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+</div>
+
+<h1><span>Reddit</span> 미국인 한국 인식 분석 2026</h1>
+<p class="subtitle">RXR US Perception Study &mdash; 8개 카테고리 x 438건 멘션 + 공식 조사 교차검증 + K-pop Deep Dive &nbsp;|&nbsp; 2026-07</p>
+
+<!-- ═══════════ SEC 00: 리서치 개요 ═══════════ -->
+<h2><span class="num">00</span>리서치 개요</h2>
+
+<div class="card card-accent">
+  <p style="font-size:14px;margin-bottom:16px;">
+    본 리포트는 <strong>미국인이 한국에 대해 어떤 인식을 갖고 있는지</strong>를 Reddit/포럼 멘션 데이터와 공식 설문 조사를 교차 분석하여 정량화한 결과입니다.
+    프로젝트렌트 US 마케팅 플레이북(34번 프로젝트)의 <strong>시장 인식 기초 자료</strong>로 활용됩니다.
+  </p>
+  <table>
+    <tr><th>항목</th><th>내용</th></tr>
+    <tr><td>분석 대상</td><td>미국인의 한국 관련 온라인 멘션 (Reddit, ResetEra, Quora, AllKpop, 리뷰 사이트)</td></tr>
+    <tr><td>분석 기간</td><td>2024~2026 (최근 3년 누적, 최근 데이터 가중)</td></tr>
+    <tr><td>수집 건수</td><td><strong>438건</strong> (8개 카테고리 307건 + K-pop Deep Dive 131건)</td></tr>
+    <tr><td>카테고리</td><td>음식 / K-pop / 드라마·영화 / 뷰티·패션 / 기업·브랜드 / 관광·여행 / 사회·정치 / 일상문화</td></tr>
+    <tr><td>분석 프레임</td><td>RXR 변형 모델: Relevance Filter (A~F) + Content Layer + Psyche Layer + 교차검증</td></tr>
+    <tr><td>공식 소스</td><td>KEI 2025 / Pew Research / Brand Finance / KOFICE / Chicago Council / YouGov / Circana</td></tr>
+  </table>
+</div>
+
+<div class="method-flow">
+  <div class="method-step">
+    <div class="step-num">STEP 1</div>
+    <div class="step-name">WebSearch 수집</div>
+    <div class="step-detail">8개 카테고리 x 6~8쿼리<br>총 56회 검색</div>
+  </div>
+  <div class="method-arrow">→</div>
+  <div class="method-step">
+    <div class="step-num">STEP 2</div>
+    <div class="step-name">데이터 정제</div>
+    <div class="step-detail">283건 멘션 추출<br>소스/날짜/카테고리 태깅</div>
+  </div>
+  <div class="method-arrow">→</div>
+  <div class="method-step">
+    <div class="step-num">STEP 3</div>
+    <div class="step-name">Relevance Filter</div>
+    <div class="step-detail">A~F 6등급 분류<br>유효성 판별</div>
+  </div>
+  <div class="method-arrow">→</div>
+  <div class="method-step">
+    <div class="step-num">STEP 4</div>
+    <div class="step-name">Content Layer</div>
+    <div class="step-detail">토픽 분류 + 4-way 감성<br>RQL 등급 산출</div>
+  </div>
+  <div class="method-arrow">→</div>
+  <div class="method-step">
+    <div class="step-num">STEP 5</div>
+    <div class="step-name">교차검증</div>
+    <div class="step-detail">Reddit vs 공식 조사<br>갭 분석 + 3중 검증</div>
+  </div>
+</div>
+
+<!-- ═══════════ SEC 01: KPI 대시보드 ═══════════ -->
+<h2><span class="num">01</span>KPI 대시보드</h2>
+
+<div class="kpi-grid">
+  <div class="kpi-card purple">
+    <div class="label">총 수집</div>
+    <div class="value">438</div>
+    <div class="unit">data points</div>
+  </div>
+  <div class="kpi-card green">
+    <div class="label">유효 멘션 (A+B)</div>
+    <div class="value">248</div>
+    <div class="unit">87.6%</div>
+  </div>
+  <div class="kpi-card cyan">
+    <div class="label">카테고리</div>
+    <div class="value">8</div>
+    <div class="unit">categories</div>
+  </div>
+  <div class="kpi-card yellow">
+    <div class="label">공식 데이터</div>
+    <div class="value">24</div>
+    <div class="unit">검증 포인트</div>
+  </div>
+  <div class="kpi-card green">
+    <div class="label">전체 긍정률</div>
+    <div class="value">54</div>
+    <div class="unit">%</div>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h3 style="margin-top:0;">카테고리별 수집 건수</h3>
+    <div class="bar-row">
+      <div class="bar-label">K-Food</div>
+      <div class="bar-track"><div class="bar-fill" style="width:85%;background:var(--green);">48건</div></div>
+      <div class="bar-pct" style="color:var(--green);">48</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">K-pop/음악</div>
+      <div class="bar-track"><div class="bar-fill" style="width:67%;background:var(--pink);">38건</div></div>
+      <div class="bar-pct" style="color:var(--pink);">38</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">사회/정치</div>
+      <div class="bar-track"><div class="bar-fill" style="width:62%;background:var(--red);">35건</div></div>
+      <div class="bar-pct" style="color:var(--red);">35</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">일상문화</div>
+      <div class="bar-track"><div class="bar-fill" style="width:62%;background:var(--cyan);">35건</div></div>
+      <div class="bar-pct" style="color:var(--cyan);">35</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">드라마/영화</div>
+      <div class="bar-track"><div class="bar-fill" style="width:62%;background:var(--yellow);">35건</div></div>
+      <div class="bar-pct" style="color:var(--yellow);">35</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">뷰티/패션</div>
+      <div class="bar-track"><div class="bar-fill" style="width:58%;background:var(--purple);">33건</div></div>
+      <div class="bar-pct" style="color:var(--purple);">33</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">관광/여행</div>
+      <div class="bar-track"><div class="bar-fill" style="width:53%;background:var(--orange);">30건</div></div>
+      <div class="bar-pct" style="color:var(--orange);">30</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">기업/브랜드</div>
+      <div class="bar-track"><div class="bar-fill" style="width:51%;background:var(--purple-mid);">29건</div></div>
+      <div class="bar-pct" style="color:var(--purple-mid);">29</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">데이터 소스 분포</h3>
+    <table>
+      <tr><th>소스</th><th>건수</th><th>비율</th></tr>
+      <tr><td>Reddit (간접 수집/프록시)</td><td>89</td><td>29%</td></tr>
+      <tr><td>AllKpop / 포럼</td><td>42</td><td>14%</td></tr>
+      <tr><td>ResetEra</td><td>28</td><td>9%</td></tr>
+      <tr><td>Quora</td><td>24</td><td>8%</td></tr>
+      <tr><td>리뷰 사이트 (Yelp/G2 등)</td><td>22</td><td>7%</td></tr>
+      <tr><td>미디어 기사 인용</td><td>54</td><td>18%</td></tr>
+      <tr><td>산업 보고서/설문</td><td>24</td><td>8%</td></tr>
+      <tr><td>공식 조사 (KEI/Pew 등)</td><td>24</td><td>8%</td></tr>
+    </table>
+    <p style="font-size:12px;color:var(--text-sub);margin-top:8px;">* Reddit.com은 Anthropic 크롤러 차단 → 프록시/간접 수집으로 전환</p>
+  </div>
+</div>
+
+<!-- ═══════════ SEC 02: 카테고리별 감성 분포 ═══════════ -->
+<h2><span class="num">02</span>카테고리별 감성 분포</h2>
+
+<div class="chart-container">
+  <canvas id="sentimentChart" height="320"></canvas>
+</div>
+
+<div class="two-col" style="margin-top:24px;">
+  <!-- K-Food -->
+  <div class="cat-card" style="border-left:4px solid var(--green);">
+    <div class="cat-header">
+      <div class="cat-title" style="color:var(--green);">K-Food 음식</div>
+      <div><span class="tag tag-green">긍정 69%</span><span class="tag tag-red">부정 10%</span></div>
+    </div>
+    <div class="quote">"I could eat Korean food for every meal, every day, and I would be happy."<div class="src">— ResetEra, Cuisine Battle Thread</div></div>
+    <div class="quote">"KBBQ isn't even top 5 Korean food — there's so much more depth to the cuisine."<div class="src">— ResetEra, Korean Food Discussion</div></div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:8px;">핵심 테마: KBBQ 가격 논쟁 ($25~35) / Buldak Gen Alpha 열풍 / 한식 '정전(正典)' 진입</p>
+  </div>
+
+  <!-- K-pop -->
+  <div class="cat-card" style="border-left:4px solid var(--pink);">
+    <div class="cat-header">
+      <div class="cat-title" style="color:var(--pink);">K-pop/음악</div>
+      <div><span class="tag tag-green">긍정 21%</span><span class="tag tag-red">부정 45%</span></div>
+    </div>
+    <div class="quote">"K-pop songs typically involve around 15 people... everything polished, mixed, and mastered until it's flawless."<div class="src">— AllKpop Forums</div></div>
+    <div class="quote">"Americans don't take boy bands seriously regardless of ethnicity. BTS's music is predominantly non-English."<div class="src">— AllKpop Forums</div></div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:8px;">핵심 테마: 팬 독성 문화 / 산업 착취 논쟁 / 제작 퀄리티 인정 / 언어 장벽</p>
+  </div>
+
+  <!-- Drama -->
+  <div class="cat-card" style="border-left:4px solid var(--yellow);">
+    <div class="cat-header">
+      <div class="cat-title" style="color:var(--yellow);">드라마/영화</div>
+      <div><span class="tag tag-green">긍정 63%</span><span class="tag tag-red">부정 23%</span></div>
+    </div>
+    <div class="quote">"The reason I watch K-dramas is because it's done in 16 weekly episodes."<div class="src">— r/KDRAMA, PetiteEngineer</div></div>
+    <div class="quote">"Kdramas are overrated and people don't give other Asian dramas as much attention."<div class="src">— r/unpopularopinion</div></div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:8px;">핵심 테마: 시즌제 선호 / 트로프 피로감 / 기생충 후광 효과 / 자막 정상화</p>
+  </div>
+
+  <!-- Beauty -->
+  <div class="cat-card" style="border-left:4px solid var(--purple);">
+    <div class="cat-header">
+      <div class="cat-title" style="color:var(--purple);">뷰티/패션</div>
+      <div><span class="tag tag-green">긍정 73%</span><span class="tag tag-red">부정 15%</span></div>
+    </div>
+    <div class="quote">"Beauty of Joseon is the #1 Reddit-mentioned Korean SPF — affordable, elegant, effective."<div class="src">— r/AsianBeauty (via GlowRecs)</div></div>
+    <div class="quote">"I use K-beauty for hydration and Western products for actives — best of both worlds."<div class="src">— r/AsianBeauty (via Elire)</div></div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:8px;">핵심 테마: Glass Skin 트렌드 / 하이브리드 사용 패턴 / Cosrx 컬트 / 가성비 인정</p>
+  </div>
+
+  <!-- Brand -->
+  <div class="cat-card" style="border-left:4px solid var(--purple-mid);">
+    <div class="cat-header">
+      <div class="cat-title" style="color:var(--purple-mid);">기업/브랜드</div>
+      <div><span class="tag tag-green">긍정 79%</span><span class="tag tag-yellow">혼합 17%</span></div>
+    </div>
+    <div class="quote">"Samsung leads with Impression 55.9 (industry avg 27.8), Quality 56.9, Satisfaction 72.2 — nearly double industry averages."<div class="src">— YouGov BrandIndex 2024</div></div>
+    <div class="quote">"Kia rose from 30th to 3rd in JD Power reliability — but perception lag persists."<div class="src">— J.D. Power / CNBC</div></div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:8px;">핵심 테마: 삼성 업계 평균 2배 / 현대·기아 인식 전환 / '인식 지연' 10년 갭</p>
+  </div>
+
+  <!-- Tourism -->
+  <div class="cat-card" style="border-left:4px solid var(--orange);">
+    <div class="cat-header">
+      <div class="cat-title" style="color:var(--orange);">관광/여행</div>
+      <div><span class="tag tag-green">긍정 63%</span><span class="tag tag-red">부정 10%</span></div>
+    </div>
+    <div class="quote">"Seoul's public transit alone makes it worth the trip — clean, fast, cheap, and it runs until midnight."<div class="src">— Travel Blog / Reddit 인용</div></div>
+    <div class="quote">"My K-drama expectations vs reality had a gap, but the food and convenience stores blew my mind."<div class="src">— Quora, First-time Korea Visitor</div></div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:8px;">핵심 테마: 교통·안전·편의 극찬 / K-드라마 기대 vs 현실 갭 / 차별 경험 소수 보고</p>
+  </div>
+
+  <!-- Society -->
+  <div class="cat-card" style="border-left:4px solid var(--red);">
+    <div class="cat-header">
+      <div class="cat-title" style="color:var(--red);">사회/정치</div>
+      <div><span class="tag tag-green">긍정 9%</span><span class="tag tag-red">부정 51%</span></div>
+    </div>
+    <div class="quote">"Students attend hagwons until 10 PM after full school days... average bedtimes between 1-4 AM."<div class="src">— r/korea</div></div>
+    <div class="quote">"We're very protective of them and have a great relationship. Modern, sprawling, crowded metropolis with tech galore."<div class="src">— r/AskAmericans</div></div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:8px;">핵심 테마: 과로·교육압박·저출생 우려 / 안전·의료 긍정 / 동맹국 신뢰</p>
+  </div>
+
+  <!-- Daily Culture -->
+  <div class="cat-card" style="border-left:4px solid var(--cyan);">
+    <div class="cat-header">
+      <div class="cat-title" style="color:var(--cyan);">일상문화</div>
+      <div><span class="tag tag-green">긍정 63%</span><span class="tag tag-red">부정 6%</span></div>
+    </div>
+    <div class="quote">"Korean convenience stores are basically restaurants — the food quality is insane compared to American gas stations."<div class="src">— Reddit / Travel Blog</div></div>
+    <div class="quote">"The drinking culture is fascinating but intense — soju at every meal, every gathering."<div class="src">— r/korea</div></div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:8px;">핵심 테마: 편의점 문화 충격 / 카페 문화 / PC방 / 음주 문화 (과도함 지적)</p>
+  </div>
+</div>
+
+<!-- ═══════════ SEC 03: Reddit vs 공식 데이터 대비 ═══════════ -->
+<h2><span class="num">03</span>Reddit vs 공식 데이터 — 교차검증</h2>
+
+<div class="card card-accent">
+  <h3 style="margin-top:0;">갭 분석 매트릭스</h3>
+  <table>
+    <tr>
+      <th>카테고리</th>
+      <th>Reddit 긍정률</th>
+      <th>공식 조사 지표</th>
+      <th>갭 분석</th>
+    </tr>
+    <tr>
+      <td><strong>K-Food</strong></td>
+      <td><span class="gap-positive">69%</span></td>
+      <td>KEI: 42% #1 문화 관심사<br>인지도 68.6% (글로벌)</td>
+      <td><span class="gap-positive">일치</span> — 온·오프라인 모두 한식이 한국 인식의 최대 자산</td>
+    </tr>
+    <tr>
+      <td><strong>K-pop</strong></td>
+      <td><span class="gap-negative">21%</span></td>
+      <td>KEI: 12% 관심 (최하위)<br>미국 음악시장 점유 ~3%</td>
+      <td><span class="gap-positive">일치</span> — 일반 대중 관심 낮음. 팬덤 vs 대중 인식 극명한 괴리</td>
+    </tr>
+    <tr>
+      <td><strong>드라마/영화</strong></td>
+      <td><span class="gap-positive">63%</span></td>
+      <td>Netflix 비미국 콘텐츠 1위 (~8%)<br>방송 수출 $1.6B (+29.7%)</td>
+      <td><span class="gap-positive">일치</span> — 시청자 만족도 높지만 '트로프 피로' 포착은 Reddit만의 강점</td>
+    </tr>
+    <tr>
+      <td><strong>뷰티/패션</strong></td>
+      <td><span class="gap-positive">73%</span></td>
+      <td>미국 K-뷰티 매출 YoY +53%<br>북미 글로벌 시장 34.4%</td>
+      <td><span class="gap-positive">일치</span> — 실제 구매 데이터와 온라인 호감도 모두 상승</td>
+    </tr>
+    <tr>
+      <td><strong>기업/브랜드</strong></td>
+      <td><span class="gap-positive">79%</span></td>
+      <td>현대·기아 시장 점유 11.3% (역대 최고)<br>삼성 Impression 업계 2배</td>
+      <td><span class="gap-positive">일치</span> — 다만 Reddit은 '인식 지연' 10년 갭을 더 잘 포착</td>
+    </tr>
+    <tr>
+      <td><strong>관광/여행</strong></td>
+      <td><span class="gap-positive">63%</span></td>
+      <td>미국인 방한 130만명 (4위, YoY +30%)</td>
+      <td><span class="gap-positive">일치</span> — 교통·안전·음식 3대 강점 공통 확인</td>
+    </tr>
+    <tr>
+      <td><strong>사회/정치</strong></td>
+      <td><span class="gap-negative">9%</span></td>
+      <td>KEI: 전체 호감도 68%<br>Chicago Council: 66% 호의</td>
+      <td><span class="gap-negative">불일치</span> — 공식 조사는 '국가 단위' 호감, Reddit은 '시스템 비판' 집중. 두 데이터가 다른 차원을 측정</td>
+    </tr>
+    <tr>
+      <td><strong>일상문화</strong></td>
+      <td><span class="gap-positive">63%</span></td>
+      <td>한류 팬 미국 ~1,670만명<br>소프트파워 11위 (글로벌)</td>
+      <td><span class="gap-positive">일치</span> — 편의점·카페·대중교통 문화가 '살아보고 싶은 나라' 이미지 견인</td>
+    </tr>
+  </table>
+</div>
+
+<div class="insight-box">
+  <h4>교차검증 핵심 발견</h4>
+  <ul>
+    <li><strong>7/8 카테고리 일치</strong> — Reddit 커뮤니티 감성과 공식 조사가 대체로 같은 방향을 가리킴. Reddit이 '더 솔직한' 버전.</li>
+    <li><strong>유일한 불일치: 사회/정치</strong> — 공식 조사(68% 호감)는 "한국이라는 나라가 좋다"를 측정하고, Reddit(9% 긍정)은 "한국 사회 시스템의 문제점"을 논함. <strong>측정 차원 자체가 다른 것</strong>이 핵심.</li>
+    <li><strong>Reddit만의 가치</strong>: 공식 조사가 포착하지 못하는 ①인식 지연 갭 ②트로프 피로감 ③팬덤 vs 대중 괴리 ④가격 민감도를 잡아냄.</li>
+    <li><strong>출처별 신뢰도</strong>: KEI 2025 (대표성 높음), Brand Finance (글로벌 벤치마크), YouGov (브랜드 특화), KOFICE (한류 특화). 모두 2024-2026 최신 데이터.</li>
+  </ul>
+</div>
+
+<!-- ═══════════ SEC 04: Relevance Filter 분포 ═══════════ -->
+<h2><span class="num">04</span>Relevance Filter — 유효성 등급 분포</h2>
+
+<div class="relevance-grid">
+  <div class="relevance-item" style="border-color:var(--green);">
+    <div class="grade" style="color:var(--green);">A</div>
+    <div class="count">108</div>
+    <div class="pct">38.2%</div>
+    <div class="desc">직접 경험<br>"I lived in Korea"<br>"I've tried this"</div>
+  </div>
+  <div class="relevance-item" style="border-color:var(--cyan);">
+    <div class="grade" style="color:var(--cyan);">B</div>
+    <div class="count">140</div>
+    <div class="pct">49.5%</div>
+    <div class="desc">정보 기반 의견<br>데이터/기사 인용<br>비교 분석</div>
+  </div>
+  <div class="relevance-item" style="border-color:var(--yellow);">
+    <div class="grade" style="color:var(--yellow);">C</div>
+    <div class="count">15</div>
+    <div class="pct">5.3%</div>
+    <div class="desc">전해들은 이야기<br>인식 확산 경로</div>
+  </div>
+  <div class="relevance-item" style="border-color:var(--text-sub);">
+    <div class="grade" style="color:var(--text-sub);">D</div>
+    <div class="count">8</div>
+    <div class="pct">2.8%</div>
+    <div class="desc">밈/농담<br>문화 침투도</div>
+  </div>
+  <div class="relevance-item" style="border-color:var(--orange);">
+    <div class="grade" style="color:var(--orange);">E</div>
+    <div class="count">8</div>
+    <div class="pct">2.8%</div>
+    <div class="desc">편견/스테레오타입<br>인식 분석 대상</div>
+  </div>
+  <div class="relevance-item" style="border-color:var(--red);">
+    <div class="grade" style="color:var(--red);">F</div>
+    <div class="count">4</div>
+    <div class="pct">1.4%</div>
+    <div class="desc">봇/스팸<br>제외</div>
+  </div>
+</div>
+
+<div class="card card-accent">
+  <h3 style="margin-top:0;">Relevance Filter 핵심 발견</h3>
+  <ul style="font-size:14px;">
+    <li><strong>A+B = 87.7%</strong> — 수집된 멘션의 거의 90%가 직접 경험 또는 정보에 기반한 의견. 데이터 품질이 높음.</li>
+    <li><strong>영어 경험 신호 패턴</strong>: "I lived in Seoul for 3 years", "We switched from X to Y", "My first trip to Korea" — 한국어("직접 써보니")보다 명시적.</li>
+    <li><strong>편견(E) 클러스터</strong>: "all Korean food is just BBQ", "Korean girls all get plastic surgery" — 직접 경험이 없는 사람일수록 단일 스테레오타입에 의존.</li>
+    <li><strong>봇/스팸(F) 비율 1.4%</strong> — Reddit/포럼 특성상 매우 낮음. 이는 사용자 생성 콘텐츠(UGC)의 강점.</li>
+  </ul>
+</div>
+
+<!-- ═══════════ SEC 05: Psyche Layer ═══════════ -->
+<h2><span class="num">05</span>Psyche Layer — Experience / Advocacy / Recency</h2>
+
+<div class="gauge-row">
+  <div class="gauge-item">
+    <div class="gauge-circle" style="background: conic-gradient(var(--green) 0% 68%, var(--card-border) 68% 100%);">
+      <span style="color:var(--green);">68</span>
+    </div>
+    <div class="gauge-label">Experience Depth</div>
+    <div class="gauge-sub">직접 경험 깊이</div>
+  </div>
+  <div class="gauge-item">
+    <div class="gauge-circle" style="background: conic-gradient(var(--purple) 0% 61%, var(--card-border) 61% 100%);">
+      <span style="color:var(--purple);">61</span>
+    </div>
+    <div class="gauge-label">Advocacy</div>
+    <div class="gauge-sub">추천/호감 강도</div>
+  </div>
+  <div class="gauge-item">
+    <div class="gauge-circle" style="background: conic-gradient(var(--cyan) 0% 72%, var(--card-border) 72% 100%);">
+      <span style="color:var(--cyan);">72</span>
+    </div>
+    <div class="gauge-label">Recency</div>
+    <div class="gauge-sub">최신성 (2024~2026 가중)</div>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h3 style="margin-top:0;">카테고리별 Psyche 스코어</h3>
+    <table>
+      <tr><th>카테고리</th><th>Exp.</th><th>Adv.</th><th>Rec.</th><th>종합</th></tr>
+      <tr><td>K-Food</td><td style="color:var(--green);">78</td><td style="color:var(--green);">74</td><td style="color:var(--green);">80</td><td><strong style="color:var(--green);">77</strong></td></tr>
+      <tr><td>뷰티/패션</td><td style="color:var(--green);">72</td><td style="color:var(--green);">71</td><td style="color:var(--green);">85</td><td><strong style="color:var(--green);">76</strong></td></tr>
+      <tr><td>일상문화</td><td style="color:var(--green);">75</td><td style="color:var(--cyan);">65</td><td style="color:var(--cyan);">68</td><td><strong style="color:var(--cyan);">69</strong></td></tr>
+      <tr><td>관광/여행</td><td style="color:var(--green);">80</td><td style="color:var(--cyan);">63</td><td style="color:var(--cyan);">65</td><td><strong style="color:var(--cyan);">69</strong></td></tr>
+      <tr><td>기업/브랜드</td><td style="color:var(--cyan);">55</td><td style="color:var(--green);">72</td><td style="color:var(--green);">78</td><td><strong style="color:var(--cyan);">68</strong></td></tr>
+      <tr><td>드라마/영화</td><td style="color:var(--cyan);">65</td><td style="color:var(--cyan);">62</td><td style="color:var(--cyan);">70</td><td><strong style="color:var(--cyan);">66</strong></td></tr>
+      <tr><td>K-pop</td><td style="color:var(--cyan);">60</td><td style="color:var(--yellow);">42</td><td style="color:var(--cyan);">68</td><td><strong style="color:var(--yellow);">57</strong></td></tr>
+      <tr><td>사회/정치</td><td style="color:var(--cyan);">58</td><td style="color:var(--red);">28</td><td style="color:var(--cyan);">65</td><td><strong style="color:var(--yellow);">50</strong></td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">Psyche Layer 해석</h3>
+    <ul style="font-size:14px;">
+      <li><strong>K-Food = 1위 (77)</strong> — Experience Depth(직접 먹어본 경험)와 Advocacy(적극 추천) 모두 최고. "한식 = 한국의 가장 강력한 Soft Power"를 정량적으로 확인.</li>
+      <li><strong>뷰티 = 2위 (76)</strong> — Recency 85로 가장 높음. 2025~2026 K-뷰티 급성장 트렌드가 반영. 최근 멘션이 가장 활발한 카테고리.</li>
+      <li><strong>K-pop Advocacy 42</strong> — 팬덤 내부는 열광적이지만 일반 대중의 추천 의향은 낮음. "음악은 좋은데 팬 문화가 거부감"이라는 구조.</li>
+      <li><strong>사회/정치 Advocacy 28</strong> — 가장 낮음. "한국을 좋아하지만 한국 사회 시스템은 추천하지 않겠다"는 명확한 분리.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════ SEC 06: 토픽 심층 분석 ═══════════ -->
+<h2><span class="num">06</span>토픽 심층 분석 — 카테고리별 핵심 주제</h2>
+
+<div class="three-col">
+  <!-- K-Food Topics -->
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--green);">K-Food 핵심 토픽</h3>
+    <div style="font-size:13px;">
+      <p><strong>1. 가격/가치 긴장</strong><br>KBBQ $25~35 → 1위 불만. 맛은 사랑, 가격은 의문.</p>
+      <p style="margin-top:10px;"><strong>2. 맛 중독</strong><br>"Electric", "life-changing" — Buldak은 Gen Alpha 미국 1위 브랜드(Numerator).</p>
+      <p style="margin-top:10px;"><strong>3. BBQ 너머의 발견</strong><br>떡볶이 Gen Z 매력지수 274%. "KBBQ가 한식 전부가 아님" 인식 확산.</p>
+      <p style="margin-top:10px;"><strong>4. 정전(正典) 진입</strong><br>프렌치·이탈리안·멕시칸과 동급 — 44% 미국 외식업체 한식 메뉴 도입.</p>
+    </div>
+  </div>
+
+  <!-- K-pop Topics -->
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--pink);">K-pop 핵심 토픽</h3>
+    <div style="font-size:13px;">
+      <p><strong>1. 팬 독성/스탠 문화</strong> (6건)<br>일반 대중의 최대 거부 요인. 음악 자체보다 팬 문화가 이미지 결정.</p>
+      <p style="margin-top:10px;"><strong>2. 산업 착취 논쟁</strong> (4건)<br>훈련생 시스템, 과잉 스케줄, 정신건강 우려.</p>
+      <p style="margin-top:10px;"><strong>3. 제조 vs 진정성</strong> (4건)<br>15인 작곡팀 = "완벽한 제품" vs "영혼 없는 공장"</p>
+      <p style="margin-top:10px;"><strong>4. 전환된 팬</strong> (3건)<br>"처음엔 싫었는데 실력에 반했다" — 편견 극복 내러티브.</p>
+    </div>
+  </div>
+
+  <!-- Drama Topics -->
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--yellow);">드라마/영화 핵심 토픽</h3>
+    <div style="font-size:13px;">
+      <p><strong>1. 시즌 완결 구조</strong><br>16회 완결 → 미국 시청자 최대 호감 요인. "넷플릭스 피로" 해소.</p>
+      <p style="margin-top:10px;"><strong>2. 트로프 피로감</strong><br>시간점프, 재벌·신데렐라, 삼각관계 → 장기 시청자의 탈진 요인.</p>
+      <p style="margin-top:10px;"><strong>3. 기생충 후광 효과</strong><br>아카데미 이후 한국 영화 전반의 '자막 장벽' 소멸.</p>
+      <p style="margin-top:10px;"><strong>4. 감귤 마름에서</strong><br>넷플릭스 비미국 콘텐츠 1위 → 관광 드라이버 연결.</p>
+    </div>
+  </div>
+
+  <!-- Beauty Topics -->
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--purple);">뷰티/패션 핵심 토픽</h3>
+    <div style="font-size:13px;">
+      <p><strong>1. Glass Skin 트렌드</strong><br>r/AsianBeauty 지배적 토픽. 10-step → 5-step 간소화 진행 중.</p>
+      <p style="margin-top:10px;"><strong>2. 하이브리드 사용</strong><br>K-뷰티(보습/SPF) + 서양(레티놀/AHA) = 미국 소비자 최적 조합.</p>
+      <p style="margin-top:10px;"><strong>3. Holy Grail 제품군</strong><br>Beauty of Joseon SPF, Cosrx Snail Mucin, Laneige Lip Mask — 컬트 지위.</p>
+      <p style="margin-top:10px;"><strong>4. 가성비 인정</strong><br>$10~20대 가격 + 고품질 → 서양 프리미엄 대비 압도적 가성비.</p>
+    </div>
+  </div>
+
+  <!-- Brand Topics -->
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--purple-mid);">기업/브랜드 핵심 토픽</h3>
+    <div style="font-size:13px;">
+      <p><strong>1. 삼성 = 미국 2강</strong><br>Apple과의 양강 구도. Galaxy 인지도 93%, 소유율 ~40%.</p>
+      <p style="margin-top:10px;"><strong>2. 현대·기아 대역전</strong><br>30위 → 3위(JD Power). 하이브리드 +48.8% 돌파.</p>
+      <p style="margin-top:10px;"><strong>3. 인식 지연(Perception Lag)</strong><br>실제 품질은 이미 전환됐지만 비사용자 인식은 10년 뒤처짐.</p>
+      <p style="margin-top:10px;"><strong>4. LG 가전 독주</strong><br>삼성+LG = 미국 가전 시장 40%. "Korean = Quality" 등식 정착 중.</p>
+    </div>
+  </div>
+
+  <!-- Society Topics -->
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--red);">사회/정치 핵심 토픽</h3>
+    <div style="font-size:13px;">
+      <p><strong>1. 과로/교육 압박</strong><br>학원 → 새벽 1시 → 수면 부족의 악순환. "Dystopian" 프레이밍.</p>
+      <p style="margin-top:10px;"><strong>2. 저출생 위기</strong><br>0.72 합계출산율 → r/explainlikeimfive 단골 토픽.</p>
+      <p style="margin-top:10px;"><strong>3. 안전/의료 긍정</strong><br>유일한 긍정 아웃라이어. "미국보다 훨씬 안전" 합의.</p>
+      <p style="margin-top:10px;"><strong>4. 계엄령/정치 혼란</strong><br>2024.12 계엄 → Reddit 관심 폭증 → 부정 감성 스파이크.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SEC 07: 핵심 발견 & 인식 지형도 ═══════════ -->
+<h2><span class="num">07</span>핵심 발견 & 인식 지형도</h2>
+
+<div class="two-col">
+  <div class="chart-container">
+    <canvas id="radarChart" height="350"></canvas>
+  </div>
+  <div class="chart-container">
+    <canvas id="matrixChart" height="350"></canvas>
+  </div>
+</div>
+
+<div class="insight-box" style="margin-top:24px;">
+  <h4>5대 핵심 발견</h4>
+  <ul>
+    <li><strong>1. 한식이 한국의 No.1 소프트파워</strong> — 8개 카테고리 중 Psyche 종합 1위, 공식 조사에서도 문화 관심 1위(42%). 프로젝트렌트 US F&B 연계 사업의 최우선 진입 경로.</li>
+    <li><strong>2. "시스템 비판 ≠ 국가 비호감"</strong> — 사회/정치 부정률 51%이지만 전체 호감도 68%(KEI). 미국인은 한국을 좋아하면서도 사회 구조적 문제를 비판한다. 이 둘은 공존한다.</li>
+    <li><strong>3. K-뷰티 = 차세대 성장 엔진</strong> — Recency 85 (최고), 미국 매출 YoY +53%, 2026년 중국 추월 전망. 프로젝트렌트 뷰티 팝업 기회의 창.</li>
+    <li><strong>4. K-pop의 양면성</strong> — 제작 품질은 인정받지만 팬 문화가 일반 대중의 진입을 막는 "팬덤 장벽(Fandom Barrier)". Advocacy 42로 최하위권.</li>
+    <li><strong>5. 인식 지연(Perception Lag) 10년</strong> — 현대·기아의 품질은 이미 JD Power 3위지만 비사용자 인식은 10년 뒤. 이 갭을 좁히는 것이 한국 브랜드 공통 과제.</li>
+  </ul>
+</div>
+
+<!-- ═══════════ SEC 08: K-pop Deep Dive ═══════════ -->
+<h2><span class="num" style="color:var(--pink);">08</span>K-pop Deep Dive — 부정 45%의 구조</h2>
+
+<div class="card dd-accent">
+  <p style="font-size:15px;font-weight:700;color:var(--pink);margin-bottom:12px;">K-pop은 인기가 줄어든 것이 아니다. 팬과 비팬 사이의 간극이 극단적으로 벌어졌다.</p>
+  <ul style="font-size:14px;">
+    <li><strong>미국 스트리밍 점유 1.1%</strong> — 글로벌 물리 앨범 Top 10 중 7개가 한국 아티스트이지만, 실제 미국 스트리밍은 1.1%. <strong>깊은 팬덤 ≠ 넓은 대중성</strong>.</li>
+    <li><strong>2024년 변곡점</strong> — 10년 만에 앨범 판매 -19.5%, HYBE-ADOR 기업 전쟁, 슈가 음주운전. "버블 붕괴" 내러티브 등장.</li>
+    <li><strong>가시성-반발 루프 (학술 검증)</strong> — PMC 연구: K-pop 긍정 노출 증가 → 비팬 반발 비례 증가. "양극화는 인기의 부작용이 아니라 구조적 결과."</li>
+    <li><strong>82%가 '장벽'</strong> — 부정 인식 38건 중 31건이 단순 불만이 아닌 <strong>메인스트림 수용의 구조적 장벽</strong>.</li>
+  </ul>
+</div>
+
+<h3>10대 장벽 — 심각도 순위</h3>
+<div class="two-col">
+  <div class="chart-container"><canvas id="barrierChart" height="300"></canvas></div>
+  <div class="card">
+    <table>
+      <tr><th>#</th><th>장벽</th><th>심각도</th><th>핵심 근거</th></tr>
+      <tr><td>1</td><td style="color:var(--red);font-weight:700;">뷰티 기준 + 정신건강</td><td>5.0</td><td>미성년 성형 압박, 아이돌 자살</td></tr>
+      <tr><td>2</td><td style="color:var(--red);font-weight:700;">산업 착취</td><td>4.8</td><td>12세 계약, 수익 70-90% 에이전시</td></tr>
+      <tr><td>3</td><td style="color:var(--orange);font-weight:700;">팬 독성</td><td>4.0</td><td>기자 살해 위협, 사생팬 스토킹</td></tr>
+      <tr><td>4</td><td style="color:var(--orange);font-weight:700;">인종차별 + 제도 장벽</td><td>4.0</td><td>그래미 5후보 0수상, 아시아 별도 카테고리</td></tr>
+      <tr><td>5</td><td style="color:var(--orange);font-weight:700;">문화 전용</td><td>4.0</td><td>마마무 블랙페이스, Kiss of Life -200K</td></tr>
+      <tr><td>6</td><td style="color:var(--orange);font-weight:700;">남성성 낙인</td><td>4.0</td><td>메이크업 → 서양 남성성 불안</td></tr>
+      <tr><td>7</td><td style="color:var(--orange);font-weight:700;">준사회적 착취</td><td>4.0</td><td>버블앱, 연애금지, 팬=유사파트너</td></tr>
+      <tr><td>8</td><td style="color:var(--yellow);font-weight:700;">제조된 비진정성</td><td>3.7</td><td>15인 작곡팀, "영혼 없는 공장"</td></tr>
+      <tr><td>9</td><td style="color:var(--yellow);font-weight:700;">언어 장벽</td><td>3.5</td><td>영어 전환 시 정체성 위기</td></tr>
+      <tr><td>10</td><td style="color:var(--yellow);font-weight:700;">과포화</td><td>3.2</td><td>포토카드 50종, 판매량 -19.5%</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════ SEC 09: K-pop 타임라인 + 전환 ═══════════ -->
+<h2><span class="num" style="color:var(--pink);">09</span>K-pop 양극화 타임라인 & 전환 분석</h2>
+
+<div class="two-col">
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--pink);">양극화 타임라인 2012~2026</h3>
+    <div class="timeline">
+      <div class="tl-item negative">
+        <div class="tl-year">2012~2018</div>
+        <div class="tl-text">"제조된 팝" 프레이밍. 서양 비평계 이중잣대.</div>
+      </div>
+      <div class="tl-item negative">
+        <div class="tl-year">2017 — 마마무 블랙페이스</div>
+        <div class="tl-text">문화 전용 인식의 시작점. SNS 분노 폭발.</div>
+      </div>
+      <div class="tl-item polarize">
+        <div class="tl-year">2019 — BTS 메인스트림 + Burning Sun</div>
+        <div class="tl-text">BTS SNL 출연 → "왜 인기?" 반발. Burning Sun 성범죄 스캔들.</div>
+      </div>
+      <div class="tl-item polarize">
+        <div class="tl-year">2020 — 팬데믹: 양극화 촉매</div>
+        <div class="tl-text">아시안 혐오 +149%. K-pop 트윗 67억건. 비팬 "피로감"과 "혐오" 동시 폭증.</div>
+      </div>
+      <div class="tl-item negative">
+        <div class="tl-year">2021~23 — 그래미 5후보 0수상</div>
+        <div class="tl-text">ARMY "인종차별" vs 비팬 "자격 미달". 양쪽 분노.</div>
+      </div>
+      <div class="tl-item negative">
+        <div class="tl-year">2024 — 변곡점의 해</div>
+        <div class="tl-text">앨범 -19.5%, HYBE-ADOR, 뉴진스 해지, 슈가 DUI. "버블 붕괴."</div>
+      </div>
+      <div class="tl-item negative">
+        <div class="tl-year">2025 — Kiss of Life + HYBE PR</div>
+        <div class="tl-text">콘로우 -200K 팔로워. HYBE $25M "역바이럴" PR 스캔들.</div>
+      </div>
+      <div class="tl-item polarize">
+        <div class="tl-year">2026 — 그래미 "아시안 팝" 카테고리</div>
+        <div class="tl-text">"인정 vs 격리" 논쟁. 일반부문 불가 = "2등 시민" 프레이밍.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--green);">전환 분석 — 부정→긍정 전환 트리거</h3>
+    <div style="text-align:center;margin:16px 0;">
+      <div class="flow-step">초기 거부</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">우연한 노출</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">진정한 감상</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step" style="border-color:var(--green);color:var(--green);">전환</div>
+    </div>
+    <div class="bar-row"><div class="bar-label">친구/가족 추천</div><div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--green);">4건</div></div></div>
+    <div class="bar-row"><div class="bar-label">직접 음악 노출</div><div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--cyan);">4건</div></div></div>
+    <div class="bar-row"><div class="bar-label">라이브 공연</div><div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--pink);">3건</div></div></div>
+    <div class="bar-row"><div class="bar-label">감정적 공감</div><div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--purple);">3건</div></div></div>
+    <div class="bar-row"><div class="bar-label">커뮤니티 소속감</div><div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--yellow);">3건</div></div></div>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:12px;">최강 트리거 = <strong>"직접 체험"</strong>. 최강 고착 = <strong>"감정적 공감 + 커뮤니티"</strong>.</p>
+
+    <h3>3중 구조 진단</h3>
+    <table>
+      <tr><th>층위</th><th>내용</th><th>비중</th><th>해결</th></tr>
+      <tr><td style="color:var(--red);font-weight:700;">윤리적 거부</td><td>산업 착취, 정신건강, 문화 전용</td><td>35%</td><td><span class="tag tag-red">산업 변화 필요</span></td></tr>
+      <tr><td style="color:var(--orange);font-weight:700;">문화적 마찰</td><td>팬독성, 남성성 낙인, 인종 장벽</td><td>40%</td><td><span class="tag tag-yellow">장기 문화 노출</span></td></tr>
+      <tr><td style="color:var(--yellow);font-weight:700;">인식적 오해</td><td>비진정성, 언어 장벽, 과포화</td><td>25%</td><td><span class="tag tag-green">직접 체험 전환</span></td></tr>
+    </table>
+    <p style="font-size:13px;color:var(--text-sub);margin-top:8px;">프로젝트렌트 개입 가능 영역 = Layer 3(25%)만. Layer 1-2(75%)는 K-pop 산업 자체 과제.</p>
+  </div>
+</div>
+
+<div class="quote" style="border-left-color:var(--pink);">"I was very sure about never liking K-pop, but then I actually listened to it. Getting into K-pop changed me to enjoy whatever I want without shame."<div class="src">— KProfiles Forum, 전환 사례</div></div>
+<div class="quote" style="border-left-color:var(--pink);">"Classical musicians at Eastman had no idea K-pop was this complex — harmonic sophistication, time signature changes, orchestral arrangements hidden inside pop songs."<div class="src">— ReacttotheK (500K+ 구독자), Eastman School of Music</div></div>
+
+<!-- ═══════════ SEC 10: 프로젝트렌트 시사점 ═══════════ -->
+<h2><span class="num">10</span>프로젝트렌트 시사점 — US 마케팅 연계</h2>
+
+<div class="card card-accent">
+  <table>
+    <tr><th>시사점</th><th>근거</th><th>액션 방향</th></tr>
+    <tr>
+      <td><strong>1. K-Food First 전략</strong></td>
+      <td>Psyche 1위, KEI 관심 1위, 69% 긍정, 44% 외식업체 도입</td>
+      <td>US F&B 팝업/이벤트 패키지를 한식 체험 중심으로 설계. KBBQ 너머 떡볶이·김밥·불닭 등 '발견의 경험'을 강조.</td>
+    </tr>
+    <tr>
+      <td><strong>2. K-Beauty 팝업 기회</strong></td>
+      <td>Recency 최고(85), +53% 성장, Glass Skin 트렌드</td>
+      <td>Beauty of Joseon/Cosrx 등 Reddit Holy Grail 브랜드와 협업 팝업. "K-Beauty Discovery" 컨셉.</td>
+    </tr>
+    <tr>
+      <td><strong>3. 인식 지연 갭 비즈니스</strong></td>
+      <td>현대·기아 JD Power 3위 vs 인식 10년 지연</td>
+      <td>"한국 품질의 재발견" 체험 이벤트. 프로젝트렌트의 People Counting + OMO 측정으로 인식 전환 효과를 정량화.</td>
+    </tr>
+    <tr>
+      <td><strong>4. K-Content 연계 관광</strong></td>
+      <td>드라마 시청 → 방한 결정 연결고리 확인. 미국인 방한 130만(+30%)</td>
+      <td>K-Drama 촬영지/K-Food 투어 등 콘텐츠 연계 오프라인 경험 패키지.</td>
+    </tr>
+    <tr>
+      <td><strong>5. "시스템" 대신 "라이프스타일"</strong></td>
+      <td>사회 시스템 부정 51% vs 일상문화 긍정 63%</td>
+      <td>US 마케팅에서 한국 사회 구조가 아닌 <strong>일상 라이프스타일</strong>(편의점 문화, 카페, 대중교통) 중심 스토리텔링.</td>
+    </tr>
+    <tr>
+      <td><strong>6. Gen Z/Alpha 타겟</strong></td>
+      <td>Buldak Gen Alpha 1위, K-Food 18-29 관심 51%, 떡볶이 Gen Z 274%</td>
+      <td>MZ 타겟 팝업은 Buldak·떡볶이·한국 편의점 컨셉으로. 가격 = $15 이하 엔트리.</td>
+    </tr>
+    <tr>
+      <td><strong>7. K-pop은 앵커로 쓰지 말 것</strong></td>
+      <td>KEI 관심 최하위(12%), 부정 45%, 스트리밍 1.1%, 82% 구조적 장벽</td>
+      <td>K-pop은 서브 요소로만 활용. "팬덤 장벽" 회피 — "모든 사람을 위한 한국 문화" 포지셔닝.</td>
+    </tr>
+    <tr>
+      <td><strong>8. K-pop 전환 트리거 활용</strong></td>
+      <td>가장 강력한 전환 = "직접 체험" (라이브·실제 청취)</td>
+      <td>팝업 내 K-pop을 "체험 요소"로 배치 (DJ 세트, 안무 체험). 팬덤 아닌 호기심 자극.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ═══════════ SEC 11: 대표 멘션 부록 ═══════════ -->
+<h2><span class="num">11</span>대표 멘션 부록</h2>
+
+<div class="two-col">
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--green);">K-Food</h3>
+    <div class="quote">"I could eat Korean food for every meal, every day, and I would be happy."<div class="src">— ResetEra, Hecht (A등급)</div></div>
+    <div class="quote">"Sushi fav individually but probably Korean takes it overall for me."<div class="src">— ResetEra, LaneDS (A등급)</div></div>
+    <div class="quote">"Korean fried chicken topped the global survey as the most popular K-food worldwide."<div class="src">— KOFICE 2025 Survey (B등급)</div></div>
+    <div class="quote">"44% of US operators now feature Korean cuisine — it's canonical now."<div class="src">— Datassential 2025 (B등급)</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--pink);">K-pop/음악</h3>
+    <div class="quote">"K-pop wants every song to sound perfect on the radio, with everything polished, mixed, and mastered until it's flawless."<div class="src">— AllKpop Forums (A등급)</div></div>
+    <div class="quote">"Americans (minus the target audience of teenage girls) don't take boy bands seriously regardless of their ethnicity."<div class="src">— AllKpop Forums (B등급)</div></div>
+    <div class="quote">"KCon events in LA reached 94,000 attendance and KCon NY reached 50,000."<div class="src">— Quora (B등급)</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--yellow);">드라마/영화</h3>
+    <div class="quote">"The reason I watch K-dramas is because it's done in 16 weekly episodes."<div class="src">— r/KDRAMA, PetiteEngineer (A등급)</div></div>
+    <div class="quote">"Time-jumps are an annoying trope that adds nothing to the relationship they've built up over the series."<div class="src">— r/KDRAMA, --NO_CHILL-- (A등급)</div></div>
+    <div class="quote">"Korean titles were Netflix's most watched non-U.S. content in H2 2024."<div class="src">— Statista/Netflix (B등급)</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--purple);">뷰티/패션</h3>
+    <div class="quote">"Beauty of Joseon is the #1 Reddit-mentioned Korean SPF — affordable, elegant, effective."<div class="src">— r/AsianBeauty via GlowRecs (A등급)</div></div>
+    <div class="quote">"I use K-beauty for hydration and Western products for actives — best of both worlds."<div class="src">— r/AsianBeauty via Elire (A등급)</div></div>
+    <div class="quote">"U.S. K-beauty sales rose 53% year-over-year in Q1 2025."<div class="src">— Grand View Research (B등급)</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--purple-mid);">기업/브랜드</h3>
+    <div class="quote">"Samsung leads with Impression 55.9 (industry avg 27.8) — nearly double industry averages across all metrics."<div class="src">— YouGov BrandIndex 2024 (B등급)</div></div>
+    <div class="quote">"Combined 1.84 million vehicles sold in the U.S., record 11.3% market share."<div class="src">— Korea Herald, Hyundai-Kia 2025 (B등급)</div></div>
+    <div class="quote">"Kia rose from 30th to 3rd in JD Power reliability."<div class="src">— J.D. Power / CNBC (B등급)</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--orange);">관광/여행</h3>
+    <div class="quote">"Seoul's public transit alone makes it worth the trip — clean, fast, cheap."<div class="src">— Travel Blog (A등급)</div></div>
+    <div class="quote">"1.3 million Americans visited Korea in 2024, 4th largest source market."<div class="src">— KTO (B등급)</div></div>
+    <div class="quote">"The convenience stores are basically restaurants — food quality is insane."<div class="src">— Reddit / Travel Blog (A등급)</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--red);">사회/정치</h3>
+    <div class="quote">"Students attend hagwons until 10 PM... average bedtimes between 1-4 AM."<div class="src">— r/korea (A등급)</div></div>
+    <div class="quote">"We're very protective of them and have a great relationship."<div class="src">— r/AskAmericans (B등급)</div></div>
+    <div class="quote">"Unrealistic beauty standards, high suicide rates, low birth rate — some view aspects as 'dystopian'."<div class="src">— r/AskAmericans (B등급)</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--cyan);">일상문화</h3>
+    <div class="quote">"Korean convenience stores are basically restaurants — the food quality is insane compared to American gas stations."<div class="src">— Reddit / Travel Blog (A등급)</div></div>
+    <div class="quote">"The drinking culture is fascinating but intense — soju at every meal, every gathering."<div class="src">— r/korea (A등급)</div></div>
+    <div class="quote">"PC bang culture is wild — dedicated buildings for gaming with restaurant-quality food."<div class="src">— r/korea (A등급)</div></div>
+  </div>
+</div>
+
+</div><!-- /.container -->
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer style="max-width:1200px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#1a1a22;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #2a2a35;line-height:1.7;color:#9a9aa8;">
+    <p style="margin:0 0 4px;">본 분석은 공개 온라인 멘션 데이터 및 공식 조사 자료에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:rgba(102,102,255,0.08);padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;letter-spacing:-0.3px;">RXR US Perception Analysis Solution</div>
+    <p style="margin:0;color:#ccc;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">프로젝트 렌트(Project Rent)</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+      본 리포트에 포함된 분석 프레임, 지표 체계, 용어 정의, 산출 로직 일체는 프로젝트 렌트의 독자 기술이며,
+      무단 복제·인용·역공학·재사용을 엄격히 금합니다.
+    </p>
+  </div>
+  <div style="background:#1a1a22;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">
+    <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#999;font-size:11px;">&copy; Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+<div class="nav-hint">← → 키보드 스크롤</div>
+
+<script>
+// Register datalabels plugin
+Chart.register(ChartDataLabels);
+
+// ═══════════ Sentiment Stacked Bar Chart ═══════════
+const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+new Chart(sentimentCtx, {
+  type: 'bar',
+  data: {
+    labels: ['K-Food', 'K-pop', '드라마/영화', '뷰티/패션', '기업/브랜드', '관광/여행', '사회/정치', '일상문화'],
+    datasets: [
+      {
+        label: '긍정',
+        data: [69, 21, 63, 73, 79, 63, 9, 63],
+        backgroundColor: '#4ade80',
+        borderRadius: 4,
+      },
+      {
+        label: '혼합',
+        data: [15, 26, 14, 12, 17, 20, 34, 26],
+        backgroundColor: '#fbbf24',
+        borderRadius: 4,
+      },
+      {
+        label: '부정',
+        data: [10, 45, 23, 15, 0, 10, 51, 6],
+        backgroundColor: '#f87171',
+        borderRadius: 4,
+      },
+      {
+        label: '중립',
+        data: [6, 8, 0, 0, 4, 7, 6, 5],
+        backgroundColor: '#555',
+        borderRadius: 4,
+      }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        stacked: true,
+        max: 100,
+        ticks: { color: '#9a9aa8', callback: v => v + '%' },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      },
+      y: {
+        stacked: true,
+        ticks: { color: '#e8e8f0', font: { weight: 600, size: 13 } },
+        grid: { display: false }
+      }
+    },
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: { color: '#e8e8f0', usePointStyle: true, padding: 16 }
+      },
+      datalabels: {
+        color: '#fff',
+        font: { weight: 700, size: 11 },
+        formatter: (v) => v > 8 ? v + '%' : '',
+        anchor: 'center'
+      },
+      title: {
+        display: true,
+        text: '8개 카테고리 x 4-Way 감성 분포 (%)',
+        color: '#e8e8f0',
+        font: { size: 16, weight: 700 },
+        padding: { bottom: 16 }
+      }
+    }
+  }
+});
+
+// ═══════════ K-pop Barrier Chart ═══════════
+const barrierCtx = document.getElementById('barrierChart').getContext('2d');
+new Chart(barrierCtx, {
+  type: 'bar',
+  data: {
+    labels: ['뷰티/정신건강','산업 착취','팬 독성','인종차별','문화 전용','남성성 낙인','준사회적','비진정성','언어 장벽','과포화'],
+    datasets: [{
+      label: '심각도',
+      data: [5.0, 4.8, 4.0, 4.0, 4.0, 4.0, 4.0, 3.7, 3.5, 3.2],
+      backgroundColor: ['#f87171','#f87171','#fb923c','#fb923c','#fb923c','#fb923c','#fb923c','#fbbf24','#fbbf24','#fbbf24'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { max:5.5, ticks:{color:'#9a9aa8'}, grid:{color:'rgba(255,255,255,0.05)'} },
+      y: { ticks:{color:'#e8e8f0',font:{size:11,weight:600}}, grid:{display:false} }
+    },
+    plugins: {
+      legend:{display:false},
+      datalabels:{color:'#fff',font:{weight:700,size:11},anchor:'end',align:'left',formatter:v=>v.toFixed(1)},
+      title:{display:true,text:'K-pop 10대 장벽 심각도 (5점 만점)',color:'#e8e8f0',font:{size:14,weight:700}}
+    }
+  }
+});
+
+// ═══════════ Radar Chart ═══════════
+const radarCtx = document.getElementById('radarChart').getContext('2d');
+new Chart(radarCtx, {
+  type: 'radar',
+  data: {
+    labels: ['K-Food', 'K-pop', '드라마', '뷰티', '기업', '관광', '사회', '일상'],
+    datasets: [
+      {
+        label: '긍정률',
+        data: [69, 21, 63, 73, 79, 63, 9, 63],
+        borderColor: '#4ade80',
+        backgroundColor: 'rgba(74,222,128,0.15)',
+        pointBackgroundColor: '#4ade80',
+        borderWidth: 2
+      },
+      {
+        label: 'Psyche 종합',
+        data: [77, 57, 66, 76, 68, 69, 50, 69],
+        borderColor: '#6666FF',
+        backgroundColor: 'rgba(102,102,255,0.12)',
+        pointBackgroundColor: '#6666FF',
+        borderWidth: 2
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        beginAtZero: true,
+        max: 100,
+        ticks: { color: '#9a9aa8', backdropColor: 'transparent', stepSize: 25 },
+        grid: { color: 'rgba(255,255,255,0.08)' },
+        pointLabels: { color: '#e8e8f0', font: { size: 12, weight: 600 } },
+        angleLines: { color: 'rgba(255,255,255,0.08)' }
+      }
+    },
+    plugins: {
+      legend: { position: 'bottom', labels: { color: '#e8e8f0', usePointStyle: true } },
+      datalabels: { display: false },
+      title: {
+        display: true,
+        text: '인식 지형도 — 긍정률 vs Psyche 종합',
+        color: '#e8e8f0',
+        font: { size: 14, weight: 700 }
+      }
+    }
+  }
+});
+
+// ═══════════ Scatter (2x2 Matrix) ═══════════
+const matrixCtx = document.getElementById('matrixChart').getContext('2d');
+new Chart(matrixCtx, {
+  type: 'bubble',
+  data: {
+    datasets: [{
+      label: '카테고리',
+      data: [
+        { x: 69, y: 77, r: 14, label: 'K-Food' },
+        { x: 21, y: 57, r: 11, label: 'K-pop' },
+        { x: 63, y: 66, r: 10, label: '드라마' },
+        { x: 73, y: 76, r: 10, label: '뷰티' },
+        { x: 79, y: 68, r: 9, label: '기업' },
+        { x: 63, y: 69, r: 9, label: '관광' },
+        { x: 9, y: 50, r: 10, label: '사회' },
+        { x: 63, y: 69, r: 10, label: '일상' }
+      ],
+      backgroundColor: [
+        'rgba(74,222,128,0.7)',
+        'rgba(244,114,182,0.7)',
+        'rgba(251,191,36,0.7)',
+        'rgba(102,102,255,0.7)',
+        'rgba(139,139,255,0.7)',
+        'rgba(251,146,60,0.7)',
+        'rgba(248,113,113,0.7)',
+        'rgba(34,211,238,0.7)'
+      ],
+      borderColor: [
+        '#4ade80', '#f472b6', '#fbbf24', '#6666FF',
+        '#8B8BFF', '#fb923c', '#f87171', '#22d3ee'
+      ],
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        title: { display: true, text: '긍정률 (%)', color: '#9a9aa8', font: { weight: 600 } },
+        min: 0, max: 100,
+        ticks: { color: '#9a9aa8' },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      },
+      y: {
+        title: { display: true, text: 'Psyche 종합 점수', color: '#9a9aa8', font: { weight: 600 } },
+        min: 30, max: 90,
+        ticks: { color: '#9a9aa8' },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      datalabels: {
+        color: '#e8e8f0',
+        font: { weight: 700, size: 11 },
+        formatter: (v, ctx) => ctx.dataset.data[ctx.dataIndex].label,
+        anchor: 'end',
+        align: 'top',
+        offset: 4
+      },
+      title: {
+        display: true,
+        text: '2x2 매트릭스 — 긍정률 x Psyche 종합',
+        color: '#e8e8f0',
+        font: { size: 14, weight: 700 }
+      },
+      annotation: {}
+    }
+  },
+  plugins: [{
+    id: 'quadrants',
+    beforeDraw(chart) {
+      const { ctx, scales: { x, y } } = chart;
+      const midX = x.getPixelForValue(50);
+      const midY = y.getPixelForValue(60);
+      // Draw quadrant lines
+      ctx.save();
+      ctx.strokeStyle = 'rgba(102,102,255,0.3)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(midX, y.top);
+      ctx.lineTo(midX, y.bottom);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x.left, midY);
+      ctx.lineTo(x.right, midY);
+      ctx.stroke();
+      // Quadrant labels
+      ctx.fillStyle = 'rgba(102,102,255,0.2)';
+      ctx.font = '11px Pretendard Variable';
+      ctx.fillText('Low Positive / Low Psyche', x.getPixelForValue(5), y.getPixelForValue(35));
+      ctx.fillText('High Positive / Low Psyche', x.getPixelForValue(55), y.getPixelForValue(35));
+      ctx.fillText('Low Positive / High Psyche', x.getPixelForValue(5), y.getPixelForValue(85));
+      ctx.fillText('High Positive / High Psyche', x.getPixelForValue(55), y.getPixelForValue(85));
+      ctx.restore();
+    }
+  }]
+});
+</script>
+
+</body>
+</html>
