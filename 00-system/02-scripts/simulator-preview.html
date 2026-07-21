@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>보고 시뮬레이터 — 검토용 프리뷰</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{--bg:#1A1A1A;--bg2:#202020;--bg3:#262626;--fg:#F5F0EB;--fg2:#C4BEB7;--muted:#8A857E;--line:#333;--accent:#6C5CE7;--red:#E17055;--green:#00b894;--amber:#FDCB6E;--coral:#E17055}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans-serif;font-weight:300;min-height:100vh}
+.wrap{max-width:1400px;margin:0 auto;padding:24px 20px}
+h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.modes{display:flex;gap:8px;margin-bottom:20px}
+.mode-btn{background:var(--bg3);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.mode-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.main{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:1200px){.main{grid-template-columns:1fr}}
+.panel{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px}
+.panel h2{font-size:16px;font-weight:600;margin-bottom:14px}
+.field{margin-bottom:14px}
+.field label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;margin-bottom:6px}
+.field .tag{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600}
+.tag-ctx{background:rgba(108,92,231,.15);color:var(--accent)}
+.tag-prg{background:rgba(0,184,148,.15);color:var(--green)}
+.tag-thk{background:rgba(253,203,110,.15);color:var(--amber)}
+.tag-pri{background:rgba(253,203,110,.15);color:var(--amber)}
+.tag-rsk{background:rgba(225,112,85,.15);color:var(--coral)}
+.tag-dec{background:rgba(225,112,85,.15);color:var(--coral)}
+.field textarea{width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;resize:vertical;line-height:1.6;min-height:64px;transition:border-color .2s}
+.field textarea:focus{border-color:var(--accent);outline:none}
+.guide-toggle{font-size:11px;color:var(--accent);cursor:pointer;margin-left:auto;user-select:none}
+.guide-box{display:none;margin:6px 0 0;background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6}
+.guide-box.open{display:block}
+.g-bad{color:var(--coral)}
+.g-good{color:var(--green)}
+.submit-row{margin-top:16px;display:flex;gap:10px;align-items:center}
+.submit-btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:14px 32px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s}
+.submit-btn:disabled{opacity:.5;cursor:default}
+.submit-msg{font-size:12px;color:var(--muted)}
+
+/* ── 결과 패널 ── */
+.result-empty{color:var(--muted);font-size:14px;text-align:center;padding:60px 0}
+.score-circle{width:160px;height:160px;margin:0 auto 16px;position:relative}
+.score-circle svg{transform:rotate(-90deg)}
+.score-circle .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-circle .num{font-size:42px;font-weight:800}
+.score-circle .grade{font-size:20px;font-weight:700;margin-top:2px}
+.tc-row{text-align:center;margin-bottom:20px}
+.tc-stars{font-size:24px;letter-spacing:3px}
+.tc-detail{font-size:12px;color:var(--muted);margin-top:4px}
+.summary-box{background:var(--bg);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.7}
+.item-card{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.item-head{display:flex;justify-content:space-between;align-items:center}
+.item-name{font-size:13px;font-weight:600}
+.item-score{font-size:13px;font-weight:700}
+.item-bar{height:4px;background:var(--bg3);border-radius:2px;margin:8px 0 6px;overflow:hidden}
+.item-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.item-fb{font-size:12px;color:var(--fg2);line-height:1.5}
+.pat-card{background:rgba(225,112,85,.08);border:1px solid rgba(225,112,85,.25);border-radius:10px;padding:10px 14px;margin-bottom:8px}
+.pat-type{font-size:12px;font-weight:700;color:var(--coral)}
+.pat-detail{font-size:12px;color:var(--fg2);margin-top:4px}
+.tips{margin-top:14px}
+.tips h3{font-size:13px;font-weight:600;margin-bottom:8px}
+.tip-item{font-size:12px;color:var(--fg2);padding:6px 0 6px 14px;border-left:2px solid var(--accent);margin-bottom:6px;line-height:1.5}
+.section-label{font-size:13px;font-weight:600;margin:18px 0 8px;color:var(--fg)}
+
+/* ── 프리뷰 배너 ── */
+.preview-banner{background:linear-gradient(90deg,rgba(108,92,231,.12),rgba(108,92,231,.04));border:1px solid rgba(108,92,231,.3);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--accent);display:flex;align-items:center;gap:10px}
+.preview-banner .dot{width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0}
+</style></head><body>
+<div class="wrap">
+
+<div class="preview-banner"><span class="dot"></span>검토용 프리뷰 — 더미 데이터로 레이아웃·UI 확인용입니다. 실제 서비스에서는 Claude API가 채점합니다.</div>
+
+<h1>보고 시뮬레이터</h1>
+<p class="sub">Reporting OS v2 — 보고를 쓰고 AI 리뷰를 받아보세요. ReportScore 100점 채점 + ThinkingCost 예측</p>
+
+<div class="modes">
+  <button class="mode-btn on" data-m="daily" id="m-daily">일일보고</button>
+  <button class="mode-btn" data-m="brief" id="m-brief">기획안 (1P-Brief)</button>
+</div>
+
+<div class="main">
+  <!-- ===== 입력 패널 ===== -->
+  <div class="panel" id="input-panel">
+    <h2 id="input-title">일일보고 입력</h2>
+    <div id="fields"></div>
+    <div class="submit-row">
+      <button class="submit-btn" id="submit-btn">AI 리뷰 받기</button>
+      <span class="submit-msg" id="submit-msg"></span>
+    </div>
+  </div>
+
+  <!-- ===== 결과 패널 (더미) ===== -->
+  <div class="panel" id="result-panel">
+    <h2>AI 리뷰 결과</h2>
+    <div id="result"></div>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+
+/* ── 더미 데이터 2종 ── */
+var DUMMY_DAILY = {
+  input: {
+    context: "[세스크멘슬] 주방 도면 v3 작업",
+    output: "도면 수정 진행함",
+    outcome: "도면 수정 진행함",
+    risk: "",
+    tomorrow: "계속 진행",
+    decision: "컨펌 필요",
+    support: "",
+    evidence: ""
+  },
+  result: {
+    scores: {
+      context: {score:12, max:20, pass:false, feedback:"프로젝트명은 있으나 '왜 중요한지'(목적/배경)가 빠져 있습니다. 왜 v3가 필요한지, 이전 버전과 무엇이 달라졌는지 맥락이 필요합니다."},
+      objective: {score:0, max:10, pass:false, feedback:"목표 대비 진행률이나 성공 기준이 없습니다. '전체 5건 중 3건 완료(60%)' 같은 수치가 있어야 합니다."},
+      evidence: {score:0, max:15, pass:false, feedback:"사실/의견 구분이 전혀 없습니다. 판단의 근거가 직접 확인인지, 추정인지 명시해주세요."},
+      priority: {score:3, max:15, pass:false, feedback:"'계속 진행'은 구체성이 없습니다. 내일 최중요 1개를 '무엇을 언제까지'로 적어야 합니다."},
+      risk: {score:0, max:10, pass:false, feedback:"빈칸입니다. 리스크가 없다면 '없음'이라고 명시해야 만점입니다. 빈칸 = 생각하지 않음으로 해석됩니다."},
+      decision: {score:4, max:20, pass:false, feedback:"'컨펌 필요'만으로는 대표가 무엇을 결정해야 하는지 알 수 없습니다. 옵션(A/B) + 추천안 + 기한이 필요합니다."},
+      support: {score:0, max:10, pass:false, feedback:"빈칸입니다. 지원이 필요 없다면 '없음'이라고 명시해주세요."}
+    },
+    total: 19,
+    grade: "D",
+    patterns_detected: [
+      {type:"output_copy", field:"outcome", detail:"Output('도면 수정 진행함')이 Outcome에 그대로 복사되었습니다. Outcome은 '이 결과가 목표에 어떤 의미인지'를 써야 합니다."},
+      {type:"vague_decision", field:"decision", detail:"'컨펌 필요' — 무엇에 대한 컨펌인지, 선택지가 무엇인지, 언제까지인지 모두 빠져 있습니다."},
+      {type:"empty_risk", field:"risk", detail:"Risk 필드가 빈칸입니다. '없음'이라고 명시하면 만점이지만, 빈칸은 '생각하지 않음' = 0점입니다."},
+      {type:"abstract_tomorrow", field:"tomorrow", detail:"'계속 진행'은 추상적입니다. '도면 잔여 2건 오후 마무리, v3 최종본 16시까지 공유' 같은 구체성이 필요합니다."},
+      {type:"no_numbers", field:"output", detail:"Output에 수치가 없습니다. '수정 3건 완료', '환기닥트 1개소 변경' 등 정량화하세요."}
+    ],
+    thinking_cost: {predicted_questions:5, stars:0, detail:"맥락 불충분·결과 미분리·리스크 미식별·결정사항 불명·내일 계획 추상적 — 대표가 거의 모든 항목을 되물어야 합니다"},
+    summary: "프로젝트명만 있고 나머지 6-Layer가 거의 비어 있는 상태입니다. Output과 Outcome이 동일하게 복사되어 목표 대비 위치를 알 수 없고, Risk·Decision·Support가 모두 빈칸이라 대표가 판단에 필요한 정보를 전혀 얻을 수 없습니다.",
+    improvement_tips: [
+      "Output과 Outcome을 구분하세요. Output = '무엇을 했는가(산출물)', Outcome = '그래서 목표에 얼마나 가까워졌는가'",
+      "Risk·Decision·Support가 없을 때는 반드시 '없음'이라고 적으세요. 빈칸 = 0점, '없음' 명시 = 만점",
+      "'컨펌 필요' 대신 'A안 vs B안, 추천: A안, 기한: 7/15' 형식으로 대표가 바로 결정할 수 있게 쓰세요",
+      "'계속 진행' 대신 '★ [업무명] — 언제까지' 형식으로 내일 최중요 1개를 명시하세요",
+      "수치를 넣으세요. '진행함'이 아니라 '3건 중 2건 완료(67%)' — 숫자가 있어야 진행 상황이 보입니다"
+    ]
+  }
+};
+
+var DUMMY_BRIEF = {
+  input: {
+    title: "봉은사 프로젝트",
+    summary: "봉은사에서 프로그램을 합니다.",
+    stakeholder: "우리 회사",
+    client_value: "좋은 프로그램을 제공합니다",
+    core_idea: "명상 프로그램을 합니다",
+    success_criteria: "성공적으로 마친다",
+    support_needed: "추후 협의"
+  },
+  result: {
+    scores: {
+      title: {score:3, max:15, pass:false, feedback:"'봉은사 프로젝트'는 추상적입니다. '[대상]을 위한 [내용]' 형식으로 — '봉은사 방문객을 위한 도심 명상 체험 프로그램'처럼 무엇인지 한눈에 보여야 합니다."},
+      summary: {score:4, max:20, pass:false, feedback:"1문장뿐입니다. 대상/문제/방식/결과 4문장이 필요합니다. 대표가 이것만 읽고 Go/No-Go를 판단할 수 있어야 합니다."},
+      stakeholder: {score:2, max:10, pass:false, feedback:"'우리 회사'만으로는 이해관계자가 식별되지 않습니다. P1(봉은사)/P2(참가자)/P3(기업HR) + 각각이 원하는 것을 명시하세요."},
+      client_value: {score:2, max:10, pass:false, feedback:"'좋은 프로그램'은 구체적 이익이 아닙니다. '신규 방문자 월 500명↑, 정기후원 전환 5%' 같은 수치·상태로 표현하세요."},
+      core_idea: {score:3, max:20, pass:false, feedback:"'명상 프로그램을 합니다'는 형식(Format)이지 아이디어(How)가 아닙니다. '출퇴근 동선에 30분 런치명상을 끼워넣는 3단계 여정 설계' — 해결방식을 쓰세요."},
+      success_criteria: {score:0, max:15, pass:false, feedback:"'성공적으로 마친다'는 측정 불가능합니다. '3개월 내 정기참가자 200명, 만족도 4.5/5.0, 재참가율 60%' 같은 KPI가 필요합니다."},
+      support_needed: {score:2, max:10, pass:false, feedback:"'추후 협의'는 구체성이 없습니다. 얼마의 예산이·언제까지·왜 필요한지 명시하세요."}
+    },
+    total: 16,
+    grade: "D",
+    patterns_detected: [
+      {type:"abstract_title", field:"title", detail:"'봉은사 프로젝트' — 대상과 내용이 제목에 없습니다. '[봉은사 방문객]을 위한 [도심 명상 체험 프로그램]' 형식을 쓰세요."},
+      {type:"format_as_idea", field:"core_idea", detail:"'명상 프로그램을 합니다'는 형식(What)이지 아이디어(How)가 아닙니다. '어떻게 해결하는가'를 써야 합니다."},
+      {type:"unmeasurable_success", field:"success_criteria", detail:"'성공적으로 마친다' — 무엇이 성공인지 측정할 수 없습니다."},
+      {type:"missing_stakeholder", field:"stakeholder", detail:"'우리 회사'만 적혀 있어 실제 이해관계자(봉은사·참가자·후원기업 등)가 식별되지 않습니다."},
+      {type:"vague_budget", field:"support_needed", detail:"'추후 협의' — 대표가 규모감을 가늠할 수 없습니다. 대략적 범위라도 제시하세요."}
+    ],
+    thinking_cost: {predicted_questions:6, stars:0, detail:"제목·Summary·아이디어·KPI·예산 전부 추상적 — 대표가 '그래서 뭘 하겠다는 건데?'부터 물어야 합니다"},
+    summary: "기획안의 7개 항목이 모두 추상적 수준에 머물러 있습니다. 제목에서 대상·내용을 알 수 없고, 핵심 아이디어가 형식(명상 프로그램)에 그쳐 해결방식이 보이지 않으며, 성공 기준이 측정 불가능합니다. 대표가 이 기획안만으로 Go/No-Go를 판단할 수 없는 상태입니다.",
+    improvement_tips: [
+      "제목을 '[대상]을 위한 [내용]' 형식으로 다시 쓰세요. 제목이 곧 기획의 품질입니다.",
+      "Executive Summary를 4문장으로: 대상(누구) → 문제(왜) → 방식(어떻게) → 결과(그래서 뭐)",
+      "핵심 아이디어는 '무엇을 한다'가 아니라 '어떻게 해결한다'를 쓰세요. 형식 ≠ 아이디어",
+      "성공 기준은 반드시 숫자로: 참가자 수·만족도·전환율·매출 등 측정 가능해야 합니다"
+    ]
+  }
+};
+
+/* ── 현재 모드 ── */
+var mode = 'daily';
+
+var DAILY=[
+  {key:'context',label:'오늘 가장 중요한 업무',tag:'Context',tagC:'ctx',ph:'프로젝트명 + 왜 중요한지',bad:'도면 작업 중',good:'[세스크멘슬] 주방 도면 v3 — 설비팀 피드백 반영 중. 환기닥트 위치 변경으로 레이아웃 수정'},
+  {key:'output',label:'오늘 얻은 결과 (Output)',tag:'Progress',tagC:'prg',ph:'구체적 산출물 + 수량',bad:'리서치 진행함',good:'경쟁사 3곳 벤치마킹 완료 — 가격대/메뉴구성/타깃 비교표(12건)'},
+  {key:'outcome',label:'목표 대비 현재 위치 (Outcome)',tag:'Thinking',tagC:'thk',ph:'Output이 목표에 어떤 의미인지',bad:'(Output을 그대로 복사)',good:'도면 검토 3/5건 완료(60%). 남은 2건은 내일 반영 예정'},
+  {key:'risk',label:'발견한 문제 / 리스크',tag:'Risk',tagC:'rsk',ph:'문제 + 영향 + 대응. 없으면 "없음"',bad:'(빈칸)',good:'자재 납기 1주 지연 — 대안업체 2곳 견적 요청 완료'},
+  {key:'tomorrow',label:'내일 가장 중요한 일',tag:'Priority',tagC:'pri',ph:'★ 최중요 1개 + 기타',bad:'계속 진행',good:'★ 자재 A/B안 비교표 작성 → 오전 중 대표 보고'},
+  {key:'decision',label:'대표에게 필요한 결정',tag:'Decision',tagC:'dec',ph:'옵션 + 추천안 + 기한. 없으면 "없음"',bad:'컨펌 필요',good:'자재 A안(2,000만) vs B안(1,500만). 추천: A안. 기한: 7/15'},
+  {key:'support',label:'필요한 지원',tag:'Decision',tagC:'dec',ph:'무엇이·언제까지·왜. 없으면 "없음"',bad:'(빈칸)',good:'설비업체 미팅 동석 요청 — 7/16(수) 오후'},
+  {key:'evidence',label:'사실·의견 구분 메모',tag:'Thinking',tagC:'thk',ph:'직접 확인 vs 추정',bad:'클라이언트가 원하는 것 같다',good:'사실: 7/10 미팅에서 면적 확대 요청 직접 발언'}
+];
+
+var BRIEF=[
+  {key:'title',label:'프로젝트 제목',tag:'Context',tagC:'ctx',ph:'"[대상]을 위한 [내용]" 형식',bad:'봉은사 프로젝트',good:'봉은사 방문객을 위한 도심 명상 체험 프로그램'},
+  {key:'summary',label:'Executive Summary',tag:'Context',tagC:'ctx',ph:'4문장: 대상/문제/방식/결과',bad:'봉은사에서 프로그램을 진행합니다.',good:'대상: 25~45세 도시 직장인. 문제: 봉은사 방문자 90%가 산책만. 방식: 런치명상 30분. 결과: 재방문율 40%↑'},
+  {key:'stakeholder',label:'Primary Stakeholder',tag:'Context',tagC:'ctx',ph:'P1/P2/P3 + 원하는 것',bad:'우리 회사',good:'P1: 봉은사 — 현대적 포교. P2: 직장인 — 접근성 높은 명상. P3: 기업HR — 직원 복지'},
+  {key:'client_value',label:'Client Value',tag:'Context',tagC:'ctx',ph:'구체적 이익(수치/상태)',bad:'좋은 프로그램을 제공합니다',good:'봉은사: 신규 방문자 월 500명↑, 정기후원 전환 5%'},
+  {key:'core_idea',label:'핵심 아이디어 (How)',tag:'Thinking',tagC:'thk',ph:'형식이 아닌 해결방식',bad:'명상 프로그램을 합니다',good:'출퇴근 동선에 30분 런치명상 — 앱 예약+현장 안내+사후 가이드 3단계'},
+  {key:'success_criteria',label:'성공 기준 (KPI)',tag:'Priority',tagC:'pri',ph:'측정 가능한 숫자/상태',bad:'성공적으로 마친다',good:'3개월 내 정기참가자 200명, 만족도 4.5/5.0, 재참가율 60%'},
+  {key:'support_needed',label:'필요한 지원',tag:'Decision',tagC:'dec',ph:'예산/인력/파트너. 없으면 "없음"',bad:'추후 협의',good:'초기 예산 1,500만원 승인(공간 800+운영 700). 기한: 8월 초'}
+];
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function renderFields(){
+  var items=mode==='brief'?BRIEF:DAILY;
+  var dummy=mode==='brief'?DUMMY_BRIEF:DUMMY_DAILY;
+  document.getElementById('input-title').textContent=mode==='brief'?'기획안 (1P-Brief) 입력':'일일보고 입력';
+  var h='';
+  items.forEach(function(f){
+    var val=dummy.input[f.key]||'';
+    h+='<div class="field"><label>'+esc(f.label)+' <span class="tag tag-'+f.tagC+'">'+esc(f.tag)+'</span>'
+      +'<span class="guide-toggle" data-k="'+f.key+'">가이드 &#9660;</span></label>'
+      +'<textarea id="f-'+f.key+'">'+esc(val)+'</textarea>'
+      +'<div class="guide-box" id="g-'+f.key+'">'
+      +'<div class="g-bad">Bad: '+esc(f.bad)+'</div>'
+      +'<div class="g-good">Good: '+esc(f.good)+'</div></div></div>';
+  });
+  document.getElementById('fields').innerHTML=h;
+  document.querySelectorAll('.guide-toggle').forEach(function(el){
+    el.onclick=function(){
+      var g=document.getElementById('g-'+el.dataset.k);
+      g.classList.toggle('open');
+      el.textContent=g.classList.contains('open')?'가이드 \u25B2':'가이드 \u25BC';
+    };
+  });
+}
+
+function gradeColor(g){
+  if(g==='S') return 'var(--green)';
+  if(g==='A') return 'var(--accent)';
+  if(g==='B') return 'var(--amber)';
+  return 'var(--coral)';
+}
+
+var ITEM_LABELS={context:'Context (맥락)',objective:'Objective (목표)',evidence:'Evidence (근거)',
+  priority:'Priority (우선순위)',risk:'Risk (리스크)',decision:'Decision (결정)',support:'Support (지원)',
+  title:'제목',summary:'Executive Summary',stakeholder:'Stakeholder',client_value:'Client Value',
+  core_idea:'핵심 아이디어',success_criteria:'성공 기준',support_needed:'필요한 지원'};
+
+function renderResult(d){
+  var box=document.getElementById('result');
+  if(!d||!d.scores){box.innerHTML='<div class="result-empty">결과 없음</div>';return;}
+  var pct=d.total, gc=gradeColor(d.grade);
+  var circ=2*Math.PI*56; // r=56
+  var r=Math.round(pct/100*circ);
+  var h='<div class="score-circle"><svg width="160" height="160">'
+    +'<circle cx="80" cy="80" r="56" fill="none" stroke="var(--bg3)" stroke-width="10"/>'
+    +'<circle cx="80" cy="80" r="56" fill="none" stroke="'+gc+'" stroke-width="10" stroke-dasharray="'+r+' '+circ+'" stroke-linecap="round"/>'
+    +'</svg><div class="val"><div class="num" style="color:'+gc+'">'+d.total+'</div>'
+    +'<div class="grade" style="color:'+gc+'">'+esc(d.grade)+'</div></div></div>';
+  var tc=d.thinking_cost||{};
+  var stars='';for(var i=0;i<5;i++) stars+=(i<(tc.stars||0))?'\u2605':'\u2606';
+  h+='<div class="tc-row"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">ThinkingCost</div>'
+    +'<div class="tc-stars" style="color:'+gc+'">'+stars+'</div>'
+    +'<div class="tc-detail">예상 추가질문 '+(tc.predicted_questions||0)+'개'+(tc.detail?(' — '+esc(tc.detail)):'')+'</div></div>';
+  if(d.summary) h+='<div class="summary-box">'+esc(d.summary)+'</div>';
+  h+='<div class="section-label">항목별 채점</div>';
+  var scores=d.scores;
+  for(var k in scores){
+    var s=scores[k], barPct=Math.round(s.score/s.max*100);
+    var barC=s.pass?'var(--green)':'var(--coral)';
+    h+='<div class="item-card"><div class="item-head"><span class="item-name">'+(s.pass?'\u2713':'\u2717')+' '+(ITEM_LABELS[k]||k)+'</span>'
+      +'<span class="item-score" style="color:'+barC+'">'+s.score+'/'+s.max+'</span></div>'
+      +'<div class="item-bar"><div class="item-bar-fill" style="width:'+barPct+'%;background:'+barC+'"></div></div>'
+      +'<div class="item-fb">'+esc(s.feedback||'')+'</div></div>';
+  }
+  var pats=d.patterns_detected||[];
+  if(pats.length){
+    h+='<div class="section-label">감지된 안티패턴</div>';
+    pats.forEach(function(p){
+      h+='<div class="pat-card"><div class="pat-type">\u26A0 '+esc(p.type)+(p.field?(' \u00B7 '+esc(p.field)):'')+'</div>'
+        +'<div class="pat-detail">'+esc(p.detail||'')+'</div></div>';
+    });
+  }
+  var tips=d.improvement_tips||[];
+  if(tips.length){
+    h+='<div class="tips"><h3>개선 팁</h3>';
+    tips.forEach(function(t){ h+='<div class="tip-item">'+esc(t)+'</div>'; });
+    h+='</div>';
+  }
+  box.innerHTML=h;
+}
+
+/* ── 모드 전환 ── */
+document.querySelectorAll('.mode-btn').forEach(function(b){
+  b.onclick=function(){
+    mode=b.dataset.m;
+    document.querySelectorAll('.mode-btn').forEach(function(x){x.classList.toggle('on',x.dataset.m===mode);});
+    renderFields();
+    var dummy=mode==='brief'?DUMMY_BRIEF:DUMMY_DAILY;
+    renderResult(dummy.result);
+  };
+});
+
+/* ── 버튼 (프리뷰에서는 즉시 더미 결과 표시) ── */
+document.getElementById('submit-btn').onclick=function(){
+  var dummy=mode==='brief'?DUMMY_BRIEF:DUMMY_DAILY;
+  document.getElementById('submit-msg').textContent='(프리뷰: 더미 결과 표시)';
+  renderResult(dummy.result);
+  setTimeout(function(){document.getElementById('submit-msg').textContent='';},2000);
+};
+
+/* ── 초기 렌더 ── */
+renderFields();
+renderResult(DUMMY_DAILY.result);
+
+})();
+</script></body></html>

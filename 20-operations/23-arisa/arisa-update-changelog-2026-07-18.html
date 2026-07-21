@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISA 업데이트 정리 — 기존 vs 변경 (2026-07-18)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --primary:#6C5CE7; --primary-dark:#5A4BD1; --primary-light:#F0EEFC;
+  --ink:#1A1A2E; --ink-soft:#4A4A68; --muted:#8888A0;
+  --bg:#F7F7FB; --card:#FFFFFF; --line:#E4E4F0;
+  --green:#0FA97C; --green-bg:#E7F7F1;
+  --red:#E05252; --red-bg:#FCEDED;
+  --amber:#D98E04; --amber-bg:#FCF4E4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;font-size:15px}
+.wrap{max-width:1060px;margin:0 auto;padding:0 28px 80px}
+.hero{background:linear-gradient(135deg,#2A2450 0%,#4A3DB8 60%,var(--primary) 100%);color:#fff;padding:52px 28px 44px;margin-bottom:36px}
+.hero-inner{max-width:1060px;margin:0 auto}
+.hero .tag{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:100px;padding:4px 14px;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin-bottom:16px}
+.hero h1{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.3}
+.hero .sub{margin-top:10px;font-size:15px;color:rgba(255,255,255,.82);max-width:780px}
+.hero .meta{margin-top:20px;font-size:12.5px;color:rgba(255,255,255,.6)}
+section{margin-bottom:46px}
+h2{font-size:20px;font-weight:800;letter-spacing:-.01em;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+h2 .num{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:8px;background:var(--primary);color:#fff;font-size:13.5px;font-weight:700;padding:0 6px}
+.h2-sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+/* summary */
+.sumgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px}
+.sumcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.sumcard .k{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:4px}
+.sumcard .v{font-size:23px;font-weight:800;color:var(--primary)}
+.sumcard .d{font-size:12px;color:var(--ink-soft);margin-top:2px}
+/* change card */
+.chg{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:16px;overflow:hidden}
+.chg .head{padding:14px 22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.chg .head h3{font-size:15.5px;font-weight:800;letter-spacing:-.01em}
+.pill{display:inline-block;border-radius:100px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap}
+.pill.gid{background:var(--primary-light);color:var(--primary-dark)}
+.pill.who{background:#EEF3FB;color:#3565B8}
+.pill.fix{background:var(--red-bg);color:var(--red)}
+.pill.commit{background:#F1F1F6;color:var(--muted);font-family:ui-monospace,monospace;font-weight:600}
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.ba .col{padding:16px 22px}
+.ba .col.before{border-right:1px dashed var(--line);background:#FBFBFD}
+.ba .lab{font-size:11px;font-weight:800;letter-spacing:.06em;margin-bottom:8px}
+.ba .before .lab{color:var(--muted)}
+.ba .after .lab{color:var(--green)}
+.ba ul{list-style:none}
+.ba li{font-size:13.5px;padding:4px 0 4px 16px;position:relative;color:var(--ink-soft)}
+.ba .before li::before{content:'−';position:absolute;left:0;color:var(--muted);font-weight:700}
+.ba .after li::before{content:'+';position:absolute;left:0;color:var(--green);font-weight:700}
+.ba .after li{color:var(--ink)}
+.ba li b{color:var(--primary-dark)}
+.why{padding:11px 22px;background:var(--primary-light);font-size:13px;border-top:1px solid #E2DDF9}
+.why b{color:var(--primary-dark)}
+code{font-family:ui-monospace,'SF Mono',monospace;font-size:12px;background:#F1F1F6;border-radius:4px;padding:1px 6px;color:var(--primary-dark)}
+/* watch table */
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--line);font-size:13.5px}
+th{background:#2A2450;color:#fff;text-align:left;padding:11px 14px;font-weight:700;font-size:12.5px}
+td{padding:11px 14px;border-top:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#FBFBFE}
+footer{border-top:1px solid var(--line);padding-top:22px;margin-top:12px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+footer b{color:var(--primary)}
+@media(max-width:780px){.ba{grid-template-columns:1fr}.ba .col.before{border-right:none;border-bottom:1px dashed var(--line)}.sumgrid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="tag">ARISA UPDATE CHANGELOG</div>
+    <h1>ARISA 업데이트 정리 — 기존과 어떻게 달라졌나</h1>
+    <div class="sub">2026-07-18 노션 PM 갭 분석에서 도출한 갭 8건(G1~G8) + 파생 버그 2건을 하루에 구현·배포. 기능별로 "기존 → 변경"을 대조한다. 모든 변경은 맥미니 운영 환경에 배포 완료.</div>
+    <div class="meta">근거: notion-pm-gap-analysis-2026-07-18.html · 23-progress.md · 커밋 1cfa9a6 ~ 4f1386c</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- 0 summary -->
+<section>
+  <h2><span class="num">0</span>한눈에 보기</h2>
+  <div class="h2-sub">오늘 배포된 변경 총괄</div>
+  <div class="sumgrid">
+    <div class="sumcard"><div class="k">구현 갭</div><div class="v">8 + 2</div><div class="d">G1~G8 + 버그 2건(구스키마 /assign·미배포 핫픽스)</div></div>
+    <div class="sumcard"><div class="k">기능 커밋</div><div class="v">7건</div><div class="d">1cfa9a6·958349a·8fae53c·43960f1·d4438f3·9e538e8+fc57a4a·4f1386c</div></div>
+    <div class="sumcard"><div class="k">신규 공유 모듈</div><div class="v">2개</div><div class="d">shared/status.py · shared/status_log.py</div></div>
+    <div class="sumcard"><div class="k">시트 스키마</div><div class="v">3열 추가</div><div class="d">주간분장 K열 · 핵심업무 N·O열 (후행 — 기존 데이터 무영향)</div></div>
+  </div>
+</section>
+
+<!-- 1 데이터 구조 -->
+<section>
+  <h2><span class="num">1</span>데이터 구조 — 보이지 않지만 전부의 기반</h2>
+  <div class="h2-sub">화면 변화는 없지만 이후 모든 기능의 신뢰도를 결정하는 층</div>
+
+  <div class="chg">
+    <div class="head"><h3>상태·우선순위 정의 단일화</h3><span class="pill gid">G2</span><span class="pill who">내부 구조</span><span class="pill commit">1cfa9a6</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>미착수/진행중/완료/승인/삭제 판정 튜플이 <b>5개 파일에 복붙</b>으로 흩어짐</li>
+        <li>프로젝트 태스크는 영문("Not Started"), 분장은 한글 — 매핑 dict도 파일마다 별도</li>
+        <li>뱃지 CSS 클래스 매핑도 2곳에 중복</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li><code>shared/status.py</code> 하나가 상태·우선순위·매핑·뱃지·판정의 <b>단일 출처</b></li>
+        <li>dashboard·daily-brief·weekly가 전부 이것만 참조</li>
+        <li>시트·JSON의 실제 값은 무변경 — 직원 체감 0, 마이그레이션 0</li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — '보류' 추가나 P0/P1/P2 도입 같은 어휘 변경 시 이 파일 한 곳만 고치면 전 시스템에 반영된다.</div>
+  </div>
+
+  <div class="chg">
+    <div class="head"><h3>분장 ↔ 프로젝트 연결: 추측 → ID 확정</h3><span class="pill gid">G1a</span><span class="pill who">내부 구조</span><span class="pill commit">8fae53c</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>분장의 프로젝트는 <b>자유 텍스트 이름</b>뿐 — 소비할 때마다 토큰 매칭으로 추측</li>
+        <li>"LA문화원" 분장이 'LA 한국문화원 글로벌 K-존' 프로젝트와 <b>연결 실패</b> (표기 다르면 끊김)</li>
+        <li>매칭 오류가 승인 기록·분장 섹션·진행률에 그대로 전파</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li>주간분장 시트 <b>K열 = 프로젝트ID</b> 신설 — 등록 시 1회 매칭 확정, 이후 ID로만 참조</li>
+        <li>기존 95행 중 <b>87건 백필 완료</b> (매칭 실패 0 — LA문화원·유니원은 aliases로 해소)</li>
+        <li>인라인 편집에서 프로젝트를 바꾸면 ID도 자동 재확정</li>
+        <li>이름 토큰 매칭은 <b>폴백으로 강등</b> — ID 없는 옛 행만 사용</li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — "이 분장이 어느 프로젝트 것인가"가 추측이 아니라 사실이 된다. 노션 Relation 원리의 이식.</div>
+  </div>
+
+  <div class="chg">
+    <div class="head"><h3>상태 변경 이력 — 전이가 기록되기 시작</h3><span class="pill gid">G5</span><span class="pill who">내부 구조</span><span class="pill commit">43960f1</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>분장 상태가 바뀌면 시트 H열이 <b>덮어써질 뿐</b> — 언제·누가·무엇에서 바꿨는지 증발</li>
+        <li>인라인 편집·본인 삭제 기능이 생겼는데 변경 추적 수단이 없음</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li><code>status-log/assign-status.jsonl</code> — 전이 1건 = 1줄 <b>append-only 로그</b></li>
+        <li>기록 지점 5곳 전부 배선: 대시보드 상태변경·일괄삭제·프로젝트삭제 + 브리프 자동완료 + 주간 자동매칭</li>
+        <li>누가(by)·언제(ts)·무엇→무엇(from/to)·왜(note: 자동완료 시 보고 근거 문장)</li>
+        <li>로깅 실패는 운영 경로를 절대 깨지 않음</li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — 분쟁·유실 시 복원 근거가 생기고, G7 이력 화면의 데이터 소스가 된다. "화면보다 데이터 먼저."</div>
+  </div>
+</section>
+
+<!-- 2 대시보드 화면 -->
+<section>
+  <h2><span class="num">2</span>대시보드 화면 — arisa-os.com에서 바로 보이는 변화</h2>
+  <div class="h2-sub">프로젝트 탭(포트폴리오)·리더 팀 홈</div>
+
+  <div class="chg">
+    <div class="head"><h3>프로젝트 진행률 자동 롤업</h3><span class="pill gid">G3</span><span class="pill who">대표·리더·직원</span><span class="pill commit">958349a</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>프로젝트 목록 카드: <b>"업무 5"</b> — 태스크 개수만 표시, 진행 정도 알 수 없음</li>
+        <li>리더 팀 홈: "업무 3/5" 완료 수만 (진행중 반영 안 됨)</li>
+        <li>진행률은 상세 화면에 들어가야 계산됨</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li>목록 카드: <b>"업무 3/5 · 60%" + 청보라 진행 바</b></li>
+        <li>리더 팀 홈 프로젝트 패널: "업무 3/5 · 60%"</li>
+        <li>산식은 <code>shared/status.py task_rollup</code> 단일 함수 — 저장하지 않고 태스크에서 파생(목록=상세 수치 일치)</li>
+        <li>보고 기반 자동 완료와 결합 → <b>보고만 하면 진행률이 저절로 굴러감</b></li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — 집계라는 노동이 소멸. 노션 "Task completion percent"의 이식.</div>
+  </div>
+
+  <div class="chg">
+    <div class="head"><h3>포트폴리오 뷰: 카드 1개 → 3개 뷰 토글</h3><span class="pill gid">G4 + G8</span><span class="pill who">대표·리더·직원</span><span class="pill commit">43960f1 · d4438f3</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>프로젝트 목록 = <b>카드 그리드 한 가지</b> 표현뿐</li>
+        <li>"무엇이 밀리고 있나"를 보려면 카드를 하나씩 열어야 함</li>
+        <li>프로젝트 컨디션(At Risk/Hold 등)별 조망 불가</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li>목록 우상단 <b>[카드 | 타임라인 | 칸반]</b> 토글 (선택 기억)</li>
+        <li><b>타임라인</b>: 전 프로젝트 가로 막대(시작~종료/D-Day) + 진행률 채움 + 오늘선 + <b>마감 경과·미완은 빨간 테두리</b></li>
+        <li><b>칸반</b>: 컨디션(Not Started→Done)별 컬럼, 미니 카드(PM·D-day·진행바)</li>
+        <li>데이터는 동일 — 입력 1회, 표현 3가지 (노션 다중 뷰 원리)</li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — 같은 질문에 다른 화면: "일정이 밀렸나" = 타임라인, "어떤 프로젝트가 위험한가" = 칸반, "개별 확인" = 카드.</div>
+  </div>
+
+  <div class="chg">
+    <div class="head"><h3>분장 업무에 이력 스레드 🕘</h3><span class="pill gid">G7</span><span class="pill who">대표·리더·직원</span><span class="pill commit">d4438f3</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>프로젝트 상세의 분장 항목 = <b>현재 상태 한 줄</b>이 전부</li>
+        <li>"이거 언제 완료됐지? 누가 승인했지?"에 답할 수 없음</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li>분장 항목마다 <b>🕘 클릭 → 인라인 전이 스레드</b></li>
+        <li>시각 · 미착수→진행중→완료 · 변경 주체 · 경로(대시보드/자동)</li>
+        <li>자동 완료 건은 <b>"└ 보고 근거 문장"</b>까지 표시 — 왜 완료로 처리됐는지</li>
+        <li>이력은 2026-07-18부터 축적 (그 이전 건은 "이력 없음")</li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — 태스크와 그 맥락(경과·근거)이 한 자리에. 노션 "맥락과 실행의 동거" 원리.</div>
+  </div>
+</section>
+
+<!-- 3 브리프·배치 -->
+<section>
+  <h2><span class="num">3</span>브리프·배치 — 아침 07:30이 달라진다</h2>
+  <div class="h2-sub">daily-brief 자동 배치의 동작 변화</div>
+
+  <div class="chg">
+    <div class="head"><h3>지각 제출 자동 재집계</h3><span class="pill gid">G6</span><span class="pill who">대표·리더</span><span class="pill commit">43960f1</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>07:30 배치 이후 지각 제출된 전일 보고는 <b>어떤 브리프에도 영구 미반영</b></li>
+        <li>실사례: 7/8 정예은 건 — 시트엔 있는데 브리프 집계 누락, 수동 재생성으로 복구</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li>매 아침 배치가 <b>직전 브리프의 소스일을 재검사</b> — 보고 인원이 늘었으면 해당 브리프 자동 재생성</li>
+        <li>재생성은 텔레그램 재발송 없이 조용히 (링크는 고정 URL이라 최신본이 열림)</li>
+        <li>사각지대 자체가 사라짐 — 수동 개입 불필요</li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — 노션 스프린트 carry-over 사상의 변형: 주기 경계에서 유실되던 데이터가 자동 회수된다.</div>
+  </div>
+
+  <div class="chg">
+    <div class="head"><h3>브리프의 프로젝트 귀속: 추측 → 확정값 사용</h3><span class="pill gid">G1b 소비</span><span class="pill who">대표·리더</span><span class="pill commit">4f1386c</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>브리프 LLM이 보고 텍스트만 보고 <b>project를 추측 귀속</b> — 오인 발생 (프롬프트 보정으로 완화했으나 근본 미해결)</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li>봇이 확정한 귀속(핵심업무 시트 N·O열)을 브리프가 읽어 <b>"프로젝트=이름"으로 명시 제공</b></li>
+        <li>프롬프트 규칙 추가: <b>확정 귀속은 그대로 사용, 추측 재귀속 금지</b></li>
+        <li>우선파악존·프로젝트 블록의 귀속 정확도가 봇 확정값 수준으로 상승</li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — 브리프가 추측하는 시스템 → 확정된 Relation을 소비하는 시스템.</div>
+  </div>
+</section>
+
+<!-- 4 텔레그램 봇 -->
+<section>
+  <h2><span class="num">4</span>일일보고 봇 — 직원이 체감하는 변화</h2>
+  <div class="h2-sub">daily-report-bot (Wave 3 + G1b + /assign 수리)</div>
+
+  <div class="chg">
+    <div class="head"><h3>보고 코칭 질문 2종 추가 (Wave 3)</h3><span class="pill gid">Wave 3</span><span class="pill who">전 직원</span><span class="pill commit">9e538e8</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>산출물만 적고 <b>의미(Outcome) 공란</b>이어도 통과되는 경우 많음</li>
+        <li>의사결정 요청 필드 <b>전원 0% 공란</b> — 물어봐 주는 장치 없음</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li>산출물은 있는데 의미가 없으면: <b>"'○○'의 산출물로 그래서 무엇이 달라졌나요?"</b></li>
+        <li>결정 요청이 비어 있으면: <b>"대표나 팀장이 정해줘야 할 것이 있나요? (없으면 '없음')"</b></li>
+        <li>질문 상한(유형 A=1개, B/C=3개)과 우선순위 체계 안에서만 발동 — 질문 폭탄 아님</li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — 품질진단 2주 데이터에서 확인된 두 가지 최다 공란이 대화로 채워진다.</div>
+  </div>
+
+  <div class="chg">
+    <div class="head"><h3>보고 업무별 프로젝트 자동 귀속</h3><span class="pill gid">G1b</span><span class="pill who">전 직원 (무체감)</span><span class="pill commit">fc57a4a</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>보고의 핵심 업무가 <b>어느 프로젝트 것인지 기록 자체가 없음</b> (결정 메타에만 일부)</li>
+        <li>보고↔프로젝트 연결은 하류(브리프)에서 매번 추측</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li>구조화 단계에서 <b>실제 프로젝트 목록(25개, 별칭 포함)을 LLM에 제공</b> — 목록에서만 선택, 추측 금지</li>
+        <li>정확 매칭으로 <b>프로젝트 ID 확정</b> → 핵심업무 시트 N(프로젝트)·O(ID)열 축적</li>
+        <li>관리자 보고서에 <b>〔프로젝트명〕</b> 태그 표시</li>
+        <li>직원에게 추가 질문 없음 — 대화 흐름 무변경 (확인 버튼은 오귀속 관찰 후 도입 판단)</li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — 보고→브리프→분장→프로젝트가 이름 추측이 아닌 ID로 연결되는 순환의 마지막 조각.</div>
+  </div>
+
+  <div class="chg">
+    <div class="head"><h3>/assign 명령 수리 (버그)</h3><span class="pill fix">BUG FIX</span><span class="pill who">대표 전용</span><span class="pill commit">4f1386c</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>봇 /assign이 <b>구스키마(W라벨|팀|…)로 잘못된 칸에 기록</b> — 셸·브리프·주간집계 어디에서도 정상 인식 안 됨</li>
+        <li>우선순위 값도 비표준(최우선/참고)</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li>신스키마 11컬럼(날짜|프로젝트|팀|담당자|업무|일정|결과물|상태|이해관계자|우선순위|<b>프로젝트ID</b>)으로 정상 기록</li>
+        <li>파싱에 프로젝트 추출 추가 + ID 자동 확정, 우선순위 표준화(<b>긴급|일반</b>)</li>
+        <li>파싱 확인 메시지에 프로젝트 표기</li>
+      </ul></div>
+    </div>
+    <div class="why"><b>달라지는 것</b> — 텔레그램에서 등록한 분장도 셸 등록과 동일하게 전 시스템에 흐른다.</div>
+  </div>
+
+  <div class="chg">
+    <div class="head"><h3>미배포 핫픽스 회수</h3><span class="pill fix">BUG FIX</span><span class="pill who">전 직원</span><span class="pill commit">1b902c5 (재배포)</span></div>
+    <div class="ba">
+      <div class="col before"><div class="lab">기존</div><ul>
+        <li>"질문·피드백에 프로젝트·업무명 명시" 핫픽스가 커밋만 되고 <b>맥미니에 미배포</b> — "그 결정"류 지시어 질문이 계속 나가고 있었음</li>
+      </ul></div>
+      <div class="col after"><div class="lab">변경</div><ul>
+        <li>이번 HEAD 배포에 포함되어 해소 — 질문이 <b>"'여수 프로젝트' 계약 결정 —"</b> 형태로 명시</li>
+        <li>재발 방지: 배포 전 <b>베이스 해시 대조</b>를 표준 절차로 고정</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 관찰 포인트 -->
+<section>
+  <h2><span class="num">5</span>이제 관찰할 것</h2>
+  <div class="h2-sub">코드는 끝 — 실전 데이터로 확인할 체크포인트</div>
+  <table>
+    <tr><th style="width:22%">시점</th><th style="width:44%">확인할 것</th><th>어디서</th></tr>
+    <tr><td>오늘 저녁~주말 보고</td><td>① 업무별 프로젝트 귀속 정확도 ② Wave 3 질문(의미·결정 유도) 빈도가 과하지 않은지</td><td>핵심업무 시트 N·O열 · 봇 대화</td></tr>
+    <tr><td>내일 아침 07:30</td><td>① 지각 제출 체크 로그 출력 ② 자동 완료 시 status-log 기록 ③ 브리프 "프로젝트=" 귀속 반영</td><td>배치 로그 · assign-status.jsonl · 대표 브리프</td></tr>
+    <tr><td>월요일 08:30</td><td>주간 집계의 자동 매칭 전이가 이력 로그에 남는지(weekly-auto)</td><td>assign-status.jsonl</td></tr>
+    <tr><td>상시</td><td>타임라인·칸반 뷰 실사용 여부 — 안 쓰이면 제거 판단(뷰 증식 금지 원칙)</td><td>arisa-os.com 프로젝트 탭</td></tr>
+    <tr><td>필요 시</td><td>유니원 = K-존 프로젝트 동일 여부 — 별개면 해당 JSON aliases에서 '유니원' 제거</td><td>la-한국문화원 프로젝트 JSON</td></tr>
+  </table>
+</section>
+
+<footer>
+  <div><b>ARISA</b> · Update Changelog · 2026-07-18</div>
+  <div>by Project Rent</div>
+</footer>
+
+</div>
+</body>
+</html>

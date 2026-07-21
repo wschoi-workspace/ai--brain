@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Rent — Reporting OS 일반보고 가이드 v2</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root {
+  --bg: #1A1A1A; --bg-2: #111; --bg-3: #222;
+  --fg: #F5F0EB; --fg-2: #C9C2BA; --fg-3: #7A7570;
+  --line: #333; --line-2: #2a2a2a;
+  --accent: #6C5CE7; --accent-light: #A29BFE;
+  --warm: #E9DCC8; --rust: #B86C4A; --green: #8FA37E;
+  --blue: #6F8AA3; --amber: #D9A34B; --coral: #E17055;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+  background: var(--bg); color: var(--fg-2);
+  font-size: 14px; font-weight: 300; line-height: 1.7; letter-spacing: -0.01em;
+}
+.slide {
+  width: 100%; min-height: 100vh; padding: 80px 120px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; border-bottom: 1px solid var(--line-2);
+}
+.slide-cover { background: var(--bg-2); text-align: center; padding: 120px 80px; }
+.slide-dark { background: var(--bg-2); }
+.slide-head { margin-bottom: 40px; }
+.eyebrow { font-size: 11px; letter-spacing: 0.3em; color: var(--fg-3); text-transform: uppercase; margin-bottom: 16px; font-weight: 400; }
+h1 { font-size: 64px; font-weight: 200; line-height: 1.05; letter-spacing: -0.04em; color: var(--fg); margin-bottom: 24px; }
+h2 { font-size: 40px; font-weight: 500; line-height: 1.15; letter-spacing: -0.025em; color: var(--fg); margin-bottom: 16px; }
+h3 { font-size: 26px; font-weight: 300; line-height: 1.25; letter-spacing: -0.02em; color: var(--fg); margin-bottom: 14px; }
+h4 { font-size: 18px; font-weight: 500; line-height: 1.3; color: var(--fg); margin-bottom: 10px; }
+p { margin-bottom: 12px; }
+.sub-copy { font-size: 16px; color: var(--fg-3); font-weight: 300; line-height: 1.6; margin-top: 8px; }
+.text-hero { font-size: 27px; line-height: 1.5; font-weight: 300; color: var(--fg); }
+.text-large { font-size: 18px; line-height: 1.65; font-weight: 300; color: var(--fg-2); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.card { background: var(--bg-3); border: 1px solid var(--line-2); border-radius: 8px; padding: 28px; }
+.card-accent { border-left: 3px solid var(--accent); }
+.card-green { border-left: 3px solid var(--green); }
+.card-coral { border-left: 3px solid var(--coral); }
+.card-amber { border-left: 3px solid var(--amber); }
+.card-blue { border-left: 3px solid var(--blue); }
+.divider { width: 48px; height: 2px; background: var(--accent); margin: 28px 0; }
+.divider-center { margin: 28px auto; }
+table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--line-2); font-size: 13px; font-weight: 300; vertical-align: top; }
+th { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--fg-3); font-weight: 400; border-bottom: 1px solid var(--line); }
+td { color: var(--fg-2); }
+td strong, li strong, p strong { color: var(--fg); font-weight: 500; }
+blockquote {
+  border-left: 3px solid var(--accent); padding: 22px 30px; background: var(--bg-3);
+  border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 19px; line-height: 1.7; color: var(--fg); font-weight: 300;
+}
+.compare-good { border-left: 3px solid var(--green); padding: 18px 22px; background: rgba(143,163,126,0.05); border-radius: 0 8px 8px 0; margin-bottom: 14px; }
+.compare-bad { border-left: 3px solid var(--coral); padding: 18px 22px; background: rgba(225,112,85,0.05); border-radius: 0 8px 8px 0; margin-bottom: 14px; }
+.compare-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; font-weight: 400; }
+.compare-bad .compare-label { color: var(--coral); }
+.compare-good .compare-label { color: var(--green); }
+.tag { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 11px; letter-spacing: 0.1em; margin-right: 8px; margin-bottom: 6px; }
+.tag-accent { background: rgba(108,92,231,0.15); color: var(--accent-light); }
+.tag-green { background: rgba(143,163,126,0.15); color: var(--green); }
+.tag-coral { background: rgba(225,112,85,0.15); color: var(--coral); }
+.tag-amber { background: rgba(217,163,75,0.15); color: var(--amber); }
+.tag-blue { background: rgba(111,138,163,0.15); color: var(--blue); }
+.flow-vertical { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.flow-node { padding: 12px 36px; border: 1px solid var(--line); border-radius: 8px; text-align: center; font-size: 14px; color: var(--fg); font-weight: 500; min-width: 240px; }
+.flow-node-accent { border-color: var(--accent); color: var(--accent-light); }
+.flow-arrow { color: var(--fg-3); font-size: 16px; padding: 4px 0; text-align: center; }
+.layer-num { font-size: 34px; font-weight: 200; color: var(--accent); letter-spacing: -0.03em; line-height: 1; margin-bottom: 10px; }
+.stat-big { font-size: 56px; font-weight: 200; color: var(--fg); letter-spacing: -0.04em; line-height: 1; }
+.stat-label { font-size: 12px; color: var(--fg-3); margin-top: 10px; letter-spacing: 0.05em; }
+.stat-bad { color: var(--coral); }
+.checklist { list-style: none; }
+.checklist li { padding: 13px 0; border-bottom: 1px solid var(--line-2); font-size: 16px; color: var(--fg); display: flex; align-items: flex-start; gap: 14px; line-height: 1.5; }
+.checklist li::before { content: ''; width: 18px; height: 18px; border: 1.5px solid var(--fg-3); border-radius: 4px; flex-shrink: 0; margin-top: 3px; }
+.slide-footer { position: absolute; bottom: 28px; left: 120px; right: 120px; display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.15em; color: var(--fg-3); text-transform: uppercase; }
+.nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 48px; background: var(--bg-2); border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: center; gap: 16px; z-index: 100; }
+.nav-bar button { background: none; border: 1px solid var(--line); color: var(--fg-3); padding: 6px 16px; border-radius: 4px; font-family: inherit; font-size: 12px; cursor: pointer; }
+.nav-bar button:hover { border-color: var(--fg-3); color: var(--fg-2); }
+.nav-counter { font-size: 12px; color: var(--fg-3); letter-spacing: 0.1em; min-width: 64px; text-align: center; }
+.level-badge { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; font-size: 14px; font-weight: 700; margin-right: 12px; flex-shrink: 0; }
+.level-1 { background: rgba(108,92,231,0.2); color: var(--accent-light); }
+.level-2 { background: rgba(217,163,75,0.2); color: var(--amber); }
+.level-3 { background: rgba(111,138,163,0.2); color: var(--blue); }
+.inclusion-diagram { display: flex; align-items: center; justify-content: center; gap: 0; margin: 32px 0; }
+.inclusion-ring { border: 2px solid; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 500; }
+.ring-3 { width: 320px; height: 320px; border-color: var(--blue); color: var(--blue); font-size: 14px; }
+.ring-2 { width: 220px; height: 220px; border-color: var(--amber); color: var(--amber); font-size: 14px; }
+.ring-1 { width: 120px; height: 120px; border-color: var(--accent); color: var(--accent-light); font-size: 14px; }
+@media print { .nav-bar { display: none; } .slide { page-break-after: always; border-bottom: none; } }
+</style>
+</head>
+<body>
+
+<!-- 1. 커버 -->
+<div class="slide slide-cover">
+  <div class="eyebrow">Project Rent · Reporting OS v2 — 일반보고</div>
+  <h1>일반보고<br>작성 가이드</h1>
+  <p class="text-hero">L1 일일보고 → L2 주간보고 → L3 프로젝트보고<br><span style="color:var(--accent-light)">단계적으로 깊어지는</span> 보고 체계</p>
+  <div class="divider divider-center"></div>
+  <p class="sub-copy">reporting-os-일반보고-v2.xlsx 사용 가이드 · 2026. 07 · by Project Rent</p>
+</div>
+
+<!-- 2. v1에서 v2로 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">00 · What Changed</div>
+    <h2>v1에서 v2로 — 무엇이 달라졌는가</h2>
+    <p class="sub-copy">v1의 원칙(6-Layer, ReportScore, ThinkingCost)은 전부 유지됩니다. 달라진 것은 <strong style="color:var(--fg)">깊이의 단계</strong>입니다.</p>
+  </div>
+  <div class="grid-2">
+    <div class="card card-coral">
+      <h4>v1 — 단일 보고 양식</h4>
+      <p class="text-large">일일보고와 주간보고가 하나의 엑셀에 같은 무게로 공존</p>
+      <p style="color:var(--fg-3)">5분짜리 일일보고와 수시간짜리 프로젝트 보고를 같은 틀에 담으려 했다.</p>
+    </div>
+    <div class="card card-green">
+      <h4>v2 — 3단계 깊이</h4>
+      <p class="text-large">L1(5분) → L2(30분) → L3(수시간)<br>상황에 맞는 깊이를 선택</p>
+      <p style="color:var(--fg-3)">일일엔 L1, 주간엔 L2, 기획 보고엔 L3. 포함 관계로 점진적 확장.</p>
+    </div>
+  </div>
+  <blockquote style="margin-top:24px;">v1 파일은 레퍼런스로 보존합니다. 코드표·ReportScore·교육사례는 v2에 그대로 이관됐습니다.</blockquote>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>02 / 26</span></div>
+</div>
+
+<!-- 3. 핵심 원칙 재확인 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">01 · Principle</div>
+    <h2>보고의 정의 — 변하지 않는 원칙</h2>
+  </div>
+  <blockquote>보고란, 상대방이 더 좋은 <strong>의사결정</strong>을 할 수 있도록<br>필요한 정보를 <strong>구조화</strong>하여 전달하는 행위이다.</blockquote>
+  <div class="grid-3" style="margin-top:32px;">
+    <div class="card"><div class="stat-big">86건</div><div class="stat-label">주간 보고 건수 — 양은 충분</div></div>
+    <div class="card card-coral"><div class="stat-big stat-bad">2건</div><div class="stat-label">그 중 의사결정 가능했던 것</div></div>
+    <div class="card card-coral"><div class="stat-big stat-bad">0점</div><div class="stat-label">전원의 decision_thinking 점수</div></div>
+  </div>
+  <p class="sub-copy" style="margin-top:20px;">문제는 성실성이 아닙니다. 보고에 판단 재료가 담기지 않는 <strong style="color:var(--fg)">구조</strong>가 문제입니다.</p>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>03 / 26</span></div>
+</div>
+
+<!-- 4. 포함 관계 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">02 · Inclusion Principle</div>
+    <h2>L1 ⊂ L2 ⊂ L3 — 포함 관계</h2>
+    <p class="sub-copy">L1의 모든 항목은 L2에 포함되고, L2의 모든 항목은 L3에 포함됩니다. 작은 보고를 잘 쓰면 큰 보고는 확장일 뿐입니다.</p>
+  </div>
+  <div class="inclusion-diagram">
+    <div class="inclusion-ring ring-3">
+      <div class="inclusion-ring ring-2">
+        <div class="inclusion-ring ring-1">L1<br>일일</div>
+      </div>
+    </div>
+  </div>
+  <div class="grid-3">
+    <div class="card card-accent">
+      <span class="tag tag-accent">L1 일일보고</span>
+      <h4>8항목 · 5~10분</h4>
+      <p>매일 퇴근 전. 오늘 가장 중요한 것과 내일 계획.</p>
+    </div>
+    <div class="card card-amber">
+      <span class="tag tag-amber">L2 주간보고</span>
+      <h4>L1 + 확장 · 30분</h4>
+      <p>매주 금요일. 프로젝트 단위 변화 + 실패 + 배운 점.</p>
+    </div>
+    <div class="card card-blue">
+      <span class="tag tag-blue">L3 프로젝트보고</span>
+      <h4>L2 + 심화 · 수시간</h4>
+      <p>수시. 배경분석 + 대안비교 + 실행계획 + 의사결정 패키지.</p>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>04 / 26</span></div>
+</div>
+
+<!-- 5. 엑셀 사용법 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">03 · How to Use the Excel</div>
+    <h2>엑셀 열 레이아웃 — 이렇게 씁니다</h2>
+    <p class="sub-copy">모든 입력 시트(L1/L2/L3)는 같은 6열 구조입니다. C열만 쓰면 되고, D~F열은 도움이 필요할 때 펼칩니다.</p>
+  </div>
+  <table>
+    <tr><th>열</th><th>용도</th><th>서식</th><th>설명</th></tr>
+    <tr><td><strong>A</strong></td><td>섹션명</td><td>보라 배경, 볼드</td><td>6-Layer에 대응 (Context, Progress, Thinking…)</td></tr>
+    <tr><td><strong>B</strong></td><td>항목명</td><td>볼드</td><td>무엇을 써야 하는지</td></tr>
+    <tr><td style="color:var(--accent-light);"><strong>C</strong></td><td style="color:var(--accent-light);"><strong>입력란</strong></td><td style="color:var(--accent-light);">흰색, 테두리</td><td style="color:var(--accent-light);"><strong>여기에만 쓰면 됩니다</strong></td></tr>
+    <tr><td><strong>D</strong></td><td>설명/가이드</td><td>회색 이탤릭</td><td>이 항목이 왜 필요한지, 무엇을 써야 하는지</td></tr>
+    <tr><td><strong>E</strong></td><td>잘못된 예시</td><td>코랄 배경</td><td>이렇게 쓰면 안 됨</td></tr>
+    <tr><td><strong>F</strong></td><td>좋은 예시</td><td>그린 배경</td><td>이렇게 쓰면 됨</td></tr>
+  </table>
+  <div class="grid-2" style="margin-top:24px;">
+    <div class="card card-green">
+      <h4>D~F열은 접혀 있습니다</h4>
+      <p>기본 상태에서는 A·B·C열만 보입니다. 가이드가 필요하면 열 그룹의 <strong>+ 버튼</strong>을 눌러 펼치세요.</p>
+    </div>
+    <div class="card card-accent">
+      <h4>A~B열은 고정입니다</h4>
+      <p>좌우 스크롤해도 섹션명과 항목명은 항상 보입니다.</p>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>05 / 26</span></div>
+</div>
+
+<!-- 6. 6-Layer 재확인 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">04 · The Framework</div>
+    <h2>6-Layer — 모든 보고의 뼈대</h2>
+    <p class="sub-copy">v1과 동일합니다. 모든 보고 정보는 6개 Layer 중 하나에 속합니다.</p>
+  </div>
+  <div class="grid-3">
+    <div class="card card-accent"><div class="layer-num">1</div><h4>Context — 맥락</h4><p>무엇인가? 왜 하는가?</p></div>
+    <div class="card card-accent"><div class="layer-num">2</div><h4>Progress — 진행</h4><p>어디까지 왔는가?</p></div>
+    <div class="card card-accent"><div class="layer-num">3</div><h4>Thinking — 판단</h4><p>왜 그렇게 판단했는가?</p></div>
+    <div class="card card-accent"><div class="layer-num">4</div><h4>Priority — 우선순위</h4><p>가장 중요한 것은?</p></div>
+    <div class="card card-accent"><div class="layer-num">5</div><h4>Risk — 리스크</h4><p>무엇이 문제인가?</p></div>
+    <div class="card" style="border-left:3px solid var(--amber);"><div class="layer-num" style="color:var(--amber);">6</div><h4>Decision — 결정</h4><p>무엇을 결정해야 하는가?</p></div>
+  </div>
+  <p class="sub-copy" style="margin-top:20px;">엑셀의 A열(섹션명)이 이 6-Layer에 대응합니다. 항목을 쓸 때 "이 정보가 6개 중 어디에 속하는가"를 의식하면 자연스럽게 구조화됩니다.</p>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>06 / 26</span></div>
+</div>
+
+<!-- 7. L1 일일보고 개요 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">05 · L1 — Daily Report</div>
+    <h2>L1 일일보고 — 8항목, 5~10분</h2>
+    <p class="sub-copy">"오늘 한 일"이 아니라 <strong style="color:var(--fg)">"오늘 조직이 더 나아졌는가"</strong>를 보여줍니다. 매일 퇴근 전에 씁니다.</p>
+  </div>
+  <table>
+    <tr><th style="width:50px;">#</th><th style="width:160px;">섹션</th><th style="width:250px;">항목</th><th>핵심 질문</th><th style="width:110px;">Layer</th></tr>
+    <tr><td>1</td><td>맥락</td><td><strong>프로젝트명</strong></td><td>오늘 가장 집중한 프로젝트</td><td>Context</td></tr>
+    <tr><td>2</td><td>맥락</td><td><strong>오늘 가장 중요한 업무</strong></td><td>왜 중요한지 한 줄 포함</td><td>Context</td></tr>
+    <tr><td>3</td><td>진행</td><td><strong>오늘 얻은 결과 (Output)</strong></td><td>"했다"가 아니라 산출물 명사</td><td>Progress</td></tr>
+    <tr><td>4</td><td>판단</td><td><strong>목표 대비 위치 (Outcome)</strong></td><td>Output이 만든 변화와 의미</td><td>Thinking</td></tr>
+    <tr><td>5</td><td>판단</td><td><strong>근거구분</strong></td><td>사실 / 의견 / 혼합</td><td>Thinking</td></tr>
+    <tr><td>6</td><td>리스크</td><td><strong>발견한 문제</strong></td><td>사실 + 영향 + 대응. "없음" OK</td><td>Risk</td></tr>
+    <tr><td>7</td><td>우선순위</td><td><strong>내일 가장 중요한 일</strong></td><td>★로 최중요 1개 표시</td><td>Priority</td></tr>
+    <tr><td>8</td><td>의사결정</td><td><strong>대표에게 필요한 것</strong></td><td>옵션 + 추천안 + 기한</td><td>Decision</td></tr>
+  </table>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>07 / 26</span></div>
+</div>
+
+<!-- 8. L1 Before/After: Context -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">L1 · Context</div>
+    <h2>"무엇을"보다 "왜"가 먼저다</h2>
+  </div>
+  <div class="compare-bad">
+    <div class="compare-label">Before — 실제 보고</div>
+    <p class="text-large">"도면 작업 중"</p>
+    <p style="color:var(--fg-3)">어떤 프로젝트의 무슨 도면인지, 왜 오늘 이게 중요한지 알 수 없다.</p>
+  </div>
+  <div class="compare-good">
+    <div class="compare-label">After</div>
+    <p class="text-large">"세스크멘슬: 주방가구 도면 정리 — <strong>내일 주방업체 미팅 자료</strong>"</p>
+    <p style="color:var(--fg-3)">프로젝트 + 무엇을 + 왜가 한 줄에 있다.</p>
+  </div>
+  <blockquote>공식: <strong>[프로젝트명] : [무엇을] — [왜 / 무엇을 위해]</strong></blockquote>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>08 / 26</span></div>
+</div>
+
+<!-- 9. L1 Before/After: Output & Outcome -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">L1 · Progress + Thinking</div>
+    <h2>Output은 명사, Outcome은 변화</h2>
+  </div>
+  <div class="grid-2">
+    <div>
+      <h4 style="margin-bottom:16px;">Output (산출물)</h4>
+      <div class="compare-bad"><div class="compare-label">Before</div><p class="text-large">"리서치 진행함"</p></div>
+      <div class="compare-good"><div class="compare-label">After</div><p class="text-large">"업체별 단가·제작기간·리스크·<strong>타임라인 정리표</strong>"</p></div>
+    </div>
+    <div>
+      <h4 style="margin-bottom:16px;">Outcome (변화·의미)</h4>
+      <div class="compare-bad"><div class="compare-label">Before</div><p class="text-large">"최종 연출샷" <span style="color:var(--coral)">← Output 복사</span></p></div>
+      <div class="compare-good"><div class="compare-label">After</div><p class="text-large">"미팅 자료로 공유 → <strong>업체 미팅에서 바로 논의 가능</strong>"</p></div>
+    </div>
+  </div>
+  <blockquote>Output 공식: <strong>산출물 이름 + 수량 (명사)</strong><br>Outcome 공식: <strong>[산출물] → 이제 [무엇]이 가능해졌다 (목표 대비 __%)</strong></blockquote>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>09 / 26</span></div>
+</div>
+
+<!-- 10. L1 Before/After: Decision -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">L1 · Decision — 가장 중요한 항목</div>
+    <h2>"컨펌 필요"는 보고가 아니다</h2>
+    <p class="sub-copy">Decision 배점 20점 — 우리 조직에서 가장 결핍된 항목이기 때문입니다.</p>
+  </div>
+  <div class="compare-bad">
+    <div class="compare-label">Before — 실제 보고</div>
+    <p class="text-large">"대표님 컨펌 필요."</p>
+    <p style="color:var(--fg-3)">무엇을 컨펌해야 하는지 없다. 대표의 되묻기 3~4회가 예약된다.</p>
+  </div>
+  <div class="compare-good">
+    <div class="compare-label">After</div>
+    <p class="text-large">"공간 규모 <strong>100평 vs 255평</strong> · 총용역비 증액분 배분 내부 확정 필요<br><strong>(설치·물류·규모에 직결)</strong> — 기한: 이번 주 수"</p>
+    <p style="color:var(--fg-3)">옵션이 있고, 왜 지금 결정해야 하는지 있고, 기한이 있다.</p>
+  </div>
+  <div class="card card-accent" style="margin-top:20px;">
+    <h4>Decision 3요소</h4>
+    <p class="text-large"><strong>옵션</strong>(선택지 2개 이상) + <strong>추천안</strong>(내 의견과 근거) + <strong>기한</strong>(언제까지 필요한가)</p>
+    <p style="color:var(--fg-3);">"없음"도 판단입니다. 공란은 "생각 안 함", "없음"은 "판단한 결과".</p>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>10 / 26</span></div>
+</div>
+
+<!-- 11. L1 Before/After: Risk -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">L1 · Risk</div>
+    <h2>Risk = 사실 + 예상 영향 + 대응</h2>
+  </div>
+  <div class="compare-bad">
+    <div class="compare-label">Before — 실제 보고</div>
+    <p class="text-large">"없서" · "이것도 정리" · "기억이 안나 우선 이대로 진행"</p>
+  </div>
+  <div class="compare-good">
+    <div class="compare-label">After — 3요소 구조</div>
+    <table>
+      <tr><td style="width:120px;"><strong>사실</strong></td><td>1차 시안 1개 완료 (계획 3개 대비 33%)</td></tr>
+      <tr><td><strong>예상 영향</strong></td><td>컬러 확정 2일 지연 → 발주 일정 연쇄 영향</td></tr>
+      <tr><td><strong>대응</strong></td><td>내일 오전 시안 2개 우선 작업으로 만회</td></tr>
+    </table>
+  </div>
+  <div class="card card-amber" style="margin-top:20px;">
+    <h4>조직 Risk로 승격되는 순간</h4>
+    <p>같은 주에 3명이 보고한 "AI 토큰 부족" — 개별 블로커가 모이면 조직 Risk가 됩니다. 구조화된 보고만이 이 패턴을 보이게 합니다.</p>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>11 / 26</span></div>
+</div>
+
+<!-- 12. 사실 vs 의견 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">L1 · Thinking — 근거구분</div>
+    <h2>사실과 의견을 분리하라</h2>
+  </div>
+  <div class="compare-bad">
+    <div class="compare-label">원문 — 실제 보고</div>
+    <p class="text-large">"오늘 클로드가 막히면서 늦게 시작했고, 토큰이 모자라서 마지막 자료를 잘 정리하지 못했어"</p>
+  </div>
+  <div class="grid-3">
+    <div class="card card-green"><span class="tag tag-green">사실</span><p>클로드 토큰 소진으로 약 2시간 작업 중단. 신규 계정 생성 30분 소요.</p></div>
+    <div class="card card-amber"><span class="tag tag-amber">의견</span><p>토큰 한도가 늘지 않으면 이번 주 반복될 것.</p></div>
+    <div class="card card-accent"><span class="tag tag-accent">요청 (Support)</span><p>팀 공용 AI 토큰 확충 검토 (이번 주 내).</p></div>
+  </div>
+  <p class="sub-copy" style="margin-top:16px;">근거구분 드롭다운: <strong style="color:var(--fg);">사실</strong>(관찰·측정·발생한 일) / <strong style="color:var(--fg);">의견</strong>(해석·예측·제안) / <strong style="color:var(--fg);">혼합</strong>(분리 재작성 대상)</p>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>12 / 26</span></div>
+</div>
+
+<!-- 13. L2 주간보고 개요 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">06 · L2 — Weekly Report</div>
+    <h2>L2 주간보고 — L1 + 프로젝트 단위 확장</h2>
+    <p class="sub-copy">일일보고를 모아 붙이는 것이 아닙니다. <strong style="color:var(--fg)">한 주 동안 프로젝트가 어떻게 변했는가</strong>를 설명합니다.</p>
+  </div>
+  <div class="grid-2">
+    <div>
+      <h4>프로젝트별 블록 (기본 3개, 확장 가능)</h4>
+      <table>
+        <tr><th style="width:50px;">#</th><th>항목</th><th>L1 대응</th></tr>
+        <tr><td>1</td><td><strong>프로젝트명</strong></td><td>= L1 프로젝트명</td></tr>
+        <tr><td>2</td><td><strong>프로젝트 목표</strong></td><td><span class="tag tag-amber">L2 신규</span></td></tr>
+        <tr><td>3</td><td><strong>이번 주 가장 중요한 업무</strong></td><td>= L1 확장</td></tr>
+        <tr><td>4</td><td><strong>이번 주 핵심 변화</strong></td><td><span class="tag tag-amber">L2 신규</span></td></tr>
+        <tr><td>5</td><td><strong>성과 (Output + Outcome)</strong></td><td>= L1 통합</td></tr>
+        <tr><td>6</td><td><strong>근거구분</strong></td><td>= L1</td></tr>
+        <tr><td>7</td><td><strong>실패</strong></td><td><span class="tag tag-amber">L2 신규</span></td></tr>
+        <tr><td>8</td><td><strong>배운 점</strong></td><td><span class="tag tag-amber">L2 신규</span></td></tr>
+        <tr><td>9</td><td><strong>발견한 문제</strong></td><td>= L1</td></tr>
+        <tr><td>10</td><td><strong>다음 주 핵심 목표</strong></td><td>= L1 확장</td></tr>
+        <tr><td>11</td><td><strong>대표 의사결정 요청</strong></td><td>= L1</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="card card-amber" style="margin-bottom:20px;">
+        <h4>왜 "실패"가 "성과"와 동급인가</h4>
+        <p class="text-large">실패가 기록되지 않는 조직은 같은 실패를 반복합니다.</p>
+        <p style="color:var(--fg-3)">실패 보고는 감점이 아니라 조직 학습의 원료입니다.</p>
+      </div>
+      <div class="card card-accent">
+        <h4>종합 섹션 (+2항목)</h4>
+        <p><strong>ThinkingCost 자가평가</strong> — 이번 주 추가 질문 횟수 별점</p>
+        <p><strong>ReportScore 자가채점</strong> — 이번 주 평균 점수</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>13 / 26</span></div>
+</div>
+
+<!-- 14. L2 핵심 변화 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">L2 · 핵심 변화</div>
+    <h2>"계속 진행 중"은 변화가 아니다</h2>
+    <p class="sub-copy">주간보고의 핵심은 <strong style="color:var(--fg)">지난주 대비 무엇이 달라졌는가</strong>를 한 문장으로 쓰는 것입니다.</p>
+  </div>
+  <div class="compare-bad">
+    <div class="compare-label">Before</div>
+    <p class="text-large">"계속 진행 중입니다."</p>
+    <p style="color:var(--fg-3)">어디서 어디로 움직였는지 알 수 없다. 지난주 보고를 복사해도 똑같다.</p>
+  </div>
+  <div class="compare-good">
+    <div class="compare-label">After</div>
+    <p class="text-large">"주방업체 후보 <strong>5곳 → 3곳</strong> 쇼트리스트 확정"</p>
+    <p style="color:var(--fg-3)">어디서 어디로 변했는지 한 문장으로 명확하다.</p>
+  </div>
+  <blockquote>공식: <strong>[이전 상태] → [현재 상태] (변화의 핵심 한 문장)</strong></blockquote>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>14 / 26</span></div>
+</div>
+
+<!-- 15. L2 실패 + 배운 점 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">L2 · 실패 + 배운 점</div>
+    <h2>실패를 숨기면 조직이 멈춘다</h2>
+  </div>
+  <div class="grid-2">
+    <div>
+      <h4>실패</h4>
+      <div class="compare-bad"><div class="compare-label">Before</div><p class="text-large">(공란 — 실패를 숨김)</p></div>
+      <div class="compare-good"><div class="compare-label">After</div><p class="text-large">"예정 시안 3개 중 1개만 완료 (33%)<br>— <strong>디자이너 일정 충돌</strong>"</p></div>
+    </div>
+    <div>
+      <h4>배운 점</h4>
+      <div class="compare-bad"><div class="compare-label">Before</div><p class="text-large">"다음에 잘해야지"</p></div>
+      <div class="compare-good"><div class="compare-label">After</div><p class="text-large">"업체 비교는 견적서만으로 부족 — <strong>현장 방문 후 판단이 30% 이상 바뀜</strong>"</p></div>
+    </div>
+  </div>
+  <div class="card card-green" style="margin-top:20px;">
+    <h4>배운 점의 기준: "다음에 재사용 가능한가?"</h4>
+    <p>"잘해야지"는 배움이 아닙니다. "이런 상황에서는 이렇게 하면 된다"가 배움입니다. 이것이 쌓이면 조직의 지식이 됩니다.</p>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>15 / 26</span></div>
+</div>
+
+<!-- 16. L3 프로젝트보고 개요 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">07 · L3 — Project Report</div>
+    <h2>L3 프로젝트보고 — L2 + 심화 4섹션</h2>
+    <p class="sub-copy">L2의 모든 항목을 포함하고, 아래 4개 심화 섹션이 추가됩니다.</p>
+  </div>
+  <div class="grid-2">
+    <div class="card card-blue">
+      <span class="tag tag-blue">심화 1</span>
+      <h4>배경분석</h4>
+      <p><strong>Why Now</strong> — 왜 지금인가</p>
+      <p><strong>이해관계자 맵</strong> — P1/P2/P3 + 기대·우려</p>
+      <p><strong>As-Is / To-Be</strong> — 현재와 목표의 갭</p>
+    </div>
+    <div class="card card-blue">
+      <span class="tag tag-blue">심화 2</span>
+      <h4>심화판단</h4>
+      <p><strong>문제 정의</strong> — 표면→근본→해결방향</p>
+      <p><strong>대안 분석</strong> — 옵션 비교 (최소 2개)</p>
+      <p><strong>추천안 + 근거</strong> — 사실과 의견 구분해서</p>
+    </div>
+    <div class="card card-blue">
+      <span class="tag tag-blue">심화 3</span>
+      <h4>실행계획</h4>
+      <p><strong>마일스톤</strong> — 날짜 + 산출물 + 의존성</p>
+      <p><strong>예산</strong> — 항목별, 확정/추정 구분</p>
+      <p><strong>리스크 매트릭스</strong> — 확률×영향 + 대응</p>
+    </div>
+    <div class="card card-blue">
+      <span class="tag tag-blue">심화 4</span>
+      <h4>의사결정 패키지</h4>
+      <p><strong>결정 목록</strong> — 이 보고에서 결정할 것 전체</p>
+      <p><strong>승인 후 실행사항</strong> — 누가·무엇을·언제까지</p>
+    </div>
+  </div>
+  <p class="sub-copy" style="margin-top:20px;">L3는 수시로 쓰는 것이 아닙니다. 프로젝트 방향성 보고, 전략 의사결정이 필요할 때 씁니다.</p>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>16 / 26</span></div>
+</div>
+
+<!-- 17. L3 예시: 대안 분석 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">L3 · 심화판단</div>
+    <h2>"A안으로 하겠습니다"는 판단이 아니다</h2>
+    <p class="sub-copy">L3의 대안 분석은 최소 2개 옵션의 장단점을 비교하고, 추천안의 근거를 사실/의견으로 구분합니다.</p>
+  </div>
+  <div class="compare-bad">
+    <div class="compare-label">Before</div>
+    <p class="text-large">"A안으로 하겠습니다."</p>
+    <p style="color:var(--fg-3)">왜 A안인지, 다른 선택지는 무엇이었는지, 근거가 사실인지 의견인지 없다.</p>
+  </div>
+  <div class="compare-good">
+    <div class="compare-label">After — 대안 비교 + 추천</div>
+    <table>
+      <tr><th>옵션</th><th>장점</th><th>단점</th></tr>
+      <tr><td><strong>A안: 직영</strong></td><td>정체성 보존 (↑)</td><td>초기 수익 불확실 (↓)</td></tr>
+      <tr><td><strong>B안: 위탁</strong></td><td>안정적 수익 (↑)</td><td>정체성 훼손 리스크 (↓)</td></tr>
+      <tr><td><strong>C안: 하이브리드</strong></td><td>균형</td><td>운영 복잡도 (↑)</td></tr>
+    </table>
+    <p style="margin-top:12px;"><strong>추천: A안(직영)</strong> — 봉은사 정체성이 최대 자산 <span class="tag tag-green">사실</span> 수익은 프로그램 고도화로 보완 가능 <span class="tag tag-amber">의견</span></p>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>17 / 26</span></div>
+</div>
+
+<!-- 18. L3 예시: 의사결정 패키지 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">L3 · 의사결정 패키지</div>
+    <h2>대표는 이 섹션만 보고 결정할 수 있어야 한다</h2>
+  </div>
+  <div class="compare-bad">
+    <div class="compare-label">Before</div>
+    <p class="text-large">"승인 부탁드립니다."</p>
+  </div>
+  <div class="compare-good">
+    <div class="compare-label">After — 결정 목록 + 승인 후 실행</div>
+    <table>
+      <tr><th>결정 항목</th><th>옵션</th><th>추천</th><th>기한</th></tr>
+      <tr><td><strong>① 운영방식</strong></td><td>직영 vs 위탁 vs 하이브리드</td><td>직영</td><td>7월 말</td></tr>
+      <tr><td><strong>② 예산범위</strong></td><td>20~26억</td><td>23억 (중간)</td><td>8월 초</td></tr>
+      <tr><td><strong>③ 설계사 선정</strong></td><td>A사 / B사 / C사</td><td>A사</td><td>8월 중</td></tr>
+    </table>
+    <div style="margin-top:16px; padding:16px 20px; border-left:3px solid var(--green); background:rgba(143,163,126,0.05); border-radius:0 8px 8px 0;">
+      <p style="color:var(--green); font-size:11px; letter-spacing:0.2em; margin-bottom:8px;">승인 시 즉시 실행</p>
+      <p>① 설계사 계약 체결 (기획팀, D+3) / ② 시공사 입찰공고 (운영팀, D+7) / ③ 주민설명회 일정 확정 (대외협력, D+14)</p>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>18 / 26</span></div>
+</div>
+
+<!-- 19. L1→L2→L3 진화 예시 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">08 · Evolution</div>
+    <h2>같은 프로젝트가 L1→L2→L3로 성장하는 모습</h2>
+  </div>
+  <table>
+    <tr><th style="width:120px;">항목</th><th>L1 (일일)</th><th>L2 (주간)</th><th>L3 (프로젝트)</th></tr>
+    <tr>
+      <td><strong>맥락</strong></td>
+      <td>봉은사: 도면 정리 — 업체 미팅 자료</td>
+      <td>+ 프로젝트 목표: 2027.Q1 리뉴얼 오픈</td>
+      <td>+ Why Now + 이해관계자 맵 + As-Is/To-Be</td>
+    </tr>
+    <tr>
+      <td><strong>판단</strong></td>
+      <td>근거구분: 사실</td>
+      <td>+ 실패 + 배운 점</td>
+      <td>+ 문제 정의 + 대안 분석 + 추천안</td>
+    </tr>
+    <tr>
+      <td><strong>리스크</strong></td>
+      <td>사실 + 영향 + 대응</td>
+      <td>= 동일</td>
+      <td>+ 리스크 매트릭스 (확률×영향)</td>
+    </tr>
+    <tr>
+      <td><strong>결정</strong></td>
+      <td>옵션 + 추천 + 기한</td>
+      <td>= 동일</td>
+      <td>+ 결정 목록 + 승인 후 실행사항</td>
+    </tr>
+  </table>
+  <blockquote>L1을 잘 쓰는 사람은 L2를 쓸 때 확장만 하면 됩니다. L2를 잘 쓰는 사람은 L3에서 심화만 추가하면 됩니다. 기본기가 전부입니다.</blockquote>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>19 / 26</span></div>
+</div>
+
+<!-- 20. 쓰기 전 자문 6질문 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">09 · Thinking Layer</div>
+    <h2>쓰기 전에, 스스로 묻는 6가지</h2>
+    <p class="sub-copy">좋은 보고는 좋은 질문에서 시작됩니다.</p>
+  </div>
+  <ul class="checklist">
+    <li>이 프로젝트의 <strong>성공 기준</strong>은 무엇인가?</li>
+    <li>이번 업무에서 가장 중요한 <strong>Deliverable</strong>은 무엇인가?</li>
+    <li>내가 쓴 문장은 <strong>사실인가, 의견인가</strong>? 섞이지 않았는가?</li>
+    <li>대표가 이 보고를 보면 <strong>무엇을 결정</strong>해야 하는가?</li>
+    <li>이 프로젝트가 실패한다면 <strong>가장 큰 이유</strong>는 무엇인가?</li>
+    <li>그 문제를 해결하는 <strong>가장 비용이 적은 방법</strong>은 무엇인가?</li>
+  </ul>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>20 / 26</span></div>
+</div>
+
+<!-- 21. Report Score -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">10 · Report Score</div>
+    <h2>보고 품질 100점 — 제출 전 1분</h2>
+    <p class="sub-copy">글을 잘 썼는가가 아니라, <strong style="color:var(--fg)">의사결정을 잘하게 만드는가</strong>를 잽니다.</p>
+  </div>
+  <div class="grid-2">
+    <table>
+      <tr><th>항목</th><th style="width:70px;">배점</th><th>만점 기준</th></tr>
+      <tr><td><strong>맥락</strong></td><td>20</td><td>프로젝트명 + 왜가 있다</td></tr>
+      <tr><td><strong>목표 명확성</strong></td><td>10</td><td>목표 대비 % 또는 성공 기준</td></tr>
+      <tr><td><strong>근거</strong></td><td>15</td><td>사실/의견 구분</td></tr>
+      <tr><td><strong>우선순위</strong></td><td>15</td><td>★ 최중요 표시</td></tr>
+      <tr><td><strong>리스크</strong></td><td>10</td><td>사실+영향+대응</td></tr>
+      <tr><td style="color:var(--accent-light);"><strong>결정 요청</strong></td><td style="color:var(--accent-light);"><strong>20</strong></td><td>옵션+추천+기한</td></tr>
+      <tr><td><strong>지원 요청</strong></td><td>10</td><td>무엇·언제까지·왜</td></tr>
+    </table>
+    <div>
+      <div class="card card-accent" style="margin-bottom:16px;">
+        <h4>엑셀 ReportScore 시트 사용법</h4>
+        <p>1. 각 항목에 O/X 체크<br>2. 득점이 자동 계산됨<br>3. 합계가 오늘의 Report Score</p>
+      </div>
+      <div class="card card-green">
+        <h4>"없음" 득점 규칙</h4>
+        <p>Risk·Decision·Support는 "없음" 명시해도 <strong>O</strong>.<br>공란 = 생각 안 함 (X). "없음" = 판단 결과 (O).</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>21 / 26</span></div>
+</div>
+
+<!-- 22. Thinking Cost -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">11 · Thinking Cost</div>
+    <h2>좋은 보고 = 추가 질문이 없는 보고</h2>
+    <p class="sub-copy">보고의 KPI는 완료율이 아니라 <strong style="color:var(--fg)">추가 질문 감소율</strong>입니다.</p>
+  </div>
+  <div class="grid-2">
+    <table>
+      <tr><th>추가 질문 수</th><th>별점</th><th>의미</th></tr>
+      <tr><td>0개</td><td style="color:var(--green);">★★★★★</td><td>보고만으로 판단 완결</td></tr>
+      <tr><td>1~2개</td><td>★★★★</td><td>거의 완결, 디테일 보완</td></tr>
+      <tr><td>3~4개</td><td>★★★</td><td>근거·옵션 부족</td></tr>
+      <tr><td>5개</td><td>★★</td><td>생각을 덜 했다</td></tr>
+      <tr><td>6개 이상</td><td style="color:var(--coral);">★</td><td>업무일지 수준</td></tr>
+    </table>
+    <div class="card card-accent">
+      <h4>측정 방법</h4>
+      <p>대표·팀장이 보고 확인 후 추가 질문 수를 ReportScore 시트 하단 '일별 기록'에 기입합니다.</p>
+      <p style="color:var(--fg-3); margin-top:8px;">ARISA 봇의 완결성 질문은 <strong>훈련</strong>이므로 세지 않습니다. 사람 상급자의 되묻기만 셉니다.</p>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>22 / 26</span></div>
+</div>
+
+<!-- 23. 엑셀 시트 맵 -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">12 · Excel Map</div>
+    <h2>엑셀 시트 구성 — 7개 시트</h2>
+  </div>
+  <table>
+    <tr><th>시트</th><th>용도</th><th>작성 시간</th><th>주기</th></tr>
+    <tr><td><strong>00-안내</strong></td><td>전체 구성 설명, 색상 규칙, 포함 관계</td><td>—</td><td>참조</td></tr>
+    <tr><td><strong>01-코드표</strong></td><td>6-Layer, ReportScore 배점, ThinkingCost 정의, 드롭다운 원천</td><td>—</td><td>수정 금지</td></tr>
+    <tr><td style="color:var(--accent-light);"><strong>L1-일일보고</strong></td><td>매일 업무 보고 — 8항목</td><td>5~10분</td><td>매일 퇴근 전</td></tr>
+    <tr><td style="color:var(--amber);"><strong>L2-주간보고</strong></td><td>주간 성과·리스크·의사결정 — 프로젝트×11항목 + 종합 2항목</td><td>30분</td><td>매주 금요일</td></tr>
+    <tr><td style="color:var(--blue);"><strong>L3-프로젝트보고</strong></td><td>전략·프로젝트 심화 — L2 + 심화 4섹션 11항목</td><td>수시간</td><td>수시</td></tr>
+    <tr><td><strong>작성예시</strong></td><td>실제 데이터 기반 Before→After + 잘 쓴 보고 실례</td><td>—</td><td>참조</td></tr>
+    <tr><td><strong>ReportScore</strong></td><td>보고 품질 100점 자가채점 + ThinkingCost 일별 기록</td><td>1분</td><td>매일 제출 직전</td></tr>
+  </table>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>23 / 26</span></div>
+</div>
+
+<!-- 24. 선택 가이드 -->
+<div class="slide slide-dark">
+  <div class="slide-head">
+    <div class="eyebrow">13 · Which Level?</div>
+    <h2>어떤 레벨로 쓸지 — 선택 기준</h2>
+  </div>
+  <div class="grid-3">
+    <div class="card card-accent">
+      <h3 style="color:var(--accent-light);">L1</h3>
+      <h4>일일보고</h4>
+      <p class="text-large">매일 퇴근 전<br>5~10분</p>
+      <div class="divider"></div>
+      <p>오늘 한 일의 핵심과 내일 계획을 전달할 때</p>
+      <p style="color:var(--fg-3);">→ 기본. 매일 쓴다.</p>
+    </div>
+    <div class="card card-amber">
+      <h3 style="color:var(--amber);">L2</h3>
+      <h4>주간보고</h4>
+      <p class="text-large">매주 금요일<br>30분</p>
+      <div class="divider" style="background:var(--amber);"></div>
+      <p>프로젝트의 주간 변화·실패·배운 점을 정리할 때</p>
+      <p style="color:var(--fg-3);">→ 프로젝트가 움직이고 있을 때.</p>
+    </div>
+    <div class="card card-blue">
+      <h3 style="color:var(--blue);">L3</h3>
+      <h4>프로젝트보고</h4>
+      <p class="text-large">수시<br>수시간</p>
+      <div class="divider" style="background:var(--blue);"></div>
+      <p>프로젝트 방향성·전략적 의사결정이 필요할 때</p>
+      <p style="color:var(--fg-3);">→ 큰 결정이 필요할 때만.</p>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>24 / 26</span></div>
+</div>
+
+<!-- 25. Cognition Loop -->
+<div class="slide">
+  <div class="slide-head">
+    <div class="eyebrow">14 · The Bigger Picture</div>
+    <h2>보고는 끝이 아니라, 조직 지식의 최소 단위</h2>
+  </div>
+  <div class="grid-2" style="align-items:center;">
+    <div class="flow-vertical">
+      <div class="flow-node">업무 수행</div><div class="flow-arrow">↓</div>
+      <div class="flow-node flow-node-accent">Thinking — 질문으로 사고 정리</div><div class="flow-arrow">↓</div>
+      <div class="flow-node flow-node-accent">Reporting — L1 → L2 → L3</div><div class="flow-arrow">↓</div>
+      <div class="flow-node flow-node-accent">Decision — 대표의 의사결정</div><div class="flow-arrow">↓</div>
+      <div class="flow-node">Outcome → Learning → Knowledge</div><div class="flow-arrow">↓</div>
+      <div class="flow-node" style="border-color:var(--amber); color:var(--amber);">다음 프로젝트에서 자동 추천</div>
+    </div>
+    <div>
+      <div class="card card-accent" style="margin-bottom:16px;">
+        <h4>일반보고 v2의 범위</h4>
+        <p>Thinking → Reporting → Decision 구간. L1(매일)·L2(매주)·L3(수시)로 상황에 맞는 깊이를 선택합니다.</p>
+      </div>
+      <div class="card">
+        <h4>기획안보고와의 관계</h4>
+        <p>일반보고는 <strong>진행 중인 업무</strong>를 보고합니다. <strong>새로운 프로젝트/사업을 제안</strong>할 때는 기획안보고 엑셀(1P Brief → 5P Concept → 10P Master)을 씁니다.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Reporting OS v2 · 일반보고</span><span>25 / 26</span></div>
+</div>
+
+<!-- 26. 클로징 -->
+<div class="slide slide-cover">
+  <div class="eyebrow">Closing</div>
+  <h1 style="font-size:48px;">L1을 잘 쓰면<br>L2는 확장, L3는 심화.<br><span style="color:var(--accent-light)">기본기가 전부입니다.</span></h1>
+  <div class="divider divider-center"></div>
+  <p class="text-hero" style="font-size:20px;">내일부터:<br>1. L1 엑셀로 일일보고 작성 — C열에만 쓰면 됩니다<br>2. 제출 전 ReportScore 시트 1분 체크<br>3. Decision·Support에 "없음"까지 명시</p>
+  <p class="sub-copy" style="margin-top:40px;">Reporting OS v2 · 일반보고 가이드 · 2026. 07 · by Project Rent</p>
+</div>
+
+<!-- Nav -->
+<div class="nav-bar">
+  <button onclick="prevSlide()">← Prev</button>
+  <span class="nav-counter" id="navCounter">1 / 26</span>
+  <button onclick="nextSlide()">Next →</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let current = 0;
+function goTo(i) {
+  current = Math.max(0, Math.min(i, slides.length - 1));
+  slides[current].scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('navCounter').textContent = (current + 1) + ' / ' + slides.length;
+}
+function prevSlide() { goTo(current - 1); }
+function nextSlide() { goTo(current + 1); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevSlide(); }
+});
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      current = Array.from(slides).indexOf(e.target);
+      document.getElementById('navCounter').textContent = (current + 1) + ' / ' + slides.length;
+    }
+  });
+}, { threshold: 0.5 });
+slides.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
