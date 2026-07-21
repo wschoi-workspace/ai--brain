@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>차량 실내 공기질·냄새·공조 인식 분석 — RXR 풀 리포트</title>
+<style>
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .card,.insight,.ov,.need{break-inside:avoid;} }
+  * { box-sizing: border-box; }
+  body { font-family:'Pretendard Variable',system-ui,sans-serif; color:#1a1a1a; line-height:1.65; margin:0; background:#f5f5f7; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1120px; margin:0 auto; padding:36px 28px 64px; }
+  h1 { font-size:31px; font-weight:900; letter-spacing:-1px; margin:0 0 6px; }
+  .sub { color:#666; font-size:15px; margin:0 0 8px; }
+  h2 { font-size:22px; font-weight:800; letter-spacing:-0.5px; margin:48px 0 6px; padding-bottom:9px; border-bottom:2px solid #6666FF; }
+  h2 .en { color:#9a9a9a; font-size:14px; font-weight:600; margin-left:6px; }
+  .lead { color:#555; font-size:14.5px; margin:0 0 16px; }
+  .card { background:#fff; border-radius:14px; padding:22px 24px; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-bottom:16px; }
+  .rawbox { background:#f0f4ff; border:1px solid #d8e0ff; border-radius:10px; padding:12px 16px; font-size:12.5px; color:#3a4a7a; margin-top:12px; }
+  .rawbox b { color:#3355cc; }
+  .concl { background:#eef2ff; border-radius:10px; padding:13px 16px; font-size:13.5px; color:#333; margin-top:10px; line-height:1.6; }
+  .concl b{ color:#4433cc; }
+  /* funnel */
+  .gate { display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+  .gate .lbl { width:180px; font-size:13px; font-weight:700; flex-shrink:0; }
+  .gate .lbl small{ display:block; color:#999; font-weight:400; font-size:11px; }
+  .gate .track { flex:1; display:flex; height:30px; border-radius:6px; overflow:hidden; font-size:11px; font-weight:700; color:#fff; }
+  .gate .track span{ display:flex; align-items:center; justify-content:center; }
+  .gate .cnt { width:70px; text-align:right; font-weight:800; font-size:14px; flex-shrink:0; }
+  .neg{background:#E5484D;} .mix{background:#F2A900;} .pos{background:#30A46C;} .neu{background:#c4c4cc;}
+  /* overview */
+  .overview{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .ov{ background:#fff; border-radius:14px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .ov .axis{ font-size:17px; font-weight:800; margin-bottom:2px; } .ov .n{ font-size:12px; color:#888; margin-bottom:12px; }
+  .bar{ display:flex; height:26px; border-radius:6px; overflow:hidden; font-size:11px; font-weight:700; color:#fff; }
+  .bar span{ display:flex; align-items:center; justify-content:center; }
+  .legend{ font-size:11px; color:#888; margin-top:8px; } .legend b{ color:#555; }
+  /* gauge */
+  .gauge-row{ display:flex; align-items:center; gap:12px; margin:9px 0; }
+  .gauge-row .gl{ width:64px; font-size:13px; font-weight:700; }
+  .gauge-row .gt{ flex:1; height:16px; background:#eee; border-radius:8px; overflow:hidden; }
+  .gauge-row .gf{ height:100%; border-radius:8px; }
+  .gauge-row .gv{ width:44px; font-size:13px; font-weight:800; text-align:right; }
+  .metric{ display:inline-flex; align-items:baseline; gap:5px; background:#fff; border:1px solid #eee; border-radius:8px; padding:6px 11px; margin:3px 5px 3px 0; font-size:12.5px; }
+  .metric b{ font-size:16px; font-weight:900; }
+  .metric.bad b{color:#E5484D;} .metric.good b{color:#30A46C;} .metric.mid b{color:#F2A900;}
+  table{ width:100%; border-collapse:collapse; font-size:13px; margin-top:6px; }
+  th,td{ padding:9px 10px; text-align:left; border-bottom:1px solid #eee; }
+  th{ background:#faf9ff; font-weight:700; color:#555; font-size:12px; }
+  td .mini{ display:inline-block; height:8px; border-radius:4px; vertical-align:middle; }
+  /* needs */
+  .need{ background:#fff; border-radius:14px; padding:22px 24px; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-bottom:16px; border-left:5px solid #6666FF; }
+  .need.satisfied{ border-left-color:#30A46C; }
+  .need .tag{ display:inline-block; background:#6666FF; color:#fff; font-size:11px; font-weight:800; padding:3px 10px; border-radius:20px; margin-bottom:8px; }
+  .need.satisfied .tag{ background:#30A46C; }
+  .need h3{ font-size:19px; font-weight:900; margin:0 0 4px; letter-spacing:-0.5px; }
+  .need .desire{ font-size:15px; color:#6666FF; font-weight:700; margin:0 0 14px; } .need.satisfied .desire{ color:#30A46C; }
+  .three{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:12px 0; }
+  .three>div{ background:#faf9ff; border-radius:10px; padding:12px 14px; }
+  .three .lb{ font-size:11px; font-weight:800; color:#888; letter-spacing:.5px; margin-bottom:5px; } .three .tx{ font-size:13.5px; color:#333; }
+  .quote{ background:#f7f7fa; border-radius:10px; padding:12px 16px; font-size:13.5px; color:#333; margin:8px 0; border-left:3px solid #ccc; }
+  .quote .src{ display:block; font-size:11px; color:#999; margin-top:5px; }
+  /* insight & bottomline */
+  .insight{ background:linear-gradient(135deg,#6666FF08,#6666FF14); border-radius:14px; padding:22px 24px; margin-bottom:14px; border:1px solid #e5e2ff; }
+  .insight .num{ font-size:13px; font-weight:900; color:#6666FF; } .insight h3{ margin:4px 0 8px; font-size:18px; font-weight:800; letter-spacing:-0.5px; } .insight p{ margin:0; font-size:14px; color:#444; }
+  .bl-top{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+  .bl-stat{ background:#1a1a2e; color:#fff; border-radius:14px; padding:18px 20px; text-align:center; }
+  .bl-stat .v{ font-size:30px; font-weight:900; letter-spacing:-1px; } .bl-stat .l{ font-size:12px; color:#b8b8d0; margin-top:2px; }
+  .why-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; } .rec-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .why{ background:#fff; border-radius:12px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .why .q{ font-size:14px; font-weight:800; color:#6666FF; margin-bottom:5px; } .why .a{ font-size:13.5px; color:#444; }
+  .rec{ background:linear-gradient(135deg,#30A46C,#2b8f5e); color:#fff; border-radius:12px; padding:16px 18px; }
+  .rec .n{ font-size:11px; font-weight:800; opacity:.8; } .rec .t{ font-size:15px; font-weight:900; margin:3px 0 6px; } .rec .d{ font-size:12.5px; opacity:.95; line-height:1.5; }
+  .note{ font-size:12px; color:#999; margin-top:6px; }
+  .toc{ background:#fff; border-radius:14px; padding:16px 22px; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-bottom:8px; font-size:13.5px; color:#555; }
+  .toc b{ color:#6666FF; }
+  @media (max-width:820px){ .overview,.three,.bl-top,.why-grid,.rec-grid{grid-template-columns:1fr;} .gate .lbl{width:120px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div style="display:flex;align-items:center;gap:10px;margin:0 0 20px 0;padding:0;background:transparent;border:none;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  <strong style="font-size:19px;color:#1a1a1a;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+  <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+  <strong style="font-size:13px;color:#6666FF;font-weight:700;letter-spacing:-0.1px;white-space:nowrap;">Project Rent</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+</div>
+
+<h1>차량 실내 공기질·냄새·공조 인식 분석</h1>
+<p class="sub">RXR 진정성 필터로 <b>광고·협찬·업체홍보를 전량 제외</b>한 실사용자 목소리 3,586건 + 커뮤니티 발화 23건 · 최근 180일 · 분석일 2026-07-17</p>
+<div class="toc">📑 <b>0</b> 리서치 개요 · <b>1</b> Sincerity Gate 퍼널 · <b>2</b> 세 축의 온도차 · <b>3</b> 진정성 심리 게이지 · <b>4</b> 협찬 vs 자발적 · <b>5</b> 욕구 5대 카테고리 · <b>6</b> 브랜드 · <b>7</b> BOTTOM LINE</div>
+
+<!-- ===== 0. 개요 ===== -->
+<h2>0 · 리서치 개요 <span class="en">how to read</span></h2>
+<div class="card">
+  <p class="lead" style="margin-bottom:12px;"><b>무엇을 봤나</b> — "차 안의 공기가 어떤가"에 대한 실사용자들의 자발적 후기. 브랜드 무관 시장 전반 + 주요 12개 브랜드 태깅. <b>냄새 · 공조 · 공기질</b> 세 축으로 나눠 감성·심리·욕구를 분석했다.</p>
+  <p class="lead" style="margin-bottom:12px;"><b>왜 필터가 핵심인가</b> — 이 주제는 <b>에바크리닝·디테일링·썬팅 업체 홍보</b>와 <b>방향제·필터 커머스</b> 글이 진짜 후기를 압도한다. 광고를 걷어내지 않으면 "긍정적인 상품 후기"만 남아 진짜 페인포인트가 가려진다. RXR의 4단계 Gate로 이를 제거했다.</p>
+  <div class="rawbox">📊 <b>Raw Data</b> · 네이버 블로그 수집 <b>30,398</b>건 → 최근 180일 <b>18,210</b> → 차량×공기 주제 관련 <b>12,289</b> → 유효후기 <b>10,588</b> → <b>진성 3,586</b>건(광고·비차량 제외 후) + 보배드림·클리앙 커뮤니티 실사용 발화 <b>23</b>건. 후기 심도 자산값 <b>4,134</b>(서사형 445·분석형 1,168건 포함).</div>
+</div>
+
+<!-- ===== 1. Gate 퍼널 ===== -->
+<h2>1 · Sincerity Gate — 광고를 걷어내는 4단계 <span class="en">the funnel</span></h2>
+<p class="lead">각 단계에서 무엇이 빠지고, 그때 <b>감성이 어떻게 변하는지(Delta)</b>가 곧 인사이트다.</p>
+<div class="card">
+  <div class="gate">
+    <div class="lbl">Gate 1 · 전체 유효<small>노이즈/나열만 제외</small></div>
+    <div class="track"><span class="pos" style="width:23%">긍23</span><span class="mix" style="width:39%">혼39</span><span class="neu" style="width:7%"></span><span class="neg" style="width:31%">부31</span></div>
+    <div class="cnt">10,588</div>
+  </div>
+  <div class="gate">
+    <div class="lbl">Gate 2 · 협찬 제외<small>#광고·제공받음 마커</small></div>
+    <div class="track"><span class="pos" style="width:23%">긍23</span><span class="mix" style="width:39%">혼39</span><span class="neu" style="width:7%"></span><span class="neg" style="width:31%">부32</span></div>
+    <div class="cnt">10,025</div>
+  </div>
+  <div class="gate">
+    <div class="lbl">Gate 3 · 진정성 60+<small>과잉긍정 제거</small></div>
+    <div class="track"><span class="pos" style="width:23%">긍23</span><span class="mix" style="width:39%">혼39</span><span class="neu" style="width:7%"></span><span class="neg" style="width:31%">부32</span></div>
+    <div class="cnt">9,865</div>
+  </div>
+  <div class="gate">
+    <div class="lbl" style="color:#6666FF;">Gate 4 · 광고·비차량 제외<small>업체홍보·커머스·집청소</small></div>
+    <div class="track"><span class="pos" style="width:25%">긍25</span><span class="mix" style="width:36%">혼36</span><span class="neu" style="width:9%"></span><span class="neg" style="width:29%">부29</span></div>
+    <div class="cnt" style="color:#6666FF;">3,586</div>
+  </div>
+  <div class="concl">🔍 <b>결정적 발견</b> — Gate 1→3(협찬 마커·진정성 점수)에서는 감성이 <b>거의 변하지 않았다</b>(긍정 23%대 고정). 정작 데이터를 바꾼 건 <b>Gate 4에서 걷어낸 6,279건의 업체홍보·커머스·비차량 글</b>이었다. 즉 이 카테고리의 진짜 노이즈는 "#광고" 표기가 아니라 <b>표기 없이 후기처럼 쓰인 세차·디테일링·필터 판매 콘텐츠</b>다. 표준 협찬 필터만으로는 절대 못 거른다.</div>
+</div>
+
+<!-- ===== 2. 세 축 ===== -->
+<h2>2 · 세 축의 온도차 <span class="en">air / smell / HVAC</span></h2>
+<div class="overview">
+  <div class="ov">
+    <div class="axis">👃 냄새</div><div class="n">n=849 · 진성후기</div>
+    <div class="bar"><span class="neg" style="width:54%">54%</span><span class="mix" style="width:31%">31%</span><span class="pos" style="width:15%">15</span></div>
+    <div class="legend"><b>부정 54%</b> — 세 축 중 압도적 페인포인트</div>
+  </div>
+  <div class="ov">
+    <div class="axis">🌡️ 공조</div><div class="n">n=815 · 진성후기</div>
+    <div class="bar"><span class="neg" style="width:21%">21</span><span class="mix" style="width:42%">42%</span><span class="pos" style="width:24%">24%</span><span class="neu" style="width:13%"></span></div>
+    <div class="legend"><b>혼합 42%</b> — 불만보다 "개선·조건부"</div>
+  </div>
+  <div class="ov">
+    <div class="axis">💨 공기질</div><div class="n">n=1,476 · 진성후기</div>
+    <div class="bar"><span class="neg" style="width:19%">19</span><span class="mix" style="width:36%">36%</span><span class="pos" style="width:36%">36%</span><span class="neu" style="width:9%"></span></div>
+    <div class="legend"><b>긍정 36%</b> — 미세먼지 필터가 견인</div>
+  </div>
+</div>
+<div class="card" style="margin-top:16px;">
+  <b style="font-size:14px;">세부 토픽 부정률 순위</b> <span style="color:#999;font-size:12px;">(진성후기 n · 부정%)</span>
+  <table>
+    <tr><th>세부 토픽</th><th>n</th><th>부정률</th><th style="width:36%">감성 분포</th></tr>
+    <tr><td>새차 냄새·새차증후군</td><td>98</td><td style="color:#E5484D;font-weight:800">63%</td><td><span class="mini neg" style="width:63%"></span><span class="mini mix" style="width:34%"></span></td></tr>
+    <tr><td>곰팡이·에어컨 냄새</td><td>642</td><td style="color:#E5484D;font-weight:800">56%</td><td><span class="mini neg" style="width:56%"></span><span class="mini mix" style="width:30%"></span><span class="mini pos" style="width:14%"></span></td></tr>
+    <tr><td>외부 매연·담배 유입</td><td>109</td><td style="color:#E5484D;font-weight:700">39%</td><td><span class="mini neg" style="width:39%"></span><span class="mini mix" style="width:39%"></span><span class="mini pos" style="width:18%"></span></td></tr>
+    <tr><td>건강·민감(아기·호흡기)</td><td>53</td><td style="color:#E5484D;font-weight:700">36%</td><td><span class="mini neg" style="width:36%"></span><span class="mini mix" style="width:30%"></span><span class="mini pos" style="width:25%"></span></td></tr>
+    <tr><td>환기·내외기 순환</td><td>321</td><td style="color:#E5484D;font-weight:700">35%</td><td><span class="mini neg" style="width:35%"></span><span class="mini mix" style="width:37%"></span><span class="mini pos" style="width:19%"></span></td></tr>
+    <tr><td>풍량·풍향</td><td>168</td><td style="color:#F2A900;font-weight:700">27%</td><td><span class="mini neg" style="width:27%"></span><span class="mini mix" style="width:42%"></span><span class="mini pos" style="width:24%"></span></td></tr>
+    <tr><td>냉난방 성능</td><td>411</td><td style="color:#F2A900;font-weight:700">23%</td><td><span class="mini neg" style="width:23%"></span><span class="mini mix" style="width:37%"></span><span class="mini pos" style="width:27%"></span></td></tr>
+    <tr><td>온도 제어·좌우 편차</td><td>62</td><td style="color:#F2A900;font-weight:700">16%</td><td><span class="mini neg" style="width:16%"></span><span class="mini mix" style="width:50%"></span><span class="mini pos" style="width:15%"></span></td></tr>
+    <tr><td>미세먼지·필터</td><td>1,102</td><td style="color:#30A46C;font-weight:800">14%</td><td><span class="mini neg" style="width:14%"></span><span class="mini mix" style="width:36%"></span><span class="mini pos" style="width:42%"></span></td></tr>
+    <tr><td>성에·김서림</td><td>174</td><td style="color:#30A46C;font-weight:800">13%</td><td><span class="mini neg" style="width:13%"></span><span class="mini mix" style="width:49%"></span><span class="mini pos" style="width:22%"></span></td></tr>
+  </table>
+  <div class="concl">냄새 계열 3개 토픽이 부정률 상위를 독식(39~63%). 반대로 <b>미세먼지·필터(14%)·성에(13%)</b>는 "해법이 이미 존재하는" 영역이라 만족·중립이 우세하다.</div>
+</div>
+
+<!-- ===== 3. 심리 게이지 ===== -->
+<h2>3 · 진정성 심리 게이지 <span class="en">psyche layer</span></h2>
+<p class="lead"><b>Auth</b>(진정성·경험 밀도) · <b>Clout</b>(발언 영향력·추천 강도) · <b>Freshness</b>(정보 신선도). 광고 제거 후 전체 <b>Auth 76.3</b>으로 데이터 신뢰도 양호.</p>
+<div class="card">
+  <table>
+    <tr><th>구분</th><th>n</th><th style="width:44%">Authenticity</th><th>Clout</th><th>Fresh</th></tr>
+    <tr><td><b>전체</b></td><td>3,586</td><td><div class="gauge-row" style="margin:0"><div class="gt" style="flex:1"><div class="gf" style="width:76%;background:#6666FF"></div></div></div></td><td><b>53.7</b></td><td>45.4</td></tr>
+    <tr><td>👃 냄새</td><td>849</td><td><div class="gauge-row" style="margin:0"><div class="gt" style="flex:1"><div class="gf" style="width:76%;background:#E5484D"></div></div></div></td><td>50.5</td><td>46.4</td></tr>
+    <tr><td>🌡️ 공조</td><td>815</td><td><div class="gauge-row" style="margin:0"><div class="gt" style="flex:1"><div class="gf" style="width:77%;background:#F2A900"></div></div></div></td><td>52.1</td><td>45.2</td></tr>
+    <tr><td>💨 공기질</td><td>1,476</td><td><div class="gauge-row" style="margin:0"><div class="gt" style="flex:1"><div class="gf" style="width:78%;background:#30A46C"></div></div></div></td><td><b>57.7</b></td><td>45.5</td></tr>
+  </table>
+  <div class="concl"><b>Auth는 세 축 모두 76~78로 고르게 높다</b>(진짜 경험담이라는 뜻). 차이는 <b>Clout</b>에서 난다 — 공기질(57.7)이 냄새(50.5)보다 높다. <b>미세먼지·필터는 "추천·강추" 발언</b>(제품 만족→권유)이 많고, <b>냄새는 추천이 아니라 하소연·질문</b>(해법을 못 찾아 도움 요청)이 많다는 언어적 증거다.</div>
+</div>
+
+<!-- ===== 4. 협찬 vs 자발 ===== -->
+<h2>4 · 협찬 vs 자발적 <span class="en">sponsored spectrum</span></h2>
+<div class="card">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div style="background:#fff5f5;border-radius:12px;padding:16px 18px;border:1px solid #ffdede;">
+      <div style="font-weight:800;color:#E5484D;">협찬·체험단 (C)</div>
+      <div style="font-size:12px;color:#888;margin-bottom:8px;">n=563 · 분석엔 포함, 본 리포트 본론에선 제외</div>
+      <span class="metric bad">Auth <b>62.2</b></span><span class="metric">긍정 <b>24.7%</b></span>
+    </div>
+    <div style="background:#f0fbf5;border-radius:12px;padding:16px 18px;border:1px solid #cdeddd;">
+      <div style="font-weight:800;color:#30A46C;">자발적 진성후기 (Gate4)</div>
+      <div style="font-size:12px;color:#888;margin-bottom:8px;">n=3,586 · 본 리포트의 근거</div>
+      <span class="metric good">Auth <b>76.3</b></span><span class="metric">긍정 <b>25.2%</b></span>
+    </div>
+  </div>
+  <div class="concl">협찬 후기의 Auth는 자발적 대비 <b>14점 낮다</b>(62.2 vs 76.3) — 진정성이 확실히 열위. 그런데 흥미롭게도 <b>협찬의 긍정률(24.7%)이 자발(25.2%)과 거의 같다.</b> 다른 카테고리라면 협찬은 긍정 일색인데, 여기선 <b>협찬 글조차 "문제→해결" 구조</b>라 긍정이 안 높다. 그만큼 <b>냄새·공기질은 태생적으로 '불만에서 출발하는' 주제</b>임을 보여준다.</div>
+</div>
+
+<!-- ===== 5. 욕구 카테고리 ===== -->
+<h2>5 · 욕구(Needs) 관점 재정의 <span class="en">surface → root → gap</span></h2>
+<p class="lead">불만을 표면 언어가 아니라 <b>그 밑의 욕구</b>로 다시 묶었다. 냄새 하나가 사실 <b>두 개의 다른 욕구</b>(건강 안전·사회적 체면)를 건드린다.</p>
+
+<div class="need">
+  <span class="tag">욕구 ① 위생·건강 안전</span>
+  <h3>"내가 마시는 이 공기가 나를 해치지 않는다"</h3>
+  <p class="desire">▶ 매일 밀폐공간에서 호흡하는 공기의 <b>안전에 대한 확신</b> (Safety / Hygiene)</p>
+  <div class="three">
+    <div><div class="lb">표면 불만</div><div class="tx">퀴퀴한 곰팡이·쉰내, 새차 화학냄새로 두통, "머리가 아프다"</div></div>
+    <div><div class="lb">근본 욕구</div><div class="tx">눈에 안 보이는 유해물질(VOC·곰팡이 포자)로부터 <b>보호받고 있다는 안심</b></div></div>
+    <div><div class="lb">미충족 빈자리</div><div class="tx">전부 <b>사후 대응</b>(에바크리닝 10만원·탈취제) — 발생 전 <b>예방·자가진단·가시화</b> 부재</div></div>
+  </div>
+  <div><span class="metric bad">새차증후군 부정 <b>63%</b></span><span class="metric bad">곰팡이·에어컨 부정 <b>56%</b></span><span class="metric bad">건강·민감 부정 <b>36%</b></span></div>
+  <div class="quote">"새차냄새가 너무 머리가 아프네요 ㅠㅠ … 2시간 주행 후 귀가하면 두통. 어린 자녀 때문에 걱정된다"<span class="src">클리앙 자동차 게시판 (실사용 발화)</span></div>
+</div>
+
+<div class="need">
+  <span class="tag">욕구 ② 사회적 체면</span>
+  <h3>"동승자 앞에서 부끄럽지 않은 공간"</h3>
+  <p class="desire">▶ 내 차 = 확장된 자아. 타인에게 <b>'관리된 사람'으로 보이고 싶은</b> 욕구 (Social Face)</p>
+  <div class="three">
+    <div><div class="lb">표면 불만</div><div class="tx">"혼자 탈 땐 참는데 누가 조수석에 앉으면 신경이 확 쓰인다"</div></div>
+    <div><div class="lb">근본 욕구</div><div class="tx">냄새 = <b>나의 청결·관리 수준에 대한 사회적 평가</b>로 직결</div></div>
+    <div><div class="lb">미충족 빈자리</div><div class="tx"><b>본인은 냄새에 익숙해져 자각 못함</b> — 객관적으로 알려주는 장치 부재</div></div>
+  </div>
+  <div class="quote">"차에 탔는데 문 열자마자 꿉꿉한 냄새가 올라오면 괜히 민망하잖아요. 혼자 탈 때는 참겠는데, 누가 조수석에 앉는 순간 신경이 확 쓰이더라고요"<span class="src">네이버 블로그 진성후기</span></div>
+  <div class="note">※ ①과 같은 '냄새'지만 작동 욕구가 다르다. ①=나·가족 건강, ②=타인의 시선. 소구점도 갈린다(안전 데이터 vs 자신감).</div>
+</div>
+
+<div class="need satisfied">
+  <span class="tag">욕구 ③ 청정 캡슐 · 이미 충족</span>
+  <h3>"오염된 바깥과 분리된 나만의 안전지대"</h3>
+  <p class="desire">▶ 외부 미세먼지와 격리된 <b>청정 캡슐(Sanctuary)</b> — 세 축 중 <b>유일하게 충족된 욕구</b></p>
+  <div class="three">
+    <div><div class="lb">표면 반응</div><div class="tx">"필터 등급·청정모드 만족", 캐빈필터 셀프교체 후기 다수 (Clout 57.7 최고)</div></div>
+    <div><div class="lb">근본 욕구</div><div class="tx">밖은 미세먼지여도 <b>차 안만큼은 깨끗하다</b>는 통제된 안전감</div></div>
+    <div><div class="lb">남은 딜레마</div><div class="tx">환기하려 외기를 열면 <b>미세먼지 유입</b> — 환기 vs 청정의 상충</div></div>
+  </div>
+  <div><span class="metric good">미세먼지·필터 긍정 <b>42%</b></span><span class="metric good">부정 <b>14%</b> (최저)</span></div>
+  <div class="quote">"외기로 환기하면 미세먼지가 들어와서(ㅠㅠ)"<span class="src">보배드림 (환기와 미세먼지의 딜레마)</span></div>
+</div>
+
+<div class="need">
+  <span class="tag">욕구 ④ 통제감 · 즉시성</span>
+  <h3>"내가 설정한 대로 즉각 반응하는 공조"</h3>
+  <p class="desire">▶ 차가 <b>내 의도대로 정확·즉시 반응</b>한다는 통제감 (Agency / Immediacy)</p>
+  <div class="three">
+    <div><div class="lb">표면 불만</div><div class="tx">"안 시원/안 따뜻", 바람 약함, 좌우 토출 온도차</div></div>
+    <div><div class="lb">근본 욕구</div><div class="tx">덥거나 추운 순간 <b>기다리지 않고 바로</b> 원하는 상태로 만드는 주도권</div></div>
+    <div><div class="lb">미충족 빈자리</div><div class="tx">오토 에어컨을 못 믿어 <b>결국 수동 개입</b> — 자동공조 신뢰 낮음</div></div>
+  </div>
+  <div><span class="metric mid">풍량·풍향 부정 <b>27%</b></span><span class="metric mid">냉난방 부정 <b>23%</b></span><span class="metric mid">온도편차 혼합 <b>50%</b></span></div>
+  <div class="quote">"AC를 껐다 켜면 좌우 토출온도가 차이가 난다 / 냉매 부족하면 외기에선 안 시원"<span class="src">클리앙 (온도 편차·냉방 저하)</span></div>
+</div>
+
+<div class="need">
+  <span class="tag">욕구 ⑤ 무의식적 쾌적 · 인지부하 제거</span>
+  <h3>"신경 쓰지 않아도 알아서 쾌적하게"</h3>
+  <p class="desire">▶ 운전에만 집중, 공기·습기 관리는 <b>차가 알아서</b> (Effortless / Automation Trust)</p>
+  <div class="three">
+    <div><div class="lb">표면 불만</div><div class="tx">"내외기 언제 바꿔야 하나", 김서림 대처가 번거로움</div></div>
+    <div><div class="lb">근본 욕구</div><div class="tx">공기 상태를 <b>매번 판단·조작하는 인지부하 없이</b> 자동 쾌적</div></div>
+    <div><div class="lb">미충족 빈자리</div><div class="tx">오토 디포그·자동 내외기가 있어도 <b>존재·신뢰 인지가 낮아</b> 수동 조작</div></div>
+  </div>
+  <div><span class="metric mid">환기·내외기 부정 <b>35%</b></span><span class="metric good">성에·김서림 혼합 <b>49%</b></span></div>
+  <div class="quote">"비 오는 날 젖은 우산·여러 사람 타면 습도 올라가 김서림 심함" · "디프로스터 누르면 외기+AC+앞유리 집중으로 해결"<span class="src">클리앙 (김서림 대처 정보 탐색)</span></div>
+</div>
+
+<!-- ===== 6. 브랜드 ===== -->
+<h2>6 · 브랜드별 온도차 <span class="en">by brand · 참고</span></h2>
+<div class="card">
+  <table>
+    <tr><th>브랜드</th><th>진성 언급 n</th><th>부정률</th><th style="width:32%">감성</th><th>메모</th></tr>
+    <tr><td><b>기아</b></td><td>709</td><td style="color:#E5484D;font-weight:800">37%</td><td><span class="mini neg" style="width:37%"></span><span class="mini mix" style="width:34%"></span><span class="mini pos" style="width:20%"></span></td><td>EV3 등 신차 새차냄새 언급 다수</td></tr>
+    <tr><td><b>현대</b></td><td>654</td><td style="font-weight:700">28%</td><td><span class="mini neg" style="width:28%"></span><span class="mini mix" style="width:43%"></span><span class="mini pos" style="width:22%"></span></td><td>아이오닉 히터 냄새·혼합 톤 우세</td></tr>
+    <tr><td>벤츠</td><td>70</td><td style="color:#E5484D;font-weight:700">37%</td><td><span class="mini neg" style="width:37%"></span><span class="mini mix" style="width:30%"></span><span class="mini pos" style="width:14%"></span></td><td>표본 적음(해석 주의)</td></tr>
+    <tr><td>제네시스</td><td>41</td><td style="font-weight:700">27%</td><td><span class="mini neg" style="width:27%"></span><span class="mini mix" style="width:49%"></span><span class="mini pos" style="width:17%"></span></td><td>표본 적음</td></tr>
+    <tr><td>BMW</td><td>93</td><td style="font-weight:700">26%</td><td><span class="mini neg" style="width:26%"></span><span class="mini mix" style="width:41%"></span><span class="mini pos" style="width:16%"></span></td><td>i3 "히터 냄새 없음" 긍정 사례</td></tr>
+    <tr><td>테슬라</td><td>124</td><td style="color:#30A46C;font-weight:700">22%</td><td><span class="mini neg" style="width:22%"></span><span class="mini mix" style="width:46%"></span><span class="mini pos" style="width:18%"></span></td><td>냄새보다 공조·주행 맥락 언급</td></tr>
+  </table>
+  <div class="concl">국산(현대·기아)은 절대 언급량이 커 이슈가 더 드러나고, 수입은 표본이 작아 편차가 크다. 여기서 '부정률'은 <b>공기·냄새·공조 맥락의 언급 감성</b>이지 브랜드 전반 만족도가 아니다 — <b>순위 해석은 신중히</b>.</div>
+</div>
+
+<!-- ===== 7. BOTTOM LINE ===== -->
+<h2>7 · BOTTOM LINE <span class="en">what it means</span></h2>
+<div class="bl-top">
+  <div class="bl-stat"><div class="v">54%</div><div class="l">냄새 축 부정률 — 최대 페인포인트</div></div>
+  <div class="bl-stat"><div class="v">42%</div><div class="l">미세먼지·필터 긍정률 — 유일 충족</div></div>
+  <div class="bl-stat"><div class="v">6,279</div><div class="l">"후기 위장" 광고 제거 건수</div></div>
+</div>
+
+<div class="card">
+  <b style="font-size:15px;">왜 이런 결과인가?</b>
+  <div class="why-grid" style="margin-top:12px;">
+    <div class="why"><div class="q">왜 냄새가 압도적인가?</div><div class="a">냄새는 <b>건강(나·가족)</b>과 <b>체면(타인)</b> 두 욕구를 동시에 건드리고, 해법이 전부 사후 대응(크리닝·탈취제)뿐이라 불만이 축적된다.</div></div>
+    <div class="why"><div class="q">왜 미세먼지만 만족하나?</div><div class="a">필터 등급·청정모드라는 <b>'보이는 해법'</b>이 존재해 안심을 만든다. Clout 57.7로 "추천" 발언까지 유발하는 유일한 영역.</div></div>
+    <div class="why"><div class="q">왜 공조는 불만이 아니라 혼합인가?</div><div class="a">성능 자체보다 <b>"오토를 못 믿어 수동 개입"</b>하는 자동화 신뢰의 문제. 그래서 "나쁘다"가 아니라 "이랬으면"이 많다.</div></div>
+    <div class="why"><div class="q">왜 광고 제거가 관건이었나?</div><div class="a">협찬 마커 필터로는 감성이 안 변했다. 진짜 노이즈는 표기 없는 <b>세차·디테일링·필터 판매 콘텐츠</b>(−6,279건)였다.</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <b style="font-size:15px;">제언 — 어디를 공략할 것인가</b>
+  <div class="rec-grid" style="margin-top:12px;">
+    <div class="rec"><div class="n">제언 01 · 제품/기술</div><div class="t">냄새를 '미세먼지처럼' 가시화하라</div><div class="d">발생 후 대응이 아니라 <b>사전 경고·자가진단·습기 자동건조 기본화</b>. 미세먼지가 필터로 안심을 준 공식을 냄새·VOC로 이식.</div></div>
+    <div class="rec"><div class="n">제언 02 · 메시지</div><div class="t">냄새 소구를 두 갈래로 쪼개라</div><div class="d"><b>건강 라인</b>은 "유해물질 차단" 데이터로, <b>체면 라인</b>은 "누가 타도 자신 있는 공간"의 자신감으로. 한 메시지로 뭉치지 말 것.</div></div>
+    <div class="rec"><div class="n">제언 03 · 공조 UX</div><div class="t">스펙이 아니라 '신뢰 경험'을 팔아라</div><div class="d">숫자 경쟁 대신 <b>"차가 알아서 정확히 해준다"</b>는 체감(즉각 반응·자동 내외기·오토 디포그의 실효)을 증명해 수동 개입을 없앤다.</div></div>
+  </div>
+</div>
+
+<p class="note" style="margin-top:24px;">데이터 출처: 네이버 블로그 진성후기 3,586건(광고·협찬·업체홍보·비차량 제외 후) + 보배드림·클리앙 커뮤니티 실사용 발화 23건. 최근 180일. 감성·진정성·심리지표는 RXR 규칙기반 텍스트 분석 상대 추정치. 브랜드 부정률은 해당 맥락 언급 감성이며 브랜드 만족도가 아님.</p>
+
+</div>
+
+<footer style="max-width:1200px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#fafafa;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #eee;line-height:1.7;">
+    <p style="margin:0 0 4px;">본 분석은 공개 SNS 데이터에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:#F4F3FF;padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;letter-spacing:-0.3px;">💠 RXR SNS Analysis Solution</div>
+    <p style="margin:0;color:#333;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">『프로젝트 렌트(Project Rent)』</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 SNS 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+      본 리포트에 포함된 분석 프레임, 지표 체계, 용어 정의, 산출 로직 일체는 프로젝트 렌트의 독자 기술이며,
+      무단 복제·인용·역공학·재사용을 엄격히 금합니다.
+    </p>
+  </div>
+  <div style="background:#fafafa;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">
+    📧 <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#999;font-size:11px;">© Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>

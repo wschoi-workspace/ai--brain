@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한글, 배우지 말고 가지고 놀자 — 한글문화체험 콘텐츠 기획안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{
+  --bg:#1A1A1A;--bg-2:#111;--bg-3:#222;
+  --fg:#F5F0EB;--fg-2:#C9C2BA;--fg-3:#7A7570;
+  --line:#333;--line-2:#2a2a2a;
+  --accent:#6C5CE7;--accent-light:#A29BFE;--accent-sub:rgba(108,92,231,.08);
+  --warm:#E9DCC8;--green:#8FA37E;--blue:#6F8AA3;--amber:#D9A34B;--red:#E17055;
+  --duration-base:250ms;--ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#0d0d0d;color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+.deck{padding:40px 0 90px}
+.slide{width:1280px;min-height:720px;margin:0 auto 28px;background:var(--bg);padding:54px 72px 70px;display:flex;flex-direction:column;position:relative;border:1px solid var(--line-2);overflow:hidden}
+.slide--dark{background:var(--bg-2)}
+.slide--cover{justify-content:center;align-items:flex-start;background:radial-gradient(120% 90% at 82% 12%,rgba(108,92,231,.10),transparent 55%),var(--bg-2)}
+.runhead{position:absolute;top:20px;left:72px;right:72px;display:flex;justify-content:space-between;font-size:9.5px;letter-spacing:.22em;color:var(--fg-3);text-transform:uppercase}
+.runhead .r{color:var(--accent-light)}
+.slide-footer{position:absolute;bottom:24px;left:72px;right:72px;display:flex;justify-content:space-between;font-size:9.5px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;border-top:1px solid var(--line-2);padding-top:12px}
+.slide-head{flex-shrink:0;margin-top:26px}
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:18px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px;border-bottom:1px solid var(--line-2);margin-bottom:22px}
+.eyebrow{font-size:10.5px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+h2{font-size:33px;font-weight:500;letter-spacing:-0.025em;line-height:1.18}
+h2 .hl{color:var(--accent)}
+.sub{font-size:14.5px;color:var(--fg-2);line-height:1.65;margin-top:14px;max-width:1000px;font-weight:300}
+.sub b{color:var(--fg);font-weight:400}
+.note{font-size:10.5px;color:var(--fg-3);margin-top:16px;line-height:1.6}
+.src{font-size:9.5px;color:var(--fg-3);margin-top:14px;border-top:1px solid var(--line-2);padding-top:8px;line-height:1.55}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.card{background:var(--bg-3);border:1px solid var(--line-2);padding:22px}
+.card h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:8px}
+.card p{font-size:12.5px;color:var(--fg-2);line-height:1.6}
+.card .lab{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.card.tint{border-top:2px solid var(--accent)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px}
+.kpi .kl{font-size:10px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase;margin-bottom:10px}
+.kpi .kv{font-size:38px;font-weight:200;color:var(--accent);line-height:1;letter-spacing:-.02em}
+.kpi .kv.g{color:var(--green)}.kpi .kv.a{color:var(--amber)}.kpi .kv.fg{color:var(--fg)}
+.kpi .ku{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .ks{font-size:11px;color:var(--fg-3);margin-top:9px;line-height:1.45}
+.callout{background:var(--accent-sub);border-left:3px solid var(--accent);padding:18px 22px;margin-top:16px}
+.callout p{font-size:13.5px;color:var(--fg-2);line-height:1.6}
+.callout strong{color:var(--accent-light)}
+.callout.g{background:rgba(143,163,126,.07);border-left-color:var(--green)}
+.callout.g strong{color:var(--green)}
+table.t{width:100%;border-collapse:collapse;font-size:12px}
+table.t th{font-size:9.5px;letter-spacing:.12em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:9px 11px 11px;font-weight:400;border-bottom:1px solid var(--line)}
+table.t td{padding:9px 11px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:middle}
+table.t td:first-child{color:var(--fg);font-weight:400;white-space:nowrap}
+/* cover */
+.cover-label{font-size:11px;letter-spacing:.4em;color:var(--accent-light);text-transform:uppercase}
+.cover-title{font-size:60px;font-weight:200;line-height:1.06;letter-spacing:-.035em;margin:22px 0 20px}
+.cover-title b{font-weight:500;color:var(--fg)}
+.cover-sub{font-size:16px;color:var(--fg-2);line-height:1.6;max-width:860px}
+.cover-meta{margin-top:44px;display:flex;gap:42px;flex-wrap:wrap}
+.cover-meta .m .ml{font-size:9.5px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:6px}
+.cover-meta .m .mv{font-size:13px;color:var(--fg)}
+/* big statement */
+.stmt{display:flex;flex-direction:column;justify-content:center;flex:1}
+.stmt .big{font-size:52px;font-weight:200;line-height:1.15;letter-spacing:-.03em}
+.stmt .big b{font-weight:500;color:var(--fg)}
+.arrowline{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:8px 0}
+.arrowline .from{font-size:26px;font-weight:300;color:var(--fg-3);text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px}
+.arrowline .ar{font-size:22px;color:var(--accent-light)}
+.arrowline .to{font-size:30px;font-weight:500;color:var(--accent)}
+/* image */
+.imgbox{background:var(--bg-3);border:1px solid var(--line-2);overflow:hidden;position:relative}
+.imgbox img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.1) contrast(1.03)}
+.imgcap{position:absolute;bottom:0;left:0;right:0;font-size:9px;letter-spacing:.05em;color:var(--fg-2);background:linear-gradient(transparent,rgba(0,0,0,.82));padding:20px 12px 8px}
+/* name morph */
+.morph{display:flex;align-items:center;gap:16px;background:var(--bg-3);border:1px solid var(--line-2);padding:14px 20px}
+.morph .en{font-size:22px;color:var(--fg-2);font-weight:300}
+.morph .ar2{color:var(--accent-light);font-size:18px}
+.morph .ko{font-size:26px;color:var(--fg);font-weight:500}
+.morph .ko.acc{color:var(--accent)}
+/* steps */
+.steps{display:flex;flex-direction:column;gap:0}
+.step{display:grid;grid-template-columns:44px 1fr;gap:18px;padding:15px 0;border-bottom:1px solid var(--line-2);align-items:start}
+.step:last-child{border-bottom:none}
+.step-num{width:34px;height:34px;background:var(--accent);color:var(--bg-2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.step-num.ghost{background:transparent;border:1px solid var(--line);color:var(--fg-3)}
+.step h4{font-size:15px;font-weight:500;color:var(--fg);margin-bottom:3px}
+.step p{font-size:12.5px;color:var(--fg-2);line-height:1.55}
+/* journey flow */
+.flow{display:flex;align-items:stretch;gap:0;margin-top:6px}
+.flow .node{flex:1;background:var(--bg-3);border:1px solid var(--line-2);padding:18px 14px;position:relative}
+.flow .node .n{font-size:9.5px;letter-spacing:.2em;color:var(--accent-light);text-transform:uppercase;margin-bottom:8px}
+.flow .node h4{font-size:14px;font-weight:500;color:var(--fg);margin-bottom:5px;line-height:1.3}
+.flow .node p{font-size:11px;color:var(--fg-2);line-height:1.5}
+.flow .sep{display:flex;align-items:center;padding:0 6px;color:var(--fg-3);font-size:16px}
+/* tag list */
+.taglist{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.tag{font-size:12px;color:var(--fg-2);background:var(--bg-3);border:1px solid var(--line-2);padding:8px 14px}
+.tag.acc{border-color:rgba(108,92,231,.35);color:var(--accent-light)}
+.mini{font-size:11px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;margin-bottom:9px}
+/* nav */
+.navbar{position:fixed;bottom:0;left:0;right:0;height:44px;background:rgba(13,13,13,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;gap:20px;z-index:50;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-3)}
+.navbar button{background:transparent;border:1px solid var(--line-2);color:var(--fg-2);padding:6px 14px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:all var(--duration-base) var(--ease-out)}
+.navbar button:hover{border-color:var(--fg-3);color:var(--fg)}
+.navbar .count{min-width:64px;text-align:center;color:var(--fg)}
+.progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);z-index:51;transition:width var(--duration-base) var(--ease-out)}
+.hint{position:fixed;bottom:52px;right:16px;font-size:9.5px;letter-spacing:.12em;color:var(--fg-3);z-index:50}
+@media print{
+  html,body{background:#fff}
+  .deck{padding:0}
+  .slide{margin:0;border:none;page-break-after:always;width:100%;min-height:100vh}
+  .navbar,.progress,.hint{display:none!important}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- 01 COVER -->
+<section class="slide slide--cover">
+  <div class="cover-label">National Hangeul Museum · Cultural Experience Content</div>
+  <h1 class="cover-title">한글, 배우지 말고<br><b>가지고 놀자</b></h1>
+  <p class="cover-sub">외국인에게 한글은 '배워야 할 언어'가 아니라 '해보고 싶은 경험'이다. 내 이름 한 글자에서 시작하는 한글문화체험 콘텐츠 — 국립한글박물관을 위한 기획안 초안.</p>
+  <div class="cover-meta">
+    <div class="m"><div class="ml">파트너</div><div class="mv">국립한글박물관</div></div>
+    <div class="m"><div class="ml">주제</div><div class="mv">Language Experience 콘텐츠</div></div>
+    <div class="m"><div class="ml">수행</div><div class="mv">Project Rent</div></div>
+    <div class="m"><div class="ml">Status</div><div class="mv">Draft v0.1 · 2026.07</div></div>
+  </div>
+  <div class="slide-footer"><span>한글문화체험 콘텐츠 기획안</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 02 WHY -->
+<section class="slide slide--dark">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Why</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">우리의 믿음 · Why</span><span class="eyebrow">02</span></div>
+    <h2>우리는 한글을 <span class="hl">가르치지 않는다</span></h2>
+  </div>
+  <div class="stmt">
+    <p class="big">외국인은 세종대왕 이야기에 감동하지 않는다.<br><b>"내가 직접 해봤더니 신기했다"</b>에서 감동한다.</p>
+    <div class="arrowline" style="margin-top:34px">
+      <span class="from">Language Education</span>
+      <span class="ar">→</span>
+      <span class="to">Language Experience</span>
+    </div>
+    <p class="sub" style="margin-top:24px">'배움'을 중심에 두면 참여 장벽이 높아진다. '경험'을 중심에 두면 누구나 즉시 참여한다. 이 기획의 전제는 단 하나 — <b>한글은 읽기 전에 먼저 '보고, 만지고, 만드는' 것이다.</b></p>
+  </div>
+  <div class="slide-footer"><span>Why · 관점의 전환</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 03 BIG SHIFT + 검증지표 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Big Shift</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">시장의 변화 · Big Shift</span><span class="eyebrow">03</span></div>
+    <h2>외국인은 배우러 오지 않는다 — <span class="hl">경험하러 온다</span></h2>
+    <p class="sub">방한 외국인은 사상 최대 규모로 돌아왔고, 한국어·한글에 대한 세계의 관심은 K-콘텐츠를 타고 매년 최고치를 경신 중이다. '한국에서만 할 수 있는 특별한 경험'에 대한 수요가 이미 시장에 형성돼 있다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g4">
+      <div class="kpi"><div class="kl">2024 방한 외국인</div><div class="kv">1,637<span class="ku">만 명</span></div><div class="ks">전년 대비 +48.4%<br>코로나 이전(2019)의 94% 회복</div></div>
+      <div class="kpi"><div class="kl">세종학당 수강생 (2024)</div><div class="kv g">210,374<span class="ku">명</span></div><div class="ks">전 세계 온·오프라인<br>2007년 첫해 740명 → 급증</div></div>
+      <div class="kpi"><div class="kl">한국어 학습 인기</div><div class="kv fg">세계 7위</div><div class="ks">Duolingo 최다 학습 언어<br>미·영 13–22세에선 상위권</div></div>
+      <div class="kpi"><div class="kl">한글박물관 연 관람</div><div class="kv fg">70<span class="ku">만 명+</span></div><div class="ks">2019년 돌파(2014 개관)<br>재개관 후 성장 여력</div></div>
+    </div>
+    <div class="callout"><p><strong>그런데.</strong> 이 수요는 대부분 '교실·교재'로 흡수되고 있다. 관광·체험 현장에서 <b style="color:var(--fg)">한글을 '가지고 노는' 콘텐츠</b>는 아직 비어 있다 — 국립한글박물관이 선점할 수 있는 자리.</p></div>
+    <div class="src">출처: 한국관광공사 2024 관광통계(방한 1,637만·+48.4%) · 세종학당재단/문체부(2024 수강생 210,374명, 2025년 239,020명으로 첫 23만 돌파) · Duolingo 2024 Language Report(한국어 세계 7위) · 국립한글박물관(2019년 관람객 70만 돌파). 수치 3중 교차검증 완료.</div>
+  </div>
+  <div class="slide-footer"><span>Big Shift · 검증 지표</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 04 인사이트 5가지 매력 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Insight</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">인사이트 · 외국인이 한글에서 느끼는 것</span><span class="eyebrow">04</span></div>
+    <h2>후기에서 반복되는 <span class="hl">다섯 가지 매력</span></h2>
+    <p class="sub">영어권 방문객 후기를 관통하는 반응은 '어렵다'가 아니라 '신기하다·예쁘다'다. 이 다섯 가지가 곧 체험 콘텐츠의 다섯 갈래가 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2" style="grid-template-columns:1.35fr 1fr;gap:20px;align-items:stretch">
+      <div class="g5" style="grid-template-columns:1fr 1fr;gap:12px">
+        <div class="card tint"><div class="lab">01 · 아름다움</div><h4>"Looks like art"</h4><p>글자가 아니라 디자인으로 본다. 읽기 전에 먼저 '보는' 문자.</p></div>
+        <div class="card tint"><div class="lab">02 · 나의 이름</div><h4>내 이름이 한글로</h4><p>John→존, Emily→에밀리. 내 이름이 새 언어가 되는 순간.</p></div>
+        <div class="card tint"><div class="lab">03 · 소리</div><h4>ㅋㅋㅋ ㅠㅠ ㅎㅎ</h4><p>"왜 웃음·울음도 글자가 있지?" 언어가 아니라 문화 체험.</p></div>
+        <div class="card tint"><div class="lab">04 · 조립</div><h4>ㄱ+ㅏ = 가</h4><p>철자를 잇는 게 아니라 블록처럼 조립한다. 이게 신기하다.</p></div>
+      </div>
+      <div class="imgbox">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Hangeul_Letters_Exhibition_01_%2816585435814%29.jpg" alt="한글 자모 전시">
+        <div class="imgcap">한글 자모 전시 — 자음·모음이 곧 조형 요소가 된다 · 출처: Wikimedia Commons (Hangeul Letters Exhibition, CC)</div>
+      </div>
+    </div>
+    <div class="callout g"><p><strong>05 · 과학성.</strong> 입 모양을 본떠 만든 문자 — 체험 후 설명으로 이어붙이면 '신기함'이 '경외'로 바뀐다. <b style="color:var(--fg)">먼저 경험시키고, 원리는 나중에.</b></p></div>
+  </div>
+  <div class="slide-footer"><span>Insight · 5가지 매력</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 05 증명 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Proof</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">증명 · 한글은 이미 '보는 콘텐츠'다</span><span class="eyebrow">05</span></div>
+    <h2>한글은 이미 굿즈·타이포·밈으로 <span class="hl">소비되고 있다</span></h2>
+    <p class="sub">한글 티셔츠, 한글 타이포 포스터, 이름 캘리그래피, 한글 스티커 — 관광 상권과 온라인에서 한글은 '학습 대상'이 아니라 '소비되는 비주얼'로 유통된다. 우리는 이 소비를 '체험'으로 앞당긴다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2" style="grid-template-columns:1fr 1.3fr;gap:20px;align-items:stretch">
+      <div class="imgbox">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Hunmin_jeong-eum.jpg" alt="훈민정음">
+        <div class="imgcap">훈민정음 — 세계에서 유일하게 '만든 사람·만든 날·만든 원리'가 기록된 문자 · 출처: Wikimedia Commons (Public Domain)</div>
+      </div>
+      <div>
+        <div class="mini">왜 지금인가 — 세 겹의 수요</div>
+        <table class="t">
+          <thead><tr><th>수요 신호</th><th>근거</th><th>체험 전환</th></tr></thead>
+          <tbody>
+            <tr><td>방한 관광 회복</td><td>2024년 1,637만 명 (+48.4%)</td><td>오프라인 체험 유입</td></tr>
+            <tr><td>한국어 학습 붐</td><td>세종학당 21만 명 · Duolingo 세계 7위</td><td>이름·감성 콘텐츠</td></tr>
+            <tr><td>한글 비주얼 소비</td><td>한글 굿즈·타이포·SNS 밈 확산</td><td>캘리·도장·여권 굿즈</td></tr>
+          </tbody>
+        </table>
+        <div class="callout"><p><strong>전환 논리.</strong> 사람들은 이미 한글을 '사고, 찍고, 공유'한다. 여기에 <b style="color:var(--fg)">'내가 직접 만든다'</b>를 더하면 소비가 경험이 되고, 경험이 기념품·SNS로 다시 확산된다.</p></div>
+      </div>
+    </div>
+    <div class="src">출처: 한국관광공사 2024 관광통계 · 세종학당재단 · Duolingo 2024 Language Report · 훈민정음(해례본) 이미지 Wikimedia Commons(PD). 굿즈·밈 확산은 정성 관찰 근거.</div>
+  </div>
+  <div class="slide-footer"><span>Proof · 이미 소비되는 한글</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 06 PROMISED LAND -->
+<section class="slide slide--dark">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Vision</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">우리가 만들 경험 · Promised Land</span><span class="eyebrow">06</span></div>
+    <h2>한 사람의 <span class="hl">이름 한 글자</span>에서 시작하는 여정</h2>
+    <p class="sub">교재도, 시험도, 선생님도 없다. 방문자는 그저 자기 이름을 입력할 뿐이다. 그 순간부터 한글은 '남의 문자'가 아니라 '내 것'이 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="flow">
+      <div class="node"><div class="n">Step 1</div><h4>만난다</h4><p>내 이름이 한글로 태어난다</p></div>
+      <div class="sep">→</div>
+      <div class="node"><div class="n">Step 2</div><h4>조립한다</h4><p>자음·모음을 직접 쌓는다</p></div>
+      <div class="sep">→</div>
+      <div class="node"><div class="n">Step 3</div><h4>발견한다</h4><p>내 한국식 이름의 의미</p></div>
+      <div class="sep">→</div>
+      <div class="node"><div class="n">Step 4</div><h4>만든다</h4><p>캘리·도장·여권 결과물</p></div>
+      <div class="sep">→</div>
+      <div class="node"><div class="n">Step 5</div><h4>가져간다</h4><p>기념품 + SNS로 확산</p></div>
+    </div>
+    <div class="callout"><p><strong>이 과정에서 저절로 전달된다.</strong> 한글의 <b style="color:var(--fg)">아름다움·조합 원리·과학성·한국 문화</b>까지 — '교육받았다'가 아니라 <b style="color:var(--fg)">'한국에서만 할 수 있는 특별한 걸 했다'</b>로 기억된다.</p></div>
+  </div>
+  <div class="slide-footer"><span>Vision · 경험의 흐름</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 07 경험 여정 개요 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Journey</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">콘텐츠 구조 · 4 Core Steps</span><span class="eyebrow">07</span></div>
+    <h2>핵심은 '내 이름'을 중심에 둔 <span class="hl">4단계 체험</span></h2>
+    <p class="sub">모든 콘텐츠는 '내 이름'이라는 단 하나의 입력에서 파생된다. 참여 장벽 0, 결과물은 즉시 손에 남는다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div><h4>내 이름을 한글로 받는다</h4><p>AI 즉시 변환 → 발음 재생 → 뜻 풀이 → 예쁜 캘리그래피 출력. 자기 이름이 새 언어가 되는 첫 '와우'의 순간.</p></div></div>
+      <div class="step"><div class="step-num">2</div><div><h4>한글 도장을 만든다</h4><p>내 이름 → 도장 제작 → 여권처럼 찍기. 외국인이 가장 좋아하는 아날로그 기념품.</p></div></div>
+      <div class="step"><div class="step-num">3</div><div><h4>한글 그래피티로 확장한다</h4><p>전통·힙합·민화·네온·한복 서체로 내 이름을 재해석. SNS 공유가 폭발하는 지점.</p></div></div>
+      <div class="step"><div class="step-num">4</div><div><h4>훈민정음 스타일로 완성한다</h4><p>궁중·붓글씨·목판·금속활자 톤으로 출력. 한글의 역사성과 결과물의 소장 가치를 동시에.</p></div></div>
+    </div>
+    <div class="note">→ 각 단계는 독립적으로도, 하나의 연속 여정으로도 운영 가능. 다음 슬라이드부터 단계별 상세.</div>
+  </div>
+  <div class="slide-footer"><span>Journey · 4 Core Steps</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 08 STEP 1 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Step 1</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Step 1 · 내 이름을 한글로</span><span class="eyebrow">08</span></div>
+    <h2>이름을 입력하면 <span class="hl">4가지가 즉시</span> 돌아온다</h2>
+    <p class="sub">방문자가 자기 이름을 입력하는 순간, AI가 표기·소리·의미·비주얼을 한 번에 생성한다. 이 첫 경험 하나로 참여자는 '이건 나에 대한 거야'라고 느낀다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2" style="align-items:center;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="morph"><span class="en">John</span><span class="ar2">→</span><span class="ko acc">존</span></div>
+        <div class="morph"><span class="en">Emily</span><span class="ar2">→</span><span class="ko acc">에밀리</span></div>
+        <div class="morph"><span class="en">Maria</span><span class="ar2">→</span><span class="ko acc">마리아</span></div>
+      </div>
+      <div class="g2" style="grid-template-columns:1fr 1fr;gap:12px">
+        <div class="card"><div class="lab">표기</div><h4>한글 변환</h4><p>내 이름의 한글 스펠링</p></div>
+        <div class="card"><div class="lab">소리</div><h4>발음 재생</h4><p>원어민 발음을 즉시 들려줌</p></div>
+        <div class="card"><div class="lab">의미</div><h4>뜻 풀이</h4><p>음가·어감의 스토리텔링</p></div>
+        <div class="card"><div class="lab">비주얼</div><h4>캘리그래피</h4><p>바로 출력 가능한 아트</p></div>
+      </div>
+    </div>
+    <div class="callout"><p><strong>Wow Moment.</strong> "내 이름이 저렇게 생겼다고?" — 설명이 아니라 <b style="color:var(--fg)">체험이 먼저</b> 감정을 만든다. 이후 모든 콘텐츠는 이 이름 데이터를 재활용한다.</p></div>
+  </div>
+  <div class="slide-footer"><span>Step 1 · 내 이름을 한글로</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 09 STEP 2 도장 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Step 2</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Step 2 · 한글 도장 만들기</span><span class="eyebrow">09</span></div>
+    <h2>외국인이 가장 좋아하는 <span class="hl">아날로그 기념품</span></h2>
+    <p class="sub">디지털 변환에서 끝내지 않는다. 내 이름 도장을 제작하고, '여권처럼' 직접 찍는 손의 경험으로 이어간다. 손에 남는 결과물이 기억을 각인시킨다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="flow" style="margin-bottom:16px">
+      <div class="node"><div class="n">Input</div><h4>John → 존</h4><p>Step 1 이름 데이터 재사용</p></div>
+      <div class="sep">→</div>
+      <div class="node"><div class="n">Make</div><h4>도장 제작</h4><p>서체 선택 · 즉석 각인</p></div>
+      <div class="sep">→</div>
+      <div class="node"><div class="n">Stamp</div><h4>여권처럼 찍기</h4><p>스탬프북에 날인</p></div>
+      <div class="sep">→</div>
+      <div class="node"><div class="n">Keep</div><h4>기념품</h4><p>도장 + 날인 카드 소장</p></div>
+    </div>
+    <div class="g3">
+      <div class="card"><div class="lab">감각</div><h4>손의 경험</h4><p>누르고 떼는 촉각이 디지털에 없는 각인을 만든다.</p></div>
+      <div class="card"><div class="lab">소장</div><h4>기념품 가치</h4><p>도장 자체가 팔리는 굿즈. 재구매·선물 수요.</p></div>
+      <div class="card"><div class="lab">연결</div><h4>여권 컨셉의 씨앗</h4><p>이 '찍기'가 Step 14 한글 여권으로 확장된다.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Step 2 · 한글 도장</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 10 STEP 3 그래피티 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Step 3</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Step 3 · 한글 그래피티</span><span class="eyebrow">10</span></div>
+    <h2>내 이름을 <span class="hl">다섯 가지 스타일</span>로 재해석</h2>
+    <p class="sub">같은 이름, 완전히 다른 다섯 개의 비주얼. 방문자는 취향을 고르고, 그 선택 자체가 '가장 나다운 한글'을 찾는 놀이가 된다. SNS 공유가 가장 잘 터지는 콘텐츠.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g5">
+      <div class="card tint" style="border-top-color:var(--warm)"><div class="lab">전통</div><h4>서예체</h4><p>먹·한지의 클래식</p></div>
+      <div class="card tint" style="border-top-color:var(--red)"><div class="lab">힙합</div><h4>스트리트</h4><p>거친 태그 감성</p></div>
+      <div class="card tint" style="border-top-color:var(--green)"><div class="lab">민화</div><h4>전통 채색</h4><p>화조·오방색</p></div>
+      <div class="card tint" style="border-top-color:var(--accent-light)"><div class="lab">네온</div><h4>사인 아트</h4><p>야경 감성 발광</p></div>
+      <div class="card tint" style="border-top-color:var(--amber)"><div class="lab">한복</div><h4>전통 패턴</h4><p>의상 텍스처</p></div>
+    </div>
+    <div class="callout"><p><strong>확산 설계.</strong> 다섯 스타일은 곧 다섯 번의 SNS 업로드 유인이다. <b style="color:var(--fg)">'내 이름 네온사인'</b> 한 장이 친구를 다음 방문자로 데려온다.</p></div>
+  </div>
+  <div class="slide-footer"><span>Step 3 · 한글 그래피티</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 11 STEP 4 훈민정음 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Step 4</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Step 4 · 훈민정음 스타일</span><span class="eyebrow">11</span></div>
+    <h2>세종시대의 결로 <span class="hl">완성하는 소장품</span></h2>
+    <p class="sub">현대 서체에서 한 걸음 더 — 궁중·붓글씨·목판·금속활자 톤으로 내 이름을 출력한다. 한글의 역사성과 결과물의 소장 가치를 동시에 얻는 마지막 단계.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2" style="grid-template-columns:1.25fr 1fr;gap:22px;align-items:stretch">
+      <div class="g2" style="grid-template-columns:1fr 1fr;gap:12px">
+        <div class="card"><div class="lab">Royal</div><h4>궁중체</h4><p>어첩·의궤의 격식 있는 결</p></div>
+        <div class="card"><div class="lab">Brush</div><h4>붓글씨</h4><p>손끝의 획, 한 점의 작품</p></div>
+        <div class="card"><div class="lab">Woodblock</div><h4>목판 인쇄</h4><p>판각 질감의 아날로그</p></div>
+        <div class="card"><div class="lab">Metal Type</div><h4>금속활자</h4><p>직지의 나라, 활자의 결</p></div>
+      </div>
+      <div class="imgbox">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Hunmin_jeong-eum.jpg" alt="훈민정음 언해본">
+        <div class="imgcap">훈민정음 언해본 — 세종시대의 결을 그대로 톤 소스로 · 출처: Wikimedia Commons (Public Domain)</div>
+      </div>
+    </div>
+    <div class="callout g"><p><strong>스토리 결합.</strong> 출력물에 "이 문자는 1443년, 백성을 위해 만들어졌다" 한 줄을 얹으면 — 소장품이 <b style="color:var(--fg)">이야기를 품은 기념품</b>이 된다.</p></div>
+  </div>
+  <div class="slide-footer"><span>Step 4 · 훈민정음 스타일</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 12 킬러 콘텐츠 A -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Signature A</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">시그니처 콘텐츠 A · 이름과 감정</span><span class="eyebrow">12</span></div>
+    <h2>번역이 아니라 <span class="hl">'한국식 나'</span>를 발견하는 놀이</h2>
+    <p class="sub">단순 음차를 넘어, 한국식 이름과 한국 고유의 감정어를 제안한다. "왜 그런 이름인지"까지 설명하는 순간, 콘텐츠는 문화 체험이 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2" style="gap:20px">
+      <div>
+        <div class="mini">한글 닉네임 생성기</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="morph"><span class="en">Emily</span><span class="ar2">→</span><span class="ko">하늘</span></div>
+          <div class="morph"><span class="en">Luna</span><span class="ar2">→</span><span class="ko">별</span></div>
+          <div class="morph"><span class="en">Michael</span><span class="ar2">→</span><span class="ko">강</span></div>
+          <div class="morph"><span class="en">Alex</span><span class="ar2">→</span><span class="ko">도윤</span></div>
+        </div>
+        <div class="note">→ 한국식 이름 + '왜 이 이름인지' 스토리까지 제안</div>
+      </div>
+      <div>
+        <div class="mini">감정 번역기 — 영어에 없는 한국 감성</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="morph"><span class="en">I'm excited</span><span class="ar2">→</span><span class="ko acc">설렌다</span></div>
+          <div class="morph"><span class="en">I'm frustrated</span><span class="ar2">→</span><span class="ko acc">답답하다</span></div>
+          <div class="morph"><span class="en">I'm touched</span><span class="ar2">→</span><span class="ko acc">뭉클하다</span></div>
+        </div>
+        <div class="note">→ 감정의 결을 설명 = 언어가 아닌 '한국 감성'의 체험</div>
+      </div>
+    </div>
+    <div class="callout"><p><strong>왜 강력한가.</strong> 사람은 자기 이름과 자기 감정에 가장 크게 반응한다. <b style="color:var(--fg)">'나'를 소재로 한 콘텐츠</b>는 참여율·공유율이 압도적이다.</p></div>
+  </div>
+  <div class="slide-footer"><span>Signature A · 이름과 감정</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 13 킬러 콘텐츠 B -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Signature B</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">시그니처 콘텐츠 B · 놀이와 참여</span><span class="eyebrow">13</span></div>
+    <h2>보는 것을 넘어 <span class="hl">만들고·연주하고·조립</span>한다</h2>
+    <p class="sub">세대별 참여를 넓히는 세 갈래. 젊은 층은 K-POP 가사와 아트 포스터로, 아이들은 자석 블록 놀이로 — 각기 다른 방문자를 같은 한글 경험으로 끌어들인다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g3">
+      <div class="card tint"><div class="lab">Sound</div><h4>K-POP 가사 카드</h4><p>내 이름을 넣은 한 줄 가사 생성 — "오늘도 Emily와 함께, 서울의 밤". 즉석 녹음까지.</p></div>
+      <div class="card tint"><div class="lab">Art</div><h4>한글 패턴 포스터</h4><p>ㅇㅁㄴㅅㅈ 자모를 조형 요소로 쓴 아트 포스터. 방 안에 걸리는 결과물.</p></div>
+      <div class="card tint"><div class="lab">Play</div><h4>한글 블록 놀이</h4><p>자석 자음·모음을 직접 조립 → AI가 맞는지 확인 → 발음해줌. 아이들이 가장 좋아한다.</p></div>
+    </div>
+    <div class="callout"><p><strong>포트폴리오 효과.</strong> 이름(A)·감정(A)·소리·아트·놀이(B)가 한 지붕 아래 모이면, <b style="color:var(--fg)">'한 번 오면 여러 번 논다'</b> — 체류 시간과 재방문이 함께 늘어난다.</p></div>
+  </div>
+  <div class="slide-footer"><span>Signature B · 놀이와 참여</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 14 한글박물관 연계 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Museum Fit</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">국립한글박물관 연계 · Museum Fit</span><span class="eyebrow">14</span></div>
+    <h2>박물관이라서 <span class="hl">가능한 세 가지</span> 확장</h2>
+    <p class="sub">체험을 박물관의 문법과 결합한다. 관람 동선에 '한글 여권'을 얹고, 상설 전시의 권위를 콘텐츠의 깊이로 빌려온다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2" style="grid-template-columns:1.3fr 1fr;gap:22px;align-items:stretch">
+      <div class="g3" style="gap:12px">
+        <div class="card"><div class="lab">동선</div><h4>한글 여권</h4><p>입장 시 발급 → 전시 구역마다 내 이름 도장 날인 → 완주 시 나만의 스탬프북. 관람이 '수집 게임'이 된다.</p></div>
+        <div class="card"><div class="lab">비교</div><h4>세계 언어 지도</h4><p>내 이름을 한·일·중·아랍·태국어로 나란히. 한글이 왜 가장 논리적인지 직접 체험.</p></div>
+        <div class="card"><div class="lab">서사</div><h4>내 이름을 세종에게</h4><p>AI가 세종의 어조로 이름을 풀이. "그대의 이름은…" 스토리텔링.</p></div>
+      </div>
+      <div class="imgbox">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/National_Hangeul_Museum_Exhibition_20160317_02_%2825824207776%29.jpg" alt="국립한글박물관 전시">
+        <div class="imgcap">국립한글박물관 상설 전시 — 체험이 얹힐 무대 · 출처: Wikimedia Commons (National Hangeul Museum, CC)</div>
+      </div>
+    </div>
+    <div class="callout"><p><strong>박물관만의 우위.</strong> 상권 팝업과 달리 박물관은 <b style="color:var(--fg)">권위·동선·상설성</b>을 갖는다. 여권 스탬프북은 관람을 끝까지 완주시키는 장치이자 재방문 티켓이다.</p></div>
+  </div>
+  <div class="slide-footer"><span>Museum Fit · 세 가지 확장</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 15 SNS 확산 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Virality</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">확산 설계 · Virality</span><span class="eyebrow">15</span></div>
+    <h2>모든 결과물이 <span class="hl">'공유하고 싶은 나'</span>가 된다</h2>
+    <p class="sub">참여 장벽이 0인 이유는 소재가 '내 이름'이기 때문이다. 그리고 그 이유 그대로, 결과물은 공유 장벽도 0이다 — 자랑하고 싶은 '나의 것'이니까.</p>
+  </div>
+  <div class="slide-body">
+    <div class="mini">SNS 확산이 잘 되는 결과물</div>
+    <div class="taglist" style="margin-bottom:16px">
+      <span class="tag acc">내 이름 한글 포스터</span><span class="tag acc">한글 네온사인</span><span class="tag">한글 도장</span>
+      <span class="tag">한글 여권</span><span class="tag acc">내 한국 이름</span><span class="tag">캘리그래피</span>
+      <span class="tag">AI 세종 이름 해설</span><span class="tag">K-POP 이름 카드</span><span class="tag">한글 스티커</span><span class="tag">한글 키링</span>
+    </div>
+    <div class="g3">
+      <div class="card"><div class="lab">참여 장벽 0</div><h4>이름만 있으면 된다</h4><p>배경지식·언어 실력 불필요. 누구나 30초 안에 첫 결과물.</p></div>
+      <div class="card"><div class="lab">공유 장벽 0</div><h4>'나'라서 자랑한다</h4><p>내 이름·내 감정·내 스타일 — 공유의 심리적 동기가 내장.</p></div>
+      <div class="card"><div class="lab">확산 루프</div><h4>친구 = 다음 방문자</h4><p>한 장의 업로드가 다음 방문 예약으로 이어지는 자연 유입.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Virality · 확산 설계</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 16 리테일 미디어 확장 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Platform</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">장기 가치 · Retail Media 확장</span><span class="eyebrow">16</span></div>
+    <h2>체험이 쌓이면 <span class="hl">글로벌 문화 데이터</span>가 된다</h2>
+    <p class="sub">프로젝트 렌트가 잘하는 리테일 미디어 방식으로 한 단계 확장한다. 방문자의 선택 하나하나가 '외국인이 한글·한국 문화를 어떻게 경험·소비하는가'의 데이터가 된다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="flow" style="margin-bottom:16px">
+      <div class="node"><div class="n">Collect</div><h4>체험 데이터</h4><p>국가·이름·선택 단어·만든 디자인·선호 한글</p></div>
+      <div class="sep">→</div>
+      <div class="node"><div class="n">Analyze</div><h4>문화 소비 패턴</h4><p>어떤 스타일·감정·이름이 국가별로 통하는가</p></div>
+      <div class="sep">→</div>
+      <div class="node"><div class="n">Platform</div><h4>글로벌 문화 데이터</h4><p>단순 체험관 → 외국인 한글 소비 인사이트 자산</p></div>
+    </div>
+    <div class="g2">
+      <div class="card tint"><div class="lab">박물관에게</div><h4>차별화된 장기 가치</h4><p>일회성 체험 프로그램을 넘어, 한글의 글로벌 수용을 관측·아카이브하는 연구 자산.</p></div>
+      <div class="card tint"><div class="lab">확장</div><h4>콘텐츠·굿즈·파트너십</h4><p>데이터가 다음 시즌 콘텐츠·굿즈 라인업·브랜드 협업의 근거가 된다.</p></div>
+    </div>
+    <div class="note">→ 개인정보는 익명·집계 기반으로만 활용. 데이터 수집 범위·동의는 실행 단계에서 별도 설계.</div>
+  </div>
+  <div class="slide-footer"><span>Platform · 문화 데이터 자산</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 17 NEW BLISS -->
+<section class="slide slide--cover">
+  <div class="cover-label">National Hangeul Museum × Project Rent</div>
+  <h1 class="cover-title">한글박물관을,<br>한글을 <b>가지고 노는 곳</b>으로</h1>
+  <p class="cover-sub">'보는 곳'에서 '해보는 곳'으로. 외국인은 자기 이름 한 글자에서 시작해 한글의 아름다움과 과학을 몸으로 겪고, 그 경험을 기념품과 SNS로 세계에 실어 나른다. 교육이 아니라 경험이기에, 오래 기억된다.</p>
+  <div class="cover-meta">
+    <div class="m"><div class="ml">한 줄 요약</div><div class="mv">Language Education → Language Experience</div></div>
+    <div class="m"><div class="ml">다음 단계</div><div class="mv">범위 확정 · 콘텐츠 우선순위 · 파일럿 설계</div></div>
+  </div>
+  <div class="slide-footer"><span>New Bliss · 마무리 비전</span><span>by Project Rent</span></div>
+</section>
+
+<!-- 18 출처 -->
+<section class="slide">
+  <div class="runhead"><span>한글문화체험 콘텐츠</span><span class="r">Appendix</span></div>
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">부록 · 출처 및 검증</span><span class="eyebrow">18</span></div>
+    <h2>인용 수치·이미지 <span class="hl">출처</span></h2>
+    <p class="sub">본 기획안 초안의 모든 핵심 수치는 신뢰 출처로 3중 교차검증(추출 → 웹 대조 → 재대조)했다. 이미지는 Wikimedia Commons의 퍼블릭 도메인·CC 자료를 사용했다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="g2" style="gap:20px">
+      <div>
+        <div class="mini">검증 수치</div>
+        <table class="t">
+          <thead><tr><th>지표</th><th>값</th><th>출처</th></tr></thead>
+          <tbody>
+            <tr><td>2024 방한 외국인</td><td>1,637만 명 (+48.4%)</td><td>한국관광공사</td></tr>
+            <tr><td>세종학당 수강생(2024)</td><td>210,374명</td><td>세종학당재단/문체부</td></tr>
+            <tr><td>한국어 학습 인기</td><td>세계 7위</td><td>Duolingo 2024 Report</td></tr>
+            <tr><td>한글박물관 관람(2019)</td><td>70만 명 돌파</td><td>국립한글박물관</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="mini">이미지 출처 (Wikimedia Commons)</div>
+        <div class="card" style="padding:16px 18px">
+          <p style="font-size:11.5px;line-height:1.85;color:var(--fg-2)">
+          · 훈민정음 언해본 — Public Domain<br>
+          · 국립한글박물관 상설 전시 — CC<br>
+          · 한글 자모 전시(Hangeul Letters Exhibition) — CC<br>
+          <span style="color:var(--fg-3)">모든 이미지 링크 생존(HTTP 200) 확인 완료</span></p>
+        </div>
+        <div class="note">※ 2025년 세종학당 수강생은 239,020명으로 첫 23만 명 돌파(Korea Times). 굿즈·밈·후기 관련 서술은 정성 관찰 근거이며 별도 표기.</div>
+      </div>
+    </div>
+    <div class="src">Prepared by Project Rent · 한글문화체험 콘텐츠 기획안 Draft v0.1 · 2026.07 · 파트너: 국립한글박물관</div>
+  </div>
+  <div class="slide-footer"><span>Appendix · 출처</span><span>by Project Rent</span></div>
+</section>
+
+</div><!-- /deck -->
+
+<div class="progress" style="display:none"></div>
+<div class="hint">← → 이동 · F 풀스크린 · E 편집 · Cmd+S 저장</div>
+<div class="navbar">
+  <button id="prev">◀ Prev</button>
+  <span class="count" id="count">1 / 18</span>
+  <button id="next">Next ▶</button>
+  <button id="edit">Edit</button>
+  <button id="save">Save</button>
+</div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let cur=0, editing=false;
+const countEl=document.getElementById('count');
+const progEl=document.getElementById('progress');
+function show(i){
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  slides[cur].scrollIntoView({behavior:'smooth',block:'start'});
+  countEl.textContent=(cur+1)+' / '+slides.length;
+  progEl.style.width=((cur+1)/slides.length*100)+'%';
+}
+// track current on scroll
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){cur=slides.indexOf(e.target);countEl.textContent=(cur+1)+' / '+slides.length;progEl.style.width=((cur+1)/slides.length*100)+'%';}})},{threshold:.55});
+slides.forEach(s=>io.observe(s));
+document.getElementById('next').onclick=()=>show(cur+1);
+document.getElementById('prev').onclick=()=>show(cur-1);
+document.getElementById('edit').onclick=toggleEdit;
+document.getElementById('save').onclick=saveHTML;
+function toggleEdit(){
+  editing=!editing;
+  document.body.querySelectorAll('.slide h1,.slide h2,.slide h4,.slide p,.slide td,.slide .kv,.slide .tag,.slide .morph span,.slide .cover-title,.slide .cover-sub').forEach(el=>el.contentEditable=editing);
+  document.getElementById('edit').textContent=editing?'Editing…':'Edit';
+}
+function saveHTML(){
+  const clone=document.documentElement.cloneNode(true);
+  clone.querySelectorAll('.navbar,.hint,.progress,script').forEach(n=>n.remove());
+  clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+  const blob=new Blob(['<!DOCTYPE html>\n'+clone.outerHTML],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='hangeul-experience-proposal.html';a.click();
+}
+document.addEventListener('keydown',e=>{
+  if(editing && e.key!=='Escape' && !(e.metaKey&&e.key==='s'))return;
+  if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)){e.preventDefault();show(cur+1);}
+  else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();show(cur-1);}
+  else if(e.key==='Home'){show(0);}
+  else if(e.key==='End'){show(slides.length-1);}
+  else if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+  else if(e.key==='e'||e.key==='E'){toggleEdit();}
+  else if(e.key==='Escape'&&editing){toggleEdit();}
+  else if(e.metaKey&&e.key==='s'){e.preventDefault();saveHTML();}
+});
+show(0);
+</script>
+</body>
+</html>

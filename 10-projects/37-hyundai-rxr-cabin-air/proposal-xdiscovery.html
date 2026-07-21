@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-Discovery Engine Proposal | by Project Rent</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-light: #a29bfe;
+    --primary-dim: #4834d4;
+    --bg: #0f0f13;
+    --bg-card: #1a1a24;
+    --bg-card-alt: #16161f;
+    --text: #e8e8ed;
+    --text-dim: #9b9bb0;
+    --text-muted: #6b6b80;
+    --accent-green: #00cec9;
+    --accent-orange: #fdcb6e;
+    --accent-red: #ff7675;
+    --accent-blue: #74b9ff;
+    --border: rgba(108,92,231,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    background: #000;
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .deck {
+    position: relative;
+    width: min(100vw, 177.78vh); /* 16:9 width-bound */
+    height: min(100vh, 56.25vw); /* 16:9 height-bound */
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute; inset: 0; display: none; flex-direction: column;
+    background: var(--bg); padding: 4.5% 5.5% 4%; overflow: hidden;
+  }
+  .slide.active { display: flex; }
+
+  .slide-head { flex: 0 0 auto; margin-bottom: 32px; }
+  .slide-head .label {
+    font-size: 11px; font-weight: 600; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--primary-light); margin-bottom: 10px;
+  }
+  .slide-head h1 { font-size: 36px; font-weight: 800; line-height: 1.25; color: #fff; }
+  .slide-head h1 em { font-style: normal; color: var(--primary-light); }
+  .slide-head .sub { font-size: 17px; color: var(--text-dim); margin-top: 8px; line-height: 1.5; }
+
+  .slide-body {
+    flex: 1 1 auto; display: flex; flex-direction: column;
+    justify-content: flex-end; gap: 20px; min-height: 0;
+  }
+  .slide-body.center { justify-content: center; }
+  .slide-body.top { justify-content: flex-start; }
+
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px 28px;
+  }
+  .card h3 { font-size: 15px; font-weight: 700; color: var(--primary-light); margin-bottom: 12px; }
+  .card p, .card li { font-size: 15px; line-height: 1.65; color: var(--text); }
+
+  .row { display: flex; gap: 20px; }
+  .row > * { flex: 1; }
+  .col { display: flex; flex-direction: column; gap: 20px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  th { font-weight: 700; color: var(--primary-light); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; background: rgba(108,92,231,0.08); }
+  td { color: var(--text); }
+
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+  .tag-purple { background: rgba(108,92,231,0.2); color: var(--primary-light); }
+  .tag-green { background: rgba(0,206,201,0.15); color: var(--accent-green); }
+  .tag-orange { background: rgba(253,203,110,0.15); color: var(--accent-orange); }
+  .tag-red { background: rgba(255,118,117,0.15); color: var(--accent-red); }
+  .tag-blue { background: rgba(116,185,255,0.15); color: var(--accent-blue); }
+
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .flow-step { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .flow-step.highlight { background: rgba(108,92,231,0.2); border-color: var(--primary); color: #fff; }
+  .flow-arrow { font-size: 16px; color: var(--primary); flex-shrink: 0; }
+
+  .funnel-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .funnel-bar { height: 32px; border-radius: 4px; display: flex; align-items: center; padding: 0 14px; font-size: 13px; font-weight: 700; color: #fff; }
+  .funnel-label { min-width: 200px; font-size: 14px; color: var(--text); }
+
+  .big-number { font-size: 48px; font-weight: 900; color: var(--primary-light); line-height: 1; }
+  .quote { border-left: 3px solid var(--primary); padding: 14px 20px; font-size: 16px; font-style: italic; color: var(--text); background: rgba(108,92,231,0.05); border-radius: 0 8px 8px 0; }
+  mark { background: rgba(108,92,231,0.3); color: #fff; padding: 1px 6px; border-radius: 3px; }
+  .small { font-size: 12px; color: var(--text-muted); }
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+
+  .slide-footer {
+    position: absolute; bottom: 3.5%; left: 5.5%; right: 5.5%;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--text-muted);
+  }
+  .progress-bar { position: absolute; bottom: 0; left: 0; height: 2px; background: var(--primary); transition: width 0.3s ease; }
+
+  .slide.cover { justify-content: center; align-items: center; text-align: center; padding: 0; background: radial-gradient(ellipse at 50% 50%, rgba(108,92,231,0.08) 0%, var(--bg) 70%); }
+  .cover .cover-inner { max-width: 800px; }
+  .cover .logo-text { font-size: 13px; font-weight: 600; letter-spacing: 4px; color: var(--primary-light); margin-bottom: 28px; text-transform: uppercase; }
+  .cover h1 { font-size: 44px; font-weight: 900; line-height: 1.2; color: #fff; margin-bottom: 16px; }
+  .cover .sub { font-size: 18px; color: var(--text-dim); line-height: 1.6; margin-bottom: 32px; }
+  .cover .meta { font-size: 13px; color: var(--text-muted); }
+
+  .timeline { display: flex; gap: 0; width: 100%; }
+  .tl-item { flex: 1; position: relative; padding: 16px 18px; border-left: 3px solid var(--primary); }
+  .tl-item .tl-period { font-size: 11px; font-weight: 700; color: var(--primary-light); letter-spacing: 1px; margin-bottom: 6px; }
+  .tl-item .tl-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .tl-item .tl-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+  .tl-item.future { border-left-style: dashed; border-left-color: var(--text-muted); opacity: 0.5; }
+
+  .mockup-frame { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .mockup-titlebar { height: 32px; background: rgba(108,92,231,0.08); display: flex; align-items: center; padding: 0 14px; gap: 6px; }
+  .mockup-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.15); }
+  .mockup-content { padding: 20px 24px; }
+  .mockup-badge { position: absolute; top: 12px; right: 16px; background: rgba(0,206,201,0.2); color: var(--accent-green); font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 4px; letter-spacing: 1px; }
+
+  .wire-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .wire-box { background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.15); border-radius: 6px; padding: 10px; font-size: 11px; color: var(--text-dim); text-align: center; }
+  .wire-active { background: rgba(108,92,231,0.2); border-color: var(--primary); color: #fff; font-weight: 600; }
+
+  .nav-hint { position: fixed; bottom: 12px; right: 24px; font-size: 10px; color: var(--text-muted); z-index: 100; opacity: 0.5; }
+  .nav-hint kbd { display: inline-block; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; padding: 1px 5px; font-family: inherit; font-size: 10px; }
+
+  /* Input/Output mockup */
+  .io-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.7; color: var(--text-dim); overflow: hidden; }
+  .io-panel .io-title { font-family: 'Pretendard Variable', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--primary-light); margin-bottom: 10px; text-transform: uppercase; }
+  .io-panel.input { border-color: rgba(255,255,255,0.1); }
+  .io-panel.output { border-color: var(--primary); background: rgba(108,92,231,0.04); }
+  .io-highlight { color: var(--accent-green); font-weight: 600; }
+  .io-dim { color: var(--text-muted); }
+  .io-tag { display: inline-block; background: rgba(108,92,231,0.15); color: var(--primary-light); font-size: 10px; padding: 1px 6px; border-radius: 3px; font-family: 'Pretendard Variable', sans-serif; font-weight: 600; }
+
+  /* 16:9 aspect ratio lock */
+  .deck::before {
+    content: '';
+    display: block;
+    padding-top: 0; /* ratio handled by min() in .deck */
+  }
+
+  @media print {
+    body { overflow: visible; height: auto; display: block; }
+    .deck { width: 100%; height: auto; }
+    .slide { position: relative; display: flex !important; page-break-after: always; aspect-ratio: 16/9; height: auto; }
+    .progress-bar, .nav-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 01 · COVER -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide cover active" data-slide="1">
+  <div class="cover-inner">
+    <div class="logo-text">RXR Intelligence</div>
+    <h1>X-Discovery Engine<br><span style="color:var(--primary-light)">Proposal</span></h1>
+    <div class="sub">
+      "만들면 이것이 나온다"<br>
+      결과물 중심의 경험설계 플랫폼 MVP 제안
+    </div>
+    <div class="meta">
+      2026.07 &middot; 현대자동차 경험기획팀 &middot; Confidential<br>
+      by Project Rent
+    </div>
+  </div>
+  <div class="slide-footer"><span></span><span>1 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 02 · EXECUTIVE SUMMARY -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="2">
+  <div class="slide-head">
+    <div class="label">Executive Summary</div>
+    <h1>현대차 데이터로 <em>이미 검증한 팀</em>이,<br>결과물의 스케일업을 제안합니다</h1>
+    <div class="sub">방법론 설명이 아닌, "만들면 이것이 나온다"를 증거와 함께 보여드립니다</div>
+  </div>
+  <div class="slide-body">
+    <div class="row">
+      <div class="card">
+        <h3>이미 해봤습니다</h3>
+        <p>30,398건 크롤 &rarr; 3,586건 정제 &rarr; 욕구 5종 도출.<br>cabin-air 도메인에서 X-Discovery 방법론을 <mark>실데이터로 검증</mark> 완료.</p>
+      </div>
+      <div class="card">
+        <h3>이런 결과물이 나옵니다</h3>
+        <p>대시보드 UI, Core Experience 카드, User Story, Say-Do Gap 보고서.<br>3개월 후 <mark>동작하는 시스템</mark>을 인수합니다.</p>
+      </div>
+      <div class="card">
+        <h3>절반은 검증된 코드입니다</h3>
+        <p>가중 평균 재사용률 ~53%.<br>처음부터 만드는 것이 아닌, <mark>동작하는 자산 위에 확장</mark>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>2 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 03 · 진짜 문제 -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="3">
+  <div class="slide-head">
+    <div class="label">Problem</div>
+    <h1>경험 전환의 <em>진짜 병목</em></h1>
+    <div class="sub">기능 개발은 잘 합니다. "무엇이 경험인지" 정의하는 데 시간이 멈추는 것이 문제입니다</div>
+  </div>
+  <div class="slide-body center">
+    <div class="row">
+      <div class="col" style="flex:1.2">
+        <div class="card" style="border-color: var(--primary); background: rgba(108,92,231,0.06);">
+          <h3 style="color:#fff;">근본적 문제: 기획→개발 번역 비용</h3>
+          <div class="flow mt-16">
+            <span class="flow-step">기획자 아이디어</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step highlight" style="background:rgba(255,118,117,0.2); border-color:var(--accent-red);">번역 비용 6주</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">개발 착수</span>
+          </div>
+          <p class="mt-16" style="font-size:14px; color:var(--text-dim);">리서치 2주 + 내부 설득 3주 + 문서화 1주 = 아이디어→개발 착수에 6주 소요</p>
+        </div>
+        <div class="quote" style="font-style:normal; font-size:15px;">
+          X-Discovery는 이 <mark>6주를 1일</mark>로 단축하는 엔진입니다.<br>
+          <span class="small">데이터 근거 기반 경험 정의 → User Story 자동 생성 → 개발팀 즉시 전달</span>
+        </div>
+      </div>
+      <div class="col" style="flex:0.7">
+        <div class="card">
+          <h3>RFP에서 읽히는 조직 신호</h3>
+          <table>
+            <tr><td style="color:var(--accent-orange);">미숙련자 가이드 필요</td></tr>
+            <tr><td style="color:var(--accent-orange);">Human-in-the-Loop 설계</td></tr>
+            <tr><td style="color:var(--accent-orange);">'27년 고도화 전제</td></tr>
+            <tr><td style="color:var(--accent-orange);">관련부문 협의 미정렬</td></tr>
+          </table>
+          <p class="small mt-8">MVP = '27년 풀 프로젝트의 예산 확보 PoC</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>3 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 04 · 접근법: RXR → X-Discovery -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="4">
+  <div class="slide-head">
+    <div class="label">Approach</div>
+    <h1>RXR 파이프라인 = <em>X-Discovery</em>의 검증된 프로토타입</h1>
+    <div class="sub">같은 구조, 더 큰 스케일. 피처 정의 부재는 약점이 아니라 "발견형 분석"이 필요하다는 증거</div>
+  </div>
+  <div class="slide-body top">
+    <div class="row">
+      <div class="card" style="flex:1">
+        <h3>RXR (검증 완료)</h3>
+        <div class="flow" style="flex-direction:column; gap:6px; margin-top:8px;">
+          <div class="flow-step" style="width:100%; text-align:center;">정성 데이터 수집</div>
+          <div style="text-align:center; color:var(--primary);">&darr;</div>
+          <div class="flow-step" style="width:100%; text-align:center;">진정성 필터 (Gate 1~4)</div>
+          <div style="text-align:center; color:var(--primary);">&darr;</div>
+          <div class="flow-step" style="width:100%; text-align:center;">토픽 + 감성 + 심리 분석</div>
+          <div style="text-align:center; color:var(--primary);">&darr;</div>
+          <div class="flow-step" style="width:100%; text-align:center;">Latent Desire 도출</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; font-size:36px; color:var(--primary); padding:0 12px;">=</div>
+      <div class="card" style="flex:1; border-color:var(--primary);">
+        <h3 style="color:#fff;">X-Discovery (스케일업)</h3>
+        <div class="flow" style="flex-direction:column; gap:6px; margin-top:8px;">
+          <div class="flow-step highlight" style="width:100%; text-align:center;">데이터 인제스트</div>
+          <div style="text-align:center; color:var(--accent-green);">&darr;</div>
+          <div class="flow-step highlight" style="width:100%; text-align:center;">RXR 분석 엔진</div>
+          <div style="text-align:center; color:var(--accent-green);">&darr;</div>
+          <div class="flow-step highlight" style="width:100%; text-align:center;">경험 구조화 (Core Experience + User Story)</div>
+          <div style="text-align:center; color:var(--accent-green);">&darr;</div>
+          <div class="flow-step highlight" style="width:100%; text-align:center;">Human-in-the-Loop UI</div>
+        </div>
+      </div>
+    </div>
+    <div class="small mt-16" style="text-align:center;">방법론 동형 = 검증된 코드 ~53% 재사용 + 검증된 프레임워크 100% 활용 &rarr; 3개월 내 MVP 완성 가능</div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>4 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 05 · 실증: Gate 퍼널 -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="5">
+  <div class="slide-head">
+    <div class="label">Proven &middot; 01</div>
+    <h1><em>30,398 &rarr; 3,586</em> 정제</h1>
+    <div class="sub">88.2% 노이즈 제거. "#광고" 표기 없는 세차·디테일링·필터판매까지 자동 발견·제거</div>
+  </div>
+  <div class="slide-body top">
+    <div style="margin-bottom:24px;">
+      <div class="funnel-row">
+        <span class="funnel-label">G1 &middot; API 크롤</span>
+        <div class="funnel-bar" style="width:100%; background:rgba(108,92,231,0.3);">30,398</div>
+      </div>
+      <div class="funnel-row">
+        <span class="funnel-label">G2 &middot; 180일 + 주제 필터</span>
+        <div class="funnel-bar" style="width:60%; background:rgba(108,92,231,0.35);">18,210</div>
+      </div>
+      <div class="funnel-row">
+        <span class="funnel-label">G3 &middot; 협찬 제외 + Auth 60+</span>
+        <div class="funnel-bar" style="width:32%; background:rgba(253,203,110,0.3);">9,865</div>
+      </div>
+      <div class="funnel-row">
+        <span class="funnel-label" style="font-weight:700; color:var(--accent-green);">G4 &middot; 강화 필터 (표기 없는 광고)</span>
+        <div class="funnel-bar" style="width:12%; background:rgba(0,206,201,0.4);">3,586</div>
+        <span class="small" style="margin-left:12px; color:var(--accent-orange);">&minus;6,279건 추가 제거</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="card">
+        <h3>핵심 발견</h3>
+        <p>이 카테고리의 진짜 노이즈는 "#광고" 표기가 아니라 <mark>표기 없는 업체 콘텐츠</mark>. 표준 필터로는 못 거르는 것을 Gate4가 포착합니다.</p>
+      </div>
+      <div class="card">
+        <h3>귀사 VoC에도 동일 적용</h3>
+        <p>인터뷰 102건 + 고객센터 VoC에 동일한 정제 프로세스를 적용합니다. <mark>정제 로직은 범용</mark>입니다.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>5 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 06 · 실증: 욕구→Core Experience -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="6">
+  <div class="slide-head">
+    <div class="label">Proven &middot; 02</div>
+    <h1>욕구 5종 &rarr; <em>Core Experience</em> 변환</h1>
+    <div class="sub">cabin-air 실데이터로 "Latent Desire → User Story" 전체 과정을 시연합니다</div>
+  </div>
+  <div class="slide-body top">
+    <div class="row">
+      <div class="card" style="flex:1; opacity:0.85;">
+        <h3 style="color:var(--text-muted);">Before: 분석 결과 (리포트로 종결)</h3>
+        <table style="font-size:13px;">
+          <tr><td style="color:var(--accent-green); font-weight:700;">1</td><td>위생·건강 안전</td><td class="small">"해롭지 않은 공기"</td></tr>
+          <tr><td style="color:var(--accent-green); font-weight:700;">2</td><td>사회적 체면</td><td class="small">"동승자 앞 부끄럽지 않은 공간"</td></tr>
+          <tr><td style="color:var(--accent-green); font-weight:700;">3</td><td>청정 캡슐</td><td class="small">미세먼지·필터 (유일 충족 영역)</td></tr>
+          <tr><td style="color:var(--accent-green); font-weight:700;">4</td><td>통제감·즉시성</td><td class="small">공조 반응 속도</td></tr>
+          <tr><td style="color:var(--accent-green); font-weight:700;">5</td><td>무의식적 쾌적</td><td class="small">자동화 신뢰</td></tr>
+        </table>
+      </div>
+      <div style="display:flex; align-items:center; font-size:28px; color:var(--primary); padding:0 4px;">&rarr;</div>
+      <div class="card" style="flex:1.3; border-color:var(--primary);">
+        <h3 style="color:#fff;">After: X-Discovery 포맷 (기획자 전달용)</h3>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px; color:var(--primary-light); font-weight:700;">Core Experience</div>
+          <div style="font-size:16px; font-weight:600; color:#fff; margin:4px 0;">"탑승 즉시, 공기가 나를 해치지 않는다는 확신"</div>
+          <div style="font-size:12px; color:var(--text-dim);">근거: 위생·건강(부정 63%) + 체면(543건) 이중 욕구</div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px; color:var(--primary-light); font-weight:700;">경험 가설</div>
+          <div style="font-size:14px; color:var(--text);">"감지 전 자동 원인 제거 → 건강+체면 동시 해소"</div>
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--primary-light); font-weight:700;">User Story</div>
+          <div style="font-size:14px; color:var(--text); line-height:1.6;">
+            <strong>As a</strong> 출퇴근 운전자 (동승 가족 포함)<br>
+            <strong>I want</strong> 시동 직후 공기질이 자동 최적화되기를<br>
+            <strong>So that</strong> 냄새·건강·체면 걱정 없이 탑승
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="small mt-16" style="text-align:center;">동일 데이터 &rarr; 리포트(Before) vs Core Experience + 경험 가설 + User Story(After). 가상이 아닌 실데이터 기반.</div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>6 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 07 · INPUT → OUTPUT 시각화 (NEW) -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="7">
+  <div class="slide-head">
+    <div class="label">Input → Output</div>
+    <h1>인터뷰 원문 &rarr; <em>구조화된 아웃풋</em></h1>
+    <div class="sub">현대차가 제공하는 텍스트 파일이 X-Discovery를 거치면 이렇게 변환됩니다</div>
+  </div>
+  <div class="slide-body top">
+    <div class="row">
+      <!-- INPUT -->
+      <div class="io-panel input" style="flex:1;">
+        <div class="io-title">Input &middot; 인터뷰 원문 (.txt)</div>
+        <div style="white-space:pre-wrap; font-size:11.5px; line-height:1.7;">
+<span class="io-dim">[인터뷰 #037 / 30대 여성 / 아이오닉6 / 2026.03]</span>
+
+Q: 차 안 공기에 대해 평소 어떻게 느끼세요?
+
+A: 솔직히 <span class="io-highlight">여름에 에어컨 처음 틀면 그 냄새</span>가
+진짜 싫어요. 남편은 괜찮다고 하는데 저는
+<span class="io-highlight">아이 때문에 걱정</span>이 되거든요. 한번은
+친구 태웠는데 "너 차에서 뭔가 냄새 나지 않아?"
+해서 <span class="io-highlight">너무 창피</span>했어요.
+
+에바크리닝 한 번 했는데 <span class="io-highlight">3개월 만에 다시</span>
+그래요. 돈만 날린 느낌.
+<span class="io-highlight">차가 알아서 해줬으면</span> 좋겠어요.
+정수기처럼...</div>
+      </div>
+
+      <!-- ARROW -->
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:0 8px;">
+        <div style="font-size:28px; color:var(--primary);">&rarr;</div>
+        <div style="font-size:10px; color:var(--text-muted); writing-mode:vertical-rl; letter-spacing:1px;">X-DISCOVERY</div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="io-panel output" style="flex:1.2;">
+        <div class="io-title">Output &middot; 구조화 결과</div>
+        <div style="font-size:12px; line-height:1.8;">
+<span class="io-tag">Latent Desire</span> <span style="color:#fff; font-weight:600;">위생·건강 + 사회적 체면</span>
+<span class="io-dim">  confidence: 0.91 | source: #037, #012, #089...</span>
+
+<span class="io-tag">Core Experience</span>
+<span style="color:#fff; font-weight:600;">"탑승 즉시, 공기가 나를 해치지 않는다는 확신"</span>
+
+<span class="io-tag">경험 가설</span>
+감지 전 자동 원인 제거 → 건강+체면 동시 해소
+
+<span class="io-tag">User Story</span>
+<span style="color:var(--accent-green);">As a</span> 출퇴근 운전자 (동승 가족)
+<span style="color:var(--accent-green);">I want</span> 시동 직후 공기질 자동 최적화
+<span style="color:var(--accent-green);">So that</span> 냄새·건강·체면 걱정 제거
+
+<span class="io-tag">Say-Do Gap</span>
+  <span class="io-dim">Say: "냄새 심각" (부정 54%)</span>
+  <span class="io-dim">Do: 에바 클리닝 실행 0.7% → </span><span style="color:var(--accent-red);">Gap: 극심</span>
+
+<span class="io-tag">트리거</span> 여름 첫 에어컨 / 동승자 / 지하주차
+<span class="io-tag">빈도</span> 102건 중 47건 동일 패턴 (46%)
+        </div>
+      </div>
+    </div>
+    <div class="quote mt-16" style="font-style:normal; font-size:14px; text-align:center;">
+      비구조화 텍스트 102건 &rarr; <mark>구조화된 Core Experience + User Story + 교차검증</mark>으로 자동 변환.<br>
+      <span class="small">기획자는 결과를 검토·수정만 하면 됩니다 (HITL).</span>
+    </div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>7 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 08 · 결과물 정의 (강화) -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="8">
+  <div class="slide-head">
+    <div class="label">Deliverables</div>
+    <h1>MVP 결과물 <em>정의</em></h1>
+    <div class="sub">3개월 후 현대차가 인수하는 것들. 각각이 동작하는 시스템 또는 액션 가능한 포맷</div>
+  </div>
+  <div class="slide-body top">
+    <div class="row">
+      <div class="card" style="flex:1.5; border-color:var(--accent-green);">
+        <h3 style="color:var(--accent-green);">핵심 산출물 4종 (시스템)</h3>
+        <table>
+          <thead><tr><th>산출물</th><th>형태</th><th>용도</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:700;">X-Discovery 웹 프로토타입</td><td>웹 앱</td><td>데이터→인사이트 전체 파이프라인 동작</td></tr>
+            <tr><td style="font-weight:700;">HITL 대시보드</td><td>웹 UI</td><td>기획자가 결과 탐색·검증·수정</td></tr>
+            <tr><td style="font-weight:700;">Core Experience 카드</td><td>구조화 포맷</td><td>경험 정의 + 근거 + 가설 일체형</td></tr>
+            <tr><td style="font-weight:700;">Use Case 2개 시연</td><td>동작 프로토타입</td><td>도메인별 전체 흐름 증명</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card" style="flex:1;">
+        <h3>부속 산출물 4종 (문서·포맷)</h3>
+        <table>
+          <tbody>
+            <tr><td style="font-weight:700;">User Story 초안</td><td class="small">As a / I want / So that</td></tr>
+            <tr><td style="font-weight:700;">Say-Do Gap 보고서</td><td class="small">정성 vs 정량 교차검증</td></tr>
+            <tr><td style="font-weight:700;">데이터 가이드</td><td class="small">자체 운영 매뉴얼</td></tr>
+            <tr><td style="font-weight:700;">완료보고서 (IR 자료)</td><td class="small">경영진 보고용 PT</td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:16px; padding:12px; background:rgba(253,203,110,0.08); border-radius:8px;">
+          <p style="font-size:13px; color:var(--accent-orange);">완료보고서 = '27년 예산 확보를 위한<br><mark>경영진 IR 자료</mark>로 직접 활용 가능</p>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-16">
+      <div class="card" style="text-align:center;">
+        <div class="big-number" style="font-size:32px;">8종</div>
+        <p class="small mt-8">동작하는 산출물</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="big-number" style="font-size:32px;">12주</div>
+        <p class="small mt-8">구현 기간</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="big-number" style="font-size:32px;">~53%</div>
+        <p class="small mt-8">검증된 코드 재사용</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="big-number" style="font-size:32px;">4 Gate</div>
+        <p class="small mt-8">마일스톤 점검</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>8 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 09 · Before/After: 6주→1일 -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="9">
+  <div class="slide-head">
+    <div class="label">Value</div>
+    <h1>워크플로우 변화: <em>6주 &rarr; 1일</em></h1>
+    <div class="sub">경험기획팀의 아이디어→개발 착수 프로세스가 구조적으로 단축됩니다</div>
+  </div>
+  <div class="slide-body center">
+    <div class="row">
+      <div class="card" style="border-color: var(--accent-red); flex:1;">
+        <h3 style="color:var(--accent-red);">Before (현재)</h3>
+        <div class="flow" style="flex-direction:column; align-items:stretch; gap:10px; margin-top:8px;">
+          <div class="flow-step" style="text-align:center;">기획자 아이디어</div>
+          <div style="text-align:center; color:var(--accent-red);">&darr; <span class="small">리서치 2주</span></div>
+          <div class="flow-step" style="text-align:center;">데이터 수집·분석</div>
+          <div style="text-align:center; color:var(--accent-red);">&darr; <span class="small">내부 설득 3주</span></div>
+          <div class="flow-step" style="text-align:center;">합의·문서화</div>
+          <div style="text-align:center; color:var(--accent-red);">&darr; <span class="small">1주</span></div>
+          <div class="flow-step" style="text-align:center;">개발 착수</div>
+        </div>
+        <div style="text-align:center; margin-top:12px;">
+          <span class="big-number" style="font-size:32px; color:var(--accent-red);">~6주</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; font-size:36px; color:var(--primary); padding:0 8px;">&rarr;</div>
+      <div class="card" style="border-color: var(--accent-green); flex:1;">
+        <h3 style="color:var(--accent-green);">After (X-Discovery)</h3>
+        <div class="flow" style="flex-direction:column; align-items:stretch; gap:10px; margin-top:8px;">
+          <div class="flow-step highlight" style="text-align:center;">기획자 질문 입력</div>
+          <div style="text-align:center; color:var(--accent-green);">&darr; <span class="small">X-Discovery 5분</span></div>
+          <div class="flow-step highlight" style="text-align:center;">데이터 근거 + Core Experience</div>
+          <div style="text-align:center; color:var(--accent-green);">&darr; <span class="small">HITL 검증 30분</span></div>
+          <div class="flow-step highlight" style="text-align:center;">User Story (데이터 기반)</div>
+          <div style="text-align:center; color:var(--accent-green);">&darr; <span class="small">즉시</span></div>
+          <div class="flow-step highlight" style="text-align:center; background:rgba(0,206,201,0.2); border-color:var(--accent-green);">개발 착수</div>
+        </div>
+        <div style="text-align:center; margin-top:12px;">
+          <span class="big-number" style="font-size:32px; color:var(--accent-green);">~1일</span>
+        </div>
+      </div>
+    </div>
+    <div class="quote mt-16" style="text-align:center; font-style:normal;">
+      "설득"이 아닌 "근거"로 시작하는 경험 기획. 번역 비용의 구조적 제거.
+    </div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>9 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 10 · Sprint 타임라인 + 의존성 -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="10">
+  <div class="slide-head">
+    <div class="label">Timeline</div>
+    <h1>Sprint <em>12주</em> 실행 계획</h1>
+    <div class="sub">각 Sprint 종료 시 동작하는 산출물을 납품합니다</div>
+  </div>
+  <div class="slide-body top">
+    <div class="timeline" style="margin-bottom: 24px;">
+      <div class="tl-item" style="background:rgba(108,92,231,0.06); flex:0.7;">
+        <div class="tl-period">S0 &middot; 1주</div>
+        <div class="tl-title">킥오프 + 셋업</div>
+        <div class="tl-desc">주제 선정, 데이터 인수, 환경 구성</div>
+      </div>
+      <div class="tl-item" style="background:rgba(108,92,231,0.08);">
+        <div class="tl-period">S1 &middot; 4주 (8월)</div>
+        <div class="tl-title">데이터 + 분석 엔진</div>
+        <div class="tl-desc">인제스트 + Gate 필터 + Latent Desire 시연</div>
+      </div>
+      <div class="tl-item" style="background:rgba(108,92,231,0.1);">
+        <div class="tl-period">S2 &middot; 4주 (9월)</div>
+        <div class="tl-title">경험 구조화 + UI + UC1</div>
+        <div class="tl-desc">Core Experience + User Story + HITL 대시보드</div>
+      </div>
+      <div class="tl-item" style="background:rgba(108,92,231,0.12);">
+        <div class="tl-period">S3 &middot; 3주 (10월)</div>
+        <div class="tl-title">UC2 + 검증 + 보고</div>
+        <div class="tl-desc">Use Case 2 + 완료보고서 + Navigator 목업</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="card">
+        <h3>핵심 의존성 3종 (현대차 제공 필요)</h3>
+        <table style="font-size:14px;">
+          <tr><td style="color:var(--accent-red); font-weight:700;">MUST</td><td>고객 인터뷰 102건</td><td class="small">미제공 시 cabin-air 대체 시연</td></tr>
+          <tr><td style="color:var(--accent-red); font-weight:700;">MUST</td><td>분석 도메인 확정</td><td class="small">킥오프 시 구두 합의 수준</td></tr>
+          <tr><td style="color:var(--accent-red); font-weight:700;">MUST</td><td>실무 담당자 배정</td><td class="small">주 1회 30분 미팅</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>마일스톤 Gate</h3>
+        <table style="font-size:14px;">
+          <tr><td>W1</td><td>킥오프 리포트</td><td><span class="tag tag-green">Gate</span></td></tr>
+          <tr><td>W5</td><td>Latent Desire 시연</td><td><span class="tag tag-green">Gate</span></td></tr>
+          <tr><td>W9</td><td>UC1 전체 흐름</td><td><span class="tag tag-green">Gate</span></td></tr>
+          <tr><td>W12</td><td>최종 납품 + IR</td><td><span class="tag tag-green">Gate</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>10 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 11 · 본개발 2단계 가능성 (NEW) -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="11">
+  <div class="slide-head">
+    <div class="label">Phase 2 Vision</div>
+    <h1>MVP 이후: <em>본개발 2단계</em>의 가능성</h1>
+    <div class="sub">MVP가 증명하면, '27년 Experience Navigator로 확장됩니다</div>
+  </div>
+  <div class="slide-body top">
+    <div class="row" style="margin-bottom:20px;">
+      <div class="card" style="border-color:var(--accent-green); flex:1;">
+        <h3 style="color:var(--accent-green);">Phase 1: MVP (현재 제안)</h3>
+        <p style="font-size:14px; margin-bottom:8px;">"이 방법이 동작한다"를 증명</p>
+        <table style="font-size:12px;">
+          <tr><td>범위</td><td>단일 도메인 2개 Use Case</td></tr>
+          <tr><td>사용자</td><td>경험기획팀 3~5인</td></tr>
+          <tr><td>데이터</td><td>인터뷰 + VoC + SNS</td></tr>
+          <tr><td>아웃풋</td><td>Core Experience + User Story</td></tr>
+          <tr><td>기간</td><td>3개월 (8~10월)</td></tr>
+        </table>
+      </div>
+      <div style="display:flex; align-items:center; font-size:28px; color:var(--primary); padding:0 8px;">&rarr;</div>
+      <div class="card" style="border-color:var(--primary); flex:1.3; border-width:2px;">
+        <h3 style="color:#fff;">Phase 2: Experience Navigator (본개발)</h3>
+        <p style="font-size:14px; margin-bottom:8px;">"전사 확산 + 자동화 고도화"</p>
+        <table style="font-size:12px;">
+          <tr><td>범위</td><td style="color:var(--primary-light); font-weight:600;">다중 도메인 병렬 분석</td></tr>
+          <tr><td>사용자</td><td style="color:var(--primary-light); font-weight:600;">전사 기획 조직 (20인+)</td></tr>
+          <tr><td>데이터</td><td style="color:var(--primary-light); font-weight:600;">VCRM + IBD 실데이터 연동</td></tr>
+          <tr><td>아웃풋</td><td style="color:var(--primary-light); font-weight:600;">PRD 자동생성 + Flow/R&R Chart</td></tr>
+          <tr><td>기간</td><td style="color:var(--primary-light); font-weight:600;">'27 H1 (6개월)</td></tr>
+        </table>
+        <div style="margin-top:12px; padding:10px; background:rgba(108,92,231,0.1); border-radius:8px;">
+          <p style="font-size:12px; color:var(--text);">
+            + Node Map 시각화 (경험 간 관계 탐색)<br>
+            + 컨셉기획서 자동 생성<br>
+            + Knowledge Base 축적 (도메인 간 학습)
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="card">
+        <h3>Phase 2 진입 조건 (MVP가 증명할 것)</h3>
+        <div class="row" style="gap:12px;">
+          <div style="font-size:13px; flex:1;">
+            <span style="color:var(--accent-green);">&#10003;</span> 비구조화 데이터 → 피처 발견 가능<br>
+            <span style="color:var(--accent-green);">&#10003;</span> Latent Desire 도출 재현 가능
+          </div>
+          <div style="font-size:13px; flex:1;">
+            <span style="color:var(--accent-green);">&#10003;</span> 기획자 3인+ "유용하다" 평가<br>
+            <span style="color:var(--accent-green);">&#10003;</span> 경영진 IR 보고 통과
+          </div>
+        </div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <h3>MVP 투자 대비 확장 효과</h3>
+        <div style="margin:8px 0;">
+          <span class="big-number" style="font-size:28px;">3개월</span>
+          <span style="font-size:14px; color:var(--text-dim);"> 투자로</span>
+        </div>
+        <div style="font-size:14px; color:var(--accent-green); font-weight:700;">
+          '27년 본개발 6개월 프로젝트의<br>예산 확보 + 방향 증명 + 코드 자산 확보
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>11 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 12 · 왜 Project Rent인가 -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="12">
+  <div class="slide-head">
+    <div class="label">Why Us</div>
+    <h1>왜 <em>Project Rent</em>인가</h1>
+    <div class="sub">방법론 + 구현 + 현대차 맥락 이해를 한 팀에서. 분리 발주의 소실 리스크 제거</div>
+  </div>
+  <div class="slide-body center">
+    <div class="row">
+      <div class="card" style="border-color:var(--primary);">
+        <h3>독자 방법론</h3>
+        <p>RXR Intelligence: 진정성 필터 + 심리 게이지 + 원인 사슬 추적. 50+ 브랜드 분석 경험. 감성 분석을 넘어 "왜"까지 파고드는 방법론.</p>
+      </div>
+      <div class="card" style="border-color:var(--accent-green);">
+        <h3>설계 = 구현</h3>
+        <p>설계하는 팀이 직접 만듭니다. 설계→구현 번역 소실 제로. 재사용률 53%의 동작하는 코드 보유.</p>
+      </div>
+      <div class="card" style="border-color:var(--accent-orange);">
+        <h3>현대차 맥락 보유</h3>
+        <p>cabin-air 30,398건 분석 완료. 현대차 고객의 언어·욕구·페인포인트를 이미 파악. <mark>"데이터를 처음 보는 팀"이 아닙니다</mark>.</p>
+      </div>
+    </div>
+    <table class="mt-16">
+      <thead><tr><th>비교</th><th>컨설팅 펌</th><th>SI 개발사</th><th style="color:var(--primary-light);">Project Rent</th></tr></thead>
+      <tbody>
+        <tr><td>방법론</td><td style="color:var(--accent-green);">강</td><td style="color:var(--accent-red);">약</td><td style="color:var(--accent-green); font-weight:700;">강 (RXR)</td></tr>
+        <tr><td>구현</td><td style="color:var(--accent-red);">약 (외주)</td><td style="color:var(--accent-green);">강</td><td style="color:var(--accent-green); font-weight:700;">강 (풀스택)</td></tr>
+        <tr><td>현대차 데이터 경험</td><td style="color:var(--accent-red);">무</td><td style="color:var(--accent-red);">무</td><td style="color:var(--accent-green); font-weight:700;">유 (cabin-air)</td></tr>
+        <tr><td>설계↔구현 소실</td><td style="color:var(--accent-red);">높음</td><td style="color:var(--accent-orange);">중간</td><td style="color:var(--accent-green); font-weight:700;">없음</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>12 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 13 · 현대차에 의미하는 것 -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="13">
+  <div class="slide-head">
+    <div class="label">Strategic Value</div>
+    <h1>현대차에 <em>의미하는 것</em></h1>
+    <div class="sub">기술 도구를 넘어, 조직 전환의 내부 증명 + '27년 예산 확보 + 역량 민주화</div>
+  </div>
+  <div class="slide-body center">
+    <div class="row">
+      <div class="card" style="border-color:var(--primary); text-align:center;">
+        <h3>"이 방향이 맞다"는 내부 증명</h3>
+        <p style="font-size:15px; margin-top:12px;">MVP 자체가 <mark>경영진 IR 자료</mark>.<br>시연 퀄리티와 스토리텔링이<br>기술만큼 중요합니다.</p>
+      </div>
+      <div class="card" style="border-color:var(--accent-green); text-align:center;">
+        <h3>'27년 예산 티켓</h3>
+        <p style="font-size:15px; margin-top:12px;">3개월 투자로<br><mark>Navigator 본개발</mark>의<br>정당성을 확보합니다.</p>
+      </div>
+      <div class="card" style="border-color:var(--accent-orange); text-align:center;">
+        <h3>역량 상향평준화</h3>
+        <p style="font-size:15px; margin-top:12px;">핵심 인력 의존 탈피.<br><mark>미숙련자도 데이터 근거 기반</mark><br>경험 기획 가능.</p>
+      </div>
+    </div>
+    <div class="quote mt-16" style="font-style:normal; text-align:center; font-size:15px;">
+      MVP의 진짜 고객은 "경영진"입니다.<br>기획팀이 쓸 도구를 만들되, 경영진이 "확신"할 자료를 동시에 납품합니다.
+    </div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>13 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 14 · NEXT STEP -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section class="slide" data-slide="14">
+  <div class="slide-head">
+    <div class="label">Next Step</div>
+    <h1><em>Kick-off</em>까지 3단계</h1>
+    <div class="sub">제안 승인 → 협조 합의 → Sprint 0 시작</div>
+  </div>
+  <div class="slide-body center">
+    <div class="row" style="margin-bottom:32px;">
+      <div class="card" style="text-align:center; border-color:var(--primary); border-width:2px;">
+        <div style="font-size:40px; margin-bottom:8px; color:var(--primary-light);">1</div>
+        <h3>제안 검토 & 피드백</h3>
+        <p>본 제안서 검토 + 질의응답 미팅 1회</p>
+        <p class="small mt-8">~7월 4주차</p>
+      </div>
+      <div class="card" style="text-align:center; border-color:var(--accent-green); border-width:2px;">
+        <div style="font-size:40px; margin-bottom:8px; color:var(--accent-green);">2</div>
+        <h3>협조 합의 & 계약</h3>
+        <p>MUST 3종 확정 + 도메인 선정 + 계약</p>
+        <p class="small mt-8">~8월 1주차</p>
+      </div>
+      <div class="card" style="text-align:center; border-color:var(--accent-orange); border-width:2px;">
+        <div style="font-size:40px; margin-bottom:8px; color:var(--accent-orange);">3</div>
+        <h3>Sprint 0 킥오프</h3>
+        <p>환경 셋업 + 데이터 인수 + 1주 내 Gate 1</p>
+        <p class="small mt-8">8월 2주차~</p>
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:22px; font-weight:800; color:#fff; margin-bottom:8px;">
+        "우리는 현대차 고객의 언어를 <span style="color:var(--primary-light);">이미 분석해본 팀</span>입니다."
+      </div>
+      <div style="font-size:16px; color:var(--text-dim); margin-bottom:20px;">
+        X-Discovery는 그 경험의 스케일업입니다.
+      </div>
+      <div style="font-size:13px; color:var(--text-muted);">
+        by Project Rent &middot; RXR Intelligence &middot; 2026.07
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>X-Discovery Engine Proposal &middot; by Project Rent</span><span>14 / 14</span></div>
+</section>
+
+</div><!-- /deck -->
+
+<!-- Progress Bar -->
+<div class="progress-bar" id="progressBar" style="width:7.1%;"></div>
+
+<!-- Nav Hint -->
+<div class="nav-hint">
+  <kbd>&larr;</kbd> <kbd>&rarr;</kbd> 네비게이션 &nbsp; <kbd>F</kbd> 전체화면
+</div>
+
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function go(n) {
+    if (n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    current = n;
+    slides[current].classList.add('active');
+    document.getElementById('progressBar').style.width = ((current + 1) / total * 100) + '%';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(current + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (e.clientX > window.innerWidth * 0.6) go(current + 1);
+    else if (e.clientX < window.innerWidth * 0.4) go(current - 1);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,4086 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT RENT — 오프라인 리테일 미디어 플랫폼</title>
+    <meta name="description" content="팝업을 넘어선 리테일 미디어 플랫폼, 리테일 테라포밍의 선도자. 300+의 성공 프로젝트와 함께하는 브랜드 경험 전문가.">
+    
+    <!-- Pretendard 폰트 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    
+    <style>
+        :root {
+            --bg: #141414;
+            --bg-card: #1E1E1E;
+            --accent: #6C63FF;
+            --text: #FFFFFF;
+            --text-muted: #999999;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        /* 스크롤 애니메이션 */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 네비게이션 */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 24px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        nav.scrolled {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 16px 48px;
+        }
+        
+        .nav-left {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-left:hover {
+            opacity: 0.8;
+        }
+        
+        .nav-center {
+            display: flex;
+            gap: 40px;
+        }
+        
+        .nav-center a {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-center a:hover {
+            color: var(--accent);
+        }
+        
+        .nav-right {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .btn-outline {
+            padding: 10px 24px;
+            border: 1px solid var(--text);
+            background: transparent;
+            color: var(--text);
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-outline:hover {
+            background: var(--text);
+            color: var(--bg);
+        }
+        
+        .btn-primary {
+            padding: 10px 24px;
+            border: none;
+            background: var(--accent);
+            color: var(--text);
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary:hover {
+            background: #5B52E0;
+            transform: translateY(-2px);
+        }
+        
+        /* 언어 전환 버튼 */
+        .lang-switch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Pretendard', sans-serif;
+        }
+        
+        .lang-switch:hover {
+            border-color: var(--accent);
+            background: rgba(108, 99, 255, 0.1);
+        }
+        
+        .lang-option {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        
+        .lang-option.active {
+            color: var(--accent);
+        }
+        
+        .lang-separator {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        
+        /* 햄버거 메뉴 */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        .hamburger span {
+            width: 24px;
+            height: 2px;
+            background: var(--text);
+            transition: all 0.3s;
+        }
+        
+        /* 언어 전환 버튼 */
+        .lang-switch {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 16px;
+        }
+        
+        .lang-switch:hover {
+            border-color: var(--accent);
+            background: rgba(108, 99, 255, 0.1);
+        }
+        
+        .lang-option {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        
+        .lang-option.active {
+            color: var(--accent);
+        }
+        
+        .lang-separator {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+        }
+        
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 80%;
+            max-width: 300px;
+            height: 100vh;
+            background: var(--bg-card);
+            z-index: 999;
+            padding: 80px 32px 32px;
+            transition: right 0.3s ease;
+        }
+        
+        .mobile-lang-switch {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .mobile-menu.active {
+            right: 0;
+        }
+        
+        .mobile-menu a {
+            display: block;
+            color: var(--text);
+            text-decoration: none;
+            padding: 16px 0;
+            font-size: 18px;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* 섹션 공통 */
+        section {
+            min-height: 100vh;
+            padding: 120px 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            letter-spacing: -1.5px;
+        }
+        
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+            line-height: 1.8;
+            max-width: 800px;
+        }
+        
+        /* Hero Section */
+        #hero {
+            position: relative;
+            background: var(--bg);
+            overflow: hidden;
+        }
+        
+        .hero-video-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .hero-video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(20, 20, 20, 0.3) 0%, rgba(20, 20, 20, 0.5) 100%);
+            z-index: 1;
+        }
+        
+        .hero-content {
+            position: absolute;
+            bottom: 120px;
+            left: 48px;
+            right: 48px;
+            z-index: 2;
+        }
+        
+        .hero-title {
+            font-size: 72px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -2px;
+            max-width: 900px;
+            margin-bottom: 32px;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
+        }
+        
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 12px;
+            animation: bounce 2s infinite;
+            z-index: 2;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+        
+        .scroll-indicator::before {
+            content: '';
+            width: 1px;
+            height: 40px;
+            background: var(--text-muted);
+        }
+        
+        /* Highlight Section */
+        /* Highlight Section - Full Screen Slider */
+        .highlight-slider-section {
+            position: relative;
+            background: var(--accent);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .highlight-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            pointer-events: none;
+        }
+        
+        .highlight-slide.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .highlight-slide .container {
+            text-align: center;
+            max-width: 1200px;
+        }
+        
+        .slide-number {
+            color: white;
+            font-size: 14px;
+            opacity: 0.5;
+            margin-bottom: 24px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+        
+        .highlight-slide-title {
+            font-size: 72px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: white;
+            margin-bottom: 64px;
+            letter-spacing: -2px;
+        }
+        
+        /* Slide 1 - Features */
+        .highlight-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 48px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .highlight-feature {
+            text-align: center;
+        }
+        
+        .feature-number {
+            font-size: 64px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            line-height: 1;
+        }
+        
+        .feature-label {
+            font-size: 18px;
+            color: white;
+            opacity: 0.85;
+            line-height: 1.5;
+        }
+        
+        /* Slide 2 - Stats */
+        .slide-definition {
+            font-size: 16px;
+            color: white;
+            opacity: 0.7;
+            max-width: 900px;
+            margin: 0 auto 48px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        
+        .highlight-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 64px;
+            max-width: 800px;
+            margin: 0 auto 48px;
+        }
+        
+        .highlight-stat {
+            text-align: center;
+            padding: 40px 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stat-big {
+            font-size: 80px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            line-height: 1;
+        }
+        
+        .stat-medium {
+            font-size: 56px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+        
+        .stat-small {
+            font-size: 18px;
+            color: white;
+            opacity: 0.8;
+        }
+        
+        .stat-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            opacity: 0.9;
+            margin-bottom: 12px;
+        }
+        
+        .stat-desc {
+            font-size: 18px;
+            color: white;
+            opacity: 0.8;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        
+        .highlight-insight {
+            font-size: 20px;
+            color: white;
+            opacity: 0.75;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        /* Slide 3 - Companies */
+        .highlight-companies {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 48px 32px;
+            max-width: 900px;
+            margin: 48px auto 0;
+        }
+        
+        .company-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .company-item:hover {
+            transform: translateY(-4px);
+        }
+        
+        .company-logo {
+            width: 312px;
+            height: 130px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .company-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            opacity: 0.95;
+            transition: all 0.3s ease;
+        }
+        
+        .company-item:hover .company-logo {
+            transform: translateY(-4px);
+        }
+        
+        .company-item:hover .company-logo img {
+            filter: brightness(0) invert(1) drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+            opacity: 1;
+        }
+        
+        .company-name {
+            font-size: 0px;
+            height: 0;
+            overflow: hidden;
+            margin: 0;
+        }
+        
+        .company-metric {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            opacity: 0.9;
+            line-height: 1.5;
+            margin-top: 0;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .company-logo svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        /* Navigation */
+        .highlight-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .highlight-nav:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .highlight-nav.prev {
+            left: 48px;
+        }
+        
+        .highlight-nav.next {
+            right: 48px;
+        }
+        
+        .highlight-dots {
+            position: absolute;
+            bottom: 64px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+        
+        .highlight-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        
+        .highlight-dot.active {
+            background: white;
+            width: 32px;
+            border-radius: 5px;
+        }
+        
+        /* Stats Section */
+        #stats {
+            background: var(--bg);
+            padding: 120px 48px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            margin-top: 64px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            padding: 48px 32px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 56px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        
+        /* Market Section */
+        #market {
+            background: var(--bg);
+        }
+        
+        .market-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: start;
+            margin-top: 64px;
+        }
+        
+        .market-text {
+            font-size: 38px;
+            font-weight: 600;
+            line-height: 0.75;
+            letter-spacing: -0.5px;
+        }
+        
+        .market-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        
+        .market-stat {
+            background: var(--bg-card);
+            padding: 32px;
+            border-radius: 16px;
+        }
+        
+        .market-stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        
+        .market-stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        
+        /* Services Section */
+        #services {
+            background: var(--bg);
+            padding: 120px 48px;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px;
+            margin-top: 64px;
+        }
+        
+        .service-item {
+            background: var(--bg-card);
+            padding: 48px;
+            border-radius: 16px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .service-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(108, 99, 255, 0.2);
+        }
+        
+        .service-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent);
+        }
+        
+        .service-header {
+            margin-bottom: 32px;
+        }
+        
+        .service-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(108, 99, 255, 0.15);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+        .service-title {
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 24px;
+            letter-spacing: -0.5px;
+            color: var(--text);
+        }
+        
+        .service-features {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .service-feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(108, 99, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(108, 99, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .service-feature:hover {
+            background: rgba(108, 99, 255, 0.08);
+            border-color: rgba(108, 99, 255, 0.3);
+            transform: translateX(8px);
+        }
+        
+        .service-icon {
+            min-width: 48px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--accent);
+        }
+        
+        .service-feature-content {
+            flex: 1;
+        }
+        
+        .service-feature-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        
+        .service-feature-desc {
+            font-size: 18px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        
+        /* Services Section 헤더 크기 증가 */
+        #services .badge {
+            font-size: 16px;
+            padding: 10px 28px;
+        }
+        
+        #services .section-title {
+            font-size: 52px;
+        }
+        
+        /* Performance Section */
+        #performance {
+            background: var(--accent);
+            text-align: center;
+            padding: 160px 48px;
+            position: relative;
+        }
+        
+        .performance-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .performance-label {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            opacity: 0.95;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .performance-number {
+            font-size: 120px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            letter-spacing: -4px;
+            transition: opacity 0.3s ease;
+        }
+        
+        .performance-text {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 48px;
+            transition: opacity 0.3s ease;
+        }
+        
+        .performance-indicators {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 48px;
+        }
+        
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .indicator.active {
+            background: white;
+            width: 32px;
+            border-radius: 6px;
+        }
+        
+        .indicator:hover {
+            background: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* Archive Section */
+        #archive {
+            background: var(--bg);
+        }
+        
+        .archive-filters {
+            display: flex;
+            gap: 12px;
+            margin: 48px 0;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 1px solid transparent;
+            color: var(--text);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .archive-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+        
+        .archive-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        
+        .archive-card:hover {
+            transform: translateY(-8px);
+        }
+        
+        .archive-card-image {
+            width: 100%;
+            height: 240px;
+            background: linear-gradient(135deg, var(--accent) 0%, #5B52E0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            opacity: 0.2;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .archive-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 1;
+        }
+        
+        .archive-card-slider {
+            width: 100%;
+            height: 240px;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg);
+        }
+        
+        .slider-track {
+            display: flex;
+            transition: transform 0.5s ease;
+            height: 100%;
+        }
+        
+        .slider-image {
+            min-width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .slider-dots {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+        
+        .slider-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .slider-dot.active {
+            background: var(--accent);
+            width: 24px;
+            border-radius: 4px;
+        }
+        
+        .archive-card-content {
+            padding: 32px;
+        }
+        
+        .archive-card-category {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        
+        .archive-card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        
+        .archive-card-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        
+        /* More Projects Card */
+        .archive-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            border: 2px dashed rgba(108, 99, 255, 0.3);
+            background: rgba(108, 99, 255, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .archive-card-link:hover {
+            border-color: var(--accent);
+            background: rgba(108, 99, 255, 0.1);
+            transform: translateY(-8px);
+        }
+        
+        .archive-card-more {
+            padding: 60px 32px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 320px;
+        }
+        
+        .more-icon {
+            font-size: 64px;
+            font-weight: 300;
+            color: var(--accent);
+            margin-bottom: 24px;
+            line-height: 1;
+        }
+        
+        .more-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        
+        .more-desc {
+            font-size: 16px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        
+        .archive-card-link:hover .more-icon {
+            transform: scale(1.1);
+            transition: transform 0.3s;
+        }
+        
+        .archive-card-link:hover .more-desc {
+            color: var(--accent);
+        }
+        
+        /* About Section */
+        #about {
+            background: var(--bg);
+        }
+        
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            margin-top: 64px;
+        }
+        
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 24px;
+        }
+        
+        .timeline-year {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            min-width: 80px;
+        }
+        
+        .timeline-desc {
+            font-size: 16px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        
+        .about-story {
+            display: flex;
+            flex-direction: column;
+            gap: 48px;
+        }
+        
+        .story-section {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 16px;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .story-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+        
+        .story-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--text-muted);
+        }
+        
+        /* Partners Section */
+        #partners {
+            background: var(--bg);
+            padding: 120px 48px;
+            overflow: hidden;
+        }
+        
+        .partners-slider {
+            margin-top: 64px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .partners-track {
+            display: flex;
+            gap: 80px;
+            animation: scroll 30s linear infinite;
+        }
+        
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        .partner-item {
+            font-size: 24px;
+            font-weight: 600;
+            white-space: nowrap;
+            color: var(--text-muted);
+            transition: color 0.3s;
+        }
+        
+        .partner-item:hover {
+            color: var(--accent);
+        }
+        
+        /* Contact Section */
+        #contact {
+            background: var(--accent);
+            padding: 120px 48px;
+        }
+        
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+        
+        .contact-left h2 {
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            letter-spacing: -1.5px;
+        }
+        
+        .contact-left p {
+            font-size: 18px;
+            line-height: 1.8;
+            opacity: 0.9;
+        }
+        
+        .contact-form {
+            background: var(--bg-card);
+            padding: 48px;
+            border-radius: 16px;
+        }
+        
+        .form-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 32px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        
+        .inquiry-types {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        
+        .inquiry-btn {
+            padding: 14px;
+            background: var(--bg);
+            border: 2px solid transparent;
+            color: var(--text-muted);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .inquiry-btn:hover,
+        .inquiry-btn.active {
+            background: rgba(108, 99, 255, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: 'Pretendard', sans-serif;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            border: none;
+            color: var(--text);
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: #5B52E0;
+            transform: translateY(-2px);
+        }
+        
+        /* Admin Section Styles */
+        .admin-filter-btn {
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Pretendard', sans-serif;
+        }
+        
+        .admin-filter-btn:hover,
+        .admin-filter-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .admin-inquiry-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+        
+        .admin-inquiry-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--bg);
+            padding: 64px 48px 32px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 48px;
+        }
+        
+        .footer-brand {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        
+        .footer-address {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+        
+        .footer-bottom {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .section-title { font-size: 48px; }
+            .hero-title { font-size: 56px; }
+            .highlight-title { font-size: 48px; }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .market-content {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+            
+            .market-text {
+                font-size: 28px;
+                line-height: 0.75;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .archive-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .contact-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            nav {
+                padding: 20px 24px;
+            }
+            
+            nav.scrolled {
+                padding: 16px 24px;
+            }
+            
+            .nav-center,
+            .nav-right {
+                display: none;
+            }
+            
+            .hamburger {
+                display: flex;
+            }
+            
+            .mobile-menu {
+                display: block;
+            }
+            
+            section {
+                padding: 80px 24px;
+            }
+            
+            .hero-content {
+                left: 24px;
+                right: 24px;
+                bottom: 80px;
+            }
+            
+            .hero-title {
+                font-size: 40px;
+            }
+            
+            .section-title {
+                font-size: 36px;
+            }
+            
+            .highlight-title {
+                font-size: 36px;
+            }
+            
+            /* Highlight Full-Screen Slider Mobile */
+            .highlight-slide-title {
+                font-size: 40px;
+                margin-bottom: 48px;
+            }
+            
+            .slide-definition {
+                font-size: 13px;
+                margin-bottom: 32px;
+                line-height: 1.5;
+            }
+            
+            .highlight-features {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            
+            .feature-number {
+                font-size: 48px;
+            }
+            
+            .feature-label {
+                font-size: 16px;
+            }
+            
+            .highlight-stats {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .highlight-stat {
+                padding: 28px 20px;
+            }
+            
+            .stat-big {
+                font-size: 56px;
+            }
+            
+            .stat-medium {
+                font-size: 40px;
+                margin-bottom: 16px;
+            }
+            
+            .stat-small {
+                font-size: 16px;
+            }
+            
+            .stat-label {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+            
+            .stat-desc {
+                font-size: 15px;
+                line-height: 1.5;
+            }
+            
+            .highlight-insight {
+                font-size: 14px;
+            }
+            
+            .highlight-companies {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 32px 24px;
+                margin-top: 32px;
+            }
+            
+            .company-logo {
+                width: 260px;
+                height: 117px;
+                margin: 0 auto 10px;
+            }
+            
+            .company-name {
+                font-size: 0px;
+                height: 0;
+            }
+            
+            .company-metric {
+                font-size: 14px;
+                font-weight: 600;
+                text-align: center;
+                width: 100%;
+            }
+            
+            .highlight-nav {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+            
+            .highlight-nav.prev {
+                left: 16px;
+            }
+            
+            .highlight-nav.next {
+                right: 16px;
+            }
+            
+            .highlight-dots {
+                bottom: 32px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .market-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .archive-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .inquiry-types {
+                grid-template-columns: 1fr;
+            }
+            
+            /* Services 섹션 모바일 조정 */
+            #services .section-title {
+                font-size: 32px;
+            }
+            
+            .service-title {
+                font-size: 26px;
+            }
+            
+            .service-feature-title {
+                font-size: 17px;
+            }
+            
+            .service-feature-desc {
+                font-size: 15px;
+            }
+            
+            /* Performance 모바일 조정 */
+            #performance {
+                padding: 100px 24px;
+            }
+            
+            .performance-label {
+                font-size: 18px;
+            }
+            
+            .performance-number {
+                font-size: 72px;
+                letter-spacing: -2px;
+            }
+            
+            .performance-text {
+                font-size: 15px;
+            }
+            
+            #highlight,
+            #performance {
+                padding: 120px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 -->
+    <nav id="nav">
+        <a href="#" class="nav-left" style="text-decoration: none; color: inherit;">PROJECT RENT.</a>
+        <div class="nav-center">
+            <a href="#about" class="lang-text" data-ko="About" data-en="About">About</a>
+            <a href="#services" class="lang-text" data-ko="Services" data-en="Services">Services</a>
+            <a href="#archive" class="lang-text" data-ko="Archive" data-en="Archive">Archive</a>
+            <a href="#contact" class="lang-text" data-ko="Contact" data-en="Contact">Contact</a>
+        </div>
+        <div class="nav-right">
+            <button class="lang-switch" id="langSwitch">
+                <span class="lang-option active" data-lang="ko">KO</span>
+                <span class="lang-separator">|</span>
+                <span class="lang-option" data-lang="en">EN</span>
+            </button>
+            <a href="#" class="btn-outline">IR Deck</a>
+            <a href="#contact" class="btn-primary lang-text" data-ko="문의하기" data-en="Contact Us">문의하기</a>
+        </div>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- 모바일 메뉴 -->
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="lang-switch mobile-lang-switch" style="margin-bottom: 24px;">
+            <span class="lang-option active" data-lang="ko">KO</span>
+            <span class="lang-separator">|</span>
+            <span class="lang-option" data-lang="en">EN</span>
+        </button>
+        <a href="#about" class="lang-text" data-ko="About" data-en="About">About</a>
+        <a href="#services" class="lang-text" data-ko="Services" data-en="Services">Services</a>
+        <a href="#archive" class="lang-text" data-ko="Archive" data-en="Archive">Archive</a>
+        <a href="#contact" class="lang-text" data-ko="Contact" data-en="Contact">Contact</a>
+        <a href="#" style="color: var(--accent);">IR Deck</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="hero">
+        <!-- 배경 영상 -->
+        <video 
+            class="hero-video-bg"
+            autoplay
+            muted
+            loop
+            playsinline>
+            <source src="https://www.genspark.ai/api/files/s/FxAS3GHZ" type="video/mp4">
+        </video>
+        <div class="hero-video-overlay"></div>
+        
+        <div class="hero-content fade-in">
+            <h1 class="hero-title">
+                PROJECT RENT는<br>
+                오프라인을 강력한 브랜드 미디어로<br>
+                전환하는 리테일 플랫폼입니다.
+            </h1>
+            <p class="hero-subtitle">팝업을 넘어선 리테일 미디어 플랫폼 | 리테일 테라포밍의 선도자</p>
+        </div>
+        <div class="scroll-indicator">SCROLL</div>
+    </section>
+
+    <!-- Highlight Section -->
+    <!-- Highlight Section - Full Screen Slider -->
+    <section id="highlight" class="highlight-slider-section">
+        <!-- Slide 1 -->
+        <div class="highlight-slide active">
+            <div class="container">
+                <div class="slide-number">01 / 03</div>
+                <h2 class="highlight-slide-title">오프라인은 가장 강력한<br>퍼포먼스 미디어입니다</h2>
+                <div class="highlight-features">
+                    <div class="highlight-feature">
+                        <div class="feature-number">154%</div>
+                        <div class="feature-label">ROI 투자 대비 수익률</div>
+                    </div>
+                    <div class="highlight-feature">
+                        <div class="feature-number">1st Party</div>
+                        <div class="feature-label">쿠키 없는 정밀 타겟팅</div>
+                    </div>
+                    <div class="highlight-feature">
+                        <div class="feature-number">360°</div>
+                        <div class="feature-label">오감 브랜드 경험</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 2 -->
+        <div class="highlight-slide">
+            <div class="container">
+                <div class="slide-number">02 / 03</div>
+                <h2 class="highlight-slide-title">글로벌 리테일 미디어 시장<br>$1,840억</h2>
+                <p class="slide-definition">리테일 미디어: 유통업체가 보유한 고객 데이터와 매장·온라인 접점을<br>활용해 광고주에게 제공하는 타겟팅 광고 플랫폼</p>
+                <div class="highlight-stats">
+                    <div class="highlight-stat">
+                        <div class="stat-medium">$3,120억</div>
+                        <div class="stat-desc">Forrester 전망 기준<br>연평균 17.6% 고속 성장</div>
+                    </div>
+                    <div class="highlight-stat">
+                        <div class="stat-medium">25%</div>
+                        <div class="stat-desc">전체 디지털 광고 시장의 1/4<br>TV·배너 광고를 빠르게 대체</div>
+                    </div>
+                </div>
+                <p class="highlight-insight">전통 광고 대비 4배 빠른 성장. 한국 유통시장 259조원 기회.</p>
+            </div>
+        </div>
+        
+        <!-- Slide 3 -->
+        <div class="highlight-slide">
+            <div class="container">
+                <div class="slide-number">03 / 03</div>
+                <h2 class="highlight-slide-title">글로벌 리더들의 선택</h2>
+                <div class="highlight-companies">
+                    <div class="company-item">
+                        <div class="company-logo">
+                            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/amazon.svg" alt="Amazon Ads">
+                        </div>
+                        <div class="company-name">Amazon Ads</div>
+                        <div class="company-metric">$560억 광고수익</div>
+                    </div>
+                    <div class="company-item">
+                        <div class="company-logo">
+                            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/walmart.svg" alt="Walmart Connect">
+                        </div>
+                        <div class="company-name">Walmart Connect</div>
+                        <div class="company-metric">주 1.5억명 접점</div>
+                    </div>
+                    <div class="company-item">
+                        <div class="company-logo">
+                            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/nike.svg" alt="Nike">
+                        </div>
+                        <div class="company-name">Nike</div>
+                        <div class="company-metric">OMO 체험형 플래그십</div>
+                    </div>
+                    <div class="company-item">
+                        <div class="company-logo">
+                            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/target.svg" alt="Target">
+                        </div>
+                        <div class="company-name">Target Roundel</div>
+                        <div class="company-metric">$15억 광고수익</div>
+                    </div>
+                    <div class="company-item">
+                        <div class="company-logo">
+                            <svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;">
+                                <text x="100" y="28" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white" text-anchor="middle">Glossier</text>
+                            </svg>
+                        </div>
+                        <div class="company-name">Glossier</div>
+                        <div class="company-metric">팝업→상설 전환</div>
+                    </div>
+                    <div class="company-item">
+                        <div class="company-logo">
+                            <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;">
+                                <text x="100" y="35" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">FamilyMart</text>
+                            </svg>
+                        </div>
+                        <div class="company-name">패밀리마트</div>
+                        <div class="company-metric">6,700개 점포 미디어화</div>
+                    </div>
+                    <div class="company-item">
+                        <div class="company-logo">
+                            <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;">
+                                <text x="100" y="40" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white" text-anchor="middle">b8ta</text>
+                            </svg>
+                        </div>
+                        <div class="company-name">b8ta</div>
+                        <div class="company-metric">AI 행동분석 체험매장</div>
+                    </div>
+                    <div class="company-item">
+                        <div class="company-logo">
+                            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/apple.svg" alt="Apple">
+                        </div>
+                        <div class="company-name">Apple Retail</div>
+                        <div class="company-metric">체험형 공간 혁신</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <button class="highlight-nav prev" onclick="changeHighlightSlide(-1)">←</button>
+        <button class="highlight-nav next" onclick="changeHighlightSlide(1)">→</button>
+        <div class="highlight-dots">
+            <span class="highlight-dot active" onclick="goToHighlightSlide(0)"></span>
+            <span class="highlight-dot" onclick="goToHighlightSlide(1)"></span>
+            <span class="highlight-dot" onclick="goToHighlightSlide(2)"></span>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section id="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card fade-in">
+                    <div class="stat-number" data-target="300">0</div>
+                    <div class="stat-label">팝업 프로젝트<br>성공 이력</div>
+                </div>
+                <div class="stat-card fade-in">
+                    <div class="stat-number" data-target="40.2">0</div>
+                    <div class="stat-label">2024년 연 매출<br>(억원)</div>
+                </div>
+                <div class="stat-card fade-in">
+                    <div class="stat-number" data-target="98">0</div>
+                    <div class="stat-label">CPM 절감 효과<br>(%)</div>
+                </div>
+                <div class="stat-card fade-in">
+                    <div class="stat-number" data-target="23.7">0</div>
+                    <div class="stat-label">성수동 CAGR<br>(%)</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Section -->
+    <section id="market">
+        <div class="container">
+            <span class="badge fade-in">Market Opportunity</span>
+            <h2 class="section-title fade-in">글로벌 리테일 미디어 시장을<br>선도합니다</h2>
+            
+            <div class="market-content">
+                <div class="market-text fade-in">
+                    온라인 커머스 시대에도<br>
+                    시장의 80%는<br>
+                    오프라인입니다.<br><br>
+                    <span style="font-size: 0.65em; opacity: 0.85; font-weight: 500;">프로젝트렌트는 성수동 리테일미디어의<br>프론티어로 시장을 만들어왔습니다.</span>
+                </div>
+                <div class="market-stats">
+                    <div class="market-stat fade-in">
+                        <div class="market-stat-number">$7,090억</div>
+                        <div class="market-stat-label">글로벌 리테일 미디어</div>
+                    </div>
+                    <div class="market-stat fade-in">
+                        <div class="market-stat-number">22조원</div>
+                        <div class="market-stat-label">국내 상업용 부동산</div>
+                    </div>
+                    <div class="market-stat fade-in">
+                        <div class="market-stat-number">259조원</div>
+                        <div class="market-stat-label">온/오프라인 유통 시장</div>
+                    </div>
+                    <div class="market-stat fade-in">
+                        <div class="market-stat-number">4.3조원</div>
+                        <div class="market-stat-label">OOH 광고 시장</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services">
+        <div class="container">
+            <span class="badge fade-in">Service Scope</span>
+            <h2 class="section-title fade-in">프로젝트 렌트의<br>7가지 핵심 서비스</h2>
+            
+            <div class="services-grid">
+                <!-- 서비스 01 -->
+                <div class="service-item fade-in">
+                    <div class="service-header">
+                        <span class="service-number">서비스 01</span>
+                        <h3 class="service-title">브랜드 전략 & 콘텐츠 컨설팅</h3>
+                    </div>
+                    <div class="service-features">
+                        <div class="service-feature">
+                            <div class="service-icon">🎯</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">브랜드 메시지 에디팅</div>
+                                <div class="service-feature-desc">수많은 이야기 중 단 하나의 핵심 메시지 추출</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">☕</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">F&B 및 매장 셋업 컨설팅</div>
+                                <div class="service-feature-desc">카페·다이닝 전문가 협업, 차별화된 메뉴 개발</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">📍</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">지역 맥락 설계</div>
+                                <div class="service-feature-desc">지역 최적화 커뮤니케이션 톤앤매너 시스템 구축</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 서비스 02 -->
+                <div class="service-item fade-in">
+                    <div class="service-header">
+                        <span class="service-number">서비스 02</span>
+                        <h3 class="service-title">RaaS (Retail as a Service)</h3>
+                    </div>
+                    <div class="service-features">
+                        <div class="service-feature">
+                            <div class="service-icon">🏪</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">팝업스토어 풀-필먼트</div>
+                                <div class="service-feature-desc">공간 서칭 → 기획 → 디자인 → 시공 → 인력채용 → 운영</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">📦</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">모듈화된 서비스 패키지</div>
+                                <div class="service-feature-desc">목적/예산별 선택 조합 가능</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">📋</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">행정 및 인허가 지원</div>
+                                <div class="service-feature-desc">법적 이슈 통합 관리 · 주당 600~1,500만원</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 서비스 03 -->
+                <div class="service-item fade-in">
+                    <div class="service-header">
+                        <span class="service-number">서비스 03</span>
+                        <h3 class="service-title">MaaS (Marketing as a Service)</h3>
+                    </div>
+                    <div class="service-features">
+                        <div class="service-feature">
+                            <div class="service-icon">🔄</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">OMO 마이크로 미디어믹스</div>
+                                <div class="service-feature-desc">온/오프라인 결합 고퍼포먼스 설계</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">🎬</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">경험의 콘텐츠화</div>
+                                <div class="service-feature-desc">스케치 영상, 인터뷰, 숏폼 제작 확산</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">🎯</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">데이터 기반 정밀 타겟팅</div>
+                                <div class="service-feature-desc">CRM 마케팅</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 서비스 04 -->
+                <div class="service-item fade-in">
+                    <div class="service-header">
+                        <span class="service-number">서비스 04</span>
+                        <h3 class="service-title">RXR (Retail Tech)</h3>
+                    </div>
+                    <div class="service-features">
+                        <div class="service-feature">
+                            <div class="service-icon">🤖</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">AI 고객 행동 분석</div>
+                                <div class="service-feature-desc">정확도 99% 센서, 방문자/체류시간/히트맵 측정</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">📊</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">마케팅 성과 수치화</div>
+                                <div class="service-feature-desc">ROI 증명, 브랜드 인식 변화 측정</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">🧠</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">딥러닝 비디오 분석 · 특허 보유</div>
+                                <div class="service-feature-desc">제10-2545502호 옴니채널 마케팅 분석 솔루션</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 서비스 05 -->
+                <div class="service-item fade-in">
+                    <div class="service-header">
+                        <span class="service-number">서비스 05</span>
+                        <h3 class="service-title">Retail Terraforming & Development</h3>
+                    </div>
+                    <div class="service-features">
+                        <div class="service-feature">
+                            <div class="service-icon">🌍</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">리테일 테라포밍</div>
+                                <div class="service-feature-desc">콘텐츠 주입을 통한 상권 활성화, 유동인구 창출</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">📈</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">부동산 밸류업</div>
+                                <div class="service-feature-desc">공실/노후 건물 → 콘텐츠 기반 공간, 자산 가치 상승</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">🤝</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">위탁 운영 수익쉐어</div>
+                                <div class="service-feature-desc">건물주와 리스크 분담 파트너십</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 서비스 06 -->
+                <div class="service-item fade-in">
+                    <div class="service-header">
+                        <span class="service-number">서비스 06</span>
+                        <h3 class="service-title">리테일 공간 디자인 개발</h3>
+                    </div>
+                    <div class="service-features">
+                        <div class="service-feature">
+                            <div class="service-icon">✨</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">브랜드 정체성 공간 디자인</div>
+                                <div class="service-feature-desc">브랜드 DNA를 공간 언어로 번역하는 전략적 인테리어</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">🏗️</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">팝업·상설 디자인 풀서비스</div>
+                                <div class="service-feature-desc">콘셉트 개발부터 시공 감리까지 원스톱 솔루션</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">🎨</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">VMD & 모듈형 시스템</div>
+                                <div class="service-feature-desc">구매 전환율 극대화 진열 설계, 비용 효율 모듈</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 서비스 07 -->
+                <div class="service-item fade-in">
+                    <div class="service-header">
+                        <span class="service-number">서비스 07</span>
+                        <h3 class="service-title">공간 콘텐츠 기획 컨설팅</h3>
+                    </div>
+                    <div class="service-features">
+                        <div class="service-feature">
+                            <div class="service-icon">📅</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">오프라인 콘텐츠 전략 수립</div>
+                                <div class="service-feature-desc">공간을 미디어로 활용하는 콘텐츠 캘린더 및 운영 전략</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">🎪</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">체험형 콘텐츠 프로그래밍</div>
+                                <div class="service-feature-desc">방문객 체류 시간과 재방문율을 높이는 참여형 콘텐츠</div>
+                            </div>
+                        </div>
+                        <div class="service-feature">
+                            <div class="service-icon">📱</div>
+                            <div class="service-feature-content">
+                                <div class="service-feature-title">브랜드 스토리텔링 & 온/오프 연동</div>
+                                <div class="service-feature-desc">공간 내 세계관 구현 및 SNS 바이럴 확산 전략</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Section -->
+    <section id="performance">
+        <div class="container fade-in">
+            <div class="performance-content">
+                <div class="performance-label" id="performanceLabel">Marketing Effect</div>
+                <div class="performance-number" id="performanceNumber">0%</div>
+                <p class="performance-text" id="performanceText">롯데웰푸드 가나초콜릿하우스 팝업 실측 데이터 기준</p>
+            </div>
+            <div class="performance-indicators">
+                <span class="indicator active" data-index="0"></span>
+                <span class="indicator" data-index="1"></span>
+                <span class="indicator" data-index="2"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Archive Section -->
+    <section id="archive">
+        <div class="container">
+            <span class="badge fade-in">Case Studies</span>
+            <h2 class="section-title fade-in">300+의 성공 프로젝트</h2>
+            
+            <div class="archive-filters fade-in">
+                <button class="filter-btn active" data-filter="all">전체</button>
+                <button class="filter-btn" data-filter="beauty">뷰티</button>
+                <button class="filter-btn" data-filter="fnb">F&B</button>
+                <button class="filter-btn" data-filter="entertainment">엔터테인먼트</button>
+                <button class="filter-btn" data-filter="lifestyle">라이프스타일</button>
+                <button class="filter-btn" data-filter="automotive">자동차</button>
+            </div>
+
+            <div class="archive-grid">
+                <div class="archive-card fade-in" data-category="fnb">
+                    <div class="archive-card-slider" data-slider="gana">
+                        <div class="slider-track">
+                            <img src="https://www.genspark.ai/api/files/s/UPOC5uXe" class="slider-image" alt="가나초콜릿하우스 바 카운터">
+                            <img src="https://www.genspark.ai/api/files/s/odZAhjFU" class="slider-image" alt="가나초콜릿하우스 레드 카운터">
+                            <img src="https://www.genspark.ai/api/files/s/jJZZRfxV" class="slider-image" alt="가나초콜릿하우스 샹들리에 공간">
+                            <img src="https://www.genspark.ai/api/files/s/1xcmd4vE" class="slider-image" alt="가나초콜릿하우스 플레임 디저트">
+                            <img src="https://www.genspark.ai/api/files/s/4fc2Ab8Y" class="slider-image" alt="가나초콜릿하우스 카페 공간">
+                            <img src="https://www.genspark.ai/api/files/s/w43vZsQV" class="slider-image" alt="가나초콜릿하우스 메인 홀">
+                            <img src="https://www.genspark.ai/api/files/s/dpXYVHib" class="slider-image" alt="가나초콜릿하우스 내부 전경">
+                        </div>
+                        <div class="slider-dots">
+                            <span class="slider-dot active"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                        </div>
+                    </div>
+                    <div class="archive-card-content">
+                        <div class="archive-card-category">F&B</div>
+                        <h3 class="archive-card-title">가나초콜릿하우스</h3>
+                        <p class="archive-card-desc">CPM 98% 절감 · 효과 4,539% 증가</p>
+                    </div>
+                </div>
+
+                <div class="archive-card fade-in" data-category="entertainment">
+                    <div class="archive-card-slider" data-slider="pachinko">
+                        <div class="slider-track">
+                            <img src="https://www.genspark.ai/api/files/s/IKqlfTWw" class="slider-image" alt="파친코 외관 야경">
+                            <img src="https://www.genspark.ai/api/files/s/AfMtdMuR" class="slider-image" alt="파친코 파칭코 내부">
+                            <img src="https://www.genspark.ai/api/files/s/XGy5Bm2n" class="slider-image" alt="파친코 파칭코 월">
+                            <img src="https://www.genspark.ai/api/files/s/jvxFy2RV" class="slider-image" alt="파친코 전시 공간">
+                            <img src="https://www.genspark.ai/api/files/s/wDT2TXqC" class="slider-image" alt="파친코 굿즈 진열">
+                        </div>
+                        <div class="slider-dots">
+                            <span class="slider-dot active"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                        </div>
+                    </div>
+                    <div class="archive-card-content">
+                        <div class="archive-card-category">엔터테인먼트</div>
+                        <h3 class="archive-card-title">Apple TV+ 파친코 시즌2</h3>
+                        <p class="archive-card-desc">구독 희망률 72.1%</p>
+                    </div>
+                </div>
+
+                <div class="archive-card fade-in" data-category="automotive">
+                    <div class="archive-card-slider" data-slider="ioniq">
+                        <div class="slider-track">
+                            <img src="https://www.genspark.ai/api/files/s/FzXcXkXT" class="slider-image" alt="IONIQ Studio I 외관 주간">
+                            <img src="https://www.genspark.ai/api/files/s/IGkEaVXy" class="slider-image" alt="IONIQ Studio I 야간">
+                            <img src="https://www.genspark.ai/api/files/s/PXM12vQL" class="slider-image" alt="IONIQ Studio I 거리뷰">
+                            <img src="https://www.genspark.ai/api/files/s/QmfOhc0j" class="slider-image" alt="IONIQ 지속가능 라이프스타일">
+                            <img src="https://www.genspark.ai/api/files/s/eUEfDHwM" class="slider-image" alt="IONIQ Studio I 내부">
+                        </div>
+                        <div class="slider-dots">
+                            <span class="slider-dot active"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                        </div>
+                    </div>
+                    <div class="archive-card-content">
+                        <div class="archive-card-category">자동차</div>
+                        <h3 class="archive-card-title">현대자동차 IONIQ 5</h3>
+                        <p class="archive-card-desc">Studio I 친환경 캠페인</p>
+                    </div>
+                </div>
+
+                <div class="archive-card fade-in" data-category="fnb">
+                    <div class="archive-card-slider" data-slider="oat">
+                        <div class="slider-track">
+                            <img src="https://www.genspark.ai/api/files/s/IEtZ1lcY" class="slider-image" alt="어메이징오트 디저트">
+                            <img src="https://www.genspark.ai/api/files/s/QOKU0KKU" class="slider-image" alt="어메이징오트 공간 전경">
+                            <img src="https://www.genspark.ai/api/files/s/SNEtKy4H" class="slider-image" alt="어메이징오트 인테리어">
+                            <img src="https://www.genspark.ai/api/files/s/JJKJIhL2" class="slider-image" alt="어메이징오트 좌석">
+                            <img src="https://www.genspark.ai/api/files/s/2FwAsld2" class="slider-image" alt="어메이징오트 브랜딩">
+                        </div>
+                        <div class="slider-dots">
+                            <span class="slider-dot active"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                        </div>
+                    </div>
+                    <div class="archive-card-content">
+                        <div class="archive-card-category">F&B</div>
+                        <h3 class="archive-card-title">매일유업 어메이징오트</h3>
+                        <p class="archive-card-desc">브랜드 인지도 상승</p>
+                    </div>
+                </div>
+
+                <div class="archive-card fade-in" data-category="beauty">
+                    <div class="archive-card-slider" data-slider="beyond">
+                        <div class="slider-track">
+                            <img src="https://www.genspark.ai/api/files/s/9pjbMRYn" class="slider-image" alt="비욘드 외관">
+                            <img src="https://www.genspark.ai/api/files/s/FJ66lLJr" class="slider-image" alt="비욘드 플라스틱 메시지">
+                            <img src="https://www.genspark.ai/api/files/s/YHloziec" class="slider-image" alt="비욘드 매장 내부">
+                            <img src="https://www.genspark.ai/api/files/s/ZfBXu9Ku" class="slider-image" alt="비욘드 자판기">
+                            <img src="https://www.genspark.ai/api/files/s/uDJHd92d" class="slider-image" alt="비욘드 거리 자판기">
+                        </div>
+                        <div class="slider-dots">
+                            <span class="slider-dot active"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                        </div>
+                    </div>
+                    <div class="archive-card-content">
+                        <div class="archive-card-category">뷰티</div>
+                        <h3 class="archive-card-title">LG생활건강 비욘드</h3>
+                        <p class="archive-card-desc">라이프스타일 경험 공간</p>
+                    </div>
+                </div>
+
+                <div class="archive-card fade-in" data-category="lifestyle">
+                    <div class="archive-card-slider" data-slider="lotis">
+                        <div class="slider-track">
+                            <img src="https://www.genspark.ai/api/files/s/QblAsNUX" class="slider-image" alt="로티스아파트먼트 쇼핑백">
+                            <img src="https://www.genspark.ai/api/files/s/PGczaz86" class="slider-image" alt="로티스 일회용카메라 굿즈">
+                            <img src="https://www.genspark.ai/api/files/s/uPNcnw33" class="slider-image" alt="로티스아파트먼트 외관">
+                            <img src="https://www.genspark.ai/api/files/s/l4ihkvSw" class="slider-image" alt="로티스 굿즈 박스">
+                            <img src="https://www.genspark.ai/api/files/s/8fyKFPGc" class="slider-image" alt="로티스 매장 입구">
+                            <img src="https://www.genspark.ai/api/files/s/0rbKQlc1" class="slider-image" alt="로티스 외관 야경">
+                        </div>
+                        <div class="slider-dots">
+                            <span class="slider-dot active"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                        </div>
+                    </div>
+                    <div class="archive-card-content">
+                        <div class="archive-card-category">라이프스타일</div>
+                        <h3 class="archive-card-title">롯데월드 로티스아파트먼트</h3>
+                        <p class="archive-card-desc">캐릭터 IP 팝업</p>
+                    </div>
+                </div>
+
+                <div class="archive-card fade-in" data-category="lifestyle">
+                    <div class="archive-card-slider" data-slider="samsung">
+                        <div class="slider-track">
+                            <img src="https://www.genspark.ai/api/files/s/0jIC9SDG" class="slider-image" alt="삼성 BASKET 외관">
+                            <img src="https://www.genspark.ai/api/files/s/83oZAmJb" class="slider-image" alt="삼성 BASKET 쇼핑">
+                            <img src="https://www.genspark.ai/api/files/s/8CEPPvAx" class="slider-image" alt="삼성 BASKET 사이니지">
+                            <img src="https://www.genspark.ai/api/files/s/KrO1ronu" class="slider-image" alt="삼성 BASKET 내부">
+                        </div>
+                        <div class="slider-dots">
+                            <span class="slider-dot active"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                            <span class="slider-dot"></span>
+                        </div>
+                    </div>
+                    <div class="archive-card-content">
+                        <div class="archive-card-category">라이프스타일</div>
+                        <h3 class="archive-card-title">삼성전자 X Basket Store</h3>
+                        <p class="archive-card-desc">라이프그로서리</p>
+                    </div>
+                </div>
+
+                <a href="https://rentofficial1.cafe24.com/archive/index/" target="_blank" class="archive-card archive-card-link fade-in" data-category="all">
+                    <div class="archive-card-more">
+                        <div class="more-icon">+</div>
+                        <h3 class="more-title">More Projects</h3>
+                        <p class="more-desc">더 많은 프로젝트 보기 →</p>
+                    </div>
+                </a>
+
+
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+        <div class="container">
+            <span class="badge fade-in">About Us</span>
+            <h2 class="section-title fade-in">2018년부터 리테일의<br>미래를 만들어왔습니다</h2>
+            
+            <div class="about-content">
+                <div class="timeline fade-in">
+                    <div class="timeline-item">
+                        <div class="timeline-year">2018</div>
+                        <div class="timeline-desc">프로젝트렌트 1호점 오픈</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2022</div>
+                        <div class="timeline-desc">가나초콜릿하우스 팝업 성공</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2023</div>
+                        <div class="timeline-desc">RaaS 서비스 개발 (오프라인 풀필먼트 서비스 시작)</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2024</div>
+                        <div class="timeline-desc">BASKET 매장 개발 및 Apple TV+ 팝업</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2025</div>
+                        <div class="timeline-desc">MaaS(마케팅) 서비스 개발, 공공팝업 (R X 성동구청), RXR 리서치 팝업스토어 개발</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2026</div>
+                        <div class="timeline-desc">리테일 미디어 서비스 플랫폼 런칭</div>
+                    </div>
+                </div>
+
+                <div class="about-story fade-in">
+                    <div class="story-section">
+                        <h3 class="story-title">프로젝트 렌트의 시작</h3>
+                        <p class="story-text">
+                            2018년, 우리는 '공간은 단순히 임대하는 것이 아니라, 브랜드가 소비자와 만나는 미디어'라는 철학으로 시작했습니다. 
+                            첫 1호점부터 지금까지, 오프라인 공간을 통해 브랜드 스토리를 전달하고 소비자 경험을 만들어왔습니다.
+                        </p>
+                    </div>
+                    
+                    <div class="story-section">
+                        <h3 class="story-title">성수동 팝업 마케팅의 프론티어</h3>
+                        <p class="story-text">
+                            프로젝트 렌트는 성수동을 대한민국 팝업 문화의 중심지로 만든 선구자입니다. 
+                            낡은 공장 지대였던 성수동에 콘텐츠를 주입하고, 매력적인 브랜드 경험 공간을 조성하며 
+                            지역 전체를 '리테일 테라포밍'했습니다. 이제 성수동은 일평균 11,470명이 방문하는 
+                            국내 최고의 팝업 특구로 성장했습니다.
+                        </p>
+                    </div>
+                    
+                    <div class="story-section">
+                        <h3 class="story-title">오프라인 공간 개발 & 콘텐츠 기획</h3>
+                        <p class="story-text">
+                            우리는 공간을 '하드웨어'가 아닌 '소프트웨어(콘텐츠)'로 바라봅니다. 
+                            매장 설계부터 브랜드 메시지 에디팅, 체험형 콘텐츠 프로그래밍, VMD까지 
+                            모든 요소를 통합 설계합니다. 단순한 팝업스토어가 아닌, 방문객의 감정을 움직이고 
+                            브랜드 팬덤을 만드는 '오프라인 매거진'이자 '오프라인 OTT'를 만들어갑니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partners Section -->
+    <section id="partners">
+        <div class="container">
+            <span class="badge fade-in">Partners</span>
+            <h2 class="section-title fade-in">50개 이상의 글로벌 브랜드와<br>함께합니다</h2>
+            <div class="partners-slider">
+                <div class="partners-track">
+                    <span class="partner-item">현대자동차</span>
+                    <span class="partner-item">LG전자</span>
+                    <span class="partner-item">롯데웰푸드</span>
+                    <span class="partner-item">매일유업</span>
+                    <span class="partner-item">Apple TV+</span>
+                    <span class="partner-item">삼성전자</span>
+                    <span class="partner-item">LG생활건강</span>
+                    <span class="partner-item">스튜디오 지브리</span>
+                    <span class="partner-item">한국관광공사</span>
+                    <span class="partner-item">넷플릭스</span>
+                    <span class="partner-item">호요버스</span>
+                    <!-- 복제 -->
+                    <span class="partner-item">현대자동차</span>
+                    <span class="partner-item">LG전자</span>
+                    <span class="partner-item">롯데웰푸드</span>
+                    <span class="partner-item">매일유업</span>
+                    <span class="partner-item">Apple TV+</span>
+                    <span class="partner-item">삼성전자</span>
+                    <span class="partner-item">LG생활건강</span>
+                    <span class="partner-item">스튜디오 지브리</span>
+                    <span class="partner-item">한국관광공사</span>
+                    <span class="partner-item">넷플릭스</span>
+                    <span class="partner-item">호요버스</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="container">
+            <div class="contact-content">
+                <div class="contact-left fade-in">
+                    <h2>프로젝트 렌트와<br>함께하세요.</h2>
+                    <p>브랜드 팝업부터 리테일 테라포밍까지,<br>모든 오프라인 경험을 함께 만들겠습니다.</p>
+                </div>
+                
+                <div class="contact-form fade-in">
+                    <h3 class="form-title">문의하기</h3>
+                    
+                    <div class="inquiry-types">
+                        <button class="inquiry-btn active" data-type="brand">브랜드 팝업 기획</button>
+                        <button class="inquiry-btn" data-type="property">부동산 개발 협력</button>
+                        <button class="inquiry-btn" data-type="consulting">컨설팅 문의</button>
+                        <button class="inquiry-btn" data-type="space-design">리테일 공간 디자인</button>
+                        <button class="inquiry-btn" data-type="content-planning">공간 콘텐츠 기획</button>
+                        <button class="inquiry-btn" data-type="other">기타</button>
+                    </div>
+
+                    <form id="contactForm">
+                        <input type="hidden" name="문의유형" id="inquiryType" value="브랜드 팝업 기획">
+                        
+                        <div class="form-group">
+                            <label class="form-label">이름 *</label>
+                            <input type="text" name="이름" id="name" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">회사명</label>
+                            <input type="text" name="회사명" id="company" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">이메일 *</label>
+                            <input type="email" name="이메일" id="email" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">전화번호 *</label>
+                            <input type="tel" name="전화번호" id="phone" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">문의내용 *</label>
+                            <textarea name="문의내용" id="message" class="form-textarea" required></textarea>
+                        </div>
+
+                        <button type="submit" class="submit-btn">문의 보내기</button>
+                        <div id="formStatus" style="margin-top: 16px; padding: 12px; border-radius: 8px; display: none;"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Admin Section (Hidden) -->
+    <section id="admin" style="display: none; background: var(--bg); padding: 120px 48px;">
+        <div class="container">
+            <div id="adminLogin">
+                <div style="max-width: 500px; margin: 0 auto; text-align: center;">
+                    <h2 style="font-size: 36px; margin-bottom: 24px;">🔐 관리자 로그인</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 32px;">문의 내역을 확인하려면 비밀번호를 입력하세요</p>
+                    <input type="password" id="adminPassword" placeholder="비밀번호 입력" 
+                           style="width: 100%; padding: 16px; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); 
+                                  border-radius: 8px; color: var(--text); font-size: 16px; margin-bottom: 16px;">
+                    <button onclick="checkAdminPassword()" 
+                            style="width: 100%; padding: 16px; background: var(--accent); color: white; border: none; 
+                                   border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                        로그인
+                    </button>
+                    <p id="loginError" style="color: #ff3b30; margin-top: 16px; display: none;">비밀번호가 올바르지 않습니다</p>
+                </div>
+            </div>
+
+            <div id="adminPanel" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+                    <div>
+                        <h2 style="font-size: 48px; font-weight: 700; margin-bottom: 8px;">📬 문의 관리</h2>
+                        <p style="color: var(--text-muted);">홈페이지를 통해 접수된 문의 내역</p>
+                    </div>
+                    <button onclick="logoutAdmin()" 
+                            style="padding: 12px 24px; background: var(--bg-card); color: var(--text); border: 1px solid rgba(255,255,255,0.1); 
+                                   border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        로그아웃
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px;">
+                    <div style="background: var(--bg-card); padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">전체 문의</div>
+                        <div id="adminTotalCount" style="font-size: 32px; font-weight: 700; color: var(--accent);">0</div>
+                    </div>
+                    <div style="background: var(--bg-card); padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">오늘 문의</div>
+                        <div id="adminTodayCount" style="font-size: 32px; font-weight: 700; color: var(--accent);">0</div>
+                    </div>
+                    <div style="background: var(--bg-card); padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">이번 주</div>
+                        <div id="adminWeekCount" style="font-size: 32px; font-weight: 700; color: var(--accent);">0</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;" id="adminFilters">
+                    <button class="admin-filter-btn active" data-filter="all">전체</button>
+                    <button class="admin-filter-btn" data-filter="브랜드 팝업 기획">브랜드 팝업</button>
+                    <button class="admin-filter-btn" data-filter="부동산 개발 협력">부동산 협력</button>
+                    <button class="admin-filter-btn" data-filter="컨설팅 문의">컨설팅</button>
+                    <button class="admin-filter-btn" data-filter="리테일 공간 디자인">공간 디자인</button>
+                    <button class="admin-filter-btn" data-filter="공간 콘텐츠 기획">콘텐츠 기획</button>
+                    <button class="admin-filter-btn" data-filter="기타">기타</button>
+                </div>
+
+                <div id="adminInquiryList"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div>
+                <div class="footer-brand">PROJECT RENT.</div>
+                <div class="footer-address">
+                    서울 성동구 성수동<br>
+                    프로젝트 렌트 주식회사
+                </div>
+            </div>
+            <div class="footer-links">
+                <a href="#about">About</a>
+                <a href="#services">Services</a>
+                <a href="#archive">Archive</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <div class="footer-links">
+                <a href="#">Instagram</a>
+                <a href="#">LinkedIn</a>
+                <a href="#">YouTube</a>
+                <a href="#" onclick="showAdminPanel(); return false;" style="opacity: 0.3;">Admin</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2025 Project Rent Inc. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        // 네비게이션 스크롤 효과
+        const nav = document.getElementById('nav');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // 햄버거 메뉴
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+        });
+
+        // 모바일 메뉴 링크 클릭시 닫기
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+            });
+        });
+
+        // 스크롤 페이드인 애니메이션
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // 숫자 카운터 애니메이션
+        const countNumbers = () => {
+            const counters = document.querySelectorAll('.stat-number');
+            
+            counters.forEach(counter => {
+                const target = parseFloat(counter.getAttribute('data-target'));
+                const duration = 2000;
+                const increment = target / (duration / 16);
+                let current = 0;
+                
+                const updateCounter = () => {
+                    current += increment;
+                    if (current < target) {
+                        counter.textContent = Math.floor(current);
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.textContent = target % 1 === 0 ? target : target.toFixed(1);
+                        if (target >= 100) {
+                            counter.textContent += '+';
+                        } else {
+                            counter.textContent += '%';
+                        }
+                    }
+                };
+                
+                const statsObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            updateCounter();
+                            statsObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.5 });
+                
+                statsObserver.observe(counter.closest('.stat-card'));
+            });
+        };
+
+        countNumbers();
+
+        // 포트폴리오 필터링
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const archiveCards = document.querySelectorAll('.archive-card');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 활성 버튼 변경
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filter = btn.getAttribute('data-filter');
+
+                // 카드 필터링
+                archiveCards.forEach(card => {
+                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                        card.style.display = 'block';
+                        setTimeout(() => {
+                            card.style.opacity = '1';
+                            card.style.transform = 'translateY(0)';
+                        }, 10);
+                    } else {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(20px)';
+                        setTimeout(() => {
+                            card.style.display = 'none';
+                        }, 300);
+                    }
+                });
+            });
+        });
+
+        // 문의 유형 선택
+        const inquiryBtns = document.querySelectorAll('.inquiry-btn');
+        const inquiryTypeInput = document.getElementById('inquiryType');
+        
+        // 문의 유형 매핑
+        const typeLabels = {
+            'brand': '브랜드 팝업 기획',
+            'property': '부동산 개발 협력',
+            'consulting': '컨설팅 문의',
+            'space-design': '리테일 공간 디자인',
+            'content-planning': '공간 콘텐츠 기획',
+            'other': '기타'
+        };
+
+        inquiryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                inquiryBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const typeKey = btn.getAttribute('data-type');
+                inquiryTypeInput.value = typeLabels[typeKey] || typeKey;
+            });
+        });
+
+        // 폼 제출 처리 - Table API 사용
+        const contactForm = document.getElementById('contactForm');
+        const formStatus = document.getElementById('formStatus');
+        
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = contactForm.querySelector('.submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '전송 중...';
+            
+            // 폼 데이터 수집
+            const formData = new FormData(contactForm);
+            const data = {
+                inquiry_type: document.getElementById('inquiryType').value,
+                name: formData.get('이름'),
+                company: formData.get('회사명') || '-',
+                email: formData.get('이메일'),
+                phone: formData.get('전화번호'),
+                message: formData.get('문의내용'),
+                submitted_at: new Date().toISOString()
+            };
+            
+            console.log('📤 문의 제출 데이터:', data);
+            
+            try {
+                // Table API로 데이터 저장
+                const response = await fetch('/tables/inquiries', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                console.log('📥 서버 응답 상태:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ 저장 성공:', result);
+                    
+                    formStatus.style.display = 'block';
+                    formStatus.style.background = 'rgba(108, 99, 255, 0.1)';
+                    formStatus.style.color = 'var(--accent)';
+                    formStatus.style.border = '1px solid var(--accent)';
+                    formStatus.textContent = '✓ 문의가 성공적으로 접수되었습니다. 빠른 시일 내에 답변드리겠습니다!';
+                    contactForm.reset();
+                    
+                    // 이메일로도 알림 전송 (선택적)
+                    sendEmailNotification(data);
+                } else {
+                    const errorText = await response.text();
+                    console.error('❌ 저장 실패:', response.status, errorText);
+                    throw new Error(`저장 실패: ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('❌ 전송 오류:', error);
+                formStatus.style.display = 'block';
+                formStatus.style.background = 'rgba(255, 59, 48, 0.1)';
+                formStatus.style.color = '#ff3b30';
+                formStatus.style.border = '1px solid #ff3b30';
+                formStatus.textContent = `✗ 전송 중 오류가 발생했습니다. (${error.message}) projectrent43@gmail.com으로 직접 연락 부탁드립니다.`;
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = '문의 보내기';
+            
+            // 5초 후 메시지 자동 숨김
+            setTimeout(() => {
+                formStatus.style.display = 'none';
+            }, 5000);
+        });
+        
+        // 이메일 알림 전송 (Mailto 링크 방식)
+        function sendEmailNotification(data) {
+            const subject = encodeURIComponent(`[PROJECT RENT] ${data.inquiry_type} 문의`);
+            const body = encodeURIComponent(`
+문의 유형: ${data.inquiry_type}
+이름: ${data.name}
+회사명: ${data.company}
+이메일: ${data.email}
+전화번호: ${data.phone}
+
+문의 내용:
+${data.message}
+
+제출 시간: ${new Date(data.submitted_at).toLocaleString('ko-KR')}
+            `);
+            
+            // 백그라운드에서 mailto 실행 (사용자에게 보이지 않음)
+            const mailtoLink = `mailto:projectrent43@gmail.com?subject=${subject}&body=${body}`;
+            console.log('이메일 알림:', mailtoLink);
+        }
+
+        // 이미지 슬라이더
+        const initSlider = (sliderElement) => {
+            const track = sliderElement.querySelector('.slider-track');
+            const dots = sliderElement.querySelectorAll('.slider-dot');
+            const images = sliderElement.querySelectorAll('.slider-image');
+            let currentIndex = 0;
+            let intervalId;
+
+            const updateSlider = (index) => {
+                track.style.transform = `translateX(-${index * 100}%)`;
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+                currentIndex = index;
+            };
+
+            const nextSlide = () => {
+                const nextIndex = (currentIndex + 1) % images.length;
+                updateSlider(nextIndex);
+            };
+
+            // 자동 슬라이드
+            const startAutoSlide = () => {
+                intervalId = setInterval(nextSlide, 3000);
+            };
+
+            const stopAutoSlide = () => {
+                clearInterval(intervalId);
+            };
+
+            // 점 클릭 이벤트
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    stopAutoSlide();
+                    updateSlider(index);
+                    startAutoSlide();
+                });
+            });
+
+            // 마우스 호버 시 자동 슬라이드 멈춤
+            sliderElement.addEventListener('mouseenter', stopAutoSlide);
+            sliderElement.addEventListener('mouseleave', startAutoSlide);
+
+            startAutoSlide();
+        };
+
+        // 모든 슬라이더 초기화
+        document.querySelectorAll('.archive-card-slider').forEach(initSlider);
+
+        // ============================================
+        // Performance 섹션 카운팅 애니메이션
+        // ============================================
+        
+        const performanceData = [
+            {
+                labelKo: '마케팅 효과',
+                labelEn: 'Marketing Effect',
+                number: 4539,
+                suffix: '%',
+                textKo: '롯데웰푸드 가나초콜릿하우스 팝업 실측 데이터 기준',
+                textEn: 'Based on actual data from Lotte Wellfood Gana Chocolate House pop-up'
+            },
+            {
+                labelKo: '재방문 희망률',
+                labelEn: 'Return Visit Intent',
+                number: 99,
+                suffix: '%',
+                textKo: 'LG생활건강 비욘드 팝업 실측 데이터 기준',
+                textEn: 'Based on LG H&H Beyond pop-up actual data'
+            },
+            {
+                labelKo: '구독 희망률',
+                labelEn: 'Subscription Intent',
+                number: 88,
+                suffix: '%',
+                textKo: 'Apple TV+ 파친코 팝업 실측 데이터 기준',
+                textEn: 'Based on Apple TV+ Pachinko pop-up actual data'
+            }
+        ];
+        
+        let currentPerformanceIndex = 0;
+        let performanceInterval;
+        let isPerformanceAnimating = false;
+        
+        function animateCounter(element, from, to, duration, suffix = '') {
+            const start = Date.now();
+            const range = to - from;
+            
+            function updateCounter() {
+                const now = Date.now();
+                const progress = Math.min((now - start) / duration, 1);
+                const easeOutQuad = progress * (2 - progress); // easing function
+                const current = Math.floor(from + range * easeOutQuad);
+                
+                element.textContent = current.toLocaleString() + suffix;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    element.textContent = to.toLocaleString() + suffix;
+                }
+            }
+            
+            updateCounter();
+        }
+        
+        function updatePerformanceContent(index, animate = true) {
+            if (isPerformanceAnimating && animate) return;
+            
+            const data = performanceData[index];
+            const lang = currentLang || 'ko';
+            const labelEl = document.getElementById('performanceLabel');
+            const numberEl = document.getElementById('performanceNumber');
+            const textEl = document.getElementById('performanceText');
+            
+            if (!labelEl || !numberEl || !textEl) return;
+            
+            isPerformanceAnimating = true;
+            
+            // 페이드 아웃
+            numberEl.style.opacity = '0';
+            textEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                // 내용 업데이트
+                labelEl.textContent = lang === 'ko' ? data.labelKo : data.labelEn;
+                textEl.textContent = lang === 'ko' ? data.textKo : data.textEn;
+                
+                // 페이드 인
+                numberEl.style.opacity = '1';
+                textEl.style.opacity = '1';
+                
+                // 카운팅 애니메이션
+                if (animate) {
+                    animateCounter(numberEl, 0, data.number, 1500, data.suffix);
+                } else {
+                    numberEl.textContent = data.number.toLocaleString() + data.suffix;
+                }
+                
+                setTimeout(() => {
+                    isPerformanceAnimating = false;
+                }, 300);
+            }, 300);
+            
+            // 인디케이터 업데이트
+            document.querySelectorAll('.indicator').forEach((ind, i) => {
+                ind.classList.toggle('active', i === index);
+            });
+            
+            currentPerformanceIndex = index;
+        }
+        
+        function startPerformanceRotation() {
+            // 초기 표시
+            updatePerformanceContent(0, true);
+            
+            // 5초마다 전환
+            performanceInterval = setInterval(() => {
+                const nextIndex = (currentPerformanceIndex + 1) % performanceData.length;
+                updatePerformanceContent(nextIndex, true);
+            }, 5000);
+        }
+        
+        function stopPerformanceRotation() {
+            if (performanceInterval) {
+                clearInterval(performanceInterval);
+            }
+        }
+        
+        // 인디케이터 클릭 이벤트
+        document.querySelectorAll('.indicator').forEach((indicator) => {
+            indicator.addEventListener('click', () => {
+                const index = parseInt(indicator.getAttribute('data-index'));
+                stopPerformanceRotation();
+                updatePerformanceContent(index, true);
+                
+                // 3초 후 자동 회전 재개
+                setTimeout(() => {
+                    startPerformanceRotation();
+                }, 3000);
+            });
+        });
+        
+        // Performance 섹션이 보이면 애니메이션 시작
+        const performanceObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    startPerformanceRotation();
+                } else {
+                    stopPerformanceRotation();
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        const performanceSection = document.getElementById('performance');
+        if (performanceSection) {
+            performanceObserver.observe(performanceSection);
+        }
+
+        // 부드러운 스크롤
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                
+                // 홈(#) 클릭 시 맨 위로 스크롤
+                if (href === '#') {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 다른 앵커는 해당 섹션으로 이동
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+
+        // ============================================
+        // 언어 전환 시스템
+        // ============================================
+        
+        let currentLang = localStorage.getItem('language') || 'ko';
+        
+        const translations = {
+            ko: {
+                // Hero
+                heroTitle: 'PROJECT RENT는<br>오프라인을 강력한 브랜드 미디어로<br>전환하는 리테일 플랫폼입니다.',
+                heroSubtitle: '팝업을 넘어선 리테일 미디어 플랫폼 | 리테일 테라포밍의 선도자',
+                scrollIndicator: 'SCROLL',
+                // Highlight
+                highlightTitle: '리테일 미디어 플랫폼이<br>무엇인가요?',
+                highlightText: '오프라인 공간을 단순 판매처가 아닌, 브랜드가 직접 소비자와 소통하는 퍼포먼스형 미디어 채널로 전환하는 새로운 리테일 패러다임입니다.',
+                // Stats
+                stat1Label: '팝업 프로젝트<br>성공 이력',
+                stat2Label: '2024년 연 매출<br>(억원)',
+                stat3Label: 'CPM 절감 효과<br>(%)',
+                stat4Label: '성수동 CAGR<br>(%)',
+                // Market
+                marketBadge: 'Market Opportunity',
+                marketTitle: '글로벌 리테일 미디어 시장을<br>선도합니다',
+                marketNote: '온라인 커머스 시대에도<br>시장의 80%는<br>오프라인입니다.<br><br><span style="font-size: 0.65em; opacity: 0.85; font-weight: 500;">프로젝트렌트는 성수동 리테일미디어의<br>프론티어로 시장을 만들어왔습니다.</span>',
+                market1Number: '$7,090억',
+                market1: '글로벌 리테일 미디어',
+                market2Number: '22조원',
+                market2: '국내 상업용 부동산',
+                market3Number: '259조원',
+                market3: '온/오프라인 유통 시장',
+                market4Number: '4.3조원',
+                market4: 'OOH 광고 시장',
+                // Services
+                servicesBadge: 'Service Scope',
+                servicesTitle: '프로젝트 렌트의<br>7가지 핵심 서비스',
+                service1Number: '서비스 01',
+                service1Title: '브랜드 전략 & 콘텐츠 컨설팅',
+                service1Feature1Title: '브랜드 메시지 에디팅',
+                service1Feature1Desc: '수많은 이야기 중 단 하나의 핵심 메시지 추출',
+                service1Feature2Title: 'F&B 및 매장 셋업 컨설팅',
+                service1Feature2Desc: '카페·다이닝 전문가 협업, 차별화된 메뉴 개발',
+                service1Feature3Title: '지역 맥락 설계',
+                service1Feature3Desc: '지역 최적화 커뮤니케이션 톤앤매너 시스템 구축',
+                service2Number: '서비스 02',
+                service2Title: 'RaaS (Retail as a Service)',
+                service2Feature1Title: '팝업스토어 풀-필먼트',
+                service2Feature1Desc: '공간 서칭 → 기획 → 디자인 → 시공 → 인력채용 → 운영',
+                service2Feature2Title: '모듈화된 서비스 패키지',
+                service2Feature2Desc: '목적/예산별 선택 조합 가능',
+                service2Feature3Title: '행정 및 인허가 지원',
+                service2Feature3Desc: '법적 이슈 통합 관리 · 주당 600~1,500만원',
+                service3Number: '서비스 03',
+                service3Title: 'MaaS (Marketing as a Service)',
+                service3Feature1Title: 'OMO 마이크로 미디어믹스',
+                service3Feature1Desc: '온/오프라인 결합 고퍼포먼스 설계',
+                service3Feature2Title: '경험의 콘텐츠화',
+                service3Feature2Desc: '스케치 영상, 인터뷰, 숏폼 제작 확산',
+                service3Feature3Title: '데이터 기반 정밀 타겟팅',
+                service3Feature3Desc: 'CRM 마케팅',
+                service4Number: '서비스 04',
+                service4Title: 'RXR (Retail Tech)',
+                service4Feature1Title: 'AI 고객 행동 분석',
+                service4Feature1Desc: '정확도 99% 센서, 방문자/체류시간/히트맵 측정',
+                service4Feature2Title: '마케팅 성과 수치화',
+                service4Feature2Desc: 'ROI 증명, 브랜드 인식 변화 측정',
+                service4Feature3Title: '딥러닝 비디오 분석 · 특허 보유',
+                service4Feature3Desc: '제10-2545502호 옴니채널 마케팅 분석 솔루션',
+                service5Number: '서비스 05',
+                service5Title: 'Retail Terraforming & Development',
+                service5Feature1Title: '리테일 테라포밍',
+                service5Feature1Desc: '콘텐츠 주입을 통한 상권 활성화, 유동인구 창출',
+                service5Feature2Title: '부동산 밸류업',
+                service5Feature2Desc: '공실/노후 건물 → 콘텐츠 기반 공간, 자산 가치 상승',
+                service5Feature3Title: '위탁 운영 수익쉐어',
+                service5Feature3Desc: '건물주와 리스크 분담 파트너십',
+                service6Number: '서비스 06',
+                service6Title: '리테일 공간 디자인 개발',
+                service6Feature1Title: '브랜드 정체성 공간 디자인',
+                service6Feature1Desc: '브랜드 DNA를 공간 언어로 번역하는 전략적 인테리어',
+                service6Feature2Title: '팝업·상설 디자인 풀서비스',
+                service6Feature2Desc: '콘셉트 개발부터 시공 감리까지 원스톱 솔루션',
+                service6Feature3Title: 'VMD & 모듈형 시스템',
+                service6Feature3Desc: '구매 전환율 극대화 진열 설계, 비용 효율 모듈',
+                service7Number: '서비스 07',
+                service7Title: '공간 콘텐츠 기획 컨설팅',
+                service7Feature1Title: '오프라인 콘텐츠 전략 수립',
+                service7Feature1Desc: '공간을 미디어로 활용하는 콘텐츠 캘린더 및 운영 전략',
+                service7Feature2Title: '체험형 콘텐츠 프로그래밍',
+                service7Feature2Desc: '방문객 체류 시간과 재방문율을 높이는 참여형 콘텐츠',
+                service7Feature3Title: '브랜드 스토리텔링 & 온/오프 연동',
+                service7Feature3Desc: '공간 내 세계관 구현 및 SNS 바이럴 확산 전략',
+                // Performance
+                performanceNumber: '4,539%',
+                performanceText: 'TV 광고 대비 마케팅 효과 4,539% 증가',
+                performanceNote: '롯데웰푸드 가나초콜릿하우스 팝업 실측 데이터 기준',
+                // Archive
+                archiveBadge: 'Case Studies',
+                archiveTitle: '300개 이상의 성공 스토리',
+                filterAll: '전체',
+                filterBeauty: '뷰티',
+                filterFnb: 'F&B',
+                filterEntertainment: '엔터테인먼트',
+                filterLifestyle: '라이프스타일',
+                filterAuto: '자동차',
+                moreProjects: 'More Projects',
+                moreProjectsDesc: '더 많은 프로젝트 보기 →',
+                // Archive Cards
+                archiveCard1Title: '가나초콜릿하우스',
+                archiveCard1: 'CPM 98% 절감 · 효과 4,539% 증가',
+                archiveCard2Title: 'Apple TV+ 파친코 시즌2',
+                archiveCard2: '구독 희망률 72.1%',
+                archiveCard3Title: '현대자동차 IONIQ 5',
+                archiveCard3: 'Studio I 친환경 캠페인',
+                archiveCard4Title: '매일유업 어메이징오트',
+                archiveCard4: '브랜드 인지도 상승',
+                archiveCard5Title: 'LG생활건강 비욘드',
+                archiveCard5: '라이프스타일 경험 공간',
+                archiveCard6Title: '롯데월드 로티스아파트먼트',
+                archiveCard6: '캐릭터 IP 팝업',
+                archiveCard7Title: '삼성전자 X Basket Store',
+                archiveCard7: '라이프그로서리',
+                categoryFnb: 'F&B',
+                categoryEntertainment: '엔터테인먼트',
+                categoryAuto: '자동차',
+                categoryBeauty: '뷰티',
+                categoryLifestyle: '라이프스타일',
+                // About
+                aboutBadge: 'About Us',
+                aboutTitle: '2018년부터<br>리테일의 미래를 만들어왔습니다',
+                aboutStory1Title: '프로젝트 렌트의 시작',
+                aboutStory1Text: '2018년, 우리는 \'공간은 단순히 임대하는 것이 아니라, 브랜드가 소비자와 만나는 미디어\'라는 철학으로 시작했습니다. 첫 1호점부터 지금까지, 오프라인 공간을 통해 브랜드 스토리를 전달하고 소비자 경험을 만들어왔습니다.',
+                aboutStory2Title: '성수동 팝업 마케팅의 프론티어',
+                aboutStory2Text: '프로젝트 렌트는 성수동을 대한민국 팝업 문화의 중심지로 만든 선구자입니다. 낡은 공장 지대였던 성수동에 콘텐츠를 주입하고, 매력적인 브랜드 경험 공간을 조성하며 지역 전체를 \'리테일 테라포밍\'했습니다. 이제 성수동은 일평균 11,470명이 방문하는 국내 최고의 팝업 특구로 성장했습니다.',
+                aboutStory3Title: '오프라인 공간 개발 & 콘텐츠 기획',
+                aboutStory3Text: '우리는 공간을 \'하드웨어\'가 아닌 \'소프트웨어(콘텐츠)\'로 바라봅니다. 매장 설계부터 브랜드 메시지 에디팅, 체험형 콘텐츠 프로그래밍, VMD까지 모든 요소를 통합 설계합니다. 단순한 팝업스토어가 아닌, 방문객의 감정을 움직이고 브랜드 팬덤을 만드는 \'오프라인 매거진\'이자 \'오프라인 OTT\'를 만들어갑니다.',
+                timeline2018: '프로젝트렌트 1호점 오픈',
+                timeline2019: '성수동 팝업 특구 조성, BEP 달성',
+                timeline2022: '가나초콜릿하우스 팝업 성공',
+                timeline2023: 'RaaS 서비스 개발 (오프라인 풀필먼트 서비스 시작)',
+                timeline2024: 'BASKET 매장 개발 및 Apple TV+ 팝업',
+                timeline2025: 'MaaS(마케팅) 서비스 개발, 공공팝업 (R X 성동구청), RXR 리서치 팝업스토어 개발',
+                timeline2026: '리테일 미디어 서비스 플랫폼 런칭',
+                // Partners
+                partnersBadge: 'Partners',
+                partnersTitle: '50개 이상의 글로벌 브랜드와<br>함께합니다',
+                partners: ['현대자동차', 'LG전자', '롯데웰푸드', '매일유업', 'Apple TV+', '삼성전자', 'LG생활건강', '스튜디오 지브리', '한국관광공사', '넷플릭스', '호요버스'],
+                // Contact
+                contactTitle: '프로젝트 렌트와<br>함께하세요.',
+                contactDesc: '브랜드 팝업부터 리테일 테라포밍까지,<br>모든 오프라인 경험을 함께 만들겠습니다.',
+                contactFormTitle: '문의하기',
+                inquiryType1: '브랜드 팝업 기획',
+                inquiryType2: '부동산 개발 협력',
+                inquiryType3: '컨설팅 문의',
+                inquiryType4: '리테일 공간 디자인',
+                inquiryType5: '공간 콘텐츠 기획',
+                inquiryType6: '기타',
+                formName: '이름 *',
+                formCompany: '회사명',
+                formEmail: '이메일 *',
+                formPhone: '전화번호 *',
+                formMessage: '문의내용 *',
+                formSubmit: '문의 보내기',
+                // Footer
+                footerAddress: '서울 성동구 성수동<br>프로젝트 렌트 주식회사',
+                footerCopyright: '© 2025 Project Rent Inc. All rights reserved.'
+            },
+            en: {
+                // Hero
+                heroTitle: 'PROJECT RENT<br>Transforming Offline Spaces<br>into Powerful Brand Media',
+                heroSubtitle: 'Beyond Pop-ups: Retail Media Platform | Leader in Retail Terraforming',
+                scrollIndicator: 'SCROLL',
+                // Highlight
+                highlightTitle: 'What is a<br>Retail Media Platform?',
+                highlightText: 'A new retail paradigm that transforms offline spaces from mere sales points into performance-driven media channels where brands directly engage with consumers.',
+                // Stats
+                stat1Label: 'Successful<br>Pop-up Projects',
+                stat2Label: '2024 Annual Revenue<br>(₩100M)',
+                stat3Label: 'CPM Reduction<br>(%)',
+                stat4Label: 'Seongsu CAGR<br>(%)',
+                // Market
+                marketBadge: 'Market Opportunity',
+                marketTitle: 'Leading the Global<br>Retail Media Market',
+                marketNote: 'Even in the e-commerce era,<br>80% of the market<br>is offline.<br><br><span style="font-size: 0.65em; opacity: 0.85; font-weight: 500;">Project Rent has pioneered retail media in Seongsu-dong,<br>shaping the market from the ground up.</span>',
+                market1Number: '$709B',
+                market1: 'Global Retail Media',
+                market2Number: '₩22T',
+                market2: 'Domestic Commercial Real Estate',
+                market3Number: '₩259T',
+                market3: 'Total Domestic Retail',
+                market4Number: '₩4.3T',
+                market4: 'OOH Advertising',
+                // Services
+                servicesBadge: 'Service Scope',
+                servicesTitle: 'PROJECT RENT\'s<br>7 Core Services',
+                service1Number: 'Service 01',
+                service1Title: 'Brand Strategy & Content Consulting',
+                service1Feature1Title: 'Brand Message Editing',
+                service1Feature1Desc: 'Extract one core message from countless stories',
+                service1Feature2Title: 'F&B & Store Setup Consulting',
+                service1Feature2Desc: 'Collaborate with cafe/dining experts, develop differentiated menus',
+                service1Feature3Title: 'Regional Context Design',
+                service1Feature3Desc: 'Build region-optimized communication tone & manner system',
+                service2Number: 'Service 02',
+                service2Title: 'RaaS (Retail as a Service)',
+                service2Feature1Title: 'Pop-up Store Fulfillment',
+                service2Feature1Desc: 'Space search → Planning → Design → Construction → Hiring → Operations',
+                service2Feature2Title: 'Modular Service Packages',
+                service2Feature2Desc: 'Customizable by purpose/budget',
+                service2Feature3Title: 'Admin & Permit Support',
+                service2Feature3Desc: 'Integrated legal issue management · ₩6-15M/week',
+                service3Number: 'Service 03',
+                service3Title: 'MaaS (Marketing as a Service)',
+                service3Feature1Title: 'OMO Micro Media Mix',
+                service3Feature1Desc: 'High-performance design combining online/offline',
+                service3Feature2Title: 'Experience Content Creation',
+                service3Feature2Desc: 'Sketch videos, interviews, short-form production & distribution',
+                service3Feature3Title: 'Data-Driven Precision Targeting',
+                service3Feature3Desc: 'CRM Marketing',
+                service4Number: 'Service 04',
+                service4Title: 'RXR (Retail Tech)',
+                service4Feature1Title: 'AI Customer Behavior Analysis',
+                service4Feature1Desc: '99% accuracy sensors, visitor/dwell time/heatmap measurement',
+                service4Feature2Title: 'Marketing Performance Quantification',
+                service4Feature2Desc: 'Prove ROI, measure brand awareness changes',
+                service4Feature3Title: 'Deep Learning Video Analysis · Patent',
+                service4Feature3Desc: 'Patent No. 10-2545502 Omnichannel Marketing Analysis Solution',
+                service5Number: 'Service 05',
+                service5Title: 'Retail Terraforming & Development',
+                service5Feature1Title: 'Retail Terraforming',
+                service5Feature1Desc: 'Revitalize commercial districts through content injection, create foot traffic',
+                service5Feature2Title: 'Real Estate Value-Up',
+                service5Feature2Desc: 'Vacant/old buildings → content-based spaces, increase asset value',
+                service5Feature3Title: 'Consignment Operation Profit-Share',
+                service5Feature3Desc: 'Risk-sharing partnership with property owners',
+                service6Number: 'Service 06',
+                service6Title: 'Retail Space Design Development',
+                service6Feature1Title: 'Brand Identity Space Design',
+                service6Feature1Desc: 'Strategic interior translating brand DNA into spatial language',
+                service6Feature2Title: 'Pop-up · Permanent Design Full Service',
+                service6Feature2Desc: 'One-stop solution from concept development to construction supervision',
+                service6Feature3Title: 'VMD & Modular Systems',
+                service6Feature3Desc: 'Display design maximizing conversion rate, cost-efficient modules',
+                service7Number: 'Service 07',
+                service7Title: 'Space Content Planning Consulting',
+                service7Feature1Title: 'Offline Content Strategy Development',
+                service7Feature1Desc: 'Content calendar & operation strategy utilizing space as media',
+                service7Feature2Title: 'Experiential Content Programming',
+                service7Feature2Desc: 'Participatory content increasing visitor dwell time & return rate',
+                service7Feature3Title: 'Brand Storytelling & Online/Offline Integration',
+                service7Feature3Desc: 'Implement brand worldview in space & viral expansion strategy',
+                // Performance
+                performanceNumber: '4,539%',
+                performanceText: 'Marketing effectiveness increased by 4,539% vs TV advertising',
+                performanceNote: 'Based on actual data from Lotte Wellfood Gana Chocolate House pop-up',
+                // Archive
+                archiveBadge: 'Case Studies',
+                archiveTitle: 'Over 300 Success Stories',
+                filterAll: 'All',
+                filterBeauty: 'Beauty',
+                filterFnb: 'F&B',
+                filterEntertainment: 'Entertainment',
+                filterLifestyle: 'Lifestyle',
+                filterAuto: 'Automotive',
+                moreProjects: 'More Projects',
+                moreProjectsDesc: 'View more projects →',
+                // Archive Cards
+                archiveCard1Title: 'Gana Chocolate House',
+                archiveCard1: 'CPM reduced by 98% · Effectiveness increased by 4,539%',
+                archiveCard2Title: 'Apple TV+ Pachinko Season 2',
+                archiveCard2: 'Subscription intent 72.1%',
+                archiveCard3Title: 'Hyundai IONIQ 5',
+                archiveCard3: 'Studio I Eco Campaign',
+                archiveCard4Title: 'Maeil Dairies Amazing Oat',
+                archiveCard4: 'Brand awareness growth',
+                archiveCard5Title: 'LG H&H Beyond',
+                archiveCard5: 'Lifestyle experience space',
+                archiveCard6Title: 'Lotte World Rotis Apartment',
+                archiveCard6: 'Character IP pop-up',
+                archiveCard7Title: 'Samsung Electronics X Basket Store',
+                archiveCard7: 'Life Grocery',
+                categoryFnb: 'F&B',
+                categoryEntertainment: 'Entertainment',
+                categoryAuto: 'Automotive',
+                categoryBeauty: 'Beauty',
+                categoryLifestyle: 'Lifestyle',
+                // About
+                aboutBadge: 'About Us',
+                aboutTitle: 'Shaping the Future of Retail<br>Since 2018',
+                aboutStory1Title: 'The Beginning of PROJECT RENT',
+                aboutStory1Text: 'In 2018, we started with the philosophy that "spaces are not just for rent, but media where brands meet consumers." From our first store to now, we have been delivering brand stories and creating consumer experiences through offline spaces.',
+                aboutStory2Title: 'Pioneer of Seongsu-dong Pop-up Marketing',
+                aboutStory2Text: 'PROJECT RENT is the pioneer that made Seongsu-dong the center of Korean pop-up culture. We injected content into the old factory district of Seongsu-dong, created attractive brand experience spaces, and \'retail terraformed\' the entire area. Now Seongsu-dong has grown into Korea\'s top pop-up district with an average of 11,470 daily visitors.',
+                aboutStory3Title: 'Offline Space Development & Content Planning',
+                aboutStory3Text: 'We view spaces as \'software (content)\' rather than \'hardware.\' We integrate all elements from store design to brand message editing, experiential content programming, and VMD. We create not just simple pop-up stores, but \'offline magazines\' and \'offline OTT\' that move visitors\' emotions and build brand fandom.',
+                timeline2018: 'PROJECT RENT 1st Store Opening',
+                timeline2019: 'Seongsu-dong Pop-up District Established, BEP Achieved',
+                timeline2022: 'Gana Chocolate House Pop-up Success',
+                timeline2023: 'RaaS Service Launch (Offline Fulfillment Service)',
+                timeline2024: 'BASKET Store Development & Apple TV+ Pop-up',
+                timeline2025: 'MaaS (Marketing) Service Launch, Public Pop-up (R X Seongdong-gu Office), RXR Research Pop-up Store',
+                timeline2026: 'Retail Media Service Platform Launch',
+                // Partners
+                partnersBadge: 'Partners',
+                partnersTitle: 'Partnering with<br>50+ Global Brands',
+                partners: ['Hyundai Motor', 'LG Electronics', 'Lotte Wellfood', 'Maeil Dairies', 'Apple TV+', 'Samsung Electronics', 'LG H&H', 'Studio Ghibli', 'Korea Tourism Organization', 'Netflix', 'HoYoverse'],
+                // Contact
+                contactTitle: 'Work with<br>PROJECT RENT',
+                contactDesc: 'From brand pop-ups to retail terraforming,<br>we create all offline experiences together.',
+                contactFormTitle: 'Contact Us',
+                inquiryType1: 'Brand Pop-up Planning',
+                inquiryType2: 'Real Estate Partnership',
+                inquiryType3: 'Consulting',
+                inquiryType4: 'Retail Space Design',
+                inquiryType5: 'Space Content Planning',
+                inquiryType6: 'Others',
+                formName: 'Name *',
+                formCompany: 'Company',
+                formEmail: 'Email *',
+                formPhone: 'Phone *',
+                formMessage: 'Message *',
+                formSubmit: 'Send Inquiry',
+                // Footer
+                footerAddress: 'Seongsu-dong, Seongdong-gu, Seoul<br>Project Rent Inc.',
+                footerCopyright: '© 2025 Project Rent Inc. All rights reserved.'
+            }
+        };
+        
+        // 언어 전환 함수
+        function switchLanguage(lang) {
+            console.log('🌐 언어 전환 시작:', lang);
+            currentLang = lang;
+            localStorage.setItem('language', lang);
+            
+            // 언어 전환 버튼 업데이트
+            document.querySelectorAll('.lang-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.lang === lang);
+            });
+            
+            // data-ko, data-en 속성이 있는 요소들 업데이트
+            document.querySelectorAll('.lang-text').forEach(el => {
+                if (el.dataset[lang]) {
+                    el.textContent = el.dataset[lang];
+                }
+            });
+            
+            // 주요 텍스트 업데이트
+            const t = translations[lang];
+            console.log('📝 번역 객체:', lang, '- About Badge:', t.aboutBadge);
+            
+            // Hero
+            const heroTitle = document.querySelector('.hero-title');
+            const heroSubtitle = document.querySelector('.hero-subtitle');
+            const scrollIndicator = document.querySelector('.scroll-indicator');
+            if (heroTitle) heroTitle.innerHTML = t.heroTitle;
+            if (heroSubtitle) heroSubtitle.textContent = t.heroSubtitle;
+            if (scrollIndicator) scrollIndicator.textContent = t.scrollIndicator;
+            
+            // Highlight
+            const highlightTitle = document.querySelector('.highlight-title');
+            const highlightText = document.querySelector('.highlight-text');
+            if (highlightTitle) highlightTitle.innerHTML = t.highlightTitle;
+            if (highlightText) highlightText.textContent = t.highlightText;
+            
+            // Stats
+            const statLabels = document.querySelectorAll('.stat-label');
+            if (statLabels[0]) statLabels[0].innerHTML = t.stat1Label;
+            if (statLabels[1]) statLabels[1].innerHTML = t.stat2Label;
+            if (statLabels[2]) statLabels[2].innerHTML = t.stat3Label;
+            if (statLabels[3]) statLabels[3].innerHTML = t.stat4Label;
+            
+            // Market
+            const marketBadge = document.querySelector('#market .badge');
+            const marketTitle = document.querySelector('#market h2');
+            const marketNote = document.querySelector('.market-text');
+            const marketStatNumbers = document.querySelectorAll('.market-stat-number');
+            const marketStats = document.querySelectorAll('.market-stat-label');
+            if (marketBadge) marketBadge.textContent = t.marketBadge;
+            if (marketTitle) marketTitle.innerHTML = t.marketTitle;
+            if (marketNote) marketNote.innerHTML = t.marketNote;
+            if (marketStatNumbers[0]) marketStatNumbers[0].textContent = t.market1Number;
+            if (marketStats[0]) marketStats[0].textContent = t.market1;
+            if (marketStatNumbers[1]) marketStatNumbers[1].textContent = t.market2Number;
+            if (marketStats[1]) marketStats[1].textContent = t.market2;
+            if (marketStatNumbers[2]) marketStatNumbers[2].textContent = t.market3Number;
+            if (marketStats[2]) marketStats[2].textContent = t.market3;
+            if (marketStatNumbers[3]) marketStatNumbers[3].textContent = t.market4Number;
+            if (marketStats[3]) marketStats[3].textContent = t.market4;
+            
+            // Services
+            const servicesBadge = document.querySelector('#services .badge');
+            const servicesTitle = document.querySelector('#services .section-title');
+            if (servicesBadge) servicesBadge.textContent = t.servicesBadge;
+            if (servicesTitle) servicesTitle.innerHTML = t.servicesTitle;
+            
+            const serviceNumbers = document.querySelectorAll('.service-number');
+            const serviceTitles = document.querySelectorAll('.service-title');
+            const serviceFeatureTitles = document.querySelectorAll('.service-feature-title');
+            const serviceFeatureDescs = document.querySelectorAll('.service-feature-desc');
+            
+            if (serviceNumbers[0]) serviceNumbers[0].textContent = t.service1Number;
+            if (serviceTitles[0]) serviceTitles[0].textContent = t.service1Title;
+            if (serviceFeatureTitles[0]) serviceFeatureTitles[0].textContent = t.service1Feature1Title;
+            if (serviceFeatureDescs[0]) serviceFeatureDescs[0].textContent = t.service1Feature1Desc;
+            if (serviceFeatureTitles[1]) serviceFeatureTitles[1].textContent = t.service1Feature2Title;
+            if (serviceFeatureDescs[1]) serviceFeatureDescs[1].textContent = t.service1Feature2Desc;
+            if (serviceFeatureTitles[2]) serviceFeatureTitles[2].textContent = t.service1Feature3Title;
+            if (serviceFeatureDescs[2]) serviceFeatureDescs[2].textContent = t.service1Feature3Desc;
+            
+            if (serviceNumbers[1]) serviceNumbers[1].textContent = t.service2Number;
+            if (serviceTitles[1]) serviceTitles[1].textContent = t.service2Title;
+            if (serviceFeatureTitles[3]) serviceFeatureTitles[3].textContent = t.service2Feature1Title;
+            if (serviceFeatureDescs[3]) serviceFeatureDescs[3].textContent = t.service2Feature1Desc;
+            if (serviceFeatureTitles[4]) serviceFeatureTitles[4].textContent = t.service2Feature2Title;
+            if (serviceFeatureDescs[4]) serviceFeatureDescs[4].textContent = t.service2Feature2Desc;
+            if (serviceFeatureTitles[5]) serviceFeatureTitles[5].textContent = t.service2Feature3Title;
+            if (serviceFeatureDescs[5]) serviceFeatureDescs[5].textContent = t.service2Feature3Desc;
+            
+            if (serviceNumbers[2]) serviceNumbers[2].textContent = t.service3Number;
+            if (serviceTitles[2]) serviceTitles[2].textContent = t.service3Title;
+            if (serviceFeatureTitles[6]) serviceFeatureTitles[6].textContent = t.service3Feature1Title;
+            if (serviceFeatureDescs[6]) serviceFeatureDescs[6].textContent = t.service3Feature1Desc;
+            if (serviceFeatureTitles[7]) serviceFeatureTitles[7].textContent = t.service3Feature2Title;
+            if (serviceFeatureDescs[7]) serviceFeatureDescs[7].textContent = t.service3Feature2Desc;
+            if (serviceFeatureTitles[8]) serviceFeatureTitles[8].textContent = t.service3Feature3Title;
+            if (serviceFeatureDescs[8]) serviceFeatureDescs[8].textContent = t.service3Feature3Desc;
+            
+            if (serviceNumbers[3]) serviceNumbers[3].textContent = t.service4Number;
+            if (serviceTitles[3]) serviceTitles[3].textContent = t.service4Title;
+            if (serviceFeatureTitles[9]) serviceFeatureTitles[9].textContent = t.service4Feature1Title;
+            if (serviceFeatureDescs[9]) serviceFeatureDescs[9].textContent = t.service4Feature1Desc;
+            if (serviceFeatureTitles[10]) serviceFeatureTitles[10].textContent = t.service4Feature2Title;
+            if (serviceFeatureDescs[10]) serviceFeatureDescs[10].textContent = t.service4Feature2Desc;
+            if (serviceFeatureTitles[11]) serviceFeatureTitles[11].textContent = t.service4Feature3Title;
+            if (serviceFeatureDescs[11]) serviceFeatureDescs[11].textContent = t.service4Feature3Desc;
+            
+            if (serviceNumbers[4]) serviceNumbers[4].textContent = t.service5Number;
+            if (serviceTitles[4]) serviceTitles[4].textContent = t.service5Title;
+            if (serviceFeatureTitles[12]) serviceFeatureTitles[12].textContent = t.service5Feature1Title;
+            if (serviceFeatureDescs[12]) serviceFeatureDescs[12].textContent = t.service5Feature1Desc;
+            if (serviceFeatureTitles[13]) serviceFeatureTitles[13].textContent = t.service5Feature2Title;
+            if (serviceFeatureDescs[13]) serviceFeatureDescs[13].textContent = t.service5Feature2Desc;
+            if (serviceFeatureTitles[14]) serviceFeatureTitles[14].textContent = t.service5Feature3Title;
+            if (serviceFeatureDescs[14]) serviceFeatureDescs[14].textContent = t.service5Feature3Desc;
+            
+            if (serviceNumbers[5]) serviceNumbers[5].textContent = t.service6Number;
+            if (serviceTitles[5]) serviceTitles[5].textContent = t.service6Title;
+            if (serviceFeatureTitles[15]) serviceFeatureTitles[15].textContent = t.service6Feature1Title;
+            if (serviceFeatureDescs[15]) serviceFeatureDescs[15].textContent = t.service6Feature1Desc;
+            if (serviceFeatureTitles[16]) serviceFeatureTitles[16].textContent = t.service6Feature2Title;
+            if (serviceFeatureDescs[16]) serviceFeatureDescs[16].textContent = t.service6Feature2Desc;
+            if (serviceFeatureTitles[17]) serviceFeatureTitles[17].textContent = t.service6Feature3Title;
+            if (serviceFeatureDescs[17]) serviceFeatureDescs[17].textContent = t.service6Feature3Desc;
+            
+            if (serviceNumbers[6]) serviceNumbers[6].textContent = t.service7Number;
+            if (serviceTitles[6]) serviceTitles[6].textContent = t.service7Title;
+            if (serviceFeatureTitles[18]) serviceFeatureTitles[18].textContent = t.service7Feature1Title;
+            if (serviceFeatureDescs[18]) serviceFeatureDescs[18].textContent = t.service7Feature1Desc;
+            if (serviceFeatureTitles[19]) serviceFeatureTitles[19].textContent = t.service7Feature2Title;
+            if (serviceFeatureDescs[19]) serviceFeatureDescs[19].textContent = t.service7Feature2Desc;
+            if (serviceFeatureTitles[20]) serviceFeatureTitles[20].textContent = t.service7Feature3Title;
+            if (serviceFeatureDescs[20]) serviceFeatureDescs[20].textContent = t.service7Feature3Desc;
+            
+            // Performance
+            const performanceNumber = document.querySelector('.performance-number');
+            const performanceText = document.querySelector('.performance-text');
+            const performanceNote = document.querySelector('#performance p:last-child');
+            if (performanceNumber) performanceNumber.textContent = t.performanceNumber;
+            if (performanceText) performanceText.textContent = t.performanceText;
+            if (performanceNote) performanceNote.textContent = t.performanceNote;
+            
+            // Archive
+            const archiveBadge = document.querySelector('#archive .badge');
+            const archiveTitle = document.querySelector('#archive h2');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            if (archiveBadge) archiveBadge.textContent = t.archiveBadge;
+            if (archiveTitle) archiveTitle.textContent = t.archiveTitle;
+            if (filterBtns[0]) filterBtns[0].textContent = t.filterAll;
+            if (filterBtns[1]) filterBtns[1].textContent = t.filterBeauty;
+            if (filterBtns[2]) filterBtns[2].textContent = t.filterFnb;
+            if (filterBtns[3]) filterBtns[3].textContent = t.filterEntertainment;
+            if (filterBtns[4]) filterBtns[4].textContent = t.filterLifestyle;
+            if (filterBtns[5]) filterBtns[5].textContent = t.filterAuto;
+            
+            const moreTitle = document.querySelector('.more-title');
+            const moreDesc = document.querySelector('.more-desc');
+            if (moreTitle) moreTitle.textContent = t.moreProjects;
+            if (moreDesc) moreDesc.textContent = t.moreProjectsDesc;
+            
+            // Archive Cards
+            const archiveCardTitles = document.querySelectorAll('.archive-card-title');
+            if (archiveCardTitles[0]) archiveCardTitles[0].textContent = t.archiveCard1Title;
+            if (archiveCardTitles[1]) archiveCardTitles[1].textContent = t.archiveCard2Title;
+            if (archiveCardTitles[2]) archiveCardTitles[2].textContent = t.archiveCard3Title;
+            if (archiveCardTitles[3]) archiveCardTitles[3].textContent = t.archiveCard4Title;
+            if (archiveCardTitles[4]) archiveCardTitles[4].textContent = t.archiveCard5Title;
+            if (archiveCardTitles[5]) archiveCardTitles[5].textContent = t.archiveCard6Title;
+            if (archiveCardTitles[6]) archiveCardTitles[6].textContent = t.archiveCard7Title;
+            
+            const archiveCardDescs = document.querySelectorAll('.archive-card-desc');
+            if (archiveCardDescs[0]) archiveCardDescs[0].textContent = t.archiveCard1;
+            if (archiveCardDescs[1]) archiveCardDescs[1].textContent = t.archiveCard2;
+            if (archiveCardDescs[2]) archiveCardDescs[2].textContent = t.archiveCard3;
+            if (archiveCardDescs[3]) archiveCardDescs[3].textContent = t.archiveCard4;
+            if (archiveCardDescs[4]) archiveCardDescs[4].textContent = t.archiveCard5;
+            if (archiveCardDescs[5]) archiveCardDescs[5].textContent = t.archiveCard6;
+            if (archiveCardDescs[6]) archiveCardDescs[6].textContent = t.archiveCard7;
+            
+            // Archive Card Categories
+            const archiveCardCategories = document.querySelectorAll('.archive-card-category');
+            console.log('🏷️ Archive 카테고리 업데이트:', archiveCardCategories.length);
+            archiveCardCategories.forEach((cat, index) => {
+                const text = cat.textContent.trim();
+                // 한국어 또는 영어 텍스트와 비교
+                if (text === 'F&B') {
+                    cat.textContent = t.categoryFnb;
+                    console.log(`✅ 카테고리 ${index + 1}: F&B → ${t.categoryFnb}`);
+                } else if (text === '엔터테인먼트' || text === 'Entertainment') {
+                    cat.textContent = t.categoryEntertainment;
+                    console.log(`✅ 카테고리 ${index + 1}: ${text} → ${t.categoryEntertainment}`);
+                } else if (text === '자동차' || text === 'Automotive') {
+                    cat.textContent = t.categoryAuto;
+                    console.log(`✅ 카테고리 ${index + 1}: ${text} → ${t.categoryAuto}`);
+                } else if (text === '뷰티' || text === 'Beauty') {
+                    cat.textContent = t.categoryBeauty;
+                    console.log(`✅ 카테고리 ${index + 1}: ${text} → ${t.categoryBeauty}`);
+                } else if (text === '라이프스타일' || text === 'Lifestyle') {
+                    cat.textContent = t.categoryLifestyle;
+                    console.log(`✅ 카테고리 ${index + 1}: ${text} → ${t.categoryLifestyle}`);
+                }
+            });
+            
+            // Performance 섹션 언어 전환 시 현재 표시된 데이터 업데이트
+            updatePerformanceContent(currentPerformanceIndex, false);
+            
+            // About
+            const aboutBadge = document.querySelector('#about .badge');
+            const aboutTitle = document.querySelector('#about .section-title');
+            const aboutStories = document.querySelectorAll('#about .story-section');
+            
+            console.log('📖 About 섹션 업데이트:', {
+                badge: aboutBadge ? '✅' : '❌',
+                title: aboutTitle ? '✅' : '❌',
+                stories: aboutStories.length,
+                lang: lang
+            });
+            
+            if (aboutBadge) {
+                aboutBadge.textContent = t.aboutBadge;
+                console.log('✅ About Badge:', t.aboutBadge);
+            }
+            if (aboutTitle) {
+                aboutTitle.innerHTML = t.aboutTitle;
+                console.log('✅ About Title:', t.aboutTitle);
+            }
+            
+            // Story 1
+            if (aboutStories[0]) {
+                const title1 = aboutStories[0].querySelector('.story-title');
+                const text1 = aboutStories[0].querySelector('.story-text');
+                if (title1) {
+                    title1.textContent = t.aboutStory1Title;
+                    console.log('✅ Story 1 Title:', t.aboutStory1Title);
+                }
+                if (text1) {
+                    text1.textContent = t.aboutStory1Text;
+                    console.log('✅ Story 1 Text 길이:', t.aboutStory1Text.length);
+                }
+            }
+            
+            // Story 2
+            if (aboutStories[1]) {
+                const title2 = aboutStories[1].querySelector('.story-title');
+                const text2 = aboutStories[1].querySelector('.story-text');
+                if (title2) {
+                    title2.textContent = t.aboutStory2Title;
+                    console.log('✅ Story 2 Title:', t.aboutStory2Title);
+                }
+                if (text2) {
+                    text2.textContent = t.aboutStory2Text;
+                    console.log('✅ Story 2 Text 길이:', t.aboutStory2Text.length);
+                }
+            }
+            
+            // Story 3
+            if (aboutStories[2]) {
+                const title3 = aboutStories[2].querySelector('.story-title');
+                const text3 = aboutStories[2].querySelector('.story-text');
+                if (title3) {
+                    title3.textContent = t.aboutStory3Title;
+                    console.log('✅ Story 3 Title:', t.aboutStory3Title);
+                }
+                if (text3) {
+                    text3.textContent = t.aboutStory3Text;
+                    console.log('✅ Story 3 Text 길이:', t.aboutStory3Text.length);
+                }
+            }
+            
+            // Timeline (6 items: 2018, 2022, 2023, 2024, 2025, 2026)
+            const timelineDescs = document.querySelectorAll('#about .timeline-desc');
+            console.log('📅 Timeline 항목 수:', timelineDescs.length);
+            if (timelineDescs[0]) {
+                timelineDescs[0].textContent = t.timeline2018;
+                console.log('✅ 2018:', t.timeline2018);
+            }
+            if (timelineDescs[1]) {
+                timelineDescs[1].textContent = t.timeline2022;
+                console.log('✅ 2022:', t.timeline2022);
+            }
+            if (timelineDescs[2]) {
+                timelineDescs[2].textContent = t.timeline2023;
+                console.log('✅ 2023:', t.timeline2023);
+            }
+            if (timelineDescs[3]) {
+                timelineDescs[3].textContent = t.timeline2024;
+                console.log('✅ 2024:', t.timeline2024);
+            }
+            if (timelineDescs[4]) {
+                timelineDescs[4].textContent = t.timeline2025;
+                console.log('✅ 2025:', t.timeline2025);
+            }
+            if (timelineDescs[5]) {
+                timelineDescs[5].textContent = t.timeline2026;
+                console.log('✅ 2026:', t.timeline2026);
+            }
+            console.log('✅ Timeline 업데이트 완료');
+            
+            // Partners
+            const partnersBadge = document.querySelector('#partners .badge');
+            const partnersTitle = document.querySelector('#partners .section-title');
+            console.log('🤝 Partners 섹션:', {
+                badge: partnersBadge ? '✅' : '❌',
+                title: partnersTitle ? '✅' : '❌',
+                partners: t.partners ? t.partners.length : 0
+            });
+            
+            if (partnersBadge) {
+                partnersBadge.textContent = t.partnersBadge;
+                console.log('✅ Partners Badge:', t.partnersBadge);
+            }
+            if (partnersTitle) {
+                partnersTitle.innerHTML = t.partnersTitle;
+                console.log('✅ Partners Title:', t.partnersTitle);
+            }
+            
+            // Partner names (update all partner-item elements)
+            if (t.partners && t.partners.length > 0) {
+                const partnerItems = document.querySelectorAll('.partner-item');
+                console.log('✅ Partner Items:', partnerItems.length);
+                partnerItems.forEach((item, index) => {
+                    // 11개 파트너를 2번 반복 (총 22개 요소)
+                    const partnerIndex = index % t.partners.length;
+                    item.textContent = t.partners[partnerIndex];
+                });
+                console.log('✅ Partners 업데이트 완료:', t.partners[0]);
+            }
+            
+            // Contact
+            const contactTitleEl = document.querySelector('#contact .contact-left h2');
+            const contactDescEl = document.querySelector('#contact .contact-left p');
+            const contactFormTitleEl = document.querySelector('.form-title');
+            console.log('📞 Contact 섹션 업데이트:', {
+                title: contactTitleEl ? '✅' : '❌',
+                desc: contactDescEl ? '✅' : '❌',
+                formTitle: contactFormTitleEl ? '✅' : '❌'
+            });
+            if (contactTitleEl) contactTitleEl.innerHTML = t.contactTitle;
+            if (contactDescEl) contactDescEl.innerHTML = t.contactDesc;
+            if (contactFormTitleEl) contactFormTitleEl.textContent = t.contactFormTitle;
+            
+            // Inquiry buttons
+            const inquiryBtns = document.querySelectorAll('.inquiry-btn');
+            if (inquiryBtns[0]) inquiryBtns[0].textContent = t.inquiryType1;
+            if (inquiryBtns[1]) inquiryBtns[1].textContent = t.inquiryType2;
+            if (inquiryBtns[2]) inquiryBtns[2].textContent = t.inquiryType3;
+            if (inquiryBtns[3]) inquiryBtns[3].textContent = t.inquiryType4;
+            if (inquiryBtns[4]) inquiryBtns[4].textContent = t.inquiryType5;
+            if (inquiryBtns[5]) inquiryBtns[5].textContent = t.inquiryType6;
+            
+            // Form labels
+            const formLabels = document.querySelectorAll('.form-label');
+            if (formLabels[0]) formLabels[0].textContent = t.formName;
+            if (formLabels[1]) formLabels[1].textContent = t.formCompany;
+            if (formLabels[2]) formLabels[2].textContent = t.formEmail;
+            if (formLabels[3]) formLabels[3].textContent = t.formPhone;
+            if (formLabels[4]) formLabels[4].textContent = t.formMessage;
+            
+            const submitBtn = document.querySelector('.submit-btn');
+            if (submitBtn && !submitBtn.disabled) submitBtn.textContent = t.formSubmit;
+            
+            // Footer
+            const footerAddress = document.querySelector('.footer-address');
+            const footerCopyright = document.querySelector('.footer-bottom');
+            if (footerAddress) footerAddress.innerHTML = t.footerAddress;
+            if (footerCopyright) footerCopyright.textContent = t.footerCopyright;
+            
+            // 언어 버튼 active 상태 업데이트
+            const langOptions = document.querySelectorAll('.lang-option');
+            langOptions.forEach(option => {
+                if (option.getAttribute('data-lang') === lang) {
+                    option.classList.add('active');
+                } else {
+                    option.classList.remove('active');
+                }
+            });
+            
+            console.log('✅ 언어 전환 완료:', lang);
+        }
+        
+        // ============================================
+        // Highlight Full-Screen Slider System
+        // ============================================
+        
+        let currentHighlightSlide = 0;
+        const totalHighlightSlides = 3;
+        
+        function showHighlightSlide(n) {
+            const slides = document.querySelectorAll('.highlight-slide');
+            const dots = document.querySelectorAll('.highlight-dot');
+            
+            if (!slides.length || !dots.length) return;
+            
+            // 슬라이드 범위 제한
+            if (n >= totalHighlightSlides) {
+                currentHighlightSlide = 0;
+            } else if (n < 0) {
+                currentHighlightSlide = totalHighlightSlides - 1;
+            } else {
+                currentHighlightSlide = n;
+            }
+            
+            // 슬라이드 표시
+            slides.forEach((slide, index) => {
+                if (index === currentHighlightSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+            
+            // 도트 active 상태 업데이트
+            dots.forEach((dot, index) => {
+                if (index === currentHighlightSlide) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+        
+        function changeHighlightSlide(direction) {
+            showHighlightSlide(currentHighlightSlide + direction);
+        }
+        
+        function goToHighlightSlide(n) {
+            showHighlightSlide(n);
+        }
+        
+        // 키보드 네비게이션
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                changeHighlightSlide(-1);
+            } else if (e.key === 'ArrowRight') {
+                changeHighlightSlide(1);
+            }
+        });
+        
+        // ============================================
+        // 언어 전환 버튼 이벤트
+        // ============================================
+        
+        // 언어 전환 버튼 이벤트
+        document.addEventListener('DOMContentLoaded', () => {
+            // 언어 옵션 클릭 이벤트 (KO, EN 개별 클릭 - 데스크톱 & 모바일)
+            const langOptions = document.querySelectorAll('.lang-option');
+            langOptions.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const selectedLang = option.getAttribute('data-lang');
+                    if (selectedLang !== currentLang) {
+                        switchLanguage(selectedLang);
+                    }
+                });
+            });
+            
+            // 전체 버튼 클릭 이벤트 (토글 - 데스크톱 & 모바일)
+            const langSwitches = document.querySelectorAll('.lang-switch');
+            langSwitches.forEach(langSwitch => {
+                langSwitch.addEventListener('click', (e) => {
+                    // lang-option을 클릭한 경우는 이미 처리됨
+                    if (!e.target.classList.contains('lang-option')) {
+                        const newLang = currentLang === 'ko' ? 'en' : 'ko';
+                        switchLanguage(newLang);
+                    }
+                });
+            });
+            
+            // 초기 언어 설정 (페이지 로드 시 저장된 언어 적용)
+            console.log('🌐 초기 언어:', currentLang);
+            switchLanguage(currentLang);
+        });
+
+        // ============================================
+        // 관리자 패널 JavaScript
+        // ============================================
+        
+        let adminInquiries = [];
+        let adminCurrentFilter = 'all';
+        const ADMIN_PASSWORD = 'projectrent2025'; // 비밀번호 (원하는 대로 변경 가능)
+
+        // 관리자 패널 표시
+        function showAdminPanel() {
+            document.getElementById('admin').style.display = 'block';
+            document.getElementById('admin').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 비밀번호 확인
+        function checkAdminPassword() {
+            const password = document.getElementById('adminPassword').value;
+            const loginError = document.getElementById('loginError');
+            
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loginError.style.display = 'none';
+                loadAdminInquiries();
+            } else {
+                loginError.style.display = 'block';
+                document.getElementById('adminPassword').value = '';
+            }
+        }
+
+        // 엔터키로 로그인
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('adminPassword');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        checkAdminPassword();
+                    }
+                });
+            }
+        });
+
+        // 로그아웃
+        function logoutAdmin() {
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('adminLogin').style.display = 'block';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('admin').style.display = 'none';
+        }
+
+        // 문의 데이터 로드
+        async function loadAdminInquiries() {
+            try {
+                const response = await fetch('/tables/inquiries?limit=100&sort=-created_at');
+                const result = await response.json();
+                adminInquiries = result.data || [];
+                
+                updateAdminStats();
+                displayAdminInquiries();
+            } catch (error) {
+                console.error('데이터 로드 오류:', error);
+                document.getElementById('adminInquiryList').innerHTML = `
+                    <div style="text-align: center; padding: 60px; color: var(--text-muted); background: var(--bg-card); border-radius: 16px;">
+                        ⚠️ 데이터를 불러올 수 없습니다.<br>
+                        <small style="margin-top: 8px; display: block;">문의가 아직 없거나 연결에 문제가 있습니다.</small>
+                    </div>
+                `;
+            }
+        }
+
+        // 통계 업데이트
+        function updateAdminStats() {
+            const today = new Date().setHours(0, 0, 0, 0);
+            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+            const todayInquiries = adminInquiries.filter(item => {
+                const itemDate = new Date(item.created_at).setHours(0, 0, 0, 0);
+                return itemDate === today;
+            });
+
+            const weekInquiries = adminInquiries.filter(item => {
+                const itemDate = new Date(item.created_at);
+                return itemDate >= weekAgo;
+            });
+
+            document.getElementById('adminTotalCount').textContent = adminInquiries.length;
+            document.getElementById('adminTodayCount').textContent = todayInquiries.length;
+            document.getElementById('adminWeekCount').textContent = weekInquiries.length;
+        }
+
+        // 문의 표시
+        function displayAdminInquiries() {
+            const container = document.getElementById('adminInquiryList');
+            
+            let filteredInquiries = adminInquiries;
+            if (adminCurrentFilter !== 'all') {
+                filteredInquiries = adminInquiries.filter(item => item.inquiry_type === adminCurrentFilter);
+            }
+
+            if (filteredInquiries.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px; color: var(--text-muted); background: var(--bg-card); border-radius: 16px;">
+                        📭 ${adminCurrentFilter === 'all' ? '아직 문의가 없습니다.' : `'${adminCurrentFilter}' 문의가 없습니다.`}
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredInquiries.map(inquiry => {
+                const date = new Date(inquiry.created_at);
+                const formattedDate = date.toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                return `
+                    <div class="admin-inquiry-card">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                            <span style="display: inline-block; padding: 6px 12px; background: rgba(108, 99, 255, 0.1); color: var(--accent); 
+                                         border-radius: 6px; font-size: 13px; font-weight: 600; border: 1px solid var(--accent);">
+                                ${inquiry.inquiry_type}
+                            </span>
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <span style="color: var(--text-muted); font-size: 13px;">${formattedDate}</span>
+                                <button onclick="replyToInquiry('${inquiry.email}', '${inquiry.name}', '${inquiry.inquiry_type}')"
+                                        style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 6px; 
+                                               cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.3s;">
+                                    📧 답변하기
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; 
+                                    padding: 16px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                            <div style="font-size: 14px;">
+                                <div style="color: var(--text-muted); margin-bottom: 4px;">이름</div>
+                                <div style="color: var(--text); font-weight: 500;">${inquiry.name}</div>
+                            </div>
+                            <div style="font-size: 14px;">
+                                <div style="color: var(--text-muted); margin-bottom: 4px;">회사명</div>
+                                <div style="color: var(--text); font-weight: 500;">${inquiry.company}</div>
+                            </div>
+                            <div style="font-size: 14px;">
+                                <div style="color: var(--text-muted); margin-bottom: 4px;">이메일</div>
+                                <div style="color: var(--text); font-weight: 500;">${inquiry.email}</div>
+                            </div>
+                            <div style="font-size: 14px;">
+                                <div style="color: var(--text-muted); margin-bottom: 4px;">전화번호</div>
+                                <div style="color: var(--text); font-weight: 500;">${inquiry.phone}</div>
+                            </div>
+                        </div>
+
+                        <div style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 3px solid var(--accent); 
+                                    color: var(--text); line-height: 1.6; white-space: pre-wrap;">${inquiry.message}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 답변하기 (이메일 클라이언트 열기)
+        function replyToInquiry(email, name, type) {
+            const subject = encodeURIComponent(`Re: [PROJECT RENT] ${type} 문의 답변`);
+            const body = encodeURIComponent(`${name}님, 안녕하세요.
+
+PROJECT RENT입니다.
+문의 주신 내용에 대해 답변드립니다.
+
+[여기에 답변 내용을 작성하세요]
+
+감사합니다.
+
+---
+PROJECT RENT
+projectrent43@gmail.com
+            `);
+            
+            window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
+        }
+
+        // 필터 버튼 이벤트
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterBtns = document.querySelectorAll('.admin-filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    adminCurrentFilter = btn.dataset.filter;
+                    displayAdminInquiries();
+                });
+            });
+        });
+    </script>
+<script src="https://www.genspark.ai/sandbox_inspect.js"></script></body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>검증 리포트 — MVP Scope Dependencies | by Project Rent</title>
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-light: #a29bfe;
+    --bg: #0f0f13;
+    --bg-card: #1a1a24;
+    --text: #e8e8ed;
+    --text-dim: #9b9bb0;
+    --text-muted: #6b6b80;
+    --accent-green: #00cec9;
+    --accent-orange: #fdcb6e;
+    --accent-red: #ff7675;
+    --accent-blue: #74b9ff;
+    --border: rgba(108,92,231,0.2);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    padding: 0;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 48px 40px 80px; }
+
+  /* Header */
+  .header {
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 28px;
+    margin-bottom: 40px;
+  }
+  .header .label {
+    font-size: 11px; font-weight: 600; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--primary-light); margin-bottom: 10px;
+  }
+  .header h1 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+  .header h1 em { font-style: normal; color: var(--primary-light); }
+  .header .meta { font-size: 13px; color: var(--text-muted); margin-top: 12px; }
+
+  /* Section */
+  .section { margin-bottom: 44px; }
+  .section-title {
+    font-size: 20px; font-weight: 700; color: #fff;
+    margin-bottom: 16px; padding-left: 14px; border-left: 3px solid var(--primary);
+  }
+  .section-desc { font-size: 14px; color: var(--text-dim); margin-bottom: 16px; }
+
+  /* Verdict box */
+  .verdict {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--bg-card); border-radius: 10px;
+    padding: 18px 24px; margin-bottom: 24px;
+    border-left: 4px solid;
+  }
+  .verdict.pass { border-color: var(--accent-green); }
+  .verdict.warn { border-color: var(--accent-orange); }
+  .verdict.fail { border-color: var(--accent-red); }
+  .verdict .icon { font-size: 24px; flex-shrink: 0; }
+  .verdict .body { flex: 1; }
+  .verdict .body .title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .verdict.pass .body .title { color: var(--accent-green); }
+  .verdict.warn .body .title { color: var(--accent-orange); }
+  .verdict.fail .body .title { color: var(--accent-red); }
+  .verdict .body .desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+  /* Table */
+  table {
+    width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px;
+  }
+  thead th {
+    background: var(--bg-card); color: var(--primary-light);
+    font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    padding: 10px 12px; text-align: left; border-bottom: 2px solid rgba(108,92,231,0.3);
+  }
+  tbody td {
+    padding: 10px 12px; border-bottom: 1px solid rgba(108,92,231,0.1);
+    vertical-align: top; line-height: 1.55;
+  }
+  tbody tr:hover { background: rgba(108,92,231,0.04); }
+  .col-f { font-weight: 700; color: var(--primary-light); width: 40px; }
+  .col-name { color: #fff; font-weight: 600; width: 160px; }
+  .col-deps { width: 140px; }
+  .tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 3px; margin: 1px 2px; }
+  .tag.must { background: rgba(255,118,117,0.18); color: var(--accent-red); }
+  .tag.should { background: rgba(253,203,110,0.18); color: var(--accent-orange); }
+  .tag.nice { background: rgba(116,185,255,0.18); color: var(--accent-blue); }
+  .impact-high { color: var(--accent-red); }
+  .impact-mid { color: var(--accent-orange); }
+  .impact-low { color: var(--text-dim); }
+
+  /* Check items */
+  .check-list { list-style: none; margin-bottom: 20px; }
+  .check-list li {
+    padding: 10px 16px; border-bottom: 1px solid rgba(108,92,231,0.08);
+    font-size: 13.5px; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .check-list .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .check-list .text { flex: 1; }
+  .check-list .text strong { color: #fff; font-weight: 600; }
+  .check-list .text .note { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+
+  /* Summary card */
+  .summary-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 28px 32px; margin-top: 32px;
+  }
+  .summary-card h3 {
+    font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 14px;
+  }
+  .summary-card .row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid rgba(108,92,231,0.1);
+    font-size: 14px;
+  }
+  .summary-card .row:last-child { border: none; }
+  .summary-card .row .label { color: var(--text-dim); }
+  .summary-card .row .value { font-weight: 700; }
+  .summary-card .row .value.pass { color: var(--accent-green); }
+  .summary-card .row .value.warn { color: var(--accent-orange); }
+
+  /* Footer */
+  .footer {
+    margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted);
+  }
+
+  @media print {
+    body { background: #fff; color: #222; }
+    .header h1 { color: #111; }
+    .header h1 em { color: #6C5CE7; }
+    .section-title { color: #111; }
+    .verdict, .summary-card { background: #f8f8fc; }
+    thead th { background: #f0f0f5; color: #6C5CE7; }
+    @page { size: A4; margin: 15mm; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="label">Verification Report</div>
+    <h1>mvp-scope-dependencies.html <em>검증 결과</em></h1>
+    <div class="meta">대상: mvp-scope-dependencies.html (협조 요청 & 미제공 시 한계 매트릭스) · 2026-07-18</div>
+  </header>
+
+  <!-- ── 검증 1: F1~F7 역매핑 ── -->
+  <section class="section">
+    <h2 class="section-title">검증 1 — RFP F1~F7 역매핑 정합성</h2>
+    <p class="section-desc">RFP에서 정의된 F1~F7 각 기능이 협조 항목과 올바르게 연결되어 있는지, 누락된 의존성은 없는지 점검합니다.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th class="col-f">F#</th>
+          <th class="col-name">기능</th>
+          <th class="col-deps">문서 내 의존 항목</th>
+          <th>검증 결과</th>
+          <th>판정</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-f">F1</td>
+          <td class="col-name">웹 UI</td>
+          <td><span class="tag should">C1</span></td>
+          <td class="impact-low">정확. 웹 UI 자체는 독립 구현 가능하고, 배포 환경(C1)만 의존. B3(보고 대상) 추가 고려 가능하나, UI 기능과 직결은 아님 — 현행 유지 적절</td>
+          <td style="color:var(--accent-green);font-weight:700">PASS</td>
+        </tr>
+        <tr>
+          <td class="col-f">F2</td>
+          <td class="col-name">VoC 전처리/DB</td>
+          <td><span class="tag must">A1</span><span class="tag should">A2</span><span class="tag nice">A4</span></td>
+          <td class="impact-low">정확. 인제스트 레이어가 데이터 소스 3종(인터뷰·VoC·SNS)에 직접 의존. A5(도메인 확정)도 전처리 토픽 사전에 영향하나, 문서 내 F3에 이미 반영되어 중복 회피 — 적절</td>
+          <td style="color:var(--accent-green);font-weight:700">PASS</td>
+        </tr>
+        <tr>
+          <td class="col-f">F3</td>
+          <td class="col-name">Latent Desire 모델</td>
+          <td><span class="tag must">A1</span><span class="tag must">A5</span></td>
+          <td class="impact-low">정확. 인터뷰 원문이 핵심 입력이고, 도메인 확정이 토픽 사전 품질 결정. 누락 없음</td>
+          <td style="color:var(--accent-green);font-weight:700">PASS</td>
+        </tr>
+        <tr>
+          <td class="col-f">F4</td>
+          <td class="col-name">정성/정량 교차검증</td>
+          <td><span class="tag should">A2</span><span class="tag should">A3</span></td>
+          <td class="impact-low">정확. VoC+VCRM/IBD가 교차검증의 양 축. 둘 다 미제공 시 프레임워크만 남는다는 한계 설명도 RFP P3~P4와 일치</td>
+          <td style="color:var(--accent-green);font-weight:700">PASS</td>
+        </tr>
+        <tr>
+          <td class="col-f">F5</td>
+          <td class="col-name">Core Experience 도출</td>
+          <td><span class="tag must">A1</span><span class="tag must">A5</span><span class="tag should">B2</span></td>
+          <td class="impact-low">정확. Latent Desire(F3) 위에 경험 구조화가 쌓이므로 A1·A5 의존 계승. 기획팀 검증(B2)이 Core Experience 품질에 직결 — 역매핑 적절</td>
+          <td style="color:var(--accent-green);font-weight:700">PASS</td>
+        </tr>
+        <tr>
+          <td class="col-f">F6</td>
+          <td class="col-name">User Story 초안</td>
+          <td><span class="tag should">B2</span><span class="tag should">B3</span></td>
+          <td class="impact-mid">보완 권고. User Story는 F5(Core Experience)의 하위 출력이므로, F5 의존 항목(A1, A5)도 간접 의존. 다만 문서에서는 "직접 의존"만 표기하는 원칙이 일관적이므로 현행도 허용 범위</td>
+          <td style="color:var(--accent-orange);font-weight:700">NOTE</td>
+        </tr>
+        <tr>
+          <td class="col-f">F7</td>
+          <td class="col-name">Use Case 2개</td>
+          <td><span class="tag must">A1</span><span class="tag must">A5</span><span class="tag must">B1</span></td>
+          <td class="impact-low">정확. Use Case가 전체 파이프라인의 종합 출력이므로 MUST 3종에 의존하는 것이 맞음. 실무 커뮤니케이션(B1) 없이 Use Case 방향이 맞을 수 없음 — 적절한 의존성</td>
+          <td style="color:var(--accent-green);font-weight:700">PASS</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="verdict pass">
+      <div class="icon">&#10003;</div>
+      <div class="body">
+        <div class="title">역매핑 정합성: PASS</div>
+        <div class="desc">F1~F7 전체 의존성이 RFP 요구사항(P1~P8)과 정확히 대응. F6에 간접 의존 표기를 추가하면 더 완전하나, 현행도 "직접 의존만 표기"하는 원칙으로 일관성 유지 — 킥오프 제시에 문제 없음.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 검증 2: 현실성 체크 ── -->
+  <section class="section">
+    <h2 class="section-title">검증 2 — 3대 핵심 의존성 현실성 체크</h2>
+    <p class="section-desc">현대차 입장에서 "합리적으로 제공 가능한 수준"인지 점검합니다.</p>
+
+    <ul class="check-list">
+      <li>
+        <span class="icon" style="color:var(--accent-green)">&#10003;</span>
+        <div class="text">
+          <strong>A1 · 고객 인터뷰 102건 (익명화 원문)</strong><br>
+          RFP P4에 "고객인터뷰 102건" 명시. 현대차가 이미 보유한 데이터를 익명화하여 전달하는 것이므로 신규 수집 부담 없음. 보안 심사만 통과하면 S0 제공 현실적.
+          <div class="note">리스크: 익명화 작업에 내부 법무·보안 승인 소요 → S0 내 수령 불가 시 S1 초로 유예 가능. 이 경우 cabin-air로 S1 전반 커버 후 전환.</div>
+        </div>
+      </li>
+      <li>
+        <span class="icon" style="color:var(--accent-green)">&#10003;</span>
+        <div class="text">
+          <strong>A5 · 분석 대상 도메인/차종 확정</strong><br>
+          킥오프 미팅에서 구두 확정 가능한 수준. RFP에서 이미 "공조/공기질" 도메인이 암시되어 있고, 조정현 책임이 즉시 결정 가능한 범위. 제공 장벽 거의 없음.
+          <div class="note">리스크: 거의 없음. 확정 지연 시에도 자체 "공조/공기질" 진행으로 대체 가능.</div>
+        </div>
+      </li>
+      <li>
+        <span class="icon" style="color:var(--accent-green)">&#10003;</span>
+        <div class="text">
+          <strong>B1 · 실무 담당자 1인 상시 커뮤니케이션 채널</strong><br>
+          외주 프로젝트의 기본 요건. 조정현 책임 또는 팀 내 1인 지정은 현대차 프로젝트 관리 표준 절차. 제공 부담 최소.
+          <div class="note">리스크: 담당자 업무 과중 시 응답 지연 가능. 대체안(격주 정기회의)이 적절한 폴백.</div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="verdict pass">
+      <div class="icon">&#10003;</div>
+      <div class="body">
+        <div class="title">현실성 체크: PASS</div>
+        <div class="desc">MUST 3종 모두 현대차가 합리적으로 제공 가능한 수준. A1(인터뷰 102건)은 RFP에 명시된 데이터이고, A5(도메인 확정)는 구두 합의, B1(담당자)은 프로젝트 기본 요건. "무리한 요구"로 인식될 소지 없음.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 검증 3: 등급 분류 과도성 ── -->
+  <section class="section">
+    <h2 class="section-title">검증 3 — 등급 분류 과도성 체크</h2>
+    <p class="section-desc">MUST를 남발하면 신뢰가 하락합니다. 12개 항목 중 MUST 비율과 각 등급의 타당성을 점검합니다.</p>
+
+    <ul class="check-list">
+      <li>
+        <span class="icon" style="color:var(--accent-green)">&#10003;</span>
+        <div class="text">
+          <strong>MUST 비율: 3/12 = 25%</strong><br>
+          적정 수준. 일반적으로 MUST가 30% 이하면 과도하지 않다고 판단. "진짜 없으면 안 되는 것"만 MUST로 한정한 절제된 분류.
+        </div>
+      </li>
+      <li>
+        <span class="icon" style="color:var(--accent-green)">&#10003;</span>
+        <div class="text">
+          <strong>MUST 3종의 자격 검증</strong><br>
+          A1(인터뷰) — 없으면 현대차 고유 분석 자체 불가 → MUST 자격 충분<br>
+          A5(도메인 확정) — 없으면 토픽 사전 구성 불가, 모든 분석이 범용으로 전락 → MUST 자격 충분<br>
+          B1(담당자) — 없으면 방향 정렬 불가, 3개월 전체 리스크 → MUST 자격 충분
+        </div>
+      </li>
+      <li>
+        <span class="icon" style="color:var(--accent-orange)">&#9888;</span>
+        <div class="text">
+          <strong>B2(기획팀 검증)가 SHOULD인데, 3대 핵심 의존성에 포함</strong><br>
+          Executive Summary에서 B2를 3대 핵심 의존성으로 꼽았지만, 등급은 SHOULD. 의도적 구분인지 검토 필요.
+          <div class="note">판단: 이것은 <strong>의도적이고 적절한 구분</strong>. B2는 "없으면 KPI 측정 불가"이지만, 프로토타입 자체는 구현 가능(기능 무력화 아님). MUST의 정의("핵심 기능 무력화")와 SHOULD의 정의("품질 유의미 저하")에 정확히 부합. Executive Summary는 "중요도"를 강조한 것이고, 등급은 "기능 영향도"를 기준한 것 — 관점 차이를 킥오프에서 설명하면 오히려 신뢰 상승.</div>
+        </div>
+      </li>
+      <li>
+        <span class="icon" style="color:var(--accent-green)">&#10003;</span>
+        <div class="text">
+          <strong>NICE 4종의 적절성</strong><br>
+          A4(SNS 범위), B4(RACI), C2(mock 협업), C3(API 보안) — 모두 대체안이 명확하고 MVP 기능에 직접 영향 없음. '27년 연계에만 영향 → NICE 분류 적절.
+        </div>
+      </li>
+    </ul>
+
+    <div class="verdict pass">
+      <div class="icon">&#10003;</div>
+      <div class="body">
+        <div class="title">등급 분류: PASS</div>
+        <div class="desc">MUST 25%(3/12)로 절제된 분류. 각 등급의 정의와 항목이 정확히 대응. B2의 "핵심 의존성이지만 SHOULD" 설계는 의도적 차별화로 오히려 신뢰도를 높이는 구조.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 종합 판정 ── -->
+  <div class="summary-card">
+    <h3>종합 검증 결과</h3>
+    <div class="row">
+      <span class="label">검증 1 — F1~F7 역매핑 정합성</span>
+      <span class="value pass">PASS (F6 간접의존 NOTE)</span>
+    </div>
+    <div class="row">
+      <span class="label">검증 2 — 3대 핵심 의존성 현실성</span>
+      <span class="value pass">PASS (MUST 3종 모두 합리적)</span>
+    </div>
+    <div class="row">
+      <span class="label">검증 3 — 등급 분류 과도성</span>
+      <span class="value pass">PASS (MUST 25%, 절제된 분류)</span>
+    </div>
+    <div class="row" style="margin-top:12px; padding-top:16px; border-top:2px solid var(--primary);">
+      <span class="label" style="font-weight:700; color:#fff; font-size:15px;">최종 판정</span>
+      <span class="value pass" style="font-size:16px;">킥오프 제시 가능</span>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>Verification Report</span>
+    <span>mvp-scope-dependencies.html v1.0</span>
+    <span>by Project Rent &copy; 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-Discovery MVP — Scope Dependencies | by Project Rent</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-light: #a29bfe;
+    --primary-dim: #4834d4;
+    --bg: #0f0f13;
+    --bg-card: #1a1a24;
+    --bg-card-alt: #16161f;
+    --text: #e8e8ed;
+    --text-dim: #9b9bb0;
+    --text-muted: #6b6b80;
+    --accent-green: #00cec9;
+    --accent-orange: #fdcb6e;
+    --accent-red: #ff7675;
+    --accent-blue: #74b9ff;
+    --border: rgba(108,92,231,0.2);
+    --must: #ff7675;
+    --should: #fdcb6e;
+    --nice: #74b9ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 40px 80px;
+  }
+
+  /* ── Header ── */
+  .doc-header {
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 32px;
+    margin-bottom: 48px;
+  }
+  .doc-header .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--primary-light);
+    margin-bottom: 12px;
+  }
+  .doc-header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+  .doc-header h1 em { font-style: normal; color: var(--primary-light); }
+  .doc-header .sub {
+    font-size: 16px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .doc-header .meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+    padding-left: 14px;
+    border-left: 3px solid var(--primary);
+  }
+  .section-subtitle {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--primary-light);
+    margin-bottom: 14px;
+    margin-top: 28px;
+  }
+  .section-desc {
+    font-size: 15px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  /* ── Executive Summary Cards ── */
+  .exec-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .exec-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .exec-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--must);
+  }
+  .exec-card .num {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--must);
+    opacity: 0.3;
+    position: absolute;
+    top: 12px; right: 18px;
+    line-height: 1;
+  }
+  .exec-card .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  .exec-card .tag.must { background: rgba(255,118,117,0.15); color: var(--must); }
+  .exec-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.35;
+  }
+  .exec-card .if-no {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .exec-card .if-no strong {
+    color: var(--must);
+    font-weight: 600;
+  }
+
+  /* ── Tables ── */
+  .matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-bottom: 8px;
+  }
+  .matrix-table thead th {
+    background: var(--bg-card);
+    color: var(--primary-light);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 2px solid var(--primary-dim);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .matrix-table tbody td {
+    padding: 14px 14px;
+    border-bottom: 1px solid rgba(108,92,231,0.1);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .matrix-table tbody tr:hover {
+    background: rgba(108,92,231,0.05);
+  }
+  .matrix-table .col-id { width: 42px; font-weight: 700; color: var(--primary-light); }
+  .matrix-table .col-item { width: 200px; font-weight: 600; color: #fff; }
+  .matrix-table .col-when { width: 80px; color: var(--text-muted); font-size: 12px; }
+  .matrix-table .col-provided { color: var(--accent-green); }
+  .matrix-table .col-missing { color: var(--must); }
+  .matrix-table .col-alt { color: var(--text-dim); font-size: 12.5px; }
+
+  .grade-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    vertical-align: middle;
+  }
+  .grade-badge.must { background: rgba(255,118,117,0.2); color: var(--must); }
+  .grade-badge.should { background: rgba(253,203,110,0.2); color: var(--should); }
+  .grade-badge.nice { background: rgba(116,185,255,0.2); color: var(--nice); }
+
+  /* ── Grade Summary ── */
+  .grade-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .grade-card {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 20px 24px;
+    border-left: 4px solid;
+  }
+  .grade-card.must { border-color: var(--must); }
+  .grade-card.should { border-color: var(--should); }
+  .grade-card.nice { border-color: var(--nice); }
+  .grade-card .grade-label {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .grade-card.must .grade-label { color: var(--must); }
+  .grade-card.should .grade-label { color: var(--should); }
+  .grade-card.nice .grade-label { color: var(--nice); }
+  .grade-card .grade-def {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .grade-card .grade-items {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .grade-card .grade-items strong { color: #fff; font-weight: 600; }
+
+  /* ── Timeline ── */
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    margin-bottom: 12px;
+    align-items: start;
+  }
+  .timeline-label {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .timeline-label .sprint {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-light);
+  }
+  .timeline-label .period {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .timeline-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 6px;
+  }
+  .timeline-chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid;
+  }
+  .timeline-chip.must { border-color: rgba(255,118,117,0.4); color: var(--must); background: rgba(255,118,117,0.08); }
+  .timeline-chip.should { border-color: rgba(253,203,110,0.4); color: var(--should); background: rgba(253,203,110,0.08); }
+  .timeline-chip.nice { border-color: rgba(116,185,255,0.4); color: var(--nice); background: rgba(116,185,255,0.08); }
+
+  /* ── Scenario ── */
+  .scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .scenario-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+  }
+  .scenario-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 12px 12px 0 0;
+  }
+  .scenario-card.best::before { background: var(--accent-green); }
+  .scenario-card.base::before { background: var(--accent-orange); }
+  .scenario-card.worst::before { background: var(--accent-red); }
+  .scenario-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .scenario-card.best h4 { color: var(--accent-green); }
+  .scenario-card.base h4 { color: var(--accent-orange); }
+  .scenario-card.worst h4 { color: var(--accent-red); }
+  .scenario-card .scenario-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .scenario-card .scenario-items {
+    list-style: none;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .scenario-card .scenario-items li::before {
+    content: '→ ';
+    color: var(--text-muted);
+  }
+
+  /* ── F-Mapping ── */
+  .fmap-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .fmap-table thead th {
+    background: var(--bg-card);
+    color: var(--primary-light);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--primary-dim);
+  }
+  .fmap-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(108,92,231,0.1);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .fmap-table .f-id { font-weight: 700; color: var(--primary-light); width: 40px; }
+  .fmap-table .f-name { color: #fff; font-weight: 600; width: 180px; }
+  .fmap-table .f-deps { color: var(--must); }
+  .fmap-table .f-impact { color: var(--text-dim); }
+
+  /* ── Footer ── */
+  .doc-footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; color: #222; font-size: 11pt; }
+    .container { padding: 20px; max-width: 100%; }
+    .doc-header { border-color: #6C5CE7; }
+    .doc-header h1 { color: #111; font-size: 22pt; }
+    .doc-header h1 em { color: #6C5CE7; }
+    .doc-header .sub { color: #555; }
+    .doc-header .meta { color: #888; }
+    .section-title { color: #111; border-color: #6C5CE7; font-size: 16pt; }
+    .section-subtitle { color: #6C5CE7; }
+    .exec-card, .grade-card, .scenario-card, .timeline-label {
+      background: #f8f8fc; border-color: #ddd;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .exec-card h3, .grade-card .grade-items strong { color: #111; }
+    .matrix-table thead th { background: #f0f0f5; color: #6C5CE7; }
+    .matrix-table tbody td { border-color: #e0e0e0; }
+    .col-item { color: #111 !important; }
+    .col-provided { color: #00897b !important; }
+    .col-missing { color: #d32f2f !important; }
+    .doc-footer { color: #aaa; border-color: #ddd; }
+    .exec-card .num { opacity: 0.15; color: #d32f2f; }
+    @page { size: A4; margin: 15mm; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ── Header ── -->
+  <header class="doc-header">
+    <div class="label">Hyundai X-Discovery MVP</div>
+    <h1>협조 요청 & <em>미제공 시 아웃풋 한계 정의</em></h1>
+    <div class="sub">프로젝트 안정 완수를 위한 현대차 측 협조 사항을 항목별로 정의하고,<br>각 항목 미제공 시 아웃풋에 생기는 구체적 한계를 명시합니다.</div>
+    <div class="meta">
+      <span>by Project Rent</span>
+      <span>2026-07-18</span>
+      <span>내부 검토용 / 킥오프 미팅 제시</span>
+    </div>
+  </header>
+
+  <!-- ── 1. Executive Summary: 3대 핵심 의존성 ── -->
+  <section class="section">
+    <h2 class="section-title">3대 핵심 의존성 — "이것 없이는 이것 못 합니다"</h2>
+    <div class="exec-grid">
+      <div class="exec-card">
+        <div class="num">1</div>
+        <span class="tag must">MUST</span>
+        <h3>A1 · 고객 인터뷰 102건이 없으면</h3>
+        <div class="if-no">
+          Use Case가 <strong>"cabin-air 재시연"</strong>에 그침.<br>
+          현대차 고유 인사이트 0.<br>
+          MVP가 "우리 파이프라인 데모"로 전락.
+        </div>
+      </div>
+      <div class="exec-card">
+        <div class="num">2</div>
+        <span class="tag must">MUST</span>
+        <h3>A2+A3 · VoC + 정량 데이터가 없으면</h3>
+        <div class="if-no">
+          F4 교차검증 = <strong>껍데기</strong>.<br>
+          Say-Do Gap은 설명만 가능, 실증 불가.<br>
+          "검증됐다"고 말할 수 없음.
+        </div>
+      </div>
+      <div class="exec-card">
+        <div class="num">3</div>
+        <span class="tag must">MUST</span>
+        <h3>B2 · 기획팀 검증 참여가 없으면</h3>
+        <div class="if-no">
+          N1(95% 정확도) KPI <strong>측정 자체가 불가</strong>.<br>
+          "정확"의 기준이 없음.<br>
+          User Story = AI 생성 초안 수준.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 2. Matrix A: 데이터 ── -->
+  <section class="section">
+    <h2 class="section-title">전체 협조 요청 매트릭스</h2>
+
+    <h3 class="section-subtitle">A. 데이터 (핵심)</h3>
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th class="col-id">#</th>
+          <th class="col-item">요청 항목</th>
+          <th class="col-when">시점</th>
+          <th>등급</th>
+          <th class="col-provided">제공 시 아웃풋</th>
+          <th class="col-missing">미제공 시 한계</th>
+          <th class="col-alt">대체안</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-id">A1</td>
+          <td class="col-item">고객 인터뷰 102건<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">익명화 원문</span></td>
+          <td class="col-when">S0 (W1)</td>
+          <td><span class="grade-badge must">MUST</span></td>
+          <td class="col-provided">실제 고객 언어 기반 Latent Desire 도출 → Use Case 1 풀스펙</td>
+          <td class="col-missing">cabin-air SNS 데이터로 대체 시연만 가능. 현대차 고유 인사이트 불가, "PoC 수준" 한계</td>
+          <td class="col-alt">cabin-air 3,586건 활용 (범용 시연)</td>
+        </tr>
+        <tr>
+          <td class="col-id">A2</td>
+          <td class="col-item">고객센터 VoC 데이터<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">형식/기간 정의</span></td>
+          <td class="col-when">S0~S1</td>
+          <td><span class="grade-badge should">SHOULD</span></td>
+          <td class="col-provided">다채널 교차검증, 토픽 커버리지 확대</td>
+          <td class="col-missing">인터뷰 단일소스 의존 → Say-Do Gap 분석(F4) 불가, 교차검증 모듈 시연만</td>
+          <td class="col-alt">mock 데이터로 프레임워크 제시</td>
+        </tr>
+        <tr>
+          <td class="col-id">A3</td>
+          <td class="col-item">VCRM/IBD 정량 데이터<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">또는 합성 스키마</span></td>
+          <td class="col-when">S1</td>
+          <td><span class="grade-badge should">SHOULD</span></td>
+          <td class="col-provided">정성-정량 교차검증 실동작</td>
+          <td class="col-missing">교차검증(F4) = 프레임워크만 제시, 실데이터 검증 불가</td>
+          <td class="col-alt">합성 데이터 자체 생성 (정확도 보장 불가)</td>
+        </tr>
+        <tr>
+          <td class="col-id">A4</td>
+          <td class="col-item">SNS 수집 범위 정의<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">플랫폼/키워드/기간</span></td>
+          <td class="col-when">S0</td>
+          <td><span class="grade-badge nice">NICE</span></td>
+          <td class="col-provided">RXR 크롤러 즉시 가동, 실시간 VoC 수집</td>
+          <td class="col-missing">Layer 1 인제스트 = 인터뷰 업로드 only, SNS 분석 시연 불가</td>
+          <td class="col-alt">범용 키워드로 자체 크롤 (현대차 승인 필요)</td>
+        </tr>
+        <tr>
+          <td class="col-id">A5</td>
+          <td class="col-item">분석 대상 도메인/차종 확정</td>
+          <td class="col-when">S0 (W1)</td>
+          <td><span class="grade-badge must">MUST</span></td>
+          <td class="col-provided">토픽 사전 최적화, 타겟 분석</td>
+          <td class="col-missing">범용 분석 → 인사이트 깊이 얕음, Use Case 특정성 부족</td>
+          <td class="col-alt">"공조/공기질" 도메인으로 자체 진행</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── 2. Matrix B: 조직/프로세스 ── -->
+    <h3 class="section-subtitle">B. 조직 / 프로세스</h3>
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th class="col-id">#</th>
+          <th class="col-item">요청 항목</th>
+          <th class="col-when">시점</th>
+          <th>등급</th>
+          <th class="col-provided">제공 시 아웃풋</th>
+          <th class="col-missing">미제공 시 한계</th>
+          <th class="col-alt">대체안</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-id">B1</td>
+          <td class="col-item">실무 담당자 1인<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">상시 커뮤니케이션 채널</span></td>
+          <td class="col-when">S0~ 상시</td>
+          <td><span class="grade-badge must">MUST</span></td>
+          <td class="col-provided">주 1회+ 피드백 루프, 방향 정렬</td>
+          <td class="col-missing">방향 오류 리스크 ↑, 재작업 비용 발생</td>
+          <td class="col-alt">격주 정기 회의로 최소화</td>
+        </tr>
+        <tr>
+          <td class="col-id">B2</td>
+          <td class="col-item">기획팀 User Story 검증 참여<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">최소 2회</span></td>
+          <td class="col-when">S2, S3</td>
+          <td><span class="grade-badge should">SHOULD</span></td>
+          <td class="col-provided">User Story 품질 보증, 현업 적합성</td>
+          <td class="col-missing">User Story = AI 생성 초안 수준. N1 95% KPI 미달 리스크</td>
+          <td class="col-alt">자체 QA + "검증 미완" 표기</td>
+        </tr>
+        <tr>
+          <td class="col-id">B3</td>
+          <td class="col-item">최종 보고 대상·<br>의사결정 구조 확정</td>
+          <td class="col-when">S0</td>
+          <td><span class="grade-badge should">SHOULD</span></td>
+          <td class="col-provided">IR 보고 포맷 맞춤, 결정 지연 방지</td>
+          <td class="col-missing">완료보고서 대상 불명, 재작성 리스크</td>
+          <td class="col-alt">조정현 책임 기준으로 작성</td>
+        </tr>
+        <tr>
+          <td class="col-id">B4</td>
+          <td class="col-item">이해관계자 맵 + RACI 확정</td>
+          <td class="col-when">S0</td>
+          <td><span class="grade-badge nice">NICE</span></td>
+          <td class="col-provided">의사결정 병목 제거</td>
+          <td class="col-missing">S2~3에서 방향 전환 가능성, 일정 리스크</td>
+          <td class="col-alt">경험기획팀 단일 이해관계자로 한정</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── 2. Matrix C: 기술/인프라 ── -->
+    <h3 class="section-subtitle">C. 기술 / 인프라</h3>
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th class="col-id">#</th>
+          <th class="col-item">요청 항목</th>
+          <th class="col-when">시점</th>
+          <th>등급</th>
+          <th class="col-provided">제공 시 아웃풋</th>
+          <th class="col-missing">미제공 시 한계</th>
+          <th class="col-alt">대체안</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-id">C1</td>
+          <td class="col-item">배포 환경 확정<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">사내망/클라우드/보안등급</span></td>
+          <td class="col-when">S0~S1</td>
+          <td><span class="grade-badge should">SHOULD</span></td>
+          <td class="col-provided">최종 배포 가능 프로토타입</td>
+          <td class="col-missing">로컬 데모 only, 현대차 내부 접근 불가</td>
+          <td class="col-alt">외부 클라우드 임시 배포 + 접근 제한</td>
+        </tr>
+        <tr>
+          <td class="col-id">C2</td>
+          <td class="col-item">mock 데이터 생성 협업<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">데이터 엔지니어</span></td>
+          <td class="col-when">S1</td>
+          <td><span class="grade-badge nice">NICE</span></td>
+          <td class="col-provided">VCRM/IBD 형식 정합 mock → 향후 실데이터 전환 용이</td>
+          <td class="col-missing">자체 합성 데이터 = 실 스키마 불일치, '27년 연계 리스크</td>
+          <td class="col-alt">공개 데이터셋 기반 합성</td>
+        </tr>
+        <tr>
+          <td class="col-id">C3</td>
+          <td class="col-item">API 보안 요건<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">인증 방식/접근 정책</span></td>
+          <td class="col-when">S1</td>
+          <td><span class="grade-badge nice">NICE</span></td>
+          <td class="col-provided">보안 규격 준수 배포</td>
+          <td class="col-missing">보안 심사 통과 불확실, 배포 지연 가능</td>
+          <td class="col-alt">최소 보안(HTTPS+Token) 선적용, 추후 규격 맞춤</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 3. 등급 분류 ── -->
+  <section class="section">
+    <h2 class="section-title">등급 분류</h2>
+    <div class="grade-grid">
+      <div class="grade-card must">
+        <div class="grade-label">MUST</div>
+        <div class="grade-def">미제공 시 MVP 핵심 기능 무력화</div>
+        <div class="grade-items">
+          <strong>A1</strong> 인터뷰 102건<br>
+          <strong>A5</strong> 도메인/차종 확정<br>
+          <strong>B1</strong> 실무 담당자 채널
+        </div>
+      </div>
+      <div class="grade-card should">
+        <div class="grade-label">SHOULD</div>
+        <div class="grade-def">미제공 시 아웃풋 품질 유의미 저하</div>
+        <div class="grade-items">
+          <strong>A2</strong> VoC 데이터<br>
+          <strong>A3</strong> VCRM/IBD 정량<br>
+          <strong>B2</strong> 기획팀 검증<br>
+          <strong>B3</strong> 보고 구조<br>
+          <strong>C1</strong> 배포 환경
+        </div>
+      </div>
+      <div class="grade-card nice">
+        <div class="grade-label">NICE TO HAVE</div>
+        <div class="grade-def">미제공 시 대체 가능, '27년 연계 약화</div>
+        <div class="grade-items">
+          <strong>A4</strong> SNS 수집 범위<br>
+          <strong>B4</strong> RACI<br>
+          <strong>C2</strong> mock 데이터 협업<br>
+          <strong>C3</strong> API 보안 요건
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 4. Sprint 타임라인 매핑 ── -->
+  <section class="section">
+    <h2 class="section-title">타임라인 매핑 — Sprint별 필요 항목</h2>
+    <div class="timeline-row">
+      <div class="timeline-label">
+        <div class="sprint">S0</div>
+        <div class="period">W1 · 킥오프</div>
+      </div>
+      <div class="timeline-items">
+        <span class="timeline-chip must">A1 인터뷰 102건</span>
+        <span class="timeline-chip must">A5 도메인 확정</span>
+        <span class="timeline-chip must">B1 담당자 지정</span>
+        <span class="timeline-chip should">A2 VoC (범위 합의)</span>
+        <span class="timeline-chip should">B3 보고 구조</span>
+        <span class="timeline-chip nice">A4 SNS 범위</span>
+        <span class="timeline-chip nice">B4 RACI</span>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-label">
+        <div class="sprint">S1</div>
+        <div class="period">8월 · 엔진</div>
+      </div>
+      <div class="timeline-items">
+        <span class="timeline-chip should">A2 VoC 데이터 수령</span>
+        <span class="timeline-chip should">A3 VCRM/IBD</span>
+        <span class="timeline-chip should">C1 배포 환경</span>
+        <span class="timeline-chip nice">C2 mock 협업</span>
+        <span class="timeline-chip nice">C3 보안 요건</span>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-label">
+        <div class="sprint">S2</div>
+        <div class="period">9월 · UC1</div>
+      </div>
+      <div class="timeline-items">
+        <span class="timeline-chip should">B2 기획팀 검증 (1차)</span>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-label">
+        <div class="sprint">S3</div>
+        <div class="period">10월 · UC2</div>
+      </div>
+      <div class="timeline-items">
+        <span class="timeline-chip should">B2 기획팀 검증 (2차)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 5. F 역매핑 ── -->
+  <section class="section">
+    <h2 class="section-title">RFP 기능 × 의존성 역매핑</h2>
+    <p class="section-desc">RFP F1~F7 각 기능이 어떤 협조 항목에 의존하며, 미제공 시 어떤 기능이 깨지는지 역추적합니다.</p>
+    <table class="fmap-table">
+      <thead>
+        <tr>
+          <th class="f-id">F#</th>
+          <th class="f-name">RFP 요구기능</th>
+          <th>의존 항목</th>
+          <th>미제공 시 영향</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="f-id">F1</td>
+          <td class="f-name">웹 UI (프로토타입)</td>
+          <td class="f-deps">C1 배포 환경</td>
+          <td class="f-impact">로컬 데모만 가능, 현대차 내부 접근 불가. 기능 자체는 독립 구현 가능</td>
+        </tr>
+        <tr>
+          <td class="f-id">F2</td>
+          <td class="f-name">VoC 전처리 / DB</td>
+          <td class="f-deps">A1 인터뷰, A2 VoC, A4 SNS 범위</td>
+          <td class="f-impact">A1 없으면 = cabin-air만 인제스트. A2·A4 없으면 = 단일소스 시연 only</td>
+        </tr>
+        <tr>
+          <td class="f-id">F3</td>
+          <td class="f-name">Latent Desire 모델</td>
+          <td class="f-deps">A1 인터뷰, A5 도메인 확정</td>
+          <td class="f-impact">A1 없으면 = 현대차 고유 욕구 도출 불가. A5 없으면 = 범용 분석 → 깊이 부족</td>
+        </tr>
+        <tr>
+          <td class="f-id">F4</td>
+          <td class="f-name">정성/정량 교차검증</td>
+          <td class="f-deps">A2 VoC, A3 VCRM/IBD</td>
+          <td class="f-impact">둘 다 없으면 = 프레임워크만 제시, 실증 전혀 불가 (핵심 리스크)</td>
+        </tr>
+        <tr>
+          <td class="f-id">F5</td>
+          <td class="f-name">Core Experience 도출</td>
+          <td class="f-deps">A1 인터뷰, A5 도메인, B2 검증</td>
+          <td class="f-impact">A1 없으면 = cabin-air 기반 generic. B2 없으면 = 현업 적합 미검증</td>
+        </tr>
+        <tr>
+          <td class="f-id">F6</td>
+          <td class="f-name">User Story 초안</td>
+          <td class="f-deps">B2 기획팀 검증, B3 보고 구조</td>
+          <td class="f-impact">B2 없으면 = AI 생성 초안 수준, N1 95% 측정 불가</td>
+        </tr>
+        <tr>
+          <td class="f-id">F7</td>
+          <td class="f-name">Use Case 2개 프로토타입</td>
+          <td class="f-deps">A1, A5, B1 (전체 MUST)</td>
+          <td class="f-impact">MUST 미충족 시 = "cabin-air 재시연" × 2로 전락. 현대차 고유 가치 0</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 6. 대응 시나리오 ── -->
+  <section class="section">
+    <h2 class="section-title">대응 시나리오</h2>
+    <div class="scenario-grid">
+      <div class="scenario-card best">
+        <h4>Best Case</h4>
+        <div class="scenario-sub">MUST + SHOULD 전량 제공</div>
+        <ul class="scenario-items">
+          <li>현대차 고유 인사이트 기반 풀스펙 MVP</li>
+          <li>F1~F7 전 기능 실동작 + 교차검증 완료</li>
+          <li>N1 KPI 95% 측정·달성 가능</li>
+          <li>'27년 풀 프로젝트 예산 확보 근거 충분</li>
+          <li>Use Case 2개 = 실 경험 설계 품질</li>
+        </ul>
+      </div>
+      <div class="scenario-card base">
+        <h4>Base Case</h4>
+        <div class="scenario-sub">MUST만 제공, SHOULD 일부 지연</div>
+        <ul class="scenario-items">
+          <li>현대차 인터뷰 기반 분석은 가능</li>
+          <li>교차검증(F4) = 프레임워크 + mock 시연</li>
+          <li>User Story 정확도는 자체 QA 수준</li>
+          <li>배포는 외부 클라우드 임시 운용</li>
+          <li>MVP 가치는 입증되나 "완성도" 논란 가능</li>
+        </ul>
+      </div>
+      <div class="scenario-card worst">
+        <h4>Worst Case</h4>
+        <div class="scenario-sub">MUST 미제공 (A1 부재)</div>
+        <ul class="scenario-items">
+          <li>cabin-air 3,586건으로 파이프라인 데모만</li>
+          <li>현대차 고유 인사이트 = 0</li>
+          <li>"기술 시연"으로 평가 격하 불가피</li>
+          <li>N1 KPI 측정 기준 부재</li>
+          <li>'27년 예산 확보 논리 약화</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="doc-footer">
+    <span>Confidential — Internal Use Only</span>
+    <span>X-Discovery MVP · Scope Dependencies v1.0</span>
+    <span>by Project Rent &copy; 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

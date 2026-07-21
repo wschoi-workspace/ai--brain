@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RFP 분석 — 현대자동차 AI 에이전트 경험설계 플랫폼 MVP</title>
+<style>
+:root {
+  --bg: #0d0d0d;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --border: #333;
+  --text: #e8e8e8;
+  --text-dim: #999;
+  --accent: #6C5CE7;
+  --accent-light: #a29bfe;
+  --green: #00b894;
+  --orange: #fdcb6e;
+  --red: #e17055;
+  --blue: #74b9ff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  padding: 40px 20px;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+/* Header */
+.header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 32px;
+  margin-bottom: 48px;
+}
+.header-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--accent-light);
+  border: 1px solid var(--accent);
+}
+.badge.mode { background: rgba(108,92,231,0.15); }
+.badge.date { color: var(--text-dim); border-color: var(--border); }
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 16px 0 8px;
+  letter-spacing: -0.5px;
+}
+.subtitle {
+  font-size: 15px;
+  color: var(--text-dim);
+}
+/* Executive Summary */
+.exec-summary {
+  background: linear-gradient(135deg, rgba(108,92,231,0.08), rgba(116,185,255,0.05));
+  border: 1px solid rgba(108,92,231,0.3);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 48px;
+}
+.exec-summary h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-light);
+  margin-bottom: 16px;
+}
+.exec-summary p {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.exec-summary .winning {
+  background: var(--surface2);
+  border-left: 3px solid var(--green);
+  padding: 12px 16px;
+  margin-top: 16px;
+  border-radius: 0 6px 6px 0;
+  font-size: 14px;
+}
+/* Sections */
+.section {
+  margin-bottom: 56px;
+}
+.section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section h2 .num {
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 20px 0 12px;
+  color: var(--accent-light);
+}
+h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 16px 0 8px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+p, li {
+  font-size: 14px;
+  color: var(--text);
+}
+ul, ol {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+li { margin-bottom: 6px; }
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 20px;
+  font-size: 13px;
+}
+th {
+  background: var(--surface2);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+tr:hover td { background: rgba(108,92,231,0.03); }
+.priority-필수 { color: var(--red); font-weight: 600; }
+.priority-중요 { color: var(--orange); font-weight: 600; }
+.priority-선택 { color: var(--text-dim); }
+.difficulty-높음 { color: var(--red); }
+.difficulty-중간 { color: var(--orange); }
+.difficulty-낮음 { color: var(--green); }
+/* Cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+.card-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.card-value {
+  font-size: 14px;
+  line-height: 1.6;
+}
+/* Problem Definition */
+.problem-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 16px 0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-dim);
+}
+.problem-box .highlight {
+  color: var(--accent-light);
+  font-weight: 600;
+}
+.problem-box .arrow {
+  color: var(--orange);
+}
+/* Risk matrix */
+.risk-high { color: var(--red); font-weight: 600; }
+.risk-mid { color: var(--orange); font-weight: 600; }
+/* Synergy diagram */
+.synergy {
+  background: var(--surface);
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 16px 0;
+}
+.synergy-flow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.synergy-node {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.synergy-arrow {
+  color: var(--green);
+  font-size: 18px;
+}
+/* Questions */
+.question-group {
+  margin: 12px 0;
+}
+.question-group h4 {
+  margin-bottom: 8px;
+}
+.question-list {
+  list-style: none;
+  padding-left: 0;
+}
+.question-list li {
+  padding: 8px 0 8px 24px;
+  border-bottom: 1px solid rgba(51,51,51,0.5);
+  position: relative;
+}
+.question-list li::before {
+  content: "?";
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+  color: var(--orange);
+}
+/* Footer */
+.footer {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.ref {
+  font-size: 11px;
+  color: var(--blue);
+  opacity: 0.8;
+}
+@media (max-width: 768px) {
+  body { padding: 20px 16px; }
+  h1 { font-size: 22px; }
+  .card-grid { grid-template-columns: 1fr; }
+  table { font-size: 12px; }
+  th, td { padding: 8px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Header -->
+<header class="header">
+  <div class="header-meta">
+    <span class="badge mode">Mode A — 민간 기업 RFP</span>
+    <span class="badge date">2026-07-18</span>
+    <span class="badge">8p · PDF 0713ver</span>
+  </div>
+  <h1>RFP 분석 — 현대자동차 AI 에이전트 기반 경험설계 플랫폼 MVP</h1>
+  <p class="subtitle">발주: 현대자동차 조정현 책임 · 기간: 2026.08~10 (3개월) · SDV 경험중심 개발 전환</p>
+</header>
+
+<!-- Executive Summary -->
+<div class="exec-summary">
+  <h2>Executive Summary</h2>
+  <p>이 프로젝트의 진짜 문제는 "AI 도구 도입"이 아니라 <strong>기획-개발 조직 간 번역 비용을 줄이는 내부 설득 도구 구축</strong>이다.</p>
+  <p>3개월 MVP = 2027년 풀 프로젝트 예산 확보 PoC이자 경영진 IR 자료.</p>
+  <div class="winning">
+    <strong>Winning Point:</strong> cabin-air RXR 파이프라인(정성 인터뷰→Gate4 필터→테마→욕구 구조화)이 X-Discovery 방법론과 구조적 동형. "현대차 고객의 언어를 이미 분석해본 팀"이라는 레퍼런스가 결정적 차별화.
+  </div>
+</div>
+
+<!-- 1. Client Situation -->
+<section class="section">
+  <h2><span class="num">1</span>클라이언트 상황 파악</h2>
+
+  <h3>조직 맥락 (행간 읽기)</h3>
+  <table>
+    <thead><tr><th>RFP 내 신호</th><th>해석</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>"성공적 안착과 지속 가능한 운영"</td><td>전환 완료가 아닌 진행 중 — 내부 증명 필요</td><td class="ref">P1</td></tr>
+      <tr><td>"미숙련자 가이드, 전사 역량 상향평준화"</td><td>핵심 인력 의존 구조에 리스크 인식</td><td class="ref">P1</td></tr>
+      <tr><td>"Human-in-the-Loop 지점 확인"</td><td>전면 자동화 아닌 사람 개입 설계가 핵심 과제</td><td class="ref">P4,5</td></tr>
+      <tr><td>"관련부문 협의 후 정의"</td><td>이해관계자 아직 미정렬</td><td class="ref">P2</td></tr>
+      <tr><td>"영상/이미지 생성 불포함"</td><td>이전 스코프 혼선 경험 추정</td><td class="ref">P2</td></tr>
+      <tr><td>"'27년 X-Discovery 고도화 + Navigator 개발"</td><td>이번 MVP = 예산 확보 PoC</td><td class="ref">P7</td></tr>
+    </tbody>
+  </table>
+
+  <h3>실제 원하는 가치</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-label">표면적 요구</div>
+      <div class="card-value">AI 에이전트 프로토타입</div>
+    </div>
+    <div class="card">
+      <div class="card-label">근본적 니즈</div>
+      <div class="card-value">"이 방향이 맞다"는 내부 증명 + 기획→개발 설명 시간 절감</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Requirements -->
+<section class="section">
+  <h2><span class="num">2</span>명시적 요구사항 정의</h2>
+
+  <h3>기능 요구사항 (14개)</h3>
+  <table>
+    <thead><tr><th>#</th><th>요구사항</th><th>근거</th><th>우선순위</th></tr></thead>
+    <tbody>
+      <tr><td>F1</td><td>웹 기반 사용자 UI</td><td class="ref">P3</td><td class="priority-필수">필수</td></tr>
+      <tr><td>F2</td><td>VoC 전처리 및 DB 적재/처리 로직</td><td class="ref">P3</td><td class="priority-필수">필수</td></tr>
+      <tr><td>F3</td><td>Latent Desire 도출 언어분석 모델</td><td class="ref">P3,4</td><td class="priority-필수">필수</td></tr>
+      <tr><td>F4</td><td>정성/정량 교차검증 모델</td><td class="ref">P3,4</td><td class="priority-필수">필수</td></tr>
+      <tr><td>F5</td><td>Core Experience 도출 로직</td><td class="ref">P2,3</td><td class="priority-필수">필수</td></tr>
+      <tr><td>F6</td><td>User Story 초안 생성 (As a / I want / So that)</td><td class="ref">P2,4</td><td class="priority-필수">필수</td></tr>
+      <tr><td>F7</td><td>대표 Use Case 2개 동작 프로토타입</td><td class="ref">P5,7</td><td class="priority-필수">필수</td></tr>
+      <tr><td>F8</td><td>Experience Node Map 시각화</td><td class="ref">P2,8</td><td class="priority-중요">중요</td></tr>
+      <tr><td>F9</td><td>가설 생성 로직 (핵심 경험 기반 기획 가설)</td><td class="ref">P3</td><td class="priority-중요">중요</td></tr>
+      <tr><td>F10</td><td>컨셉기획서 생성 로직 (기획서 양식 맞춤)</td><td class="ref">P3</td><td class="priority-중요">중요</td></tr>
+      <tr><td>F11</td><td>Use Case Flow 및 R&R Chart 생성</td><td class="ref">P3</td><td class="priority-중요">중요</td></tr>
+      <tr><td>F12</td><td>Say-Do Gap 분석 기능</td><td class="ref">P2,5</td><td class="priority-중요">중요</td></tr>
+      <tr><td>F13</td><td>대시보드 → 데이터탐색 → Navigator 화면 흐름</td><td class="ref">P5</td><td class="priority-중요">중요</td></tr>
+      <tr><td>F14</td><td>모니터링·개선기준 (Part3 운영연계)</td><td class="ref">P2</td><td class="priority-선택">선택</td></tr>
+    </tbody>
+  </table>
+
+  <h3>비기능 요구사항 (6개)</h3>
+  <table>
+    <thead><tr><th>#</th><th>요구사항</th><th>근거</th><th>우선순위</th></tr></thead>
+    <tbody>
+      <tr><td>N1</td><td>Flow·R&R 정확도 <strong>95% 이상</strong></td><td class="ref">P3</td><td class="priority-필수">필수 (유일 수치 KPI)</td></tr>
+      <tr><td>N2</td><td>동일 Q 입력 시 결과 재현성 유지</td><td class="ref">P3</td><td class="priority-필수">필수</td></tr>
+      <tr><td>N3</td><td>VoC DB 안정성·접근성</td><td class="ref">P3</td><td class="priority-필수">필수</td></tr>
+      <tr><td>N4</td><td>차량 데이터 보안 준수 (mock/합성 대체)</td><td class="ref">P4</td><td class="priority-필수">필수</td></tr>
+      <tr><td>N5</td><td>Human-in-the-Loop 구조 유지</td><td class="ref">P4,5</td><td class="priority-필수">필수</td></tr>
+      <tr><td>N6</td><td>3개월 내 MVP 완성 (8~10월, Sprint×3)</td><td class="ref">P6</td><td class="priority-필수">필수</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 3. Implicit Requirements -->
+<section class="section">
+  <h2><span class="num">3</span>암묵적 요구사항</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-label">데이터 보안</div>
+      <div class="card-value">
+        <ul>
+          <li>차량데이터 전체 제공 불가 → 합성 데이터가 실데이터와 형식 동일해야 추후 연계</li>
+          <li>고객 인터뷰 102건 → 개인정보 익명화 방안 선제 제시 필요</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">내부 정치</div>
+      <div class="card-value">
+        <ul>
+          <li>"평균 끌어올림" 포지셔닝 필수 (대체 아님)</li>
+          <li>MVP가 내부 설득 자료 역할 — 시연 퀄리티 중요</li>
+          <li>'27년 고도화 = 이번이 예산 확보 PoC</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Deliverables -->
+<section class="section">
+  <h2><span class="num">4</span>산출물 정의</h2>
+
+  <h3>RFP 명시 산출물</h3>
+  <table>
+    <thead><tr><th>산출물</th><th>근거</th><th>난이도</th><th>공수</th></tr></thead>
+    <tbody>
+      <tr><td>X-Discovery AI 에이전트 프로토타입 (웹)</td><td class="ref">P7</td><td class="difficulty-높음">높음</td><td>6~8주</td></tr>
+      <tr><td>데이터 수집/활용 가이드라인</td><td class="ref">P4,7</td><td class="difficulty-중간">중간</td><td>1~2주</td></tr>
+      <tr><td>분석 알고리즘 (Latent Desire + 교차검증)</td><td class="ref">P4,7</td><td class="difficulty-높음">높음</td><td>4~6주</td></tr>
+      <tr><td>다수 경험 가설 도출</td><td class="ref">P4</td><td class="difficulty-중간">중간</td><td>3~4주</td></tr>
+      <tr><td>User Story 구성 초안</td><td class="ref">P4,7</td><td class="difficulty-중간">중간</td><td>2~3주</td></tr>
+      <tr><td>Use Case 2개 UX/UI 프로토타입</td><td class="ref">P5,7</td><td class="difficulty-높음">높음</td><td>4~5주</td></tr>
+      <tr><td>완료보고서</td><td class="ref">P6</td><td class="difficulty-낮음">낮음</td><td>1주</td></tr>
+    </tbody>
+  </table>
+
+  <h3>추가 제안 산출물 (경쟁 우위)</h3>
+  <table>
+    <thead><tr><th>산출물</th><th>이유</th><th>차별화 효과</th></tr></thead>
+    <tbody>
+      <tr><td>Human-in-the-Loop 개입 지점 가이드</td><td>P4,5에서 "확인" 수준 요구</td><td>실무 활용성 극대화</td></tr>
+      <tr><td>Say-Do Gap 시각화 대시보드 템플릿</td><td>P5 화면 언급, 상세 불명</td><td>경영진 즉시 보고 가능</td></tr>
+      <tr><td>경험 가설 신뢰도 채점 루브릭</td><td>KPI가 "이슈연관성"만 명시</td><td>측정 가능 성공 기준 제공</td></tr>
+      <tr><td>'27년 고도화 로드맵 초안</td><td>P7 향후 언급</td><td>장기 파트너십 포지셔닝</td></tr>
+      <tr><td>RXR 파이프라인 연동 데모</td><td>기존 cabin-air 자산 활용</td><td>"이미 해봤다" 증명</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 5. Core Problem -->
+<section class="section">
+  <h2><span class="num">5</span>핵심 문제 정의</h2>
+
+  <div class="problem-box">
+    <span class="highlight">표면:</span> "AI 에이전트로 User Story를 자동 생성해달라"<br><br>
+    <span class="highlight">실제:</span> 기획자가 만든 아이디어가 개발팀에 도달하기까지<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;너무 많은 것이 소실된다.<br><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;기획자 <span class="arrow">→ [번역 비용] →</span> 개발자 <span class="arrow">→ [해석 오류] →</span> 출시 지연<br><br>
+    <span class="highlight">근본:</span> "기획 언어와 개발 언어 사이의 번역기"가 필요하다.<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AI 에이전트는 그 번역기의 형태일 뿐.
+  </div>
+
+  <h3>잠재 모순</h3>
+  <table>
+    <thead><tr><th>모순</th><th>상충 지점</th><th>대응</th></tr></thead>
+    <tbody>
+      <tr><td>"전사 도구" vs "단일 주제 PoC"</td><td>범위 정의 협의 필요</td><td>kick-off 시 스코프 협상 선제</td></tr>
+      <tr><td>"재현성" vs LLM 비결정성</td><td>기술 제약 정면 직면</td><td>Temp=0 + 캐싱 + 검증레이어</td></tr>
+      <tr><td>"3개월" vs 프로토타입 2개 + X-Discovery</td><td>일정 극히 타이트</td><td>Sprint별 점진 MVP 제안</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 6. Strategy -->
+<section class="section">
+  <h2><span class="num">6</span>전략적 차별화 & Winning Point</h2>
+
+  <div class="synergy">
+    <h3 style="color: var(--green); margin-top: 0;">RXR ↔ X-Discovery 구조 동형</h3>
+    <p style="margin: 12px 0; font-size: 13px; color: var(--text-dim);">cabin-air 프로젝트 (이미 수행)</p>
+    <div class="synergy-flow">
+      <span class="synergy-node">현대차 정성 데이터</span>
+      <span class="synergy-arrow">→</span>
+      <span class="synergy-node">Gate4 진정성 필터</span>
+      <span class="synergy-arrow">→</span>
+      <span class="synergy-node">테마 추출</span>
+      <span class="synergy-arrow">→</span>
+      <span class="synergy-node">욕구 5종 구조화</span>
+    </div>
+    <p style="margin: 12px 0; font-size: 13px; color: var(--text-dim);">X-Discovery 요구</p>
+    <div class="synergy-flow">
+      <span class="synergy-node">고객 인터뷰 102건</span>
+      <span class="synergy-arrow">→</span>
+      <span class="synergy-node">잠재욕구 이해모델</span>
+      <span class="synergy-arrow">→</span>
+      <span class="synergy-node">Core Experience 도출</span>
+      <span class="synergy-arrow">→</span>
+      <span class="synergy-node">User Story</span>
+    </div>
+    <p style="margin-top: 16px; font-size: 14px;"><strong>= 방법론 동형. 같은 구조 + 이미 현대차 데이터로 검증됨.</strong></p>
+  </div>
+
+  <h3>포지셔닝 비교</h3>
+  <table>
+    <thead><tr><th>경쟁사 예상 포지션</th><th>프로젝트렌트 + RXR</th></tr></thead>
+    <tbody>
+      <tr><td>대형 SI (삼성SDS류) — 플랫폼 위주</td><td>경험 설계 방법론 + 구현 이원화</td></tr>
+      <tr><td>AI 스타트업 — 기술 위주</td><td>현대차 컨텍스트 사전 이해</td></tr>
+      <tr><td>컨설팅 펌 — 프레임워크 위주</td><td>실행 가능 프로토타입까지 전달</td></tr>
+    </tbody>
+  </table>
+
+  <h3>cabin-air 시너지 구체 항목</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-label">데이터 처리</div>
+      <div class="card-value">Gate4 광고필터 → VoC 전처리 로직에 즉시 활용</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Latent Desire</div>
+      <div class="card-value">욕구 5카테고리 도출 방법론 → 언어분석 기반 기초</div>
+    </div>
+    <div class="card">
+      <div class="card-label">교차검증</div>
+      <div class="card-value">정성(3,586건)→정량(합성) 교차분석 동일 패턴</div>
+    </div>
+    <div class="card">
+      <div class="card-label">User Story</div>
+      <div class="card-value">인사이트→제언 구조 → As a/I want/So that 변환 자연스러움</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Risk & Questions -->
+<section class="section">
+  <h2><span class="num">7</span>리스크 & 추가 확인 질문</h2>
+
+  <h3>리스크 매트릭스</h3>
+  <table>
+    <thead><tr><th>리스크</th><th>유형</th><th>심각도</th><th>대응 방향</th></tr></thead>
+    <tbody>
+      <tr><td>LLM 재현성 요구 vs 비결정성</td><td>기술</td><td class="risk-high">높음</td><td>Temp=0 + 결과 캐싱 + 검증 레이어</td></tr>
+      <tr><td>차량 데이터 보안 → mock 한계</td><td>기술</td><td class="risk-high">높음</td><td>합성데이터 방법론 + 실데이터 로드맵</td></tr>
+      <tr><td>3개월 내 전체 스코프</td><td>일정</td><td class="risk-high">높음</td><td>Sprint별 점진 MVP + 스코프 협상</td></tr>
+      <tr><td>이해관계자 미정렬</td><td>조직</td><td class="risk-mid">중간</td><td>스테이크홀더 맵 선제 확인</td></tr>
+      <tr><td>고객 인터뷰 102건 제공 여부</td><td>데이터</td><td class="risk-mid">중간</td><td>kick-off 전 데이터 협의 필수</td></tr>
+      <tr><td>내부 AI 저항감</td><td>조직</td><td class="risk-mid">중간</td><td>"대체 아닌 상향평준화" 포지셔닝</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Kick-off 전 필수 확인 질문</h3>
+
+  <div class="question-group">
+    <h4>데이터</h4>
+    <ol class="question-list">
+      <li>고객 인터뷰 102건 — 즉시 사용 가능한가, 수집 계획 단계인가?</li>
+      <li>차량 데이터(VCRM, IBD) mock 생성 시 내부 데이터 엔지니어 협업 가능?</li>
+      <li>IQS/VDS, 고객센터 데이터 — 제공 형식과 업데이트 주기?</li>
+      <li>SNS 데이터 수집 범위 — 어떤 플랫폼, 기간, 키워드?</li>
+    </ol>
+  </div>
+
+  <div class="question-group">
+    <h4>스코프</h4>
+    <ol class="question-list">
+      <li>"단일 주제 선정" — 어떤 차종/경험 도메인으로 협의 예정인가?</li>
+      <li>Use Case 1(아이디어 빌드업) vs 3(기존 경험 업데이트) — 우선순위?</li>
+      <li>대시보드~Navigator 화면 — 디자인 QA 담당은 누구?</li>
+    </ol>
+  </div>
+
+  <div class="question-group">
+    <h4>조직</h4>
+    <ol class="question-list">
+      <li>최종 보고 대상 = 누구? (담당자 위 의사결정자)</li>
+      <li>기획팀+개발팀 모두 프로젝트 존재를 인지하고 있는가?</li>
+      <li>'27년 고도화 예산 — 이미 확보됐는가, 이번 MVP가 근거인가?</li>
+    </ol>
+  </div>
+
+  <div class="question-group">
+    <h4>기술</h4>
+    <ol class="question-list">
+      <li>현대차 IT 인프라(AWS/Azure) 연계 필요?</li>
+      <li>보안 등급 — 사내 망 배포인가, 외부 클라우드 허용?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 8. Next Steps -->
+<section class="section">
+  <h2><span class="num">8</span>다음 단계</h2>
+  <table>
+    <thead><tr><th>액션</th><th>담당</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><td>입찰 참여 여부 최종 결정</td><td>최원석</td><td>—</td></tr>
+      <tr><td>cabin-air 레퍼런스 공개 활용 현대차 동의</td><td>조정현 책임 확인</td><td>NDA 범위 체크</td></tr>
+      <tr><td>제안서 작성 (하이브리드 B2B 포맷)</td><td>프로젝트렌트</td><td>입찰 결정 후</td></tr>
+      <tr><td>경쟁사 파악</td><td>최원석</td><td>삼성SDS/LG CNS/스타트업 예상</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <span>by Project Rent — RXR Intelligence</span>
+  <span>Confidential · 2026-07-18</span>
+</footer>
+
+</div>
+</body>
+</html>

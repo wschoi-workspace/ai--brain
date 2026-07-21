@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>차량 냄새·공조 멘션 세부 분석 — RXR Deep Dive</title>
+<style>
+  @media print { body{-webkit-print-color-adjust:exact;print-color-adjust:exact;} .card,.insight,.need,.chain{break-inside:avoid;} }
+  *{box-sizing:border-box;}
+  body{font-family:'Pretendard Variable',system-ui,sans-serif;color:#1a1a1a;line-height:1.65;margin:0;background:#f5f5f7;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1120px;margin:0 auto;padding:36px 28px 64px;}
+  h1{font-size:30px;font-weight:900;letter-spacing:-1px;margin:0 0 6px;}
+  .sub{color:#666;font-size:15px;margin:0 0 8px;}
+  h2{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin:48px 0 6px;padding-bottom:9px;border-bottom:2px solid #6666FF;}
+  h2 .en{color:#9a9a9a;font-size:14px;font-weight:600;margin-left:6px;}
+  .lead{color:#555;font-size:14.5px;margin:0 0 16px;}
+  .card{background:#fff;border-radius:14px;padding:22px 24px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:16px;}
+  .rawbox{background:#f0f4ff;border:1px solid #d8e0ff;border-radius:10px;padding:12px 16px;font-size:12.5px;color:#3a4a7a;margin-top:12px;} .rawbox b{color:#3355cc;}
+  .concl{background:#eef2ff;border-radius:10px;padding:13px 16px;font-size:13.5px;color:#333;margin-top:12px;line-height:1.6;} .concl b{color:#4433cc;}
+  .toc{background:#fff;border-radius:14px;padding:16px 22px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:8px;font-size:13.5px;color:#555;} .toc b{color:#6666FF;}
+  /* 수평 막대 리스트 */
+  .rowbar{display:flex;align-items:center;gap:12px;margin:8px 0;}
+  .rowbar .rl{width:158px;font-size:13px;font-weight:700;flex-shrink:0;} .rowbar .rl small{display:block;color:#999;font-weight:400;font-size:11px;}
+  .rowbar .rt{flex:1;height:24px;background:#f0f0f4;border-radius:6px;overflow:hidden;position:relative;}
+  .rowbar .rf{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-size:11px;font-weight:700;}
+  .rowbar .rn{width:56px;text-align:right;font-size:13px;font-weight:800;flex-shrink:0;}
+  .rowbar .rp{width:74px;text-align:right;font-size:12px;flex-shrink:0;}
+  .b-red .rf{background:#E5484D;} .b-org .rf{background:#F2A900;} .b-grn .rf{background:#30A46C;} .b-vio .rf{background:#6666FF;} .b-gry .rf{background:#9a9aa5;}
+  .neg{color:#E5484D;font-weight:800;} .mid{color:#F2A900;font-weight:800;} .good{color:#30A46C;font-weight:800;}
+  /* 원인 사슬 */
+  .chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:6px 0;}
+  .chain .step{flex:1;min-width:150px;background:#fff;border:2px solid #eee;border-radius:12px;padding:14px 16px;position:relative;}
+  .chain .step .st{font-size:11px;color:#999;font-weight:700;} .chain .step .sh{font-size:15px;font-weight:800;margin:3px 0;} .chain .step .sd{font-size:12px;color:#666;}
+  .chain .arw{display:flex;align-items:center;font-size:24px;color:#6666FF;font-weight:900;padding:0 6px;}
+  .chain .step.hot{border-color:#E5484D;background:#fff5f5;}
+  .metric{display:inline-flex;align-items:baseline;gap:5px;background:#fff;border:1px solid #eee;border-radius:8px;padding:6px 11px;margin:3px 5px 3px 0;font-size:12.5px;} .metric b{font-size:16px;font-weight:900;}
+  .metric.bad b{color:#E5484D;} .metric.good b{color:#30A46C;} .metric.mid b{color:#F2A900;}
+  .quote{background:#f7f7fa;border-radius:10px;padding:12px 16px;font-size:13.5px;color:#333;margin:8px 0;border-left:3px solid #ccc;} .quote .src{display:block;font-size:11px;color:#999;margin-top:5px;}
+  .quote.big{border-left-color:#6666FF;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;} th,td{padding:9px 10px;text-align:left;border-bottom:1px solid #eee;} th{background:#faf9ff;font-weight:700;color:#555;font-size:12px;}
+  td .mini{display:inline-block;height:8px;border-radius:4px;vertical-align:middle;}
+  .need{background:#fff;border-radius:14px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:14px;border-left:5px solid #6666FF;}
+  .need.satisfied{border-left-color:#30A46C;} .need .tag{display:inline-block;background:#6666FF;color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;margin-bottom:8px;} .need.satisfied .tag{background:#30A46C;}
+  .need h3{font-size:18px;font-weight:900;margin:0 0 4px;letter-spacing:-0.5px;} .need .desire{font-size:14.5px;color:#6666FF;font-weight:700;margin:0 0 8px;} .need.satisfied .desire{color:#30A46C;}
+  .need p.x{margin:6px 0 0;font-size:13.5px;color:#444;}
+  .insight{background:linear-gradient(135deg,#6666FF08,#6666FF14);border-radius:14px;padding:22px 24px;margin-bottom:14px;border:1px solid #e5e2ff;}
+  .insight .num{font-size:13px;font-weight:900;color:#6666FF;} .insight h3{margin:4px 0 8px;font-size:18px;font-weight:800;letter-spacing:-0.5px;} .insight p{margin:0;font-size:14px;color:#444;}
+  .bl-top{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+  .bl-stat{background:#1a1a2e;color:#fff;border-radius:14px;padding:18px 20px;text-align:center;} .bl-stat .v{font-size:28px;font-weight:900;letter-spacing:-1px;} .bl-stat .l{font-size:12px;color:#b8b8d0;margin-top:2px;}
+  .rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;} .rec{background:linear-gradient(135deg,#30A46C,#2b8f5e);color:#fff;border-radius:12px;padding:16px 18px;} .rec .n{font-size:11px;font-weight:800;opacity:.8;} .rec .t{font-size:15px;font-weight:900;margin:3px 0 6px;} .rec .d{font-size:12.5px;opacity:.95;line-height:1.5;}
+  .note{font-size:12px;color:#999;margin-top:6px;}
+  @media (max-width:820px){.bl-top,.rec-grid{grid-template-columns:1fr;}.rowbar .rl{width:120px;}.chain .arw{display:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div style="display:flex;align-items:center;gap:10px;margin:0 0 20px 0;padding:0;background:transparent;border:none;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  <strong style="font-size:19px;color:#1a1a1a;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+  <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+  <strong style="font-size:13px;color:#6666FF;font-weight:700;letter-spacing:-0.1px;white-space:nowrap;">Project Rent</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+</div>
+
+<h1>차량 냄새·공조 멘션 세부 분석 <span style="font-size:17px;color:#9a9a9a;font-weight:700;">Deep Dive</span></h1>
+<p class="sub"><b>미세먼지·필터(만족영역)와 새차냄새(신차 일시이슈)를 제외</b>하고, 일상적으로 반복되는 <b>냄새 + 공조 쾌적성</b> 멘션 1,940건만 해부 · 최근 180일 · 2026-07-17</p>
+<div class="toc">📑 <b>0</b> 왜 이 범위인가 · <b>1</b> 냄새의 정체 · <b>2</b> 원인 사슬(습기→에바) · <b>3</b> 대처의 역설 · <b>4</b> 계절·상황 트리거 · <b>5</b> 공조 불편 지도 · <b>6</b> 감정 구조 · <b>7</b> 욕구 재정의 · <b>8</b> BOTTOM LINE</div>
+
+<!-- 0 -->
+<h2>0 · 왜 이 범위인가 <span class="en">scope</span></h2>
+<div class="card">
+  <p class="lead">앞선 전체 분석에서 <b>미세먼지·필터는 이미 충족된 욕구(긍정 42%)</b>, <b>새차냄새는 6개월이면 사라지는 일시 이슈</b>였다. 이 둘을 빼면 남는 건 <b>매년·매 계절 반복되는 진짜 만성 페인포인트</b> — 곰팡이 냄새와 공조 쾌적성이다. 여기에 집중한다.</p>
+  <div class="rawbox">📊 <b>Raw Data</b> · Gate4 진성후기 3,586건 중 대상 8개 토픽(곰팡이·에어컨/외부유입/냉난방/풍량/온도편차/성에/환기/건강) = <b>1,940건</b>. 아래 유형·원인·대처 카운트는 <b>멘션 내 언급 빈도(한 글이 여러 항목 중복 가능)</b>이며, %는 해당 언급 멘션의 부정 감성 비율.</div>
+</div>
+
+<!-- 1 냄새 정체 -->
+<h2>1 · 냄새의 정체 — 결국 '곰팡이'다 <span class="en">what smell</span></h2>
+<p class="lead">"차 냄새"라는 막연한 불만을 유형별로 갈랐다. <b>곰팡이·쉰내가 압도적</b>이고, 담배·매연은 부차적이다.</p>
+<div class="card">
+  <div class="rowbar b-red"><div class="rl">곰팡이·쉰내<small>퀴퀴·시큼·걸레냄새</small></div><div class="rt"><div class="rf" style="width:100%">751</div></div><div class="rp"><span class="neg">부정 55%</span></div></div>
+  <div class="rowbar b-org"><div class="rl">매연·외부유입<small>배기·터널·도로</small></div><div class="rt"><div class="rf" style="width:23%">171</div></div><div class="rp"><span class="neg">48%</span></div></div>
+  <div class="rowbar b-org"><div class="rl">담배·흡연<small>찌든 니코틴</small></div><div class="rt"><div class="rf" style="width:20%">147</div></div><div class="rp"><span class="mid">41%</span></div></div>
+  <div class="rowbar b-red"><div class="rl">히터·전자제품<small>탄내·메탈·먼지</small></div><div class="rt"><div class="rf" style="width:9%">65</div></div><div class="rp"><span class="neg">54%</span></div></div>
+  <div class="rowbar b-gry"><div class="rl">발·음식·생활<small>땀·고기·트렁크</small></div><div class="rt"><div class="rf" style="width:12%">87</div></div><div class="rp"><span class="mid">37%</span></div></div>
+  <div class="concl">냄새 불만의 실체는 <b>곰팡이·쉰내(751건, 부정 55%)</b>에 집중된다. 담배·매연은 '외부에서 들어온' 냄새라 상대적으로 관리 가능한 것으로 인식되지만, 곰팡이는 <b>차 내부에서 생기고 반복된다</b>는 점에서 부정 강도가 가장 높다. 전기차의 <b>히터 작동 시 탄내·메탈향</b>(부정 54%)도 별개 유형으로 뚜렷하다.</div>
+</div>
+<div class="quote big">"3년 탄 니로인데 결국 냄새가 나네요" · "송풍 열심히 해도 냄새 나면 애프터블로우도 효과가 의심이?!"<span class="src">클리앙 (장기 사용 후 필연적 발생·예방 노력 실패)</span></div>
+<div class="quote">"히터 켜면 새 드라이어기에서 나는 것 같은 메탈의 꼬름한 향" · "2년 사용해도 여전히 납니다 그래서 안 틀어요"<span class="src">클리앙 (전기차 아이오닉 히터 냄새 → 히터 사용 회피)</span></div>
+
+<!-- 2 원인 사슬 -->
+<h2>2 · 원인 사슬 — 습기가 에바에서 곰팡이가 된다 <span class="en">the causal chain</span></h2>
+<p class="lead">사용자들이 지목한 원인을 부정 강도 순으로 보면, 하나의 인과 사슬이 드러난다.</p>
+<div class="chain">
+  <div class="step"><div class="st">근본</div><div class="sh">💧 습기·물기</div><div class="sd">508건 · 부정 52%<br>냉방 후 응축수 방치</div></div>
+  <div class="arw">→</div>
+  <div class="step hot"><div class="st">발생 지점</div><div class="sh">🌀 에바(증발기)</div><div class="sd">234건 · <span class="neg">부정 70%</span><br>가장 부정적인 원인</div></div>
+  <div class="arw">→</div>
+  <div class="step"><div class="st">확산 통로</div><div class="sh">🧴 에어컨필터</div><div class="sd">518건 · 부정 53%<br>세균 번식·풍량 저하</div></div>
+  <div class="arw">→</div>
+  <div class="step"><div class="st">2차 오염</div><div class="sh">🪑 매트·시트</div><div class="sd">684건 · 부정 31%<br>비교적 관리 쉬움</div></div>
+</div>
+<div class="card" style="margin-top:14px;">
+  <b style="font-size:14px;">원인 귀속 × 부정률</b>
+  <div class="rowbar b-red" style="margin-top:10px;"><div class="rl">에바(증발기)</div><div class="rt"><div class="rf" style="width:100%">부정 70%</div></div><div class="rn">234</div></div>
+  <div class="rowbar b-red"><div class="rl">에어컨필터</div><div class="rt"><div class="rf" style="width:76%">53%</div></div><div class="rn">518</div></div>
+  <div class="rowbar b-red"><div class="rl">습기·물기</div><div class="rt"><div class="rf" style="width:74%">52%</div></div><div class="rn">508</div></div>
+  <div class="rowbar b-org"><div class="rl">내외기 설정</div><div class="rt"><div class="rf" style="width:63%">44%</div></div><div class="rn">299</div></div>
+  <div class="rowbar b-org"><div class="rl">냉매·가스</div><div class="rt"><div class="rf" style="width:49%">34%</div></div><div class="rn">519</div></div>
+  <div class="rowbar b-gry"><div class="rl">매트·시트</div><div class="rt"><div class="rf" style="width:44%">31%</div></div><div class="rn">684</div></div>
+  <div class="concl">가장 많이 언급되는 원인은 <b>매트·시트(684건)</b>지만 부정률은 낮다(31%) — "닦으면 되는" 관리 가능 영역이라서다. 반대로 <b>에바(증발기)는 언급이 적어도(234건) 부정률 70%로 최고</b>. 손댈 수 없는 깊은 곳이라 무력감이 크다. <b>습기→에바→필터</b>로 이어지는 이 사슬이 곰팡이 냄새의 정체다.</div>
+</div>
+<div class="quote big">"습기로 인한 곰팡이, 거의 에바라고 보면 됩니다" · "물끼를 말려주지 않는 것이 냄새의 주 원인 / 주차 전 5분간 히터로 물끼 말리면 냄새 안 난다"<span class="src">보배드림 (원인=에바 습기 곰팡이 / 건조 예방법)</span></div>
+
+<!-- 3 대처의 역설 -->
+<h2>3 · 대처의 역설 — 돈·노력을 들일수록 더 불만이다 <span class="en">the remedy paradox</span></h2>
+<p class="lead">해결책별 부정률을 보면 기묘한 패턴이 있다. <b>가장 본격적인(비싼) 대처일수록 부정 강도가 높다.</b></p>
+<div class="card">
+  <div class="rowbar b-red"><div class="rl">에바크리닝<small>업체 7~10만원</small></div><div class="rt"><div class="rf" style="width:100%">부정 77%</div></div><div class="rn">26</div></div>
+  <div class="rowbar b-red"><div class="rl">애프터블로우<small>자동 건조장치</small></div><div class="rt"><div class="rf" style="width:88%">68%</div></div><div class="rn">56</div></div>
+  <div class="rowbar b-red"><div class="rl">필터 교체<small>셀프</small></div><div class="rt"><div class="rf" style="width:65%">50%</div></div><div class="rn">219</div></div>
+  <div class="rowbar b-org"><div class="rl">히터로 건조<small>수동 습관</small></div><div class="rt"><div class="rf" style="width:61%">47%</div></div><div class="rn">303</div></div>
+  <div class="rowbar b-org"><div class="rl">탈취제·방향제<small>덮어쓰기</small></div><div class="rt"><div class="rf" style="width:60%">46%</div></div><div class="rn">442</div></div>
+  <div class="rowbar b-org"><div class="rl">환기·외기 주행<small>임시</small></div><div class="rt"><div class="rf" style="width:51%">39%</div></div><div class="rn">533</div></div>
+  <div class="rowbar b-grn"><div class="rl">디포그(성에)<small>버튼 하나</small></div><div class="rt"><div class="rf" style="width:19%">15%</div></div><div class="rn">26</div></div>
+  <div class="concl">⚠️ <b>핵심 역설</b> — 에바크리닝(77%)·애프터블로우(68%)처럼 <b>돈과 노력을 본격 투입한 대처일수록 부정률이 높다.</b> 이는 "해봤는데도 안 되더라"는 <b>학습된 무력감</b>의 신호다. 반대로 <b>디포그(성에)는 부정 15%</b> — 버튼 하나로 확실히 해결되는 유일한 영역. 냄새엔 이런 '확실한 스위치'가 없다. 탈취제(46%)는 원인이 아니라 <b>냄새를 덮는 임시방편</b>이라 만족이 낮다.</div>
+</div>
+
+<!-- 4 트리거 -->
+<h2>4 · 언제 터지나 — 계절·상황 트리거 <span class="en">when</span></h2>
+<div class="card">
+  <div class="rowbar b-org"><div class="rl">장마·여름<small>습도 폭증</small></div><div class="rt"><div class="rf" style="width:100%">911</div></div><div class="rp"><span class="mid">부정 41%</span></div></div>
+  <div class="rowbar b-red"><div class="rl">지하·밀폐주차<small>건조 안 됨</small></div><div class="rt"><div class="rf" style="width:23%">211</div></div><div class="rp"><span class="neg">55%</span></div></div>
+  <div class="rowbar b-org"><div class="rl">겨울·환절기</div><div class="rt"><div class="rf" style="width:32%">295</div></div><div class="rp"><span class="mid">35%</span></div></div>
+  <div class="rowbar b-org"><div class="rl">에어컨 켤 때<small>시동 직후</small></div><div class="rt"><div class="rf" style="width:27%">245</div></div><div class="rp"><span class="mid">45%</span></div></div>
+  <div class="rowbar b-org"><div class="rl">시동 초기<small>문 열자마자</small></div><div class="rt"><div class="rf" style="width:16%">147</div></div><div class="rp"><span class="mid">44%</span></div></div>
+  <div class="concl"><b>장마·여름</b>이 냄새·공조 불만의 압도적 계절(911건). 특히 <b>지하·밀폐주차 차량은 부정 55%</b> — 햇볕에 마르지 못해 습기가 갇힌다. 불만의 순간은 대부분 <b>"시동 걸고 에어컨 켜는 첫 순간, 문 열자마자"</b>에 집중된다. 즉 <b>하루의 시작을 불쾌하게 여는 냄새</b>라 심리적 타격이 크다.</div>
+</div>
+<div class="quote">"지하주차장만 이용하는 차가 심하고, 대낮에 야외주차 하는 차는 좀 덜하다"<span class="src">클리앙 (주차 환경이 냄새 좌우)</span></div>
+
+<!-- 5 공조 지도 -->
+<h2>5 · 공조 불편 지도 — 답답함은 많지만 성능 불만이 더 아프다 <span class="en">HVAC map</span></h2>
+<div class="card">
+  <table>
+    <tr><th>공조 불편 유형</th><th>언급</th><th>부정률</th><th style="width:30%">성격</th></tr>
+    <tr><td>답답·환기 부족</td><td>801</td><td class="mid">38%</td><td>가장 많지만 "환기하면 됨"</td></tr>
+    <tr><td>성에·김서림</td><td>336</td><td class="good">24%</td><td>디포그로 해결(충족)</td></tr>
+    <tr><td>냉방 부족(안 시원)</td><td>254</td><td class="neg">48%</td><td>성능 불만 — 아픔</td></tr>
+    <tr><td>풍량 약함</td><td>150</td><td class="neg">51%</td><td>성능 불만 — 아픔</td></tr>
+    <tr><td>난방 부족(안 따뜻)</td><td>95</td><td class="neg">52%</td><td>성능 불만 — 아픔</td></tr>
+    <tr><td>온도·좌우 편차</td><td>54</td><td class="neg">54%</td><td>정밀 제어 불만 — 가장 아픔</td></tr>
+  </table>
+  <div class="concl"><b>언급량과 부정 강도가 반대로 간다.</b> "답답·환기부족"은 가장 많이 언급되지만(801건) 부정률은 낮다(38%) — 창문 열거나 외기 전환으로 <b>스스로 해결 가능</b>하기 때문. 반면 <b>냉방·풍량·난방·온도편차 같은 '성능' 이슈는 언급이 적어도 부정률 48~54%</b>. 내가 어쩔 수 없는 <b>차 자체의 능력 부족</b>이라 무력하다. <b>성에·김서림(부정 24%)은 디포그 버튼으로 해결</b>돼 사실상 충족 영역.</div>
+</div>
+<div class="quote">"AC를 껐다 켜면 좌우 토출온도가 차이가 난다 / 냉매 부족하면 외기에선 안 시원" · "온도 설정이 높거나 바람이 위로만 나오면 위아래 괴리가 생기고 답답함"<span class="src">클리앙 (온도 편차·풍향 답답함)</span></div>
+
+<!-- 6 감정 -->
+<h2>6 · 감정 구조 — 건강 위협일 때 가장 아프다 <span class="en">emotion</span></h2>
+<div class="card">
+  <div class="rowbar b-gry"><div class="rl">불쾌·스트레스<small>찝찝·짜증·인상</small></div><div class="rt"><div class="rf" style="width:100%">802</div></div><div class="rp"><span class="mid">부정 32%</span></div></div>
+  <div class="rowbar b-red"><div class="rl">건강·두통 호소<small>어지럼·아기 걱정</small></div><div class="rt"><div class="rf" style="width:68%">548</div></div><div class="rp"><span class="neg">41%</span></div></div>
+  <div class="rowbar b-org"><div class="rl">체면·민망<small>동승자 시선</small></div><div class="rt"><div class="rf" style="width:68%">543</div></div><div class="rp"><span class="mid">26%</span></div></div>
+  <div class="rowbar b-gry"><div class="rl">체념·포기<small>"그냥 탄다"</small></div><div class="rt"><div class="rf" style="width:17%">140</div></div><div class="rp"><span class="mid">26%</span></div></div>
+  <div class="concl">가장 흔한 감정은 막연한 <b>불쾌·스트레스(802건)</b>지만, 부정 강도가 가장 센 건 <b>건강·두통 호소(548건, 부정 41%)</b>다. 냄새가 단순 불쾌를 넘어 <b>"나·아이를 해친다"는 건강 위협</b>으로 인식될 때 감정이 가장 격해진다. <b>체면·민망(543건)</b>도 거의 같은 규모 — 냄새는 늘 <b>건강과 체면 두 축</b>을 동시에 건드린다. <b>체념·포기(140건)</b>의 존재는 "해결을 아예 단념한" 세그먼트가 실재함을 보여준다.</div>
+</div>
+
+<!-- 7 욕구 -->
+<h2>7 · 욕구 재정의 <span class="en">needs (smell + HVAC only)</span></h2>
+<div class="need">
+  <span class="tag">냄새 · 핵심 욕구</span>
+  <h3>"덮지 말고, 애초에 생기지 않게 해달라"</h3>
+  <p class="desire">▶ 사후 제거가 아니라 <b>습기·곰팡이의 근본 차단</b> (Prevention over Cure)</p>
+  <p class="x">대처의 역설(에바크리닝 부정 77%)이 증명한다 — 사용자는 <b>탈취제로 덮는 것도, 10만원짜리 청소도 원치 않는다.</b> 원하는 건 "물기 자동 건조·항균 코팅"처럼 <b>애초에 곰팡이가 안 생기는 구조</b>. 디포그가 성에를 버튼 하나로 끝내듯, 냄새에도 '확실한 스위치'를 원한다.</p>
+</div>
+<div class="need">
+  <span class="tag">냄새 · 이중 욕구</span>
+  <h3>"내 건강도, 남의 시선도 지키고 싶다"</h3>
+  <p class="desire">▶ <b>건강 안전(548건)</b> + <b>사회적 체면(543건)</b> — 거의 동일 비중의 두 욕구</p>
+  <p class="x">건강 라인은 "유해하지 않다는 안심"(아기·호흡기), 체면 라인은 "누가 타도 자신 있는 공간". 소구 메시지가 갈려야 한다.</p>
+</div>
+<div class="need">
+  <span class="tag">공조 · 통제감</span>
+  <h3>"내가 어쩔 수 없는 성능 부족이 가장 답답하다"</h3>
+  <p class="desire">▶ 냉방·풍량·온도편차 = <b>스스로 못 푸는 문제</b>라 부정 강도 최고(48~54%)</p>
+  <p class="x">답답함(환기부족)은 창문으로 풀지만, 성능은 못 푼다. <b>즉각 시원/따뜻·정확한 좌우 온도</b>가 통제감의 핵심.</p>
+</div>
+<div class="need satisfied">
+  <span class="tag">공조 · 이미 충족</span>
+  <h3>"성에·김서림은 이미 풀렸다"</h3>
+  <p class="desire">▶ 디포그 버튼 = 확실한 해결 (부정 15~24%)</p>
+  <p class="x">냄새가 배워야 할 <b>'확실한 스위치' 모델</b>. 감지→자동 대응→즉시 해결의 UX가 이미 완성된 유일한 영역.</p>
+</div>
+
+<!-- 8 BOTTOM LINE -->
+<h2>8 · BOTTOM LINE <span class="en">what it means</span></h2>
+<div class="bl-top">
+  <div class="bl-stat"><div class="v">70%</div><div class="l">'에바(증발기)' 원인 지목 시 부정률 — 최고</div></div>
+  <div class="bl-stat"><div class="v">77%</div><div class="l">에바크리닝(돈 쓴 대처)의 부정률 — 역설</div></div>
+  <div class="bl-stat"><div class="v">911</div><div class="l">장마·여름 트리거 — 압도적 시즌</div></div>
+</div>
+<div class="card">
+  <b style="font-size:15px;">제언 — 냄새·공조를 어떻게 공략할 것인가</b>
+  <div class="rec-grid" style="margin-top:12px;">
+    <div class="rec"><div class="n">제언 01 · 기술</div><div class="t">'디포그 모델'을 냄새에 이식하라</div><div class="d">성에가 버튼 하나로 풀리듯, <b>습기 감지 → 자동 건조(애프터블로우 기본화) → 항균 에바</b>로 곰팡이가 애초에 안 생기게. 사후 청소 시장을 무력화하는 방향.</div></div>
+    <div class="rec"><div class="n">제언 02 · 타이밍</div><div class="t">장마 직전, 시동 첫 순간을 잡아라</div><div class="d">불만은 <b>장마·여름 + 시동 직후</b>에 폭발한다. 이 시즌·순간에 맞춘 관리 알림·기능 소구가 가장 큰 공감을 얻는다.</div></div>
+    <div class="rec"><div class="n">제언 03 · 공조 UX</div><div class="t">'답답함'이 아니라 '성능'에 투자하라</div><div class="d">환기부족은 사용자가 스스로 푼다. 정작 아픈 건 <b>냉방·풍량·좌우 온도편차</b>(부정 48~54%). 여기에 즉각 반응·정밀 제어로 통제감을 줘야 한다.</div></div>
+  </div>
+</div>
+
+<p class="note" style="margin-top:24px;">데이터: Gate4 진성후기 중 냄새·공조 대상 1,940건(광고·협찬·업체홍보·비차량·미세먼지·새차 제외) + 보배드림·클리앙 커뮤니티 실사용 발화. 유형·원인·대처 카운트는 멘션 내 언급 빈도(중복 허용) 기준이며 %는 부정 감성 비율. 모두 RXR 규칙기반 텍스트 분석 상대 추정치.</p>
+
+</div>
+
+<footer style="max-width:1200px;margin:30px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#fafafa;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #eee;line-height:1.7;">
+    <p style="margin:0 0 4px;">본 분석은 공개 SNS 데이터에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:#F4F3FF;padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;letter-spacing:-0.3px;">💠 RXR SNS Analysis Solution</div>
+    <p style="margin:0;color:#333;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">『프로젝트 렌트(Project Rent)』</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 SNS 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+      본 리포트에 포함된 분석 프레임, 지표 체계, 용어 정의, 산출 로직 일체는 프로젝트 렌트의 독자 기술이며,
+      무단 복제·인용·역공학·재사용을 엄격히 금합니다.
+    </p>
+  </div>
+  <div style="background:#fafafa;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#666;">
+    📧 <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#999;font-size:11px;">© Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>

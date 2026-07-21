@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R4 회의 분석 — aT × OECD 국경일 행사 (임산물·수산물)</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', -apple-system, sans-serif; background: #f4f3f8; color: #1a1a2e; line-height: 1.7; }
+  .page { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* 헤더 */
+  .header { text-align: center; margin-bottom: 40px; }
+  .header .badge { display: inline-block; background: #6C5CE7; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; padding: 4px 12px; border-radius: 16px; margin-bottom: 12px; }
+  .header h1 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+  .header .sub { font-size: 13px; color: #888; }
+
+  /* 메타 카드 */
+  .meta-card { background: #fff; border-radius: 14px; padding: 24px 28px; margin-bottom: 24px; box-shadow: 0 2px 10px rgba(108,92,231,0.06); }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+  .meta-item .label { font-size: 10px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .meta-item .value { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+  .meta-item .value.purple { color: #6C5CE7; }
+
+  /* 써머리 */
+  .summary-card { background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%); border-radius: 14px; padding: 24px 28px; color: #fff; margin-bottom: 24px; }
+  .summary-card h2 { font-size: 12px; font-weight: 700; letter-spacing: 1px; opacity: 0.7; margin-bottom: 10px; }
+  .summary-card .main { font-size: 16px; font-weight: 700; line-height: 1.6; margin-bottom: 14px; }
+  .summary-card .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+  .summary-card .kv .k { opacity: 0.7; font-weight: 600; }
+
+  /* 섹션 */
+  .section { margin-bottom: 24px; }
+  .section-title { font-size: 12px; font-weight: 700; color: #6C5CE7; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #ede9fe; }
+
+  /* 카드 */
+  .card { background: #fff; border-radius: 14px; padding: 24px 28px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(108,92,231,0.06); }
+
+  /* 테이블 */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f8f7fc; font-weight: 600; color: #666; text-align: left; padding: 10px 12px; border-bottom: 2px solid #ede9fe; }
+  td { padding: 10px 12px; border-bottom: 1px solid #f0eef5; vertical-align: top; }
+  td.idx { width: 32px; text-align: center; color: #aaa; font-weight: 600; }
+  .tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .tag-confirmed { background: #e8f5e9; color: #2e7d32; }
+  .tag-warn { background: #fff3e0; color: #e65100; }
+  .tag-danger { background: #fce4ec; color: #c62828; }
+
+  /* 준비도 */
+  .readiness { margin-bottom: 24px; }
+  .readiness-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .readiness-bar .score { font-size: 32px; font-weight: 800; color: #6C5CE7; }
+  .readiness-bar .bar-wrap { flex: 1; height: 10px; background: #ede9fe; border-radius: 5px; overflow: hidden; }
+  .readiness-bar .bar-fill { height: 100%; background: linear-gradient(90deg, #6C5CE7, #a29bfe); border-radius: 5px; }
+  .readiness-items { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; }
+  .readiness-item { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: #4caf50; }
+  .dot-yellow { background: #ff9800; }
+  .dot-red { background: #f44336; }
+
+  /* 리스크 */
+  .risk-item { padding: 10px 14px; border-radius: 10px; margin-bottom: 8px; font-size: 13px; line-height: 1.6; }
+  .risk-critical { background: #fce4ec; border-left: 3px solid #f44336; }
+  .risk-warn { background: #fff8e1; border-left: 3px solid #ff9800; }
+
+  /* 논의 카드 */
+  .topic-card { background: #fff; border-radius: 12px; padding: 18px 22px; margin-bottom: 12px; box-shadow: 0 1px 6px rgba(108,92,231,0.04); border-left: 3px solid #6C5CE7; }
+  .topic-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #1a1a2e; }
+  .topic-card .kv { font-size: 12.5px; color: #555; }
+  .topic-card .kv strong { color: #333; }
+
+  /* 공유 */
+  .share-card { background: #e7f5ff; border-left: 4px solid #339af0; border-radius: 0 12px 12px 0; padding: 16px 20px; font-size: 13px; color: #1a1a2e; margin-bottom: 24px; }
+
+  .footer { text-align: center; margin-top: 40px; padding-top: 16px; border-top: 1px solid #e0dce8; font-size: 11px; color: #bbb; }
+
+  @media print { body { background: #fff; } .page { padding: 16px; } .card, .summary-card, .meta-card { box-shadow: none; border: 1px solid #eee; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="badge">R4 MEETING OS</div>
+    <h1>aT × OECD 국경일 행사 (임산물·수산물)</h1>
+    <p class="sub">협업 회의 분석 리포트 — 2026-07-20</p>
+  </div>
+
+  <!-- 메타 -->
+  <div class="meta-card">
+    <div class="meta-grid">
+      <div class="meta-item"><div class="label">일시</div><div class="value">2026-07-20 (월)</div></div>
+      <div class="meta-item"><div class="label">참석</div><div class="value">르프로젝트 · aT</div></div>
+      <div class="meta-item"><div class="label">회의 타입</div><div class="value purple">실무 협의 (90%)</div></div>
+      <div class="meta-item"><div class="label">총 예산</div><div class="value">4,000만 원</div></div>
+      <div class="meta-item"><div class="label">행사일</div><div class="value">2026-10-01</div></div>
+      <div class="meta-item"><div class="label">세션</div><div class="value" style="font-family:monospace;font-size:12px;">8c3d</div></div>
+    </div>
+  </div>
+
+  <!-- ① 써머리 -->
+  <div class="summary-card">
+    <h2>① 써머리 (EXECUTIVE SUMMARY)</h2>
+    <div class="main">10월 1일 국경일 행사를 기존 농산물 중심에서 확장해 임산물·수산물 예산을 별도로 요청·정산 분리하는 구조로 진행한다. 하루짜리 홍보행사에 그치지 않도록 ①전시·매대 ②쿠킹쇼/시연·시식(각국 대사 대상) ③Station F 벤딩머신 판매의 3축으로 사업을 구성하고, 총예산 4,000만 원(제품 구입은 aT 별도) 기준으로 이번 주 금요일(7/24) 오후까지 초안을 발송한 뒤 프로그램을 짜서 2차 회의를 진행한다.</div>
+    <div class="kv">
+      <span class="k">한 줄 요약</span><span>임수산물 예산 분리 + 전시·시연·벤딩머신 3축 사업 확정, 7/24 초안 → 2차 회의</span>
+      <span class="k">핵심 결정</span><span>예산·정산 분리 / 사업 3축 / 품목(냉동전복·김부각·잣술·복분자술) / 물류 분담(구입=aT, 운송=르프로젝트)</span>
+      <span class="k">최대 리스크</span><span>🔴 일정 — 10/1까지 시간 부족, 7/24 초안 발송 필수</span>
+      <span class="k">다음 마일스톤</span><span>7/24(금) 오후 초안 발송 → 프로그램 구성 → 2차 회의</span>
+    </div>
+  </div>
+
+  <!-- 실행 준비도 -->
+  <div class="card readiness">
+    <div class="section-title">실행 준비도</div>
+    <div class="readiness-bar">
+      <span class="score">67%</span>
+      <div class="bar-wrap"><div class="bar-fill" style="width:67%"></div></div>
+    </div>
+    <div class="readiness-items">
+      <div class="readiness-item"><span class="dot dot-green"></span>목적 명확성</div>
+      <div class="readiness-item"><span class="dot dot-green"></span>범위 명확성</div>
+      <div class="readiness-item"><span class="dot dot-green"></span>예산 확정</div>
+      <div class="readiness-item"><span class="dot dot-green"></span>의사결정 완료</div>
+      <div class="readiness-item"><span class="dot dot-green"></span>다음 마일스톤</div>
+      <div class="readiness-item"><span class="dot dot-yellow"></span>산출물 정의</div>
+      <div class="readiness-item"><span class="dot dot-yellow"></span>담당자 지정 (일부)</div>
+      <div class="readiness-item"><span class="dot dot-yellow"></span>일정 확정 (일부)</div>
+      <div class="readiness-item"><span class="dot dot-yellow"></span>입력자료 확보 (일부)</div>
+      <div class="readiness-item"><span class="dot dot-yellow"></span>외부 협력 조건</div>
+      <div class="readiness-item"><span class="dot dot-yellow"></span>리스크 대응</div>
+      <div class="readiness-item"><span class="dot dot-red"></span>승인 프로세스 미확인</div>
+    </div>
+  </div>
+
+  <!-- ② 회의록 -->
+  <div class="section">
+    <div class="section-title">② 회의록</div>
+  </div>
+
+  <!-- 결정사항 -->
+  <div class="section">
+    <div class="section-title">결정사항 (10건 · 전부 확정)</div>
+    <div class="card">
+      <table>
+        <thead><tr><th class="idx">#</th><th>결정</th><th>근거/맥락</th></tr></thead>
+        <tbody>
+          <tr><td class="idx">1</td><td><strong>임산물·수산물 예산 별도 요청, 정산 분리</strong></td><td>품목군이 다르므로 예산·정산 라인 분리 필요</td></tr>
+          <tr><td class="idx">2</td><td><strong>1일 행사 + Station F 벤딩머신 사업 통합</strong></td><td>행사 이후에도 판매·노출 지속</td></tr>
+          <tr><td class="idx">3</td><td><strong>사업 3축 확정</strong> — 전시·매대 / 쿠킹쇼·시식 / 벤딩머신 판매</td><td>보여주기 → 먹여보기 → 사보기</td></tr>
+          <tr><td class="idx">4</td><td><strong>품목</strong>: 냉동전복, 김부각, 잣술, 복분자술</td><td>유럽 판매 가능 수산물·가공식품 중심</td></tr>
+          <tr><td class="idx">5</td><td><strong>이용경 셰프 참여 제안</strong>은 르프로젝트에서 진행</td><td>최근 OECD 행사 경험 보유</td></tr>
+          <tr><td class="idx">6</td><td><strong>전통주 시음 중심</strong> 구성 + 소믈리에 섭외</td><td>현장 성격상 강의형보다 테이스팅 적합</td></tr>
+          <tr><td class="idx">7</td><td><strong>수의계약 서류</strong>(사업자등록증·여성기업등록증) 송부</td><td>국내법상 요건</td></tr>
+          <tr><td class="idx">8</td><td><strong>물류 분담</strong>: 구입=aT / 운송=르프로젝트</td><td>제품 구입비 별도 집행</td></tr>
+          <tr><td class="idx">9</td><td>OECD 대사관 <strong>공간 사전 답사</strong> 후 연출안 작성</td><td>제한된 공간, 동선·존 배치 사전 확정 필요</td></tr>
+          <tr><td class="idx">10</td><td><strong>7/24 오후 초안 발송</strong> → 2차 회의</td><td>10/1까지 시간 부족</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- To do -->
+  <div class="section">
+    <div class="section-title">To do (12건)</div>
+    <div class="card">
+      <table>
+        <thead><tr><th class="idx">#</th><th>액션</th><th>담당</th><th>기한</th></tr></thead>
+        <tbody>
+          <tr><td class="idx">1</td><td>사업 구성안 + 공간 연출안 <strong>초안 발송</strong></td><td>르프로젝트</td><td><strong>7/24 오후</strong></td></tr>
+          <tr><td class="idx">2</td><td>이용경 셰프 참여 의향 문의</td><td>르프로젝트</td><td><span class="tag tag-warn">확인 필요</span></td></tr>
+          <tr><td class="idx">3</td><td>소믈리에 리스트업 + CV 확보</td><td><span class="tag tag-warn">미지정</span></td><td><span class="tag tag-warn">확인 필요</span></td></tr>
+          <tr><td class="idx">4</td><td>최영선 대표 주류 취급 범위 확인</td><td><span class="tag tag-warn">미지정</span></td><td><span class="tag tag-warn">확인 필요</span></td></tr>
+          <tr><td class="idx">5</td><td>OECD 대사관 공간 답사·실측</td><td><span class="tag tag-warn">미지정</span></td><td>초안 전 권장</td></tr>
+          <tr><td class="idx">6</td><td>수산물 사업신청서 제출</td><td><span class="tag tag-warn">미지정</span></td><td>7/20 (당일)</td></tr>
+          <tr><td class="idx">7</td><td>임산물 사업신청서 전달</td><td><span class="tag tag-warn">미지정</span></td><td><span class="tag tag-warn">확인 필요</span></td></tr>
+          <tr><td class="idx">8</td><td>사업자등록증·여성기업등록증 송부</td><td><span class="tag tag-warn">미지정</span></td><td>수의계약 전</td></tr>
+          <tr><td class="idx">9</td><td>제품 구입 리스트 작성</td><td>르프로젝트</td><td><span class="tag tag-warn">확인 필요</span></td></tr>
+          <tr><td class="idx">10</td><td>원재료 소싱처 컨택 (수협, 에이스마트 등)</td><td><span class="tag tag-warn">미지정</span></td><td><span class="tag tag-warn">확인 필요</span></td></tr>
+          <tr><td class="idx">11</td><td>연출용 소품 검토 (모형/그래픽)</td><td>르프로젝트</td><td>초안 반영</td></tr>
+          <tr><td class="idx">12</td><td>프로그램 타임테이블 구성 → 2차 회의 일정 확정</td><td>르프로젝트</td><td>초안 발송 후</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 의사결정 필요 -->
+  <div class="section">
+    <div class="section-title">의사결정 필요사항 (6건)</div>
+    <div class="card">
+      <table>
+        <thead><tr><th class="idx">#</th><th>사안</th><th>필요한 결정</th><th>결정자</th><th>데드라인</th></tr></thead>
+        <tbody>
+          <tr><td class="idx">1</td><td>이용경 셰프 참여 여부</td><td>Station F까지 함께 갈지, 시연/시식만 할지</td><td>셰프 / 르프로젝트</td><td>초안 전</td></tr>
+          <tr><td class="idx">2</td><td>최영선 대표 주류 범위</td><td>본인 품목 외 전통주도 가능한지</td><td>최영선 대표</td><td>-</td></tr>
+          <tr><td class="idx">3</td><td>벤딩머신 입점 SKU</td><td>유럽 판매 가능 품목 리스트 확정</td><td>르프로젝트 · aT</td><td>확인 필요</td></tr>
+          <tr><td class="idx">4</td><td>4,000만 원 항목별 배분</td><td>1일 행사 vs 벤딩머신 비중</td><td>르프로젝트 · aT</td><td>초안 시점</td></tr>
+          <tr><td class="idx">5</td><td>임산물/수산물 예산 분리 기준</td><td>정산 분리 전제 항목 구분</td><td>aT</td><td>확인 필요</td></tr>
+          <tr><td class="idx">6</td><td>공간 존 배치 우선순위</td><td>전시·시연·시음 면적 배분</td><td>르프로젝트 · aT</td><td>답사 후</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 리스크 -->
+  <div class="section">
+    <div class="section-title">이슈 / 리스크 (6건)</div>
+    <div class="risk-item risk-critical"><strong>🔴 일정 리스크</strong> — 10/1까지 시간 부족 → 7/24 초안 발송 → 즉시 2차 회의, 소싱·계약 병행</div>
+    <div class="risk-item risk-warn"><strong>🟡 공간 제약</strong> — OECD 대사관 공간 협소 → 답사 후 실측 기반 모듈형 배치</div>
+    <div class="risk-item risk-warn"><strong>🟡 냉동 품목</strong> — 콜드체인·현장 보관 필요 → 모형/그래픽 대체, 시식분만 실물</div>
+    <div class="risk-item risk-warn"><strong>🟡 예산·정산 분리</strong> — 임산물·수산물 혼재 시 정산 이슈 → 기획 단계부터 구분 문서화</div>
+    <div class="risk-item risk-warn"><strong>🟡 인력 섭외 미확정</strong> — 셰프·소믈리에 컨펌 전 → 리스트업 대안 확보 + 조기 태핑</div>
+    <div class="risk-item risk-warn"><strong>🟡 계약 서류</strong> — 사업자등록증·여성기업등록증 미송부 → 선송부로 지연 방지</div>
+  </div>
+
+  <!-- 주제별 논의 -->
+  <div class="section">
+    <div class="section-title">주제별 논의 (7건)</div>
+
+    <div class="topic-card">
+      <h4>1. 임산물·수산물 예산 분리</h4>
+      <div class="kv"><strong>배경:</strong> 기존 국경일 행사는 농산물 중심 집행<br><strong>결론:</strong> 별도 요청, 정산 시에도 분리 → 투명성 확보</div>
+    </div>
+    <div class="topic-card">
+      <h4>2. 사업 구성 확장</h4>
+      <div class="kv"><strong>배경:</strong> 통상 국경일 행사는 당일 종료<br><strong>결론:</strong> 국경일 행사 + Station F 벤딩머신을 하나의 사업으로 통합 → 지속 판매·노출</div>
+    </div>
+    <div class="topic-card">
+      <h4>3. 사업 3축 확정</h4>
+      <div class="kv"><strong>결론:</strong> 전시·매대 / 쿠킹쇼·시식 / 벤딩머신 판매<br><strong>근거:</strong> 보여주기 → 먹여보기 → 사보기 흐름, 시연/시식과 Station F 시너지</div>
+    </div>
+    <div class="topic-card">
+      <h4>4. 취급 품목</h4>
+      <div class="kv"><strong>결론:</strong> 냉동전복, 김부각, 잣술, 복분자술 (유럽 판매 가능 중심)<br><strong>근거:</strong> Station F 벤딩머신 1대 배정, 매출 발생 가능</div>
+    </div>
+    <div class="topic-card">
+      <h4>5. 이용경 셰프 참여</h4>
+      <div class="kv"><strong>결론:</strong> 르프로젝트에서 문의 진행 (Station F + 시연/시식 묶음)<br><strong>영향:</strong> 행사 품격 상승</div>
+    </div>
+    <div class="topic-card">
+      <h4>6. 전통주 홍보 파트</h4>
+      <div class="kv"><strong>결론:</strong> 발효 설명형 아닌 시음 중심 + 소믈리에 섭외<br><strong>근거:</strong> 현장 성격상 강의형보다 테이스팅 적합</div>
+    </div>
+    <div class="topic-card">
+      <h4>7. 물류 역할 분담</h4>
+      <div class="kv"><strong>결론:</strong> 제품 구입·결제 = aT / 수령 후 운송 = 르프로젝트<br><strong>영향:</strong> 물류 효율성·책임 명확화</div>
+    </div>
+  </div>
+
+  <!-- ③ 산출물 -->
+  <div class="section">
+    <div class="section-title">③ 산출물 (만들어야 할 결과물)</div>
+    <div class="card">
+      <table>
+        <thead><tr><th class="idx">#</th><th>산출물</th><th>담당 (AI 제안)</th><th>기한</th><th>승인 기준</th></tr></thead>
+        <tbody>
+          <tr><td class="idx">1</td><td><strong>사업 구성안</strong> (3축 구성 + 예산 항목별 배분)</td><td>르프로젝트</td><td><strong>7/24</strong></td><td>aT 피드백 반영 후 확정</td></tr>
+          <tr><td class="idx">2</td><td><strong>공간 연출안</strong> (전시·시연·시음 3존 배치도)</td><td>르프로젝트</td><td><strong>7/24</strong></td><td>답사 실측 기반, aT 승인</td></tr>
+          <tr><td class="idx">3</td><td><strong>프로그램 타임테이블</strong> (쿠킹쇼·시음·동선 포함)</td><td>르프로젝트</td><td>2차 회의 전</td><td>셰프·소믈리에 스케줄 반영</td></tr>
+          <tr><td class="idx">4</td><td><strong>제품 구입 리스트</strong> (품목·원재료 구분 정리)</td><td>르프로젝트</td><td><span class="tag tag-warn">확인 필요</span></td><td>유럽 판매 가능 품목 기준</td></tr>
+          <tr><td class="idx">5</td><td><strong>소믈리에 CV 리스트</strong></td><td><span class="tag tag-warn">미지정</span></td><td><span class="tag tag-warn">확인 필요</span></td><td>전통주 시음 파트 담당 적합성</td></tr>
+          <tr><td class="idx">6</td><td><strong>수의계약 서류</strong> (사업자등록증·여성기업등록증)</td><td><span class="tag tag-warn">미지정</span></td><td>수의계약 전</td><td>국내법 요건 충족</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 변경사항 -->
+  <div class="section">
+    <div class="section-title">변경사항</div>
+    <div class="card">
+      <table>
+        <thead><tr><th>항목</th><th>Before</th><th>After</th><th>영향</th></tr></thead>
+        <tbody>
+          <tr><td>예산 구조</td><td>농산물 중심 통합 집행</td><td>임산물·수산물 <strong>별도 요청·정산 분리</strong></td><td>투명성 확보</td></tr>
+          <tr><td>사업 범위</td><td>하루짜리 홍보행사</td><td>국경일 행사 + <strong>Station F 벤딩머신</strong> 통합</td><td>행사 후에도 지속 판매·노출</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 공유 메시지 -->
+  <div class="share-card">
+    <strong>한 줄 공유:</strong> 10/1 OECD 국경일 행사는 임산물·수산물 예산을 별도 요청·정산 분리로 진행하며, 전시·매대 / 쿠킹쇼·시식 / Station F 벤딩머신 판매의 3축으로 구성합니다. 총예산 4,000만 원(제품 구입 aT 별도) 기준, 7/24(금) 오후 초안 발송 후 2차 회의.
+  </div>
+
+  <!-- 다음 -->
+  <div class="card">
+    <div class="section-title" style="border:none;margin:0 0 8px;padding:0;">다음 마일스톤</div>
+    <table>
+      <tbody>
+        <tr><td><strong>초안 발송</strong></td><td>2026-07-24 (금) 오후</td></tr>
+        <tr><td><strong>2차 회의</strong></td><td>초안 발송 후</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    R4 Meeting OS · 세션 20260721-214432-8c3d · by Project Rent
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AX 사전진단 결과 — 최원석</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: #f4f3f8;
+    color: #1a1a2e;
+    line-height: 1.7;
+  }
+
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* 헤더 */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .header .badge {
+    display: inline-block;
+    background: #6C5CE7;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin-bottom: 6px;
+  }
+  .header .sub {
+    font-size: 14px;
+    color: #888;
+  }
+
+  /* 메타 카드 */
+  .meta-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 12px rgba(108,92,231,0.06);
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+  }
+  .meta-item .label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .meta-item .value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+  .meta-item .value.purple { color: #6C5CE7; }
+
+  /* 섹션 */
+  .section {
+    margin-bottom: 32px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6C5CE7;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #ede9fe;
+  }
+
+  /* 항목 카드 */
+  .item-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(108,92,231,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .item-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #6C5CE7;
+    border-radius: 4px 0 0 4px;
+  }
+  .item-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background: #6C5CE7;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    border-radius: 8px;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  .item-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .item-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+  .item-answer {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.8;
+    padding-left: 36px;
+  }
+  .item-answer .quote {
+    background: #f8f7fc;
+    border-left: 3px solid #d4ccf7;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+  }
+
+  /* 대화 로그 */
+  .chat-log {
+    background: #fff;
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(108,92,231,0.06);
+  }
+  .chat-turn {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0eef5;
+  }
+  .chat-turn:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  .chat-bubble {
+    max-width: 88%;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    margin-bottom: 8px;
+  }
+  .chat-bubble.ai {
+    background: #f0edfc;
+    color: #3a2f6e;
+    border-bottom-left-radius: 4px;
+    margin-right: auto;
+  }
+  .chat-bubble.user {
+    background: #6C5CE7;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    margin-left: auto;
+  }
+  .chat-role {
+    font-size: 10px;
+    font-weight: 700;
+    color: #aaa;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .chat-role.right { text-align: right; }
+
+  /* 인사이트 */
+  .insight-card {
+    background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%);
+    border-radius: 16px;
+    padding: 28px 32px;
+    color: #fff;
+    margin-bottom: 32px;
+  }
+  .insight-card h3 {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 14px;
+    opacity: 0.95;
+  }
+  .insight-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .insight-card li {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 8px;
+    padding-left: 18px;
+    position: relative;
+  }
+  .insight-card li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 8px;
+    height: 8px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+  }
+
+  /* 푸터 */
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid #e0dce8;
+    font-size: 11px;
+    color: #bbb;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .page { padding: 24px; }
+    .item-card, .meta-card, .chat-log, .insight-card { box-shadow: none; border: 1px solid #eee; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="badge">RXR-AX-EDU</div>
+    <h1>AX 사전진단 인터뷰 결과</h1>
+    <p class="sub">교육 참여자 개별 리포트</p>
+  </div>
+
+  <!-- 메타 정보 -->
+  <div class="meta-card">
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="label">참여자</div>
+        <div class="value">최원석</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">교육명</div>
+        <div class="value">AX 초심자 교육</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">상태</div>
+        <div class="value purple">완료</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">일시</div>
+        <div class="value">2026.07.21</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">소요 시간</div>
+        <div class="value">약 11분</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">대화 턴</div>
+        <div class="value">9턴</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7가지 항목 수집 결과 -->
+  <div class="section">
+    <div class="section-title">7가지 항목 수집 결과</div>
+
+    <div class="item-card">
+      <div class="item-header">
+        <span class="item-num">1</span>
+        <span class="item-label">현재 AI 이해/사용 수준</span>
+      </div>
+      <div class="item-answer">
+        ChatGPT와 Claude Code를 메인으로 사용 중이며, 필요에 따라 MCP를 연결해 활용하고 있음. 다양한 AI 도구 활용 경험 보유.
+        <div class="quote">"요즘 클로드 코드랑 ChatGPT 두개 메인으로 쓰고 필요한 것들은 가끔 MCP 연결해서 쓰고 있어"</div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-header">
+        <span class="item-num">2</span>
+        <span class="item-label">교육 참여 이유</span>
+      </div>
+      <div class="item-answer">
+        AI가 개별 기능을 만들어주고 있지만, 가능성의 범위를 넓히기 위한 구조화된 이해와 학습 시간이 부족함을 느껴 참여.
+        <div class="quote">"내가 충분히 이해를 가지고 공부할 시간이 부족한 게 문제야 그래서 개별 기능 필요한 것들을 만들어 오라고 있지만 결국 내가 어떤 가능성까지 할 수 있는지를 인식을 넓히는 게 더 중요한 거 같애"</div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-header">
+        <span class="item-num">3</span>
+        <span class="item-label">가장 기대하는 변화</span>
+      </div>
+      <div class="item-answer">
+        AI와 함께 일하는 방식으로 기존의 모든 프로세스가 바뀌기를 기대. 특히 회의 프로세스 — AI 봇이 회의에 참여하여 내용을 요약·정리하고, 정보 취합과 의사결정을 효율화하는 것.
+        <div class="quote">"아이랑 함께 일을 하는 방식으로 기존에 했던 모든 프로세스가 바뀌길 기대하고 있어 ... 우리 회의에 탭 봇이라던가 아니면 GPT 보이 참여해서 같이 회의를 하고 내용을 써머리 하고 내용을 정리해서 사람들은 빠르게 정보를 취합 하고 의사결정을 하기 위한 포지션으로 추적 하는 걸 기대 하는 것이"</div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-header">
+        <span class="item-num">4</span>
+        <span class="item-label">적용하고 싶은 업무</span>
+      </div>
+      <div class="item-answer">
+        정보의 레벨을 입체적으로 빠르게 판단하기 위한 구조 구축. 취합된 정보가 의사결정용인지, 기획이 필요한 정보인지, 판단을 위한 자료가 제대로 채워졌는지를 구조화.
+        <div class="quote">"너무 많은 정보들을 취합 하고 그걸 내가 의사결정을 할 만한 정보인지 아니면 내가 에너지를 써서 기획을 해야 되는 정보인지 또는 판단을 하기 위한 자료들이 제대로 채워 줬는지 안 채워졌는지 이런 정보의 레벨을 입체적적으로 빠르게 판단 하기 위한 구조가 필요해"</div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-header">
+        <span class="item-num">5</span>
+        <span class="item-label">기대하는 AI 역할 수준</span>
+      </div>
+      <div class="item-answer">
+        완성된 형태의 정보를 제공하는 시스템 구축이 목표. 퍼스트 무버로서 업무 구조를 최적화하는 방향.
+        <div class="quote">"나는 완성된 형태의 정보를 제공 하는 시스템을 구축 하는 게 목적이고 그걸 최대한 퍼스트머셔에서 우리 업무 구조의 최적 하는 방향으로 생각을 하고 있어"</div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-header">
+        <span class="item-num">6</span>
+        <span class="item-label">만족할 수 있는 교육 결과</span>
+      </div>
+      <div class="item-answer">
+        일일 업무보고서 작성 → 데이터 취합 → 의사결정을 위한 디시전메이킹 테이블로 변환하는 것까지 실현.
+        <div class="quote">"1일 업무 보고서를 쓰고 그 데이터들이 취합 돼서 의사결정 하기 위한 디시전 메이킹 테이블화 시키는 것 까지"</div>
+      </div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-header">
+        <span class="item-num">7</span>
+        <span class="item-label">교육 후 가장 먼저 할 행동</span>
+      </div>
+      <div class="item-answer">
+        직원들의 업무보고를 분석 엔진 기반으로 디시전메이킹 테이블로 전환하는 작업에 착수.
+        <div class="quote">"직원들에게 올라오는 일을 업무보고를 분석 엔진 기반으로 디시전메이킹 테이블로 바꾸는 거야"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 교육 설계 인사이트 -->
+  <div class="insight-card">
+    <h3>교육 설계 인사이트</h3>
+    <ul>
+      <li>이미 ChatGPT + Claude Code + MCP 활용 중인 고급 사용자 — 기초 설명보다 구조화·시스템 설계 중심으로 교육 구성 필요</li>
+      <li>핵심 니즈는 "정보 취합 → 의사결정 구조화" — 업무보고 분석 엔진, 디시전메이킹 테이블 실습이 최적</li>
+      <li>회의 프로세스 AI 전환에 높은 관심 — AI 봇 참여형 회의, 실시간 요약·정리 시연이 효과적</li>
+      <li>완성형 시스템 구축을 목표로 함 — 단편적 도구 소개보다 엔드투엔드 워크플로우 설계 관점 교육이 적합</li>
+    </ul>
+  </div>
+
+  <!-- 대화 로그 -->
+  <div class="section">
+    <div class="section-title">대화 로그 (전문)</div>
+    <div class="chat-log">
+
+      <div class="chat-turn">
+        <div class="chat-role">AI</div>
+        <div class="chat-bubble ai">안녕하세요, 최원석님! 이렇게 만나 뵙게 되어 반갑습니다. 오늘 인터뷰는 약 5~7분 정도 소요될 예정입니다. 먼저, AI에 대한 이해와 사용 수준을 알아보려고 하는데요. 예를 들어, ChatGPT나 네이버 클로바, 혹은 번역기 같은 AI 도구들을 사용해 보신 적이 있으신가요? 아니면 뉴스에서만 들어보신 정도이신가요?</div>
+        <div class="chat-role right">참여자</div>
+        <div class="chat-bubble user">요즘 클로드 코드랑 ChatGPT 두개 메인으로 쓰고 필요한 것들은 가끔 MCP 연결해서 쓰고 있어</div>
+      </div>
+
+      <div class="chat-turn">
+        <div class="chat-role">AI</div>
+        <div class="chat-bubble ai">아, 최원석님은 이미 ChatGPT와 클로드 코드를 메인으로 사용하고 계시군요! 그리고 MCP도 가끔 연결해서 사용하신다니, 꽤 다양한 AI 도구를 활용하고 계신 것 같아요. 그러면 AI에 대한 이해도와 사용 경험이 어느 정도 쌓이셨군요. 다음으로, 이번 교육에 참여하신 이유가 궁금한데요. 예를 들어, 동료가 추천해줬다거나, AI 때문에 조금 불안해서 오신 것인지, 아니면 순수하게 호기심이 많아서 오신 것인지 궁금합니다. 어떤 쪽에 가까우세요?</div>
+        <div class="chat-role right">참여자</div>
+        <div class="chat-bubble user">지금 AI가 내가 필요한 것들을 개발 하고는 있는데 사실 그걸 구조화 하기 위해서 한단계 더 많은 도어가 필요한 거 같애 물론 시간이 좀 걸리고 시차 필요하겠지만 내가 충분히 이해를 가지고 공부할 시간이 부족한 게 문제야 그래서 개별 기능 필요한 것들을 만들어 오라고 있지만 결국 내가 어떤 가능성까지 할 수 있는지를 인식을 넓히는 게 더 중요한 거 같애</div>
+      </div>
+
+      <div class="chat-turn">
+        <div class="chat-role">AI</div>
+        <div class="chat-bubble ai">최원석님, 말씀해주신 내용 정말 공감이 가네요. AI가 필요한 것들을 개발하고 있지만, 이를 구조화하고 이해하는 데 시간이 부족하다는 점이 중요하죠. 특히 AI의 가능성을 넓히는 것이 필요하다고 느끼시는 부분이 인상적입니다. 그러면 교육을 통해 어떤 변화를 가장 기대하고 계신가요? 예를 들어, 보고서 작성 시간을 단축시키거나, 아이디어 회의 전에 초안을 미리 준비할 수 있게 되면 좋겠다는 생각이 드시나요? 어떤 장면이 떠오르시는지 궁금합니다.</div>
+        <div class="chat-role right">참여자</div>
+        <div class="chat-bubble user">아이랑 함께 일을 하는 방식으로 기존에 했던 모든 프로세스가 바뀌길 기대하고 있어 업무상에 회의로 그 다음에 회의 준비 자료 띄우는거 부터 시작해서 논의 하는 방식 예를 듬 우리 회의에 탭 봇 이라던가 아니면 GPT 보이 참여해서 같이 회의를 하고 내용을 써머리 하고 내용을 정리해서 사람들은 빠르게 정보를 취합 하고 의사결정을 하기 위한 포지션으로 추적 하는 걸 기대 하는 것이</div>
+      </div>
+
+      <div class="chat-turn">
+        <div class="chat-role">AI</div>
+        <div class="chat-bubble ai">아, 최원석님께서는 AI와 함께 일하는 방식으로 기존의 모든 프로세스가 변화하기를 기대하고 계시군요. 회의 준비 자료를 만들고, 회의 중에 AI가 참여하여 내용을 요약하고 정리하는 방식은 정말 효율적일 것 같습니다. 이렇게 하면 정보 취합이나 의사결정이 훨씬 빨라질 수 있겠네요. 그 부분이 정말 중요하죠. 그러면 이러한 AI를 활용한 변화가 어떤 업무에 가장 적용되고 싶으신가요? 예를 들어, 매일 쓰는 이메일 답장이나 주간 보고서 작성, 회의록 정리 같은 것 중에서 시간이 많이 드는 일이 있으신가요?</div>
+        <div class="chat-role right">참여자</div>
+        <div class="chat-bubble user">너무 많은 정보들을 취합 하고 그걸 내가 의사결정을 할 만한 정보인지 아니면 내가 에너지를 써서 기획을 해야 되는 정보인지 또는 판단을 하기 위한 자료들이 제대로 채워 줬는지 안 채워졌는지 이런 정보의 레벨을 입체적적으로 빠르게 판단 하기 위한 구조가 필요해</div>
+      </div>
+
+      <div class="chat-turn">
+        <div class="chat-role">AI</div>
+        <div class="chat-bubble ai">최원석님, 그렇게 많은 정보를 취합하고 그것을 효율적으로 판단하기 위한 구조가 필요하다는 말씀 정말 공감이 가네요. 정보의 레벨을 빠르게 판단할 수 있는 시스템이 있다면, 의사결정을 하는 데 큰 도움이 될 것 같습니다. 그러면 AI가 이 과정에서 어떤 역할을 해주길 바라시나요? 예를 들어, '이런 방향으로 써보세요' 하고 힌트를 주는 정도부터, 초안을 빠르게 만들어주는 것, 혹은 거의 완성된 형태로 정보를 제공하는 것까지 다양한데요. 어느 정도의 역할을 기대하고 계신가요?</div>
+        <div class="chat-role right">참여자</div>
+        <div class="chat-bubble user">나는 완성된 형태의 정보를 제공 하는 시스템을 구축 하는 게 목적이고 그걸 최대한 퍼스트머셔에서 우리 업무 구조의 최적 하는 방향으로 생각을 하고 있어</div>
+      </div>
+
+      <div class="chat-turn">
+        <div class="chat-role">AI</div>
+        <div class="chat-bubble ai">아, 최원석님께서는 AI가 거의 완성된 형태의 정보를 제공하는 시스템을 구축하는 것이 목표이시군요. 그리고 이를 통해 업무 구조를 최적화하는 방향으로 생각하고 계신 점이 정말 인상적입니다. 그러면 교육을 통해 얻고자 하시는 만족할 수 있는 결과는 어떤 것인지 궁금합니다. 예를 들어, 'AI가 뭔지 이해하는 것만으로도 충분하다'는 분도 계시고, '실제로 보고서 하나를 AI로 써봐야 만족하겠다'는 분도 계시거든요. 최원석님은 어떤 부분에서 만족하실 것 같으신가요?</div>
+        <div class="chat-role right">참여자</div>
+        <div class="chat-bubble user">1일 업무 보고서를 쓰고 그 데이터들이 취합 돼서 의사결정 하기 위한 디시전 메이킹 테이블화 시키는 것 까지</div>
+      </div>
+
+      <div class="chat-turn">
+        <div class="chat-role">AI</div>
+        <div class="chat-bubble ai">최원석님께서는 1일 업무 보고서를 작성하고 그 데이터들이 취합되어 의사결정에 필요한 디시전 메이킹 테이블로 정리되는 과정을 통해 만족하고 싶으신 것이군요. 그 부분이 정말 중요하죠. 교육 후에는 그런 구체적인 결과물을 얻고 싶어 하시는 것 같아요. 마지막으로, 교육이 끝난 후에 사무실로 돌아가시면 제일 먼저 어떤 행동을 해보고 싶으신가요? 예를 들어, 내일 쓸 메일을 AI로 작성해본다거나, 밀린 자료를 정리해본다거나 하는 것 중에 어떤 것이 떠오르시나요?</div>
+        <div class="chat-role right">참여자</div>
+        <div class="chat-bubble user">직원들에게 올라오는 일을 업무보고를 분석 엔진 기반으로 디시전메이킹 테이블로 바꾸는 거야</div>
+      </div>
+
+      <div class="chat-turn">
+        <div class="chat-role">AI</div>
+        <div class="chat-bubble ai">아, 최원석님께서는 직원들이 올라오는 업무 보고를 분석하여 엔진 기반으로 디시전 메이킹 테이블로 바꾸는 작업을 가장 먼저 해보고 싶으신 거군요. 정말 흥미로운 목표입니다! 이렇게 AI를 통해 업무 프로세스를 개선하고자 하는 의지가 느껴지네요. 지금까지 말씀해주신 내용을 바탕으로 정리해보면,<br><br>1. 현재 AI 이해/사용 수준: ChatGPT와 클로드 코드를 메인으로 사용하고 계시며, MCP도 가끔 활용하신다고 하셨습니다.<br>2. 교육 참여 이유: AI의 가능성을 넓히기 위해 구조화된 이해가 필요하다고 느끼셔서 참여하신 것 같습니다.<br>3. 가장 기대하는 변화: AI와 함께 일하는 방식으로 회의 프로세스를 개선하고 정보 취합과 의사결정을 효율적으로 하기를 원하십니다.<br>4. 적용하고 싶은 업무: 업무 보고서를 분석하여 이를 디시전 메이킹 테이블로 만드는 것을 원하십니다.<br>5. 기대하는 AI 역할 수준: 거의 완성된 형태의 정보를 제공하는 시스템 구축을 목표로 하십니다.<br>6. 만족할 수 있는 교육 결과: 1일 업무 보고서 작성과 데이터를 취합하여 디시전 메이킹 테이블로 바꾸는 것이 목표입니다.<br>7. 교육 후 가장 먼저 할 행동: 직원들이 올라오는 업무 보고를 분석 엔진 기반으로 디시전 메이킹 테이블로 바꾸는 작업을 하실 계획입니다.<br><br>이렇게 정리해보았는데, 맞으신가요?</div>
+        <div class="chat-role right">참여자</div>
+        <div class="chat-bubble user">맞아</div>
+      </div>
+
+      <div class="chat-turn">
+        <div class="chat-role">AI</div>
+        <div class="chat-bubble ai">감사합니다, 최원석님! 말씀해주신 내용이 정확하게 반영되었군요. 이번 교육을 통해 많은 도움이 되시길 바랍니다. 앞으로의 AI 활용이 기대되네요!</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>RXR-AX-EDU &middot; AX 사전진단 인터뷰 &middot; Token: Ym2nRFR7 &middot; by Project Rent</p>
+  </div>
+
+</div>
+</body>
+</html>
