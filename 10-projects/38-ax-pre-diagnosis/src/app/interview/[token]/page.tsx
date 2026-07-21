@@ -63,7 +63,8 @@ export default function InterviewPage() {
   }
 
   async function handleName() {
-    const name = inputValue.trim() || '익명';
+    const name = inputValue.trim();
+    if (!name) return;
     fetch('/api/session', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -415,7 +416,7 @@ export default function InterviewPage() {
                   else handleUserSubmit();
                 }
               }}
-              placeholder={phase === 'name' ? '이름 입력 (또는 빈칸으로 익명)' : '답변을 입력하세요...'}
+              placeholder={phase === 'name' ? '이름을 입력해 주세요 (필수)' : '답변을 입력하세요...'}
               className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:border-[#6C5CE7] max-h-24"
               rows={1}
               disabled={isTyping}
