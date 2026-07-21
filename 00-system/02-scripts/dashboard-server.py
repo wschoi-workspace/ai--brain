@@ -48,6 +48,9 @@ MEMORY_DIR = Path(os.environ.get("ARISA_MEMORY_DIR") or (Path.home() / "arisa-pr
 # ARISA 2.0 리버스 프록시 — /arisa2/* → localhost:ARISA2_PORT
 ARISA2_PORT = int(os.environ.get("ARISA2_PORT", "8787"))
 ARISA2_UPSTREAM = f"http://127.0.0.1:{ARISA2_PORT}"
+# R4 회의 시뮬레이터 프록시 — /r4/* → localhost:R4_PORT (meeting-simulator-server.py, 2026-07-21)
+R4_PORT = int(os.environ.get("R4_PORT", "8781"))
+R4_UPSTREAM = f"http://127.0.0.1:{R4_PORT}"
 _lock = threading.Lock()
 
 # ── 주간분장 시트 연동 (개인 대시보드 — 업무분장 입력/조회) ──
@@ -417,6 +420,85 @@ SIMULATOR_BRIEF_PROMPT = """너는 ARISA 기획안(1P-Brief) 품질 시뮬레이
 ```
 등급: S(90~100), A(75~89), B(60~74), C(40~59), D(0~39)"""
 
+def _extract_file_text(name, data):
+    """업로드 파일 → 텍스트. txt/md(인코딩 폴백), html(태그 제거), docx(zip+xml). 실패 시 ''."""
+    import html as _html
+    import io
+    import zipfile
+
+    def _decode(raw):
+        for enc in ("utf-8", "utf-8-sig", "cp949", "utf-16"):
+            try:
+                return raw.decode(enc)
+            except (UnicodeDecodeError, UnicodeError):
+                continue
+        return raw.decode("utf-8", errors="replace")
+
+    try:
+        if name.endswith(".docx"):
+            with zipfile.ZipFile(io.BytesIO(data)) as z:
+                xml = z.read("word/document.xml").decode("utf-8", errors="replace")
+            # 문단(</w:p>)을 줄바꿈으로 보존 후 태그 제거
+            xml = re.sub(r"</w:p>", "\n", xml)
+            text = re.sub(r"<[^>]+>", "", xml)
+            return _html.unescape(text)
+        if name.endswith((".html", ".htm")):
+            src = _decode(data)
+            src = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>", "", src, flags=re.I)
+            src = re.sub(r"</(p|div|tr|li|h[1-6]|table)>", "\n", src, flags=re.I)
+            text = _html.unescape(re.sub(r"<[^>]+>", " ", src))
+            return re.sub(r"[ \t]+", " ", text)
+        if name.endswith((".txt", ".md", ".csv", ".log")) or "." not in name.rsplit("/", 1)[-1]:
+            return _decode(data)
+    except Exception as e:
+        sys.stderr.write(f"[extract-text] {name}: {e}\n")
+    return ""
+
+
+# 회의분석(일반·직원용) — 전사/회의록 → GPT 1회 호출로 실행 중심 10섹션 회의록.
+# 포맷: 대표의 회의록 전용 GPT 봇 출력 구조 이식 (2026-07-21, 유럽진출협업회의 샘플 기준)
+MEETING_SUMMARY_PROMPT = """너는 회의록 전용 어시스턴트다. 회의 전사(STT 원문·메모·정리본)를 받아 **실행 중심**으로 재구성한 회의록을 만든다.
+
+원칙:
+1. 발언에 없는 내용을 확정된 사실처럼 만들지 않는다. 제안과 결정을 구분한다.
+2. 담당자·기한이 불명확하면 지어내지 말고 "확인 필요"로 표기한다. 전사에 없는 연도·날짜를 만들지 마라.
+3. STT 오류로 문장이 깨져 있어도 문맥상 명확한 내용은 정리하되, 심하게 불명확한 부분은 제외한다.
+4. 정보 공유 성격의 회의라면 todos를 억지로 만들지 않는다 (빈 배열 허용).
+5. 실행 업무 우선순위: 3=핵심(실행을 막는 것), 2=중요, 1=일반.
+6. **전수 추출**: 회의에서 합의·지시된 할 일을 하나도 빠뜨리지 않는다. "~하시죠", "~할게요", "~해주세요" 같은 짧은 합의도 각각 별도 todo로. 입력이 정리본이고 To-do 표가 이미 있으면 전부 옮긴다. 1시간급 실무 회의는 todos 5~12개가 정상.
+7. support(지원 요청)는 내부 역할 분담(누가 무엇을 맡는가)뿐 아니라 **외부 대상(고객사·기관·협력사·담당자)에게 받아야 할 자료·승인·협의·관계 구축을 반드시 포함**한다. "OO에서 받아야", "OO와 협의", "OO 태핑" 류 발언이 단서다.
+8. changes(주요 변경)는 **반드시 2~3개** 도출한다. 이 회의로 달라진 것을 서로 다른 각도에서 대비한다 — ①관계·역할 구조(예: 개별 협력→파트너십) ②전략 범위(예: 행사 대응→시장 진출) ③운영 방식·체계(예: 개별 프로젝트→장기 사업 개발). 명시 발언이 없어도 회의 전후의 큰 그림 변화를 해석해 적는다. 정말 아무 변화도 없는 순수 공유 회의만 빈 배열.
+9. discussions는 논의된 주제를 모두 나열한다 (보통 3~6개).
+10. 출력은 유효한 JSON만(들여쓰기 없이 압축). 설명 문장·마크다운 금지. 모든 텍스트는 한국어.
+
+출력 JSON:
+{
+  "title_guess": "회의명 (사용자 입력이 있으면 그대로)",
+  "summary": {
+    "purpose": "회의 목적 1~2문장",
+    "key_decisions": ["핵심 결정사항 2~4개"],
+    "key_changes": ["핵심 변경사항 (없으면 빈 배열)"],
+    "top_action": "가장 중요한 실행 업무 1문장",
+    "risks": ["주요 리스크 1~3개"]
+  },
+  "basic_info": {"project": "프로젝트명", "date": "일시", "participants": "참석자", "decision_maker": "주요 의사결정자", "meeting_type": "회의 유형(예: 킥오프+실무 협의)", "purpose": "회의 목적 한 줄"},
+  "decisions": [{"title": "결정 제목", "decision": "결정 내용", "reason": "이유(없으면 빈 문자열)", "impact": "영향/적용 일정(없으면 빈 문자열)"}],
+  "changes": [{"before": "기존", "after": "변경"}]  ← 반드시 2~3개: ①관계·역할 ②전략 범위 ③운영 방식 각도에서 이 회의로 달라진 것을 기존→변경 대비로 해석 도출 (예: "프로젝트 단위 협업"→"유럽 사업 파트너십", "행사 대응 중심"→"시장 진출 전략 중심"),
+  "discussions": [{"topic": "논의 주제", "points": "논의 요지 1~2문장", "conclusion": "결론 한 줄"}]  ← 논의된 주제 모두 (보통 3~6개),
+  "todos": [{"priority": 3, "task": "업무", "owner": "담당 또는 확인 필요", "due": "기한 또는 확인 필요", "output": "산출물", "done_criteria": "완료 기준"}],
+  "support": [{"target": "대상", "type": "내부|외부", "request": "요청 내용"}]  ← 내부 역할 분담 + 외부 기관·담당자·협력사에게 받아야 할 것(자료·승인·협의·관계구축)을 각각 모두 나열 (보통 3~6개),
+  "risks": [{"category": "일정|운영|물류|사업|경쟁|기타", "detail": "리스크 내용"}],
+  "to_verify": ["추가 확인 필요사항"],
+  "next_steps": {
+    "immediate": ["즉시 수행"],
+    "before_next_meeting": ["다음 회의 전 완료"],
+    "next_decisions": ["다음 의사결정 필요"],
+    "next_milestones": ["다음 마일스톤"]
+  },
+  "closing_note": "총평 1~2문장 (이 회의의 성격과 가장 중요한 성공 요인)",
+  "quality_note": "전사 품질 경고(화자 구분 없음, 오탈자 심함 등 — 문제 없으면 빈 문자열)"
+}"""
+
 SIMULATOR_DRAFT_PROMPT = """너는 업무 보고 구조화 도우미다. 사용자가 자유롭게 서술한 업무 텍스트를 받아, 지정된 필드 구조에 맞게 정보를 추출·배분한다.
 
 ## 규칙
@@ -486,7 +568,7 @@ def _build_simulator_input(mode, fields):
 
 SIMULATOR_HTML = """<!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>보고 시뮬레이터 — ARISA</title>
+<title>문서 시뮬레이터 — ARISA</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <style>
 :root{--bg:#1A1A1A;--bg2:#202020;--bg3:#262626;--fg:#F5F0EB;--fg2:#C4BEB7;--muted:#8A857E;--line:#333;--accent:#6C5CE7;--red:#E17055;--green:#00b894;--amber:#FDCB6E;--coral:#E17055}
@@ -567,13 +649,50 @@ h1{font-size:22px;font-weight:700;margin-bottom:4px}
 .summary-box{background:var(--bg);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.7}
 </style></head><body>
 <div class="wrap">
-<h1>보고 시뮬레이터</h1>
-<p class="sub">Reporting OS v2 — 보고를 쓰고 AI 리뷰를 받아보세요. ReportScore 100점 채점 + ThinkingCost 예측</p>
+<h1>문서 시뮬레이터</h1>
+<p class="sub">보고·기획안은 AI 리뷰(ReportScore 채점), 회의분석은 전사를 실행 패키지로 변환합니다. 완료된 결과는 PDF·문서(.doc)로 저장할 수 있습니다.</p>
 <div class="modes">
   <button class="mode-btn on" data-m="daily">일일보고</button>
   <button class="mode-btn" data-m="brief">기획안 (1P-Brief)</button>
+  <button class="mode-btn" data-m="meeting">회의분석</button>
+  <button class="mode-btn" data-m="meetingpro" id="btn-pro" style="display:none">회의분석 Pro</button>
 </div>
-<div class="main">
+<iframe id="meeting-frame" style="display:none;width:100%;height:calc(100vh - 210px);border:1px solid var(--line);border-radius:14px;background:var(--bg)"></iframe>
+<div class="main" id="meeting-panel" style="display:none">
+  <div class="panel">
+    <h2>회의분석 입력</h2>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">회의 전사·회의록 *
+        <span style="display:flex;gap:4px;margin-left:4px">
+          <button type="button" class="mt-src on" data-src="text">✍ 텍스트 붙여넣기</button>
+          <button type="button" class="mt-src" data-src="file">📎 파일 업로드</button>
+        </span>
+        <span id="mt-file-msg" style="font-size:11px;color:var(--muted);font-weight:400"></span>
+      </label>
+      <input type="file" id="mt-file" accept=".txt,.md,.html,.htm,.docx,.csv,.log" style="display:none">
+      <textarea id="mt-text" rows="16" placeholder="회의 전사(STT 원문), 메모, 회의록 자료를 그대로 붙여넣으세요."></textarea>
+      <div id="mt-drop" style="display:none;border:2px dashed var(--line);border-radius:12px;padding:56px 20px;text-align:center;cursor:pointer;color:var(--muted);transition:border-color .15s,background .15s">
+        <div style="font-size:34px;margin-bottom:10px">📎</div>
+        <div style="font-size:14px;font-weight:600;color:var(--fg2)">파일을 여기에 끌어다 놓거나 클릭해서 업로드</div>
+        <div style="font-size:11px;margin-top:6px">.txt · .md · .html · .docx (최대 8MB) — PDF는 내용을 복사해 텍스트로 붙여넣어 주세요</div>
+      </div>
+    </div>
+    <style>.mt-src{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit}.mt-src.on{background:var(--accent);color:#fff;border-color:var(--accent)}</style>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>회의명 (선택)</label><textarea id="mt-title" rows="1" style="min-height:40px"></textarea></div>
+      <div class="field"><label>회의 일시 (선택)</label><textarea id="mt-date" rows="1" style="min-height:40px" placeholder="2026-07-21"></textarea></div>
+    </div>
+    <div class="submit-row">
+      <button class="submit-btn" id="mt-btn">AI 분석</button>
+      <span class="submit-msg" id="mt-msg"></span>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>분석 결과</h2>
+    <div id="mt-result"><div class="result-empty">왼쪽에 회의 내용을 붙여넣고 "AI 분석"을 눌러보세요.<br>핵심 요약 · 결정사항 · 할 일 · 다음 일정으로 정리해드립니다.</div></div>
+  </div>
+</div>
+<div class="main" id="report-main">
   <div class="panel" id="input-panel">
     <h2 id="input-title">일일보고 입력</h2>
     <div class="draft-section" id="draft-section">
@@ -583,7 +702,18 @@ h1{font-size:22px;font-weight:700;margin-bottom:4px}
       </div>
       <div class="draft-body" id="draft-body">
         <div class="draft-hint">먼저 아래 폼을 직접 작성한 뒤, 같은 내용을 자유 텍스트로 입력하면 AI 드래프트와 비교할 수 있습니다.<br>내 보고와 AI 드래프트의 차이를 보며 빠진 항목을 발견하세요.</div>
+        <div style="display:flex;gap:4px;margin-bottom:8px;align-items:center">
+          <button type="button" class="dr-src mt-src on" data-src="text">✍ 텍스트 붙여넣기</button>
+          <button type="button" class="dr-src mt-src" data-src="file">📎 파일 업로드</button>
+          <span id="draft-file-msg" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <input type="file" id="draft-file" accept=".txt,.md,.html,.htm,.docx,.csv,.log" style="display:none">
         <textarea id="draft-text" placeholder="업무를 자유롭게 설명하세요...&#10;예) 오늘 세스크멘슬 주방 도면 v3 작업했고, 설비팀 피드백 반영 중. 환기닥트 위치가 바뀌어서 레이아웃 수정해야 함. 내일 오전까지 최종본 보내야 하는데, 자재 A안 B안 중에 대표님 결정이 필요함."></textarea>
+        <div id="draft-drop" style="display:none;border:2px dashed var(--line);border-radius:10px;padding:34px 16px;text-align:center;cursor:pointer;color:var(--muted);transition:border-color .15s,background .15s">
+          <div style="font-size:24px;margin-bottom:6px">📎</div>
+          <div style="font-size:13px;font-weight:600;color:var(--fg2)">파일을 여기에 끌어다 놓거나 클릭해서 업로드</div>
+          <div style="font-size:11px;margin-top:4px">.txt · .md · .html · .docx (최대 8MB)</div>
+        </div>
         <div class="draft-actions">
           <button class="draft-btn" id="draft-btn" disabled>AI 드래프트와 비교</button>
           <span class="draft-msg" id="draft-msg"></span>
@@ -670,12 +800,71 @@ var ITEM_LABELS={context:'Context (맥락)',objective:'Objective (목표)',evide
   priority:'Priority (우선순위)',risk:'Risk (리스크)',decision:'Decision (결정)',support:'Support (지원)',
   title:'제목',summary:'Executive Summary',stakeholder:'Stakeholder',client_value:'Client Value',
   core_idea:'핵심 아이디어',success_criteria:'성공 기준',support_needed:'필요한 지원'};
+var lastReview=null, lastFields=null, lastMode='daily';
+function buildReportDoc(){
+  // 보고 원문 + AI 리뷰를 인쇄 친화(밝은 배경) HTML 문서로 조립 — PDF 저장/.doc 다운로드 공용
+  if(!lastReview) return '';
+  var d=lastReview, items=lastMode==='brief'?BRIEF:DAILY;
+  var TL={A:'진행 공유',B:'이슈·리스크',C:'의사결정'};
+  var title=(lastMode==='brief'?'기획안 (1P-Brief)':'일일보고')+' — AI 리뷰 리포트';
+  var b='<h1>'+title+'</h1><p class="meta">'+new Date().toLocaleDateString('ko-KR')
+    +' · 점수 '+d.total+'점 · 등급 '+esc(d.grade)
+    +(d.report_type?(' · '+(TL[d.report_type]||d.report_type)+' 루브릭'):'')+'</p>';
+  if(d.summary) b+='<blockquote>'+esc(d.summary)+'</blockquote>';
+  b+='<h2>보고 내용</h2>';
+  items.forEach(function(f){
+    var v=(lastFields||{})[f.key];
+    if(v&&v.trim()) b+='<h3>'+esc(f.label)+'</h3><p>'+esc(v).replace(/\\n/g,'<br>')+'</p>';
+  });
+  b+='<h2>항목별 채점</h2><table><tr><th>항목</th><th>점수</th><th>피드백</th></tr>';
+  for(var k in d.scores){ var s=d.scores[k];
+    b+='<tr><td>'+(s.pass?'✓':'✗')+' '+esc(ITEM_LABELS[k]||k)+'</td><td>'+s.score+'/'+s.max+'</td><td>'+esc(s.feedback||'')+'</td></tr>'; }
+  b+='</table>';
+  var pats=d.patterns_detected||[];
+  if(pats.length){ b+='<h2>감지된 안티패턴</h2><ul>';
+    pats.forEach(function(p){b+='<li><b>'+esc(p.type)+'</b>'+(p.field?(' ('+esc(p.field)+')'):'')+' — '+esc(p.detail||'')+'</li>';});
+    b+='</ul>'; }
+  var tips=d.improvement_tips||[];
+  if(tips.length){ b+='<h2>개선 팁</h2><ul>';
+    tips.forEach(function(t){b+='<li>'+esc(t)+'</li>';}); b+='</ul>'; }
+  b+='<p class="foot">by Project Rent · ARISA 문서 시뮬레이터</p>';
+  return docShell(title,b);
+}
+var DOC_CSS='body{font-family:\\'Pretendard Variable\\',\\'Apple SD Gothic Neo\\',\\'Malgun Gothic\\',sans-serif;color:#1a1a1a;background:#fff;max-width:780px;margin:0 auto;padding:36px 28px;line-height:1.6;font-size:13px}'
+  +'h1{font-size:22px;margin:0 0 4px;border-bottom:3px solid #6C5CE7;padding-bottom:8px}'
+  +'h2{font-size:15px;margin:24px 0 8px;color:#3b3470;border-left:4px solid #6C5CE7;padding-left:9px}'
+  +'h3{font-size:13px;margin:12px 0 3px}.meta{color:#777;font-size:12px;margin:6px 0 12px}'
+  +'blockquote{margin:12px 0;padding:11px 14px;background:#f4f2ff;border-left:4px solid #6C5CE7}'
+  +'table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}'
+  +'th{background:#f0eefc;text-align:left;padding:6px 8px;border:1px solid #ddd}'
+  +'td{padding:6px 8px;border:1px solid #ddd;vertical-align:top}ul{margin:4px 0 10px 20px}'
+  +'.warn{background:#fff7e6;border-left:4px solid #f4c430;padding:9px 12px;font-size:12px;margin:10px 0}'
+  +'.foot{margin-top:30px;color:#999;font-size:11px;border-top:1px solid #eee;padding-top:8px}';
+function docShell(title,body){
+  return '<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>'+title+'</title><style>'+DOC_CSS+'</style></head><body>'+body+'</body></html>';
+}
+window.simExportPDF=function(){
+  var html=buildReportDoc(); if(!html) return;
+  var w=window.open('','_blank'); w.document.write(html); w.document.close();
+  setTimeout(function(){w.print();},400);
+};
+window.simExportDoc=function(){
+  var html=buildReportDoc(); if(!html) return;
+  var blob=new Blob(['\\ufeff'+html],{type:'application/msword'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=(lastMode==='brief'?'brief':'daily')+'-review-'+new Date().toISOString().slice(0,10)+'.doc';
+  a.click(); URL.revokeObjectURL(a.href);
+};
 function renderResult(d){
   var box=document.getElementById('result');
   if(!d||!d.scores){box.innerHTML='<div class="result-empty">리뷰 결과를 가져오지 못했습니다. 다시 시도해주세요.</div>';return;}
+  lastReview=d; lastMode=mode;
   var pct=d.total, gc=gradeColor(d.grade);
   var r=Math.round(pct/100*251.2); // circumference=2*PI*40
-  var h='<div class="score-circle"><svg width="140" height="140"><circle cx="70" cy="70" r="40" fill="none" stroke="var(--bg3)" stroke-width="8"/>'
+  var h='<div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px">'
+    +'<button class="draft-btn" onclick="simExportPDF()">🖨 PDF로 저장</button>'
+    +'<button class="draft-btn" style="background:var(--bg3);border:1px solid var(--line)" onclick="simExportDoc()">문서(.doc)</button></div>';
+  h+='<div class="score-circle"><svg width="140" height="140"><circle cx="70" cy="70" r="40" fill="none" stroke="var(--bg3)" stroke-width="8"/>'
     +'<circle cx="70" cy="70" r="40" fill="none" stroke="'+gc+'" stroke-width="8" stroke-dasharray="'+r+' 251.2" stroke-linecap="round"/></svg>'
     +'<div class="val"><div class="num" style="color:'+gc+'">'+d.total+'</div><div class="grade" style="color:'+gc+'">'+esc(d.grade)+'</div></div></div>';
   // 보고 유형·채점 모드 배지 (2026-07-20 유형별 루브릭)
@@ -722,14 +911,236 @@ function renderResult(d){
   }
   box.innerHTML=h;
 }
+if(location.search.indexOf('pro=1')>-1) document.getElementById('btn-pro').style.display='';
 document.querySelectorAll('.mode-btn').forEach(function(b){
   b.onclick=function(){
     mode=b.dataset.m;
     document.querySelectorAll('.mode-btn').forEach(function(x){x.classList.toggle('on',x.dataset.m===mode);});
+    var mf=document.getElementById('meeting-frame'),
+        mp=document.getElementById('meeting-panel'),
+        rm=document.getElementById('report-main');
+    if(mode==='meetingpro'){
+      rm.style.display='none'; mp.style.display='none'; mf.style.display='block';
+      if(!mf.getAttribute('src')) mf.src='/r4/';
+      return;
+    }
+    if(mode==='meeting'){
+      rm.style.display='none'; mf.style.display='none'; mp.style.display='';
+      return;
+    }
+    rm.style.display=''; mf.style.display='none'; mp.style.display='none';
     renderFields();
     document.getElementById('result').innerHTML='<div class="result-empty">왼쪽 폼을 작성하고 "AI 리뷰 받기"를 눌러보세요.</div>';
   };
 });
+// ── 회의분석 (일반·직원용 GPT 써머리) ──
+var lastMeeting=null;
+function stars(p){return p>=3?'★★★':p===2?'★★☆':'★☆☆';}
+function mtSections(d,tag){
+  // 10섹션 본문 생성 — tag: 함수(h2/h3/ul/table 마크업 스타일 주입)으로 화면·문서 공용
+  var b='';
+  var s=d.summary||{};
+  b+=tag.h2('1. Summary');
+  if(s.purpose) b+=tag.h3('회의 목적')+tag.p(s.purpose);
+  if((s.key_decisions||[]).length) b+=tag.h3('핵심 결정사항')+tag.ul(s.key_decisions);
+  if((s.key_changes||[]).length) b+=tag.h3('핵심 변경사항')+tag.ul(s.key_changes);
+  if(s.top_action) b+=tag.h3('가장 중요한 실행 업무')+tag.p(s.top_action);
+  if((s.risks||[]).length) b+=tag.h3('주요 리스크')+tag.ul(s.risks);
+  var bi=d.basic_info||{};
+  var biRows=[['프로젝트',bi.project],['일시',bi.date],['참석자',bi.participants],['주요 의사결정자',bi.decision_maker],['회의 유형',bi.meeting_type],['회의 목적',bi.purpose]].filter(function(r){return r[1];});
+  if(biRows.length) b+=tag.h2('2. 회의 기본정보')+tag.table(['항목','내용'],biRows.map(function(r){return [r[0],esc(r[1])];}));
+  var decs=d.decisions||[];
+  if(decs.length){ b+=tag.h2('3. 핵심 결정사항');
+    decs.forEach(function(x,i){
+      b+=tag.h3((i+1)+'. '+esc(x.title||''))+tag.p('<b>결정:</b> '+esc(x.decision||''));
+      if(x.reason) b+=tag.p('<b>이유:</b> '+esc(x.reason));
+      if(x.impact) b+=tag.p('<b>영향/일정:</b> '+esc(x.impact));
+    }); }
+  var chg=d.changes||[];
+  if(chg.length) b+=tag.h2('4. 주요 변경사항')+tag.table(['기존','변경'],chg.map(function(c){return [esc(c.before),esc(c.after)];}));
+  var disc=d.discussions||[];
+  if(disc.length){ b+=tag.h2('5. 주요 논의');
+    disc.forEach(function(x){ b+=tag.h3(esc(x.topic||''))+tag.p(esc(x.points||''))+ (x.conclusion?tag.p('<b>결론:</b> '+esc(x.conclusion)):''); }); }
+  var todos=(d.todos||[]).slice().sort(function(a,c){return (c.priority||1)-(a.priority||1);});
+  if(todos.length) b+=tag.h2('6. 실행 업무 (To-do)')+tag.todos(todos);
+  var sup=d.support||[];
+  if(sup.length) b+=tag.h2('7. 지원 요청')+tag.table(['대상','구분','요청'],sup.map(function(x){return [esc(x.target),esc(x.type||''),esc(x.request)];}));
+  var rk=d.risks||[];
+  if(rk.length) b+=tag.h2('8. 리스크')+tag.ul(rk.map(function(x){return '['+(x.category||'기타')+'] '+x.detail;}));
+  if((d.to_verify||[]).length) b+=tag.h2('9. 추가 확인 필요사항')+tag.verify(d.to_verify,d.to_verify_answers||[]);
+  var ns=d.next_steps||{};
+  var nsAny=(ns.immediate||[]).length||(ns.before_next_meeting||[]).length||(ns.next_decisions||[]).length||(ns.next_milestones||[]).length;
+  if(nsAny){ b+=tag.h2('10. 다음 단계');
+    if((ns.immediate||[]).length) b+=tag.h3('즉시 수행')+tag.ul(ns.immediate);
+    if((ns.before_next_meeting||[]).length) b+=tag.h3('다음 회의 전 완료')+tag.ul(ns.before_next_meeting);
+    if((ns.next_decisions||[]).length) b+=tag.h3('다음 의사결정')+tag.ul(ns.next_decisions);
+    if((ns.next_milestones||[]).length) b+=tag.h3('다음 마일스톤')+tag.ul(ns.next_milestones); }
+  if(d.closing_note) b+=tag.quote(d.closing_note);
+  if(d.quality_note) b+=tag.warn('⚠ '+d.quality_note);
+  return b;
+}
+function buildMeetingDoc(){
+  if(!lastMeeting) return '';
+  var d=lastMeeting, title=(d.title_guess||'회의록');
+  var tag={
+    h2:function(t){return '<h2>'+t+'</h2>';},
+    h3:function(t){return '<h3>'+t+'</h3>';},
+    p:function(t){return '<p>'+t+'</p>';},
+    ul:function(a){return '<ul>'+a.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';},
+    table:function(hd,rows){return '<table><tr>'+hd.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr>'
+      +rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';}).join('')+'</table>';},
+    quote:function(t){return '<blockquote>'+esc(t)+'</blockquote>';},
+    warn:function(t){return '<div class="warn">'+esc(t)+'</div>';}
+  };
+  tag.todos=function(todos){return tag.table(['우선','업무','담당','기한','산출물','완료 기준'],
+    todos.map(function(t){return [stars(t.priority),esc(t.task),esc(t.owner||'확인 필요'),esc(t.due||'확인 필요'),esc(t.output||''),esc(t.done_criteria||'')];}));};
+  tag.verify=function(items,answers){return '<ul>'+items.map(function(x,i){
+    return '<li>'+esc(x)+((answers[i]||'').trim()?' — <b>답변:</b> '+esc(answers[i]):'')+'</li>';}).join('')+'</ul>';};
+  var b='<h1>'+esc(title)+'</h1><p class="meta">'+new Date().toLocaleDateString('ko-KR')+' · 실행 중심 회의록</p>'
+    +mtSections(lastMeeting,tag)
+    +'<p class="foot">by Project Rent · ARISA 문서 시뮬레이터</p>';
+  return docShell(title,b);
+}
+window.buildMeetingDoc=buildMeetingDoc;
+window.mtExportPDF=function(){var html=buildMeetingDoc();if(!html)return;var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},400);};
+window.mtExportDoc=function(){var html=buildMeetingDoc();if(!html)return;
+  var blob=new Blob(['\\ufeff'+html],{type:'application/msword'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='meeting-summary-'+new Date().toISOString().slice(0,10)+'.doc';a.click();URL.revokeObjectURL(a.href);};
+function renderMeetingResult(d){
+  lastMeeting=d;
+  var h='<div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px">'
+    +'<button class="draft-btn" onclick="mtExportPDF()">🖨 PDF로 저장</button>'
+    +'<button class="draft-btn" style="background:var(--bg3);border:1px solid var(--line)" onclick="mtExportDoc()">문서(.doc)</button></div>';
+  // 화면용 다크테마 태그 세트 (문서용 mtSections와 공용 데이터)
+  var tag={
+    h2:function(t){return '<h3 style="font-size:14px;font-weight:700;margin:18px 0 8px;color:var(--accent);border-left:3px solid var(--accent);padding-left:8px">'+t+'</h3>';},
+    h3:function(t){return '<div style="font-size:12px;font-weight:600;margin:10px 0 4px;color:var(--fg)">'+t+'</div>';},
+    p:function(t){return '<div style="font-size:12px;color:var(--fg2);line-height:1.6;margin-bottom:6px">'+t+'</div>';},
+    ul:function(a){return a.map(function(x){return '<div class="tip-item">'+esc(x)+'</div>';}).join('');},
+    table:function(hd,rows){return '<table style="width:100%;border-collapse:collapse;font-size:11px;margin:6px 0">'
+      +'<tr>'+hd.map(function(x){return '<th style="text-align:left;padding:5px 7px;border-bottom:1px solid var(--line);color:var(--muted);white-space:nowrap">'+x+'</th>';}).join('')+'</tr>'
+      +rows.map(function(r){return '<tr>'+r.map(function(c){return '<td style="padding:5px 7px;border-bottom:1px solid #2a2a2a;vertical-align:top;color:var(--fg2)">'+c+'</td>';}).join('')+'</tr>';}).join('')+'</table>';},
+    quote:function(t){return '<div class="summary-box" style="margin-top:14px">'+esc(t)+'</div>';},
+    warn:function(t){return '<div style="margin-top:10px;font-size:11px;color:var(--amber)">'+esc(t)+'</div>';}
+  };
+  // 편집 가능 셀: 담당·기한·산출물·완료기준 + 확인사항 답변 — 채우면 lastMeeting에 반영돼 PDF/.doc에 포함
+  var EDIT_STYLE='outline:none;border-bottom:1px dashed var(--accent);cursor:text;display:inline-block;min-width:52px;padding:0 2px';
+  mtSortedTodos=(d.todos||[]).slice().sort(function(a,c){return (c.priority||1)-(a.priority||1);});
+  tag.todos=function(todos){return tag.table(['우선','업무','담당','기한','산출물','완료 기준'],
+    todos.map(function(t,i){
+      function ed(f,ph){var v=t[f]||'';var miss=!v||v==='확인 필요'||v==='미정';
+        return '<span contenteditable="true" class="mt-ed" data-i="'+i+'" data-f="'+f+'" data-ph="'+ph+'" style="'+EDIT_STYLE+(miss?';color:var(--amber)':'')+'">'+esc(miss?ph:v)+'</span>';}
+      return [stars(t.priority),esc(t.task),ed('owner','확인 필요'),ed('due','확인 필요'),ed('output','—'),ed('done_criteria','—')];
+    }));};
+  tag.verify=function(items,answers){return items.map(function(x,i){
+    var a=(answers[i]||'').trim();
+    return '<div class="tip-item">'+esc(x)+'<br><span style="font-size:11px;color:var(--muted)">답변: </span>'
+      +'<span contenteditable="true" class="mt-ed" data-vi="'+i+'" data-ph="입력…" style="'+EDIT_STYLE+';font-size:11px'+(a?'':';color:var(--amber)')+'">'+esc(a||'입력…')+'</span></div>';}).join('');};
+  h+='<div style="font-size:11px;color:var(--muted);margin-bottom:8px">✏️ 점선 표시된 값(담당·기한 등)은 클릭해서 직접 채울 수 있습니다 — 채운 내용은 PDF·문서에 반영됩니다.</div>';
+  h+=mtSections(d,tag);
+  var box=document.getElementById('mt-result');
+  box.innerHTML=h;
+  // 편집 바인딩: 포커스 시 자리표시 제거, 블러 시 lastMeeting 반영
+  box.querySelectorAll('.mt-ed').forEach(function(el){
+    el.addEventListener('focus',function(){
+      if(el.textContent===el.dataset.ph){el.textContent='';}
+      el.style.color='var(--fg)';
+    });
+    el.addEventListener('blur',function(){
+      var v=el.textContent.trim();
+      if(!v){el.textContent=el.dataset.ph;el.style.color='var(--amber)';}
+      if(el.dataset.f!==undefined&&el.dataset.i!==undefined){
+        mtSortedTodos[parseInt(el.dataset.i,10)][el.dataset.f]=(v&&v!==el.dataset.ph)?v:'';
+      }else if(el.dataset.vi!==undefined){
+        lastMeeting.to_verify_answers=lastMeeting.to_verify_answers||[];
+        lastMeeting.to_verify_answers[parseInt(el.dataset.vi,10)]=(v&&v!==el.dataset.ph)?v:'';
+      }
+    });
+    el.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();el.blur();}});
+  });
+}
+var mtSortedTodos=[];
+// ── 파일 → 텍스트 공용 로더 (회의분석·드래프트 공용) ──
+function fileToText(file,msgEl,onDone){
+  if(!file){return;}
+  if(file.size>8000000){msgEl.textContent='8MB 이하 파일만 지원합니다.';return;}
+  msgEl.textContent='파일 읽는 중… ('+file.name+')';
+  var fr=new FileReader();
+  fr.onload=function(){
+    fetch('/api/simulator/extract-text',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:file.name,data_b64:fr.result.split(',')[1]})})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d.ok){msgEl.textContent=d.error||'추출 실패';return;}
+        msgEl.textContent='✓ '+file.name+' ('+d.text.length.toLocaleString()+'자) 불러옴';
+        onDone(d.text,file);
+      })
+      .catch(function(){msgEl.textContent='서버 연결 실패';});
+  };
+  fr.readAsDataURL(file);
+}
+function wireDrop(el,handler){
+  ['dragenter','dragover'].forEach(function(ev){el.addEventListener(ev,function(e){e.preventDefault();el.style.borderColor='var(--accent)';el.style.background='rgba(108,92,231,.06)';});});
+  ['dragleave','drop'].forEach(function(ev){el.addEventListener(ev,function(e){e.preventDefault();el.style.borderColor='';el.style.background='';});});
+  el.addEventListener('drop',function(e){
+    if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length){handler(e.dataTransfer.files[0]);}
+  });
+}
+function mtLoadFile(file){
+  fileToText(file,document.getElementById('mt-file-msg'),function(text,f){
+    document.getElementById('mt-text').value=text;
+    var tEl=document.getElementById('mt-title');
+    if(!tEl.value.trim()) tEl.value=f.name.replace(/\\.[^.]+$/,'');
+    mtSetSrc('text');  // 불러온 내용을 바로 확인·수정할 수 있게 텍스트 모드로 전환
+  });
+}
+// ── 드래프트(일일보고·기획안 AI 비교) 파일 입력 ──
+function drLoadFile(file){
+  fileToText(file,document.getElementById('draft-file-msg'),function(text){
+    document.getElementById('draft-text').value=text;
+    drSetSrc('text');
+    checkDraftReady();
+  });
+}
+function drSetSrc(src){
+  document.querySelectorAll('.dr-src').forEach(function(x){x.classList.toggle('on',x.dataset.src===src);});
+  document.getElementById('draft-text').style.display=(src==='text')?'':'none';
+  document.getElementById('draft-drop').style.display=(src==='file')?'':'none';
+}
+document.querySelectorAll('.dr-src').forEach(function(b){b.addEventListener('click',function(){drSetSrc(b.dataset.src);});});
+document.getElementById('draft-file').addEventListener('change',function(){drLoadFile(this.files[0]);this.value='';});
+document.getElementById('draft-drop').addEventListener('click',function(){document.getElementById('draft-file').click();});
+wireDrop(document.getElementById('draft-drop'),drLoadFile);
+wireDrop(document.getElementById('draft-text'),drLoadFile);
+document.getElementById('mt-file').addEventListener('change',function(){mtLoadFile(this.files[0]);this.value='';});
+// 입력 방식 전환: 텍스트 붙여넣기 ↔ 파일 업로드(드롭존)
+function mtSetSrc(src){
+  document.querySelectorAll('#meeting-panel .mt-src').forEach(function(x){x.classList.toggle('on',x.dataset.src===src);});
+  document.getElementById('mt-text').style.display=(src==='text')?'':'none';
+  document.getElementById('mt-drop').style.display=(src==='file')?'':'none';
+}
+document.querySelectorAll('#meeting-panel .mt-src').forEach(function(b){b.addEventListener('click',function(){mtSetSrc(b.dataset.src);});});
+document.getElementById('mt-drop').addEventListener('click',function(){document.getElementById('mt-file').click();});
+wireDrop(document.getElementById('mt-drop'),mtLoadFile);
+wireDrop(document.getElementById('mt-text'),mtLoadFile);
+document.getElementById('mt-btn').onclick=function(){
+  var btn=this, msg=document.getElementById('mt-msg');
+  var text=document.getElementById('mt-text').value.trim();
+  if(!text){msg.textContent='회의 내용을 붙여넣어주세요.';return;}
+  if(text.length>60000){msg.textContent='6만 자를 초과합니다. 나눠서 입력해주세요.';return;}
+  btn.disabled=true; msg.textContent='AI가 분석 중… (30~60초 소요)';
+  document.getElementById('mt-result').innerHTML='<div class="result-empty">분석 중…</div>';
+  fetch('/api/simulator/meeting-summary',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({transcript:text,title:document.getElementById('mt-title').value.trim(),date:document.getElementById('mt-date').value.trim()})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      btn.disabled=false; msg.textContent='';
+      if(d.ok) renderMeetingResult(d.result);
+      else{document.getElementById('mt-result').innerHTML='<div class="result-empty">'+esc(d.error||'분석 실패')+'</div>';}
+    })
+    .catch(function(){btn.disabled=false;msg.textContent='서버 연결 실패';});
+};
 document.getElementById('submit-btn').onclick=function(){
   var btn=this, msg=document.getElementById('submit-msg');
   var items=mode==='brief'?BRIEF:DAILY, fields={}, empty=0;
@@ -739,6 +1150,7 @@ document.getElementById('submit-btn').onclick=function(){
     if(!v.trim()) empty++;
   });
   if(empty===items.length){msg.textContent='최소 1개 항목을 입력해주세요.';return;}
+  lastFields=fields;
   btn.disabled=true; msg.textContent='AI가 리뷰 중… (10~20초 소요)';
   document.getElementById('result').innerHTML='<div class="result-empty">분석 중…</div>';
   fetch('/api/simulator/review',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -943,7 +1355,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   <div id="tabs">
     <button class="tab on" data-t="mywork">내 업무</button>
     <button class="tab" data-t="projects">프로젝트</button>
-    <button class="tab" data-t="simulator">보고 시뮬레이터</button>
+    <button class="tab" data-t="docsim">문서 시뮬레이터</button>
     <button class="tab" data-t="brief" style="display:none">오늘 Brief</button>
     <button class="tab" data-t="weekly" style="display:none">이번 주</button>
     <button class="tab-ext" id="tab-hr" style="display:none" onclick="window.open('https://rent-hr-portal.fly.dev/','_blank')">HR 포털 ↗</button>
@@ -954,7 +1366,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   <iframe class="frame" id="f-projects"></iframe>
   <iframe class="frame" id="f-brief"></iframe>
   <iframe class="frame" id="f-weekly"></iframe>
-  <iframe class="frame" id="f-simulator"></iframe>
+  <iframe class="frame" id="f-docsim"></iframe>
 </div>
 <script>
 (function(){
@@ -962,15 +1374,15 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   var sel=document.getElementById('scope-sel');
   var frames={mywork:document.getElementById('f-mywork'),projects:document.getElementById('f-projects'),
               brief:document.getElementById('f-brief'),weekly:document.getElementById('f-weekly'),
-              simulator:document.getElementById('f-simulator')};
-  var SESS=null, curTab='mywork', curScope='', loaded={projects:false,brief:false,weekly:false,simulator:false};
+              docsim:document.getElementById('f-docsim')};
+  var SESS=null, curTab='mywork', curScope='', loaded={projects:false,brief:false,weekly:false,docsim:false};
   var MW_ASSIGNEES=[];
   var SESS_KEYS=['pm_sess','brief_sess','weekly_sess','team_brief_sess','team_weekly_sess'];
   var CLEAR_KEYS=SESS_KEYS.concat(['arisa_sess','arisa_token']);
   function tabBtn(t){ return document.querySelector('.tab[data-t="'+t+'"]'); }
   function srcFor(t){
     if(t==='projects') return '/projects';
-    if(t==='simulator') return '/simulator';
+    if(t==='docsim') return '/simulator'+(SESS.admin?'?pro=1':'');  // 회의분석 Pro(R4 풀버전)는 대표 전용
     if(t==='decision') return '/arisa2/';
     var lt=SESS.lead_teams||[];
     if(t==='brief'){
@@ -2683,6 +3095,49 @@ class H(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(err)
 
+    def _proxy_r4(self, method="GET"):
+        """리버스 프록시: /r4/* → R4 회의 시뮬레이터. LLM 호출이 길어 timeout 320초."""
+        upstream_path = self.path[len("/r4"):] or "/"
+        url = R4_UPSTREAM + upstream_path
+        body = None
+        if method == "POST":
+            n = int(self.headers.get("Content-Length", 0) or 0)
+            body = self.rfile.read(n) if n else b""
+        headers = {}
+        v = self.headers.get("Content-Type")
+        if v:
+            headers["Content-Type"] = v
+        try:
+            req = Request(url, data=body, headers=headers, method=method)
+            with urlopen(req, timeout=320) as resp:
+                resp_body = resp.read()
+                ctype = resp.headers.get("Content-Type", "application/octet-stream")
+                if "text/html" in ctype:
+                    resp_body = resp_body.replace(b"var API='';", b"var API='/r4';")
+                self.send_response(resp.status)
+                self.send_header("Content-Type", ctype)
+                cd = resp.headers.get("Content-Disposition")
+                if cd:
+                    self.send_header("Content-Disposition", cd)
+                self.send_header("Content-Length", str(len(resp_body)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(resp_body)
+        except HTTPError as e:
+            resp_body = e.read()
+            self.send_response(e.code)
+            self.send_header("Content-Type", e.headers.get("Content-Type", "application/json; charset=utf-8"))
+            self.send_header("Content-Length", str(len(resp_body)))
+            self.end_headers()
+            self.wfile.write(resp_body)
+        except Exception:
+            err = b'{"ok":false,"error":"R4 simulator unavailable"}'
+            self.send_response(502)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(err)))
+            self.end_headers()
+            self.wfile.write(err)
+
     def _send(self, code, body, ctype="application/json; charset=utf-8"):
         data = body if isinstance(body, (bytes, bytearray)) else json.dumps(body, ensure_ascii=False).encode("utf-8")
         self.send_response(code)
@@ -2702,6 +3157,8 @@ class H(BaseHTTPRequestHandler):
         u = urlparse(self.path); path = u.path; q = parse_qs(u.query)
         if path.startswith("/arisa2"):
             return self._proxy_arisa2("GET")
+        if path.startswith("/r4"):
+            return self._proxy_r4("GET")
         if path in ("/", "/index.html"):
             # 통합 셸 — 로그인 1회, 역할별 탭(프로젝트/Brief/Weekly/Decision)
             # 리더 홈(팀 Todo·팀원 보고 카드)이 브리프 카드 스타일을 쓰므로 CARD_CSS 주입
@@ -3215,6 +3672,8 @@ class H(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path.startswith("/arisa2"):
             return self._proxy_arisa2("POST")
+        if path.startswith("/r4"):
+            return self._proxy_r4("POST")
         b = self._body()
         if path == "/api/login":
             uid = b.get("id", ""); pin = b.get("pin", "")
@@ -3258,6 +3717,39 @@ class H(BaseHTTPRequestHandler):
                                        "B" if t >= 60 else "C" if t >= 40 else "D")
             if not result:
                 return self._send(500, {"ok": False, "error": "AI 리뷰에 실패했습니다. API 키를 확인하세요."})
+            return self._send(200, {"ok": True, "result": result})
+        if path == "/api/simulator/extract-text":
+            # 파일 → 텍스트 추출 (회의분석 파일 입력용). txt/md/html/docx, 표준 라이브러리만.
+            import base64
+            name = (b.get("name") or "").lower()
+            try:
+                data = base64.b64decode(b.get("data_b64") or "")
+            except Exception:
+                return self._send(400, {"ok": False, "error": "파일 데이터가 올바르지 않습니다."})
+            if not data:
+                return self._send(400, {"ok": False, "error": "빈 파일입니다."})
+            if len(data) > 8_000_000:
+                return self._send(400, {"ok": False, "error": "8MB 이하 파일만 지원합니다."})
+            text = _extract_file_text(name, data)
+            if not text or not text.strip():
+                return self._send(400, {"ok": False, "error":
+                                        "텍스트를 추출하지 못했습니다. txt/md/html/docx 파일만 지원합니다 (PDF는 내용 복사해서 붙여넣어 주세요)."})
+            return self._send(200, {"ok": True, "text": text.strip()[:100000]})
+        if path == "/api/simulator/meeting-summary":
+            # 회의분석(일반) — 직원용 GPT 써머리. 동기 30~60초 (LLM 1회)
+            transcript = (b.get("transcript") or "").strip()
+            if not transcript:
+                return self._send(400, {"ok": False, "error": "회의 전사·회의록을 입력해주세요."})
+            if len(transcript) > 60000:
+                return self._send(400, {"ok": False, "error": "6만 자를 초과합니다. 나눠서 입력해주세요."})
+            meta = "\n".join(f"{k}: {v}" for k, v in
+                             (("회의명", (b.get("title") or "").strip()),
+                              ("일시", (b.get("date") or "").strip())) if v)
+            user_msg = ((f"[회의 정보]\n{meta}\n\n" if meta else "") + "[회의 내용]\n" + transcript)
+            result = _call_llm_json(MEETING_SUMMARY_PROMPT, user_msg, max_tokens=6000,
+                                    openai_model="gpt-4o", openai_only=True)
+            if not result:
+                return self._send(500, {"ok": False, "error": "AI 분석에 실패했습니다. 다시 시도해주세요."})
             return self._send(200, {"ok": True, "result": result})
         if path == "/api/simulator/draft":
             sim_mode = b.get("mode", "daily")
