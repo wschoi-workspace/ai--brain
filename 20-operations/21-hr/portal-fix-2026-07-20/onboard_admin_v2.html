@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>입퇴사 자동화 대시보드 — v2 (ARISA)</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<style>
+:root {
+  /* ARISA 통합 셸 디자인 토큰 (맥미니 대시보드 기준) */
+  --bg: #1A1A1A;
+  --paper: #202020;         /* ARISA --bg-2 */
+  --bg-3: #262626;          /* ARISA --bg-3 (인풋·칩·내부 서피스) */
+  --bg-soft: #262626;
+  --line: #333333;
+  --line-2: #3D3D3D;
+  --fg: #F5F0EB;
+  --fg-2: #C9C4BD;
+  --fg-3: #8A857E;          /* ARISA --muted */
+  --fg-4: #5E5A54;
+  --fg-inv: #1A1A1A;        /* 밝은 배지 위 텍스트 */
+
+  /* 강조색 — ARISA 청보라 + 코랄 */
+  --primary: #6C5CE7;
+  --primary-deep: #5B4BD5;
+  --primary-bg: rgba(108,92,231,.14);   /* selected 배경 */
+  --primary-pale: rgba(108,92,231,.18);
+  --alert: #E17055;
+  --alert-bg: rgba(225,112,85,.14);
+  --green: #00B894;
+  --amber: #F4C430;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Pretendard Variable', sans-serif; background: var(--bg);
+       color: var(--fg); font-size: 13px; line-height: 1.5; font-weight: 300;
+       -webkit-font-smoothing: antialiased; }
+
+/* Topbar */
+.topbar { background: var(--paper); border-bottom: 1px solid var(--line);
+          padding: 12px 24px; display: flex; justify-content: space-between;
+          align-items: center; position: sticky; top: 0; z-index: 20; }
+.topbar .brand { display: flex; align-items: center; gap: 12px; }
+.topbar .brand .logo { width: 30px; height: 30px; background: var(--primary);
+                       border-radius: 6px; color: #fff; font-weight: 700;
+                       display: flex; align-items: center; justify-content: center;
+                       font-size: 13px; letter-spacing: 0.5px; }
+.topbar .brand h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.topbar .brand .sub { font-size: 11px; color: var(--fg-3); margin-left: 4px; }
+.topbar .actions { display: flex; gap: 6px; }
+.topbar .btn { padding: 6px 12px; border: 1px solid var(--line-2); border-radius: 5px;
+               background: var(--paper); font-family: inherit; font-size: 12px;
+               font-weight: 600; cursor: pointer; color: var(--fg-2); }
+.topbar .btn:hover { border-color: var(--fg-3); color: var(--fg); }
+.topbar .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.topbar .btn-primary:hover { background: var(--primary-deep); color: #fff; }
+
+/* Layout */
+.layout { padding: 18px; max-width: 1400px; margin: 0 auto; }
+
+/* KPI */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+.kpi { background: var(--paper); border-radius: 8px; padding: 14px 18px;
+       border: 1px solid var(--line); }
+.kpi.alert { border-color: var(--alert); }
+.kpi.alert .label { color: var(--alert); }
+.kpi .label { font-size: 10.5px; color: var(--fg-3); font-weight: 600;
+              letter-spacing: 0.05em; margin-bottom: 4px; text-transform: uppercase; }
+.kpi .value { font-size: 32px; font-weight: 800; line-height: 1; letter-spacing: -1.5px;
+              font-family: 'Pretendard Variable', Pretendard, sans-serif; margin-bottom: 6px;
+              color: var(--fg); }
+.kpi .desc { font-size: 11px; color: var(--fg-3); }
+
+/* Filter bar — 단순화: 상태 탭만 강조 + 우측 검색·드롭다운 */
+.filter-bar { display: flex; align-items: center; gap: 4px; margin-bottom: 14px;
+              padding: 8px 14px; background: var(--paper); border-radius: 8px;
+              border: 1px solid var(--line); }
+.filter-bar .tab { padding: 6px 14px; border-radius: 6px;
+                   font-size: 12.5px; color: var(--fg-3); cursor: pointer;
+                   font-weight: 600; background: transparent;
+                   border: 1px solid transparent; }
+.filter-bar .tab:hover { color: var(--fg); background: var(--bg-3); }
+.filter-bar .tab.active { background: var(--primary); color: #fff; }
+.filter-bar .tab .count { font-size: 10.5px; opacity: 0.65; margin-left: 4px;
+                          font-family: 'SF Mono', monospace; font-weight: 700; }
+.filter-bar .spacer { flex: 1; }
+.filter-bar .dropdown { position: relative; padding: 6px 10px;
+                        font-size: 11.5px; color: var(--fg-2); cursor: pointer;
+                        border: 1px solid var(--line-2); border-radius: 5px; background: var(--paper); }
+.filter-bar .dropdown:hover { border-color: var(--fg-3); }
+.filter-bar .search { padding: 6px 10px; border: 1px solid var(--line-2);
+                      border-radius: 5px; font-size: 11.5px; width: 180px;
+                      background: var(--bg-3); color: var(--fg); font-family: inherit; }
+
+/* Main grid */
+.main-grid { display: grid; grid-template-columns: 280px 1fr 380px; gap: 12px; }
+
+/* Action Queue */
+.action-queue { background: var(--paper); border-radius: 8px; padding: 12px;
+                border: 1px solid var(--line); height: fit-content; }
+.action-queue h3 { font-size: 11px; font-weight: 700; color: var(--fg-3);
+                   margin-bottom: 10px; letter-spacing: 0.04em;
+                   text-transform: uppercase; display: flex; justify-content: space-between;
+                   align-items: center; }
+.action-queue h3 .count { background: var(--bg-3); color: var(--fg-2); padding: 2px 7px;
+                          border-radius: 9px; font-size: 10px; border: 1px solid var(--line-2); }
+.action-queue h3 .count.alert { background: var(--alert); }
+.action-queue .section-divider { height: 1px; background: var(--line); margin: 16px 0 10px; }
+
+.action-item { padding: 10px 12px; border-radius: 6px; margin-bottom: 4px;
+               cursor: pointer; transition: background 0.15s; border: 1px solid transparent; }
+.action-item:hover { background: var(--bg-3); }
+.action-item.selected { background: var(--primary-bg); border-color: var(--primary); }
+.action-item .row1 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.action-item .name { font-size: 13px; font-weight: 700; color: var(--fg); }
+.action-item .id { font-family: 'SF Mono', monospace; font-size: 10px;
+                   color: var(--fg-3); font-weight: 600; margin-left: 4px; }
+.action-item .tag { font-size: 9.5px; padding: 1px 6px; border-radius: 3px; font-weight: 700;
+                    background: var(--bg-3); color: var(--fg-2); letter-spacing: 0.04em;
+                    border: 1px solid var(--line-2); }
+.action-item .tag.off { background: var(--fg); color: var(--fg-inv); border-color: var(--fg); }
+.action-item .tag.retro { background: var(--primary-bg); color: var(--primary);
+                          border: 1px solid rgba(108,92,231,.4); }
+.action-item .meta { font-size: 10.5px; color: var(--fg-3); margin-top: 4px;
+                     display: flex; justify-content: space-between; }
+.action-item .meta .alert { color: var(--alert); font-weight: 600; }
+.action-item .meta .pri { color: var(--primary); font-weight: 600; }
+.action-item.paused { opacity: 0.5; }
+
+/* Timeline */
+.timeline-card { background: var(--paper); border-radius: 8px; padding: 14px;
+                 border: 1px solid var(--line); }
+.timeline-card h3 { font-size: 11px; font-weight: 700; color: var(--fg-3);
+                    margin-bottom: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+                    display: flex; justify-content: space-between; align-items: center; }
+.timeline-card .legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--fg-3); }
+.timeline-card .legend .item { display: flex; align-items: center; gap: 4px; }
+.timeline-card .legend .badge-mini { font-size: 9px; padding: 1px 5px; border-radius: 3px;
+                                      font-weight: 700; letter-spacing: 0.04em; }
+.timeline-card .legend .badge-mini.on { background: var(--bg-3); color: var(--fg-2); border: 1px solid var(--line-2); }
+.timeline-card .legend .badge-mini.off { background: var(--fg); color: var(--fg-inv); }
+
+.timeline { position: relative; padding: 8px 0 24px; }
+.timeline .axis { display: grid; grid-template-columns: 150px repeat(7, 1fr); gap: 12px;
+                  border-bottom: 1px dashed var(--line-2); padding-bottom: 4px; margin-bottom: 16px;
+                  font-size: 10px; color: var(--fg-3); font-weight: 600; }
+.timeline .axis .axis-label { color: transparent; }
+.timeline .axis span { position: relative; text-align: center; }
+.timeline .case { display: grid; grid-template-columns: 150px 1fr; gap: 12px;
+                  padding: 9px 0; align-items: center; border-bottom: 1px solid var(--line); cursor: pointer; }
+.timeline .case:hover { background: var(--bg-3); }
+.timeline .case.selected { background: var(--primary-bg); border-radius: 6px;
+                           margin: 0 -8px; padding: 9px 8px; }
+.timeline .case .meta { display: flex; flex-direction: column; gap: 2px; }
+.timeline .case .meta .top { display: flex; gap: 6px; align-items: center; }
+.timeline .case .meta .name { font-size: 12.5px; font-weight: 700; }
+.timeline .case .meta .id { font-family: 'SF Mono', monospace; font-size: 9.5px; color: var(--fg-3); }
+.timeline .case .meta .info { font-size: 10.5px; color: var(--fg-3); display: flex;
+                              gap: 6px; align-items: center; margin-top: 1px; }
+.timeline .case .meta .badge { font-size: 9px; padding: 1px 5px; border-radius: 3px;
+                                font-weight: 700; letter-spacing: 0.04em; }
+.timeline .case .meta .badge.on { background: var(--bg-3); color: var(--fg-2); border: 1px solid var(--line-2); }
+.timeline .case .meta .badge.off { background: var(--fg); color: var(--fg-inv); }
+.timeline .case .meta .badge.paused { background: var(--bg-3); color: var(--fg-3); }
+.timeline .case .meta .badge.retro { background: var(--primary-bg); color: var(--primary);
+                                     border: 1px solid rgba(108,92,231,.4); }
+.timeline .case .meta .owner { font-size: 10px; color: var(--fg-2); }
+
+.timeline .case .progress { position: relative; height: 18px; background: var(--bg-3);
+                             border-radius: 9px; overflow: visible; }
+.timeline .case .progress .fill { position: absolute; top: 0; left: 0; height: 100%;
+                                   border-radius: 9px; display: flex; align-items: center;
+                                   padding: 0 8px; color: #fff; font-size: 10px; font-weight: 700; }
+.timeline .case .progress .fill.on { background: linear-gradient(90deg, #8F82F0, #6C5CE7); }
+.timeline .case .progress .fill.off { background: linear-gradient(90deg, #6C5CE7, #4B3DC9); }
+.timeline .case .progress .marker { position: absolute; top: -3px; bottom: -3px;
+                                     width: 2px; background: var(--primary); }
+.timeline .case .progress .marker.alert { background: var(--alert); width: 3px; }
+.timeline .case .progress .marker::after { content: attr(data-label); position: absolute;
+                                            bottom: -16px; left: 50%; transform: translateX(-50%);
+                                            font-size: 9.5px; color: var(--primary); font-weight: 700;
+                                            white-space: nowrap; }
+.timeline .case .progress .marker.alert::after { color: var(--alert); }
+
+/* Detail Panel */
+.detail-panel { background: var(--paper); border-radius: 8px; padding: 16px;
+                border: 1px solid var(--line); height: fit-content;
+                position: sticky; top: 80px; max-height: calc(100vh - 100px); overflow-y: auto; }
+.detail-panel .det-header { padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.detail-panel .det-header .top-row { display: flex; justify-content: space-between; align-items: start; }
+.detail-panel .det-id { font-family: 'SF Mono', monospace; font-size: 10.5px;
+                         color: var(--fg-3); font-weight: 600; margin-bottom: 2px; }
+.detail-panel .det-name { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+.detail-panel .det-info { font-size: 11.5px; color: var(--fg-2); margin-top: 2px; }
+.detail-panel .det-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px;
+                            font-weight: 700; }
+.detail-panel .det-badge.on { background: var(--bg-3); color: var(--fg-2); border: 1px solid var(--line-2); }
+.detail-panel .det-badge.off { background: var(--fg); color: var(--fg-inv); }
+
+.owner-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.owner-row .label { font-size: 10.5px; color: var(--fg-3); }
+.owner-row .owner-name { font-size: 11.5px; font-weight: 600; padding: 2px 8px;
+                          background: var(--bg-3); border-radius: 12px; }
+.owner-row .change-link { font-size: 10.5px; color: var(--primary); cursor: pointer;
+                          font-weight: 600; margin-left: auto; }
+
+.progress-bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden;
+                margin: 14px 0 4px; }
+.progress-bar .fill { height: 100%; background: var(--primary); border-radius: 2px; }
+.progress-text { font-size: 10.5px; color: var(--fg-3); margin-bottom: 14px; text-align: right; }
+
+.det-section h4 { font-size: 10.5px; font-weight: 700; color: var(--fg-3);
+                  margin: 14px 0 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+.checklist .item { display: flex; gap: 8px; padding: 5px 0; align-items: start; font-size: 12px; }
+.checklist .item .ch { width: 14px; height: 14px; border-radius: 50%; display: flex;
+                       align-items: center; justify-content: center; font-size: 9px;
+                       font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.checklist .item.done .ch { background: var(--green); color: #fff; }
+.checklist .item.cur .ch { background: var(--primary); color: #fff; }
+.checklist .item.todo .ch { background: var(--line-2); color: #fff; }
+.checklist .item.fail .ch { background: var(--alert); color: #fff; }
+.checklist .item .label { flex: 1; }
+.checklist .item .timestamp { font-size: 10px; color: var(--fg-3); }
+.checklist .item.cur .label { font-weight: 700; color: var(--primary); }
+.checklist .item.fail .label { font-weight: 700; color: var(--alert); }
+.checklist .item.todo .label { color: var(--fg-3); }
+
+.files-grid { display: grid; grid-template-columns: 1fr; gap: 5px; margin-top: 4px; }
+.file-card { padding: 7px 10px; background: var(--bg-3); border-radius: 5px;
+             display: flex; justify-content: space-between; align-items: center;
+             font-size: 11.5px; }
+.file-card.missing { background: var(--alert-bg); }
+.file-card .name { font-weight: 600; }
+.file-card .status { font-size: 9.5px; padding: 1px 6px; border-radius: 3px;
+                     font-weight: 700; }
+.file-card .status.ok { background: var(--green); color: #fff; }
+.file-card .status.miss { background: var(--alert); color: #fff; }
+.file-card .upload-link { font-size: 10.5px; color: var(--primary); font-weight: 700; cursor: pointer; }
+
+.actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+.actions-grid .btn { padding: 9px; border: 1px solid var(--line-2); border-radius: 5px;
+                     background: var(--paper); font-family: inherit; font-size: 11.5px;
+                     font-weight: 700; cursor: pointer; color: var(--fg-2); }
+.actions-grid .btn:hover { border-color: var(--fg-3); color: var(--fg); }
+.actions-grid .btn.primary { background: var(--primary); color: #fff;
+                              border-color: var(--primary); grid-column: 1/-1; }
+.actions-grid .btn.primary:hover { background: var(--primary-deep); color: #fff; }
+.actions-grid .btn.danger { color: var(--alert); border-color: var(--alert); }
+.actions-grid .btn.danger:hover { background: var(--alert-bg); }
+
+.memo { padding: 8px 10px; background: var(--bg-3); border-left: 2px solid var(--primary);
+        border-radius: 4px; font-size: 11px; color: var(--fg-2); margin: 10px 0; }
+.memo strong { color: var(--primary); font-weight: 700; }
+
+.timeline-mini { font-size: 10.5px; color: var(--fg-3); padding: 8px 10px;
+                 background: var(--bg-3); border-radius: 5px; line-height: 1.7; }
+.timeline-mini strong { color: var(--fg); }
+
+/* Modal — 신규 후보자 등록 */
+.modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+                  z-index: 100; align-items: center; justify-content: center; padding: 30px; }
+.modal-backdrop.show { display: flex; }
+.modal { background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+         max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal .modal-head { padding: 18px 22px; border-bottom: 1px solid var(--line);
+                     display: flex; justify-content: space-between; align-items: center; }
+.modal .modal-head h2 { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+.modal .modal-head .close { background: none; border: none; font-size: 18px;
+                             cursor: pointer; color: var(--fg-3); }
+.modal .modal-body { padding: 18px 22px; }
+.modal .field { margin-bottom: 12px; }
+.modal .field label { display: block; font-size: 11.5px; font-weight: 600;
+                       color: var(--fg-2); margin-bottom: 4px; }
+.modal .field label .req { color: var(--alert); }
+.modal .field input, .modal .field select, .modal .field textarea {
+  width: 100%; padding: 9px 11px; border: 1.5px solid var(--line-2); border-radius: 6px;
+  font-size: 12.5px; font-family: inherit; background: var(--bg-3); color: var(--fg); }
+.modal .field input:focus, .modal .field select:focus { outline: none; border-color: var(--primary); }
+.modal .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal .channel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.modal .channel-grid .ch-opt { padding: 10px 12px; border: 1.5px solid var(--line-2);
+                                border-radius: 6px; cursor: pointer; font-size: 12px;
+                                text-align: center; }
+.modal .channel-grid .ch-opt.active { border-color: var(--primary); background: var(--primary-bg); color: var(--fg); font-weight: 700; }
+.modal .channel-grid .ch-opt .desc { font-size: 10px; color: var(--fg-3); font-weight: 400; margin-top: 2px; }
+.modal .channel-grid .ch-opt.active .desc { color: var(--primary); }
+.modal .modal-foot { padding: 14px 22px; border-top: 1px solid var(--line);
+                      display: flex; justify-content: end; gap: 8px; }
+.modal .modal-foot .btn { padding: 9px 18px; border: 1px solid var(--line-2);
+                            border-radius: 6px; background: var(--paper);
+                            font-family: inherit; font-size: 12.5px; font-weight: 700;
+                            cursor: pointer; color: var(--fg-2); }
+.modal .modal-foot .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.modal .hint { padding: 10px 12px; background: var(--bg-3); border-radius: 5px;
+                font-size: 11px; color: var(--fg-2); margin-bottom: 12px; line-height: 1.6; }
+.modal .hint strong { color: var(--fg); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">HR</div>
+    <div>
+      <h1>입퇴사 자동화 대시보드</h1>
+      <span class="sub">PROJECT RENT
+        <span id="currentAdminWrap" style="display:none;margin-left:8px">
+          · 로그인 <strong id="currentAdminEmail" style="color:var(--primary, #6666FF)">—</strong>
+          <a href="#" id="changeAdminLink" style="color:var(--primary, #6666FF);font-size:11px;margin-left:6px;text-decoration:underline;cursor:pointer">[변경]</a>
+        </span>
+      </span>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn" title="긴급 케이스">🔔 <span data-count="bell">0</span></button>
+    <button class="btn" onclick="document.getElementById('newCandidateModal').classList.add('show')">＋ 신규 후보자 등록</button>
+    <button class="btn" onclick="document.getElementById('newResignationModal').classList.add('show'); window.HRDash && window.HRDash.loadActiveEmployeesIntoSelect && window.HRDash.loadActiveEmployeesIntoSelect();">＋ 퇴사 등록</button>
+    <button class="btn" onclick="document.getElementById('recontractModal').classList.add('show'); window.HRDash && window.HRDash.loadEmployeesIntoRecontract && window.HRDash.loadEmployeesIntoRecontract();">＋ 재계약</button>
+    <button class="btn" onclick="document.getElementById('externalContractModal').classList.add('show')">＋ 단기계약</button>
+    <button class="btn btn-primary" onclick="location.href='/onboard/settings'">⚙ 설정</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- KPI (오늘 액션·긴급·진행중·보류) — backend /api/dashboard 응답 매핑 -->
+  <div class="kpi-grid">
+    <div class="kpi alert" data-kpi="today">
+      <div class="label">오늘 액션 필요</div>
+      <div class="value">—</div>
+      <div class="desc">본인입력·계약검토·승인대기·소급서명</div>
+    </div>
+    <div class="kpi alert" data-kpi="urgent">
+      <div class="label">긴급 (D-7 임박)</div>
+      <div class="value">—</div>
+      <div class="desc">본인 무회신 · 승인 지연</div>
+    </div>
+    <div class="kpi" data-kpi="in_progress">
+      <div class="label">진행 중 전체</div>
+      <div class="value">—</div>
+      <div class="desc">입사 + 퇴사 활성 케이스</div>
+    </div>
+    <div class="kpi" data-kpi="paused">
+      <div class="label">보류·일시중단</div>
+      <div class="value">—</div>
+      <div class="desc">⏸ 일정 조율 등</div>
+    </div>
+  </div>
+
+  <!-- 필터 바 — 단순화 (상태 탭 4개만 강조, 나머지는 드롭다운) -->
+  <div class="filter-bar">
+    <span class="tab active">진행 중<span class="count" data-count="tab_inprogress">—</span></span>
+    <span class="tab">재직<span class="count" data-count="tab_active">—</span></span>
+    <span class="tab">퇴사 완료<span class="count" data-count="tab_completed">—</span></span>
+    <span class="tab">보류<span class="count" data-count="tab_paused">—</span></span>
+    <span class="spacer"></span>
+    <span class="dropdown">담당 · 전체 ▾</span>
+    <span class="dropdown">유형 · 전체 ▾</span>
+    <input class="search" placeholder="이름·ID 검색…">
+  </div>
+
+  <div class="main-grid">
+
+    <!-- Action Queue — backend /api/dashboard로 동적 렌더 -->
+    <div class="action-queue">
+      <h3>⚡ 긴급 (D-7 임박·승인 대기) <span class="count alert" data-count="urgent">0</span></h3>
+      <div id="urgentList" class="action-list-container">
+        <div class="empty-state">불러오는 중…</div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <h3>📋 진행 중 (오늘 액션 필요) <span class="count" data-count="in_progress">0</span></h3>
+      <div id="inProgressList" class="action-list-container">
+        <div class="empty-state">불러오는 중…</div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <h3>✅ 재직 (입사완료, 유효) <span class="count" data-count="active">0</span></h3>
+      <div id="activeSummaryList" class="action-list-container">
+        <div class="empty-state">불러오는 중…</div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <h3>📁 퇴사 완료 (이력) <span class="count" data-count="completed">0</span></h3>
+      <div id="completedSummaryList" class="action-list-container">
+        <div class="empty-state">불러오는 중…</div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-card">
+      <h3>📅 통합 타임라인
+        <span class="legend">
+          <span class="item"><span class="badge-mini on">입사</span></span>
+          <span class="item"><span class="badge-mini off">퇴사</span></span>
+        </span>
+      </h3>
+
+      <div class="timeline">
+        <div class="axis">
+          <div class="axis-label">담당자 · 케이스</div>
+          <span>T-7</span><span>T-3</span><span>T-1</span><span>T-0</span>
+          <span>T+1</span><span>T+5</span><span>T+30</span>
+        </div>
+        <div id="timelineList">
+          <div class="empty-state">불러오는 중…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Panel — 카드 클릭 시 동적 렌더 -->
+    <div class="detail-panel" id="detailPanel">
+      <div class="empty-state" style="text-align:center;padding:40px 20px;color:var(--fg-3);font-size:13px">
+        ← 왼쪽 액션 큐에서 케이스를 선택하세요
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 퇴사 등록 모달 (admin 입력 → 즉시 발송 + 자동 시작) ===== -->
+<div class="modal-backdrop" id="newResignationModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>＋ 퇴사 등록 — admin 입력 즉시 시작</h2>
+      <button class="close" onclick="document.getElementById('newResignationModal').classList.remove('show')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="hint" style="background:var(--primary-bg);border-left:3px solid var(--primary)">
+        <strong style="color:var(--primary)">자동 흐름</strong> · admin 입력 → 즉시 발송:
+        <strong>① 본인에게 사직서 모두싸인 서명 요청</strong> +
+        <strong>② 정산 미리보기 메일/SMS</strong> +
+        <strong>③ 백그라운드 5단계 (xlsx·Drive·세무사 패키지) 즉시 시작</strong>
+        <br><span style="color:var(--fg-3);font-size:10.5px">※ 본인이 사직서 서명 완료 시 D-day 회수 → D+1 세무사 메일 → D+5 결제 등록 (모두 cron 자동)</span>
+      </div>
+
+      <div class="field">
+        <label>퇴사자 (재직 중 직원) <span class="req">*</span></label>
+        <select>
+          <option>-- 재직 직원 선택 --</option>
+          <option>원유경 · R 운영 · Manager (입사 2024-04-17)</option>
+          <option>양은정 · R 운영 · Manager (입사 2026-02-19)</option>
+          <option>전제훈 · F Space Design · Manager (입사 2021-12-15)</option>
+          <option>김가은 · F 공간 · Senior (입사 2025-06-09)</option>
+          <option>... (재직 12명)</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>퇴사 희망일 <span class="req">*</span></label>
+          <input type="date" value="2026-06-30">
+        </div>
+        <div class="field">
+          <label>마지막 출근일</label>
+          <input type="date" value="2026-06-30">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>퇴사 사유 <span class="req">*</span></label>
+          <select>
+            <option value="11">11 · 자발 (개인사정)</option>
+            <option value="22">22 · 폐업·도산</option>
+            <option value="23">23 · 경영상 인원감축</option>
+            <option value="26">26 · 권고사직</option>
+            <option value="31">31 · 정년</option>
+            <option value="32">32 · 계약기간 만료</option>
+            <option value="99">99 · 기타</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>인계자 <span class="req">*</span></label>
+          <select>
+            <option>-- 인계자 선택 --</option>
+            <option>최원석 (대표)</option>
+            <option>배성원 (R Lead)</option>
+            <option>양은정 (R Manager)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>사유 상세 메모 (선택)</label>
+        <textarea rows="2" placeholder="예: 이직 — 가족 사정. 1on1 면담 완료"></textarea>
+      </div>
+
+      <div class="field">
+        <label>정산 항목 (자동 계산 + 체크)</label>
+        <div style="padding:10px 12px;background:var(--bg);border-radius:5px;font-size:12px;line-height:1.8">
+          <label style="display:block"><input type="checkbox" checked> ☑ <strong>퇴직금</strong> 자동 산정 (3개월 평균임금 × 30 × 근속/365)</label>
+          <label style="display:block"><input type="checkbox" checked> ☑ <strong>미사용 연차 수당</strong> (잔여연차 × 1일 통상임금)</label>
+          <label style="display:block"><input type="checkbox"> ☐ <strong>미정산 결제·야근</strong> (payment xlsx 자동 집계)</label>
+          <label style="display:block"><input type="checkbox" checked> ☑ <strong>4대보험 자격상실 신고서</strong> 자동 생성 (별지 제8호)</label>
+          <label style="display:block"><input type="checkbox" checked> ☑ <strong>IRP 계좌 정보 수집</strong> (본인 입력 받음, 퇴직금 입금용)</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>본인 안내 발송 채널 (즉시 발송) <span class="req">*</span></label>
+        <div class="channel-grid">
+          <div class="ch-opt active">📧 이메일 + 모두싸인<div class="desc">사직서 서명 요청 + 정산 안내</div></div>
+          <div class="ch-opt">💬 SMS<div class="desc">단축 URL · 추가</div></div>
+          <div class="ch-opt active">📱 카카오워크<div class="desc">사내 봇 알림</div></div>
+          <div class="ch-opt">💛 카카오 알림톡<div class="desc">사업자 알림톡</div></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>담당자 (admin) <span class="req">*</span></label>
+        <select>
+          <option>최원석 (대표) — 본인</option>
+          <option>배성원 (R Lead)</option>
+          <option>전제훈 (F Lead)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>비고 / 처리 메모</label>
+        <textarea rows="2" placeholder="예: D+15 송금 예정, 환영 메시지 등 별도 처리"></textarea>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="document.getElementById('newResignationModal').classList.remove('show')">취소</button>
+      <button class="btn primary">🚀 등록 + 자동 시작</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 신규 후보자 등록 모달 ===== -->
+<div class="modal-backdrop" id="newCandidateModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>＋ 신규 후보자 등록</h2>
+      <button class="close" onclick="document.getElementById('newCandidateModal').classList.remove('show')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="hint">
+        <strong>흐름</strong> · 후보자 정보 입력 → 토큰 URL 자동 발급 → 본인에게 메일·문자 발송 → 본인이 자가입력 (주소·계좌·주민번호 등)
+      </div>
+
+      <div class="field">
+        <label>성명 <span class="req">*</span></label>
+        <input id="nc_name" type="text" placeholder="예: 김지원">
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>이메일 <span class="req">*</span></label>
+          <input id="nc_email" type="email" placeholder="예: jiwon.kim@example.com">
+        </div>
+        <div class="field">
+          <label>휴대폰 <span class="req">*</span></label>
+          <input id="nc_phone" type="tel" placeholder="010-1234-5678">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>회사 <span class="req">*</span></label>
+          <select id="nc_company">
+            <option>프로젝트렌트 (R)</option>
+            <option>필라멘트앤코 (F)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>입사 예정일 <span class="req">*</span></label>
+          <input id="nc_joindate" type="date" value="2026-06-01">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>팀 / 소속</label>
+          <input id="nc_team" type="text" placeholder="예: Brand">
+        </div>
+        <div class="field">
+          <label>직책</label>
+          <input id="nc_position" type="text" placeholder="예: Junior">
+        </div>
+      </div>
+
+      <!-- ===== 계약 조건 + 급여 ===== -->
+      <div style="margin:18px 0 6px;padding-top:14px;border-top:1px solid var(--line,#E5E0D8);font-size:12px;font-weight:700;color:var(--accent,#FF6450);letter-spacing:.04em;">계약 조건 · 급여</div>
+
+      <div class="row">
+        <div class="field">
+          <label>연봉 (만원) <span class="req">*</span> <span style="color:#8B857E;font-weight:400">· 식대 포함, 퇴직금 별도</span></label>
+          <input id="nc_annual" type="number" placeholder="예: 2800" oninput="document.getElementById('nc_summary').style.display='none'">
+        </div>
+        <div class="field">
+          <label>고정OT (시간) <span style="color:#8B857E;font-weight:400">· 최저임금 미달 시 자동축소</span></label>
+          <input id="nc_ot" type="number" value="20">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>수습기간</label>
+          <input id="nc_trial" type="text" value="3개월">
+        </div>
+        <div class="field">
+          <label>부양가족 수 <span style="color:#8B857E;font-weight:400">· 소득세용(본인 포함)</span></label>
+          <input id="nc_dependents" type="number" value="1">
+        </div>
+      </div>
+
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input id="nc_fixedterm" type="checkbox" checked style="width:auto;">
+          <span>1년 기간제 적용 <span style="color:#8B857E;font-weight:400">· 첫 계약 기본. 해제 시 무기계약(정규직)</span></span>
+        </label>
+      </div>
+
+      <!-- 근무 조건 (매장직/본사직) -->
+      <div style="margin:16px 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span style="font-size:12px;font-weight:700;color:var(--accent,#FF6450);letter-spacing:.04em;">근무 조건</span>
+        <button class="btn" type="button" onclick="applyWorkPreset('office')" style="padding:3px 11px;font-size:11px;">🏢 본사직</button>
+        <button class="btn" type="button" onclick="applyWorkPreset('retail')" style="padding:3px 11px;font-size:11px;">🏪 매장직(리테일)</button>
+        <span style="font-size:10.5px;color:#8B857E;">프리셋 클릭 후 수정 가능</span>
+      </div>
+      <input type="hidden" id="nc_holiday">
+      <div class="field">
+        <label>근무 장소</label>
+        <input id="nc_workplace" type="text" placeholder="회사 본사 및 회사가 지정하는 장소">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>근무 요일</label>
+          <input id="nc_workdays" type="text" placeholder="월요일 ~ 금요일 (주 5일)">
+        </div>
+        <div class="field">
+          <label>근로시간 (시업~종업)</label>
+          <input id="nc_workhours" type="text" placeholder="09:00 ~ 18:00">
+        </div>
+      </div>
+      <div class="field">
+        <label>담당 업무</label>
+        <input id="nc_jobdesc" type="text" placeholder="소속·직위에 부합하는 업무 및 회사가 지정하는 관련 업무">
+      </div>
+
+      <button class="btn" type="button" onclick="computeSalaryPreview()" style="width:100%;margin:4px 0 8px;">🧮 급여 계산 · 써머리 보기</button>
+
+      <div id="nc_summary" style="display:none;background:var(--bg-3);border:1px solid var(--line-2);border-radius:8px;padding:14px 16px;margin-bottom:10px;font-size:12.5px;line-height:1.7;"></div>
+
+      <div class="field">
+        <label>토큰 URL 발송 채널 <span class="req">*</span></label>
+        <div class="channel-grid">
+          <div class="ch-opt active">📧 이메일<div class="desc">SMTP 즉시 발송</div></div>
+          <div class="ch-opt">💬 문자 (SMS)<div class="desc">단축 URL · 별도 비용</div></div>
+          <div class="ch-opt">📧+💬 둘 다<div class="desc">메일 못 받을 가능성 대비</div></div>
+          <div class="ch-opt">💛 카카오 알림톡<div class="desc">사업자 알림톡 · 별도 설정</div></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>비고 / 메모</label>
+        <textarea id="nc_memo" rows="2" placeholder="예: 면담 후 즉시 등록"></textarea>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="document.getElementById('newCandidateModal').classList.remove('show')">취소</button>
+      <button class="btn primary" onclick="submitNewCandidate()">📤 등록 + 토큰 URL 발송</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 재계약 발송 모달 (2026-07-19) ===== -->
+<div class="modal-backdrop" id="recontractModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>＋ 재계약 발송 — 기간제 갱신 · 무기 전환 · 임금 변경</h2>
+      <button class="close" onclick="document.getElementById('recontractModal').classList.remove('show')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="hint" style="background:var(--primary-bg);border-left:3px solid var(--primary)">
+        <strong style="color:var(--primary)">흐름</strong> · 직원 선택 + 새 조건 입력 → 계약서 자동 생성 →
+        전자서명 발송 (직원 1차 → 대표 2차) → 서명본 Drive/재계약 자동 저장 + 알림
+      </div>
+      <div class="field">
+        <label>대상 직원 (재직) <span class="req">*</span></label>
+        <select id="rc_employee"><option value="">-- 재직 직원 선택 --</option></select>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>계약 유형 <span class="req">*</span></label>
+          <select id="rc_kind">
+            <option value="renewal_fixed">기간제 갱신 (1년)</option>
+            <option value="convert_permanent">무기계약 전환 (정규직)</option>
+            <option value="salary_change">임금 변경 합의서</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>계약 시작일 / 시행일 <span class="req">*</span></label>
+          <input type="date" id="rc_start">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>연봉 (만원) <span class="req">*</span> · 식대 포함, 자동 분해</label>
+          <input type="number" id="rc_annual" placeholder="예: 4500">
+        </div>
+        <div class="field">
+          <label>고정OT (시간)</label>
+          <input type="number" id="rc_ot" value="20">
+        </div>
+      </div>
+      <div class="field" id="rc_prev_wrap">
+        <label>변경 전 임금 (임금 변경 합의서의 비교표용 · 선택)</label>
+        <div class="row">
+          <input type="number" id="rc_prev_base" placeholder="변경 전 기본급 (원)">
+          <input type="number" id="rc_prev_meal" placeholder="변경 전 식대 (원)">
+          <input type="number" id="rc_prev_ot" placeholder="변경 전 고정연장 (원)">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="document.getElementById('recontractModal').classList.remove('show')">취소</button>
+      <button class="btn primary" id="rc_submit">🖊️ 계약서 생성 + 서명 발송</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 단기계약 발송 모달 (2026-07-19) ===== -->
+<div class="modal-backdrop" id="externalContractModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>＋ 단기계약 발송 — 개인외주 · 일용근로</h2>
+      <button class="close" onclick="document.getElementById('externalContractModal').classList.remove('show')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="hint" style="background:var(--primary-bg);border-left:3px solid var(--primary)">
+        <strong style="color:var(--primary)">흐름</strong> · 상대방 정보 입력 → 계약서 자동 생성 →
+        전자서명 발송 (상대방 1차 → 대표 2차) → 서명본 Drive/단기계약 자동 저장 + 알림
+        <br><span style="color:var(--fg-3);font-size:10.5px">※ 개인외주=업무위탁(3.3% 사업소득) · 일용근로=근로계약(일 15만원 초과분 원천징수)</span>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>계약 유형 <span class="req">*</span></label>
+          <select id="ec_kind">
+            <option value="outsourcing">업무위탁계약서 (개인외주 · 3.3%)</option>
+            <option value="daily_labor">일용근로계약서</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>계약 회사 <span class="req">*</span></label>
+          <select id="ec_company">
+            <option value="프로젝트렌트">프로젝트렌트 (R)</option>
+            <option value="필라멘트앤코">필라멘트앤코 (F)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>성명 <span class="req">*</span></label>
+          <input type="text" id="ec_name" placeholder="예: 박외주">
+        </div>
+        <div class="field">
+          <label>이메일 <span class="req">*</span> · 서명 요청 수신</label>
+          <input type="email" id="ec_email" placeholder="예: p@example.com">
+        </div>
+      </div>
+      <div class="field">
+        <label>위탁 업무 / 담당 업무 <span class="req">*</span></label>
+        <input type="text" id="ec_work" placeholder="예: 8월 팝업 공간 그래픽 디자인 및 시공 서포트">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>기간 시작 <span class="req">*</span></label>
+          <input type="date" id="ec_start">
+        </div>
+        <div class="field">
+          <label>기간 종료 <span class="req">*</span></label>
+          <input type="date" id="ec_end">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field" id="ec_fee_wrap">
+          <label>위탁 대금 총액 (원) <span class="req">*</span> · 외주용</label>
+          <input type="number" id="ec_fee" placeholder="예: 2000000">
+        </div>
+        <div class="field" id="ec_wage_wrap">
+          <label>임금 문구 <span class="req">*</span> · 일용용</label>
+          <input type="text" id="ec_wage" placeholder="예: 일당 120,000원 (시급 15,000원)">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>지급 조건 (선택)</label>
+          <input type="text" id="ec_pay" placeholder="기본: 완료/종료 후 7일 이내">
+        </div>
+        <div class="field">
+          <label>수행/근무 장소 (선택)</label>
+          <input type="text" id="ec_place" placeholder="예: 성수 팝업 현장">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="document.getElementById('externalContractModal').classList.remove('show')">취소</button>
+      <button class="btn primary" id="ec_submit">🖊️ 계약서 생성 + 서명 발송</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* 동적 렌더 추가 스타일 */
+  .empty-state { padding:14px 16px; text-align:center; color:var(--fg-3); font-size:11.5px; font-style:italic; }
+  .error-state { padding:14px 16px; background:var(--alert-bg); border-left:3px solid var(--alert); color:var(--alert); font-size:12px; border-radius:4px; }
+  .action-list-container { display:flex; flex-direction:column; gap:6px; }
+  .action-item.real { cursor:pointer; transition:background .12s; }
+  .action-item.real:hover { background:var(--bg-soft, #FAF7F2); }
+  .action-item.real.selected { background:var(--primary-pale, #E1E1FF); border-left:3px solid var(--primary, #6666FF); }
+  .summary-card { padding:10px 14px; background:var(--bg-soft, #FAF7F2); border-radius:6px; font-size:12.5px; line-height:1.6; }
+  .summary-card strong { color:var(--fg); font-weight:600; }
+  .summary-card .sub { color:var(--fg-3); font-size:11px; margin-top:2px; }
+  .toast-msg { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:6px; font-size:13px; z-index:1000; box-shadow:0 4px 16px rgba(0,0,0,.16); }
+  .toast-msg.success { background:var(--green, #10B981); color:#fff; }
+  .toast-msg.error { background:var(--alert, #EF4444); color:#fff; }
+  .toast-msg.info { background:var(--primary, #6C5CE7); color:#fff; }
+  #adminEmailBar { padding:8px 16px; background:rgba(244,196,48,.1); border-bottom:1px solid var(--line); font-size:12px; color:var(--amber, #F4C430); display:flex; align-items:center; gap:8px; }
+  #adminEmailBar input { flex:1; max-width:260px; padding:5px 10px; border:1px solid var(--line-2); border-radius:4px; font-size:12px; font-family:inherit; background:var(--bg-3); color:var(--fg); }
+  #adminEmailBar button { padding:5px 12px; background:var(--primary, #6666FF); color:#fff; border:none; border-radius:4px; font-size:12px; cursor:pointer; }
+  #adminEmailBar.hidden { display:none; }
+  .det-card { padding:18px 20px; border:1px solid var(--line); border-radius:8px; background:var(--paper); }
+  .det-card .det-id-line { font-size:11px; color:var(--fg-3); margin-bottom:4px; }
+  .det-card .det-name { font-size:18px; font-weight:700; color:var(--fg); margin-bottom:2px; }
+  .det-card .det-info { font-size:12px; color:var(--fg-2); margin-bottom:12px; }
+  .det-card .det-meta { display:grid; grid-template-columns:80px 1fr; gap:4px 12px; font-size:12px; padding:10px 12px; background:var(--bg-soft); border-radius:5px; margin-bottom:12px; }
+  .det-card .det-meta dt { color:var(--fg-3); }
+  .det-card .det-meta dd { color:var(--fg); }
+  .det-card .det-actions { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+  .det-card .det-actions button { padding:9px 14px; border:1px solid var(--line-2); background:var(--bg-3); color:var(--fg); border-radius:5px; font-size:12.5px; cursor:pointer; font-family:inherit; text-align:left; transition:background .12s; }
+  .det-card .det-actions button:hover { background:#2E2E2E; }
+  .det-card .det-actions button.primary { background:var(--primary, #6C5CE7); color:#fff; border-color:var(--primary); }
+  .det-card .det-actions button.danger { color:var(--alert); border-color:rgba(225,112,85,.4); }
+  .det-card .det-actions button:disabled { opacity:0.5; cursor:not-allowed; }
+</style>
+
+<!-- admin email 입력 바 (localStorage 없을 때만 노출) -->
+<div id="adminEmailBar" class="hidden">
+  <span>⚙ admin 이메일을 입력하세요:</span>
+  <input type="email" id="adminEmailInput" placeholder="ws.choi@project-rent.com" autocomplete="email">
+  <button type="button" id="adminEmailSaveBtn">저장</button>
+  <span id="adminEmailHint" style="color:var(--fg-3);font-size:10.5px;margin-left:6px"></span>
+</div>
+
+<script>
+// ===== Onboard Admin v2 — 동적 렌더링 + 액션 핸들러 + 에러 처리 + 폴링 =====
+(function() {
+  const STORAGE_KEY = 'hr_actor_email';
+  // 포털 로그인 세션 email (서버 주입) — localStorage보다 우선 순위 낮게 두되,
+  // 미설정 시 자동 사용해 "불러오는 중" 정지 없이 즉시 로드한다.
+  // 정적 미리보기(file://)에서는 Jinja 미치환 문자열이 남으므로 걸러낸다.
+  const _sessRaw = '{{ session_email }}';
+  const SESSION_EMAIL = _sessRaw.includes('{{') ? '' : _sessRaw.trim().toLowerCase();
+  let ACTOR_EMAIL = localStorage.getItem(STORAGE_KEY) || SESSION_EMAIL || '';
+  let pollTimer = null;
+  let selectedCardId = null; // 현재 선택된 카드 (상세 패널용)
+
+  // ===== 유틸 =====
+  function $(sel, root = document) { return root.querySelector(sel); }
+  function $$(sel, root = document) { return Array.from(root.querySelectorAll(sel)); }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function dayText(days) {
+    if (days == null) return '';
+    if (days > 0) return `D-${days}`;
+    if (days < 0) return `D+${-days}`;
+    return 'D-0';
+  }
+
+  function toast(text, kind = 'info', ms = 3000) {
+    const old = $('.toast-msg');
+    if (old) old.remove();
+    const el = document.createElement('div');
+    el.className = `toast-msg ${kind}`;
+    el.textContent = text;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), ms);
+  }
+
+  function confirmDialog(msg) { return window.confirm(msg); }
+
+  async function api(method, url, body) {
+    const opts = { method, headers: {} };
+    // GET 외에는 body가 없어도 항상 actor_email을 실어 보냄 —
+    // body 없는 POST(approve_off/sign_request_off 등)가 서버 _is_admin 검사에서
+    // 'admin 권한 필요' 403으로 전부 막히던 버그 방지
+    if (method !== 'GET') {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify({ actor_email: ACTOR_EMAIL, ...(body || {}) });
+    }
+    const r = await fetch(url, opts);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      throw new Error(data.error || `HTTP ${r.status}`);
+    }
+    return data;
+  }
+
+  // ===== admin email 관리 =====
+  function setHeaderAdminEmail() {
+    const wrap = document.getElementById('currentAdminWrap');
+    const emailEl = document.getElementById('currentAdminEmail');
+    if (!wrap || !emailEl) return;
+    if (ACTOR_EMAIL) {
+      emailEl.textContent = ACTOR_EMAIL;
+      wrap.style.display = 'inline';
+    } else {
+      wrap.style.display = 'none';
+    }
+  }
+
+  function changeAdminEmail() {
+    ACTOR_EMAIL = '';
+    try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+    setHeaderAdminEmail();
+    // 입력 필드 비우고 다시 노출
+    const inp = document.getElementById('adminEmailInput');
+    if (inp) inp.value = '';
+    const hintEl = document.getElementById('adminEmailHint');
+    if (hintEl) hintEl.textContent = '';
+    ensureAdminEmail();
+    try { toast('admin email 입력 대기', 'info', 2000); } catch (_) {}
+  }
+
+  function ensureAdminEmail() {
+    if (ACTOR_EMAIL) {
+      const bar = document.getElementById('adminEmailBar');
+      if (bar) bar.classList.add('hidden');
+      setHeaderAdminEmail();
+      return true;
+    }
+    const bar = document.getElementById('adminEmailBar');
+    if (bar) bar.classList.remove('hidden');
+    setHeaderAdminEmail();
+    // 자동 포커스
+    setTimeout(() => { const inp = document.getElementById('adminEmailInput'); if (inp) inp.focus(); }, 50);
+    return false;
+  }
+
+  // 이메일 정규식 (RFC 5322 단순화)
+  const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  function saveAdminEmail(evt) {
+    // 안전한 input 가져오기: bar 안에서 직접 query (ID 중복·DOM 이동 대비)
+    const bar = document.getElementById('adminEmailBar');
+    const inputEl = (bar && bar.querySelector('input[type="email"]'))
+                    || document.getElementById('adminEmailInput');
+    const hintEl = (bar && bar.querySelector('#adminEmailHint'))
+                    || document.getElementById('adminEmailHint');
+    if (!inputEl) {
+      console.error('[admin] adminEmailInput 요소 없음');
+      try { toast('입력창을 찾을 수 없음 (페이지 새로고침 시도)', 'error'); } catch (_) {}
+      return;
+    }
+    const raw = inputEl.value || '';
+    const input = raw.trim().toLowerCase();
+    console.log('[admin] saveAdminEmail input:', JSON.stringify(raw), '→ normalized:', JSON.stringify(input));
+
+    if (!input) {
+      if (hintEl) hintEl.textContent = '⚠ 이메일을 입력하세요';
+      inputEl.focus();
+      return;
+    }
+    if (!EMAIL_RE.test(input)) {
+      if (hintEl) hintEl.textContent = `⚠ 이메일 형식이 올바르지 않습니다 (입력: "${input}")`;
+      console.warn('[admin] EMAIL_RE 거부:', input);
+      try { toast('이메일 형식 확인 — @·도메인·확장자 필요', 'error'); } catch (_) {}
+      inputEl.focus();
+      inputEl.select();
+      return;
+    }
+    ACTOR_EMAIL = input;
+    let lsOk = true;
+    try {
+      localStorage.setItem(STORAGE_KEY, ACTOR_EMAIL);
+      console.log('[admin] localStorage 저장 OK:', ACTOR_EMAIL);
+    } catch (e) {
+      lsOk = false;
+      console.warn('[admin] localStorage 저장 실패 (file:// 또는 private mode):', e);
+    }
+    if (hintEl) hintEl.textContent = '';
+    setHeaderAdminEmail();
+    // bar는 잠시 후 숨김 (사용자가 저장됨을 인식할 시간)
+    if (bar) {
+      // 잠깐 success hint 표시
+      if (hintEl) {
+        hintEl.style.color = '#10B981';
+        hintEl.textContent = lsOk ? '✓ 저장됨 · 데이터 로딩 중…' : '⚠ 메모리 저장 (브라우저 재시작 시 재입력 필요)';
+      }
+      setTimeout(() => {
+        bar.classList.add('hidden');
+        if (hintEl) { hintEl.textContent = ''; hintEl.style.color = ''; }
+      }, 1200);
+    }
+    try {
+      toast(`✓ 저장됨: ${ACTOR_EMAIL}`, 'success', 3000);
+    } catch (_) {}
+    loadDashboard();
+    startPolling(); // 최초 진입 시 email 미설정이었으면 폴링이 안 걸려 있음
+  }
+
+  // window 직접 노출 (inline onclick 의존 제거)
+  window.saveAdminEmail = saveAdminEmail;
+
+  // ===== KPI 렌더 =====
+  function renderKPI(kpi) {
+    if (!kpi) return;
+    ['today', 'urgent', 'in_progress', 'paused'].forEach(k => {
+      const card = $(`.kpi[data-kpi="${k}"] .value`);
+      if (card) card.textContent = kpi[k] ?? 0;
+    });
+  }
+
+  // ===== 액션 큐 카드 HTML =====
+  function actionCardHtml(card) {
+    const tag = card.kind === 'off' ? '퇴사' : '입사';
+    const tagCls = card.kind === 'off' ? 'tag off' : 'tag';
+    const meta = [];
+    if (card.status) meta.push(escapeHtml(card.status));
+    if (card.doc_status) meta.push(escapeHtml(card.doc_status));
+    const dt = dayText(card.days);
+    const ownerStr = card.owner ? ` · ${escapeHtml(card.owner)}` : '';
+    const selectedCls = (selectedCardId === card.id) ? ' selected' : '';
+    const retroTag = card.retro ? '<span class="tag retro">소급서명</span>' : '';
+    return `
+      <div class="action-item real${selectedCls}"
+           data-card-id="${escapeHtml(card.id)}"
+           data-card-no="${card.no || ''}"
+           data-card-kind="${escapeHtml(card.kind)}"
+           onclick="window.HRDash.selectCard('${escapeHtml(card.id)}')">
+        <div class="row1">
+          <span class="name">${escapeHtml(card.name || '?')}<span class="id">${escapeHtml(card.id)}</span></span>
+          <span>${retroTag}<span class="${tagCls}">${tag}</span></span>
+        </div>
+        <div class="meta">
+          <span>${meta.join(' · ') || '—'}</span>
+          <span>${dt}${ownerStr}</span>
+        </div>
+      </div>`;
+  }
+
+  function renderList(elId, items, emptyMsg) {
+    const el = $(`#${elId}`);
+    if (!el) return;
+    if (!items || items.length === 0) {
+      el.innerHTML = `<div class="empty-state">${emptyMsg}</div>`;
+      return;
+    }
+    el.innerHTML = items.map(actionCardHtml).join('');
+  }
+
+  function updateCount(name, value) {
+    const c = $(`[data-count="${name}"]`);
+    if (c) c.textContent = value;
+  }
+
+  function activeEmployeeRowHtml(e) {
+    const tag = (e.company || '').includes('프로젝트렌트') ? 'R' : 'F';
+    const tagCls = tag === 'F' ? 'tag off' : 'tag';
+    const lbl = [];
+    if (e.team) lbl.push(escapeHtml(e.team));
+    if (e.position) lbl.push(escapeHtml(e.position));
+    return `
+      <div class="action-item real"
+           data-active-email="${escapeHtml(e.email)}"
+           onclick="window.HRDash && window.HRDash.selectActiveEmployee && window.HRDash.selectActiveEmployee('${escapeHtml(e.email)}')">
+        <div class="row1">
+          <span class="name">${escapeHtml(e.name || e.email)}<span class="id">${escapeHtml(e.email)}</span></span>
+          <span class="${tagCls}">${tag}</span>
+        </div>
+        <div class="meta">
+          <span>${lbl.join(' · ') || '—'}</span>
+          <span>${escapeHtml(e.join_date || '')}</span>
+        </div>
+      </div>`;
+  }
+
+  function completedRowHtml(c) {
+    const company = (c.company || '').includes('프로젝트렌트') ? 'R' : 'F';
+    const tagCls = 'tag off';
+    return `
+      <div class="action-item real" style="opacity:0.85"
+           data-card-id="${escapeHtml(c.id)}"
+           data-card-no="${c.no || ''}"
+           data-card-kind="off"
+           onclick="window.HRDash.selectCard('${escapeHtml(c.id)}')">
+        <div class="row1">
+          <span class="name">${escapeHtml(c.name || '?')}<span class="id">${escapeHtml(c.id)}</span></span>
+          <span class="${tagCls}">${company}</span>
+        </div>
+        <div class="meta">
+          <span>${escapeHtml(c.status || '종결')}</span>
+          <span>${escapeHtml(c.leave_date || '—')}${c.team ? ' · ' + escapeHtml(c.team) : ''}</span>
+        </div>
+      </div>`;
+  }
+
+  function renderSummaries(q) {
+    const active = q.active_employees_summary || { R:0, F:0, total:0 };
+    const activeList = q.active_employees || [];
+    const completed = q.completed_resignations_summary || { total:0, recent_30d:0 };
+    const completedList = q.completed_resignations || [];
+
+    updateCount('active', active.total);
+    updateCount('completed', completed.total);
+
+    const activeEl = $('#activeSummaryList');
+    if (activeList.length === 0) {
+      activeEl.innerHTML = `<div class="empty-state">재직 직원 없음</div>`;
+    } else {
+      activeEl.innerHTML = `
+        <div class="summary-card" style="margin-bottom:6px">
+          <strong>${active.total}명 재직</strong> · 프로젝트렌트 ${active.R}명 · 필라멘트앤코 ${active.F}명
+          <div class="sub">아래 직원 카드 클릭 시 본인 정보 표시 (휴가·결제·야근 신청 가능, 일일 보고 대상)</div>
+        </div>
+        ${activeList.map(activeEmployeeRowHtml).join('')}
+      `;
+    }
+
+    const completedEl = $('#completedSummaryList');
+    if (completedList.length === 0) {
+      completedEl.innerHTML = `<div class="empty-state">퇴사 완료 이력 없음</div>`;
+    } else {
+      completedEl.innerHTML = `
+        <div class="summary-card" style="margin-bottom:6px">
+          <strong>${completed.total}건 완료</strong> · 최근 30일 ${completed.recent_30d}건 (최근 20건 표시)
+          <div class="sub">아래 카드 클릭 시 정산·세무 이력 표시 (증명서 발급용)</div>
+        </div>
+        ${completedList.map(completedRowHtml).join('')}
+      `;
+    }
+  }
+
+  // 재직 직원 카드 클릭 → 상세 패널에 본인 정보 표시
+  let activeEmployeeCache = null;
+  function selectActiveEmployee(email) {
+    if (!activeEmployeeCache && lastDashboardData) {
+      activeEmployeeCache = (lastDashboardData.action_queue || {}).active_employees || [];
+    }
+    const e = (activeEmployeeCache || []).find(x => x.email === email);
+    if (!e) return;
+    selectedCardId = `EMP-${email}`;
+    const panel = $('#detailPanel');
+    panel.innerHTML = `
+      <div class="det-card">
+        <div class="det-id-line">재직 직원 · ${escapeHtml(e.email)}</div>
+        <div class="det-name">${escapeHtml(e.name || '?')}</div>
+        <div class="det-info">${escapeHtml(e.company || '—')} · ${escapeHtml(e.team || '—')} · ${escapeHtml(e.position || '—')}</div>
+        <dl class="det-meta">
+          <dt>역할</dt><dd>${escapeHtml(e.role || 'staff')}</dd>
+          <dt>입사일</dt><dd>${escapeHtml(e.join_date || '—')}</dd>
+          <dt>회사</dt><dd>${escapeHtml(e.company || '—')}</dd>
+          <dt>팀</dt><dd>${escapeHtml(e.team || '—')}</dd>
+        </dl>
+        <h4 style="font-size:12px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">⚡ 자주 쓰는 액션</h4>
+        <div class="det-actions">
+          <button onclick="window.open('/api/employees?actor=${encodeURIComponent(ACTOR_EMAIL)}', '_blank')">📋 employees.json 전체 보기</button>
+          <button onclick="window.HRDash.startResignationFor('${escapeHtml(e.email)}')">📤 ${escapeHtml(e.name || '직원')} 퇴사 등록</button>
+          <button onclick="window.open('/admin', '_blank')">⚙ admin 페이지에서 비밀번호·차단 관리</button>
+        </div>
+      </div>`;
+    $$('.action-item.real, .case').forEach(el => {
+      const m = el.dataset.activeEmail === email;
+      if (m) el.classList.add('selected'); else el.classList.remove('selected');
+    });
+  }
+
+  // 재직 직원 → 퇴사 등록 모달 미리 채우기
+  function startResignationFor(email) {
+    document.getElementById('newResignationModal').classList.add('show');
+    loadActiveEmployeesIntoSelect().then(() => {
+      const sel = document.querySelector('#newResignationModal select');
+      if (sel) sel.value = email;
+    });
+  }
+
+  // ===== 타임라인 =====
+  function timelineCaseHtml(c) {
+    const dt = dayText(c.days);
+    const cls = c.kind === 'off' ? 'off' : 'on';
+    const selectedCls = (selectedCardId === c.id) ? ' selected' : '';
+    const progress = c.progress || 0;
+    return `
+      <div class="case${selectedCls}" data-card-id="${escapeHtml(c.id)}"
+           style="cursor:pointer"
+           onclick="window.HRDash.selectCard('${escapeHtml(c.id)}')">
+        <div class="meta">
+          <div class="top"><div class="name">${escapeHtml(c.name || '?')}</div><div class="id">${escapeHtml(c.id)}</div></div>
+          <div class="info"><span class="badge ${cls}">${c.kind === 'off' ? '퇴사' : '입사'}</span>${c.retro ? '<span class="badge retro">소급서명</span>' : ''}<span>${dt}</span></div>
+          <div class="owner">담당 ${escapeHtml(c.owner || '—')}</div>
+        </div>
+        <div class="progress">
+          <div class="fill ${cls}" style="width:${progress}%">${progress}%</div>
+        </div>
+      </div>`;
+  }
+
+  function renderTimeline(cases) {
+    const el = $('#timelineList');
+    if (!el) return;
+    if (!cases || cases.length === 0) {
+      el.innerHTML = `<div class="empty-state">진행 중 케이스 없음</div>`;
+      return;
+    }
+    el.innerHTML = cases.map(timelineCaseHtml).join('');
+  }
+
+  // ===== 상세 패널 =====
+  let lastDashboardData = null;
+
+  function findCardById(id) {
+    if (!lastDashboardData) return null;
+    const q = lastDashboardData.action_queue || {};
+    const all = [...(q.urgent||[]), ...(q.in_progress||[]), ...(lastDashboardData.timeline||[])];
+    return all.find(c => c.id === id);
+  }
+
+  function detailHtml(c) {
+    const isOnb = c.kind === 'onb';
+    const dt = dayText(c.days);
+    const tag = isOnb ? '입사' : '퇴사';
+    const tagCls = isOnb ? 'on' : 'off';
+    const actionsOnb = `
+      <button class="primary" onclick="window.HRDash.act('preview', ${c.no})">📄 근로계약서</button>
+      <button class="primary" onclick="window.HRDash.act('preview_nda', ${c.no})">📄 NDA</button>
+      <button class="primary" onclick="window.HRDash.act('preview_privacy', ${c.no})">📄 개인정보동의서</button>
+      <button class="primary" onclick="window.HRDash.act('preview_annex', ${c.no})">📄 매장 부속규정</button>
+      <button onclick="window.HRDash.act('reissue_token', ${c.no})">🔗 본인 토큰 URL 재발급</button>
+      <button class="primary" onclick="window.HRDash.act('modusign_manual', ${c.no})">🖊️ 모두싸인 업로드(수동 발송)</button>
+      <button onclick="window.HRDash.act('upload_signed_contract', ${c.no})">📥 계약서 완료본 → Drive</button>
+      <button onclick="window.HRDash.act('upload_signed_nda', ${c.no})">📥 NDA 완료본 → Drive</button>
+      <button onclick="window.HRDash.act('setup', ${c.no})">⚙ 5연쇄 수동 실행 (webhook 실패 시)</button>
+      <button class="primary" onclick="window.HRDash.act('preview_insurance', ${c.no})">📧 세무사 메일 미리보기</button>
+      <button class="primary" onclick="window.HRDash.act('send_insurance', ${c.no})">📨 4대보험 세무사 발송</button>
+      <button onclick="window.HRDash.act('notify_done', ${c.no})">✅ 4대보험 회신 처리완료</button>
+      <button class="danger" onclick="window.HRDash.act('cancel_onb', ${c.no})">✗ 취소·반려</button>
+    `;
+    const actionsOff = `
+      <button class="primary" onclick="window.HRDash.act('approve_off', ${c.no})">✓ 승인 + 자동 처리 시작</button>
+      <button onclick="window.HRDash.act('preview_semusa', ${c.no})">📧 세무사 메일 미리보기</button>
+      <button onclick="window.HRDash.act('sign_request_off', ${c.no})">🖊️ 사직서 모두싸인 서명 요청</button>
+      <button onclick="window.HRDash.act('withholding_send', ${c.no})">📄 원천징수영수증 발송 (D+30)</button>
+      <button onclick="window.HRDash.act('notify_done_off', ${c.no})">✅ 세무사 회신 처리완료</button>
+      <button class="danger" onclick="window.HRDash.act('cancel_off', ${c.no})">✗ 강제 취소</button>
+    `;
+    return `
+      <div class="det-card">
+        <div class="det-id-line">${escapeHtml(c.id)} · ${escapeHtml(tag)} ${dt}</div>
+        <div class="det-name">${escapeHtml(c.name || '?')}</div>
+        <div class="det-info"><span class="badge ${tagCls}">${tag}</span> · 회사약자 ${escapeHtml(c.company || '—')} · 담당 ${escapeHtml(c.owner || '—')}</div>
+        <dl class="det-meta">
+          <dt>예정일</dt><dd>${escapeHtml(c.date || '—')}</dd>
+          <dt>상태</dt><dd>${escapeHtml(c.status || '—')}</dd>
+          ${c.doc_status ? `<dt>doc</dt><dd>${escapeHtml(c.doc_status)}</dd>` : ''}
+          ${c.progress != null ? `<dt>진행</dt><dd>${c.progress}%</dd>` : ''}
+        </dl>
+        <h4 style="font-size:12px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">⚡ 자주 쓰는 액션</h4>
+        <div class="det-actions">
+          ${isOnb ? actionsOnb : actionsOff}
+        </div>
+      </div>`;
+  }
+
+  function renderDetail(c) {
+    const panel = $('#detailPanel');
+    if (!c) {
+      panel.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px 20px;color:var(--fg-3);font-size:13px">← 왼쪽 액션 큐에서 케이스를 선택하세요</div>`;
+      return;
+    }
+    panel.innerHTML = detailHtml(c);
+  }
+
+  // 모두싸인 완료본 PDF 업로드 → Drive 저장
+  function uploadSignedFile(no, docType) {
+    const label = docType === 'nda' ? 'NDA' : '근로계약서';
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/pdf,.pdf';
+    input.onchange = async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      toast(`${label} 완료본 업로드 중…`, 'success');
+      try {
+        const fd = new FormData();
+        fd.append('actor_email', ACTOR_EMAIL);
+        fd.append('doc_type', docType);
+        fd.append('file', file);
+        const r = await fetch(`/onboard/api/admin/upload_signed/${no}`, { method: 'POST', body: fd });
+        const data = await r.json();
+        if (!r.ok || !data.ok) throw new Error(data.error || `HTTP ${r.status}`);
+        toast(`${label} Drive 저장 완료`, 'success', 6000);
+        if (data.drive_link) window.open(data.drive_link, '_blank');
+        loadDashboard();
+      } catch (e) { toast(`업로드 실패: ${e.message}`, 'error', 8000); }
+    };
+    input.click();
+  }
+
+  // ===== 액션 핸들러 =====
+  async function act(kind, no) {
+    if (!no) { toast('No 없음', 'error'); return; }
+    const handlers = {
+      // 입사
+      preview: () => window.open(`/onboard/api/preview/${no}?actor_email=${encodeURIComponent(ACTOR_EMAIL)}&doc_type=labor_contract`, '_blank'),
+      preview_nda: () => window.open(`/onboard/api/preview/${no}?actor_email=${encodeURIComponent(ACTOR_EMAIL)}&doc_type=nda`, '_blank'),
+      preview_privacy: () => window.open(`/onboard/api/preview/${no}?actor_email=${encodeURIComponent(ACTOR_EMAIL)}&doc_type=privacy_consent`, '_blank'),
+      preview_annex: () => window.open(`/onboard/api/preview/${no}?actor_email=${encodeURIComponent(ACTOR_EMAIL)}&doc_type=store_annex`, '_blank'),
+      modusign_manual: () => {
+        window.open('https://app.modusign.co.kr/esign/requests/request', '_blank');
+        toast('근로계약서·NDA·개인정보동의서(+매장직 부속규정) 4종을 받아 모두싸인에 업로드 → 서명자 지정 후 발송', 'success', 8000);
+      },
+      upload_signed_contract: () => uploadSignedFile(no, 'labor_contract'),
+      upload_signed_nda: () => uploadSignedFile(no, 'nda'),
+      reissue_token: async () => {
+        if (!confirmDialog(`ONB-${String(no).padStart(4,'0')} 본인 토큰 URL을 재발급하고 메일로 다시 발송할까요?`)) return;
+        await api('POST', `/onboard/api/admin/reissue_token/${no}`);
+        toast('토큰 재발급 + 메일 발송 완료', 'success');
+        loadDashboard();
+      },
+      sign_request: async () => {
+        if (!confirmDialog(`ONB-${String(no).padStart(4,'0')} 모두싸인 다중 서명 요청을 보낼까요?`)) return;
+        await api('POST', `/onboard/api/admin/sign_request/${no}`, { doc_type: 'labor_contract' });
+        toast('모두싸인 서명 요청 완료', 'success');
+        loadDashboard();
+      },
+      setup: async () => {
+        if (!confirmDialog(`ONB-${String(no).padStart(4,'0')} 5연쇄(employees·master·계정·Drive·카카오워크) 수동 실행?`)) return;
+        await api('POST', `/onboard/api/admin/setup/${no}`);
+        toast('5연쇄 수동 실행 완료', 'success');
+        loadDashboard();
+      },
+      preview_insurance: async () => {
+        try {
+          toast('세무사 메일 미리보기 생성 중…', 'success');
+          const r = await api('POST', '/api/admin/onboard/send-insurance', { no, dry_run: true });
+          const m = r.mail || {};
+          const win = window.open('', '_blank', 'width=720,height=820');
+          if (!win) { toast('팝업이 차단됐습니다. 허용 후 다시 시도하세요.', 'error', 8000); return; }
+          const doc = win.document;
+          doc.title = '세무사 메일 미리보기 — ' + (r.name || ('No ' + no));
+          const pre = doc.createElement('pre');
+          pre.style.cssText = 'white-space:pre-wrap;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:24px;font-size:13px;line-height:1.7;color:#111;margin:0';
+          pre.textContent =
+            `[4대보험 자격취득 세무사 메일 미리보기] ${r.name || ''} (No ${no})\n\n` +
+            `■ 받는사람(세무사): ${m.to || '(미설정 — SEMUSA_EMAIL 확인 필요)'}\n` +
+            `■ 참조(CC): ${m.cc || '-'}\n` +
+            `■ 제목: ${m.subject || '-'}\n` +
+            `■ 첨부 (${m.attachments_count || 0}건): ${(m.attachments || []).join(', ') || '-'}\n` +
+            `■ 신고서 생성: ${m.error ? ('실패 — ' + m.error) : '성공'}\n` +
+            `■ 현재 발송이력: ${r.already_sent_before ? (r['세무사_발송일시_기존'] + '  ← 이미 발송됨') : '없음 (미발송)'}\n` +
+            `\n──────────────── 본문 ────────────────\n\n${m.body || '-'}`;
+          doc.body.appendChild(pre);
+        } catch (e) { toast(`미리보기 실패: ${e.message}`, 'error', 8000); }
+      },
+      send_insurance: async () => {
+        try {
+          if (!confirmDialog(`ONB-${String(no).padStart(4,'0')} 4대보험 신고서를 세무사에게 실제 발송할까요?\n(먼저 '세무사 메일 미리보기'로 내용 확인 권장)`)) return;
+          const r = await api('POST', '/api/admin/onboard/send-insurance', { no, dry_run: false });
+          if (r.already_sent) { toast(`이미 발송된 건입니다 (${r['세무사_발송일시']}). 재발송이 필요하면 알려주세요.`, 'error', 9000); return; }
+          const m = r.mail || {};
+          if (m.sent) { toast(`세무사 발송 완료 → 신고대기 (첨부 ${m.attachments_count || 0}건)`, 'success', 7000); loadDashboard(); }
+          else { toast(`발송 실패: ${m.error || '세무사 이메일/SMTP 설정 확인'}`, 'error', 9000); }
+        } catch (e) { toast(`발송 실패: ${e.message}`, 'error', 8000); }
+      },
+      notify_done: async () => {
+        await api('POST', `/onboard/api/admin/notify_done/${no}`);
+        toast('4대보험 회신 처리완료', 'success');
+        loadDashboard();
+      },
+      cancel_onb: async () => {
+        const reason = prompt('취소·반려 사유:'); if (!reason) return;
+        await api('POST', `/onboard/api/admin/cancel/${no}`, { reason });
+        toast('취소·반려 처리됨', 'success');
+        loadDashboard();
+      },
+      // 퇴사
+      approve_off: async () => {
+        if (!confirmDialog(`RES-${String(no).padStart(4,'0')} 승인 + 자동 처리 시작?`)) return;
+        await api('POST', `/offboard/api/approve/${no}`);
+        toast('승인 + 백그라운드 처리 시작', 'success');
+        loadDashboard();
+      },
+      preview_semusa: () => window.open(`/offboard/api/preview_semusa/${no}?actor_email=${encodeURIComponent(ACTOR_EMAIL)}`, '_blank'),
+      sign_request_off: async () => {
+        if (!confirmDialog(`RES-${String(no).padStart(4,'0')} 사직서 모두싸인 본인 서명 요청?`)) return;
+        await api('POST', `/offboard/api/admin/sign_request/${no}`);
+        toast('사직서 서명 요청 완료', 'success');
+        loadDashboard();
+      },
+      withholding_send: async () => {
+        const mode = confirmDialog('OK = 세무사 회신본 전달(drive_forward) / 취소 = 자체 발급(self_generate)') ? 'drive_forward' : 'self_generate';
+        await api('POST', `/offboard/api/admin/withholding/send/${no}`, { mode });
+        toast(`원천징수영수증 발송 (${mode})`, 'success');
+        loadDashboard();
+      },
+      notify_done_off: async () => {
+        await api('POST', `/offboard/api/notify_done/${no}`);
+        toast('세무사 회신 처리완료', 'success');
+        loadDashboard();
+      },
+      cancel_off: async () => {
+        const reason = prompt('취소 사유:'); if (!reason) return;
+        await api('POST', `/offboard/api/cancel/${no}`, { reason });
+        toast('퇴사 취소', 'success');
+        loadDashboard();
+      },
+    };
+    const handler = handlers[kind];
+    if (!handler) { toast(`unknown action: ${kind}`, 'error'); return; }
+    try { await handler(); }
+    catch (e) { toast(`실패: ${e.message}`, 'error', 5000); }
+  }
+
+  function selectCard(id) {
+    selectedCardId = id;
+    const c = findCardById(id);
+    renderDetail(c);
+    // 시각 갱신 — selected 표시
+    $$('.action-item.real, .case').forEach(el => {
+      if (el.dataset.cardId === id) el.classList.add('selected');
+      else el.classList.remove('selected');
+    });
+  }
+
+  // ===== 메인 로드 =====
+  function isStaticPreview() {
+    return location.protocol === 'file:' || location.protocol === 'about:';
+  }
+
+  function showErrorEverywhere(msg) {
+    const html = `<div class="error-state">${escapeHtml(msg)}</div>`;
+    ['urgentList', 'inProgressList', 'activeSummaryList', 'completedSummaryList',
+     'timelineList'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    });
+  }
+
+  async function loadDashboard() {
+    if (!ensureAdminEmail()) return;
+
+    // 정적 파일 안내
+    if (isStaticPreview()) {
+      console.warn('[dashboard] 정적 미리보기 (file://) — fetch 불가');
+      showErrorEverywhere('⚠ 정적 미리보기 (file://) — API 호출 불가\n실데이터를 보려면 https://rent-hr-portal.fly.dev/onboard/admin/v2 에서 확인하세요');
+      return;
+    }
+
+    try {
+      const data = await api('GET', `/onboard/api/dashboard?actor_email=${encodeURIComponent(ACTOR_EMAIL)}`);
+      lastDashboardData = data;
+      activeEmployeeCache = (data.action_queue || {}).active_employees || [];
+      renderKPI(data.kpi);
+      const q = data.action_queue || {};
+      updateCount('urgent', (q.urgent || []).length);
+      updateCount('in_progress', (q.in_progress || []).length);
+      // 상단 필터 탭·알림 벨 — 종전 목업 하드코딩(5·12·14·1·🔔3) 대체
+      const kpi = data.kpi || {};
+      updateCount('tab_inprogress', kpi.in_progress ?? 0);
+      updateCount('tab_active', (q.active_employees_summary || {}).total ?? 0);
+      updateCount('tab_completed', (q.completed_resignations_summary || {}).total ?? 0);
+      updateCount('tab_paused', kpi.paused ?? 0);
+      updateCount('bell', kpi.urgent ?? 0);
+      renderList('urgentList', q.urgent, '긴급 케이스 없음 ✓');
+      renderList('inProgressList', q.in_progress, '오늘 액션 필요 케이스 없음');
+      renderSummaries(q);
+      renderTimeline(data.timeline);
+      // 선택된 카드 상세 갱신
+      if (selectedCardId) {
+        const c = findCardById(selectedCardId);
+        if (c) renderDetail(c);
+      }
+      console.log('[dashboard] loaded:', {
+        kpi: data.kpi,
+        active: activeEmployeeCache.length,
+        completed: (q.completed_resignations || []).length,
+        timeline: (data.timeline || []).length,
+      });
+    } catch (e) {
+      console.error('[dashboard] load 실패:', e);
+      const isAuth = e.message.includes('admin') || e.message.includes('권한');
+      const msg = isAuth
+        ? `admin 권한 없음 — 이메일 다시 확인 (${ACTOR_EMAIL})`
+        : `로드 실패: ${e.message}`;
+      showErrorEverywhere(`⚠ ${msg}`);
+      if (isAuth) {
+        try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+        ACTOR_EMAIL = '';
+        ensureAdminEmail();
+      }
+    }
+  }
+
+  // ===== 후보자 등록 모달 =====
+  function ncAnnualWon() {
+    const man = parseInt(($('#nc_annual').value || '').replace(/\D/g, ''), 10) || 0;
+    return man * 10000;
+  }
+  function ncGather() {
+    const company = $('#nc_company').value.includes('필라멘트') ? '필라멘트앤코' : '프로젝트렌트';
+    return {
+      actor_email: ACTOR_EMAIL, send_mail: true, dry_run: false,
+      이름: $('#nc_name').value.trim(),
+      이메일: $('#nc_email').value.trim(),
+      연락처: $('#nc_phone').value.trim(),
+      회사: company,
+      팀: $('#nc_team').value.trim(),
+      직책: $('#nc_position').value.trim(),
+      입사예정일: $('#nc_joindate').value,
+      연봉: ncAnnualWon(),
+      고정OT: parseInt($('#nc_ot').value, 10) || 20,
+      부양가족수: parseInt($('#nc_dependents').value, 10) || 1,
+      수습기간: $('#nc_trial').value.trim() || '3개월',
+      기간제여부: $('#nc_fixedterm').checked,
+      근무지: $('#nc_workplace').value.trim(),
+      근무요일: $('#nc_workdays').value.trim(),
+      근무시간: $('#nc_workhours').value.trim(),
+      담당업무: $('#nc_jobdesc').value.trim(),
+      유급휴일: ($('#nc_holiday') ? $('#nc_holiday').value : ''),
+      비고: $('#nc_memo').value.trim(),
+    };
+  }
+
+  // 근무조건 프리셋 (본사직/매장직)
+  const WORK_PRESETS = {
+    office: { wp: '회사 본사 및 회사가 지정하는 장소', wd: '월요일 ~ 금요일 (주 5일)',
+      wh: '09:00 ~ 18:00', jd: '소속·직위에 부합하는 업무 및 회사가 지정하는 관련 업무',
+      hol: '주휴일(일요일), 근로자의 날, 공휴일·대체공휴일' },
+    retail: { wp: '회사가 지정하는 매장 및 장소', wd: '화요일 ~ 토요일 (주 5일)',
+      wh: '시업 09:00~10:00 (회사 지정) · 1일 8시간 (휴게 1시간 별도)',
+      jd: '매장·운영·관리 및 회사가 지시하는 업무',
+      hol: '주휴일: 일요일(유급) / 월요일: 무급 휴무 · 근로자의 날 · 공휴일·대체공휴일' },
+  };
+  function applyWorkPreset(kind) {
+    const v = WORK_PRESETS[kind];
+    if (!v) return;
+    $('#nc_workplace').value = v.wp;
+    $('#nc_workdays').value = v.wd;
+    $('#nc_workhours').value = v.wh;
+    $('#nc_jobdesc').value = v.jd;
+    if ($('#nc_holiday')) $('#nc_holiday').value = v.hol;
+    toast(kind === 'retail' ? '🏪 매장직 근무조건 적용 (수정 가능)' : '🏢 본사직 근무조건 적용', 'success');
+  }
+
+  async function computeSalaryPreview() {
+    const won = ncAnnualWon();
+    const box = $('#nc_summary');
+    if (!won) { toast('연봉(만원)을 입력하세요', 'error'); return; }
+    box.style.display = 'block';
+    box.innerHTML = '계산 중…';
+    try {
+      const r = await api('POST', '/onboard/api/admin/salary_preview', {
+        actor_email: ACTOR_EMAIL, 연봉: won,
+        고정OT: parseInt($('#nc_ot').value, 10) || 20,
+        부양가족수: parseInt($('#nc_dependents').value, 10) || 1,
+      });
+      const f = n => (n || 0).toLocaleString('ko-KR');
+      const warn = r.최저임금_경고
+        ? `<div style="margin-top:8px;padding:8px 10px;background:var(--alert-bg);border-left:3px solid var(--alert);border-radius:4px;color:var(--alert);">⚠ ${escapeHtml(r.note)}</div>` : '';
+      box.innerHTML = `
+        <div style="font-weight:700;margin-bottom:6px;">급여 써머리 · 연봉 ${f(r.연봉)}원 <span style="font-weight:400;color:#8B857E;">(${escapeHtml(r.note)})</span></div>
+        <table style="width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;">
+          <tr><td>기본급</td><td style="text-align:right">${f(r.기본급)}</td><td style="padding-left:14px">통상시급</td><td style="text-align:right">${f(r.통상시급)} ${r.최저임금_충족 ? '✓' : '✗'}</td></tr>
+          <tr><td>식대(비과세)</td><td style="text-align:right">${f(r.식대)}</td><td style="padding-left:14px">4대보험</td><td style="text-align:right">${f(r['4대보험_근로자'])}</td></tr>
+          <tr><td>고정연장(${r.고정OT시간}h)</td><td style="text-align:right">${f(r.고정연장수당)}</td><td style="padding-left:14px">소득세+지방세</td><td style="text-align:right">${f((r.소득세||0)+(r.지방소득세||0))}</td></tr>
+          <tr style="border-top:1px solid var(--line-2);font-weight:700;"><td>월 총급여</td><td style="text-align:right">${f(r.월총급여)}</td><td style="padding-left:14px;color:#FF6450">실수령액</td><td style="text-align:right;color:#FF6450">${f(r.실수령액)}</td></tr>
+          <tr><td colspan="2" style="color:#8B857E;font-size:11px;">사업주부담 ${f(r.사업주부담합계)}</td><td colspan="2" style="text-align:right;color:#8B857E;font-size:11px;">월 인건비 ${f(r.월_총인건비)}</td></tr>
+        </table>${warn}
+        <div style="margin-top:6px;font-size:10.5px;color:#8B857E;">※ 간이세액 근사 — 연말정산서 확정. 이 분해값이 근로계약서에 반영됩니다.</div>`;
+    } catch (e) { box.innerHTML = `<span style="color:var(--alert)">계산 실패: ${escapeHtml(e.message)}</span>`; }
+  }
+
+  async function submitNewCandidate() {
+    const data = ncGather();
+    if (!data.이메일 || !data.이름 || !data.입사예정일) {
+      toast('이름·이메일·입사예정일은 필수', 'error'); return;
+    }
+    if (!data.연봉) { toast('연봉(만원)을 입력하세요', 'error'); return; }
+    try {
+      const r = await api('POST', '/onboard/api/admin/candidate', data);
+      toast(`등록 완료: ${r.id} · 메일 ${r.mail?.sent ? '발송됨' : '미발송'}`, 'success', 5000);
+      $('#newCandidateModal').classList.remove('show');
+      loadDashboard();
+    } catch (e) { toast(`등록 실패: ${e.message}`, 'error', 5000); }
+  }
+
+  // ===== 퇴사 등록 모달 =====
+  async function loadActiveEmployeesIntoSelect() {
+    const modal = $('#newResignationModal');
+    if (!modal) return;
+    const sel = modal.querySelector('select');
+    if (!sel) return;
+    try {
+      const r = await fetch(`/api/employees?actor=${encodeURIComponent(ACTOR_EMAIL)}&include_hidden=false`);
+      const emps = await r.json();
+      sel.innerHTML = '<option value="">-- 재직 직원 선택 --</option>';
+      Object.entries(emps).forEach(([email, e]) => {
+        if (e.blocked || e.resignation_status === 'resigned') return;
+        if (e.role === 'admin' && email === ACTOR_EMAIL) return; // 본인 제외
+        const label = `${e.name || email} · ${(e.company||'').slice(0,4)} ${e.team||''} · ${e.position||''} (${email})`;
+        sel.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(email)}">${escapeHtml(label)}</option>`);
+      });
+    } catch (e) { console.error('직원 목록 로드 실패:', e); }
+  }
+
+  async function submitNewResignation() {
+    const modal = $('#newResignationModal');
+    const selects = modal.querySelectorAll('select');
+    const inputs = modal.querySelectorAll('input[type="date"], input[type="text"], textarea');
+
+    const target_email = selects[0]?.value;
+    const reason_code = parseInt(selects[1]?.value || '11', 10);
+    const handover = selects[2]?.value || '';
+    const dateInputs = modal.querySelectorAll('input[type="date"]');
+    const leave_date = dateInputs[0]?.value;
+    const textareas = modal.querySelectorAll('textarea');
+    const reason_detail = textareas[0]?.value || '';
+
+    if (!target_email) { toast('퇴사자 선택 필수', 'error'); return; }
+    if (!leave_date) { toast('퇴사 희망일 필수', 'error'); return; }
+
+    const baseStr = prompt('기본급 (원, 숫자만):', '');
+    if (!baseStr) return;
+    const base = parseInt(baseStr.replace(/\D/g,''), 10);
+    if (!base) { toast('기본급은 숫자 필수', 'error'); return; }
+
+    const data = {
+      target_email, leave_date,
+      reason_text: `사유코드 ${reason_code}`,
+      reason_code, handover, reason_detail,
+      base, meal: 200000, ot: 0, remaining_leave: 0,
+      settle_leave: true, settle_severance: true,
+      letter_method: 'auto',
+    };
+    try {
+      const r = await api('POST', '/offboard/api/admin/quick-resignation', data);
+      toast(`등록 완료: ${r.id} (${r.target_name}) · 정산합계 ₩${(r['정산_합계']||0).toLocaleString()}`, 'success', 6000);
+      modal.classList.remove('show');
+      loadDashboard();
+    } catch (e) { toast(`등록 실패: ${e.message}`, 'error', 5000); }
+  }
+
+  // ===== 재계약 모달 (2026-07-19) =====
+  async function loadEmployeesIntoRecontract() {
+    const sel = $('#rc_employee');
+    if (!sel) return;
+    const start = $('#rc_start');
+    if (start && !start.value) start.value = new Date().toISOString().slice(0, 10);
+    try {
+      const r = await fetch(`/api/employees?actor=${encodeURIComponent(ACTOR_EMAIL)}&include_hidden=false`);
+      const emps = await r.json();
+      sel.innerHTML = '<option value="">-- 재직 직원 선택 --</option>';
+      Object.entries(emps).forEach(([email, e]) => {
+        if (e.blocked || e.resignation_status === 'resigned') return;
+        const label = `${e.name || email} · ${(e.company||'').slice(0,5)} ${e.team||''} · ${e.position||''}`;
+        sel.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(email)}">${escapeHtml(label)}</option>`);
+      });
+    } catch (e) { console.error('직원 목록 로드 실패:', e); }
+  }
+
+  async function submitRecontract() {
+    const emp = $('#rc_employee')?.value;
+    const kind = $('#rc_kind')?.value;
+    const annual = parseInt($('#rc_annual')?.value || '0', 10);
+    if (!emp) { toast('대상 직원 선택 필수', 'error'); return; }
+    if (!annual) { toast('연봉(만원) 필수', 'error'); return; }
+    const data = {
+      employee_email: emp, kind, "연봉": annual,
+      "계약시작일": $('#rc_start')?.value || '',
+      "고정OT시간": parseInt($('#rc_ot')?.value || '20', 10),
+      "변경전_기본급": parseInt($('#rc_prev_base')?.value || '0', 10),
+      "변경전_식대": parseInt($('#rc_prev_meal')?.value || '0', 10),
+      "변경전_고정연장": parseInt($('#rc_prev_ot')?.value || '0', 10),
+    };
+    try {
+      const r = await api('POST', '/onboard/api/admin/recontract', data);
+      toast(`${r.label} 발송 완료 (${r.mode}) — 직원 서명 후 대표 2차 서명 메일이 옵니다`, 'success', 6000);
+      $('#recontractModal').classList.remove('show');
+    } catch (e) { toast(`발송 실패: ${e.message}`, 'error', 6000); }
+  }
+
+  // ===== 단기계약 모달 (2026-07-19) =====
+  function syncExternalKindFields() {
+    const kind = $('#ec_kind')?.value;
+    const feeWrap = $('#ec_fee_wrap'), wageWrap = $('#ec_wage_wrap');
+    if (feeWrap) feeWrap.style.opacity = (kind === 'outsourcing') ? '1' : '.45';
+    if (wageWrap) wageWrap.style.opacity = (kind === 'daily_labor') ? '1' : '.45';
+  }
+
+  async function submitExternalContract() {
+    const kind = $('#ec_kind')?.value;
+    const data = {
+      kind,
+      name: $('#ec_name')?.value?.trim(),
+      email: $('#ec_email')?.value?.trim(),
+      "회사": $('#ec_company')?.value,
+      work_desc: $('#ec_work')?.value?.trim(),
+      period_start: $('#ec_start')?.value,
+      period_end: $('#ec_end')?.value,
+      fee_total: parseInt($('#ec_fee')?.value || '0', 10),
+      wage_desc: $('#ec_wage')?.value?.trim() || '',
+      pay_terms: $('#ec_pay')?.value?.trim() || '',
+      work_place: $('#ec_place')?.value?.trim() || '',
+    };
+    if (!data.name || !data.email || !data.work_desc || !data.period_start || !data.period_end) {
+      toast('성명·이메일·업무·기간은 필수', 'error'); return;
+    }
+    if (kind === 'outsourcing' && !data.fee_total) { toast('위탁 대금(원) 필수', 'error'); return; }
+    if (kind === 'daily_labor' && !data.wage_desc) { toast('임금 문구 필수 (예: 일당 120,000원)', 'error'); return; }
+    try {
+      const r = await api('POST', '/onboard/api/admin/contract_send', data);
+      toast(`${r.label} 발송 완료 (${r.mode}) — ${data.name}님에게 서명 요청이 갔습니다`, 'success', 6000);
+      $('#externalContractModal').classList.remove('show');
+    } catch (e) { toast(`발송 실패: ${e.message}`, 'error', 6000); }
+  }
+
+  // ===== 전역 노출 =====
+  window.HRDash = {
+    saveAdminEmail, loadDashboard, selectCard, act,
+    submitNewCandidate, submitNewResignation,
+    loadActiveEmployeesIntoSelect,
+    loadEmployeesIntoRecontract, submitRecontract, submitExternalContract,
+    selectActiveEmployee, startResignationFor,
+    changeAdminEmail,
+  };
+  // 기존 onclick 호환
+  window.submitNewCandidate = submitNewCandidate;
+  window.submitNewResignation = submitNewResignation;
+  window.computeSalaryPreview = computeSalaryPreview;
+  window.applyWorkPreset = applyWorkPreset;
+
+  // ===== 이벤트 바인딩 =====
+  function bindUI() {
+    // admin email 저장 버튼 + Enter 키
+    const saveBtn = $('#adminEmailSaveBtn');
+    if (saveBtn) saveBtn.addEventListener('click', saveAdminEmail);
+    const inputEl = $('#adminEmailInput');
+    if (inputEl) {
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); saveAdminEmail(); }
+      });
+    }
+    // 헤더 [변경] 링크
+    const changeLink = $('#changeAdminLink');
+    if (changeLink) {
+      changeLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.confirm(`현재 로그인: ${ACTOR_EMAIL}\nadmin 이메일을 다시 입력하시겠습니까?`)) {
+          changeAdminEmail();
+        }
+      });
+    }
+    // 헤더 admin email 초기 표시
+    setHeaderAdminEmail();
+    // 퇴사 모달 등록 버튼
+    const resModal = $('#newResignationModal');
+    if (resModal) {
+      const submitBtn = resModal.querySelector('.modal-foot .btn.primary');
+      if (submitBtn) submitBtn.addEventListener('click', submitNewResignation);
+    }
+    // 재계약·단기계약 모달 (2026-07-19)
+    const rcBtn = $('#rc_submit');
+    if (rcBtn) rcBtn.addEventListener('click', submitRecontract);
+    const ecBtn = $('#ec_submit');
+    if (ecBtn) ecBtn.addEventListener('click', submitExternalContract);
+    const ecKind = $('#ec_kind');
+    if (ecKind) { ecKind.addEventListener('change', syncExternalKindFields); syncExternalKindFields(); }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindUI);
+  } else {
+    bindUI();
+  }
+
+  // ===== 시작 =====
+  function startPolling() {
+    if (!pollTimer) pollTimer = setInterval(loadDashboard, 30000);
+  }
+  if (ensureAdminEmail()) {
+    loadDashboard();
+    startPolling();
+  }
+  // tab focus 시 즉시 갱신
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && ACTOR_EMAIL) loadDashboard();
+  });
+})();
+</script>
+
+</body>
+</html>
