@@ -494,6 +494,37 @@ def _tg_send(token: str, chat_id, message: str) -> bool:
         return False
 
 
+# ── 문의·건의 접수 (2026-07-22, 아리사 OS 전직원 오픈) ──────────────────
+# 대화(보고/회의/분장) 밖 자유 텍스트 = 문의/건의로 접수 → 기록 + 대표 전달 + 접수 확인 회신.
+_INQUIRY_LOG = Path(__file__).resolve().parents[2] / "20-operations" / "23-arisa" / "inquiries" / "inbox.jsonl"
+
+
+async def receive_inquiry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not update.message or not update.message.text:
+        return
+    text = update.message.text.strip()
+    if not text:
+        return
+    uid = update.effective_user.id
+    emp = employee_by_tid(uid)
+    name = emp["name"] if emp else (update.effective_user.full_name or str(uid))
+    try:
+        _INQUIRY_LOG.parent.mkdir(parents=True, exist_ok=True)
+        with _INQUIRY_LOG.open("a", encoding="utf-8") as f:
+            f.write(json.dumps({"ts": datetime.now().isoformat(timespec="seconds"),
+                                "name": name, "tg_id": uid, "text": text},
+                               ensure_ascii=False) + "\n")
+    except Exception as e:
+        logger.error(f"inquiry log error: {e}")
+    sent = await asyncio.to_thread(send_to_manager, f"💬 문의/건의 접수 — {name}\n\n{text}")
+    if not sent:
+        logger.error(f"inquiry forward failed: {name}")
+    await update.message.reply_text(
+        "💬 접수했습니다 — 확인 후 회신드리겠습니다.\n"
+        "· 일일보고를 하시려면 /report\n"
+        "· 아리사 OS 접속: https://arisa-os.com (가이드: https://arisa-os.com/guide-os)")
+
+
 def send_to_manager(message: str) -> bool:
     """관리자(대표) 텔레그램으로 전송 (관리자봇)."""
     return _tg_send(MANAGER_BOT_TOKEN, MANAGER_CHAT_ID, message)
@@ -2246,6 +2277,11 @@ def main() -> None:
     )
     app.add_handler(assign_conv)
     logger.info("/assign handler registered (weekly assignment)")
+
+    # 문의·건의 접수 폴백 (2026-07-22, 아리사 OS 전직원 오픈) — 반드시 모든 ConversationHandler 뒤에 등록.
+    # 같은 group(0)에서 앞선 대화 핸들러가 매칭되지 않을 때만 실행 → 보고/회의/분장 플로우와 충돌 없음.
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, receive_inquiry))
+    logger.info("inquiry fallback registered")
 
     app.add_error_handler(error_handler)  # 핸들러 예외 안전망 (보고 유실 방지)
 

@@ -8,7 +8,7 @@ PM이 수정하면 서버에 저장되어 대표·팀원 모두 같은 데이터
 권한:   대표=전체 열람·수정·생성·삭제 / PM=본인 프로젝트 수정 / 직원=배정 프로젝트 열람
 실행:   python3 dashboard-server.py [port]   (기본 8770, 127.0.0.1 — Tailscale serve로 노출)
 """
-import json, os, re, sys, threading, datetime
+import json, os, re, secrets, sys, threading, time, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, quote
 from urllib.request import urlopen, Request
@@ -1358,7 +1358,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     <button class="tab" data-t="docsim">문서 시뮬레이터</button>
     <button class="tab" data-t="brief" style="display:none">오늘 Brief</button>
     <button class="tab" data-t="weekly" style="display:none">이번 주</button>
-    <button class="tab-ext" id="tab-hr" style="display:none" onclick="window.open('https://rent-hr-portal.fly.dev/','_blank')">HR 포털 ↗</button>
+    <button class="tab-ext" id="tab-hr" onclick="window.open('https://rent-hr-portal.fly.dev/','_blank')">HR 포털 ↗</button><!-- 전 직원 노출 (2026-07-22) — 포털 자체가 staff/manager/admin 개인별 권한 강제 -->
     <select id="scope-sel" style="display:none"></select>
     <span class="who" id="who"></span>
   </div>
@@ -2091,6 +2091,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   function enter(s){
     SESS=s; var j=JSON.stringify(s);
     SESS_KEYS.forEach(function(k){ localStorage.setItem(k,j); });
+    // 서버 세션 쿠키 갱신 (2026-07-22) — 캐시 로그인·서버 재시작 후에도 iframe/API 게이트 통과
+    fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id:s.id||s.name,pin:s.pin})}).catch(function(){});
     gate.style.display='none'; shell.style.display='flex';
     who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-guide">가이드</a> <a id="lg-pin-c">PIN변경</a> <a id="lg-out">로그아웃</a>';
     document.getElementById('lg-out').onclick=function(){ CLEAR_KEYS.forEach(function(k){localStorage.removeItem(k);}); location.reload(); };
@@ -2099,7 +2102,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     var lt=s.lead_teams||[];
     if(s.admin){
       tabBtn('brief').style.display=''; tabBtn('weekly').style.display='';
-      document.getElementById('tab-hr').style.display='';  // HR 포털 새 창 — 대표 전용 (독립 서비스 링크, 프록시 아님)
+      // HR 포털 탭은 전 직원 상시 노출 (2026-07-22) — 온보딩 링크만 아래 mywork 블록에서 대표 전용 유지
       // Decision Window(ARISA 2.0)는 데이터 취합 백단 창구 — 대시보드 전면 노출 안 함(탭 숨김)
       sel.style.display='inline-block'; sel.innerHTML='<option value="">전체</option>';
       lt.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
@@ -2181,6 +2184,52 @@ def auth(uid, pin):
     u = load_users().get(uid)
     if u and str(u.get("pin")) == str(pin): return u
     return None
+
+
+# ── 웹 세션 (2026-07-22, 전직원 공개 배포) ─────────────────────────────────
+# arisa-os.com 공개 전환에 따라 브리프/주간/데이터 API를 서버측 쿠키 세션으로 게이트.
+# 토큰은 파일 영속(재시작 무손실) + 30일 TTL. 셸은 로드 시 /api/login 재호출로 쿠키 갱신.
+_SESS_FILE = DATA / "web-sessions.json"
+_SESS_TTL = 30 * 86400
+
+def _sess_load():
+    try:
+        return json.loads(_SESS_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+_WEB_SESS = _sess_load()
+
+def _sess_save():
+    try:
+        _SESS_FILE.write_text(json.dumps(_WEB_SESS), encoding="utf-8")
+    except Exception:
+        pass
+
+def issue_web_session(name):
+    now = time.time()
+    with _lock:
+        for t in [t for t, v in _WEB_SESS.items() if now - v.get("ts", 0) > _SESS_TTL]:
+            _WEB_SESS.pop(t, None)
+        tok = secrets.token_hex(16)
+        _WEB_SESS[tok] = {"name": name, "ts": now}
+        _sess_save()
+    return tok
+
+def web_session(tok):
+    v = _WEB_SESS.get(tok or "")
+    if not v or time.time() - v.get("ts", 0) > _SESS_TTL:
+        return None
+    name = v["name"]
+    if not load_users().get(name):
+        return None
+    return {"name": name, "admin": is_admin(name), "lead_teams": lead_teams_of(name)}
+
+
+# 무인증 허용 경로 (그 외 전부 쿠키 세션 필요)
+_PUBLIC_PATHS = {"/", "/index.html", "/api/login", "/api/health", "/api/set-pin",
+                 "/guide-os", "/guide-flow", "/guide", "/simulator", "/projects", "/favicon.ico"}
+_PUBLIC_PREFIXES = ("/arisa2",)  # ARISA 2.0은 자체 토큰 인증
 
 def is_admin(uid):
     u = load_users().get(uid)
@@ -3040,7 +3089,9 @@ def can_manage(uid, p):
 
 def can_view(uid, p):
     # 리더는 '본인 팀이 걸린' 프로젝트를 멤버가 아니어도 열람(멤버 배정 위해)
-    return is_admin(uid) or uid == p.get("pm") or uid in (p.get("members") or []) or can_manage(uid, p)
+    # 2026-07-22(대표 지시): 일반 팀원도 본인 소속 팀이 걸린 프로젝트는 컨디션 열람 가능 (편집은 불가)
+    return (is_admin(uid) or uid == p.get("pm") or uid in (p.get("members") or [])
+            or can_manage(uid, p) or emp_team(uid) in project_teams(p))
 
 def can_edit(uid, p):
     # 내용(업무·이슈·브리프) 편집은 기존대로 담당 PM·대표만 — 리더는 멤버 배정만
@@ -3138,14 +3189,42 @@ class H(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(err)
 
-    def _send(self, code, body, ctype="application/json; charset=utf-8"):
+    def _send(self, code, body, ctype="application/json; charset=utf-8", headers=None):
         data = body if isinstance(body, (bytes, bytearray)) else json.dumps(body, ensure_ascii=False).encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
+        for k, v in (headers or {}).items():
+            self.send_header(k, v)
         self.end_headers()
         self.wfile.write(data)
+
+    def _web_sess(self):
+        """쿠키(arisa_sid) → 세션 dict 또는 None."""
+        cookie = self.headers.get("Cookie") or ""
+        for part in cookie.split(";"):
+            k, _, v = part.strip().partition("=")
+            if k == "arisa_sid":
+                return web_session(v)
+        return None
+
+    def _gate(self, path):
+        """공개 경로 외 전부 세션 필요. 통과 시 세션 dict, 차단 시 None(응답 전송됨)."""
+        if path in _PUBLIC_PATHS or any(path.startswith(p) for p in _PUBLIC_PREFIXES):
+            return {}
+        sess = self._web_sess()
+        if sess:
+            return sess
+        if path.startswith("/api/"):
+            self._send(401, {"ok": False, "error": "로그인이 필요합니다. 아리사 OS에서 다시 로그인해주세요.", "reason": "session_required"})
+        else:
+            self._send(401, ("<html><body style='font-family:sans-serif;background:#1A1A1A;color:#F5F0EB;"
+                             "display:flex;align-items:center;justify-content:center;height:100vh'>"
+                             "<div style='text-align:center'><h2>로그인이 필요합니다</h2>"
+                             "<p><a href='/' target='_top' style='color:#6C5CE7'>아리사 OS 로그인으로 이동</a></p>"
+                             "</div></body></html>").encode("utf-8"), "text/html; charset=utf-8")
+        return None
 
     def _body(self):
         n = int(self.headers.get("Content-Length", 0) or 0)
@@ -3157,8 +3236,37 @@ class H(BaseHTTPRequestHandler):
         u = urlparse(self.path); path = u.path; q = parse_qs(u.query)
         if path.startswith("/arisa2"):
             return self._proxy_arisa2("GET")
+        sess = self._gate(path)
+        if sess is None:
+            return
         if path.startswith("/r4"):
+            # R4(회의분석 Pro) — 대표 회의 세션 데이터 포함 → admin 세션만 (tailnet 직결 8781은 별도)
+            if not sess.get("admin"):
+                return self._send(403, {"ok": False, "error": "대표 전용입니다."})
             return self._proxy_r4("GET")
+        # 브리프·주간 — 역할별 서버측 게이트 (2026-07-22 공개 전환)
+        if path in ("/brief", "/weekly") and not sess.get("admin"):
+            return self._send(403, "<h1>대표 전용 페이지입니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+        if path in ("/team-brief", "/team-weekly"):
+            team = (q.get("team") or [""])[0]
+            if not (sess.get("admin") or team in (sess.get("lead_teams") or [])):
+                return self._send(403, "<h1>해당 팀 리더 전용 페이지입니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/lead-brief":
+            teams = [t.strip() for t in ((q.get("teams") or [""])[0]).split(",") if t.strip()]
+            if not (sess.get("admin") or (teams and set(teams) <= set(sess.get("lead_teams") or []))):
+                return self._send(403, "<h1>담당 팀 리더 전용 페이지입니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+        if path == "/my-brief":
+            nm = (q.get("name") or [""])[0]
+            ok = sess.get("admin") or nm == sess.get("name") or emp_team(nm) in (sess.get("lead_teams") or [])
+            if not ok:
+                return self._send(403, "<h1>본인 브리프만 볼 수 있습니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+        # API 신원 강제 — ?user=/?name= 파라미터는 본인(또는 담당팀원·admin)만 (내부자 스푸핑 방지, 2026-07-22)
+        if path.startswith("/api/") and sess.get("name"):
+            for _k in ("user", "name"):
+                _v = (q.get(_k) or [""])[0]
+                if _v and _v != sess["name"] and not sess.get("admin") \
+                        and emp_team(_v) not in (sess.get("lead_teams") or []):
+                    return self._send(403, {"ok": False, "error": "본인(또는 담당 팀원) 데이터만 조회할 수 있습니다."})
         if path in ("/", "/index.html"):
             # 통합 셸 — 로그인 1회, 역할별 탭(프로젝트/Brief/Weekly/Decision)
             # 리더 홈(팀 Todo·팀원 보고 카드)이 브리프 카드 스타일을 쓰므로 CARD_CSS 주입
@@ -3672,7 +3780,12 @@ class H(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path.startswith("/arisa2"):
             return self._proxy_arisa2("POST")
+        sess = self._gate(path)
+        if sess is None:
+            return
         if path.startswith("/r4"):
+            if not sess.get("admin"):
+                return self._send(403, {"ok": False, "error": "대표 전용입니다."})
             return self._proxy_r4("POST")
         b = self._body()
         if path == "/api/login":
@@ -3689,8 +3802,11 @@ class H(BaseHTTPRequestHandler):
                 set_pin(uid, pin); pin_set = True
             elif cur != str(pin):
                 return self._send(401, {"ok": False, "error": "ID 또는 PIN이 올바르지 않습니다."})
+            tok = issue_web_session(uid)  # 서버측 세션 쿠키 (2026-07-22 공개 전환)
             return self._send(200, {"ok": True, "name": uid, "role": u.get("role", "직원"),
-                                    "admin": is_admin(uid), "lead_teams": lead_teams_of(uid), "pin_set": pin_set})
+                                    "admin": is_admin(uid), "lead_teams": lead_teams_of(uid), "pin_set": pin_set},
+                              headers={"Set-Cookie":
+                                       f"arisa_sid={tok}; Path=/; Max-Age={_SESS_TTL}; HttpOnly; SameSite=Lax; Secure"})
         if path == "/api/set-pin":
             # PIN 변경(자가설정) — 현재 PIN 검증 후 새 PIN 저장
             uid = b.get("id", ""); cur = b.get("pin", ""); new = b.get("new_pin", "")
