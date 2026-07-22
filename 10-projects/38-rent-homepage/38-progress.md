@@ -104,8 +104,16 @@
 - 최종 TXT 2개 공존 확인: google-site-verification + SPF(v=spf1 include:_spf.google.com ip4:52.79.92.223 ~all), 중복 없음
 - ⚠️ 교훈: 가비아 TXT는 "수정"하면 기존 레코드 덮어씀 — 반드시 [+레코드 추가]. 긴 값은 pbcopy로 전달해 공백 유입 방지
 
+## 2026-07-22 — DNS 존 Cloudflare 이전 + 루트 도메인 완성
+- 배경: 가비아 포워딩이 https 미지원 → 루트 https 완벽 대응 위해 존 자체를 Cloudflare로 이전
+- 절차: CF 대시보드 도메인 추가(Free, 자동 스캔) → 스캔 오류 수정(www가 A레코드로 잘못 임포트 → CNAME 교체, 불필요 A 3개 삭제) → 가비아 포워딩 해지(NS 변경 차단 원인) → NS를 ainsley/devin.ns.cloudflare.com으로 변경 → 존 active
+- 루트: Pages 커스텀 도메인 API 추가 + apex CNAME(@ → rent-homepage.pages.dev, 평탄화·Proxied). 트러블슈팅: CNAME 값 끝 쉼표 오타로 "CNAME record not set" 지속 → 값 재입력 후 즉시 active
+- 최종 검증: **https://project-rent.com 200** / www 200 / http루트 301 / sitemap·영상·문의API 정상 / 구글 MX 유지
+- 현재 DNS 구성(CF): MX6 + TXT2(DNS only) + CNAME www·@ → pages.dev (Proxied)
+- 부가 효과: 전체 트래픽 CF CDN 경유(캐싱·속도), DNS 관리 단일화(홈페이지·아리사 같은 계정)
+
 ## 남은 것 / 다음 단계
 - [ ] 루트(project-rent.com)도 새 사이트로 넘길지 결정 — 넘기면 apex A 4개 삭제 + 가비아 포워딩(→ www)
-- [ ] 시트의 [테스트] 행 정리 (선택)
+- [x] 시트의 [테스트] 행 정리 (2026-07-22 완료 — 4행 삭제, 헤더만 유지)
 - [ ] Instagram/LinkedIn/YouTube 푸터 링크 실제 URL 연결
 - [ ] IR Deck 버튼: 원본에 있었으나 링크 대상 없어 이번 버전에서 제외 — 필요 시 추가
