@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WORKSPACE KERNEL — 설계 가이드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:#EDE9FE;
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --duration-base:250ms; --ease-out:cubic-bezier(.2,.8,.2,1);
+  --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg); color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300; letter-spacing:-0.01em; line-height:1.7; -webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{text-wrap:balance; font-weight:500; letter-spacing:-0.02em}
+.eyebrow{font-size:11px; letter-spacing:.3em; color:var(--fg-3); text-transform:uppercase}
+.accent{color:var(--accent-light)}
+.brand-mark{position:fixed; top:24px; right:30px; font-size:10px; letter-spacing:.35em; color:var(--fg-3); z-index:50}
+
+/* 좌측 섹션 인덱스 */
+.toc{position:fixed; top:50%; left:26px; transform:translateY(-50%); display:flex; flex-direction:column; gap:11px; z-index:40}
+.toc a{font-size:10px; letter-spacing:.12em; color:var(--fg-3); text-decoration:none; text-transform:uppercase; transition:color var(--duration-base) var(--ease-out)}
+.toc a:hover,.toc a.on{color:var(--accent-light)}
+@media (max-width:1200px){.toc{display:none}}
+
+.sec{max-width:1080px; margin:0 auto; padding:84px 80px;
+  opacity:0; transform:translateY(24px);
+  transition:opacity 650ms var(--ease-out), transform 650ms var(--ease-out);}
+.sec.visible{opacity:1; transform:translateY(0)}
+.sec-head{display:flex; justify-content:space-between; align-items:baseline;
+  padding-bottom:24px; border-bottom:1px solid var(--line-2); margin-bottom:38px}
+.sec-head h2{font-size:34px; font-weight:300; letter-spacing:-0.025em; line-height:1.15}
+.sec-head .no{font-size:11px; letter-spacing:.2em; color:var(--fg-3)}
+.lead{font-size:15px; color:var(--fg-2); max-width:820px; margin-bottom:26px}
+.lead b{color:var(--accent-light)}
+p.body{font-size:14px; color:var(--fg-2); max-width:820px; margin-bottom:14px}
+p.body b{color:var(--fg)}
+
+/* HERO */
+.hero{min-height:82vh; display:flex; flex-direction:column; justify-content:center; max-width:1080px; margin:0 auto; padding:80px}
+.hero .eyebrow{margin-bottom:26px}
+.hero h1{font-size:62px; font-weight:200; line-height:1.06; letter-spacing:-0.04em; margin-bottom:26px}
+.hero h1 b{font-weight:500; color:var(--accent-light)}
+.hero p{font-size:17px; color:var(--fg-2); max-width:720px}
+.hero .oneliner{margin-top:36px; padding:20px 24px; background:rgba(108,92,231,.08); border-left:3px solid var(--accent); max-width:760px}
+.hero .oneliner p{font-size:14px; color:var(--fg); margin:0}
+.hero .oneliner b{color:var(--accent-light)}
+.hero .refs{margin-top:26px; font-size:11px; letter-spacing:.05em; color:var(--fg-3); font-family:var(--mono)}
+
+/* 3기둥 */
+.pillars3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:8px}
+.pil{background:var(--bg-2); border:1px solid var(--line-2); border-top:2px solid var(--accent); padding:22px 22px}
+.pil .pt{font-size:10px; letter-spacing:.22em; color:var(--accent); text-transform:uppercase; margin-bottom:10px}
+.pil h3{font-size:19px; font-weight:500; margin-bottom:8px}
+.pil p{font-size:12.5px; color:var(--fg-2); line-height:1.55}
+
+/* 메커니즘 인라인 리스트 */
+.mech{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:20px}
+.mech div{font-size:13px; color:var(--fg-2); background:var(--bg-3); border:1px solid var(--line-2); padding:14px 16px}
+.mech b{color:var(--accent-light); font-weight:500}
+
+/* 테이블 공통 */
+table{width:100%; border-collapse:collapse; font-size:13.5px; margin:4px 0}
+th{font-size:10px; letter-spacing:.18em; color:var(--fg-3); text-transform:uppercase; text-align:left; padding:11px 14px 13px; font-weight:400; border-bottom:1px solid var(--line-2)}
+td{padding:13px 14px; border-bottom:1px solid var(--line-2); color:var(--fg-2); vertical-align:top; line-height:1.55}
+tr:hover td{background:rgba(108,92,231,.03)}
+td.k{color:var(--accent-light); font-weight:500; white-space:nowrap}
+.pill-id{display:inline-block; font-family:var(--mono); font-size:11px; color:var(--bg); background:var(--accent); padding:2px 7px; font-weight:600; border-radius:2px}
+
+/* 코드블록 (템플릿) */
+.code{background:var(--bg-2); border:1px solid var(--line-2); border-left:3px solid var(--accent); border-radius:2px; margin:16px 0; overflow:hidden}
+.code .ct{display:flex; justify-content:space-between; align-items:center; padding:10px 16px; border-bottom:1px solid var(--line-2); background:rgba(108,92,231,.05)}
+.code .ct .name{font-size:11px; letter-spacing:.15em; color:var(--accent-light); text-transform:uppercase; font-weight:500}
+.code .ct .tag{font-size:10px; letter-spacing:.1em; color:var(--fg-3); font-family:var(--mono)}
+.code pre{padding:18px 20px; overflow-x:auto; font-family:var(--mono); font-size:12.5px; line-height:1.7; color:var(--fg-2); white-space:pre}
+.code pre .c{color:var(--fg-3)}
+.code pre .v{color:var(--amber)}
+.code pre .h{color:var(--accent-light)}
+
+/* 골격 트리 */
+.tree{background:var(--bg-2); border:1px solid var(--line-2); padding:22px 24px; font-family:var(--mono); font-size:12.5px; line-height:1.8; color:var(--fg-2); overflow-x:auto; margin:6px 0}
+.tree .d{color:var(--accent-light)}
+.tree .c{color:var(--fg-3)}
+
+/* 체크리스트 */
+.checks{display:flex; flex-direction:column; gap:8px; margin:6px 0}
+.chk{display:flex; gap:12px; align-items:flex-start; background:var(--bg-3); border:1px solid var(--line-2); padding:13px 16px}
+.chk .box{width:16px; height:16px; border:1px solid var(--accent); flex-shrink:0; margin-top:2px; border-radius:2px}
+.chk p{font-size:13px; color:var(--fg-2); line-height:1.5}
+.chk p b{color:var(--fg)}
+.note{margin-top:14px; font-size:13px; color:var(--fg-2); background:rgba(143,163,126,.06); border-left:2px solid var(--green); padding:12px 16px}
+.note b{color:var(--green)}
+
+/* steps */
+.steps{margin:6px 0}
+.step{display:flex; gap:18px; padding:18px 0; border-bottom:1px solid var(--line-2)}
+.step:last-child{border-bottom:none}
+.step-num{width:34px; height:34px; background:var(--accent); color:var(--bg); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:500; flex-shrink:0}
+.step-c h4{font-size:15px; font-weight:500; color:var(--fg); margin-bottom:4px}
+.step-c p{font-size:13px; color:var(--fg-2); line-height:1.55}
+
+/* 안티패턴 */
+.anti{display:flex; flex-direction:column; gap:8px}
+.arow{display:flex; gap:12px; background:var(--bg-3); border:1px solid var(--line-2); border-left:3px solid var(--red); padding:13px 16px}
+.arow .x{color:var(--red); font-weight:600; flex-shrink:0}
+.arow p{font-size:13px; color:var(--fg-2); line-height:1.5}
+.arow p b{color:var(--fg)}
+
+/* 배포/로드맵 카드 */
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:8px}
+.ccard{background:var(--bg-2); border:1px solid var(--line-2); padding:22px}
+.ccard .ci{font-size:10px; letter-spacing:.2em; color:var(--accent); text-transform:uppercase; margin-bottom:9px}
+.ccard h4{font-size:14px; font-weight:500; margin-bottom:7px}
+.ccard p{font-size:12.5px; color:var(--fg-2); line-height:1.55}
+.road{display:flex; flex-direction:column; gap:10px; margin-top:20px}
+.rstep{display:grid; grid-template-columns:80px 1fr; gap:18px; align-items:center; background:var(--bg-3); border:1px solid var(--line-2); padding:16px 22px}
+.rstep .rp{font-size:11px; font-weight:600; color:var(--accent-light); letter-spacing:.05em; font-family:var(--mono)}
+.rstep h4{font-size:14px; font-weight:500; color:var(--fg); margin-bottom:3px}
+.rstep p{font-size:12.5px; color:var(--fg-2)}
+
+/* 결론 */
+.closing{background:var(--bg-2); text-align:center; padding:110px 80px}
+.closing .eyebrow{margin-bottom:22px}
+.closing h2{font-size:34px; font-weight:200; line-height:1.35; max-width:900px; margin:0 auto; letter-spacing:-0.03em}
+.closing h2 b{font-weight:500; color:var(--accent-light)}
+.closing .quote{margin-top:32px; font-size:14px; color:var(--fg-3)}
+
+footer{padding:56px 80px; border-top:1px solid var(--line-2); max-width:1080px; margin:0 auto; display:flex; justify-content:space-between; align-items:baseline}
+footer .logo{font-size:12px; letter-spacing:.4em; color:var(--fg-2)}
+footer .fmeta{font-size:10px; letter-spacing:.2em; color:var(--fg-3); text-transform:uppercase}
+
+.subhead{font-size:17px; font-weight:500; color:var(--fg); margin:34px 0 14px; padding-left:12px; border-left:3px solid var(--accent)}
+
+@media (max-width:900px){
+  .hero,.sec{padding:64px 28px}
+  .hero h1{font-size:40px}
+  .pillars3,.mech,.grid3{grid-template-columns:1fr}
+  .sec-head h2{font-size:26px}
+  .rstep{grid-template-columns:1fr; gap:5px}
+  .closing h2{font-size:23px}
+  footer{flex-direction:column; gap:12px}
+  table{font-size:12.5px}
+}
+@media (prefers-reduced-motion:reduce){ .sec{opacity:1; transform:none; transition:none} *{transition:none!important} }
+@media print{ .sec{opacity:1; transform:none} .brand-mark,.toc{display:none} }
+</style>
+</head>
+<body>
+<div class="brand-mark">DESIGN GUIDE · KERNEL</div>
+
+<nav class="toc">
+  <a href="#s0">00 철학</a>
+  <a href="#s1">01 원칙</a>
+  <a href="#s2">02 구조</a>
+  <a href="#s3">03 헌법</a>
+  <a href="#s4">04 기억</a>
+  <a href="#s5">05 포집</a>
+  <a href="#s6">06 방법</a>
+  <a href="#s7">07 보안</a>
+  <a href="#s8">08 배포</a>
+  <a href="#s9">09 도메인팩</a>
+  <a href="#s10">10 안티패턴</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">WORKSPACE KERNEL — DESIGN GUIDE · 2026.07.22</div>
+  <h1>커널을 지을 때<br>어긋나면 안 되는<br><b>설계 규격.</b></h1>
+  <p>"얇은 커널 + 자라나는 방법" 철학을, 실제로 워크스페이스를 지을 때 기준이 되는 규격으로 못박은 문서.
+     원칙 → 구조 → 규약 → 방법 → 배포 순으로 읽는다.</p>
+  <div class="oneliner"><p>설계 한 문장 — <b>기획자의 제2의 뇌를, 파일링이 아니라 운영체제로 설계한다.</b></p></div>
+  <div class="refs">근거 · concept: planner-workspace-kernel-concept.html · rules: CLAUDE-MD-BEST-PRACTICES.md</div>
+</section>
+
+<!-- 00 -->
+<section class="sec" id="s0">
+  <div class="sec-head"><h2>목적 · 철학</h2><span class="no">00</span></div>
+  <p class="lead">워크스페이스는 파일링 시스템이 아니라 <b>Claude가 운영할 수 있는 외장 인지 시스템</b>이다.
+     핵심은 무엇을 채워 주느냐가 아니라, 각자의 업무에서 스스로 자라나게 하는 뼈대와 방법을 주느냐다.</p>
+  <div class="pillars3">
+    <div class="pil"><div class="pt">Pillar 01</div><h3>기억</h3><p>세션을 넘어 맥락이 살아남는다. progress + 메모리. 없으면 매번 백지에서 시작.</p></div>
+    <div class="pil"><div class="pt">Pillar 02</div><h3>규율</h3><p>규칙을 CLAUDE.md에 한 번 박아 매 세션 자동 적용. 검증·보안·네이밍이 여기 산다.</p></div>
+    <div class="pil"><div class="pt">Pillar 03</div><h3>결정화</h3><p>반복 업무가 스킬로 얼어붙는다. 단, 처음부터 주지 않는다 — 0에서 시작.</p></div>
+  </div>
+  <p class="body" style="margin-top:26px"><b>왜 구조가 Claude에게 유효한가 — 4대 메커니즘</b></p>
+  <div class="mech">
+    <div><b>지속성</b> — 세션마다 리셋. 구조 = 장기기억</div>
+    <div><b>컨텍스트 경제</b> — 필요한 파일만 읽음. 주소 = 탐색세↓</div>
+    <div><b>규율의 체화</b> — 헌법에 한 번 = 모든 세션 적용</div>
+    <div><b>검증 가능성</b> — 대조할 SSOT가 있으면 환각↓</div>
+  </div>
+</section>
+
+<!-- 01 -->
+<section class="sec" id="s1">
+  <div class="sec-head"><h2>설계 원칙 10</h2><span class="no">01</span></div>
+  <p class="lead">커널을 지을 때 어긋나면 안 되는 규칙. 각 원칙은 <b>위반 시 증상</b>과 함께 기억한다.</p>
+  <table>
+    <thead><tr><th style="width:52px">#</th><th style="width:210px">원칙</th><th>근거 / 위반 증상</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill-id">P1</span></td><td class="k">헌법은 얇게</td><td>CLAUDE.md &lt; 100줄(이상 60). 길수록 무시당함 — 300줄↑이면 핵심부터 버려짐</td></tr>
+      <tr><td><span class="pill-id">P2</span></td><td class="k">지시 최소화</td><td>지시문 150~200 한계. 시스템 프롬프트가 이미 ~50개 소비. 과다 시 일관성 붕괴</td></tr>
+      <tr><td><span class="pill-id">P3</span></td><td class="k">Progressive Disclosure</td><td>상세는 별도 파일, 헌법엔 "어디 보라"만. 매뉴얼 전문 금지</td></tr>
+      <tr><td><span class="pill-id">P4</span></td><td class="k">스킬 0에서 시작</td><td>물려받은 스킬은 언제 믿을지 모르고 만든 이 취향이 박혀 안 맞음</td></tr>
+      <tr><td><span class="pill-id">P5</span></td><td class="k">3번 룰로 결정화</td><td>1회차 과잉설계는 시작을 막고, 결정화 없는 반복은 매번 비용</td></tr>
+      <tr><td><span class="pill-id">P6</span></td><td class="k">SSOT 규율</td><td>한 사실은 한 곳. .bak/사본 금지 — 어느 게 진짜인지 흐려짐</td></tr>
+      <tr><td><span class="pill-id">P7</span></td><td class="k">보안 기본값</td><td>비밀·PIN·백업을 gitignore 선탑재. 백업 추적되면 비밀이 샘</td></tr>
+      <tr><td><span class="pill-id">P8</span></td><td class="k">활성/아카이브 분리</td><td>시간축 물리 분리. 죽은 프로젝트가 활성에 섞이면 판단·검색 오염</td></tr>
+      <tr><td><span class="pill-id">P9</span></td><td class="k">검증 내장</td><td>산출 프로세스에 검증 박기. "산출 완성 = 검증 완료"</td></tr>
+      <tr><td><span class="pill-id">P10</span></td><td class="k">자동생성 지양</td><td>헌법은 손으로 신중히. /init 자동 덤프는 최고 레버리지 지점을 오염</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 02 -->
+<section class="sec" id="s2">
+  <div class="sec-head"><h2>커널 구조 스펙</h2><span class="no">02</span></div>
+  <p class="lead">최소 골격. 번호가 곧 주소다. <b>활성/아카이브(시간축) + 시스템/내용(목적축)</b>의 이중 좌표계.</p>
+  <div class="tree"><span class="d">workspace/</span>
+├── CLAUDE.md            <span class="c"># 헌법 — 유일 진입점 (&lt; 100줄)</span>
+├── README.md            <span class="c"># 사람용 안내 + 온보딩</span>
+├── .gitignore           <span class="c"># 보안 기본값 선탑재 (§7)</span>
+├── <span class="d">00-inbox/</span>            <span class="c"># 저마찰 포집구 (분류 전 임시)</span>
+├── <span class="d">00-system/</span>           <span class="c"># 시스템: 템플릿·가이드·스크립트</span>
+│   ├── <span class="d">01-templates/</span>
+│   └── <span class="d">03-guides/</span>
+├── <span class="d">10-projects/</span>         <span class="c"># 활성 (시한부) — 각 폴더에 progress</span>
+├── <span class="d">20-operations/</span>       <span class="c"># 지속 운영 (선택)</span>
+├── <span class="d">30-knowledge/</span>        <span class="c"># 지식 아카이브 (선택)</span>
+├── <span class="d">40-personal/</span>         <span class="c"># Daily Note · Todo</span>
+├── <span class="d">50-resources/</span>        <span class="c"># 참고 자료 (선택)</span>
+└── <span class="d">90-archive/</span>          <span class="c"># 완료 프로젝트 (시간축 분리)</span></div>
+  <p class="note" style="margin-top:18px"><b>시작 필수 6개</b> — CLAUDE.md · 00-inbox · 00-system · 10-projects · 40-personal · 90-archive.
+    20/30/50과 99-moc는 필요가 생길 때 추가한다(안 쓰는 구조는 짓지 않는다 — P3·P4).</p>
+</section>
+
+<!-- 03 -->
+<section class="sec" id="s3">
+  <div class="sec-head"><h2>CLAUDE.md 스펙 + 템플릿</h2><span class="no">03</span></div>
+  <p class="lead">헌법은 <b>WHAT(프로필·구조) / WHY(목적) / HOW(작업 규칙)</b> 세 축만. 상세는 링크로 미룬다(P3).
+    <br>금지 — 코드 스타일 규칙, 매뉴얼 전문, 안 쓰는 커맨드 나열.</p>
+  <div class="code">
+    <div class="ct"><span class="name">CLAUDE.md 커널 템플릿</span><span class="tag">복사용 · &lt; 100줄</span></div>
+    <pre><span class="h"># CLAUDE.md</span>
+
+<span class="h">## 사용자 프로필</span>
+**이름**: <span class="v">{{이름}}</span>
+**역할**: <span class="v">{{직무}}</span>
+**주요 관심사**: <span class="v">{{3~5개 키워드}}</span>
+**접근 방식**: 인지 외주화 ❌ → 인지 증강 ✅ / "했다" 아닌 "잘했다"
+
+<span class="h">## 워크스페이스 목적</span>
+<span class="v">{{한 문단 — 무엇을 운영하는가}}</span>
+
+<span class="h">## 폴더 구조 (Johnny Decimal)</span>
+00-inbox/ 빠른캡처   00-system/ 템플릿·가이드
+10-projects/ 활성   40-personal/ 데일리·투두   90-archive/ 완료
+<span class="c">(상세: README.md · 가이드: 00-system/03-guides/WORKSPACE-KERNEL-DESIGN-GUIDE.md)</span>
+
+<span class="h">## 작업 규칙</span>
+- 기존 파일 편집 우선, 새 파일 최소화
+- 커밋은 요청 시에만
+- 네이밍: `[숫자]-[설명적-이름]`
+- 프로젝트마다 progress.md 유지 (세션 연속성의 핵심)
+- "해줘" 뒤 반드시 "확인해줘" — 빠진 항목 체크
+- 숫자·통계·인용은 3중 검증(추출→출처대조→재대조)
+- 같은 작업 3회 반복 시 스킬로 결정화
+
+<span class="h">## 현재 진행 중인 프로젝트</span>
+<span class="v">{{생기면 한 줄씩 — 프로젝트명: 상태}}</span></pre>
+  </div>
+  <p class="note"><b>재실행</b> — /setup-workspace가 4문답(이름·역할·관심사·용도)으로 이 템플릿을 채운다.
+    단 스킬 목록·프로젝트를 <b>미리 채우지 않는다</b>(P4).</p>
+</section>
+
+<!-- 04 -->
+<section class="sec" id="s4">
+  <div class="sec-head"><h2>기억 규약 + 템플릿</h2><span class="no">04</span></div>
+  <p class="lead">세션 연속성은 <b>프로젝트별 progress.md</b>가 담당한다. 작업 내역·결정·다음 액션을 날짜별로 축적.</p>
+  <div class="code">
+    <div class="ct"><span class="name">progress.md 템플릿</span><span class="tag">복사용</span></div>
+    <pre><span class="h"># {{프로젝트명}} — Progress</span>
+
+&gt; 시작: <span class="v">{{YYYY-MM-DD}}</span> · 상태: 활성 · 마감: <span class="v">{{있으면}}</span>
+
+<span class="h">## 개요</span>
+<span class="v">{{한 줄 — 무엇을 왜}}</span>
+
+<span class="h">## 로그 (최신 위에)</span>
+<span class="h">### {{YYYY-MM-DD}}</span>
+- 한 일:
+- 결정:
+- 다음 액션: [ ]
+
+<span class="h">## 열린 질문</span>
+-</pre>
+  </div>
+  <table>
+    <tbody>
+      <tr><td class="k">파일명</td><td><code>NN-progress.md</code>(프로젝트 번호 접두) 또는 <code>progress.md</code>. 한 프로젝트 한 개</td></tr>
+      <tr><td class="k">갱신 시점</td><td>세션 종료 시(로그 한 줄 + 다음 액션). CLAUDE.md "확인해줘" 습관과 연결</td></tr>
+      <tr><td class="k">전역 인덱스</td><td>(선택) MEMORY.md에 프로젝트별 한 줄 포인터. 규모 커지면 도입</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 05 -->
+<section class="sec" id="s5">
+  <div class="sec-head"><h2>포집 규약 — inbox</h2><span class="no">05</span></div>
+  <p class="lead">구조의 엄격함이 <b>캡처를 막지 않게</b> 한다. 떠오른 건 일단 00-inbox에 던지고 나중에 분류.</p>
+  <div class="mech" style="grid-template-columns:repeat(3,1fr)">
+    <div><b>진입 마찰 0</b> — 파일명 규칙 강요 안 함</div>
+    <div><b>정기 비우기</b> — 주 1회 프로젝트/지식/아카이브로 triage</div>
+    <div><b>모바일 포집</b> — 텔레그램 등 중계 경유로 설계</div>
+  </div>
+</section>
+
+<!-- 06 -->
+<section class="sec" id="s6">
+  <div class="sec-head"><h2>방법론 — "3번 하면 얼려라"</h2><span class="no">06</span></div>
+  <p class="lead">개인층을 스스로 자라게 하는 엔진. 스킬을 나눠주는 대신 <b>스킬 만드는 리추얼</b>을 준다.</p>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-c"><h4>그냥 한다 (1회차)</h4><p>대화로 푼다. 구조화하지 않는다. 과잉 사전설계는 시작을 막는다.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-c"><h4>패턴을 남긴다 (2회차)</h4><p>프롬프트·산출 포맷을 progress/템플릿에 기록. 아직 스킬 아님.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-c"><h4>얼린다 (3회차)</h4><p>스킬로 결정화. 트리거·입력·검증·출력 고정. 이때부터 "운영".</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-c"><h4>검증을 박는다</h4><p>스킬에 검증 단계 내장(P9). 산출 완성 = 검증 완료.</p></div></div>
+  </div>
+  <h3 class="subhead">스킬 결정화 판정 체크리스트 — 4개↑ Yes면 얼린다</h3>
+  <div class="checks">
+    <div class="chk"><div class="box"></div><p>같은 작업을 <b>3회 이상</b> 했다</p></div>
+    <div class="chk"><div class="box"></div><p>입력과 출력 <b>형태가 반복적으로 동일</b>하다</p></div>
+    <div class="chk"><div class="box"></div><p>절차가 <b>Verifiable</b>하다(취향 아닌 검증 가능 단계)</p></div>
+    <div class="chk"><div class="box"></div><p>매번 <b>같은 프롬프트를 다시 쓰고</b> 있다</p></div>
+    <div class="chk"><div class="box"></div><p>남이 봐도 <b>트리거 조건이 명확</b>하다</p></div>
+    <div class="chk"><div class="box"></div><p>트리거가 기존 스킬과 <b>겹치지 않는다</b></p></div>
+  </div>
+  <p class="note"><b>단,</b> 핵심이 "취향·맥락 판단"이면 스킬화하지 말고 <b>사람이 쥔다</b>(인지 증강 원칙).</p>
+</section>
+
+<!-- 07 -->
+<section class="sec" id="s7">
+  <div class="sec-head"><h2>보안 기본값 + .gitignore</h2><span class="no">07</span></div>
+  <p class="lead">배포판의 최소 요건은 <b>개인정보가 새지 않는 것</b>. 비밀·PIN·백업·런타임 패턴을 선탑재한다.</p>
+  <p class="note" style="border-left-color:var(--red); background:rgba(225,112,85,.06)"><b style="color:var(--red)">교훈</b> —
+    PIN 포함 <code>.bak</code>이 추적돼 누출. live 파일만 ignore하고 백업(*.bak)을 놓치면 샌다.</p>
+  <div class="code">
+    <div class="ct"><span class="name">.gitignore 보안 기본값</span><span class="tag">복사용</span></div>
+    <pre><span class="c"># 비밀·환경</span>
+.env
+*.env
+*api_key*
+*secret*
+
+<span class="c"># 백업 — SSOT는 git 히스토리 (PIN 포함 .bak 추적 방지)</span>
+*.bak
+*.bak-*
+
+<span class="c"># PIN·계정 포함 데이터 (live + 백업 둘 다)</span>
+**/users.json
+**/*-pin*.json
+
+<span class="c"># 런타임·임시</span>
+__pycache__/
+.DS_Store
+~$*
+node_modules/
+
+<span class="c"># 루트 미리보기 이미지 (참조 없음)</span>
+/*.png</pre>
+  </div>
+  <p class="body"><b>규칙</b> — 민감 파일을 ignore할 땐 live 파일과 그 백업(*.bak)을 <b>항상 함께</b> 넣는다.</p>
+</section>
+
+<!-- 08 -->
+<section class="sec" id="s8">
+  <div class="sec-head"><h2>배포 · 버전</h2><span class="no">08</span></div>
+  <p class="lead">커널을 "제품"으로 다루면 세 가지를 처음부터 설계한다.</p>
+  <div class="grid3">
+    <div class="ccard"><div class="ci">Versioning</div><h4>커널은 버전으로</h4><p>커널만 얇게 + 버전 태그. 개인층 유지한 채 커널 업데이트만 pull.</p></div>
+    <div class="ccard"><div class="ci">Security</div><h4>보안 기본값</h4><p>§7 gitignore 선탑재. 배포 전 git ls-files로 비밀 유출 스캔.</p></div>
+    <div class="ccard"><div class="ci">Onboarding</div><h4>10분 첫 성공</h4><p>설치 후 첫 세션에 작은 루프 1회 체감 → 인지 증강 확인.</p></div>
+  </div>
+  <h3 class="subhead">온보딩 10분 시나리오</h3>
+  <div class="road">
+    <div class="rstep"><div class="rp">STEP 1</div><div><h4>clone → /setup-workspace</h4><p>이름·역할·관심사·용도 4문답 → CLAUDE.md 생성</p></div></div>
+    <div class="rstep"><div class="rp">STEP 2</div><div><h4>첫 데일리노트 자동 생성</h4><p>오늘 날짜 노트가 열린다</p></div></div>
+    <div class="rstep"><div class="rp">STEP 3</div><div><h4>할 일 3개 캡처 → 정리 한 바퀴</h4><p>인지 증강을 몸으로 체감</p></div></div>
+    <div class="rstep"><div class="rp">STEP 4</div><div><h4>"또 하면 스킬로" 안내</h4><p>3번 룰로 마무리 — 스스로 자랄 씨앗</p></div></div>
+  </div>
+</section>
+
+<!-- 09 -->
+<section class="sec" id="s9">
+  <div class="sec-head"><h2>도메인 팩 (옵션)</h2><span class="no">09</span></div>
+  <p class="lead">기획자 공통 워크플로가 뚜렷하면, 커널 위에 <b>검증된 공통 스킬 5~7개</b>를 옵션 카트리지로 얹는다.
+    후보 — RFP분석 · 제안서 · 리서치 · 회의록정리 · 데일리/모닝 루틴.</p>
+  <h3 class="subhead">편입 기준 — 모두 충족해야 함</h3>
+  <div class="checks">
+    <div class="chk"><div class="box"></div><p>특정인의 취향·클라이언트 맥락이 <b>박혀 있지 않다</b>(범용)</p></div>
+    <div class="chk"><div class="box"></div><p>입출력이 <b>표준화</b>돼 있다</p></div>
+    <div class="chk"><div class="box"></div><p>검증 단계가 <b>내장</b>돼 있다</p></div>
+    <div class="chk"><div class="box"></div><p>트리거가 <b>명확하고 충돌 없다</b></p></div>
+  </div>
+  <p class="note">기준 미달 스킬은 개인층에서 각자 자라게 둔다. <b>기본은 커널+방법, 도메인 팩은 선택.</b></p>
+</section>
+
+<!-- 10 -->
+<section class="sec" id="s10">
+  <div class="sec-head"><h2>안티패턴 — 하지 말 것</h2><span class="no">10</span></div>
+  <div class="anti">
+    <div class="arow"><span class="x">✕</span><p><b>완성 워크스페이스 통째 배포</b> — 골격만 주고 근육은 못 준다. 남의 취향이 박힌다</p></div>
+    <div class="arow"><span class="x">✕</span><p><b>N개 스킬 물려주기</b> — 언제 믿을지 모르는 죽은 구조가 된다 (P4)</p></div>
+    <div class="arow"><span class="x">✕</span><p><b>CLAUDE.md 비대화</b> — 300줄 넘기면 무시당한다 (P1·P2)</p></div>
+    <div class="arow"><span class="x">✕</span><p><b>매뉴얼 전문을 헌법에</b> — Progressive Disclosure 위반 (P3)</p></div>
+    <div class="arow"><span class="x">✕</span><p><b>SSOT 중복·.bak 방치</b> — 어느 게 진짜인지 흐려진다 (P6)</p></div>
+    <div class="arow"><span class="x">✕</span><p><b>live만 ignore, 백업 누락</b> — 비밀이 백업으로 샌다 (P7)</p></div>
+    <div class="arow"><span class="x">✕</span><p><b>활성/완료 미분리</b> — 판단·검색 오염 (P8)</p></div>
+    <div class="arow"><span class="x">✕</span><p><b>취향 판단을 스킬화</b> — 인지 증강 아닌 외주화. 사람이 쥘 것</p></div>
+  </div>
+</section>
+
+<!-- 결론 -->
+<section class="closing sec" id="end">
+  <div class="eyebrow">CONCLUSION</div>
+  <h2>스킬을 나눠주지 말고,<br><b>스킬을 만드는 방법을 나눠줘라.</b><br>완성된 뇌가 아니라, 자라날 뇌를.</h2>
+  <p class="quote">커널은 얇게 주고, 근육은 각자의 업무에서 자라게 한다 — 인지 외주화가 아닌 인지 증강.</p>
+</section>
+
+<footer>
+  <div class="logo">WORKSPACE KERNEL</div>
+  <div class="fmeta">Design Guide · 2026.07.22 · by Project Rent</div>
+</footer>
+
+<script>
+const secs=[...document.querySelectorAll('.sec')];
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:0.08});
+secs.forEach(s=>io.observe(s));
+// TOC active state
+const links=[...document.querySelectorAll('.toc a')];
+const io2=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){
+  links.forEach(l=>l.classList.toggle('on', l.getAttribute('href')==='#'+e.target.id));
+}})},{rootMargin:'-40% 0px -55% 0px'});
+secs.forEach(s=>{if(s.id)io2.observe(s)});
+</script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>do-better-workspace — 구조·특장점 분석 (내부 자기점검)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:#EDE9FE;
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055; --rust:#B86C4A;
+  --duration-base:250ms; --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300; letter-spacing:-0.01em; line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{text-wrap:balance; font-weight:500; letter-spacing:-0.02em}
+.eyebrow{font-size:11px; letter-spacing:.3em; color:var(--fg-3); text-transform:uppercase}
+.accent{color:var(--accent-light)}
+.brand-mark{position:fixed; top:24px; right:30px; font-size:10px; letter-spacing:.35em; color:var(--fg-3); z-index:50}
+
+/* 섹션 */
+.sec{max-width:1180px; margin:0 auto; padding:96px 80px;
+  opacity:0; transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out), transform 700ms var(--ease-out);}
+.sec.visible{opacity:1; transform:translateY(0)}
+.sec-head{display:flex; justify-content:space-between; align-items:baseline;
+  padding-bottom:26px; border-bottom:1px solid var(--line-2); margin-bottom:44px}
+.sec-head h2{font-size:40px; font-weight:300; letter-spacing:-0.025em; line-height:1.12}
+.sec-head .no{font-size:11px; letter-spacing:.2em; color:var(--fg-3)}
+.lead{font-size:16px; color:var(--fg-2); max-width:760px; margin-bottom:8px}
+
+/* HERO */
+.hero{min-height:88vh; display:flex; flex-direction:column; justify-content:center;
+  max-width:1180px; margin:0 auto; padding:80px}
+.hero .eyebrow{margin-bottom:28px}
+.hero h1{font-size:76px; font-weight:200; line-height:1.02; letter-spacing:-0.04em; margin-bottom:28px}
+.hero h1 b{font-weight:500; color:var(--accent-light)}
+.hero p{font-size:18px; color:var(--fg-2); max-width:680px; font-weight:300}
+.hero .meta{margin-top:44px; font-size:11px; letter-spacing:.25em; color:var(--fg-3); text-transform:uppercase}
+
+/* METRICS */
+.metrics{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:56px}
+.metric{background:var(--bg-3); border:1px solid var(--line-2); padding:26px 22px; transition:border-color var(--duration-base) var(--ease-out)}
+.metric:hover{border-color:var(--accent)}
+.metric .v{font-size:44px; font-weight:200; color:var(--accent-light); line-height:1; letter-spacing:-0.03em; font-variant-numeric:tabular-nums}
+.metric .u{font-size:15px; font-weight:300; color:var(--fg-2)}
+.metric .l{font-size:11px; letter-spacing:.15em; color:var(--fg-3); text-transform:uppercase; margin-top:10px}
+
+/* Johnny Decimal 계층 */
+.layers{display:flex; flex-direction:column; gap:2px}
+.layer{display:grid; grid-template-columns:120px 1fr 92px; align-items:center; gap:24px;
+  background:var(--bg-3); border:1px solid var(--line-2); padding:22px 26px;
+  transition:border-color var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out)}
+.layer:hover{border-color:var(--accent); transform:translateX(4px)}
+.layer .code{font-size:26px; font-weight:200; color:var(--accent-light); letter-spacing:-0.02em; font-variant-numeric:tabular-nums}
+.layer .code small{display:block; font-size:10px; letter-spacing:.2em; color:var(--fg-3); text-transform:uppercase; margin-top:4px; font-weight:400}
+.layer .desc h4{font-size:16px; font-weight:500; color:var(--fg); margin-bottom:5px}
+.layer .desc p{font-size:13px; color:var(--fg-2); line-height:1.6}
+.layer .cnt{text-align:right; font-size:20px; font-weight:200; color:var(--fg); font-variant-numeric:tabular-nums}
+.layer .cnt small{display:block; font-size:10px; letter-spacing:.15em; color:var(--fg-3); text-transform:uppercase; margin-top:2px}
+
+/* 5축 특장점 */
+.pillars{display:flex; flex-direction:column; gap:18px}
+.pillar{background:var(--bg-3); border:1px solid var(--line-2); border-left:3px solid var(--accent); padding:30px 32px;
+  transition:border-color var(--duration-base) var(--ease-out)}
+.pillar:hover{border-color:var(--accent); border-left-color:var(--accent-light)}
+.pillar .ph{display:flex; align-items:baseline; gap:16px; margin-bottom:14px}
+.pillar .pn{font-size:12px; font-weight:500; color:var(--accent); letter-spacing:.1em}
+.pillar h3{font-size:21px; font-weight:500; color:var(--fg)}
+.pillar>p{font-size:14px; color:var(--fg-2); margin-bottom:18px; max-width:820px}
+.tags{display:flex; flex-wrap:wrap; gap:8px}
+.tag{font-size:11px; letter-spacing:.05em; color:var(--fg-2); background:var(--bg-2);
+  border:1px solid var(--line-2); padding:6px 12px; border-radius:2px}
+.tag b{color:var(--accent-light); font-weight:500}
+
+/* 개선점 */
+.gaps{display:grid; grid-template-columns:repeat(2,1fr); gap:14px}
+.gap{background:var(--bg-2); border:1px solid var(--line-2); border-left:2px solid var(--amber); padding:22px 24px}
+.gap h4{font-size:15px; font-weight:500; color:var(--fg); margin-bottom:8px}
+.gap h4 span{color:var(--amber); font-size:13px; margin-right:8px}
+.gap p{font-size:13px; color:var(--fg-2); line-height:1.6}
+.gap .fix{margin-top:10px; font-size:12px; color:var(--fg-3)}
+.gap .fix b{color:var(--green); font-weight:500}
+
+/* 결론 */
+.closing{background:var(--bg-2); text-align:center; padding:120px 80px}
+.closing .eyebrow{margin-bottom:24px}
+.closing h2{font-size:38px; font-weight:200; line-height:1.35; max-width:900px; margin:0 auto; letter-spacing:-0.03em}
+.closing h2 b{font-weight:500; color:var(--accent-light)}
+.closing .quote{margin-top:40px; font-size:14px; color:var(--fg-3); letter-spacing:.02em}
+
+footer{padding:60px 80px; border-top:1px solid var(--line-2); max-width:1180px; margin:0 auto;
+  display:flex; justify-content:space-between; align-items:baseline}
+footer .logo{font-size:12px; letter-spacing:.4em; color:var(--fg-2)}
+footer .fmeta{font-size:10px; letter-spacing:.2em; color:var(--fg-3); text-transform:uppercase}
+
+@media (max-width:900px){
+  .hero,.sec{padding:72px 32px}
+  .hero h1{font-size:48px}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .layer{grid-template-columns:80px 1fr; gap:14px}
+  .layer .cnt{display:none}
+  .gaps{grid-template-columns:1fr}
+  .sec-head h2{font-size:30px}
+  .closing h2{font-size:26px}
+  footer{flex-direction:column; gap:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sec{opacity:1; transform:none; transition:none}
+  *{transition:none!important}
+}
+@media print{
+  .sec{opacity:1; transform:none}
+  .brand-mark{display:none}
+}
+</style>
+</head>
+<body>
+<div class="brand-mark">INTERNAL · SELF-AUDIT</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">DO-BETTER-WORKSPACE · 2026.07.22</div>
+  <h1>문서 폴더가 아니라<br><b>인지 증강 업무 OS.</b></h1>
+  <p>Johnny Decimal 8계층 위에 스킬·자동화·메모리·자체 운영 시스템이 얹혀,
+     "했다"가 아니라 "잘했다"를 구조로 강제하는 개인 운영체제로 진화했다.</p>
+  <div class="meta">STRUCTURE · STRENGTHS · HONEST GAPS</div>
+
+  <div class="metrics">
+    <div class="metric"><div class="v">15,808</div><div class="l">파일 (node_modules 제외)</div></div>
+    <div class="metric"><div class="v">56<span class="u">종</span></div><div class="l">로컬 커스텀 스킬</div></div>
+    <div class="metric"><div class="v">17<span class="u">개</span></div><div class="l">launchd 상시 자동화</div></div>
+    <div class="metric"><div class="v">100<span class="u">개</span></div><div class="l">누적 메모리 항목</div></div>
+  </div>
+</section>
+
+<!-- 01 구조 -->
+<section class="sec">
+  <div class="sec-head">
+    <h2>구조 — Johnny Decimal 8계층</h2>
+    <span class="no">01</span>
+  </div>
+  <p class="lead">번호 하나가 곧 역할이다. 검색·자동화·아카이브가 모두 이 숫자 규칙 위에서 동작한다.
+     활성(10)과 완료(90)를 시간축으로 분리하고, 시스템(00)과 지식(30)을 목적축으로 분리한 이중 좌표계.</p>
+  <div class="layers">
+    <div class="layer"><div class="code">00<small>System</small></div><div class="desc"><h4>시스템 · 스크립트 · 템플릿</h4><p>02-scripts 53개 파이썬/셸, 01-templates 프레임워크, 04-design R다크 가이드 — 워크스페이스를 구동하는 엔진룸</p></div><div class="cnt">255<small>files</small></div></div>
+    <div class="layer"><div class="code">10<small>Projects</small></div><div class="desc"><h4>활성 프로젝트 (시한부)</h4><p>봉은사·현대차 RXR·R유럽·AX 교육·회의 OS 등 26개 진행 프로젝트. 각 폴더에 progress.md로 세션 연속성 축적</p></div><div class="cnt">26<small>dirs</small></div></div>
+    <div class="layer"><div class="code">20<small>Operations</small></div><div class="desc"><h4>지속 운영 업무</h4><p>ARISA·Second Brain·Reporting OS·REM OS·HR — 워크스페이스에서 태어난 자체 운영 시스템의 본거지 (전체 파일의 다수)</p></div><div class="cnt">12.2K<small>files</small></div></div>
+    <div class="layer"><div class="code">30<small>Knowledge</small></div><div class="desc"><h4>지식 아카이브</h4><p>소비자 심리학 62개 이론 체계, Claude Code 활용 지식 — 재사용 가능한 사고 자산</p></div><div class="cnt">127<small>files</small></div></div>
+    <div class="layer"><div class="code">40<small>Personal</small></div><div class="desc"><h4>Daily · Weekly · Todo · Idea</h4><p>매일의 데일리노트와 회고. /morning·/end-day 루틴의 저장소</p></div><div class="cnt">172<small>files</small></div></div>
+    <div class="layer"><div class="code">50<small>Resources</small></div><div class="desc"><h4>참고 자료 · 샘플 데이터</h4><p>Doblin 10 Types, 도서 추천, 클라이언트 데이터, 리서치 HTML 등 인용 원천</p></div><div class="cnt">48<small>files</small></div></div>
+    <div class="layer"><div class="code">80<small>R-Tech</small></div><div class="desc"><h4>RXR 프레임워크 · 케이스 · 분석결과</h4><p>브랜드 분석 8종 스킬의 방법론·템플릿·사례 리포트가 모이는 기술 코어</p></div><div class="cnt">206<small>files</small></div></div>
+    <div class="layer"><div class="code">90<small>Archive</small></div><div class="desc"><h4>완료된 프로젝트</h4><p>리스테린 팝업·SKT·자이리톨 등 17개 종료 프로젝트를 활성 영역에서 분리 보관</p></div><div class="cnt">17<small>dirs</small></div></div>
+  </div>
+  <p class="lead" style="margin-top:32px">여기에 비파괴 레이어 <b class="accent">99-moc</b>(Obsidian MOC)와 <b class="accent">00-inbox</b>(무분류 진입점)가 얹혀,
+     엄격한 분류 체계와 느슨한 수집 창구가 공존한다.</p>
+</section>
+
+<!-- 02 특장점 -->
+<section class="sec">
+  <div class="sec-head">
+    <h2>특장점 — 5개의 축</h2>
+    <span class="no">02</span>
+  </div>
+  <p class="lead">이 워크스페이스의 가치는 폴더 정리에 있지 않다. 반복 업무를 스킬로 굳히고, 규율을 자동화·검증으로 체화하고,
+     맥락을 메모리에 남기는 <b class="accent">"시스템으로서의 자기증강"</b>에 있다.</p>
+  <div class="pillars">
+    <div class="pillar">
+      <div class="ph"><span class="pn">01</span><h3>스킬 생태계 — 56종</h3></div>
+      <p>자주 하는 지적 노동을 커맨드로 응축했다. 분석부터 산출물 제작, 일상 자동화, 문체·회의까지 — 매번 프롬프트를 새로 짜지 않고 검증된 파이프라인을 호출한다.</p>
+      <div class="tags">
+        <span class="tag">분석 <b>rxr-* / brand-analysis / psychology-critic</b></span>
+        <span class="tag">산출물 <b>consulting-report / gov-proposal / pptx·docx·pdf</b></span>
+        <span class="tag">자동화 <b>morning / 보드등록 / gmail-project-note</b></span>
+        <span class="tag">문체·회의 <b>문체 / 회의분석 / transcript-organizer</b></span>
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="ph"><span class="pn">02</span><h3>자동화 인프라 — launchd 17종</h3></div>
+      <p>사람이 기억할 일을 기계가 대신한다. 매일 아침 텔레그램 체크리스트, 일일보고봇(ARISA), Basket 운영봇, 대시보드 서버가 상시 가동. 53개 파이썬/셸 스크립트와 shared/ 공유코어가 복붙 없는 재사용을 지탱한다.</p>
+      <div class="tags">
+        <span class="tag"><b>morning-telegram</b> 매일 08:00 브리핑</span>
+        <span class="tag"><b>daily-report-bot</b> ARISA 채점 SSOT</span>
+        <span class="tag"><b>weekly-report-aggregate</b> 주간 집계</span>
+        <span class="tag"><b>dashboard-server</b> 통합 대시보드</span>
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="ph"><span class="pn">03</span><h3>메모리·MOC 이중 레이어</h3></div>
+      <p>세션이 끝나도 맥락이 사라지지 않는다. .claude auto-memory 100개 항목이 사용자 선호·피드백·프로젝트 상태를 누적하고, 99-moc Obsidian 그래프가 지식을 상호연결한다. 프로젝트별 progress.md는 세 번째 기억 장치.</p>
+      <div class="tags">
+        <span class="tag">auto-memory <b>user / feedback / project / reference</b></span>
+        <span class="tag">MOC <b>projects · topics 그래프</b></span>
+        <span class="tag">progress.md <b>세션 연속성</b></span>
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="ph"><span class="pn">04</span><h3>진화형 운영 시스템 — 자체 프로덕트화</h3></div>
+      <p>워크스페이스가 도구를 넘어 제품을 낳았다. 회의→6종 리포트(ARISA), 개인 사고 OS(Second Brain), 보고체계(Reporting OS), 현장 운영(REM OS)까지 — 20-operations는 사실상 사내 SaaS 인큐베이터.</p>
+      <div class="tags">
+        <span class="tag"><b>ARISA</b> 회의 인텔리전스</span>
+        <span class="tag"><b>Second Brain</b> 텔레그램→마크다운</span>
+        <span class="tag"><b>Reporting OS</b> 6-Layer 보고</span>
+        <span class="tag"><b>REM OS</b> 현장 운영</span>
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="ph"><span class="pn">05</span><h3>검증 내장 원칙 — 규율의 체화</h3></div>
+      <p>퀄리티가 우연이 아니라 프로세스다. 숫자 3중 검증(추출→웹대조→재대조), "해줘 후 확인해줘", 3번 룰, 슬라이드=HTML+Playwright — CLAUDE.md의 규율이 파일이 아니라 매 작업의 절차로 박혀 있다.</p>
+      <div class="tags">
+        <span class="tag"><b>숫자 3중 검증</b> 단위·귀속·맥락·출처</span>
+        <span class="tag"><b>확인해줘</b> 누락 체크 습관</span>
+        <span class="tag"><b>3번 룰</b> 실패 시 기록→재시작</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 개선점 -->
+<section class="sec">
+  <div class="sec-head">
+    <h2>솔직한 자기점검 — 개선 여지</h2>
+    <span class="no">03</span>
+  </div>
+  <p class="lead">강점의 이면. 빠르게 축적한 시스템일수록 정리 부채가 쌓인다. 지금 손보면 검색·유지보수 비용을 크게 줄일 수 있는 지점들.</p>
+  <div class="gaps">
+    <div class="gap">
+      <h4><span>⚠</span>루트 산재 PNG 64개</h4>
+      <p>제안서·슬라이드 미리보기 캡처가 워크스페이스 루트에 그대로 노출. 구조의 첫인상을 해치고 git status를 오염시킨다.</p>
+      <p class="fix"><b>→</b> 50-resources 하위 previews/ 또는 프로젝트별 assets/로 이동, PNG는 gitignore</p>
+    </div>
+    <div class="gap">
+      <h4><span>⚠</span>_to-delete · .bak 잔재</h4>
+      <p>_to-delete 폴더와 다수 .bak/.bak-* 백업 파일이 활성 트리에 남아 실제 SSOT를 헷갈리게 한다.</p>
+      <p class="fix"><b>→</b> 백업은 90-archive 또는 git 히스토리로 일원화, _to-delete 실제 삭제</p>
+    </div>
+    <div class="gap">
+      <h4><span>⚠</span>활성/아카이브 경계 모호</h4>
+      <p>10-projects 26개 중 사실상 종료된 건이 섞여 있을 가능성. progress.md 최종일 기준 라이프사이클 판정이 없다.</p>
+      <p class="fix"><b>→</b> Team Ops의 아카이브 라이프사이클(P1) 규칙을 프로젝트에도 적용</p>
+    </div>
+    <div class="gap">
+      <h4><span>⚠</span>node_modules 24K 검색 노이즈</h4>
+      <p>의존성 24,384개 파일이 전체의 60%. 탐색·grep 시 매번 배제 플래그가 필요하다.</p>
+      <p class="fix"><b>→</b> 루트 도구 체인을 00-system 하위로 격리, .claudeignore 정비</p>
+    </div>
+    <div class="gap">
+      <h4><span>⚠</span>MOC 최신성 유지 부담</h4>
+      <p>99-moc는 생성기(idempotent)로 만들지만, 신규 프로젝트가 자동 편입되지 않으면 그래프가 실제보다 뒤처진다.</p>
+      <p class="fix"><b>→</b> _generate-moc.py를 주간 launchd에 편입해 자동 갱신</p>
+    </div>
+    <div class="gap">
+      <h4><span>⚠</span>스킬 카탈로그 표류</h4>
+      <p>56개 스킬이 강력하지만, 트리거 문구가 겹치거나 중복 기능(회의록/회의분석/회의록정리)이 존재해 호출 혼선 여지.</p>
+      <p class="fix"><b>→</b> 스킬 인벤토리 정기 점검 + 별칭/역할 경계 문서화</p>
+    </div>
+  </div>
+</section>
+
+<!-- 결론 -->
+<section class="closing sec">
+  <div class="eyebrow">CONCLUSION</div>
+  <h2>"적은 시간에 높은 퀄리티"라는 가치 기준이<br>폴더 구조가 아니라 <b>자동화·검증·메모리</b>로<br>구현된 상태.</h2>
+  <p class="quote">인지 외주화가 아닌 인지 증강 — 검증 가능한 것은 시스템에 위임하고, 관점·취향·맥락 판단은 사람이 쥔다.</p>
+</section>
+
+<footer>
+  <div class="logo">DO BETTER WORKSPACE</div>
+  <div class="fmeta">Internal Self-Audit · 2026.07.22 · by Project Rent</div>
+</footer>
+
+<script>
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:0.12});
+document.querySelectorAll('.sec').forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

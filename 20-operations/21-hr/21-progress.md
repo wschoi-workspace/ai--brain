@@ -122,3 +122,49 @@ ssh macmini-ts "cd ~/hr-workspace && git add 20-operations/21-hr/portal && \
 ### 남은 확인 (2026-07-21)
 - [ ] 진실님에게 "중복은 무시, 가장 최근(9513411) 1건만 서명" 한마디 전달
 - [ ] 배포본에서 발송 시 버튼 로딩 표시·중복 차단 실동작 확인 (다음 실계약 때)
+
+## 2026-07-21~22 — 외부계약(NDA·외주·일용) 대시보드 편입 + 상세 기간/업무 표시
+
+### 배경
+외부계약은 esign-*.xlsx(참조_No=0)에만 기록되고 온보딩/퇴사와 저장소가 분리돼, admin/v2 대시보드에서 발송 이력·진행·완료를 볼 방법이 없었다(진실님 NDA도 화면 확인 불가).
+
+### 1차 — 대시보드 편입 (커밋 bae053a, fly v298)
+- **백엔드** `onboard/blueprint.py`: `api_dashboard`가 `esign_store.list_esign_months()`(신규 헬퍼)로 외부계약 스캔·편입. `_ext_stage`(전체_상태→status·진행률·섹션), `_to_ext_card`(id=EXT-YYYYMM-NNNN·월별 재채번 충돌 방지, esign_id 액션키). 반환에 `action_queue.external_inprogress/completed/attention` + `kpi.external_active/completed`, timeline에 진행중 상위 3.
+- **프론트** `onboard_admin_v2.html`: 외부계약 탭·유형필터·3섹션, actionCardHtml/timelineCaseHtml에 kind='ext' 앰버 배지(extLabel), extDetailHtml 상세(서명상태 새로고침·서명본 다운로드·Drive — `/api/esign/status|download/<esign_id>` 재사용), 발송 즉시 loadDashboard.
+- **버그픽스** `esign/webhook.py`: `_handle_completed`가 후속task의 `drive_link`를 esign row `서명본_drive_link`에 저장(종전 유실).
+
+### 2차 — 상세에 계약 기간·업무 표시 (커밋 6057d4c, fly v301)
+- **이슈 진단**: 사용자 화면에서 NDA가 "입사/퇴사"로 오분류 → **브라우저 캐시(v298 이전 탭의 구버전 JS)로 확정**(배포 코드엔 ext 분기 정상). 강력 새로고침으로 해결, 코드 무관.
+- **esign 스키마 확장** `esign/store.py`: ESIGN_HEADERS 끝에 `계약_업무/계약_기간_시작/계약_기간_종료` 3컬럼. `_ensure_xlsx`에 **기존 파일 헤더 마이그레이션**(누락 컬럼만 끝에 append→데이터·순서 보존). read는 실제 헤더 기반이라 자동 반영. `sheets_sync.py` SCHEMAS[esign] 동기화.
+- `contract_send` append에 기간·업무 저장, `_to_ext_card`가 카드에 전달, `extDetailHtml` det-meta에 계약 기간·업무(NDA는 "협력 목적" 라벨) 행. 구건은 `—` 폴백.
+- 로컬 마이그레이션 테스트 통과(19열→22열, 기존데이터 보존, 신규저장, 구건폴백). 검증 3종 통과.
+
+### 남은 확인 (2026-07-22)
+- [x] **캐시 실증**: 새로고침 후 진실님 EXT-202607-0016이 "외부계약·NDA"로 정상 분류 확인 (이슈① = 브라우저 캐시 확정)
+- [ ] 다음 외부계약 발송 시 esign에 계약_업무/기간 저장 + 상세 표시 확인
+- [ ] (선택) 진실님 기존 NDA(9513411)에 기간·업무 백필 여부 결정
+
+### 3차 — 서명상태 정확화: webhook 근본픽스 + pull 동기화 + 계약서 미리보기 (커밋 1ca04be, fly v304에 포함)
+- **근본 원인**: DocuSeal webhook 0회 → `esign/client_docuseal.py create_document`가 `sub_body`에 `webhook_url`을 안 넣음(modusign엔 있던 로직이 DocuSeal 전환 때 누락). 콜백 라우트 `/api/esign/callback`은 `_SELF_AUTH_BP`라 인증은 통과. → **webhook_url 주입으로 픽스**(새 발송부터 자동 수신).
+- **Pull 동기화** `_sync_esign_from_remote`(esign/blueprint.py): remote submitters를 이메일로 서명자_1(상대)/2(대표)에 매핑해 로컬 상태 sync. **외부계약만** 양방 완료 시 `download_signed_pdf`→`on_external_contract_signed`(Drive)→`전체_상태=completed`(온보딩은 webhook 5연쇄 보존 위해 완결 전환 안 함). `api_status` 조회 시 sync 수행, 대시보드 로드 시 진행중 외부계약 자동 sync.
+- **계약서 미리보기**: `api_download`에 `?inline` 추가, 상세에 "📄 계약서 미리보기" 버튼. 상세 "🔄 서명 상태 새로고침" 후 loadDashboard로 즉시 반영.
+- ⚠️ **주의**: 같은 시각 다른 세션이 "권한 개편(a6b769f)·보안 봉합(21c02b9)" 커밋을 대표 지시로 올림. 내 1ca04be 위에 쌓여 공존(현재 프로덕션 파일에 외부계약 변경 전부 존재 확인). fly v304 = 최신 배포.
+- 검증 3종 통과.
+
+### 윤혜정 계약 마무리 + 완료계약 맥미니 자동 아카이브 (2026-07-22, 커밋 f7a006a·fly v307)
+
+**윤혜정 계약** — "근로계약·NDA 마저 발송" 요청 → DocuSeal remote 확인 결과 **이미 발송·윤혜정 서명 완료**, 대표(ws.choi) 2차 서명만 남음(webhook 미수신으로 로컬 partial/pending 어긋남). 중복 발송 잔재로 근로계약·NDA·개인정보 각 2건.
+- **중복 3건 취소 완료**: 근로계약 구건(9461980)·NDA 구건(9461983)·개인정보 구건(9461985) DocuSeal archive + 로컬 archived. 유지: 근로계약7·NDA8·개인정보9·경업금지10.
+- [ ] **대표(최원석) 2차 서명 남음**: 근로계약 `docuseal.com/s/dPA6yiGuEHpFm3`, NDA `docuseal.com/s/X4RFckytCp4Xyb` → 서명 시 pull sync가 자동 완결→아카이브 편입.
+- 참고: 구글시트 esign 탭 헤더가 구버전(2차 추가 3컬럼 미반영)이라 sheets_sync가 새 컬럼만 skip(실데이터 유실 없음). 시트 헤더 수동 추가는 선택.
+
+**완료계약 자동 아카이브** — 완결 서명본을 맥미니 로컬 폴더에 자동 보관(실제 계약만).
+- 소스 판정: 서명본은 Drive·fly volume엔 없고 **DocuSeal에만** 존재(webhook 미수신 잔재) → `download_signed_pdf` pull이 유일.
+- **fly**: `GET /api/esign/completed`(서비스토큰) 신설 — esign self-auth `_esign_auth`에 X-Service-Token 분기 추가(completed·download 한정), 테스트('테스트' 이름) 제외. `hr-portal-server.py` 무변경(esign self-auth).
+- **맥미니**: `~/hr-workspace/20-operations/21-hr/hr-contract-archive.py`(완결목록→서명본 download→`완료계약아카이브/{YYYY}/{유형}_{이름}_{완료일}_{esign_id}.pdf`+index.md, 멱등), 토큰 `21-hr/.hr-service-token`(600), launchd `com.hr.contract-archive`(일 06:30, 로그 /tmp/hr-contract-archive.log). **첫 실행 검증 통과**: 윤혜정 개인정보(387KB)·경업금지(606KB) 실물 저장 확인.
+- 앞으로 완결되는 계약(대표 서명 후 근로계약·NDA 포함)은 매일 자동 편입.
+
+### 대시보드 서명완료 반영 + 완료 표시·비활성화 (2026-07-22, 커밋 b8d063c)
+- **온보딩 카드 서명완료 반영**: api_dashboard가 esign(참조_No>0) 근로계약 서명자상태로 온보딩 doc_status 보정(표시만, row write 없음→webhook 5연쇄 무영향). esign 전량 로드분 재활용(esign_by_ref 맵, 추가조회 0). webhook 미수신 건(윤혜정)도 실제 서명 반영.
+- **완료 표시·비활성화**: 카드/타임라인 '✓ 완료' 배지, 온보딩 상세 sign_completed면 전자서명 발송 비활성+배너, 외부계약 completed면 조작액션 비활성(서명본 확인만). → 완료 계약 재발송 실수 차단.
+- 검증 3종 통과, 배포 반영(이미지 교체 확인, fly 릴리스 번호 표시는 lease 경고로 지연).

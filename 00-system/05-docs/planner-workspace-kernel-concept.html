@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기획자를 위한 워크스페이스 커널 — 설계 컨셉</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:#EDE9FE;
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --duration-base:250ms; --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg); color:var(--fg);
+  font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  font-weight:300; letter-spacing:-0.01em; line-height:1.7; -webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{text-wrap:balance; font-weight:500; letter-spacing:-0.02em}
+.eyebrow{font-size:11px; letter-spacing:.3em; color:var(--fg-3); text-transform:uppercase}
+.accent{color:var(--accent-light)}
+.brand-mark{position:fixed; top:24px; right:30px; font-size:10px; letter-spacing:.35em; color:var(--fg-3); z-index:50}
+
+.sec{max-width:1180px; margin:0 auto; padding:92px 80px;
+  opacity:0; transform:translateY(30px);
+  transition:opacity 700ms var(--ease-out), transform 700ms var(--ease-out);}
+.sec.visible{opacity:1; transform:translateY(0)}
+.sec-head{display:flex; justify-content:space-between; align-items:baseline;
+  padding-bottom:26px; border-bottom:1px solid var(--line-2); margin-bottom:44px}
+.sec-head h2{font-size:38px; font-weight:300; letter-spacing:-0.025em; line-height:1.14}
+.sec-head .no{font-size:11px; letter-spacing:.2em; color:var(--fg-3)}
+.lead{font-size:16px; color:var(--fg-2); max-width:800px; margin-bottom:8px}
+.lead.mb{margin-bottom:36px}
+
+/* HERO */
+.hero{min-height:90vh; display:flex; flex-direction:column; justify-content:center; max-width:1180px; margin:0 auto; padding:80px}
+.hero .eyebrow{margin-bottom:28px}
+.hero h1{font-size:68px; font-weight:200; line-height:1.05; letter-spacing:-0.04em; margin-bottom:28px}
+.hero h1 b{font-weight:500; color:var(--accent-light)}
+.hero p{font-size:18px; color:var(--fg-2); max-width:720px; font-weight:300}
+.hero .oneliner{margin-top:40px; padding:22px 26px; background:rgba(108,92,231,.08); border-left:3px solid var(--accent); max-width:760px}
+.hero .oneliner p{font-size:15px; color:var(--fg); margin:0}
+.hero .oneliner b{color:var(--accent-light)}
+
+/* 메커니즘 4카드 */
+.grid2{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+.mcard{background:var(--bg-3); border:1px solid var(--line-2); padding:30px 32px; transition:border-color var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out)}
+.mcard:hover{border-color:var(--accent); transform:translateY(-2px)}
+.mcard .mn{font-size:12px; font-weight:500; color:var(--accent); letter-spacing:.1em; margin-bottom:12px}
+.mcard h3{font-size:19px; font-weight:500; color:var(--fg); margin-bottom:10px}
+.mcard p{font-size:14px; color:var(--fg-2); line-height:1.65}
+.mcard .kw{margin-top:14px; font-size:12px; color:var(--fg-3)}
+.mcard .kw b{color:var(--accent-light); font-weight:500}
+
+/* 3기둥 */
+.pillars3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+.pil{background:var(--bg-2); border:1px solid var(--line-2); border-top:2px solid var(--accent); padding:28px 26px}
+.pil .pt{font-size:11px; letter-spacing:.25em; color:var(--accent); text-transform:uppercase; margin-bottom:12px}
+.pil h3{font-size:22px; font-weight:500; margin-bottom:10px}
+.pil p{font-size:13px; color:var(--fg-2); line-height:1.6}
+
+/* 커널 레이어 표 */
+.ktable{width:100%; border-collapse:collapse; font-size:14px}
+.ktable th{font-size:10px; letter-spacing:.2em; color:var(--fg-3); text-transform:uppercase; text-align:left; padding:12px 16px 14px; font-weight:400; border-bottom:1px solid var(--line-2)}
+.ktable td{padding:16px; border-bottom:1px solid var(--line-2); color:var(--fg-2); vertical-align:top}
+.ktable td:first-child{color:var(--accent-light); font-weight:500; font-size:15px; white-space:nowrap}
+.ktable tr:hover td{background:rgba(108,92,231,.03)}
+.ktable .zero{color:var(--amber); font-weight:500}
+
+/* Steps 성장 루프 */
+.steps{margin-top:8px}
+.step{display:flex; gap:20px; padding:22px 0; border-bottom:1px solid var(--line-2)}
+.step:last-child{border-bottom:none}
+.step-num{width:40px; height:40px; background:var(--accent); color:var(--bg); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:500; flex-shrink:0}
+.step-c h4{font-size:16px; font-weight:500; color:var(--fg); margin-bottom:6px}
+.step-c p{font-size:14px; color:var(--fg-2); line-height:1.6}
+
+/* 근거 callout */
+.why{display:flex; flex-direction:column; gap:12px}
+.wrow{background:var(--bg-3); border:1px solid var(--line-2); border-left:3px solid var(--red); padding:22px 26px}
+.wrow h4{font-size:15px; font-weight:500; color:var(--fg); margin-bottom:6px}
+.wrow h4 span{color:var(--red); margin-right:8px}
+.wrow p{font-size:13px; color:var(--fg-2); line-height:1.6}
+
+/* 3층 모델 */
+.stack{display:flex; flex-direction:column; gap:2px; margin-top:8px}
+.slayer{padding:24px 28px; border:1px solid var(--line-2)}
+.slayer.personal{background:rgba(122,117,112,.05); border-left:3px solid var(--fg-3)}
+.slayer.domain{background:rgba(217,163,75,.05); border-left:3px solid var(--amber)}
+.slayer.kernel{background:rgba(108,92,231,.06); border-left:3px solid var(--accent)}
+.slayer .sl-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px}
+.slayer h4{font-size:17px; font-weight:500; color:var(--fg)}
+.slayer .tag{font-size:10px; letter-spacing:.15em; text-transform:uppercase; padding:3px 10px}
+.slayer.personal .tag{background:rgba(122,117,112,.15); color:var(--fg-3)}
+.slayer.domain .tag{background:rgba(217,163,75,.12); color:var(--amber)}
+.slayer.kernel .tag{background:rgba(108,92,231,.12); color:var(--accent-light)}
+.slayer p{font-size:13px; color:var(--fg-2); line-height:1.6}
+
+/* 배포 고려 카드 */
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+.ccard{background:var(--bg-2); border:1px solid var(--line-2); padding:24px}
+.ccard .ci{font-size:11px; letter-spacing:.2em; color:var(--accent); text-transform:uppercase; margin-bottom:10px}
+.ccard h4{font-size:15px; font-weight:500; margin-bottom:8px}
+.ccard p{font-size:13px; color:var(--fg-2); line-height:1.6}
+
+/* 로드맵 */
+.road{display:flex; flex-direction:column; gap:12px}
+.rstep{display:grid; grid-template-columns:90px 1fr; gap:20px; align-items:center; background:var(--bg-3); border:1px solid var(--line-2); padding:20px 24px}
+.rstep .rp{font-size:12px; font-weight:500; color:var(--accent-light); letter-spacing:.05em}
+.rstep .rt h4{font-size:15px; font-weight:500; color:var(--fg); margin-bottom:4px}
+.rstep .rt p{font-size:13px; color:var(--fg-2)}
+
+/* 결론 */
+.closing{background:var(--bg-2); text-align:center; padding:120px 80px}
+.closing .eyebrow{margin-bottom:24px}
+.closing h2{font-size:36px; font-weight:200; line-height:1.35; max-width:920px; margin:0 auto; letter-spacing:-0.03em}
+.closing h2 b{font-weight:500; color:var(--accent-light)}
+.closing .quote{margin-top:36px; font-size:14px; color:var(--fg-3)}
+
+footer{padding:60px 80px; border-top:1px solid var(--line-2); max-width:1180px; margin:0 auto; display:flex; justify-content:space-between; align-items:baseline}
+footer .logo{font-size:12px; letter-spacing:.4em; color:var(--fg-2)}
+footer .fmeta{font-size:10px; letter-spacing:.2em; color:var(--fg-3); text-transform:uppercase}
+
+@media (max-width:900px){
+  .hero,.sec{padding:72px 32px}
+  .hero h1{font-size:44px}
+  .grid2,.pillars3,.grid3{grid-template-columns:1fr}
+  .sec-head h2{font-size:28px}
+  .rstep{grid-template-columns:1fr; gap:6px}
+  .closing h2{font-size:24px}
+  footer{flex-direction:column; gap:12px}
+}
+@media (prefers-reduced-motion:reduce){ .sec{opacity:1; transform:none; transition:none} *{transition:none!important} }
+@media print{ .sec{opacity:1; transform:none} .brand-mark{display:none} }
+</style>
+</head>
+<body>
+<div class="brand-mark">CONCEPT · PLANNER KERNEL</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">WORKSPACE KERNEL FOR PLANNERS · 2026.07.22</div>
+  <h1>기획자에게 필요한 건<br>완성된 폴더가 아니라<br><b>자라나는 커널이다.</b></h1>
+  <p>워크스페이스는 파일링 시스템이 아니다. Claude가 운영할 수 있는 <b class="accent">외장 인지 시스템</b>이다.
+     핵심은 무엇을 채워 주느냐가 아니라, 각자의 업무에서 스스로 자라나게 하는 뼈대와 방법을 주느냐다.</p>
+  <div class="oneliner">
+    <p>설계 개념 한 문장 — <b>기획자의 제2의 뇌를, 파일링이 아니라 운영체제로 설계한다.</b>
+       세 기둥: 기억 · 규율 · 결정화.</p>
+  </div>
+</section>
+
+<!-- 00 왜 구조가 Claude에게 유효한가 -->
+<section class="sec">
+  <div class="sec-head"><h2>왜 "구조"가 Claude에게 힘이 되는가</h2><span class="no">00</span></div>
+  <p class="lead mb">폴더 정리는 사람을 위한 게 아니다. Claude 입장에서 구조는 <b class="accent">인지의 발판(scaffold)</b>이다.
+     이 워크스페이스가 실제로 증명한 네 가지 메커니즘.</p>
+  <div class="grid2">
+    <div class="mcard">
+      <div class="mn">MECHANISM 01</div>
+      <h3>지속성 — 상태 없음을 메운다</h3>
+      <p>Claude는 세션마다 기억이 리셋된다. progress.md·MEMORY.md·CLAUDE.md가 없으면 매번 백지에서 시작한다. 워크스페이스는 사실상 Claude의 장기기억 장치다.</p>
+      <div class="kw">→ 구조의 1차 가치는 정리가 아니라 <b>이어붙이기</b></div>
+    </div>
+    <div class="mcard">
+      <div class="mn">MECHANISM 02</div>
+      <h3>컨텍스트 경제 — 탐색세를 줄인다</h3>
+      <p>Claude는 필요한 파일만 읽는다. 예측 가능한 주소 체계(Johnny Decimal)가 있으면 전부 뒤지지 않고 바로 찾아간다. 탐색에 쓴 토큰은 사고에 못 쓴다.</p>
+      <div class="kw">→ 이름이 곧 주소, 구조 = <b>사고 예산 확보</b></div>
+    </div>
+    <div class="mcard">
+      <div class="mn">MECHANISM 03</div>
+      <h3>규율의 체화 — 매번 지시 → 한 번 인코딩</h3>
+      <p>CLAUDE.md에 규칙을 한 번 박으면 모든 세션에 적용된다. 스킬은 검증된 워크플로를 얼려둔 것. 이것이 "프롬프팅"과 "운영"의 차이다.</p>
+      <div class="kw">→ 프롬프트를 <b>운영 체계</b>로 전환</div>
+    </div>
+    <div class="mcard">
+      <div class="mn">MECHANISM 04</div>
+      <h3>검증 가능성 — 환각을 줄인다</h3>
+      <p>템플릿·프레임워크·SSOT 파일이 있으면 Claude가 대조할 대상이 생긴다. "숫자 3중 검증"이 작동하는 것도 출처를 놓을 자리가 구조에 있기 때문이다.</p>
+      <div class="kw">→ 대조 대상 = <b>신뢰의 바닥</b></div>
+    </div>
+  </div>
+  <p class="lead" style="margin-top:34px">한 줄 결론 — 잘 구성된 워크스페이스는 Claude를
+     <b class="accent">"똑똑한 챗봇"에서 "맥락을 쥔 운영자"</b>로 바꾼다.</p>
+</section>
+
+<!-- 01 세 기둥 -->
+<section class="sec">
+  <div class="sec-head"><h2>세 기둥 — 기억 · 규율 · 결정화</h2><span class="no">01</span></div>
+  <p class="lead mb">이식해야 하는 것은 폴더가 아니라 운영 모델이다. 네 메커니즘을 떠받치는 세 개의 기둥.</p>
+  <div class="pillars3">
+    <div class="pil"><div class="pt">Pillar 01</div><h3>기억</h3><p>세션을 넘어 맥락이 살아남는다. progress 파일 + 메모리 인덱스가 지속성을 만든다. 없으면 매번 처음부터.</p></div>
+    <div class="pil"><div class="pt">Pillar 02</div><h3>규율</h3><p>CLAUDE.md라는 헌법. 프로필·규칙·현재상태를 한 진입점에 박아 매 세션 자동 적용. 검증·보안·네이밍이 여기 산다.</p></div>
+    <div class="pil"><div class="pt">Pillar 03</div><h3>결정화</h3><p>반복 업무가 스킬로 얼어붙는다. 단, 처음부터 주지 않는다 — 관찰된 반복에서만 태어난다.</p></div>
+  </div>
+</section>
+
+<!-- 02 커널 구성 -->
+<section class="sec">
+  <div class="sec-head"><h2>커널 구성 — 최소한의 뼈대</h2><span class="no">02</span></div>
+  <p class="lead mb">완성품이 아니라 <b class="accent">빈 골격 + 헌법 + 기억 장치 + 포집구</b>. 스킬은 0개에서 시작한다.</p>
+  <table class="ktable">
+    <thead><tr><th style="width:130px">층</th><th>역할</th><th style="width:230px">최소 형태</th></tr></thead>
+    <tbody>
+      <tr><td>헌법</td><td>사용자 프로필 + 작업 규칙 + 현재 진행 상태를 담는 단일 진입점. Claude가 매 세션 가장 먼저 읽는다.</td><td>CLAUDE.md 템플릿 1개</td></tr>
+      <tr><td>주소</td><td>예측 가능한 네이밍으로 Claude가 "뒤지지 않고 찾아가게" 한다. 활성/아카이브(시간축) + 시스템/내용(목적축).</td><td>라벨만 있는 빈 JD 골격</td></tr>
+      <tr><td>기억</td><td>프로젝트별 progress + 전역 메모리 인덱스. 세션 연속성의 핵심.</td><td>progress 템플릿 + 메모리 규약</td></tr>
+      <tr><td>포집</td><td>분류 전 저마찰 진입구. 구조의 엄격함이 캡처를 막지 않게.</td><td>inbox 폴더 1개</td></tr>
+      <tr><td>결정화</td><td>반복이 관찰되면 스킬로 얼린다. 물려주지 않는다.</td><td class="zero">스킬 0개 (의도적)</td></tr>
+    </tbody>
+  </table>
+  <p class="lead" style="margin-top:28px">⚠️ 핵심 — 56개 스킬을 물려주면 받는 사람은 <b class="accent">언제 그걸 믿어야 하는지</b>를 모른다.
+     게다가 그 스킬엔 만든 사람의 취향·맥락이 박혀 있어 남의 몸에 맞지 않는다.</p>
+</section>
+
+<!-- 03 방법 -->
+<section class="sec">
+  <div class="sec-head"><h2>방법 — "3번 하면 얼려라"</h2><span class="no">03</span></div>
+  <p class="lead mb">개인층을 스스로 자라게 하는 엔진. 스킬을 나눠주는 대신, 스킬을 <b class="accent">만드는 리추얼</b>을 준다.</p>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-c"><h4>그냥 한다 (1회차)</h4><p>새 업무는 대화로 푼다. 아직 구조화하지 않는다. 과도한 사전 설계는 시작을 막는다.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-c"><h4>패턴을 눈치챈다 (2회차)</h4><p>같은 일을 또 한다면 프롬프트·산출물 포맷을 progress나 템플릿에 남긴다. 아직 스킬은 아니다.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-c"><h4>얼린다 (3회차)</h4><p>세 번째 반복이면 스킬로 결정화한다. 트리거·입력·검증·출력이 고정된 워크플로가 된다. 이때부터 "운영".</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-c"><h4>검증을 내장한다</h4><p>스킬에 검증 단계를 박는다(예: 숫자 3중 검증). 산출 완성 = 검증 완료. 규율이 구조가 된다.</p></div></div>
+  </div>
+  <p class="lead" style="margin-top:28px">이 루프가 있으면 커널은 시간이 갈수록 <b class="accent">그 사람만의 운영체제</b>로 두꺼워진다 — 물려받은 게 아니라 자라난 것이라 신뢰할 수 있다.</p>
+</section>
+
+<!-- 04 왜 완성품을 안 주는가 -->
+<section class="sec">
+  <div class="sec-head"><h2>왜 "완성 워크스페이스"를 주지 않는가</h2><span class="no">04</span></div>
+  <p class="lead mb">완성품을 물려주면 골격은 주되 근육은 못 준다 — 게다가 <b class="accent">당신의</b> 근육을 주는 것이라 안 맞는다.</p>
+  <div class="why">
+    <div class="wrow"><h4><span>✕</span>취향·맥락이 박힌다</h4><p>스킬·템플릿엔 만든 사람의 판단 기준이 스며 있다. 받는 사람은 그 전제를 모른 채 결과만 신뢰하게 된다 — 위임의 오남용.</p></div>
+    <div class="wrow"><h4><span>✕</span>유지보수·보안을 당신이 떠안는다</h4><p>배포하면 업데이트·스킬 드리프트·보안 관리가 N배가 된다. 실제로 이 워크스페이스에서도 PIN 백업이 git에 새는 사고가 있었다 — 배포판이면 그게 전원에게 퍼진다.</p></div>
+    <div class="wrow"><h4><span>✕</span>이해 없는 구조는 방치된다</h4><p>내가 안 만든 56개 폴더/스킬은 왜 있는지 모르니 안 쓰게 되고, 결국 죽은 구조로 남는다. 자라난 구조만 살아 있다.</p></div>
+  </div>
+</section>
+
+<!-- 05 3층 모델 -->
+<section class="sec">
+  <div class="sec-head"><h2>3층 모델 — 무엇을 주고 무엇을 남기나</h2><span class="no">05</span></div>
+  <p class="lead mb">권장 노선은 <b class="accent">커널 + 방법</b>. 기획자 공통 업무가 뚜렷하면 중간에 도메인 팩을 옵션으로 얹을 수 있다.</p>
+  <div class="stack">
+    <div class="slayer personal">
+      <div class="sl-top"><h4>개인층 — 각자 자라남</h4><span class="tag">주지 않음</span></div>
+      <p>스킬은 "3번 하면 얼려라" 리추얼로 각자 결정화. 그 사람의 취향·도메인이 여기 축적된다.</p>
+    </div>
+    <div class="slayer domain">
+      <div class="sl-top"><h4>기획자 도메인 팩 — 미리 줌 (옵션)</h4><span class="tag">선택 제공</span></div>
+      <p>RFP분석·제안서·리서치·회의록정리 등 기획자 공통 워크플로 5~7개. 검증된 것만. 즉전력이 필요할 때 얹는 확장 카트리지.</p>
+    </div>
+    <div class="slayer kernel">
+      <div class="sl-top"><h4>커널 — 버전 관리해서 배포·업데이트</h4><span class="tag">코어 제공</span></div>
+      <p>뼈대(JD 골격) + 헌법(CLAUDE.md) + 기억 장치 + 포집구 + 방법론. 얇고 안정적이며, 당신이 버전으로 관리·개선한다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 06 배포·운영 고려 -->
+<section class="sec">
+  <div class="sec-head"><h2>배포·운영 고려</h2><span class="no">06</span></div>
+  <p class="lead mb">커널을 "제품"으로 다루면 세 가지를 처음부터 설계해야 한다.</p>
+  <div class="grid3">
+    <div class="ccard"><div class="ci">Versioning</div><h4>커널은 버전으로</h4><p>커널만 얇게 유지하고 버전 태그를 붙인다. 사용자가 개인층은 유지한 채 커널 업데이트만 당겨받게.</p></div>
+    <div class="ccard"><div class="ci">Security</div><h4>보안 기본값</h4><p>gitignore 템플릿에 비밀·PIN·백업 패턴을 선탑재. 개인정보가 새지 않는 게 배포판의 최소 요건.</p></div>
+    <div class="ccard"><div class="ci">Onboarding</div><h4>10분 첫 성공</h4><p>설치 후 첫 세션에서 "데일리노트→모닝브리핑" 같은 작은 루프를 한 번 돌려 인지 증강을 체감시킨다.</p></div>
+  </div>
+</section>
+
+<!-- 07 로드맵 -->
+<section class="sec">
+  <div class="sec-head"><h2>다음 단계 로드맵</h2><span class="no">07</span></div>
+  <div class="road">
+    <div class="rstep"><div class="rp">STEP 1</div><div class="rt"><h4>커널 스캐폴딩 제작</h4><p>CLAUDE.md 템플릿 + JD 빈 골격 + progress/메모리 규약 + inbox. 스킬 0개.</p></div></div>
+    <div class="rstep"><div class="rp">STEP 2</div><div class="rt"><h4>방법론 문서 + 리추얼</h4><p>"3번 하면 얼려라" 온보딩 가이드. 첫 10분 루프 시나리오 포함.</p></div></div>
+    <div class="rstep"><div class="rp">STEP 3</div><div class="rt"><h4>기획자 도메인 팩(옵션) 선별</h4><p>기존 56개 중 범용·검증된 5~7개만 추려 취향 의존 코드를 걷어낸다.</p></div></div>
+    <div class="rstep"><div class="rp">STEP 4</div><div class="rt"><h4>파일럿 1인 → 피드백 → 버전화</h4><p>한 명에게 커널을 주고 2주 관찰. 자라나는지 확인 후 배포 형태 확정.</p></div></div>
+  </div>
+</section>
+
+<!-- 결론 -->
+<section class="closing sec">
+  <div class="eyebrow">CONCLUSION</div>
+  <h2>스킬을 나눠주지 말고,<br><b>스킬을 만드는 방법을 나눠줘라.</b><br>완성된 뇌가 아니라, 자라날 뇌를.</h2>
+  <p class="quote">인지 외주화가 아닌 인지 증강 — 커널은 얇게 주고, 근육은 각자의 업무에서 자라게 한다.</p>
+</section>
+
+<footer>
+  <div class="logo">WORKSPACE KERNEL</div>
+  <div class="fmeta">Design Concept · 2026.07.22 · by Project Rent</div>
+</footer>
+
+<script>
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:0.1});
+document.querySelectorAll('.sec').forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
