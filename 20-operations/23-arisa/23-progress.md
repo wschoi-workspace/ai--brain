@@ -2,6 +2,12 @@
 
 ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용.
 
+## 2026-07-22 — 김준호 보고 누락 진단 + 봇 의도 감지 개선
+
+김준호 22일간 보고 0건(메타시트 6/30 1건뿐). 원인: /report 없이 텍스트 직접 전송 → 플로우 밖이라 시트 미저장. 조치:
+1. 직원봇으로 /report 사용법 텔레그램 안내 발송
+2. **receive_inquiry fallback에 업무보고 의도 감지** 추가 (daily-report-bot.py): `_REPORT_INTENT_RE` 키워드 2개+ 또는 3줄+ → "보고로 저장되지 않았습니다, /report로 시작하세요" 자동 안내 + 대표에게 감지 알림. 보고 의도 아닌 일반 문의는 기존 동작 유지. 맥미니 scp→py_compile→kickstart 배포 완료(v2 started 13:53).
+
 ## 2026-07-20 — 아침 9시 이전 보고 = 전날 귀속 + 09:05 당일 재취합 (맥미니 배포 완료)
 
 대표 지시: "각 요일 아침 9시 이전까지는 전날 자료로 추가 취합". 2단 구현:
@@ -603,3 +609,28 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
   — 원리는 Team Ops Guide 링크, "화면에서 달라진 것"만 요약. 렌더 검증 OK
 - [ ] **배포 대기**: 대표 내용 확인 후 send-guide-notice.py 패턴으로 전 직원 텔레그램 발송
 - [ ] 가이드 파일 커밋 대기 (untracked)
+
+## 2026-07-22 — 사업기획팀 2인 3주 보고 분석 리포트
+
+- `analysis/business-team-3week-analysis-2026-07-22.html`: 배성원·김도영 7/1~7/22 시트 원본(핵심46·서브180·메타23·분장23행) 기반 실질 진행도·산출물 분석 — 배: 보고 8/16일·산출물 기재 22%·분장 미착수 14/19 (7/14 이중제출 발견), 김: 보고 12/16일·산출물 62%·결정대기 3건(파도안·현수막·로고). weekly-data W27/W28 growth 크로스체크 완료. 대표 액션 5 도출
+- `analysis/deliverables-inventory-business-team-2026-07-22.html`: 산출물 인벤토리(검토용) — 김도영 파일단위 60건+ 프로젝트별 7분류(전략·협의·행정·WBS·공간·품평회·도구)+검토포인트, 배성원 기재 4건+미기재 완료 9건 확인방법 표, 검토 세션 순서 5단계 제안
+
+## 2026-07-23 — /퇴사처리 스킬: 퇴사자 아리사 접근 즉시 차단 (구현 완료·배포 대기)
+
+- **배경**: 퇴사 시 접근 차단 표준 절차 부재. 조나연(7/1 퇴사)이 users.json에 남아 로그인 가능 상태였음
+- **차단 원리(검증 완료)**: 아리사 OS는 매 요청 users.json 재검증(web_session→load_users) — 이름 제거만으로 기존 30일 쿠키·PIN·재로그인 즉시 401, 재시작 불필요. 스크래치 서버로 입증(로그인→쿠키 200→제거→같은 쿠키 401)
+- **구멍 봉합**: 봇은 명부 제거 후에도 이름 자유 입력으로 보고 가능했음 → `offboarded.json` 목록 기반 거부 추가
+  - `offboard-employee.py`(신규): dry-run→백업(_data/offboard-backups/)→로컬 3파일 수정(users/employees/offboarded)→맥미니 scp→봇 재시작→arisa-os.com 401 검증까지 원샷
+  - `daily-report-bot.py`: is_offboarded() + 거부 3지점(start_report tid / receive_info 이름 입력 / receive_inquiry)
+  - `basket-ops-bot.py`: group=-1 선행 핸들러(log_chat)에서 ApplicationHandlerStop으로 단일 차단
+  - `.claude/skills/퇴사처리/` 등록 + CLAUDE.md 표 추가. 수동 체크리스트(HR포털·구글워크스페이스·SaaS·와이파이·리더 승계) 스킬에 내장
+- 검증: 킬스위치 입증·봇 로직 단위테스트 4/4(tid/이름 공백무시/재직자 미차단/파일없음 안전)·조나연 dry-run(users.json만 잔존 확인)·타직원 로그인 회귀 OK
+- [x] **배포 완료(7/23, 대표 승인)**: 봇 2종 scp+재시작(PID 정상) → `offboard-employee.py 조나연` 실행 — 백업 20260723-0816, 맥미니 동기화, **arisa-os.com 차단 검증 ✅(401 등록되지 않은 이름)**. 회귀: 재직자 계정 존재·health·봇 3서비스 가동 확인
+
+## 2026-07-23 (2차) — ⚠️ users.json 덮어쓰기 사고 및 복구 완료
+
+- **사고**: 08:16 조나연 퇴사처리 시 offboard-employee.py가 로컬 구버전 users.json(dict·테스트PIN·배성원 등 3명 누락)을 맥미니로 scp → 맥미니 users.json이 **arisa2 SSOT(~/dev/arisa2/data/users.json) 심링크**여서 원본 훼손. 증상: 배성원 로그인 불가(첫 발견), 전 직원 PIN이 공지값과 불일치 상태 약 4시간
+- **복구(12:08)**: arisa2 git 12096b7(11명 명단·역할·팀) + data/initial_credentials.txt(7/22 공지 발송 PIN 원본)로 리스트 스키마 재구성 → SSOT 복원(사고본 users.json.bak-clobbered-20260723-1208 보존). 검증: 배성원 실로그인 ✅(leader·사업기획), 김예진·김도영·최원석·윤혜정 계정 존재 ✅, 조나연 차단 유지 ✅, health OK
+- **재발 방지(코드 반영 완료)**: offboard-employee.py — users.json은 절대 push하지 않고 맥미니 SSOT에서 이름만 원격 제거(원격 백업 자동), dry-run 판정도 맥미니 기준으로 변경. 스킬 문서에 SSOT 경고 명시
+- **잔여 리스크**: 7/22 저녁 이후 PIN을 직접 변경한 직원이 있다면 그 변경분은 유실 — 공지받은 원래 PIN으로 로그인해야 함(문의 오면 안내). 로컬 users.json은 테스트 사본으로만 사용
+- **로그인 오류 안내 발송(12:2x)**: send-login-fix-notice.py — 대표 테스트 1건 후 전 직원 10/10 성공. 내용: 오전 오류·복구 완료·7/22 안내 PIN으로 로그인·PIN 변경자는 원래 PIN으로·문제 시 봇 채팅 회신

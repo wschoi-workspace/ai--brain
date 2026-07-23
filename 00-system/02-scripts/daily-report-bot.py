@@ -187,6 +187,32 @@ def employee_by_tid(uid) -> dict | None:
     return None
 
 
+_OFFBOARDED_PATH = Path(__file__).resolve().parent / "offboarded.json"
+
+
+def load_offboarded() -> dict:
+    """퇴사자 목록 — /퇴사처리(offboard-employee.py)가 기록. {이름: {date, telegram_ids, ...}}"""
+    try:
+        return json.loads(_OFFBOARDED_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def is_offboarded(uid=None, name: str = "") -> bool:
+    """텔레그램 ID 또는 이름이 퇴사자 목록에 있으면 True.
+    명부(by_telegram_id) 제거만으론 이름 자유 입력 경로가 열려 있어 이 목록으로 최종 차단."""
+    ob = load_offboarded()
+    if name and any(_norm_name(name) == _norm_name(k) for k in ob):
+        return True
+    if uid is not None:
+        s = str(uid)
+        return any(s in (v.get("telegram_ids") or []) for v in ob.values())
+    return False
+
+
+_OFFBOARDED_MSG = "퇴사 처리된 계정입니다. 문의가 필요하면 회사 대표 연락처로 연락해주세요."
+
+
 def register_telegram_id(uid, name: str) -> None:
     """user_id ↔ 이름 매핑 학습 저장 (flock으로 동시쓰기 경쟁·손상 방지)."""
     def _mut(data):
@@ -496,7 +522,11 @@ def _tg_send(token: str, chat_id, message: str) -> bool:
 
 # ── 문의·건의 접수 (2026-07-22, 아리사 OS 전직원 오픈) ──────────────────
 # 대화(보고/회의/분장) 밖 자유 텍스트 = 문의/건의로 접수 → 기록 + 대표 전달 + 접수 확인 회신.
+# 2026-07-22: 업무보고 의도 감지 → /report 안내 강화 (김준호 사례 — 플로우 밖 텍스트 보고 누락)
 _INQUIRY_LOG = Path(__file__).resolve().parents[2] / "20-operations" / "23-arisa" / "inquiries" / "inbox.jsonl"
+_REPORT_INTENT_RE = re.compile(
+    r"업무|보고|진행|완료|발송|처리|수정|확인|준비|미팅|회의|매출|발주|정리|견적|세미나|팝업|오픈|마감",
+)
 
 
 async def receive_inquiry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -506,23 +536,44 @@ async def receive_inquiry(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if not text:
         return
     uid = update.effective_user.id
+    if is_offboarded(uid=uid):
+        await update.message.reply_text(_OFFBOARDED_MSG)
+        return
     emp = employee_by_tid(uid)
     name = emp["name"] if emp else (update.effective_user.full_name or str(uid))
+
+    # 업무보고 의도 감지: 키워드 2개 이상 or 3줄 이상이면 보고로 보내려 한 것으로 판단
+    intent_hits = len(_REPORT_INTENT_RE.findall(text))
+    line_count = len([l for l in text.splitlines() if l.strip()])
+    looks_like_report = intent_hits >= 2 or line_count >= 3
+
     try:
         _INQUIRY_LOG.parent.mkdir(parents=True, exist_ok=True)
         with _INQUIRY_LOG.open("a", encoding="utf-8") as f:
             f.write(json.dumps({"ts": datetime.now().isoformat(timespec="seconds"),
-                                "name": name, "tg_id": uid, "text": text},
+                                "name": name, "tg_id": uid, "text": text,
+                                "looks_like_report": looks_like_report},
                                ensure_ascii=False) + "\n")
     except Exception as e:
         logger.error(f"inquiry log error: {e}")
-    sent = await asyncio.to_thread(send_to_manager, f"💬 문의/건의 접수 — {name}\n\n{text}")
-    if not sent:
-        logger.error(f"inquiry forward failed: {name}")
-    await update.message.reply_text(
-        "💬 접수했습니다 — 확인 후 회신드리겠습니다.\n"
-        "· 일일보고를 하시려면 /report\n"
-        "· 아리사 OS 접속: https://arisa-os.com (가이드: https://arisa-os.com/guide-os)")
+
+    if looks_like_report:
+        await update.message.reply_text(
+            f"⚠️ {name}님, 이 메시지는 업무보고로 저장되지 않았습니다.\n\n"
+            "보고를 등록하려면 👉 /report 를 먼저 누른 후,\n"
+            "봇의 질문에 따라 답변해주세요.\n\n"
+            "지금 보내주신 내용은 /report 시작 후 다시 입력해주시면 됩니다!")
+        logger.info(f"report-intent detected from {name} (hits={intent_hits}, lines={line_count}) — guided to /report")
+        await asyncio.to_thread(send_to_manager,
+            f"⚠️ 보고 의도 감지 — {name}\n(플로우 밖 텍스트 {intent_hits}키워드/{line_count}줄, /report 안내 발송)\n\n{text[:300]}")
+    else:
+        sent = await asyncio.to_thread(send_to_manager, f"💬 문의/건의 접수 — {name}\n\n{text}")
+        if not sent:
+            logger.error(f"inquiry forward failed: {name}")
+        await update.message.reply_text(
+            "💬 접수했습니다 — 확인 후 회신드리겠습니다.\n"
+            "· 일일보고를 하시려면 /report\n"
+            "· 아리사 OS 접속: https://arisa-os.com (가이드: https://arisa-os.com/guide-os)")
 
 
 def send_to_manager(message: str) -> bool:
@@ -1278,6 +1329,9 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def start_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    if is_offboarded(uid=update.effective_user.id):
+        await update.message.reply_text(_OFFBOARDED_MSG)
+        return ConversationHandler.END
     context.user_data.clear()
     context.user_data["chat_history"] = []
     context.user_data["raw_log"] = []  # fidelity: 직원 원문 입력 보존
@@ -1320,6 +1374,10 @@ async def receive_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     if not name or len(name) > 15:
         await update.message.reply_text("성함만 입력해주세요 🙏 (예: 홍길동)")
         return WAITING_INFO
+    # 퇴사자 차단: 명부에서 빠져도 이름 직접 입력으로 보고가 가능한 경로 봉쇄
+    if is_offboarded(uid=update.effective_user.id, name=name):
+        await update.message.reply_text(_OFFBOARDED_MSG)
+        return ConversationHandler.END
 
     # 규칙5: 명부 매칭 → 소속/직책/직무 자동 보정 (직원이 잘못 입력해도 정답으로 정정)
     emp = match_employee(name)

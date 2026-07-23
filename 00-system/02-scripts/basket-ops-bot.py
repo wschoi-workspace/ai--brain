@@ -27,8 +27,8 @@ from pathlib import Path
 
 from openai import OpenAI
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import (Application, CommandHandler, MessageHandler, ConversationHandler,
-                          ContextTypes, TypeHandler, filters)
+from telegram.ext import (Application, ApplicationHandlerStop, CommandHandler, MessageHandler,
+                          ConversationHandler, ContextTypes, TypeHandler, filters)
 
 # ---- 설정 ----
 WORKSPACE = Path(__file__).resolve().parents[2]
@@ -79,6 +79,17 @@ def _author(update) -> str:
     if not u:
         return "운영자"
     return _emp_by_tid(u.id) or u.full_name or "운영자"
+
+# 퇴사자 차단 — /퇴사처리(offboard-employee.py)가 기록하는 목록. daily-report-bot과 공유.
+OFFBOARDED_PATH = Path(__file__).resolve().parent / "offboarded.json"
+
+def _is_offboarded_tid(uid) -> bool:
+    try:
+        ob = json.loads(OFFBOARDED_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return False
+    s = str(uid)
+    return any(s in (v.get("telegram_ids") or []) for v in ob.values())
 
 # 11섹션 (시트 컬럼 순서와 매핑)
 SECTIONS = [
@@ -364,6 +375,12 @@ async def on_error(update, ctx):
 # 모든 메시지의 chat_id 등록(향후 DM 발송용). 다른 핸들러 비차단(group=-1).
 CHAT_REG = Path(__file__).resolve().parent / ".basket-chats.json"
 async def log_chat(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    # group=-1 선행 핸들러 — 퇴사자면 여기서 전체 파이프라인 중단 (단일 차단 지점)
+    u0 = update.effective_user
+    if u0 and _is_offboarded_tid(u0.id):
+        if update.message:
+            await update.message.reply_text("퇴사 처리된 계정입니다.")
+        raise ApplicationHandlerStop
     try:
         c = update.effective_chat; u = update.effective_user
         if not c or c.type != "private":
