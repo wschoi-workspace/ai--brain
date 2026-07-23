@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>프로젝트 문서 축적 + 브리프 승인 — UI 미리보기 (더미 데이터)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{--bg:#1A1A1A;--bg2:#202020;--bg3:#262626;--fg:#F5F0EB;--fg2:#C4BEB7;--fg3:#8A857E;--line:#333;--accent:#6C5CE7;--accent-lt:#9C8FFF;--green:#00b894;--amber:#FDCB6E;--rust:#E17055}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans-serif;font-weight:300;padding:36px 20px 80px}
+.wrap{max-width:1120px;margin:0 auto}
+h1{font-size:24px;font-weight:800;margin-bottom:6px}
+.sub{color:var(--fg3);font-size:13px;margin-bottom:8px}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:3px 10px;margin-right:6px}
+.b-demo{background:rgba(253,203,110,.15);color:var(--amber)}
+.b-new{background:rgba(0,184,148,.15);color:var(--green)}
+.sec{margin-top:44px}
+.sec-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.sec-title .step{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:800;margin-right:9px}
+.sec-desc{color:var(--fg3);font-size:12.5px;margin-bottom:16px;line-height:1.6;padding-left:33px}
+.panel{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px}
+/* 플로우 */
+.flow{display:flex;gap:0;align-items:stretch;flex-wrap:wrap;margin-top:14px}
+.fstep{flex:1;min-width:150px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 14px;position:relative;margin-right:26px}
+.fstep:last-child{margin-right:0}
+.fstep:not(:last-child):after{content:'→';position:absolute;right:-21px;top:50%;transform:translateY(-50%);color:var(--accent);font-size:16px;font-weight:800}
+.fstep .fn{font-size:12.5px;font-weight:700;margin-bottom:5px}
+.fstep .fd{font-size:11px;color:var(--fg3);line-height:1.55}
+.fstep .fw{font-size:10px;color:var(--accent-lt);margin-top:7px;font-weight:600}
+/* 시뮬레이터 결과 버튼줄 */
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+.draft-btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.draft-btn.ghost{background:var(--bg3);border:1px solid var(--line)}
+.draft-btn.green{background:var(--green)}
+.mt-h{font-size:14px;font-weight:700;margin:14px 0 8px;color:var(--accent);border-left:3px solid var(--accent);padding-left:8px}
+.mt-p{font-size:12px;color:var(--fg2);line-height:1.6;margin-bottom:6px}
+.pulse{position:relative}
+.pulse:before{content:'NEW';position:absolute;top:-9px;right:-8px;background:var(--green);color:#04110d;font-size:9px;font-weight:800;border-radius:5px;padding:1px 6px}
+/* 모달 */
+.modal-demo{background:rgba(0,0,0,.45);border:1px dashed var(--line);border-radius:14px;padding:34px;display:flex;justify-content:center}
+.modal{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:22px;width:420px;max-width:100%;box-shadow:0 18px 60px rgba(0,0,0,.5)}
+.modal h3{font-size:15px;font-weight:700;margin-bottom:14px}
+.modal label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
+.modal select,.modal input{width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;margin-bottom:14px}
+.m-hint{font-size:11px;color:var(--fg3);line-height:1.6;margin-bottom:14px}
+.m-actions{display:flex;gap:8px;justify-content:flex-end}
+.m-ok{font-size:12px;color:var(--green);margin-top:10px}
+/* 승인 대기 diff 카드 (/projects 자료 탭) */
+.lab{font-size:12px;font-weight:700;color:var(--fg2);margin:2px 0 9px}
+.pb-card{background:var(--bg3);border:1px solid var(--accent);border-radius:8px;padding:11px 13px;margin-bottom:10px;font-size:12px}
+.pb-meta{color:var(--fg3);font-size:10.5px;margin-bottom:7px}
+.pb-item{display:block;margin-bottom:8px;line-height:1.55;cursor:pointer}
+.pb-item input{accent-color:var(--accent);margin-right:6px}
+.pb-body{margin:2px 0 0 20px}
+.strike{color:var(--fg3);text-decoration:line-through}
+.after{color:var(--accent-lt)}
+.basis{color:var(--fg3);font-size:10.5px;margin-top:2px}
+.btn-s{font-size:11px;padding:5px 13px;border-radius:7px;border:0;cursor:pointer;font-family:inherit;font-weight:600}
+.btn-s.pri{background:var(--accent);color:#fff}
+.btn-s.gho{background:transparent;border:1px solid var(--line);color:var(--fg2)}
+.chip{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:4px 10px;color:var(--fg2);margin:0 5px 6px 0;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.chip small{color:var(--fg3)}
+.log{font-size:11.5px;line-height:1.65;padding:8px 0;border-top:1px solid var(--line)}
+.log .who{color:var(--fg3)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.viewer-tag{font-size:10px;font-weight:800;border-radius:5px;padding:2px 8px;margin-left:8px;vertical-align:2px}
+.vt-pm{background:rgba(108,92,231,.2);color:var(--accent-lt)}
+.vt-staff{background:rgba(138,133,126,.2);color:var(--fg3)}
+.note{background:rgba(108,92,231,.07);border:1px solid rgba(108,92,231,.25);border-radius:10px;padding:12px 15px;font-size:12px;line-height:1.7;color:var(--fg2);margin-top:14px}
+.foot{margin-top:56px;color:var(--fg3);font-size:11px;border-top:1px solid var(--line);padding-top:12px}
+</style></head><body>
+<div class="wrap">
+
+<h1>프로젝트 문서 축적 + 브리프 승인</h1>
+<p class="sub">문서 시뮬레이터 → [제출] → 프로젝트 이력 축적 → AI 브리프 갱신안 → PM·대표 승인</p>
+<span class="badge b-demo">더미 데이터 미리보기</span><span class="badge b-new">구현 완료 · 맥미니 배포 대기</span>
+
+<!-- 0. 전체 플로우 -->
+<div class="sec">
+  <div class="sec-title"><span class="step">0</span>전체 흐름</div>
+  <div class="flow">
+    <div class="fstep"><div class="fn">✍ 회의분석 / 기획안</div><div class="fd">문서 시뮬레이터에서 전사·기획안 AI 분석 (기존 그대로)</div><div class="fw">전 직원</div></div>
+    <div class="fstep"><div class="fn">📌 프로젝트에 제출</div><div class="fd">결과 화면 버튼 → 열람 가능한 프로젝트 지정</div><div class="fw">열람 권한자 누구나</div></div>
+    <div class="fstep"><div class="fn">📚 이력 축적</div><div class="fd">구조화 JSON(전사 원문 포함) + 읽기용 문서 페어로 영구 보존</div><div class="fw">자동</div></div>
+    <div class="fstep"><div class="fn">🤖 브리프 갱신안</div><div class="fd">AI가 기존 브리프 대비 변경 제안 (before/after/근거)</div><div class="fw">백그라운드</div></div>
+    <div class="fstep"><div class="fn">✅ 승인 / 기각</div><div class="fd">/projects 자료 탭에서 항목별 선택 적용, 변경 이력 기록</div><div class="fw">PM·대표만</div></div>
+  </div>
+</div>
+
+<!-- 1. 시뮬레이터 결과 + 제출 버튼 -->
+<div class="sec">
+  <div class="sec-title"><span class="step">1</span>문서 시뮬레이터 — 결과 화면에 [제출] 버튼</div>
+  <div class="sec-desc">회의분석·기획안 결과 상단에 초록 제출 버튼이 추가됩니다. 인라인으로 채운 담당·기한까지 반영된 최종본이 제출됩니다. (일일보고는 제출 대상 아님)</div>
+  <div class="panel">
+    <div class="btn-row">
+      <button class="draft-btn green pulse">📌 프로젝트에 제출</button>
+      <button class="draft-btn">🖨 PDF로 저장</button>
+      <button class="draft-btn ghost">문서(.doc)</button>
+    </div>
+    <div class="mt-h">1. Summary</div>
+    <div class="mt-p"><b>회의 목적</b> — R-LAB 하반기 운영 방향 확정</div>
+    <div class="mt-p"><b>핵심 결정</b> — 종료일을 2026-09-30으로 연장 · 주간 리포트 → 격주 전환</div>
+    <div class="mt-h">6. 실행 업무 (To-do)</div>
+    <div class="mt-p">★★★ 9월 성과보고서 초안 — 담당: 배성원 / 기한: 2026-09-15</div>
+  </div>
+</div>
+
+<!-- 2. 제출 모달 -->
+<div class="sec">
+  <div class="sec-title"><span class="step">2</span>제출 모달 — 프로젝트 지정</div>
+  <div class="sec-desc">로그인 세션으로 본인을 확인하고, <b>내가 열람 가능한 프로젝트만</b> 드롭다운에 표시됩니다. 제목은 AI가 추정한 회의명으로 자동 채워집니다.</div>
+  <div class="modal-demo">
+    <div class="modal">
+      <h3>📌 프로젝트에 제출</h3>
+      <label>프로젝트 *</label>
+      <select><option>R-LAB</option><option>여수 섬 박람회</option><option>에비뉴엘 청명주</option><option>TIPS</option></select>
+      <label>문서 제목</label>
+      <input value="R-LAB 7월 운영 점검 회의">
+      <div class="m-hint">제출하면 프로젝트 문서함에 이력으로 저장되고, AI가 브리프 갱신안을 만들어 담당 PM·대표 승인 대기열에 올립니다. 승인 전까지 브리프는 바뀌지 않습니다.</div>
+      <div class="m-actions">
+        <button class="draft-btn ghost">취소</button>
+        <button class="draft-btn">제출</button>
+      </div>
+      <div class="m-ok">✅ 제출 완료 — 프로젝트 문서함에 저장됐습니다.<br>브리프 갱신안은 AI 분석 후 PM 승인 대기열에 올라갑니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. /projects 자료 탭 -->
+<div class="sec">
+  <div class="sec-title"><span class="step">3</span>/projects 자료 탭 — 승인 대기 + 아카이브 + 변경 이력</div>
+  <div class="sec-desc">같은 화면이 권한에 따라 다르게 보입니다. 왼쪽은 PM·대표(승인 가능), 오른쪽은 일반 팀원(열람만).</div>
+  <div class="two">
+    <!-- PM 뷰 -->
+    <div class="panel">
+      <div class="lab">⏳ 브리프 갱신 승인 대기 1건 <span class="viewer-tag vt-pm">PM·대표 화면</span></div>
+      <div class="pb-card">
+        <div class="pb-meta">2026-07-22 18:52 · 제안 배성원 · 📄 R-LAB 7월 운영 점검 회의</div>
+        <label class="pb-item"><input type="checkbox" checked><b>종료일</b>
+          <div class="pb-body"><span class="strike">2026-07-31</span><br><span class="after">→ 2026-09-30</span>
+          <div class="basis">근거: 결정 — 종료일을 9월 말로 연장 (성과 검증 기간 확보)</div></div></label>
+        <label class="pb-item"><input type="checkbox" checked><b>주의사항</b>
+          <div class="pb-body"><span class="strike">(비어있음)</span><br><span class="after">→ 장비 납품 지연 가능성 — 대안 업체 견적 병행</span>
+          <div class="basis">근거: 리스크 — 장비 납품 지연 가능성</div></div></label>
+        <label class="pb-item"><input type="checkbox"><b>산출물</b>
+          <div class="pb-body"><span class="strike">(비어있음)</span><br><span class="after">→ 9월 성과보고서</span>
+          <div class="basis">근거: To-do — 9월 성과보고서 초안 (배성원 / 9-15)</div></div></label>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn-s pri">선택 적용</button>
+          <button class="btn-s gho">기각</button>
+        </div>
+      </div>
+      <div class="lab" style="margin-top:16px">📚 회의록 · 자료 아카이브 <span style="font-weight:400;color:var(--fg3)">(클릭하면 원문 열람)</span></div>
+      <div style="font-size:10.5px;color:var(--fg3);font-weight:600;margin:6px 0 4px">2026-07-22</div>
+      <span class="chip">🎙 R-LAB 7월 운영 점검 회의 <small>18:50 · 배성원</small></span>
+      <span class="chip">📋 R-LAB 하반기 확장 기획 <small>17:12 · 전제훈</small></span>
+      <div style="font-size:10.5px;color:var(--fg3);font-weight:600;margin:6px 0 4px">2026-07-16</div>
+      <span class="chip">📄 킥오프 노트 <small>10:03 · 전제훈</small></span>
+      <div class="lab" style="margin-top:16px">변경 이력</div>
+      <div class="log"><span class="who">2026-07-22 19:01 · 승인 전제훈 · 제안 배성원 · 📄 R-LAB 7월 운영 점검 회의</span><br>
+        <b style="color:var(--fg2)">종료일</b>: <span class="strike">2026-07-31</span> <span class="after">→ 2026-09-30</span></div>
+      <div class="log"><span class="who">2026-07-18 14:20 · 승인 전제훈 · 📄 설비 협의 메모</span><br>
+        <b style="color:var(--fg2)">KPI</b>: <span class="strike">(비어있음)</span> <span class="after">→ 가동률 90%</span></div>
+    </div>
+    <!-- 팀원 뷰 -->
+    <div class="panel">
+      <div class="lab">⏳ 브리프 갱신 승인 대기 1건 <span style="font-weight:400;color:var(--fg3)">(승인은 담당 PM·대표만)</span> <span class="viewer-tag vt-staff">일반 팀원 화면</span></div>
+      <div class="pb-card" style="border-color:var(--line)">
+        <div class="pb-meta">2026-07-22 18:52 · 제안 배성원 · 📄 R-LAB 7월 운영 점검 회의</div>
+        <div class="pb-item" style="cursor:default"><b>종료일</b>
+          <div class="pb-body" style="margin-left:0"><span class="strike">2026-07-31</span><br><span class="after">→ 2026-09-30</span>
+          <div class="basis">근거: 결정 — 종료일을 9월 말로 연장</div></div></div>
+        <div class="pb-item" style="cursor:default"><b>주의사항</b>
+          <div class="pb-body" style="margin-left:0"><span class="strike">(비어있음)</span><br><span class="after">→ 장비 납품 지연 가능성 — 대안 업체 견적 병행</span></div></div>
+      </div>
+      <div class="lab" style="margin-top:16px">📚 회의록 · 자료 아카이브</div>
+      <div style="font-size:10.5px;color:var(--fg3);font-weight:600;margin:6px 0 4px">2026-07-22</div>
+      <span class="chip">🎙 R-LAB 7월 운영 점검 회의 <small>18:50 · 배성원</small></span>
+      <span class="chip">📋 R-LAB 하반기 확장 기획 <small>17:12 · 전제훈</small></span>
+      <div class="note">👀 팀원은 승인 대기 내용과 문서 원문을 <b>열람</b>할 수 있지만, 체크박스·적용·기각 버튼은 표시되지 않습니다. 브리프는 PM·대표 승인 후에만 바뀝니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. 이력 추적 -->
+<div class="sec">
+  <div class="sec-title"><span class="step">4</span>문제가 생기면 — 3중 이력으로 역추적</div>
+  <div class="sec-desc">"이 브리프 값이 왜 이렇게 바뀌었지?" → 변경 이력에서 근거 문서를 타고 원문(전사)까지 내려갈 수 있습니다.</div>
+  <div class="panel" style="font-size:12.5px;line-height:2">
+    <b style="color:var(--accent-lt)">① 변경 이력</b> — 언제 · 누가 승인 · 누가 제안 · 어떤 필드가 before → after<br>
+    <b style="color:var(--accent-lt)">② 근거 문서(.md)</b> — 이력의 📄 문서명 클릭 → 제출 당시 회의록 전문<br>
+    <b style="color:var(--accent-lt)">③ 구조화 원본(.json)</b> — 인라인 편집 반영본 + <b>STT 전사 원문</b>까지 보존 (서버 파일)
+  </div>
+</div>
+
+<p class="foot">by Project Rent · ARISA 문서 시뮬레이터 — UI 미리보기 (더미 데이터, 실서버 미반영 상태)</p>
+</div>
+</body></html>

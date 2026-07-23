@@ -126,8 +126,27 @@
 - 미발송: 안윤숙(감사 — 계정·텔레그램 미연결, 의도 확인 필요)
 - **전직원 배포 완결** — 이후: 봇 문의함(inquiries/inbox.jsonl) 모니터링, 직원 피드백 기반 개선
 - **PIN 개별 안내 발송(10/10 성공)**: send-pin-notice.py — 각자 본인 텔레그램으로만 본인 PIN 발송(이름↔chat_id 매핑, users.json SSOT), 첫 로그인 후 PIN 변경 권장 + 로그인 문제 시 봇 접수 안내
+- **문서 시뮬레이터 엑셀(.xlsx/.xlsm) 업로드 추가**: 표준 라이브러리 zip+XML 파싱(시트명·공유문자열·다중시트, 탭 구분 텍스트), .xls는 재저장 안내. 실파일 2종+프로덕션 검증, 가이드 반영. ⚠️ 미커밋 상태 — 다음 커밋 때 포함
+- 세션 종료 시점 대기 항목: ①직원 문의 유입 모니터링(inquiries/inbox.jsonl → 봇 회신 루프 설계) ②안윤숙 계정 여부 ③HR 포털 staff 화면 육안 확인 ④hr-workspace 미커밋 5건(타 세션 esign/onboard — push=자동배포 주의)
 - **R4 출력 확장**: `GET /api/meeting/{id}/report.html`(인쇄 최적화 리포트→브라우저 PDF 저장, 밝은 테마·인쇄 시 버튼 숨김) + `GET /export.doc`(워드/한글에서 열림). 결과 화면 버튼: [리포트·PDF][Word(.doc)][MD][JSON]
 - **보고 시뮬레이터 출력 추가**: AI 리뷰 결과에 [PDF로 저장][문서(.doc)] 버튼 — 보고 원문+채점+안티패턴+개선팁을 문서로 (클라이언트 전용, 서버 무변경)
 - PDF는 서버 의존성 0 원칙 유지(브라우저 인쇄 기반, playwright/reportlab 미도입)
 - 맥미니 배포·arisa-os.com 검증 완료 (셸 탭 구성·/docsim·R유럽 report.html/doc 200)
 - 참고: "회의 분석 탭 안 뜸" 신고는 재현 결과 정상 작동 — 재시작 직후 타이밍으로 추정, 개편으로 구조 자체가 교체됨
+
+## 2026-07-22 (오후) — 프로젝트 문서 축적 + 브리프 최신화 (제안→승인) 구현 완료, 배포 대기
+
+대표 요구: 시뮬레이터 회의록·기획안을 [제출]→프로젝트 지정으로 축적, 이력 추적, 브리프 최신 유지. 결정(대표): 제안→PM/대표 승인 방식(자동 반영 아님), 범위는 MVP만(마스터시트 종합 뷰는 v2).
+
+**핵심 발견**: 파이프라인 절반이 기존 구현(/projects 자료탭 doc-analyze·doc-apply·changelog·DOC_DIR). 이번 작업 = 입구 확장.
+- `dashboard-server.py`: `_mutate_project`(lock 원자 mutate — _lock 비재진입이라 스레드에서 save_project 호출 시 데드락, 이 헬퍼로 회피), `_propose_brief_changes`(doc-analyze 프롬프트를 공용 헬퍼로 추출), `_render_submitted_md`(제출 JSON→읽기용 .md), `GET /api/me`(쿠키→신원), `POST /api/simulator/submit-doc`(can_view 누구나 제출, 제출자=세션 강제, .json+.md 페어 저장→docs 인덱스→백그라운드 `_bg_propose`), `POST /api/project/proposal-apply`(can_edit 전용 승인/기각, 적용값은 저장된 제안에서 취함=감사 무결성, changelog에 docTs·proposedBy)
+- 저장 구조: `_data/project-docs/{pid}/{ts}.json`(구조화 원본 — result=인라인 편집 반영본, source=전사문/입력필드 원문 보존) + `{ts}.md`(기존 /api/project/doc 뷰어 호환). `p["docs"]` 메타에 type/src 확장(기존 항목 하위호환). `p["pendingBrief"]` 승인 대기열(처리분 최근 20건 트림)
+- **버그 발견·수정**: 제안 식별을 분 단위 ts로 매칭하면 같은 분에 생성된 제안 2건이 충돌(테스트 중 실제 재현 — 다른 제안이 같은 키로 승인됨) → 식별키를 docTs(초 단위, 제출 문서당 1건)로 교체
+- 시뮬레이터 UI: 회의분석·기획안 결과에 [📌 프로젝트에 제출] 버튼+모달(/api/me→can_view 프로젝트 드롭다운, 제목 자동 채움). 일일보고는 제출 대상 아님
+- `포트폴리오_대시보드.html` 자료탭: ⏳승인 대기 diff 블록(PM/대표=체크박스 선택 적용·기각, 팀원=읽기 전용+"승인은 담당 PM·대표만"), 문서 타입 아이콘(🎙회의/📋기획안/📄일반), 변경이력 "승인 X · 제안 Y · 📄문서" 표기
+- ⚠️ **프로토타입이 아닌 생성본(포트폴리오_대시보드.html)을 직접 수정** — 생성본이 실질 SSOT(지난 세션들이 자료탭 등 기능을 생성본에 직접 커밋, 1758줄 vs 프로토 1460줄). `generate-portfolio.py` 재실행 시 기능 유실되므로 금지, 프로토 동기화는 별도 과제
+- 검증: 스크래치 DATA(잡 tmp) 로컬 8779 — **API E2E 19/19 통과**(타팀 제출 403·소속팀 200·파일 페어·docs 인덱스·pendingBrief 생성·비PM 승인 403·PM 선택 적용·changelog 감사 필드·이중 적용 방지 404·기획안 경로·형식 400) + **browse 브라우저 E2E**(로그인→회의분석 15초→제출 모달(8개 프로젝트)→제출 성공, /projects 승인 블록 렌더·읽기 전용 분기·승인 클릭 2필드 적용, 콘솔 에러 0) + **회귀**(기존 doc-analyze 1건·일일보고 리뷰 채점 정상)
+- **맥미니 배포 완료(대표 승인 "적용해보자" 후)**: 2파일 scp → com.projectrent.dashboard kickstart → 8780 health OK·pj-modal 4·proposalApply 3. arisa-os.com 스모크: health OK, 제출 버튼 markup 3, 신규 API 3종(/api/me·submit-doc·proposal-apply) 비로그인 전부 401(게이트 정상)
+- **프로덕션 실계정 검증 완료(대표 직접, 21:42)**: 유럽(프랑스) 영업 시스템 구축에 "R유럽 현지화" 회의록 제출(🎙 아이콘 표시)→갱신안 생성→1분 뒤 승인→변경 이력에 "승인 최원석 · 📄 R유럽 현지화" + 4필드(정의·요구사항·목표·주의사항) before→after 기록. 전체 플로우 프로덕션 동작 확인
+- UI 미리보기: `docsim-submit-preview.html`(더미 데이터 4단계 — 흐름/제출버튼/모달/자료탭 PM·팀원 비교)
+- v2 후보: 마스터시트 탭(meeting_engine/prompts/master_sheet.py 재사용 — 축적 문서 종합 현황판), PM 승인 대기 텔레그램 알림, R4(회의분석 Pro) 세션 결과 제출 연동, 제출자가 PM이면 즉시 diff 표시

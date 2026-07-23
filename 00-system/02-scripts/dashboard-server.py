@@ -442,6 +442,47 @@ def _extract_file_text(name, data):
             xml = re.sub(r"</w:p>", "\n", xml)
             text = re.sub(r"<[^>]+>", "", xml)
             return _html.unescape(text)
+        if name.endswith((".xlsx", ".xlsm")):
+            # 엑셀 → 텍스트 (2026-07-22): sharedStrings + 시트별 행을 탭 구분으로. 표준 라이브러리만.
+            import xml.etree.ElementTree as ET
+            NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+            with zipfile.ZipFile(io.BytesIO(data)) as z:
+                names = z.namelist()
+                shared = []
+                if "xl/sharedStrings.xml" in names:
+                    root = ET.fromstring(z.read("xl/sharedStrings.xml"))
+                    for si in root.findall(f"{NS}si"):
+                        shared.append("".join(t.text or "" for t in si.iter(f"{NS}t")))
+                sheet_names = []
+                if "xl/workbook.xml" in names:
+                    wb = ET.fromstring(z.read("xl/workbook.xml"))
+                    sheet_names = [s.get("name", "") for s in wb.iter(f"{NS}sheet")]
+                out = []
+                sheets = sorted((n for n in names if re.fullmatch(r"xl/worksheets/sheet\d+\.xml", n)),
+                                key=lambda n: int(re.search(r"\d+", n).group()))
+                for i, sn in enumerate(sheets):
+                    label = sheet_names[i] if i < len(sheet_names) else f"Sheet{i+1}"
+                    rows_out = []
+                    root = ET.fromstring(z.read(sn))
+                    for row in root.iter(f"{NS}row"):
+                        cells = []
+                        for c in row.iter(f"{NS}c"):
+                            v = c.find(f"{NS}v")
+                            if c.get("t") == "s" and v is not None:  # 공유 문자열
+                                idx = int(v.text or 0)
+                                cells.append(shared[idx] if idx < len(shared) else "")
+                            elif c.get("t") == "inlineStr":
+                                cells.append("".join(t.text or "" for t in c.iter(f"{NS}t")))
+                            elif v is not None:
+                                cells.append(v.text or "")
+                        line = "\t".join(cells).strip()
+                        if line.strip("\t"):
+                            rows_out.append(line)
+                    if rows_out:
+                        out.append(f"[시트: {label}]\n" + "\n".join(rows_out))
+                return "\n\n".join(out)
+        if name.endswith(".xls"):
+            return ""  # 구형 바이너리 포맷 미지원 — 호출부 에러 메시지에서 xlsx 재저장 안내
         if name.endswith((".html", ".htm")):
             src = _decode(data)
             src = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>", "", src, flags=re.I)
@@ -669,12 +710,12 @@ h1{font-size:22px;font-weight:700;margin-bottom:4px}
         </span>
         <span id="mt-file-msg" style="font-size:11px;color:var(--muted);font-weight:400"></span>
       </label>
-      <input type="file" id="mt-file" accept=".txt,.md,.html,.htm,.docx,.csv,.log" style="display:none">
+      <input type="file" id="mt-file" accept=".txt,.md,.html,.htm,.docx,.xlsx,.xlsm,.csv,.log" style="display:none">
       <textarea id="mt-text" rows="16" placeholder="회의 전사(STT 원문), 메모, 회의록 자료를 그대로 붙여넣으세요."></textarea>
       <div id="mt-drop" style="display:none;border:2px dashed var(--line);border-radius:12px;padding:56px 20px;text-align:center;cursor:pointer;color:var(--muted);transition:border-color .15s,background .15s">
         <div style="font-size:34px;margin-bottom:10px">📎</div>
         <div style="font-size:14px;font-weight:600;color:var(--fg2)">파일을 여기에 끌어다 놓거나 클릭해서 업로드</div>
-        <div style="font-size:11px;margin-top:6px">.txt · .md · .html · .docx (최대 8MB) — PDF는 내용을 복사해 텍스트로 붙여넣어 주세요</div>
+        <div style="font-size:11px;margin-top:6px">.txt · .md · .html · .docx · .xlsx (최대 8MB) — PDF는 내용을 복사해 텍스트로 붙여넣어 주세요</div>
       </div>
     </div>
     <style>.mt-src{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit}.mt-src.on{background:var(--accent);color:#fff;border-color:var(--accent)}</style>
@@ -707,12 +748,12 @@ h1{font-size:22px;font-weight:700;margin-bottom:4px}
           <button type="button" class="dr-src mt-src" data-src="file">📎 파일 업로드</button>
           <span id="draft-file-msg" style="font-size:11px;color:var(--muted)"></span>
         </div>
-        <input type="file" id="draft-file" accept=".txt,.md,.html,.htm,.docx,.csv,.log" style="display:none">
+        <input type="file" id="draft-file" accept=".txt,.md,.html,.htm,.docx,.xlsx,.xlsm,.csv,.log" style="display:none">
         <textarea id="draft-text" placeholder="업무를 자유롭게 설명하세요...&#10;예) 오늘 세스크멘슬 주방 도면 v3 작업했고, 설비팀 피드백 반영 중. 환기닥트 위치가 바뀌어서 레이아웃 수정해야 함. 내일 오전까지 최종본 보내야 하는데, 자재 A안 B안 중에 대표님 결정이 필요함."></textarea>
         <div id="draft-drop" style="display:none;border:2px dashed var(--line);border-radius:10px;padding:34px 16px;text-align:center;cursor:pointer;color:var(--muted);transition:border-color .15s,background .15s">
           <div style="font-size:24px;margin-bottom:6px">📎</div>
           <div style="font-size:13px;font-weight:600;color:var(--fg2)">파일을 여기에 끌어다 놓거나 클릭해서 업로드</div>
-          <div style="font-size:11px;margin-top:4px">.txt · .md · .html · .docx (최대 8MB)</div>
+          <div style="font-size:11px;margin-top:4px">.txt · .md · .html · .docx · .xlsx (최대 8MB)</div>
         </div>
         <div class="draft-actions">
           <button class="draft-btn" id="draft-btn" disabled>AI 드래프트와 비교</button>
@@ -729,6 +770,20 @@ h1{font-size:22px;font-weight:700;margin-bottom:4px}
   <div class="panel" id="result-panel">
     <h2>AI 리뷰 결과</h2>
     <div id="result"><div class="result-empty">왼쪽 폼을 작성하고 "AI 리뷰 받기"를 눌러보세요.</div></div>
+  </div>
+</div>
+<div id="pj-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:22px;width:420px;max-width:92vw">
+    <h2 style="font-size:15px;font-weight:700;margin-bottom:14px">📌 프로젝트에 제출</h2>
+    <div class="field"><label>프로젝트 *</label>
+      <select id="pj-select" style="width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit"></select></div>
+    <div class="field"><label>문서 제목</label><textarea id="pj-title" rows="1" style="min-height:40px"></textarea></div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:14px">제출하면 프로젝트 문서함에 이력으로 저장되고, AI가 브리프 갱신안을 만들어 담당 PM·대표 승인 대기열에 올립니다. 승인 전까지 브리프는 바뀌지 않습니다.</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="draft-btn" style="background:var(--bg3);border:1px solid var(--line)" onclick="pjClose()">취소</button>
+      <button class="draft-btn" id="pj-submit">제출</button>
+    </div>
+    <div id="pj-msg" style="font-size:12px;color:var(--muted);margin-top:10px;min-height:16px"></div>
   </div>
 </div>
 </div>
@@ -862,6 +917,7 @@ function renderResult(d){
   var pct=d.total, gc=gradeColor(d.grade);
   var r=Math.round(pct/100*251.2); // circumference=2*PI*40
   var h='<div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px">'
+    +(lastMode==='brief'?'<button class="draft-btn" style="background:var(--green)" onclick="pjOpen(\\'brief\\')">📌 프로젝트에 제출</button>':'')
     +'<button class="draft-btn" onclick="simExportPDF()">🖨 PDF로 저장</button>'
     +'<button class="draft-btn" style="background:var(--bg3);border:1px solid var(--line)" onclick="simExportDoc()">문서(.doc)</button></div>';
   h+='<div class="score-circle"><svg width="140" height="140"><circle cx="70" cy="70" r="40" fill="none" stroke="var(--bg3)" stroke-width="8"/>'
@@ -934,7 +990,7 @@ document.querySelectorAll('.mode-btn').forEach(function(b){
   };
 });
 // ── 회의분석 (일반·직원용 GPT 써머리) ──
-var lastMeeting=null;
+var lastMeeting=null, lastTranscript='';
 function stars(p){return p>=3?'★★★':p===2?'★★☆':'★☆☆';}
 function mtSections(d,tag){
   // 10섹션 본문 생성 — tag: 함수(h2/h3/ul/table 마크업 스타일 주입)으로 화면·문서 공용
@@ -1010,6 +1066,7 @@ window.mtExportDoc=function(){var html=buildMeetingDoc();if(!html)return;
 function renderMeetingResult(d){
   lastMeeting=d;
   var h='<div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px">'
+    +'<button class="draft-btn" style="background:var(--green)" onclick="pjOpen(\\'meeting\\')">📌 프로젝트에 제출</button>'
     +'<button class="draft-btn" onclick="mtExportPDF()">🖨 PDF로 저장</button>'
     +'<button class="draft-btn" style="background:var(--bg3);border:1px solid var(--line)" onclick="mtExportDoc()">문서(.doc)</button></div>';
   // 화면용 다크테마 태그 세트 (문서용 mtSections와 공용 데이터)
@@ -1129,6 +1186,7 @@ document.getElementById('mt-btn').onclick=function(){
   var text=document.getElementById('mt-text').value.trim();
   if(!text){msg.textContent='회의 내용을 붙여넣어주세요.';return;}
   if(text.length>60000){msg.textContent='6만 자를 초과합니다. 나눠서 입력해주세요.';return;}
+  lastTranscript=text;  // 제출 시 원문 보존용
   btn.disabled=true; msg.textContent='AI가 분석 중… (30~60초 소요)';
   document.getElementById('mt-result').innerHTML='<div class="result-empty">분석 중…</div>';
   fetch('/api/simulator/meeting-summary',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -1244,6 +1302,58 @@ document.getElementById('draft-btn').onclick=function(){
     })
     .catch(function(){btn.disabled=false;msg.textContent='서버 연결 실패';checkDraftReady();});
 };
+// ── 프로젝트 제출 (회의록·기획안 → 프로젝트 문서함 축적, 2026-07-22) ──
+var pjCtx=null;
+window.pjOpen=function(type){
+  if(type==='meeting'){
+    if(!lastMeeting) return;
+    pjCtx={type:'meeting',result:lastMeeting,transcript:lastTranscript,
+           defTitle:lastMeeting.title_guess||document.getElementById('mt-title').value.trim()||''};
+  }else{
+    if(!lastReview||lastMode!=='brief') return;
+    pjCtx={type:'brief',result:lastReview,fields:lastFields||{},defTitle:(lastFields||{}).title||''};
+  }
+  document.getElementById('pj-title').value=pjCtx.defTitle;
+  document.getElementById('pj-select').innerHTML='';
+  document.getElementById('pj-msg').textContent='프로젝트 목록 불러오는 중…';
+  document.getElementById('pj-modal').style.display='flex';
+  fetch('/api/me').then(function(r){return r.json();}).then(function(me){
+    if(!me.ok||!me.name){
+      document.getElementById('pj-msg').innerHTML='로그인 세션이 없습니다. <a href="/" target="_top" style="color:var(--accent)">아리사 OS 로그인</a> 후 다시 시도해주세요.';
+      return;
+    }
+    return fetch('/api/projects?user='+encodeURIComponent(me.name))
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var ps=((d&&d.projects)||[]).filter(function(p){return !p.archived;});
+        if(!ps.length){document.getElementById('pj-msg').textContent='제출 가능한 프로젝트가 없습니다.';return;}
+        document.getElementById('pj-select').innerHTML=ps.map(function(p){
+          return '<option value="'+esc(p.id)+'">'+esc(p.name||p.id)+'</option>';}).join('');
+        document.getElementById('pj-msg').textContent='';
+      });
+  }).catch(function(){document.getElementById('pj-msg').textContent='서버 연결 실패';});
+};
+window.pjClose=function(){document.getElementById('pj-modal').style.display='none';pjCtx=null;};
+document.getElementById('pj-submit').onclick=function(){
+  var pid=document.getElementById('pj-select').value, msg=document.getElementById('pj-msg');
+  if(!pjCtx){return;}
+  if(!pid){msg.textContent='프로젝트를 선택해주세요.';return;}
+  var btn=this; btn.disabled=true; msg.textContent='제출 중…';
+  var body={pid:pid,type:pjCtx.type,title:document.getElementById('pj-title').value.trim(),result:pjCtx.result};
+  if(pjCtx.type==='meeting') body.transcript=pjCtx.transcript||'';
+  else body.fields=pjCtx.fields||{};
+  fetch('/api/simulator/submit-doc',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      btn.disabled=false;
+      if(!d.ok){msg.textContent=d.error||'제출 실패';return;}
+      msg.innerHTML='<span style="color:var(--green)">✅ 제출 완료 — 프로젝트 문서함에 저장됐습니다.<br>브리프 갱신안은 AI 분석 후 PM 승인 대기열에 올라갑니다.</span>';
+      setTimeout(pjClose,3000);
+    })
+    .catch(function(){btn.disabled=false;msg.textContent='서버 연결 실패';});
+};
+document.getElementById('pj-modal').addEventListener('click',function(e){if(e.target===this)pjClose();});
 })();
 </script></body></html>"""
 
@@ -2177,6 +2287,25 @@ def save_project(p):
     with _lock:
         (PROJ_DIR / f"{pid}.json").write_text(json.dumps(p, ensure_ascii=False, indent=2), encoding="utf-8")
 
+def _mutate_project(pid, fn):
+    """lock 안에서 재로드→fn(p)→원자적 저장. 백그라운드 스레드와 요청 핸들러의
+    read-modify-write 레이스 방지용 (주의: _lock은 비재진입 — fn 안에서 save_project 호출 금지).
+    fn이 False를 반환하면 저장 생략. 반환: 갱신된 p, 프로젝트 없으면 None."""
+    f = PROJ_DIR / f"{_safe(pid)}.json"
+    with _lock:
+        if not f.exists():
+            return None
+        try:
+            p = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            return None
+        if fn(p) is False:
+            return p
+        tmp = f.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(p, ensure_ascii=False, indent=2), encoding="utf-8")
+        os.replace(tmp, f)
+    return p
+
 def _safe(pid):
     return re.sub(r"[^A-Za-z0-9가-힣_\-]", "_", str(pid))[:80] or "proj"
 
@@ -2413,6 +2542,136 @@ _BRIEF_AI_FIELDS = {
     "req": "클라이언트 요구사항", "goal": "목표", "kpi": "KPI",
     "critical": "실행 주요포인트", "deliverables": "산출물", "risk": "주의사항",
 }
+
+def _brief_current(p):
+    """브리프 현재값 스냅샷 — start/end/dday/status는 top-level 폴백 포함."""
+    brief = p.get("brief") or {}
+    return {k: (brief.get(k) if k not in ("start", "end", "dday", "status")
+                else (brief.get(k) or p.get(k) or "")) for k in _BRIEF_AI_FIELDS}
+
+def _propose_brief_changes(p, title, text):
+    """새 자료(회의록·문서) 기반 브리프 갱신안 생성(LLM).
+    반환: changes 리스트(빈 리스트=갱신 불필요), None=LLM 실패.
+    doc-analyze(수동 업로드)와 시뮬레이터 제출 백그라운드 양쪽에서 사용."""
+    cur = _brief_current(p)
+    sys_p = ("당신은 프로젝트 브리프 관리자다. 새 자료(회의록·문서)에 명시적 근거가 있는 필드만 갱신을 제안한다. "
+             "자료에 근거가 없으면 절대 제안하지 않는다. 기존 값이 더 구체적이면 유지한다. 날짜는 YYYY-MM-DD. "
+             "status는 " + "/".join(_ST.BRIEF_STATES) + " 중 하나. "
+             "갱신 대상 필드와 의미: " + ", ".join(f"{k}({v})" for k, v in _BRIEF_AI_FIELDS.items()) + ". "
+             "텍스트 필드는 기존 내용에 새 정보를 통합한 완성된 최신 값을 after로 작성(단순 요약 금지, 한국어). "
+             '반드시 JSON만 반환: {"changes":[{"field":"...","after":"...","basis":"자료 속 근거 한 줄"}]}')
+    user_p = ("[현재 브리프]\n" + json.dumps(cur, ensure_ascii=False) +
+              "\n\n[새 자료: " + title + "]\n" + text)
+    res = _call_llm_json(sys_p, user_p, max_tokens=3000)
+    if res is None:
+        return None
+    changes = []
+    for c in (res.get("changes") or []):
+        f = (c.get("field") or "").strip()
+        if f not in _BRIEF_AI_FIELDS:
+            continue
+        after = str(c.get("after") or "").strip()
+        before = str(cur.get(f) or "").strip()
+        if not after or after == before:
+            continue
+        changes.append({"field": f, "label": _BRIEF_AI_FIELDS[f], "before": before,
+                        "after": after, "basis": str(c.get("basis") or "")[:200]})
+    return changes
+
+# ── 시뮬레이터 제출 문서 (회의록·기획안 → 프로젝트 축적, 2026-07-22) ─────────
+_SUBMIT_BRIEF_LABELS = {"title": "제목", "summary": "Executive Summary",
+                        "stakeholder": "Primary Stakeholder", "client_value": "Client Value",
+                        "core_idea": "핵심 아이디어 (How)", "success_criteria": "성공 기준 (KPI)",
+                        "support_needed": "필요한 지원"}
+
+def _render_submitted_md(doc):
+    """시뮬레이터 제출 JSON → 읽기용 마크다운. 기존 /api/project/doc 뷰어·doc-analyze 호환.
+    회의분석은 인라인 편집 반영본(result)을, 기획안은 입력 원본(fields)을 렌더."""
+    r = doc.get("result") or {}
+    typ = "회의분석" if doc.get("type") == "meeting" else "기획안(1P-Brief)"
+    L = [f"# {doc.get('title') or '제출 문서'}",
+         f"({doc.get('by')} · {(doc.get('submitted_at') or '')[:16].replace('T', ' ')} · 문서 시뮬레이터 {typ} 제출)", ""]
+    if doc.get("type") == "brief":
+        src = (doc.get("source") or {}).get("fields") or {}
+        for k, lab in _SUBMIT_BRIEF_LABELS.items():
+            v = str(src.get(k) or "").strip()
+            if v:
+                L += [f"## {lab}", v, ""]
+        return "\n".join(L)
+    bi = r.get("basic_info") or {}
+    s = r.get("summary") or {}
+    if bi:
+        L += ["## 기본 정보"] + [f"- {lab}: {bi.get(k)}" for k, lab in
+                                (("project", "프로젝트"), ("date", "일시"), ("participants", "참석"),
+                                 ("decision_maker", "의사결정자"), ("meeting_type", "회의 유형"),
+                                 ("purpose", "목적")) if bi.get(k)] + [""]
+    if s:
+        L += ["## Summary"]
+        if s.get("purpose"): L.append(f"- 목적: {s['purpose']}")
+        for d in (s.get("key_decisions") or []): L.append(f"- 결정: {d}")
+        for c in (s.get("key_changes") or []): L.append(f"- 변경: {c}")
+        if s.get("top_action"): L.append(f"- 최우선 실행: {s['top_action']}")
+        for k in (s.get("risks") or []): L.append(f"- 리스크: {k}")
+        L.append("")
+    if r.get("decisions"):
+        L += ["## 결정사항"] + [f"- **{d.get('title', '')}**: {d.get('decision', '')}"
+                              + (f" (근거: {d['reason']})" if d.get("reason") else "")
+                              for d in r["decisions"]] + [""]
+    if r.get("changes"):
+        L += ["## 변경사항"] + [f"- {c.get('before', '')} → {c.get('after', '')}" for c in r["changes"]] + [""]
+    if r.get("discussions"):
+        L += ["## 논의사항"] + [f"- **{d.get('topic', '')}**: {d.get('points', '')}"
+                              + (f" → {d['conclusion']}" if d.get("conclusion") else "")
+                              for d in r["discussions"]] + [""]
+    if r.get("todos"):
+        L += ["## To-Do"] + [f"- [P{t.get('priority', 3)}] {t.get('task', '')}"
+                             f" (담당: {t.get('owner') or '확인 필요'} / 기한: {t.get('due') or '확인 필요'}"
+                             + (f" / 산출물: {t['output']}" if t.get("output") else "") + ")"
+                             for t in r["todos"]] + [""]
+    if r.get("support"):
+        L += ["## 지원 요청"] + [f"- [{x.get('type', '')}] {x.get('target', '')}: {x.get('request', '')}"
+                               for x in r["support"]] + [""]
+    if r.get("risks"):
+        L += ["## 리스크"] + [f"- [{x.get('category', '기타')}] {x.get('detail', '')}" for x in r["risks"]] + [""]
+    if r.get("to_verify"):
+        L += ["## 추가 확인 필요"] + [f"- {x}" for x in r["to_verify"]] + [""]
+    ns = r.get("next_steps") or {}
+    if any(ns.get(k) for k in ("immediate", "before_next_meeting", "next_decisions", "next_milestones")):
+        L += ["## 다음 단계"]
+        for k, lab in (("immediate", "즉시"), ("before_next_meeting", "다음 회의 전"),
+                       ("next_decisions", "다음 결정"), ("next_milestones", "마일스톤")):
+            for x in (ns.get(k) or []): L.append(f"- [{lab}] {x}")
+        L.append("")
+    if r.get("closing_note"):
+        L += ["## 총평", str(r["closing_note"]), ""]
+    return "\n".join(L)
+
+def _bg_propose(pid, doc_ts, doc_title, who, text):
+    """제출 문서 기반 브리프 갱신안 생성(백그라운드 스레드) → p['pendingBrief'] 승인 대기열.
+    LLM 실패해도 문서는 이미 저장돼 있음 — error로 기록만."""
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    try:
+        p = get_project(pid)
+        if not p:
+            return
+        changes = _propose_brief_changes(p, doc_title, text[:30000])
+    except Exception:
+        changes = None
+    if changes == []:
+        return  # 갱신 제안 없음 — 대기열에 올릴 것 없음
+    entry = {"ts": now, "docTs": doc_ts, "docTitle": doc_title, "by": who,
+             "status": "pending" if changes else "error", "changes": changes or []}
+    def _upd(pp):
+        q = pp.setdefault("pendingBrief", [])
+        q.append(entry)
+        # pending은 전부 유지, 처리 완료(applied/dismissed/error)는 최근 20건만
+        done = [x for x in q if x.get("status") != "pending"][-20:]
+        pend = [x for x in q if x.get("status") == "pending"]
+        pp["pendingBrief"] = sorted(pend + done, key=lambda x: x.get("ts") or "")
+    try:
+        _mutate_project(pid, _upd)
+    except Exception:
+        pass
 
 # ── 분장 ↔ 프로젝트 포트폴리오 연동 ──────────────────────────
 # 상태·우선순위 정의 단일출처: shared/status.py (G2 — 값 불변, 정의만 이동)
@@ -3488,6 +3747,9 @@ class H(BaseHTTPRequestHandler):
             return
         if path == "/api/health":
             return self._send(200, {"ok": True})
+        if path == "/api/me":
+            # 쿠키 세션 신원 확인 — 시뮬레이터(공개 페이지)의 제출 UI가 자기 이름을 알기 위함
+            return self._send(200, {"ok": True, "name": sess.get("name"), "admin": bool(sess.get("admin"))})
         if path == "/api/assignees":
             # 계층적 분장 후보 — 대표=리더급, 리더=자기 팀원 + 타팀 리더(이관)
             uid = (q.get("user") or [""])[0]
@@ -3849,7 +4111,8 @@ class H(BaseHTTPRequestHandler):
             text = _extract_file_text(name, data)
             if not text or not text.strip():
                 return self._send(400, {"ok": False, "error":
-                                        "텍스트를 추출하지 못했습니다. txt/md/html/docx 파일만 지원합니다 (PDF는 내용 복사해서 붙여넣어 주세요)."})
+                                        "텍스트를 추출하지 못했습니다. txt/md/html/docx/xlsx 파일만 지원합니다 "
+                                        "(PDF는 내용 복사해 붙여넣기, 구형 .xls는 .xlsx로 다시 저장해 주세요)."})
             return self._send(200, {"ok": True, "text": text.strip()[:100000]})
         if path == "/api/simulator/meeting-summary":
             # 회의분석(일반) — 직원용 GPT 써머리. 동기 30~60초 (LLM 1회)
@@ -3867,6 +4130,47 @@ class H(BaseHTTPRequestHandler):
             if not result:
                 return self._send(500, {"ok": False, "error": "AI 분석에 실패했습니다. 다시 시도해주세요."})
             return self._send(200, {"ok": True, "result": result})
+        if path == "/api/simulator/submit-doc":
+            # 시뮬레이터 결과(회의분석·기획안) → 프로젝트 문서함 제출 (2026-07-22)
+            # 제출=열람 권한자 누구나. 제출자는 쿠키 세션에서 강제(스푸핑 불가).
+            # 문서 저장 즉시 응답, 브리프 갱신안 생성은 백그라운드 → pendingBrief 승인 대기열.
+            who = sess.get("name") or ""
+            if not who:
+                return self._send(401, {"ok": False, "error": "로그인이 필요합니다. 아리사 OS에서 다시 로그인해주세요."})
+            pid = (b.get("pid") or "").strip()
+            dtype = b.get("type")
+            result = b.get("result")
+            if dtype not in ("meeting", "brief") or not isinstance(result, dict) or not result:
+                return self._send(400, {"ok": False, "error": "제출 데이터 형식 오류(type/result)"})
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_view(who, p):
+                return self._send(403, {"ok": False, "error": "이 프로젝트에 제출 권한이 없습니다."})
+            now = datetime.datetime.now()
+            ts = now.strftime("%Y%m%d-%H%M%S")
+            fields = b.get("fields") if isinstance(b.get("fields"), dict) else {}
+            title = ((b.get("title") or "").strip() or str(result.get("title_guess") or "").strip()
+                     or str(fields.get("title") or "").strip()
+                     or f"{'회의록' if dtype == 'meeting' else '기획안'} {now.strftime('%Y-%m-%d')}")[:100]
+            doc = {"ts": ts, "type": dtype, "title": title, "by": who,
+                   "submitted_at": now.isoformat(timespec="seconds"), "pid": _safe(pid),
+                   "result": result,
+                   "source": ({"transcript": (b.get("transcript") or "")[:60000]}
+                              if dtype == "meeting" else {"fields": fields})}
+            md = _render_submitted_md(doc)
+            ddir = DOC_DIR / _safe(pid)
+            ddir.mkdir(parents=True, exist_ok=True)
+            (ddir / f"{ts}.json").write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+            (ddir / f"{ts}.md").write_text(md, encoding="utf-8")
+            def _add_doc(pp):
+                pp.setdefault("docs", []).append({"ts": ts, "title": title, "by": who,
+                                                  "chars": len(md), "type": dtype, "src": "simulator"})
+            if _mutate_project(pid, _add_doc) is None:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            threading.Thread(target=_bg_propose, args=(pid, ts, title, who, md), daemon=True).start()
+            return self._send(200, {"ok": True, "doc": {"ts": ts, "title": title},
+                                    "note": "브리프 갱신안을 생성해 PM 승인 대기열에 올립니다."})
         if path == "/api/simulator/draft":
             sim_mode = b.get("mode", "daily")
             text = (b.get("text") or "").strip()
@@ -4230,33 +4534,11 @@ class H(BaseHTTPRequestHandler):
                                            encoding="utf-8")
             p.setdefault("docs", []).append({"ts": ts, "title": title, "by": uid, "chars": len(text)})
             save_project(p)
-            # ② LLM 갱신 제안
-            brief = p.get("brief") or {}
-            cur = {k: (brief.get(k) if k not in ("start", "end", "dday", "status")
-                       else (brief.get(k) or p.get(k) or "")) for k in _BRIEF_AI_FIELDS}
-            sys_p = ("당신은 프로젝트 브리프 관리자다. 새 자료(회의록·문서)에 명시적 근거가 있는 필드만 갱신을 제안한다. "
-                     "자료에 근거가 없으면 절대 제안하지 않는다. 기존 값이 더 구체적이면 유지한다. 날짜는 YYYY-MM-DD. "
-                     "status는 " + "/".join(_ST.BRIEF_STATES) + " 중 하나. "
-                     "갱신 대상 필드와 의미: " + ", ".join(f"{k}({v})" for k, v in _BRIEF_AI_FIELDS.items()) + ". "
-                     "텍스트 필드는 기존 내용에 새 정보를 통합한 완성된 최신 값을 after로 작성(단순 요약 금지, 한국어). "
-                     '반드시 JSON만 반환: {"changes":[{"field":"...","after":"...","basis":"자료 속 근거 한 줄"}]}')
-            user_p = ("[현재 브리프]\n" + json.dumps(cur, ensure_ascii=False) +
-                      "\n\n[새 자료: " + title + "]\n" + text)
-            res = _call_llm_json(sys_p, user_p, max_tokens=3000)
-            if res is None:
+            # ② LLM 갱신 제안 (공용 헬퍼 — 시뮬레이터 제출 백그라운드와 동일 로직)
+            changes = _propose_brief_changes(p, title, text)
+            if changes is None:
                 return self._send(200, {"ok": True, "doc": {"ts": ts, "title": title}, "changes": [],
                                         "error": "AI 분석 실패 — 자료는 저장되었습니다. 잠시 후 다시 시도하세요."})
-            changes = []
-            for c in (res.get("changes") or []):
-                f = (c.get("field") or "").strip()
-                if f not in _BRIEF_AI_FIELDS:
-                    continue
-                after = str(c.get("after") or "").strip()
-                before = str(cur.get(f) or "").strip()
-                if not after or after == before:
-                    continue
-                changes.append({"field": f, "label": _BRIEF_AI_FIELDS[f], "before": before,
-                                "after": after, "basis": str(c.get("basis") or "")[:200]})
             return self._send(200, {"ok": True, "doc": {"ts": ts, "title": title},
                                     "changes": changes, "truncated": truncated})
         if path == "/api/project/doc-apply":
@@ -4290,6 +4572,59 @@ class H(BaseHTTPRequestHandler):
             p["changelog"] = p["changelog"][-100:]  # 최근 100건 유지
             save_project(p)
             return self._send(200, {"ok": True, "applied": len(entry["changes"]), "project": p})
+        if path == "/api/project/proposal-apply":
+            # 시뮬레이터 제출 문서의 브리프 갱신안 승인/기각 — PM·대표
+            # body: {id, docTs, action: "apply"|"dismiss", fields: [선택 필드, 생략=전체]}
+            # 제안 식별은 docTs(초 단위, 제출 문서당 1건) — 분 단위 ts는 동시 제안 시 충돌
+            pid = (b.get("id") or "").strip()
+            prop_key = (b.get("docTs") or "").strip()
+            action = b.get("action") or "apply"
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_edit(uid, p):
+                return self._send(403, {"ok": False, "error": "승인 권한 없음(담당 PM·대표만)"})
+            now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            chosen = set(b.get("fields") or [])
+            out = {"applied": 0}
+            def _decide(pp):
+                prop = next((x for x in (pp.get("pendingBrief") or [])
+                             if x.get("docTs") == prop_key and x.get("status") == "pending"), None)
+                if not prop:
+                    out["missing"] = True
+                    return False
+                prop["decidedBy"] = uid
+                prop["decidedAt"] = now
+                if action == "dismiss":
+                    prop["status"] = "dismissed"
+                    return
+                # 적용값은 클라이언트가 아닌 저장된 제안에서 취함 (감사 무결성)
+                brief = pp.setdefault("brief", {})
+                entry = {"ts": now, "by": uid, "doc": prop.get("docTitle") or "",
+                         "docTs": prop.get("docTs") or "", "proposedBy": prop.get("by") or "", "changes": []}
+                for c in (prop.get("changes") or []):
+                    f = (c.get("field") or "").strip()
+                    if f not in _BRIEF_AI_FIELDS or (chosen and f not in chosen):
+                        continue
+                    after = str(c.get("after") or "").strip()
+                    before = str(brief.get(f) or pp.get(f) or "").strip()
+                    if not after or after == before:
+                        continue
+                    entry["changes"].append({"field": f, "label": _BRIEF_AI_FIELDS[f],
+                                             "before": before, "after": after,
+                                             "basis": str(c.get("basis") or "")[:200]})
+                    brief[f] = after
+                    if f in ("start", "end", "dday", "status"):
+                        pp[f] = after   # 카드·간트가 쓰는 top-level 동기화
+                prop["status"] = "applied"
+                if entry["changes"]:
+                    pp.setdefault("changelog", []).append(entry)
+                    pp["changelog"] = pp["changelog"][-100:]
+                out["applied"] = len(entry["changes"])
+            p2 = _mutate_project(pid, _decide)
+            if out.get("missing") or p2 is None:
+                return self._send(404, {"ok": False, "error": "대기 중인 갱신안이 없습니다(이미 처리됐을 수 있음)."})
+            return self._send(200, {"ok": True, "action": action, "applied": out["applied"], "project": p2})
         if path == "/api/assign-bulk-delete":
             # 체크리스트 일괄 삭제 — 스냅샷 1회 검증 후 행별 '삭제' 마킹 (+포트폴리오 제거)
             items = b.get("items") or []

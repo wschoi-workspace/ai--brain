@@ -1505,11 +1505,35 @@ function renderDocLog(){
   const p=CURRENT_PROJECT||{};
   const docs=(p.docs||[]).slice().reverse();  // 전체 아카이브 (최신순)
   const logs=(p.changelog||[]).slice(-15).reverse();
-  if(!docs.length && !logs.length){
-    el.innerHTML='<div class="bs-empty">아직 업로드된 자료·변경 이력이 없습니다. 상단 [📎 자료 업데이트]로 회의록을 올리면 브리프가 자료 기반으로 갱신됩니다.</div>';
+  const pend=(p.pendingBrief||[]).filter(x=>x.status==='pending');
+  if(!docs.length && !logs.length && !pend.length){
+    el.innerHTML='<div class="bs-empty">아직 업로드된 자료·변경 이력이 없습니다. 상단 [📎 자료 업데이트]로 회의록을 올리거나, 문서 시뮬레이터에서 회의록·기획안을 이 프로젝트로 제출하면 여기에 축적됩니다.</div>';
     return;
   }
   let h='';
+  if(pend.length){
+    // 시뮬레이터 제출 문서 기반 AI 브리프 갱신안 — PM·대표 승인 대기열
+    h+='<div class="lab">⏳ 브리프 갱신 승인 대기 '+pend.length+'건'
+      +(CURRENT_CAN_EDIT?'':' <span style="font-weight:400;color:var(--fg-3)">(승인은 담당 PM·대표만)</span>')+'</div>';
+    pend.forEach((pr,pi)=>{
+      h+=`<div style="background:var(--bg-2);border:1px solid var(--accent);border-radius:8px;padding:9px 11px;margin-bottom:8px;font-size:12px">
+        <div style="color:var(--fg-3);font-size:10.5px;margin-bottom:5px">${esc(pr.ts||'')} · 제안 ${esc(pr.by||'')} · 📄 ${esc(pr.docTitle||'')}</div>`
+        +(pr.changes||[]).map(c=>
+          `<label style="display:block;margin-bottom:5px;cursor:${CURRENT_CAN_EDIT?'pointer':'default'};line-height:1.5">`
+          +(CURRENT_CAN_EDIT?`<input type="checkbox" class="pb-chk" data-p="${pi}" data-f="${esc(c.field)}" checked style="accent-color:var(--accent);margin-right:6px">`:'')
+          +`<b>${esc(c.label)}</b><div style="margin:2px 0 0 ${CURRENT_CAN_EDIT?20:0}px">
+            <span style="color:var(--fg-3);text-decoration:line-through">${esc((c.before||'(비어있음)').slice(0,120))}</span><br>
+            <span style="color:var(--accent-lt)">→ ${esc(c.after)}</span>
+            ${c.basis?`<div style="color:var(--fg-3);font-size:10.5px;margin-top:2px">근거: ${esc(c.basis)}</div>`:''}
+          </div></label>`).join('')
+        +(CURRENT_CAN_EDIT?`<div style="display:flex;gap:6px;margin-top:6px">
+            <button class="btn primary" style="font-size:11px;padding:4px 12px" onclick="proposalApply('${esc(pr.docTs)}',${pi},'apply')">선택 적용</button>
+            <button class="btn" style="font-size:11px;padding:4px 12px" onclick="proposalApply('${esc(pr.docTs)}',${pi},'dismiss')">기각</button>
+          </div>`:'')
+        +'</div>';
+    });
+    h+='<div style="margin-bottom:10px"></div>';
+  }
   if(docs.length){
     // 날짜별 아카이브 — 클릭하면 원문 열람
     const byDate={};
@@ -1519,7 +1543,7 @@ function renderDocLog(){
     Object.keys(byDate).forEach(day=>{
       h+=`<div style="margin:7px 0 4px;font-size:10.5px;color:var(--fg-3);font-weight:600">${esc(day)}</div>`
         +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-        +byDate[day].map(d=>`<a onclick="openDocView('${esc(d.ts)}')" style="cursor:pointer;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--fg-2)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">📄 ${esc(d.title)} <span style="color:var(--fg-3)">${esc((d.ts||'').slice(9,11))}:${esc((d.ts||'').slice(11,13))} · ${esc(d.by||'')}</span></a>`).join('')
+        +byDate[day].map(d=>`<a onclick="openDocView('${esc(d.ts)}')" style="cursor:pointer;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--fg-2)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">${d.type==='meeting'?'🎙':d.type==='brief'?'📋':'📄'} ${esc(d.title)} <span style="color:var(--fg-3)">${esc((d.ts||'').slice(9,11))}:${esc((d.ts||'').slice(11,13))} · ${esc(d.by||'')}</span></a>`).join('')
         +'</div>';
     });
     h+='<div style="margin-bottom:10px"></div>';
@@ -1527,11 +1551,27 @@ function renderDocLog(){
   if(logs.length){
     h+='<div class="lab">변경 이력</div>'+logs.map(e=>
       `<div style="font-size:11.5px;line-height:1.6;padding:7px 0;border-top:1px solid var(--line)">
-        <span style="color:var(--fg-3)">${esc(e.ts)} · ${esc(e.by)}${e.doc?' · 📄 '+esc(e.doc):''}</span><br>`
+        <span style="color:var(--fg-3)">${esc(e.ts)} · 승인 ${esc(e.by)}${e.proposedBy&&e.proposedBy!==e.by?' · 제안 '+esc(e.proposedBy):''}${e.doc?' · 📄 '+esc(e.doc):''}</span><br>`
       +e.changes.map(c=>`<b style="color:var(--fg-2)">${esc(c.label)}</b>: <span style="color:var(--fg-3)" title="${esc(c.before)}">${esc((c.before||'(비어있음)').slice(0,40))}</span> <span style="color:var(--accent-lt)" title="${esc(c.after)}">→ ${esc(c.after.slice(0,60))}</span>`).join('<br>')
       +'</div>').join('');
   }
   el.innerHTML=h;
+}
+async function proposalApply(docTs,pi,action){
+  // 시뮬레이터 제출 문서의 브리프 갱신안 승인/기각 — PM·대표. 식별키=docTs(제출 문서당 1건)
+  if(!CURRENT_CAN_EDIT){ alert('승인은 담당 PM·대표만 가능합니다.'); return; }
+  let fields=[];
+  if(action==='apply'){
+    fields=[...document.querySelectorAll(`#doc-log .pb-chk[data-p="${pi}"]:checked`)].map(c=>c.dataset.f);
+    if(!fields.length){ alert('적용할 항목을 선택하세요.'); return; }
+  } else if(!confirm('이 갱신안을 기각할까요? (제출 문서는 아카이브에 보존됩니다)')) return;
+  const r=await apiPost('/project/proposal-apply',{user:CURRENT_USER,pin:CURRENT_PIN,
+    id:CURRENT_PROJECT.id,docTs,action,fields});
+  if(!r.ok){ alert(r.error||'처리 실패'); return; }
+  CURRENT_PROJECT=r.project;
+  if(action==='apply'){ state.brief=Object.assign({},r.project.brief); syncBriefInputs(); render(); }
+  renderDocLog();
+  alert(action==='apply'?('✅ '+r.applied+'개 필드가 갱신 적용되었습니다. (변경 이력 기록)'):'갱신안을 기각했습니다.');
 }
 async function saveCurrentProject(){
   if(!CURRENT_PROJECT){ alert('열린 프로젝트가 없습니다.'); return; }
