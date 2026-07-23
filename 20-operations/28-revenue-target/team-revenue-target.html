@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>파트별 목표매출 설계 — 인건비 × 배수 모델</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0d12; --panel:#16161f; --panel2:#1d1d29; --line:#2a2a38;
+  --ink:#f3f3f7; --ink2:#a8a8b8; --ink3:#6c6c80;
+  --brand:#6C5CE7; --brand2:#8b7cf0; --brand-dim:#6C5CE733;
+  --biz:#00b894; --space:#e17055; --plan:#0984e3;
+  --warn:#e74c3c; --ok:#00b894; --gold:#fdcb6e;
+  --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Pretendard',-apple-system,sans-serif;
+  line-height:1.55;padding:32px 24px 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto}
+h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+h1 .accent{color:var(--brand2)}
+.sub{color:var(--ink2);font-size:14px;margin-bottom:4px}
+.meta{color:var(--ink3);font-size:12px;margin-bottom:28px}
+.grid{display:grid;gap:20px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+.panel h2{font-size:13px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.panel h2::before{content:"";width:3px;height:14px;background:var(--brand);border-radius:2px}
+
+/* controls */
+.controls{grid-template-columns:1fr 1fr;margin-bottom:20px}
+.ctrl-row{display:flex;flex-direction:column;gap:14px}
+.ctrl{display:flex;flex-direction:column;gap:7px}
+.ctrl label{font-size:13px;color:var(--ink2);display:flex;justify-content:space-between;align-items:baseline}
+.ctrl label b{color:var(--brand2);font-size:15px;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;background:var(--panel2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--brand);cursor:pointer;border:3px solid #fff2}
+input[type=number]{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 11px;font-size:14px;font-family:inherit;width:100%}
+input[type=number]:focus{border-color:var(--brand);outline:none}
+.hint{font-size:11px;color:var(--ink3)}
+.toggle{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink2);cursor:pointer;user-select:none}
+.seg{display:inline-flex;background:var(--panel2);border-radius:9px;padding:3px;gap:2px}
+.seg button{background:none;border:none;color:var(--ink2);font-family:inherit;font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer}
+.seg button.on{background:var(--brand);color:#fff;font-weight:600}
+
+/* part cards */
+.parts{grid-template-columns:repeat(3,1fr);margin-bottom:20px}
+.pcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
+.pcard::before{content:"";position:absolute;top:0;left:0;right:0;height:3px}
+.pcard.biz::before{background:var(--biz)} .pcard.space::before{background:var(--space)} .pcard.plan::before{background:var(--plan)}
+.pcard .pname{font-size:15px;font-weight:800;margin-bottom:2px}
+.pcard .pcount{font-size:11px;color:var(--ink3);margin-bottom:16px}
+.metric{margin-bottom:12px}
+.metric .k{font-size:11px;color:var(--ink3);letter-spacing:.03em}
+.metric .v{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.metric .v.big{font-size:27px;color:var(--brand2)}
+.metric .vsub{font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.divider{height:1px;background:var(--line);margin:14px 0}
+.mult-badge{position:absolute;top:16px;right:16px;font-size:11px;background:var(--brand-dim);color:var(--brand2);padding:3px 9px;border-radius:20px;font-weight:700}
+.members{font-size:11px;color:var(--ink3);line-height:1.7;margin-top:10px}
+
+/* waterfall */
+.wf-row{display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid var(--line)}
+.wf-row:last-child{border-bottom:none}
+.wf-label{flex:0 0 210px;font-size:13px;color:var(--ink2)}
+.wf-bar-wrap{flex:1;height:26px;background:var(--panel2);border-radius:6px;position:relative;overflow:hidden}
+.wf-bar{height:100%;border-radius:6px;transition:width .3s}
+.wf-val{flex:0 0 130px;text-align:right;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.wf-row.total{margin-top:6px;padding-top:14px;border-top:2px solid var(--line)}
+.wf-row.total .wf-label{font-weight:700;color:var(--ink);font-size:14px}
+.wf-row.total .wf-val{font-size:18px}
+
+.callout{border-radius:12px;padding:16px 18px;margin-top:18px;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.callout.ok{background:#00b89418;border:1px solid #00b89455}
+.callout.warn{background:#e74c3c18;border:1px solid #e74c3c55}
+.callout .ico{font-size:18px}
+.callout b{font-variant-numeric:tabular-nums}
+
+/* donut + productivity */
+.two{grid-template-columns:340px 1fr;align-items:start}
+.donut-wrap{display:flex;flex-direction:column;align-items:center;gap:16px}
+.legend{display:flex;flex-direction:column;gap:8px;width:100%}
+.leg{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink2)}
+.leg .dot{width:11px;height:11px;border-radius:3px}
+.leg .lv{margin-left:auto;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.prod-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.prod-row:last-child{border-bottom:none}
+.prod-name{flex:0 0 150px;font-size:13px}
+.prod-name .tag{font-size:10px;padding:2px 7px;border-radius:5px;margin-left:6px;font-weight:700}
+.prod-bar-wrap{flex:1;height:22px;background:var(--panel2);border-radius:6px;overflow:hidden}
+.prod-bar{height:100%;border-radius:6px}
+.prod-val{flex:0 0 120px;text-align:right;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+
+footer{margin-top:36px;padding:22px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)}
+footer h3{font-size:12px;color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+footer ul{list-style:none;font-size:12px;color:var(--ink3);line-height:1.9}
+footer li::before{content:"·";color:var(--brand);margin-right:8px;font-weight:700}
+.credit{text-align:right;color:var(--ink3);font-size:11px;margin-top:20px}
+@media(max-width:900px){.controls,.parts,.two{grid-template-columns:1fr}.wf-label{flex-basis:130px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>파트별 <span class="accent">목표매출</span> 설계 모델</h1>
+  <p class="sub">인건비(연봉 기준) × 배수 → 파트별 기대 순매출 · 법인(R/F) 통합 총비용 관점</p>
+  <p class="meta">데이터 스냅샷: 인사기록카드 마스터 2026 / source_hr CSV · 실무진 10명 + 공통비(임원·감사) · 갱신 시 SSOT 수정</p>
+
+  <!-- CONTROLS -->
+  <div class="grid controls">
+    <div class="panel">
+      <h2>배수 & 파트 설정</h2>
+      <div class="ctrl-row">
+        <div class="ctrl">
+          <label>전역 인건비 배수 (순매출) <b id="multLabel">2.20×</b></label>
+          <input type="range" id="mult" min="1.5" max="3.0" step="0.05" value="2.2">
+          <span class="hint">인건비 1.0을 커버하고 남는 마진으로 공통비·고정비·이익을 감당. 기본 2.2×</span>
+        </div>
+        <div class="ctrl">
+          <label class="toggle"><input type="checkbox" id="김도영토글"> 김도영을 <b style="color:var(--space)">공간</b>으로 이동 (기본: 사업기획)</label>
+          <span class="hint">확정: 사업기획(비즈니스) 파트. What-if로 공간 배정 시뮬레이션 가능</span>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>비용 입력</h2>
+      <div class="ctrl-row">
+        <div class="ctrl">
+          <label class="toggle"><input type="checkbox" id="ohExclude"> 임원·감사(<b style="color:var(--gold)">최원석·안윤숙</b>) 공통비 제외</label>
+          <span class="hint">체크 시 공통 간접비 154.5M를 워터폴에서 제외 — 실무 3파트 마진만으로 손익 검토</span>
+        </div>
+        <div class="ctrl">
+          <label>임차료·판관비·기타 연 고정비 (원)</label>
+          <input type="number" id="opex" value="0" step="10000000">
+          <span class="hint">임원/감사 인건비는 위 토글로 관리. 여기엔 임대료·마케팅·기타만 입력(원 단위)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PART CARDS -->
+  <div class="grid parts" id="partCards"></div>
+
+  <!-- WATERFALL -->
+  <div class="grid" style="grid-template-columns:1fr;margin-bottom:20px">
+    <div class="panel">
+      <h2>전사 순매출 워터폴 — 배수 마진이 공통비를 커버하는가</h2>
+      <div id="waterfall"></div>
+      <div id="callout"></div>
+    </div>
+  </div>
+
+  <!-- DONUT + PRODUCTIVITY -->
+  <div class="grid two">
+    <div class="panel">
+      <h2>파트별 목표 비중</h2>
+      <div class="donut-wrap">
+        <svg width="200" height="200" viewBox="0 0 200 200" id="donut"></svg>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>파트별 생산성 — 인당 목표순매출 (연)</h2>
+      <div id="productivity"></div>
+      <div style="margin-top:16px;padding:14px;background:var(--panel2);border-radius:10px;font-size:12px;color:var(--ink3)">
+        인당 목표순매출 = 파트 목표순매출 ÷ 파트 인원. 파트 간 부가가치 밀도를 비교하는 지표.
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <h3>가정 & 주석</h3>
+    <ul id="notes">
+      <li><b>인건비 기준</b>: 급여CSV '연봉' 필드 (월총급여×12 아님). 전제훈 64.0M 현행값 사용.</li>
+      <li><b>법인 통합</b>: 프로젝트렌트 R + 필라멘트앤코 F 구분 없이 단일 비용 풀로 합산. 대표 보수 두 법인 합산(144.6M).</li>
+      <li><b>공통 간접비</b>: 임원(최원석 144.6M) + 감사(안윤숙 9.88M) = 154.5M. 3파트 배수에서 제외, 전사 워터폴에만 반영.</li>
+      <li><b>명단</b>: 마스터 시트 실무진 10명(윤혜정 포함). 원유경·조나연은 퇴사자로 제외 확정.</li>
+      <li><b>파트 배정(확정)</b>: 김도영 → 사업기획(비즈니스). 김준호 연봉 2,800만원 확정.</li>
+      <li><b>배수 2.2 = 순매출 기준(확정)</b>: 외주/직접원가를 제외한 순매출 목표. 총매출 역산은 미적용.</li>
+    </ul>
+    <p class="credit">by Project Rent · 파트별 목표매출 설계 모델 v1</p>
+  </footer>
+</div>
+
+<script>
+// ===== SSOT: 법인 구분 없이 통합. team은 기능 분류. =====
+const STAFF = [
+  {name:'배성원', part:'biz',   base:100000000, role:'Business Lead (C)'},
+  {name:'전제훈', part:'space', base:64000000,  role:'Space Design Lead (C)'},
+  {name:'김가은', part:'space', base:45000000,  role:'Senior 공간'},
+  {name:'김예진', part:'space', base:30000000,  role:'Junior 공간'},
+  {name:'김도영', part:'biz',   base:50000000,  role:'사업기획 Senior', movable:true},
+  {name:'윤혜정', part:'plan',  base:42000000,  role:'운영·기획 총괄 Lead'},
+  {name:'양은정', part:'plan',  base:28000000,  role:'운영 Manager'},
+  {name:'김준호', part:'plan',  base:28000000,  role:'운영 Manager'},
+  {name:'양지혜', part:'plan',  base:30000000,  role:'Junior 기획'},
+  {name:'정예은', part:'plan',  base:30000000,  role:'Junior 기획'},
+];
+const OVERHEAD = 154480000; // 최원석 144.6M + 안윤숙 9.88M
+const PARTS = {
+  biz:  {label:'비즈니스',  color:'var(--biz)',   css:'biz'},
+  space:{label:'공간',      color:'var(--space)', css:'space'},
+  plan: {label:'기획/운영', color:'var(--plan)',  css:'plan'},
+};
+const fmtM = v => (v/1e6).toLocaleString('ko-KR',{maximumFractionDigits:1});
+const fmtW = v => Math.round(v/1e4).toLocaleString('ko-KR'); // 만원
+
+function compute(){
+  const mult = parseFloat(document.getElementById('mult').value);
+  const opex = parseFloat(document.getElementById('opex').value)||0;
+  const moveKDY = document.getElementById('김도영토글').checked;
+  const excludeOH = document.getElementById('ohExclude').checked;
+  const oh = excludeOH ? 0 : OVERHEAD;
+
+  const staff = STAFF.map(s=>{
+    let base=s.base, part=s.part;
+    if(s.name==='김도영'&&moveKDY) part='space';
+    return {...s, base, part};
+  });
+
+  const parts={};
+  for(const k of Object.keys(PARTS)) parts[k]={payroll:0,members:[]};
+  staff.forEach(s=>{parts[s.part].payroll+=s.base;parts[s.part].members.push(s);});
+  for(const k of Object.keys(parts)){
+    const p=parts[k];
+    p.target = p.payroll*mult;
+    p.count = p.members.length;
+    p.perHead = p.count? p.target/p.count : 0;
+  }
+  const totalPayroll = staff.reduce((a,s)=>a+s.base,0);
+  const totalTarget  = Object.values(parts).reduce((a,p)=>a+p.target,0);
+  const marginPool   = totalTarget - totalPayroll;
+  const afterOH      = marginPool - oh;
+  const operating    = afterOH - opex;
+
+  return {mult,parts,totalPayroll,totalTarget,marginPool,afterOH,operating,opex,oh,excludeOH,staff};
+}
+
+function render(){
+  const d=compute();
+  document.getElementById('multLabel').textContent=d.mult.toFixed(2)+'×';
+
+  // part cards
+  const order=['plan','space','biz'];
+  document.getElementById('partCards').innerHTML=order.map(k=>{
+    const p=d.parts[k],m=PARTS[k];
+    const mem=p.members.map(s=>s.name+(s.est?'*':'')).join(' · ');
+    return `<div class="pcard ${m.css}">
+      <div class="mult-badge">${d.mult.toFixed(2)}×</div>
+      <div class="pname">${m.label}</div>
+      <div class="pcount">실무 ${p.count}명</div>
+      <div class="metric"><div class="k">파트 인건비 (연봉 합)</div><div class="v">${fmtM(p.payroll)}<span style="font-size:14px;color:var(--ink3)">M</span></div></div>
+      <div class="divider"></div>
+      <div class="metric"><div class="k">목표 순매출 (연)</div><div class="v big">${fmtM(p.target)}<span style="font-size:16px">M</span></div></div>
+      <div class="metric"><div class="k">분기 / 월 환산</div><div class="vsub">분기 ${fmtM(p.target/4)}M &nbsp;·&nbsp; 월 ${fmtM(p.target/12)}M</div></div>
+      <div class="members">${mem}</div>
+    </div>`;
+  }).join('');
+
+  // waterfall
+  const steps=[
+    {label:'3파트 목표순매출 합', val:d.totalTarget, color:'var(--brand)', type:'pos'},
+    {label:'− 실무 인건비', val:-d.totalPayroll, color:'#5a5a70', type:'neg'},
+    {label:'= 마진 풀', val:d.marginPool, color:'var(--brand2)', type:'sub'},
+    {label:d.excludeOH?'− 공통 간접비 (제외됨)':'− 공통 간접비 (임원·감사)', val:-d.oh, color:'var(--gold)', type:'neg'},
+    {label:'− 임차료·판관비·기타', val:-d.opex, color:'#e17055', type:'neg'},
+  ];
+  const maxV=d.totalTarget;
+  let wf=steps.map(s=>{
+    const w=Math.min(100,Math.abs(s.val)/maxV*100);
+    return `<div class="wf-row">
+      <div class="wf-label">${s.label}</div>
+      <div class="wf-bar-wrap"><div class="wf-bar" style="width:${w}%;background:${s.color}"></div></div>
+      <div class="wf-val" style="color:${s.type==='neg'?'var(--ink2)':'var(--ink)'}">${s.val<0?'−':''}${fmtM(Math.abs(s.val))}M</div>
+    </div>`;
+  }).join('');
+  const opColor = d.operating>=0?'var(--ok)':'var(--warn)';
+  wf+=`<div class="wf-row total">
+    <div class="wf-label">= 영업이익 (추정)</div>
+    <div class="wf-bar-wrap"><div class="wf-bar" style="width:${Math.min(100,Math.abs(d.operating)/maxV*100)}%;background:${opColor}"></div></div>
+    <div class="wf-val" style="color:${opColor}">${d.operating<0?'−':''}${fmtM(Math.abs(d.operating))}M</div>
+  </div>`;
+  document.getElementById('waterfall').innerHTML=wf;
+
+  // callout
+  const co=document.getElementById('callout');
+  const ohTxt = d.excludeOH ? '공통 간접비(임원·감사 제외)' : `공통 간접비 <b>${fmtM(d.oh)}M</b>`;
+  if(d.afterOH>=0){
+    co.innerHTML=`<div class="callout ok"><span class="ico">✓</span><div>배수 ${d.mult.toFixed(2)}×의 마진 풀(<b>${fmtM(d.marginPool)}M</b>)이 ${ohTxt}를 커버하고 <b>${fmtM(d.afterOH)}M</b>이 남습니다. 이 잔여로 고정비·이익을 감당.</div></div>`;
+  }else{
+    const need=(d.totalPayroll+d.oh)/d.totalPayroll;
+    co.innerHTML=`<div class="callout warn"><span class="ico">⚠</span><div>마진 풀(<b>${fmtM(d.marginPool)}M</b>)이 ${ohTxt}에 <b>${fmtM(-d.afterOH)}M</b> 부족. 커버하려면 최소 배수 <b>${need.toFixed(2)}×</b> 필요.</div></div>`;
+  }
+
+  // donut
+  const dt=Object.values(d.parts).reduce((a,p)=>a+p.target,0);
+  let acc=0; const R=80,C=2*Math.PI*R;
+  const donut=order.map(k=>{
+    const p=d.parts[k],frac=dt?p.target/dt:0;
+    const seg=`<circle r="${R}" cx="100" cy="100" fill="none" stroke="${PARTS[k].color}" stroke-width="30"
+      stroke-dasharray="${frac*C} ${C}" stroke-dashoffset="${-acc*C}" transform="rotate(-90 100 100)"/>`;
+    acc+=frac; return seg;
+  }).join('');
+  document.getElementById('donut').innerHTML=donut+
+    `<text x="100" y="95" text-anchor="middle" fill="var(--ink2)" font-size="11">3파트 합</text>
+     <text x="100" y="116" text-anchor="middle" fill="var(--ink)" font-size="20" font-weight="800">${fmtM(dt)}M</text>`;
+  document.getElementById('legend').innerHTML=order.map(k=>{
+    const p=d.parts[k],frac=dt?(p.target/dt*100):0;
+    return `<div class="leg"><span class="dot" style="background:${PARTS[k].color}"></span>${PARTS[k].label}
+      <span class="lv">${fmtM(p.target)}M · ${frac.toFixed(0)}%</span></div>`;
+  }).join('');
+
+  // productivity
+  const maxPH=Math.max(...order.map(k=>d.parts[k].perHead));
+  document.getElementById('productivity').innerHTML=order.map(k=>{
+    const p=d.parts[k];
+    return `<div class="prod-row">
+      <div class="prod-name">${PARTS[k].label}<span class="tag" style="background:${PARTS[k].color}22;color:${PARTS[k].color}">${p.count}명</span></div>
+      <div class="prod-bar-wrap"><div class="prod-bar" style="width:${maxPH?p.perHead/maxPH*100:0}%;background:${PARTS[k].color}"></div></div>
+      <div class="prod-val">${fmtM(p.perHead)}M/인</div>
+    </div>`;
+  }).join('');
+}
+
+['mult','opex'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+['김도영토글','ohExclude'].forEach(id=>document.getElementById(id).addEventListener('change',render));
+render();
+</script>
+</body>
+</html>

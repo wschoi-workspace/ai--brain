@@ -32,9 +32,11 @@ BODY_REPLACEMENTS = {
 }
 
 PRINT_CSS = """
+@page{size:1280px 720px;margin:0}
 @media print{
-  html,body{background:#fff!important}
-  .slide{margin:0!important;border:none!important;page-break-after:always;page-break-inside:avoid;box-shadow:none!important;overflow:visible!important}
+  html,body{background:#fff!important;margin:0;padding:0}
+  .slide{margin:0!important;border:none!important;page-break-after:always;page-break-inside:avoid;break-after:page;box-shadow:none!important;overflow:hidden!important;width:1280px!important;height:720px!important;min-height:720px!important;max-height:720px!important}
+  .slide:last-child{page-break-after:auto;break-after:auto}
   .slide--cover,.slide--dark{background:var(--bg-2)!important}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
@@ -61,7 +63,8 @@ def convert(src_path, dst_path):
     for old, new in BODY_REPLACEMENTS.items():
         html = html.replace(old, new)
 
-    # 3) @media print 블록 교체
+    # 3) @page + @media print 블록 교체
+    html = re.sub(r'@page\s*\{[^}]*\}\s*', '', html)
     html = re.sub(r'@media\s+print\s*\{[^}]*\}', '', html)
     html = html.replace("</style>", PRINT_CSS + "</style>")
 

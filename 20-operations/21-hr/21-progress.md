@@ -168,3 +168,16 @@ ssh macmini-ts "cd ~/hr-workspace && git add 20-operations/21-hr/portal && \
 - **온보딩 카드 서명완료 반영**: api_dashboard가 esign(참조_No>0) 근로계약 서명자상태로 온보딩 doc_status 보정(표시만, row write 없음→webhook 5연쇄 무영향). esign 전량 로드분 재활용(esign_by_ref 맵, 추가조회 0). webhook 미수신 건(윤혜정)도 실제 서명 반영.
 - **완료 표시·비활성화**: 카드/타임라인 '✓ 완료' 배지, 온보딩 상세 sign_completed면 전자서명 발송 비활성+배너, 외부계약 completed면 조작액션 비활성(서명본 확인만). → 완료 계약 재발송 실수 차단.
 - 검증 3종 통과, 배포 반영(이미지 교체 확인, fly 릴리스 번호 표시는 lease 경고로 지연).
+
+### 회사 직인 미리 날인 + 상대 1인 서명 = 완결 (2026-07-22, 커밋 511dab0)
+- **전환**: "상대 1차 → 대표 2차 전자서명" → "계약서에 회사 직인 미리 날인 + 상대방 1인 서명 = 완결" (대표 전자서명 단계 완전 제거). 전체 계약(입사·재계약·외부계약·퇴사) 적용.
+- **계약서 9종**: 회사 (인)→직인 이미지(project-rent/filament, contract_builder._company_seal_data_uri base64 data URI), {{회사서명}} DocuSeal 태그 제거→DocuSeal이 상대 1인만 서명자 인식. 직원서명 태그 유지.
+- **서명자 1인화**: _esign_signers_pair·온보딩 sign_request·offboard 전부 상대 1인, esign 서명자_2="{회사}(직인 날인)"/날인완료 표기.
+- **완결 판정 1인**: _onb_doc_status(labor s1 completed→sign_completed), _sync_esign_from_remote(외부계약 done1만 완결→서명본 Drive).
+- 검증: py_compile 4·계약서 Jinja 9/9·실제 근로계약서 렌더에서 도장 삽입/회사태그 제거/직원태그 유지 확인. 배포 스모크 200.
+- 효과: 진실님 NDA(구 2인 발송건, 진실님 서명완료·대표 대기 partial) → 배포 후 대시보드 pull sync가 done1 감지→자동 완결+아카이브. **기존 발송건은 도장 이미지 없음(구 계약서), 신규 발송부터 도장본.**
+
+### 대시보드 정리 — archived 숨김 + 완료 계약 별도 창 (2026-07-22, 커밋 b3017ca)
+- **archived 완전 숨김**: _ext_stage에 archived 매핑("취소·무효", sec=archived) 추가 → 진행중/완료/주의 3섹션 어디에도 안 들어가 자동 숨김. 취소 중복(진실님 0011~0015)이 "주의"에서 사라짐, 진짜 반려/만료/실패만 남음.
+- **완료 계약 별도 창**: 상단 "📁 완료 계약" 버튼 + completedContractsModal. /api/esign/completed(전체 completed·테스트 제외, drive_link 추가)로 입사·재계약·외부·퇴사 완료 계약 최신순 목록 + 각 서명본 미리보기(download?inline)/다운로드/Drive.
+- 검증 3종 통과, 배포 스모크 200.
