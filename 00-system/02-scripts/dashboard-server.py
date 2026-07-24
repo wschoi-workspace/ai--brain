@@ -496,48 +496,76 @@ def _extract_file_text(name, data):
     return ""
 
 
-# 회의분석(일반·직원용) — 전사/회의록 → GPT 1회 호출로 실행 중심 10섹션 회의록.
-# 포맷: 대표의 회의록 전용 GPT 봇 출력 구조 이식 (2026-07-21, 유럽진출협업회의 샘플 기준)
-MEETING_SUMMARY_PROMPT = """너는 회의록 전용 어시스턴트다. 회의 전사(STT 원문·메모·정리본)를 받아 **실행 중심**으로 재구성한 회의록을 만든다.
+# 회의분석(일반·직원용) — 전사/회의록 → GPT 1회 호출로 5블록 미팅록 생성.
+# v2: /미팅록 표준 로직(5블록 구조 + 유형 판별 + 추론 보강) 통합 (2026-07-24)
+MEETING_SUMMARY_PROMPT = """너는 ARISA, Project Rent의 프로젝트 사고 데이터베이스 시스템이다.
+회의 입력(전사 텍스트·거친 메모·정리본)을 받아 **5블록 구조**의 미팅록을 생성한다.
 
-원칙:
+## CORE 3원칙
+1. **제안서가 아니라 풀 보고서** — 사실 + 비즈니스 컨텍스트 + 인사이트 + 미해결까지 담는다.
+2. **추론은 전부 [검토] 표기** — 입력에 없는 정보는 단정 금지. 보강 항목은 반드시 augmentation 배열에 넣고 category를 명시.
+3. **보고서 톤 유지** — "~확정 · ~예정 · ~필요" 명사형. 제안서 톤 금지.
+
+## 원칙 (실행 품질)
 1. 발언에 없는 내용을 확정된 사실처럼 만들지 않는다. 제안과 결정을 구분한다.
-2. 담당자·기한이 불명확하면 지어내지 말고 "확인 필요"로 표기한다. 전사에 없는 연도·날짜를 만들지 마라.
-3. STT 오류로 문장이 깨져 있어도 문맥상 명확한 내용은 정리하되, 심하게 불명확한 부분은 제외한다.
+2. 담당자·기한이 불명확하면 "확인 필요"로 표기. 전사에 없는 연도·날짜를 만들지 마라.
+3. STT 오류로 문장이 깨져 있어도 문맥상 명확한 내용은 정리하되, 심하게 불명확한 부분은 제외.
 4. 정보 공유 성격의 회의라면 todos를 억지로 만들지 않는다 (빈 배열 허용).
-5. 실행 업무 우선순위: 3=핵심(실행을 막는 것), 2=중요, 1=일반.
-6. **전수 추출**: 회의에서 합의·지시된 할 일을 하나도 빠뜨리지 않는다. "~하시죠", "~할게요", "~해주세요" 같은 짧은 합의도 각각 별도 todo로. 입력이 정리본이고 To-do 표가 이미 있으면 전부 옮긴다. 1시간급 실무 회의는 todos 5~12개가 정상.
-7. support(지원 요청)는 내부 역할 분담(누가 무엇을 맡는가)뿐 아니라 **외부 대상(고객사·기관·협력사·담당자)에게 받아야 할 자료·승인·협의·관계 구축을 반드시 포함**한다. "OO에서 받아야", "OO와 협의", "OO 태핑" 류 발언이 단서다.
-8. changes(주요 변경)는 **반드시 2~3개** 도출한다. 이 회의로 달라진 것을 서로 다른 각도에서 대비한다 — ①관계·역할 구조(예: 개별 협력→파트너십) ②전략 범위(예: 행사 대응→시장 진출) ③운영 방식·체계(예: 개별 프로젝트→장기 사업 개발). 명시 발언이 없어도 회의 전후의 큰 그림 변화를 해석해 적는다. 정말 아무 변화도 없는 순수 공유 회의만 빈 배열.
-9. discussions는 논의된 주제를 모두 나열한다 (보통 3~6개).
-10. 출력은 유효한 JSON만(들여쓰기 없이 압축). 설명 문장·마크다운 금지. 모든 텍스트는 한국어.
+5. **전수 추출**: "~하시죠", "~할게요", "~해주세요" 같은 짧은 합의도 별도 todo로. 1시간급 실무 회의는 todos 5~12개 정상.
+6. 입력에 이미 헤딩이 있으면 그대로 쓴다. 화자가 잡아둔 안건 구조 존중.
 
-출력 JSON:
+## 유형 판별 키워드 테이블
+| 키워드 | meeting_type | type_label |
+|---|---|---|
+| 시공·도면·공정·평수·오픈 | operations | 운영 미팅 |
+| Pain Points·가설·콘셉트·포지셔닝 | concept | 콘셉트 미팅 |
+| 진행 상황·보고·리뷰 | regular | 정기 보고 |
+| 단가·견적·협상·조정 | negotiation | 협상 미팅 |
+| 킥오프·오리엔테이션·첫 미팅 | kickoff | 킥오프 |
+| 사업기획·해외진출·파트너십·투자·정부사업·MOU·파이프라인·제안·입찰 | planning | 기획 미팅 |
+| 해당 없음 | general | 일반 미팅 |
+
+## 추론 보강 카테고리
+기획(planning) 유형: WHY(방향성) / WHAT(핵심 요구) / WHERE(경쟁·포지셔닝) / CAN(실행 가능성) / HOW(실행 방안) / IF(리스크·기회)
+그 외 유형: REVENUE(매출·객단가) / BENCHMARK(벤치마크) / COST(비용) / SCHEDULE(일정) / CONTRACT(자금·계약) / REFERENCE(레퍼런스)
+보강 금지선: ①법적·재무 수치 단정 ②인물·기업 부정 평가 ③입력에 없는 사실의 단정 서술
+
+## 출력 (유효한 JSON만, 설명 문장·마크다운 금지, 모든 텍스트 한국어)
 {
-  "title_guess": "회의명 (사용자 입력이 있으면 그대로)",
-  "summary": {
-    "purpose": "회의 목적 1~2문장",
-    "key_decisions": ["핵심 결정사항 2~4개"],
-    "key_changes": ["핵심 변경사항 (없으면 빈 배열)"],
-    "top_action": "가장 중요한 실행 업무 1문장",
-    "risks": ["주요 리스크 1~3개"]
+  "schema_version": "5block",
+  "title_guess": "회의명 (사용자 입력 있으면 그대로)",
+  "meeting_type": "operations|concept|regular|negotiation|kickoff|planning|general",
+  "metadata": {
+    "date": "YYYY-MM-DD 또는 null",
+    "project_name": "프로젝트명 또는 null",
+    "meeting_name": "미팅명",
+    "participants": "참석자 ('기재 안 됨' 가능)",
+    "type_label": "운영 미팅|콘셉트 미팅|정기 보고|협상 미팅|킥오프|기획 미팅|일반 미팅"
   },
-  "basic_info": {"project": "프로젝트명", "date": "일시", "participants": "참석자", "decision_maker": "주요 의사결정자", "meeting_type": "회의 유형(예: 킥오프+실무 협의)", "purpose": "회의 목적 한 줄"},
-  "decisions": [{"title": "결정 제목", "decision": "결정 내용", "reason": "이유(없으면 빈 문자열)", "impact": "영향/적용 일정(없으면 빈 문자열)"}],
-  "changes": [{"before": "기존", "after": "변경"}]  ← 반드시 2~3개: ①관계·역할 ②전략 범위 ③운영 방식 각도에서 이 회의로 달라진 것을 기존→변경 대비로 해석 도출 (예: "프로젝트 단위 협업"→"유럽 사업 파트너십", "행사 대응 중심"→"시장 진출 전략 중심"),
-  "discussions": [{"topic": "논의 주제", "points": "논의 요지 1~2문장", "conclusion": "결론 한 줄"}]  ← 논의된 주제 모두 (보통 3~6개),
-  "todos": [{"priority": 3, "task": "업무", "owner": "담당 또는 확인 필요", "due": "기한 또는 확인 필요", "output": "산출물", "done_criteria": "완료 기준"}],
-  "support": [{"target": "대상", "type": "내부|외부", "request": "요청 내용"}]  ← 내부 역할 분담 + 외부 기관·담당자·협력사에게 받아야 할 것(자료·승인·협의·관계구축)을 각각 모두 나열 (보통 3~6개),
-  "risks": [{"category": "일정|운영|물류|사업|경쟁|기타", "detail": "리스크 내용"}],
-  "to_verify": ["추가 확인 필요사항"],
-  "next_steps": {
-    "immediate": ["즉시 수행"],
-    "before_next_meeting": ["다음 회의 전 완료"],
-    "next_decisions": ["다음 의사결정 필요"],
-    "next_milestones": ["다음 마일스톤"]
+  "block_1_overview": {
+    "exists": true,
+    "items": [{"key": "키", "value": "값"}]
   },
-  "closing_note": "총평 1~2문장 (이 회의의 성격과 가장 중요한 성공 요인)",
-  "quality_note": "전사 품질 경고(화자 구분 없음, 오탈자 심함 등 — 문제 없으면 빈 문자열)"
+  "block_2_summary": {
+    "paragraph": "한 문단 요약 — 이 블록만 읽어도 회의가 재구성되어야 한다",
+    "key_values": [{"key": "핵심 결정", "value": "..."}]
+  },
+  "block_3_agenda": [{
+    "title": "안건 A",
+    "category": "카테고리",
+    "discussion": "논의 내용 — 맥락과 근거 함께",
+    "insight": "시사점 (없으면 null)",
+    "table": null,
+    "augmentation": [{"category": "WHY|WHAT|...", "content": "[검토] 보강 내용"}]
+  }],
+  "block_4_decisions": [{"decision": "확정 사항", "detail": "부연"}],
+  "block_5_todos": {
+    "ours": [{"assignee": "담당", "task": "할 일", "due": "기한 또는 미정"}],
+    "theirs": [{"assignee": "담당", "task": "할 일", "due": "기한 또는 미정"}]
+  },
+  "open_items": [{"item": "미해결", "status": "상태"}],
+  "closing": "다음 마일스톤",
+  "quality_note": "전사 품질 경고 (문제 없으면 빈 문자열)"
 }"""
 
 SIMULATOR_DRAFT_PROMPT = """너는 업무 보고 구조화 도우미다. 사용자가 자유롭게 서술한 업무 텍스트를 받아, 지정된 필드 구조에 맞게 정보를 추출·배분한다.
@@ -992,8 +1020,10 @@ document.querySelectorAll('.mode-btn').forEach(function(b){
 // ── 회의분석 (일반·직원용 GPT 써머리) ──
 var lastMeeting=null, lastTranscript='';
 function stars(p){return p>=3?'★★★':p===2?'★★☆':'★☆☆';}
+function is5block(d){return d&&d.schema_version==='5block';}
 function mtSections(d,tag){
-  // 10섹션 본문 생성 — tag: 함수(h2/h3/ul/table 마크업 스타일 주입)으로 화면·문서 공용
+  if(is5block(d)) return mt5blockSections(d,tag);
+  // 레거시 10섹션 본문 (기존 저장 문서 호환)
   var b='';
   var s=d.summary||{};
   b+=tag.h2('1. Summary');
@@ -1035,6 +1065,64 @@ function mtSections(d,tag){
   if(d.quality_note) b+=tag.warn('⚠ '+d.quality_note);
   return b;
 }
+// ── 5블록 본문 생성 ──
+function mt5blockSections(d,tag){
+  var b='', m=d.metadata||{};
+  // 01 개요 + Summary
+  b+=tag.h2('01 개요');
+  var bs=d.block_2_summary||{};
+  if(bs.paragraph) b+=tag.p(bs.paragraph);
+  var kvs=bs.key_values||[];
+  if(kvs.length||m.date||m.participants){
+    var rows=[];
+    if(m.date) rows.push(['일시',esc(m.date)]);
+    if(m.participants) rows.push(['참석',esc(m.participants)]);
+    if(m.type_label) rows.push(['유형',esc(m.type_label)]);
+    kvs.forEach(function(kv){rows.push([esc(kv.key),esc(kv.value)]);});
+    b+=tag.table(['항목','내용'],rows);
+  }
+  var ov=d.block_1_overview||{};
+  if(ov.exists&&(ov.items||[]).length){
+    b+=tag.h3('프로젝트 배경');
+    b+=tag.table(['항목','내용'],(ov.items||[]).map(function(it){return [esc(it.key),esc(it.value)];}));
+  }
+  // 02 아젠다별 정리
+  var agendas=d.block_3_agenda||[];
+  if(agendas.length){
+    b+=tag.h2('02 아젠다별 정리');
+    agendas.forEach(function(a,i){
+      b+=tag.h3((i+1)+'. '+esc(a.title||'')+(a.category?' ('+esc(a.category)+')':''));
+      if(a.discussion) b+=tag.p(esc(a.discussion));
+      if(a.insight) b+=tag.insight(esc(a.insight));
+      (a.augmentation||[]).forEach(function(aug){
+        b+=tag.review(esc(aug.category)+': '+esc(aug.content));
+      });
+    });
+  }
+  // 03 의사결정
+  var decs=d.block_4_decisions||[];
+  if(decs.length){
+    b+=tag.h2('03 의사결정사항');
+    b+=tag.ul(decs.map(function(x){return '<b>'+esc(x.decision)+'</b>'+(x.detail?' — '+esc(x.detail):'');}));
+  }
+  // 04 To-Do (R&R 분리)
+  var td=d.block_5_todos||{};
+  var ours=td.ours||[], theirs=td.theirs||[];
+  if(ours.length||theirs.length){
+    b+=tag.h2('04 요청사항 / To-Do');
+    if(ours.length){ b+=tag.h3('우리 측'); b+=tag.todos5(ours); }
+    if(theirs.length){ b+=tag.h3('상대 측'); b+=tag.todos5(theirs); }
+  }
+  // 05 미해결
+  var oi=d.open_items||[];
+  if(oi.length){
+    b+=tag.h2('05 미해결 · 후속 확인');
+    b+=tag.ul(oi.map(function(x){return '<b>'+esc(x.item)+'</b> — '+esc(x.status);}));
+  }
+  if(d.closing) b+=tag.quote(d.closing);
+  if(d.quality_note) b+=tag.warn('⚠ '+d.quality_note);
+  return b;
+}
 function buildMeetingDoc(){
   if(!lastMeeting) return '';
   var d=lastMeeting, title=(d.title_guess||'회의록');
@@ -1042,17 +1130,21 @@ function buildMeetingDoc(){
     h2:function(t){return '<h2>'+t+'</h2>';},
     h3:function(t){return '<h3>'+t+'</h3>';},
     p:function(t){return '<p>'+t+'</p>';},
-    ul:function(a){return '<ul>'+a.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';},
+    ul:function(a){return '<ul>'+a.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>';},
     table:function(hd,rows){return '<table><tr>'+hd.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr>'
       +rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';}).join('')+'</table>';},
     quote:function(t){return '<blockquote>'+esc(t)+'</blockquote>';},
-    warn:function(t){return '<div class="warn">'+esc(t)+'</div>';}
+    warn:function(t){return '<div class="warn">'+esc(t)+'</div>';},
+    insight:function(t){return '<div style="background:#FFF9E6;border-left:3px solid #E8C547;padding:10px 14px;margin:8px 0;font-size:13px">'+t+'</div>';},
+    review:function(t){return '<div style="background:#FEF0E7;border-left:3px solid #D97706;padding:10px 14px;margin:8px 0;font-size:13px"><span style="color:#D97706;font-weight:700;font-size:11px">[검토] </span>'+t+'</div>';},
+    todos5:function(arr){return '<ul>'+arr.map(function(t){return '<li>'+esc(t.assignee)+' — '+esc(t.task)+' <span style="font-family:monospace;font-size:11px">('+esc(t.due)+')</span></li>';}).join('')+'</ul>';}
   };
   tag.todos=function(todos){return tag.table(['우선','업무','담당','기한','산출물','완료 기준'],
     todos.map(function(t){return [stars(t.priority),esc(t.task),esc(t.owner||'확인 필요'),esc(t.due||'확인 필요'),esc(t.output||''),esc(t.done_criteria||'')];}));};
   tag.verify=function(items,answers){return '<ul>'+items.map(function(x,i){
     return '<li>'+esc(x)+((answers[i]||'').trim()?' — <b>답변:</b> '+esc(answers[i]):'')+'</li>';}).join('')+'</ul>';};
-  var b='<h1>'+esc(title)+'</h1><p class="meta">'+new Date().toLocaleDateString('ko-KR')+' · 실행 중심 회의록</p>'
+  var subtitle=is5block(d)?'5블록 미팅록':'실행 중심 회의록';
+  var b='<h1>'+esc(title)+'</h1><p class="meta">'+new Date().toLocaleDateString('ko-KR')+' · '+subtitle+'</p>'
     +mtSections(lastMeeting,tag)
     +'<p class="foot">by Project Rent · ARISA 문서 시뮬레이터</p>';
   return docShell(title,b);
@@ -1074,12 +1166,22 @@ function renderMeetingResult(d){
     h2:function(t){return '<h3 style="font-size:14px;font-weight:700;margin:18px 0 8px;color:var(--accent);border-left:3px solid var(--accent);padding-left:8px">'+t+'</h3>';},
     h3:function(t){return '<div style="font-size:12px;font-weight:600;margin:10px 0 4px;color:var(--fg)">'+t+'</div>';},
     p:function(t){return '<div style="font-size:12px;color:var(--fg2);line-height:1.6;margin-bottom:6px">'+t+'</div>';},
-    ul:function(a){return a.map(function(x){return '<div class="tip-item">'+esc(x)+'</div>';}).join('');},
+    ul:function(a){return a.map(function(x){return '<div class="tip-item">'+x+'</div>';}).join('');},
     table:function(hd,rows){return '<table style="width:100%;border-collapse:collapse;font-size:11px;margin:6px 0">'
       +'<tr>'+hd.map(function(x){return '<th style="text-align:left;padding:5px 7px;border-bottom:1px solid var(--line);color:var(--muted);white-space:nowrap">'+x+'</th>';}).join('')+'</tr>'
       +rows.map(function(r){return '<tr>'+r.map(function(c){return '<td style="padding:5px 7px;border-bottom:1px solid #2a2a2a;vertical-align:top;color:var(--fg2)">'+c+'</td>';}).join('')+'</tr>';}).join('')+'</table>';},
     quote:function(t){return '<div class="summary-box" style="margin-top:14px">'+esc(t)+'</div>';},
-    warn:function(t){return '<div style="margin-top:10px;font-size:11px;color:var(--amber)">'+esc(t)+'</div>';}
+    warn:function(t){return '<div style="margin-top:10px;font-size:11px;color:var(--amber)">'+esc(t)+'</div>';},
+    insight:function(t){return '<div style="background:rgba(232,197,71,.1);border-left:3px solid #E8C547;padding:10px 14px;margin:8px 0;font-size:12px;color:var(--fg2);border-radius:0 3px 3px 0">'+t+'</div>';},
+    review:function(t){return '<div style="background:rgba(217,119,6,.08);border-left:3px solid #D97706;padding:10px 14px;margin:8px 0;font-size:12px;color:var(--fg2);border-radius:0 3px 3px 0"><span style="color:#D97706;font-weight:700;font-size:10px">[검토] </span>'+t+'</div>';},
+    todos5:function(arr){
+      var EDIT_STYLE5='outline:none;border-bottom:1px dashed var(--accent);cursor:text;display:inline-block;min-width:52px;padding:0 2px';
+      return tag.table(['담당','할 일','기한'],arr.map(function(t,i){
+        function ed5(f,ph){var v=t[f]||'';var miss=!v||v==='확인 필요'||v==='미정';
+          return '<span contenteditable="true" class="mt-ed" data-todo5="'+i+'" data-f="'+f+'" data-ph="'+ph+'" style="'+EDIT_STYLE5+(miss?';color:var(--amber)':'')+'">'+esc(miss?ph:v)+'</span>';}
+        return [ed5('assignee','확인 필요'),esc(t.task),ed5('due','미정')];
+      }));
+    }
   };
   // 편집 가능 셀: 담당·기한·산출물·완료기준 + 확인사항 답변 — 채우면 lastMeeting에 반영돼 PDF/.doc에 포함
   var EDIT_STYLE='outline:none;border-bottom:1px dashed var(--accent);cursor:text;display:inline-block;min-width:52px;padding:0 2px';
@@ -1107,7 +1209,12 @@ function renderMeetingResult(d){
     el.addEventListener('blur',function(){
       var v=el.textContent.trim();
       if(!v){el.textContent=el.dataset.ph;el.style.color='var(--amber)';}
-      if(el.dataset.f!==undefined&&el.dataset.i!==undefined){
+      if(el.dataset.todo5!==undefined&&el.dataset.f!==undefined){
+        // 5블록 todo 편집 — ours/theirs 배열 직접 반영
+        var td5=lastMeeting.block_5_todos||{}, all5=(td5.ours||[]).concat(td5.theirs||[]);
+        var idx5=parseInt(el.dataset.todo5,10);
+        if(all5[idx5]) all5[idx5][el.dataset.f]=(v&&v!==el.dataset.ph)?v:'';
+      }else if(el.dataset.f!==undefined&&el.dataset.i!==undefined){
         mtSortedTodos[parseInt(el.dataset.i,10)][el.dataset.f]=(v&&v!==el.dataset.ph)?v:'';
       }else if(el.dataset.vi!==undefined){
         lastMeeting.to_verify_answers=lastMeeting.to_verify_answers||[];
@@ -1981,7 +2088,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+mwOvBadge(a)
         +' <select class="il-sel ua-as" data-row="'+a.row+'" data-task="'+esc(a.task)+'">'
         +'<option value="">담당자 선택…</option>'+mwAsOpts('')+'</select>'
-        +'<a class="st-act ua-go">✓ 배정</a></div>'
+        +'<a class="st-act ua-go">✓ 배정</a> '+mwStBtn(a,'삭제','🗑')+'</div>'
         +'<div class="m">'+pj+dl+'</div></div>';
     });
     return h;
@@ -2586,7 +2693,8 @@ _SUBMIT_BRIEF_LABELS = {"title": "제목", "summary": "Executive Summary",
 
 def _render_submitted_md(doc):
     """시뮬레이터 제출 JSON → 읽기용 마크다운. 기존 /api/project/doc 뷰어·doc-analyze 호환.
-    회의분석은 인라인 편집 반영본(result)을, 기획안은 입력 원본(fields)을 렌더."""
+    회의분석은 인라인 편집 반영본(result)을, 기획안은 입력 원본(fields)을 렌더.
+    5블록 스키마(schema_version='5block')와 레거시 10섹션 자동 분기."""
     r = doc.get("result") or {}
     typ = "회의분석" if doc.get("type") == "meeting" else "기획안(1P-Brief)"
     L = [f"# {doc.get('title') or '제출 문서'}",
@@ -2598,6 +2706,10 @@ def _render_submitted_md(doc):
             if v:
                 L += [f"## {lab}", v, ""]
         return "\n".join(L)
+    # 5블록 스키마 분기
+    if r.get("schema_version") == "5block":
+        return _render_5block_md(doc, r, L)
+    # 레거시 10섹션
     bi = r.get("basic_info") or {}
     s = r.get("summary") or {}
     if bi:
@@ -2644,6 +2756,76 @@ def _render_submitted_md(doc):
         L.append("")
     if r.get("closing_note"):
         L += ["## 총평", str(r["closing_note"]), ""]
+    return "\n".join(L)
+
+
+def _render_5block_md(doc, r, L):
+    """5블록 스키마 JSON → 마크다운 렌더링."""
+    m = r.get("metadata") or {}
+    L += [f"> 유형: {m.get('type_label', '일반 미팅')}", ""]
+    # 메타데이터
+    if m.get("date") or m.get("participants"):
+        L.append("## 기본 정보")
+        if m.get("date"): L.append(f"- 일시: {m['date']}")
+        if m.get("project_name"): L.append(f"- 프로젝트: {m['project_name']}")
+        if m.get("participants"): L.append(f"- 참석: {m['participants']}")
+        if m.get("type_label"): L.append(f"- 유형: {m['type_label']}")
+        L.append("")
+    # [1] 프로젝트 개요
+    ov = r.get("block_1_overview") or {}
+    if ov.get("exists") and ov.get("items"):
+        L += ["## [1] 프로젝트 개요 / 배경"]
+        for it in ov["items"]:
+            L.append(f"- **{it.get('key', '')}**: {it.get('value', '')}")
+        L.append("")
+    # [2] Summary
+    bs = r.get("block_2_summary") or {}
+    if bs.get("paragraph"):
+        L += ["## [2] Summary", bs["paragraph"], ""]
+    for kv in (bs.get("key_values") or []):
+        L.append(f"- **{kv.get('key', '')}**: {kv.get('value', '')}")
+    if bs.get("key_values"): L.append("")
+    # [3] 아젠다
+    agendas = r.get("block_3_agenda") or []
+    if agendas:
+        L.append("## [3] 본문 - 안건별 정리")
+        for i, a in enumerate(agendas, 1):
+            cat = f" ({a.get('category', '')})" if a.get("category") else ""
+            L += [f"### {i}. {a.get('title', '')}{cat}", a.get("discussion", ""), ""]
+            if a.get("insight"):
+                L.append(f"> **인사이트**: {a['insight']}")
+                L.append("")
+            for aug in (a.get("augmentation") or []):
+                L.append(f"> **[검토]** ({aug.get('category', '')}) {aug.get('content', '')}")
+            if a.get("augmentation"): L.append("")
+    # [4] 의사결정
+    decs = r.get("block_4_decisions") or []
+    if decs:
+        L.append("## [4] 의사결정사항")
+        for d in decs:
+            detail = f" — {d['detail']}" if d.get("detail") else ""
+            L.append(f"- **{d.get('decision', '')}**{detail}")
+        L.append("")
+    # [5] To-Do
+    td = r.get("block_5_todos") or {}
+    ours, theirs = td.get("ours") or [], td.get("theirs") or []
+    if ours or theirs:
+        L.append("## [5] 요청사항 / To-Do")
+        if ours:
+            L.append("**우리 측**")
+            for t in ours: L.append(f"- {t.get('assignee', '')} — {t.get('task', '')} ({t.get('due', '미정')})")
+        if theirs:
+            L.append("**상대 측**")
+            for t in theirs: L.append(f"- {t.get('assignee', '')} — {t.get('task', '')} ({t.get('due', '미정')})")
+        L.append("")
+    # 미해결
+    oi = r.get("open_items") or []
+    if oi:
+        L.append("## 미해결 · 후속 확인")
+        for x in oi: L.append(f"- **{x.get('item', '')}** — {x.get('status', '')}")
+        L.append("")
+    if r.get("closing"):
+        L += ["## 다음 마일스톤", str(r["closing"]), ""]
     return "\n".join(L)
 
 def _bg_propose(pid, doc_ts, doc_title, who, text):
@@ -3819,7 +4001,8 @@ class H(BaseHTTPRequestHandler):
                         continue
                 except ValueError:
                     pass
-                if not (a.get("assignee") or "").strip():
+                if not (a.get("assignee") or "").strip() and (a.get("task") or "").strip():
+                    # task 공란 행(시트 찌꺼기)은 제외 — 삭제 API도 task 공란은 409로 거부해 처리 불능 유령 카드가 됨
                     ukey = (a.get("project"), a.get("task"), a.get("deadline"))
                     if ukey not in useen:
                         useen.add(ukey)
@@ -3890,7 +4073,8 @@ class H(BaseHTTPRequestHandler):
                     continue
                 if a.get("status") in _ASSIGN_HIDDEN_STATES:
                     continue
-                if not (a.get("assignee") or "").strip() and a.get("status") in _ST.ASSIGN_OPEN_STATES \
+                if not (a.get("assignee") or "").strip() and (a.get("task") or "").strip() \
+                        and a.get("status") in _ST.ASSIGN_OPEN_STATES \
                         and (a.get("team") in teams or not (a.get("team") or "").strip()):
                     unassigned.append(a)
                     continue

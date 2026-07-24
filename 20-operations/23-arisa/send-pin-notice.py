@@ -21,12 +21,18 @@ for line in (WS / ".env").read_text(encoding="utf-8").splitlines():
         token = line.split("=", 1)[1].strip()
 assert token, ".env에서 DAILY_REPORT_BOT_TOKEN을 찾지 못했습니다"
 
-MSG_TMPL = """🔑 아리사 OS 로그인 안내 ({name}님 전용)
+MSG_TMPL = """🔑 아리사 OS 로그인 PIN 재안내 ({name}님 전용)
+
+어제 시스템 오류 복구로 PIN이 처음 안내드린 값으로
+돌아가 있습니다. 아래 PIN이 현재 유효한 PIN입니다.
 
 🔗 https://arisa-os.com
-
 · 아이디: {name}  (본인 이름 그대로)
 · PIN: {pin}
+
+⚠️ 대소문자를 구분합니다 — 이 메시지에서 PIN을
+길게 눌러 복사해 붙여넣으시는 걸 권장합니다.
+(끝에 공백이 딸려오면 지워주세요)
 
 로그인 후 우측 상단 [PIN변경]에서
 본인만 아는 번호(4자 이상)로 꼭 변경해주세요.
@@ -36,7 +42,17 @@ MSG_TMPL = """🔑 아리사 OS 로그인 안내 ({name}님 전용)
 
 
 def load_pins():
-    u = json.loads((WS / "00-system" / "01-templates" / "_data" / "users.json").read_text(encoding="utf-8"))
+    # PIN SSOT는 맥미니(~/dev/arisa2/data/users.json) — 로컬 파일은 테스트 사본이라 구버전 PIN 발송 사고 위험(2026-07-24 결함 수정).
+    import subprocess
+    try:
+        out = subprocess.run(["ssh", "macmini-ts", "cat", "dev/arisa2/data/users.json"],
+                             check=True, capture_output=True, text=True, timeout=15)
+        u = json.loads(out.stdout)
+        src = "맥미니 SSOT"
+    except Exception:
+        u = json.loads((WS / "00-system" / "01-templates" / "_data" / "users.json").read_text(encoding="utf-8"))
+        src = "⚠ 로컬 폴백(사본 — PIN 불일치 위험)"
+    print(f"PIN 소스: {src}")
     users = u.get("users", u)
     if isinstance(users, list):
         return {x["name"]: str(x.get("pin") or "") for x in users if x.get("name")}
