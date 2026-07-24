@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFD / ARISA — Patent Strategy v1.1</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root{
+    --bg:#1A1A1A; --bg-2:#111; --bg-3:#222; --bg-4:#1e1e1e; --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+    --line:#333; --line-2:#2a2a2a; --accent:#6C5CE7; --accent-light:#A29BFE;
+    --green:#8FA37E; --amber:#D9A34B; --red:#E17055; --blue:#6F8AA3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+    background:#000;color:var(--fg);font-weight:300;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;overflow:hidden;}
+  .deck{height:100vh;width:100vw;}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);padding:48px 64px 68px;overflow-y:auto;}
+  .slide.active{display:flex;}
+  .slide.peak{background:var(--bg-2);}
+  .slide.cover{background:var(--bg-2);justify-content:center;}
+  .slide-head{flex-shrink:0;}
+  .sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px;border-bottom:1px solid var(--line-2);margin-bottom:18px;}
+  .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;font-weight:400;}
+  h2{font-size:34px;font-weight:500;letter-spacing:-.025em;line-height:1.18;color:var(--fg);text-wrap:balance;}
+  h2 .ac{color:var(--accent);}
+  h3{font-size:17px;font-weight:500;letter-spacing:-.015em;margin-bottom:5px;color:var(--fg);}
+  .sub{font-size:14px;font-weight:300;line-height:1.7;color:var(--fg-2);margin-top:12px;max-width:72ch;}
+  .sub b{color:var(--fg);font-weight:500;}
+  .slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;}
+  .slide-footer{position:fixed;bottom:22px;left:64px;right:64px;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;border-top:1px solid var(--line-2);padding-top:10px;pointer-events:none;}
+  .cover h1{font-size:82px;font-weight:200;letter-spacing:-.04em;line-height:.95;color:var(--fg);}
+  .cover h1 .ac{color:var(--accent);}
+  .cover .slogan{font-size:19px;font-weight:300;color:var(--fg-2);margin-top:22px;line-height:1.55;}
+  .cover .slogan b{color:var(--fg);font-weight:500;}
+  .cover .meta{position:absolute;bottom:42px;left:64px;font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;}
+  ul.pts{list-style:none;}
+  ul.pts li{font-size:14px;font-weight:300;line-height:1.6;color:var(--fg-2);padding:6px 0 6px 20px;position:relative;}
+  ul.pts li::before{content:"—";position:absolute;left:0;color:var(--fg-3);}
+  ul.pts li b{color:var(--fg);font-weight:500;}
+  .grid{display:grid;gap:10px;margin-top:6px;}
+  .g2{grid-template-columns:repeat(2,1fr);} .g3{grid-template-columns:repeat(3,1fr);} .g4{grid-template-columns:repeat(4,1fr);} .g5{grid-template-columns:repeat(5,1fr);}
+  .card{background:var(--bg-3);border:1px solid var(--line-2);padding:18px;}
+  .card .cl{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:7px;}
+  .card .cv{font-size:13.5px;font-weight:300;line-height:1.55;color:var(--fg-2);} .card .cv b{color:var(--fg);font-weight:500;}
+  .card .val{font-size:11px;color:var(--green);margin-top:9px;padding-top:8px;border-top:1px solid var(--line-2);}
+  .card.core{border-color:rgba(108,92,231,.5);}
+  .card.defense{border-color:rgba(143,163,126,.4);}
+  .card.dist{border-color:rgba(111,138,163,.4);}
+  .card.meas{border-color:rgba(217,163,75,.4);}
+  .pill{display:inline-block;font-size:9px;letter-spacing:.04em;padding:2px 8px;border-radius:3px;font-weight:500;white-space:nowrap;vertical-align:middle;}
+  .pill.core{color:var(--accent-light);background:rgba(108,92,231,.13);border:1px solid rgba(108,92,231,.4);}
+  .pill.def{color:var(--green);background:rgba(143,163,126,.13);border:1px solid rgba(143,163,126,.35);}
+  .pill.dist{color:var(--blue);background:rgba(111,138,163,.13);border:1px solid rgba(111,138,163,.35);}
+  .pill.meas{color:var(--amber);background:rgba(217,163,75,.12);border:1px solid rgba(217,163,75,.35);}
+  .pill.future{color:var(--fg-3);background:rgba(122,117,112,.1);border:1px solid rgba(122,117,112,.3);}
+  .pill.live{color:var(--green);background:rgba(143,163,126,.13);border:1px solid rgba(143,163,126,.35);}
+  .pill.design{color:var(--amber);background:rgba(217,163,75,.12);border:1px solid rgba(217,163,75,.35);}
+  .pill.plan{color:var(--fg-3);background:rgba(122,117,112,.1);border:1px solid rgba(122,117,112,.3);}
+  .pill.new{color:var(--red);background:rgba(225,112,85,.1);border:1px solid rgba(225,112,85,.35);}
+  table.u{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;}
+  table.u th{font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:8px 9px 9px;font-weight:400;border-bottom:1px solid var(--line);}
+  table.u td{padding:8px 9px;border-bottom:1px solid var(--line-2);color:var(--fg-2);font-weight:300;vertical-align:top;}
+  table.u td:first-child{color:var(--fg);font-weight:500;}
+  .claim{background:var(--bg-4);border:1px solid var(--line-2);border-left:3px solid var(--accent);padding:14px 18px;margin:6px 0;font-size:12.5px;line-height:1.75;color:var(--fg-2);}
+  .claim b{color:var(--fg);font-weight:500;}
+  .claim .cnum{font-size:10px;letter-spacing:.15em;color:var(--accent-light);text-transform:uppercase;font-weight:500;margin-bottom:6px;}
+  .dep{border-left-color:var(--line);margin-left:16px;font-size:12px;padding:10px 14px;}
+  .dep .cnum{color:var(--fg-3);}
+  .pipeline{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:0;align-items:stretch;margin-top:6px;}
+  .pipeline .stage{background:var(--bg-3);border:1px solid var(--line-2);padding:16px 14px;display:flex;flex-direction:column;justify-content:center;}
+  .pipeline .arr{display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--fg-3);padding:0 5px;}
+  .callout{background:var(--bg-3);border:1px solid var(--line-2);padding:14px 18px;border-radius:4px;margin-top:6px;}
+  .callout.acc{border-color:var(--accent);}
+  .callout.warn{border-color:var(--amber);}
+  .callout h4{font-size:13px;font-weight:500;color:var(--fg);margin-bottom:6px;}
+  .note{font-size:11px;color:var(--amber);margin-top:10px;}
+  .vision-box{background:linear-gradient(135deg,rgba(108,92,231,.08),rgba(108,92,231,.02));border:1px solid rgba(108,92,231,.3);padding:22px 26px;margin:10px 0;}
+  .vision-box .vt{font-size:13px;letter-spacing:.15em;color:var(--accent-light);text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+  .vision-box .vb{font-size:16px;font-weight:300;line-height:1.6;color:var(--fg);}
+  .vision-box .vb b{font-weight:500;}
+  .vision-box .vs{font-size:13px;color:var(--fg-2);margin-top:10px;line-height:1.6;}
+  @media print{.slide-footer{display:none;}.slide{position:relative!important;display:flex!important;page-break-after:always;height:auto;min-height:100vh;}}
+  @media(max-width:1000px){.slide{padding:28px 22px 56px;}.cover h1{font-size:44px;}h2{font-size:22px;}.g2,.g3,.g4,.g5,.pipeline{grid-template-columns:1fr!important;}.slide-footer{left:22px;right:22px;}}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 1 · COVER
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide cover active">
+  <h1>CFD / <span class="ac">ARISA</span></h1>
+  <p class="slogan"><b>Patent Strategy v1.1</b> — 변리사 브리프 통합 덱</p>
+  <p style="font-size:15px;color:var(--fg-2);margin-top:16px;line-height:1.6;max-width:64ch;">
+    조직 내 <b>모든 커뮤니케이션 수단</b>으로부터 정보를 수집·분석·보정하여<br>
+    커뮤니케이션 레벨을 안정화하고,<br>
+    <b style="color:var(--accent-light)">의사결정 구조가 에셋이자 마인드셋이 되는</b> 시스템
+  </p>
+  <p style="font-size:13px;color:var(--fg-3);margin-top:14px;">최종 형태: 직원별 <b style="color:var(--fg-2)">AI 에이전트</b> — 조직 에셋 기반 개인 코파일럿</p>
+  <p style="font-size:11px;color:var(--fg-3);margin-top:6px;">4건 출원 브리프 + 1건 Family Brief + 추가 보호 대상 5건 + 구현 현황 대조</p>
+  <div class="meta">By Project Rent · Confidential · 2026-07-23</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 2 · EXECUTIVE SUMMARY — 비전 중심 리프레임
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Executive Summary</span><span class="eyebrow">02</span></div>
+    <h2>특허의 목적 — <span class="ac">커뮤니케이션이 자산이 되는 구조</span>를 보호한다</h2>
+  </div>
+  <div class="slide-body">
+    <div class="vision-box" style="margin-bottom:14px">
+      <div class="vt">Patent Vision</div>
+      <div class="vb">조직 내 <b>모든 커뮤니케이션 수단</b>(메신저·음성·이메일·회의·파일)으로부터 정보를 수집하고, 조직 프레임워크에 기반하여 <b>분석·보정</b>하여, 커뮤니케이션 레벨을 <b>안정화(Stabilization)</b>한다. 궁극적으로 이 과정에서 축적되는 의사결정 구조·사고 패턴이 <b>조직의 에셋(Asset)이자 마인드셋(Mindset)</b>으로 전환된다.</div>
+      <div class="vs">이것은 단순한 업무 도구가 아니라, <b>조직이 생각하는 방식 자체를 구조화·측정·진화</b>시키는 시스템이다. 이 시스템의 핵심 파이프라인·알고리즘·측정 체계를 지식재산으로 보호한다.</div>
+    </div>
+    <div class="grid g3" style="margin-bottom:10px">
+      <div class="card core">
+        <div class="cl"><span class="pill core">1단계 · NOW</span></div>
+        <div class="cv"><b>Patent Family #1–#3</b><br>Capture → Correction → Distribution<br>파이프라인 전체 보호</div>
+        <div class="val">옴니채널 수집 → 프레임워크 보정 → 역할 적응 출력</div>
+      </div>
+      <div class="card meas">
+        <div class="cl"><span class="pill meas">2단계 · NEXT</span></div>
+        <div class="cv"><b>Patent #4</b><br>Measurement + Closed-loop<br>커뮤니케이션 품질 정량화</div>
+        <div class="val">해상도·Define Cost·학습속도·질문수준 4축 측정</div>
+      </div>
+      <div class="card" style="border-color:var(--line)">
+        <div class="cl"><span class="pill future">3단계 · FUTURE</span></div>
+        <div class="cv"><b>Patent #5–#7</b><br>Assetization · Evolution · Cognition OS<br>사고의 자산화 → 조직 인지 OS</div>
+        <div class="val">의사결정 구조 = 에셋 + 마인드셋</div>
+      </div>
+    </div>
+    <div class="grid g5">
+      <div class="card"><div class="cl">수집</div><div class="cv"><b>Omni-Channel</b><br>메신저·음성·이메일·회의·파일</div></div>
+      <div class="card"><div class="cl">분석</div><div class="cv"><b>Framework Mapping</b><br>프레임워크 기반 구조화</div></div>
+      <div class="card"><div class="cl">보정</div><div class="cv"><b>Fidelity Gate</b><br>오해·추상·더미 제거</div></div>
+      <div class="card"><div class="cl">안정화</div><div class="cv"><b>Stabilization</b><br>커뮤니케이션 레벨 균일화</div></div>
+      <div class="card" style="border-color:var(--accent)"><div class="cl" style="color:var(--accent-light)">자산화</div><div class="cv"><b>Asset + Mindset</b><br>의사결정 구조가 조직 자산으로</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>02 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 3 · PATENT FAMILY ARCHITECTURE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Patent Family Architecture</span><span class="eyebrow">03</span></div>
+    <h2><span class="ac">옴니채널</span> Capture → Correction → Distribution</h2>
+    <p class="sub">조직의 <b>모든 커뮤니케이션 접점</b>에서 데이터를 수집하고, 프레임워크 기반으로 보정하여, 역할에 맞게 재구성한다. 3건의 특허가 이 파이프라인의 각 단계를 보호한다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="pipeline" style="margin-bottom:14px">
+      <div class="stage" style="border-color:rgba(143,163,126,.4)">
+        <div class="cl" style="font-size:9px;letter-spacing:.2em;color:var(--green);text-transform:uppercase;margin-bottom:6px">Patent #2 · Capture</div>
+        <div class="cv" style="font-size:13px;color:var(--fg-2)"><b>옴니채널 수집</b><br>메신저·음성·이메일·회의록·파일<br>소스 타입 자동감지<br>멀티모달 정규화</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="stage" style="border-color:rgba(108,92,231,.5)">
+        <div class="cl" style="font-size:9px;letter-spacing:.2em;color:var(--accent-light);text-transform:uppercase;margin-bottom:6px">Patent #1 · Correction (Core)</div>
+        <div class="cv" style="font-size:13px;color:var(--fg-2)"><b>프레임워크 매핑</b><br>Fidelity 4축 검증<br>Type A/B/C 적응형 질문<br>의미 재구성·표준화</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="stage" style="border-color:rgba(111,138,163,.4)">
+        <div class="cl" style="font-size:9px;letter-spacing:.2em;color:var(--blue);text-transform:uppercase;margin-bottom:6px">Patent #3 · Distribution</div>
+        <div class="cv" style="font-size:13px;color:var(--fg-2)"><b>역할별 재구성</b><br>Decision 추출·이월<br>시간축 적응(D/W/M)<br>사고 거울 + 경영 인사이트</div>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="callout">
+        <h4>위: Measurement Layer (Patent #4)</h4>
+        <ul class="pts">
+          <li>파이프라인의 <b>품질을 정량화</b> (해상도 / Define Cost / 학습속도 / 질문수준)</li>
+          <li>측정값으로 Correction 질문을 <b>Closed-loop 제어</b></li>
+          <li>ReportScore + Thinking Cost — <b>커뮤니케이션 레벨 안정화 지표</b></li>
+        </ul>
+      </div>
+      <div class="callout warn">
+        <h4>목적: 왜 이 파이프라인을 보호하는가</h4>
+        <ul class="pts">
+          <li>수집→보정→배포 과정에서 <b>의사결정 구조가 자동 축적</b>된다</li>
+          <li>축적된 Decision Log + Thinking Data = <b>조직의 에셋</b></li>
+          <li>거울을 통해 직원이 사고방식을 체득 = <b>조직의 마인드셋</b></li>
+          <li>에셋과 마인드셋이 결합되면 <b>Organizational Cognition</b>이 형성된다</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>03 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 4 · PATENT #1 — CORRECTION ENGINE (Core)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Patent #1 · Core Patent</span><span class="eyebrow">04</span></div>
+    <h2>조직 프레임워크 기반 <span class="ac">비정형 커뮤니케이션의 보정 및 구조화</span></h2>
+    <p class="sub"><span class="pill core">Correction Engine</span> — 모든 채널에서 수집된 비정형 커뮤니케이션을 조직 고유 프레임워크에 매핑, <b>Fidelity 4축 검증</b>을 거쳐 의미를 보정·재구성하는 시스템. 커뮤니케이션 레벨 안정화의 핵심.</p>
+  </div>
+  <div class="slide-body">
+    <div class="claim">
+      <div class="cnum">독립항 1 — 시스템</div>
+      조직 구성원의 비정형 커뮤니케이션 데이터를 수신하는 <b>입력부</b>; 조직의 업무 프레임워크를 저장·관리하는 <b>프레임워크 관리부</b>; 상기 커뮤니케이션을 프레임워크에 매핑하여 누락 요소를 식별하고, <b>Fidelity 검증(원문보존·사실확인게이트·모호성탐지·불확실표시)</b>을 수행하며, 보정된 구조화 데이터를 생성하는 <b>보정 엔진</b>; 및 조직 표준 형식으로 출력하는 <b>출력부</b>를 포함하는 조직 커뮤니케이션 보정 시스템.
+    </div>
+    <div class="grid g2" style="margin-top:8px">
+      <div>
+        <div class="claim dep">
+          <div class="cnum">종속항 2 — 완전성 검사</div>
+          보정 엔진은 커뮤니케이션의 <b>완전성</b>을 7기준(Task/Output/Outcome/Decision/Support/Next/Reflection)으로 검사하고, 부족 요소에 대해 <b>최소 질문(Daily≤3)</b>을 생성.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 3 — Fidelity Gate</div>
+          <b>동어반복·더미표현·추상어</b>(_VAGUE_RE 패턴)를 탐지하여 구체적 내용으로 대체 유도. <b>사실/해석 분리 질문</b>으로 LLM 추측(hallucination) 차단.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 4 — 적응형 프레임워크 <span class="pill new">신규</span></div>
+          프레임워크 관리부는 조직별 <b>커스텀 프레임워크</b>를 정의·갱신 가능하며, 보정 기준이 프레임워크 변경에 <b>적응적으로 갱신</b>.
+        </div>
+      </div>
+      <div>
+        <div class="claim dep">
+          <div class="cnum">종속항 5 — Type 적응형 질문 <span class="pill new">신규</span></div>
+          커뮤니케이션을 <b>유형(A:진행공유/B:이슈/C:의사결정)</b>으로 자동 분류하고, 유형별로 질문 수를 동적 제어(A:≤1 / B,C:≤3). 질문 우선순위: 팩트혼재 > 리스크 > 결정 > 결과 > 액션.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 6 — Grace/Strict 이원 루브릭 <span class="pill new">신규</span></div>
+          보정 기준을 <b>온보딩 기간(Grace)과 정상 운영(Strict)</b>으로 이원화하고, 날짜 기반으로 <b>자동 전환</b>. 조직 학습곡선에 따라 기대 수준이 점진적으로 상향.
+        </div>
+        <div class="card core" style="margin-top:8px">
+          <div class="cl">ARISA 구현</div>
+          <div class="cv"><b>Engine B</b> (COMPLETION_CHECK_PROMPT) + <b>Engine C</b> (STRUCTURE_PROMPT) + <b>shared/report_score.py</b></div>
+          <div class="val"><span class="pill live">MVP1 가동</span> <span class="pill live">채점 v2 가동</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>04 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5 · PATENT #2 — CAPTURE ENGINE (Defense)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Patent #2 · Defense Patent</span><span class="eyebrow">05</span></div>
+    <h2>옴니채널 조직 커뮤니케이션 <span class="ac">수집 및 업무 데이터 생성</span></h2>
+    <p class="sub"><span class="pill def">Capture Engine</span> — 조직 내 <b>모든 커뮤니케이션 수단</b>(메신저·음성·이메일·회의·파일·이미지)을 수집하고, 소스 타입을 자동 감지하여 <b>통일된 업무 데이터로 변환</b>하는 시스템. "옴니채널 수집"이 특허의 핵심 차별점.</p>
+  </div>
+  <div class="slide-body">
+    <div class="claim">
+      <div class="cnum">독립항 1 — 시스템</div>
+      조직 구성원의 커뮤니케이션을 <b>복수의 채널</b>(메신저·음성·이메일·회의록·첨부파일·이미지)로부터 수신하는 <b>옴니채널 수집부</b>; 수집된 데이터의 <b>소스 타입을 자동 감지</b>(AI디스커션/팀미팅/일일보고/리서치)하는 <b>소스 분류부</b>; <b>대화 단위로 세그멘테이션</b>하고 화자를 식별하는 <b>분절부</b>; 세그멘테이션된 대화에서 <b>업무 항목</b>을 추출하고 프로젝트에 자동 연결하는 <b>업무 생성부</b>; 다중 채널 데이터를 <b>공통 포맷으로 정규화</b>(ingest adapter)하여 후속 파이프라인에 전달하는 <b>큐 관리부</b>를 포함하는 시스템.
+    </div>
+    <div class="grid g2" style="margin-top:8px">
+      <div>
+        <div class="claim dep">
+          <div class="cnum">종속항 2 — STT + 조직 용어 교정</div>
+          음성 입력을 STT 처리하고, <b>조직 고유 용어 사전</b>에 기반하여 STT 오인식을 교정.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 3 — 복수 업무 식별 + 유형 부여</div>
+          하나의 커뮤니케이션에서 <b>복수의 업무 항목</b>을 식별, 각 업무에 <b>보고 유형</b>(daily/meeting/research/decision/support/weekly)을 자동 부여.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 4 — 소스 타입 자동감지 <span class="pill new">신규</span></div>
+          회의 텍스트에서 <b>AI 디스커션 신호</b>(키워드 점수)와 <b>팀 미팅 신호</b>(참석자 수)를 Bigram 점수로 산출하여 소스 타입을 자동 분류, <b>타입별 상이한 구조화 프롬프트</b> 적용.
+        </div>
+      </div>
+      <div>
+        <div class="claim dep">
+          <div class="cnum">종속항 5 — 대화형 상태머신 수집 <span class="pill new">신규</span></div>
+          <b>복수의 독립 대화 흐름</b>(보고/회의/분장)을 상태 번호 오프셋으로 격리하며, PicklePersistence로 <b>봇 재시작에도 세션 복구</b>. 대화 중 메타 질문(question)·수정(correction)에 <b>비선형 상태 복귀</b>.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 6 — 유실 방지 큐 <span class="pill new">신규</span></div>
+          저장 실패 시 <b>JSONL 큐에 자동 보관</b>. UUID + submitted_at로 <b>재시도/재제출 구분(dedup)</b>. flock+fsync 원자성. archive.jsonl로 감사 추적.
+        </div>
+        <div class="card defense" style="margin-top:8px">
+          <div class="cl">ARISA 구현</div>
+          <div class="cv"><b>Engine A</b> + <b>shared/normalize.py</b> + <b>shared/report_queue.py</b> + R4 Meeting OS 소스감지</div>
+          <div class="val"><span class="pill live">텔레그램 가동</span> <span class="pill live">회의 감지 가동</span> <span class="pill live">유실방지 가동</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>05 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 6 · PATENT #3 — DISTRIBUTION
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Patent #3 · Distribution Patent</span><span class="eyebrow">06</span></div>
+    <h2>역할 기반 커뮤니케이션 <span class="ac">재구성 및 의사결정 구조 축적</span></h2>
+    <p class="sub"><span class="pill dist">Distribution Patent</span> — 보정된 커뮤니케이션을 역할별로 재구성하되, <b>의사결정 이력을 구조화·축적</b>하여 조직의 에셋으로 전환. 거울을 통해 사고 방식이 마인드셋으로 체화.</p>
+  </div>
+  <div class="slide-body">
+    <div class="claim">
+      <div class="cnum">독립항 1 — 시스템</div>
+      구조화된 커뮤니케이션을 수신하는 <b>입력부</b>; 구성원의 <b>역할·직위·담당</b>을 관리하는 <b>역할 관리부</b>; 역할에 기반하여 정보를 <b>선별·재배열·요약</b>하는 <b>재구성 엔진</b>; 커뮤니케이션에서 <b>의사결정 요청을 자동 추출</b>하여 구조화(프로젝트·긴급도·선택지·추천안·기한·지연영향)하고 <b>상태 이력(open→resolved)을 축적</b>하는 <b>의사결정 추적부</b>; 및 역할별 최적 형식으로 출력하는 <b>적응형 출력부</b>를 포함하는 시스템.
+    </div>
+    <div class="grid g2" style="margin-top:8px">
+      <div>
+        <div class="claim dep">
+          <div class="cnum">종속항 2 — 대표용 Decision 추출</div>
+          대표(Executive)에 대해 <b>의사결정 사항을 최상위로 추출·정렬</b>, 긴급도·프로젝트·출처별 구조화.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 3 — 사고 거울(Mirror)</div>
+          직원에게 보정된 보고 + <b>Reflection(잘된점/부족점/보완점)</b>을 회신하여 사고 거울 기능. <b>Mirror 80% / Reflector 15% / Coach 5%</b> 비율로 운용.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 4 — 시간축 적응 산출물</div>
+          <b>Daily/Weekly/Monthly</b> 시간축에 따라 상이한 집계 수준과 분석 깊이의 산출물 자동 생성.
+        </div>
+      </div>
+      <div>
+        <div class="claim dep">
+          <div class="cnum">종속항 5 — Decision Carry-over <span class="pill new">신규</span></div>
+          <b>미결 의사결정을 다음 기간의 브리프에 자동 이월</b>. 경과일(age_days) 순 정렬. 14일 초과 시 stale 감지·경고. append-only JSONL로 감사 추적.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 6 — 역할 계층 대시보드 <span class="pill new">신규</span></div>
+          <b>admin(전체)/leader(팀)/member(본인)</b> 역할 계층에 따라 동일 데이터의 <b>가시 범위를 동적 필터링</b>. PIN 자가설정 기반 인증.
+        </div>
+        <div class="card dist" style="margin-top:8px">
+          <div class="cl">ARISA 구현</div>
+          <div class="cv"><b>Engine D</b> + <b>shared/decision.py</b> + <b>dashboard-server.py</b> (leader/admin 탭) + <b>daily-brief-aggregate.py</b></div>
+          <div class="val"><span class="pill live">거울 가동</span> <span class="pill live">Decision 축적</span> <span class="pill live">리더 대시보드 가동</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>06 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 7 · PATENT FAMILY MASTER BRIEF
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Patent Family Master Brief</span><span class="eyebrow">07</span></div>
+    <h2>ARISA 1.0 — <span class="ac">3건 통합 전략</span> + 변리사 요청</h2>
+    <p class="sub">3건 독립 출원, 하나의 Patent Family로 관리. 핵심 강조 포인트: <b>"모든 커뮤니케이션 → 안정화 → 에셋+마인드셋"</b></p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g2" style="margin-bottom:10px">
+      <div class="callout acc">
+        <h4>Family 구조 설계 요청</h4>
+        <ul class="pts">
+          <li>#1(Correction)을 <b>Core Patent</b> — 가장 넓은 독립항</li>
+          <li>#2(Capture)를 <b>Defense Patent</b> — <b>옴니채널 수집</b> 경쟁사 우회 차단</li>
+          <li>#3(Distribution)를 <b>Distribution + Asset Patent</b> — 의사결정 구조 축적 보호</li>
+          <li>3건의 <b>상호 인용(Cross-reference)</b> + 방법 청구항 병행 검토</li>
+        </ul>
+      </div>
+      <div class="callout warn">
+        <h4>독립항에서 강조할 핵심 컨셉</h4>
+        <ul class="pts">
+          <li><b>"조직 내 모든 커뮤니케이션 수단"</b> — 특정 채널 한정이 아닌 옴니채널</li>
+          <li><b>"커뮤니케이션 레벨 안정화"</b> — 단순 자동화가 아닌 품질 균일화</li>
+          <li><b>"의사결정 구조의 자산화"</b> — 축적된 Decision Log가 조직 자산</li>
+          <li><b>"사고 방식의 마인드셋화"</b> — 거울을 통한 사고 체화</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="callout">
+        <h4>선행기술 조사 요청</h4>
+        <ul class="pts">
+          <li>업무 보고 자동화 / 조직 커뮤니케이션 NLP 관련 선행특허</li>
+          <li>역할 기반 정보 필터링·재구성 관련 특허</li>
+          <li><b>CFD(Communication Fidelity Design)</b> 개념 선행 여부</li>
+          <li><b>"커뮤니케이션 안정화"</b> 관련 기존 특허·논문</li>
+        </ul>
+      </div>
+      <div class="callout">
+        <h4>PCT 출원 전략</h4>
+        <ul class="pts">
+          <li>한국 우선 출원 → 12개월 내 PCT 전환</li>
+          <li>미국·일본 우선 지정 (HR Tech 시장)</li>
+          <li>출원 시점: <b>2.0 MVP 완성 상태 = 구현 증거 확보됨</b></li>
+          <li>CFD 상표 등록 가능 여부 별도 확인</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>07 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 8 · PATENT #4 — MEASUREMENT LAYER
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Patent #4 · Measurement</span><span class="eyebrow">08</span></div>
+    <h2>조직 커뮤니케이션 품질의 <span class="ac">측정·안정화 및 Closed-loop 제어</span></h2>
+    <p class="sub"><span class="pill meas">Measurement Layer</span> — 파이프라인의 품질을 정량화하고, 측정값으로 파이프라인을 제어하여 <b>커뮤니케이션 레벨을 안정화</b>한다. "안정화"가 이 특허의 핵심 가치.</p>
+  </div>
+  <div class="slide-body">
+    <div class="claim">
+      <div class="cnum">독립항 1 — 시스템</div>
+      커뮤니케이션의 <b>요소 커버리지(Coverage)</b>와 <b>구체성 깊이(Depth)</b>를 보고유형·중요도·난이도별 <b>기대깊이로 정규화</b>하여 <b>사고 해상도</b>를 산출하는 <b>해상도 측정부</b>; 지시-이해 간 <b>의미적 거리(Define Cost)</b>를 임베딩 벡터 코사인 거리로 측정하는 <b>오해 비용 측정부</b>; 동일 문제 <b>재발 간격 변화</b>와 개선 약속 이행률로 <b>조직 학습 속도</b>를 측정하는 <b>학습 속도 측정부</b>; 구성원의 <b>질문-단언 비율</b> 및 질문의 인지적 수준(사실<해석<재정의)을 측정하는 <b>질문 수준 측정부</b>; 상기 4개 측정값을 파이프라인에 피드백하여 질문·보정·출력을 <b>동적 조정</b>하는 <b>제어부</b>; 및 보정 기준을 <b>온보딩(Grace)/정상(Strict)으로 이원화</b>하고 날짜 기반 <b>자동 전환</b>하는 <b>적응 기준부</b>를 포함하는 시스템.
+    </div>
+    <div class="grid g2" style="margin-top:8px">
+      <div>
+        <div class="claim dep">
+          <div class="cnum">종속항 2 — ReportScore 체계 <span class="pill new">신규</span></div>
+          보고 유형(A:진행/B:이슈/C:의사결정)별 <b>상이한 가중치</b>(A:context25+priority25 / C:decision30)로 100점 만점 점수를 산출. <b>채점 엔진을 단일 SSOT</b>(shared/report_score.py)로 관리하여 봇·대시보드·시뮬레이터 간 채점 동기화.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 3 — Thinking Cost KPI <span class="pill new">신규</span></div>
+          직원 보고 제출 후 대표가 추가로 묻는 <b>보완 질문 수(Thinking Cost)</b>를 추적. ReportScore와 <b>역상관 관계</b>를 KPI로 설정: 점수↑ = 질문↓ = <b>커뮤니케이션 레벨 안정화</b>.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 4 — 요소 사전(Element Dictionary)</div>
+          14개 보고 요소(status/why/problem/approach/output/outcome/timeline/risk/support/decision/budget/impact/next/reflection)의 <b>깊이 0~3 루브릭</b>을 유지하고 유형별 기대셋을 정의.
+        </div>
+      </div>
+      <div>
+        <div class="claim dep">
+          <div class="cnum">종속항 5 — 측정=교육 일원화</div>
+          해상도 측정부의 결과를 Completion Engine(P#1)에 피드백하여, <b>측정과 교육이 하나의 요소 사전을 공유</b>하는 일원화 구조.
+        </div>
+        <div class="claim dep">
+          <div class="cnum">종속항 6 — 14-Element Growth 프레임워크 <span class="pill new">신규</span></div>
+          14요소를 <b>필수 4(output/outcome/problem/approach) + 선택 4(timeline/support/decision/next) + 추가 6(status/why/risk/budget/impact/reflection)</b>으로 계층화. 개인/파트/팀/전사 <b>4단계 롤업</b> 집계.
+        </div>
+        <div class="card meas" style="margin-top:8px">
+          <div class="cl">ARISA 구현</div>
+          <div class="cv"><b>shared/report_score.py</b> (SSOT) + <b>weekly-report-aggregate.py</b> (14요소 집계) + <b>측정설계 v2</b></div>
+          <div class="val"><span class="pill live">채점 가동</span> <span class="pill live">주간 집계 가동</span> <span class="pill design">해상도 설계 완료</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>08 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 9 · 추가 보호 대상 (구현에서 발견)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">추가 보호 대상 — 구현 현황 기반</span><span class="eyebrow">09</span></div>
+    <h2>현재 <span class="ac">구현된 5개 기술</span>의 별도 보호 검토</h2>
+    <p class="sub">ARISA 시스템 탐색 결과, 기존 4건 외에 <b>별도 출원 또는 종속항 추가</b>를 검토해야 할 구현 기술 5건 발견. 변리사와 보호 전략 협의 필요.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3" style="margin-bottom:10px">
+      <div class="card" style="border-color:rgba(225,112,85,.4)">
+        <div class="cl"><span class="pill new">A</span> 회의 자동 분류·구조화</div>
+        <h3>R4 Meeting OS</h3>
+        <div class="cv" style="margin-top:4px">자유형식 회의 전사를 <b>12종 유형</b>으로 자동 분류 → 7탭 구조(요약/결정/논의/투두/지원/리스크) 변환. <b>누락 탐지→질문 루프(3라운드)</b>로 보완. 준비도 12영역 체크리스트 자동 산출.</div>
+        <div class="val" style="color:var(--amber)">P#2 종속항 or 별도 출원 검토</div>
+      </div>
+      <div class="card" style="border-color:rgba(225,112,85,.4)">
+        <div class="cl"><span class="pill new">B</span> 시맨틱 메모리 레이어</div>
+        <h3>Memory Layer (mem0)</h3>
+        <div class="cv" style="margin-top:4px">직원별 과거 사고를 <b>임베딩 인덱싱</b>하여 새 보고 맥락에서 <b>관련 기억 재부상</b>(코사인 유사도). <b>infer=False</b>: LLM 추출 비활성화로 원문 보존(fidelity↑). 직원별 <b>격리 저장소</b>.</div>
+        <div class="val" style="color:var(--amber)">P#4 종속항 or 별도 출원 검토</div>
+      </div>
+      <div class="card" style="border-color:rgba(225,112,85,.4)">
+        <div class="cl"><span class="pill new">C</span> 의사결정 라이프사이클</div>
+        <h3>Decision Queue</h3>
+        <div class="cv" style="margin-top:4px">보고에서 자동 추출된 의사결정을 <b>5상태(needed→pending→open→resolved→stale)</b>로 관리. 옵션·추천안·기한·지연영향 구조화. <b>미결 자동이월(carry-over)</b> + 14일 stale 감지.</div>
+        <div class="val" style="color:var(--amber)">P#3 종속항으로 포함 (현재 반영됨)</div>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="card" style="border-color:rgba(225,112,85,.4)">
+        <div class="cl"><span class="pill new">D</span> 공유 코어 레이어</div>
+        <h3>Shared Core (15 모듈)</h3>
+        <div class="cv" style="margin-top:4px">3개 이상의 독립 봇이 <b>15개 공유 모듈</b>(logging/normalize/employee/gws/llm/telegram/decision/status_log/report_score/report_queue/naming 등)을 SSOT로 공유. 도메인 로직은 각 봇에 남기되 <b>배관(호출·파싱·재시도)은 단일화</b> → 버그 수정·기능 추가 1곳 반영. <b>LLM 실패 시 3단계 Graceful Degradation</b>(LLM→구식엔진→규칙기반).</div>
+        <div class="val" style="color:var(--fg-3)">아키텍처 특허 — 변리사와 별도 협의</div>
+      </div>
+      <div class="card" style="border-color:rgba(225,112,85,.4)">
+        <div class="cl"><span class="pill new">E</span> Context-Driven 의사결정</div>
+        <h3>Decision Window (arisa2)</h3>
+        <div class="cv" style="margin-top:4px">프로젝트 <b>Master Context 변화</b>에 따라 의사결정을 역할별 재정렬. 우선순위 = <b>urgency + impact + dependency + delay_risk + context_change</b>(정규화 가중합). Task가 아닌 <b>Context 중심 설계</b> — 의사결정 구조가 에셋으로 전환되는 핵심 메커니즘.</div>
+        <div class="val" style="color:var(--amber)">P#3 확장 or 3단계 P#5 포함 검토</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>09 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 10 · 3단계 ROADMAP (FUTURE)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">3단계 로드맵 — Future Portfolio</span><span class="eyebrow">10</span></div>
+    <h2>Assetization · Evolution · <span class="ac">Cognition OS</span></h2>
+    <p class="sub">1·2단계에서 수집·보정·측정한 데이터가 3단계에서 <b>조직의 에셋이자 마인드셋</b>으로 전환된다. 의사결정 구조의 자산화가 이 단계의 핵심.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g3" style="margin-bottom:10px">
+      <div class="card">
+        <div class="cl"><span class="pill future">Patent #5</span></div>
+        <h3>Thinking Assetization</h3>
+        <div class="cv" style="margin-top:6px"><b>사고 자산화</b> — 축적된 Thinking Data + Decision Log를 <b>검색·재활용·가치 산정</b> 가능한 자산으로 변환. 이 에셋이 직원별 AI 에이전트의 <b>지식 기반(Knowledge Base)</b>이 된다.</div>
+        <div class="val" style="color:var(--fg-3)">→ 에이전트가 "오늘 할 일"을 가이드할 수 있는 근거</div>
+      </div>
+      <div class="card">
+        <div class="cl"><span class="pill future">Patent #6</span></div>
+        <h3>Framework Evolution</h3>
+        <div class="cv" style="margin-top:6px"><b>조직 프레임 자동 진화</b> — 축적 패턴으로 프레임워크를 <b>자동 갱신·최적화</b>. 보정 기준 자체가 <b>학습하고 진화</b>. 거울을 통해 체화된 사고방식이 <b>마인드셋</b>이 된다.</div>
+        <div class="val" style="color:var(--fg-3)">전제: P#1 Framework Management 고도화</div>
+      </div>
+      <div class="card" style="border-color:rgba(108,92,231,.4)">
+        <div class="cl"><span class="pill future">Patent #7</span></div>
+        <h3>Organizational Cognition OS</h3>
+        <div class="cv" style="margin-top:6px"><b>조직 인지 OS</b> — 전체 파이프라인을 통합 운영. 최종 형태는 <b>직원 개인별 AI 에이전트</b>: 개인 대시보드에서 "오늘 뭐 해야 해?"를 물으면, 축적된 에셋(Decision Log·Framework·과거 사고)에 기반하여 <b>기획→설계→레퍼런스→실행 수단</b>까지 가이드. GPT와 대화하듯 자연스럽게, 그러나 <b>조직의 맥락과 축적된 자산 위에서</b> 동작.</div>
+        <div class="val" style="color:var(--fg-3)">최종: 직원별 AI 에이전트 = 조직 에셋 기반 개인 코파일럿</div>
+      </div>
+    </div>
+    <div class="vision-box">
+      <div class="vt">에셋 + 마인드셋 = Organizational Cognition</div>
+      <div class="vb">1단계(파이프라인)에서 커뮤니케이션을 <b>안정화</b>하고, 2단계(측정)에서 품질을 <b>정량화</b>하면, 그 과정에서 축적된 의사결정 구조는 <b>에셋(Asset)</b>이 되고, 거울을 통해 체화된 사고 방식은 <b>마인드셋(Mindset)</b>이 된다. 3단계는 이 둘을 <b>자동 진화</b>시켜 조직의 <b>Collective Intelligence</b>를 구현한다.</div>
+      <div class="vs" style="margin-top:10px"><b>최종 형태:</b> 직원 개인 대시보드의 AI 에이전트 — "오늘 뭐 해야 해?"를 물으면 조직의 축적된 에셋(Decision·Framework·Thinking Data)에 기반하여 기획→설계→레퍼런스→실행 수단까지 가이드. GPT와 대화하듯, 그러나 <b>조직 맥락 위에서</b>.</div>
+    </div>
+    <p class="note">3단계 특허는 현 시점에서 출원하지 않는다 — 기술 구현 후 변리사와 시점 협의. 단, 가출원(Provisional)으로 우선일 확보 검토.</p>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>10 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 11 · 구현 현황 대조표
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">구현 현황 대조표</span><span class="eyebrow">11</span></div>
+    <h2>특허 청구항 vs <span class="ac">ARISA 실제 구현</span> 매핑</h2>
+  </div>
+  <div class="slide-body">
+    <table class="u">
+      <tr><th>특허</th><th>청구항 핵심</th><th>ARISA 엔진 / 모듈</th><th>상태</th></tr>
+      <tr>
+        <td><span class="pill def" style="font-size:8px">P#2</span></td>
+        <td>옴니채널 수집 · 화자 식별 · 유형 분류</td>
+        <td><b>Engine A</b> + shared/normalize.py</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill def" style="font-size:8px">P#2</span></td>
+        <td>소스 타입 자동감지 (AI/팀) <span class="pill new">신규</span></td>
+        <td>R4 Meeting OS 소스감지</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill def" style="font-size:8px">P#2</span></td>
+        <td>대화형 상태머신 + 비선형 복귀 <span class="pill new">신규</span></td>
+        <td>daily-report-bot.py (8+3+3 상태)</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill def" style="font-size:8px">P#2</span></td>
+        <td>유실 방지 큐 + Dedup <span class="pill new">신규</span></td>
+        <td>shared/report_queue.py</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill core" style="font-size:8px">P#1</span></td>
+        <td>프레임워크 매핑 · 7기준 완전성 검사</td>
+        <td><b>Engine B</b> COMPLETION_CHECK_PROMPT</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill core" style="font-size:8px">P#1</span></td>
+        <td>Fidelity 4축 검증 (원문보존·사실확인·모호성·불확실) <span class="pill new">강화</span></td>
+        <td><b>Engine B</b> _VAGUE_RE + fidelity gate</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill core" style="font-size:8px">P#1</span></td>
+        <td>Type A/B/C 적응형 질문 + 우선순위 <span class="pill new">신규</span></td>
+        <td>shared/report_score.py TYPE_WEIGHTS</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill core" style="font-size:8px">P#1</span></td>
+        <td>Grace→Strict 이원 루브릭 자동 전환 <span class="pill new">신규</span></td>
+        <td>shared/report_score.py current_mode()</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill core" style="font-size:8px">P#1</span></td>
+        <td>7섹션 구조화 · 의미 재구성</td>
+        <td><b>Engine C</b> STRUCTURE_PROMPT</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill dist" style="font-size:8px">P#3</span></td>
+        <td>직원 거울(Mirror 80/15/5)</td>
+        <td>format_report_for_employee()</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill dist" style="font-size:8px">P#3</span></td>
+        <td>Decision 추출 + carry-over + stale 감지 <span class="pill new">강화</span></td>
+        <td>shared/decision.py + daily-brief-aggregate.py</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill dist" style="font-size:8px">P#3</span></td>
+        <td>역할 계층 대시보드 (admin/leader/member) <span class="pill new">신규</span></td>
+        <td>dashboard-server.py + users.json</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill dist" style="font-size:8px">P#3</span></td>
+        <td>시간축 적응(Daily/Weekly/Monthly)</td>
+        <td>daily-brief + weekly-report-aggregate</td>
+        <td><span class="pill live">D/W 가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill meas" style="font-size:8px">P#4</span></td>
+        <td>ReportScore 100점 (Type별 가중) <span class="pill new">신규</span></td>
+        <td>shared/report_score.py SSOT</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill meas" style="font-size:8px">P#4</span></td>
+        <td>Thinking Cost 역상관 KPI <span class="pill new">신규</span></td>
+        <td>daily-brief 보완질문 추적</td>
+        <td><span class="pill design">설계</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill meas" style="font-size:8px">P#4</span></td>
+        <td>14-Element Growth 프레임워크 <span class="pill new">신규</span></td>
+        <td>weekly-report-aggregate.py</td>
+        <td><span class="pill live">가동</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill meas" style="font-size:8px">P#4</span></td>
+        <td>해상도 2축 (Coverage×Depth÷Expected)</td>
+        <td>측정설계 v2</td>
+        <td><span class="pill design">설계</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill meas" style="font-size:8px">P#4</span></td>
+        <td>Define Cost (임베딩 코사인 거리)</td>
+        <td>측정설계 v2 §6</td>
+        <td><span class="pill plan">대기</span></td>
+      </tr>
+    </table>
+    <p class="note">v1.0 대비 <span class="pill new">신규</span> 9건, <span class="pill new">강화</span> 2건 추가. 총 18행 매핑.</p>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>11 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 12 · 에셋+마인드셋 구조 (신규)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide peak">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">Core Concept — 변리사 공유용</span><span class="eyebrow">12</span></div>
+    <h2>의사결정 구조가 <span class="ac">에셋이자 마인드셋</span>이 되는 메커니즘</h2>
+    <p class="sub">이 특허 포트폴리오가 궁극적으로 보호하려는 것은, 커뮤니케이션이 <b>소모되는 비용</b>에서 <b>축적되는 자산</b>으로 전환되는 구조 전체다.</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid g2" style="margin-bottom:10px">
+      <div class="card" style="border-color:var(--accent);padding:22px">
+        <div class="cl" style="color:var(--accent-light)">에셋 (Asset) — 축적되는 구조</div>
+        <div class="cv">
+          <b>① Decision Log</b> — 모든 의사결정의 맥락·선택지·결과가 구조화 축적<br>
+          <b>② Thinking Data Log</b> — 직원별 사고 패턴·성장 곡선 축적<br>
+          <b>③ Define Cost Map</b> — 조직 내 오해 발생 지점 지도화<br>
+          <b>④ Framework</b> — 조직이 사고하는 기준 자체가 진화·축적<br><br>
+          이 4개가 결합되면 <b>"이 조직은 어떤 상황에서 어떤 판단을 내리는가"</b>의 답이 데이터로 존재한다. 이것이 <b>조직의 에셋</b>.
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--accent);padding:22px">
+        <div class="cl" style="color:var(--accent-light)">마인드셋 (Mindset) — 체화되는 사고</div>
+        <div class="cv">
+          <b>① 거울(Mirror)</b> — 자기 보고를 구조화된 형태로 반복 확인 → 사고 방식 체득<br>
+          <b>② 질문(Reflector)</b> — "무엇이 빠졌는가"를 스스로 묻는 습관 형성<br>
+          <b>③ 기준의 상향(Grace→Strict)</b> — 조직 전체의 기대 수준이 점진적 상승<br>
+          <b>④ Thinking Cost 감소</b> — 대표의 추가 질문이 줄어듦 = 사고가 정렬됨<br><br>
+          시스템이 아니라 <b>사람의 사고 방식 자체가 변한다</b>. 이것이 <b>조직의 마인드셋</b>.
+        </div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:10px">
+      <div class="vision-box">
+        <div class="vt">특허 보호의 핵심</div>
+        <div class="vb">"보고 자동 정리 도구"가 아니라, <b>모든 커뮤니케이션을 수집·분석·보정 → 레벨 안정화 → 의사결정 구조가 자산 축적 → 사고방식이 마인드셋 체화</b> — 이 <b>전체 구조</b>를 보호한다.</div>
+      </div>
+      <div class="vision-box" style="background:linear-gradient(135deg,rgba(143,163,126,.08),rgba(143,163,126,.02));border-color:rgba(143,163,126,.3)">
+        <div class="vt" style="color:var(--green)">최종 형태 — 직원별 AI 에이전트</div>
+        <div class="vb">개인 대시보드에서 GPT와 대화하듯 — <b>"오늘 뭐 해야 해?"</b>를 물으면:<br>
+        ① 축적된 <b>Decision Log</b>에서 미결 과제 제시<br>
+        ② 조직 <b>Framework</b>에 기반한 기획·설계 가이드<br>
+        ③ 과거 유사 <b>Thinking Data</b>에서 레퍼런스 추천<br>
+        ④ 실행 방법·수단·도구까지 제공<br><br>
+        조직의 에셋이 개인의 <b>일하는 방식 자체를 진화</b>시킨다.</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>12 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 13 · 변리사 미팅 체크리스트
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">변리사 미팅 체크리스트</span><span class="eyebrow">13</span></div>
+    <h2>우선순위별 <span class="ac">검토 요청 사항</span></h2>
+  </div>
+  <div class="slide-body">
+    <div class="grid g2" style="margin-bottom:10px">
+      <div class="callout acc">
+        <h4>P0 · 반드시 확인 (출원 전 필수)</h4>
+        <ul class="pts">
+          <li><b>선행기술:</b> 조직 커뮤니케이션 구조화·옴니채널 수집·역할별 재구성 선행특허</li>
+          <li><b>독립항 범위:</b> "조직 프레임워크 기반" + "옴니채널" 한정자 충분성</li>
+          <li><b>Family 구조:</b> 3건 동시 출원 vs 시차 — 비용·전략 관점</li>
+          <li><b>방법 청구항:</b> 시스템+방법 이중 보호 필요 여부</li>
+          <li><b>출원 시점:</b> 현재(MVP 구현) vs 2.0 완성 후 — 어느 쪽이 유리한가</li>
+          <li><b>핵심 컨셉 보호:</b> "커뮤니케이션 안정화" + "의사결정의 에셋화"가 청구항에 반영 가능한지</li>
+        </ul>
+      </div>
+      <div class="callout">
+        <h4>P1 · 전략 검토</h4>
+        <ul class="pts">
+          <li><b>PCT:</b> 한국 우선 출원 → 12개월 내 PCT 전환 비용·일정</li>
+          <li><b>지정국:</b> 미국·일본 우선 (HR Tech / SaaS 시장)</li>
+          <li><b>P#4 출원 시점:</b> 1단계와 동시 vs 측정 구현 후 분리</li>
+          <li><b>CFD 상표:</b> Communication Fidelity Design 상표 등록</li>
+          <li><b>추가 보호 대상 5건</b>(슬라이드 09)의 보호 전략 — 종속항 vs 별도 출원</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="callout">
+        <h4>P2 · 종속항 세부 조정</h4>
+        <ul class="pts">
+          <li>7섹션/Fidelity 4축/Type A·B·C/Grace→Strict 각각 종속항 한정 시 우회 가능성</li>
+          <li>Mirror 80%/15%/5% 비율 청구항 포함 시 보호 효과 vs 제한 리스크</li>
+          <li>Define Cost 임베딩 코사인 거리 — 기존 NLP 특허 충돌 여부</li>
+          <li>ReportScore Type별 가중치(A:context25 / C:decision30) 수치 한정의 적절성</li>
+        </ul>
+      </div>
+      <div class="callout">
+        <h4>P3 · 장기 포트폴리오</h4>
+        <ul class="pts">
+          <li>P#5–#7 <b>가출원(Provisional)</b> — 우선일 확보</li>
+          <li>RXR 특허(기출원)와 ARISA 포트폴리오 <b>시너지</b></li>
+          <li>SW 특허 한국 등록 가능성 — 최근 심사 트렌드</li>
+          <li>오픈소스 전략: 일부 모듈 공개 시 특허 보호 영향</li>
+          <li><b>Meeting OS(R4)</b> 별도 출원 시 시장 가치 평가</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CFD / ARISA Patent Strategy v1.1</span><span>13 / 14</span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 14 · 부록: 용어 정의
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="slide-head">
+    <div class="sec-head"><span class="eyebrow">부록 · 용어 정의</span><span class="eyebrow">14</span></div>
+    <h2>변리사 공유용 <span class="ac">핵심 용어</span></h2>
+  </div>
+  <div class="slide-body">
+    <table class="u">
+      <tr><th>용어</th><th>정의</th><th>특허 내 위치</th></tr>
+      <tr><td>CFD</td><td><b>Communication Fidelity Design</b> — 조직 커뮤니케이션의 충실도(원래 의도 대비 전달 정확도)를 설계하는 철학 및 방법론</td><td>전체 포트폴리오 상위 개념</td></tr>
+      <tr><td>Thinking Resolution</td><td><b>사고 해상도</b> — 같은 사실을 얼마나 또렷하게 보는가. Coverage × Depth ÷ Expected Depth</td><td>P#4 독립항</td></tr>
+      <tr><td>Define Cost</td><td><b>정의 비용(오해 비용)</b> — 조직 내 지시가 전달되며 발생하는 의미적 거리. 지시문↔이해문 임베딩 코사인 거리로 측정</td><td>P#4 종속항</td></tr>
+      <tr><td>Fidelity Gate</td><td>AI가 원정보를 축약하며 발생하는 왜곡을 차단하는 4축 검증 메커니즘 (원문보존·사실확인·모호성탐지·불확실표시)</td><td>P#1 종속항 3</td></tr>
+      <tr><td>Mirror / Reflector / Coach</td><td>ARISA의 3계층 응답 비율 (80/15/5). 번역·구조화(Mirror) → 질문(Reflector) → 코칭(Coach)</td><td>P#3 종속항 3</td></tr>
+      <tr><td>Communication Purity</td><td><b>커뮤니케이션 순도</b> — 동어반복·더미·추상어가 제거된 비율. Fidelity Gate의 산출물</td><td>P#1·P#4</td></tr>
+      <tr><td>Thinking Cost</td><td>직원 보고 제출 후 대표가 추가로 묻는 보완 질문 수. 이것의 감소가 커뮤니케이션 안정화 증거</td><td>P#4 종속항 3</td></tr>
+      <tr><td>ReportScore</td><td>보고 품질 100점 만점 점수. Type(A:진행/B:이슈/C:의사결정)별 상이한 가중치 적용</td><td>P#4 종속항 2</td></tr>
+      <tr><td>Element Dictionary</td><td>14개 보고 요소의 정의·깊이 루브릭·유형별 기대셋을 관리하는 사전. 측정과 교육의 SSOT</td><td>P#4 종속항 4</td></tr>
+      <tr><td>Decision Carry-over</td><td>미결 의사결정을 다음 기간 브리프에 자동 이월하는 메커니즘. 경과일 추적 + stale 감지</td><td>P#3 종속항 5</td></tr>
+      <tr><td>Omni-Channel Capture</td><td>메신저·음성·이메일·회의록·파일 등 모든 채널을 통합 수집하여 공통 포맷으로 정규화</td><td>P#2 독립항</td></tr>
+    </table>
+  </div>
+  <div class="slide-footer"><span>by Project Rent · Confidential</span><span>14 / 14</span></div>
+</section>
+
+</div>
+<script>
+  const s=[...document.querySelectorAll('.slide')];let i=0;
+  const show=n=>{i=Math.max(0,Math.min(s.length-1,n));s.forEach((x,k)=>x.classList.toggle('active',k===i));};
+  document.addEventListener('keydown',e=>{if(['ArrowRight','ArrowDown',' '].includes(e.key)){show(i+1);e.preventDefault();}if(['ArrowLeft','ArrowUp'].includes(e.key)){show(i-1);e.preventDefault();}if(e.key==='Home')show(0);if(e.key==='End')show(s.length-1);});
+  document.addEventListener('click',e=>show(e.clientX/innerWidth>0.5?i+1:i-1));
+  show(0);
+</script>
+</body>
+</html>

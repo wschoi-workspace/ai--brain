@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<!--
+  미팅록 공유용 A4 보고서 템플릿 — FILAMENT data 스킨
+  {{placeholder}}를 치환해 사용. 섹션 5개 고정(01 개요 · 02 아젠다 · 03 의사결정 · 04 To-Do · 05 미해결).
+  internal: 풋터 "내부공유용" / external: 헤더에 클라이언트명+프로젝트명 정식 표기, 풋터 회사명.
+  [검토] 항목: .review 박스 또는 인라인 <span class="rv">[검토]</span>
+-->
+<html lang="ko" data-skin="data">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{YYMMDD}}_{{미팅명}}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --font-sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --font-mono:'SF Mono',ui-monospace,'JetBrains Mono','D2Coding',Menlo,Consolas,monospace;
+  --r-sm:4px; --r-md:8px; --r-full:9999px;
+  --dur-fast:150ms; --dur-base:250ms; --ease-out:cubic-bezier(.2,.8,.2,1);
+  --shadow-md:0 4px 16px rgba(20,20,20,.08); --shadow-lg:0 20px 48px rgba(20,20,20,.12);
+}
+[data-skin="data"]{
+  --surface:#FFFFFF; --surface-2:#F7F8FA; --surface-3:#F1F3F6;
+  --ink:#1A1F2E; --ink-2:#4A5468; --ink-3:#7A86A0;
+  --line:#E3E6EC; --line-2:#F0F2F6;
+  --accent:#FF6450; --accent-ink:#FFFFFF; --accent-hover:#E85540;
+  --accent-soft:#FEF0E7;
+  --ok:#2A7D5A; --warn:#D97706; --danger:#B8455E; --info:#2563EB;
+  --hi-bg:#FFF9E6; --hi-line:#E8C547; --review-bg:#FEF0E7; --review-line:#D97706;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--surface-2);color:var(--ink);
+  font-family:var(--font-sans);font-size:14px;line-height:1.7;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+.doc{max-width:920px;margin:40px auto;background:var(--surface);padding:60px 64px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);border-radius:var(--r-sm)}
+.pt{color:var(--accent);font-weight:700}
+
+.doc-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.16em;color:var(--ink-3);text-transform:uppercase;margin-bottom:18px}
+.doc-top .l{font-weight:600;color:var(--ink-2)}
+h1{font-size:28px;font-weight:800;letter-spacing:-0.025em;line-height:1.25;margin:0 0 14px}
+.intro{font-size:14px;color:var(--ink-2);line-height:1.7;margin:0 0 22px;max-width:84ch}
+hr.rule{border:none;border-top:1px solid var(--line);margin:0 0 24px}
+
+.meta-box{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;margin-bottom:28px}
+.meta-box .row{display:flex;border-bottom:1px solid var(--line-2)}
+.meta-box .row:last-child{border-bottom:none}
+.meta-box .lbl{flex:0 0 84px;background:var(--surface-2);padding:11px 14px;font-size:11px;color:var(--ink-3);font-weight:600;letter-spacing:.05em}
+.meta-box .val{flex:1;padding:11px 14px;font-size:13px;color:var(--ink)}
+
+.sec{margin-bottom:36px;break-inside:avoid}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:8px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.sh .left{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.sh .no{color:var(--accent);font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+.sh .nm{font-size:15px;font-weight:700;color:var(--ink)}
+.sh .resp{font-size:10px;letter-spacing:.08em;color:var(--ink-3);text-transform:uppercase;text-align:right;white-space:nowrap}
+.sec p.note{font-size:12.5px;color:var(--ink-2);margin:0 0 12px}
+.sec h3{font-size:13.5px;font-weight:700;margin:18px 0 8px;color:var(--ink)}
+
+table.kv{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 16px}
+table.kv th,table.kv td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+table.kv thead th{background:var(--surface-2);font-weight:600;font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+table.kv tbody th{width:26%;background:var(--surface-2);font-weight:600;font-size:12px;color:var(--ink-2)}
+
+.insight{background:var(--hi-bg);border-left:3px solid var(--hi-line);padding:13px 16px;margin:12px 0 18px;font-size:13px;border-radius:0 3px 3px 0}
+.review{background:var(--review-bg);border-left:3px solid var(--review-line);padding:13px 16px;margin:12px 0 18px;font-size:13px;border-radius:0 3px 3px 0}
+.review::before{content:"[검토] ";color:var(--review-line);font-weight:700;font-size:11px}
+.rv{color:var(--review-line);font-weight:700;font-size:11px}
+
+/* 의사결정 체크리스트 */
+ul.decisions{list-style:none;margin:0 0 12px;padding:0}
+ul.decisions li{position:relative;padding:9px 0 9px 30px;border-bottom:1px dashed var(--line-2);font-size:13.5px}
+ul.decisions li::before{content:"✓";position:absolute;left:4px;top:8px;color:var(--ok);font-weight:800}
+ul.decisions li:last-child{border-bottom:none}
+ul.decisions strong{color:var(--ink)}
+
+/* To-Do 2단 R&R */
+.todo-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 14px}
+.todo-col{border:1px solid var(--line);border-radius:var(--r-md);padding:14px 18px}
+.todo-col .tc-h{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line-2)}
+.todo-col ul{list-style:none;margin:0;padding:0}
+.todo-col li{padding:7px 0 7px 24px;position:relative;font-size:13px;border-bottom:1px dashed var(--line-2)}
+.todo-col li:last-child{border-bottom:none}
+.todo-col li::before{content:"☐";position:absolute;left:2px;top:6px;color:var(--ink-3)}
+.todo-col .who{font-weight:700;color:var(--ink)}
+.todo-col .due{font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-left:6px;white-space:nowrap}
+
+ul.plain{margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2)}
+ul.plain li{margin-bottom:5px}
+ul.plain strong{color:var(--ink)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
+
+.ftr{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;gap:24px;font-size:11px;color:var(--ink-3)}
+.ftr .sum{max-width:62%;line-height:1.6;color:var(--ink-2)}
+.ftr .r{text-align:right}
+.ftr .r .date{color:var(--accent);font-weight:700;letter-spacing:.05em}
+
+.print-btn{position:fixed;top:24px;right:24px;background:var(--ink);color:#fff;border:none;padding:11px 18px;border-radius:24px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:var(--shadow-md);transition:transform var(--dur-fast),background var(--dur-fast);z-index:100;display:inline-flex;align-items:center;gap:7px}
+.print-btn:hover{background:var(--accent);transform:translateY(-1px)}
+.print-btn svg{width:15px;height:15px}
+
+/* EDIT MODE */
+.edit-panel{position:fixed;top:16px;left:16px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.edit-panel .panel-toggle{width:40px;height:40px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--ink);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);transition:all var(--dur-fast) var(--ease-out)}
+.edit-panel .panel-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.edit-panel.expanded .panel-toggle{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.edit-panel .panel-body{display:none;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px;min-width:184px;box-shadow:var(--shadow-lg)}
+.edit-panel.expanded .panel-body{display:flex}
+.edit-panel .status{font-size:9px;letter-spacing:.25em;color:var(--ink-3);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid var(--line-2)}
+.edit-panel .status.on{color:var(--accent)}
+.edit-panel button{background:transparent;border:1px solid var(--line);color:var(--ink-2);padding:8px 10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;border-radius:var(--r-sm);text-align:left;transition:all var(--dur-fast) var(--ease-out)}
+.edit-panel button:hover{background:var(--surface-2);color:var(--ink);border-color:var(--ink-3)}
+.edit-panel button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.edit-panel button.danger:hover{border-color:var(--danger);color:var(--danger)}
+.edit-panel label{font-size:9px;letter-spacing:.2em;color:var(--ink-3);margin-top:4px;text-transform:uppercase}
+.edit-panel input[type=color]{width:100%;height:30px;padding:2px;background:transparent;border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer}
+.edit-panel .divider{height:1px;background:var(--line-2);margin:4px 0}
+.edit-panel .saved-tag{font-size:9px;color:var(--ok);text-align:center;opacity:0;transition:opacity var(--dur-base)}
+.edit-panel .saved-tag.show{opacity:1}
+body.editing [contenteditable=true]{outline:1px dashed transparent;outline-offset:2px;border-radius:2px;transition:outline-color var(--dur-fast),background-color var(--dur-fast);cursor:text}
+body.editing [contenteditable=true]:hover{outline-color:color-mix(in srgb,var(--accent) 40%,transparent);background:color-mix(in srgb,var(--accent) 6%,transparent)}
+body.editing [contenteditable=true]:focus{outline:1px solid var(--accent)!important;background:color-mix(in srgb,var(--accent) 10%,transparent)}
+
+@page{size:A4;margin:14mm 13mm}
+@media print{
+  html,body{background:#fff;font-size:10.5pt;line-height:1.55}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .doc{box-shadow:none;margin:0;max-width:none;padding:0;border-radius:0}
+  .print-btn,.edit-panel{display:none!important}
+  .sec,.meta-box,.todo-col,table{break-inside:avoid}
+}
+@media (max-width:768px){.doc{padding:32px 22px;margin:0}.todo-grid,.two-col{grid-template-columns:1fr}h1{font-size:22px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="edit-panel" id="editPanel">
+  <button class="panel-toggle" id="panelToggle" title="편집 도구">✎</button>
+  <div class="panel-body">
+    <span class="status" id="editStatus">VIEW MODE</span>
+    <button id="btnEdit" class="primary">✎ 편집</button>
+    <div class="divider"></div>
+    <label>포인트 컬러</label>
+    <input type="color" id="accentColor" value="#FF6450">
+    <div class="divider"></div>
+    <button id="btnSave">↓ HTML 저장</button>
+    <button id="btnReset" class="danger">↺ 초기화</button>
+    <span class="saved-tag" id="savedTag">✓ 저장됨</span>
+  </div>
+</div>
+
+<button class="print-btn" onclick="window.print()" aria-label="PDF로 저장">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+  PDF로 저장
+</button>
+
+<div class="doc">
+
+  <!-- 헤더: internal={{미팅명}}+날짜 / external={{클라이언트명}} {{프로젝트명}} 정식 표기 -->
+  <div class="doc-top">
+    <span class="l">{{헤더_좌측 : 예) PROJECT RENT — MEETING NOTES}}</span>
+    <span class="r">{{YYYY.MM.DD}} · {{미팅유형}}</span>
+  </div>
+
+  <h1>{{프로젝트명}} <span class="pt">{{미팅명}}</span></h1>
+  <p class="intro">{{한 줄 소개 — 이 회의가 무엇을 다뤘고 어디까지 결정됐는지}}</p>
+  <hr class="rule">
+
+  <!-- 01 개요 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">01</span><span class="nm">개요</span></div><span class="resp">SUMMARY</span></div>
+    <p class="note">{{Summary 한 문단 — 이 블록만 읽어도 회의가 재구성되어야 한다. 핵심 키워드는 <strong>굵게</strong>.}}</p>
+    <div class="meta-box">
+      <div class="row"><div class="lbl">일시</div><div class="val">{{YYYY-MM-DD (요일) HH:MM}}</div></div>
+      <div class="row"><div class="lbl">참석</div><div class="val">{{참석자 — 없으면 "기재 안 됨"}}</div></div>
+      <div class="row"><div class="lbl">안건</div><div class="val">{{안건 요약}}</div></div>
+      <div class="row"><div class="lbl">핵심 결정</div><div class="val">{{가장 중요한 결정 1~2개}}</div></div>
+    </div>
+    <!-- [1] 프로젝트 개요/배경 — 있을 때만. 없으면 이 kv 테이블 삭제 -->
+    <table class="kv">
+      <tbody>
+        <tr><th>{{키}}</th><td>{{값}}</td></tr>
+        <tr><th>{{키}}</th><td>{{값}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 02 아젠다별 정리 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">02</span><span class="nm">아젠다별 정리</span></div><span class="resp">AGENDA</span></div>
+    <h3>{{안건 A — 유형별 카테고리}}</h3>
+    <p class="note">{{논의 내용 — 맥락과 근거를 함께. 표·번호 매김·2컬럼 활용}}</p>
+    <table class="kv">
+      <thead><tr><th>{{컬럼}}</th><th>{{컬럼}}</th></tr></thead>
+      <tbody><tr><td>{{내용}}</td><td>{{내용}}</td></tr></tbody>
+    </table>
+    <div class="insight">{{인사이트 — 사실에서 도출되는 시사점}}</div>
+    <div class="review">{{추론 보강 항목 — 6카테고리(매출·벤치마크·비용·일정·자금·레퍼런스)에서 도출한 내용. [검토] 접두는 CSS가 자동 부여}}</div>
+    <h3>{{안건 B}}</h3>
+    <p class="note">{{...}}</p>
+  </div>
+
+  <!-- 03 의사결정 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">03</span><span class="nm">의사결정사항</span></div><span class="resp">DECISIONS</span></div>
+    <p class="note">이 회의에서 확정된 것만. 논의·검토 중 항목은 05 미해결로.</p>
+    <ul class="decisions">
+      <li><strong>{{결정 1}}</strong> — {{부연}}</li>
+      <li><strong>{{결정 2}}</strong> — {{부연}}</li>
+    </ul>
+  </div>
+
+  <!-- 04 To-Do (2단 R&R) -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">04</span><span class="nm">요청사항 / To-Do</span></div><span class="resp">R&amp;R</span></div>
+    <div class="todo-grid">
+      <div class="todo-col">
+        <div class="tc-h">우리 측</div>
+        <ul>
+          <li><span class="who">{{담당}}</span> — {{할 일}} <span class="due">{{기한 또는 미정}}</span></li>
+        </ul>
+      </div>
+      <div class="todo-col">
+        <div class="tc-h">상대 측</div>
+        <ul>
+          <li><span class="who">{{담당}}</span> — {{할 일}} <span class="due">{{기한 또는 미정}}</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 미해결 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">05</span><span class="nm">미해결 · 후속 확인</span></div><span class="resp">OPEN ITEMS</span></div>
+    <ul class="plain">
+      <li><strong>{{미해결 항목}}</strong> — {{현재 상태와 다음 단계}}</li>
+    </ul>
+    <div class="review">[검토] 표시 안내 — 본 문서에서 [검토]로 표기된 항목은 회의 입력에 명시되지 않아 추론으로 보강한 내용입니다. 외부 공유 전 반드시 확인하십시오.</div>
+  </div>
+
+  <!-- 푸터: internal="내부공유용" / external=회사명 정식 표기 -->
+  <div class="ftr">
+    <div class="sum">{{한 줄 마무리 — 다음 마일스톤 or 다음 미팅}}</div>
+    <div class="r"><div class="date">{{YYYY. MM. DD}}</div><div>{{내부공유용 | 주식회사 프로젝트렌트}}</div></div>
+  </div>
+
+</div>
+
+<script>
+/* FILAMENT EDIT MODULE v2 */
+(function(){
+  var KEY='meeting_note_{{YYMMDD}}_{{미팅명slug}}';
+  var editables=document.querySelectorAll('h1,h3,p,li,td,th,.intro,.val,.nm,.resp,.sum,.tc-h,.doc-top .l,.doc-top .r,.insight,.review');
+  restore();
+  var panel=document.getElementById('editPanel'),toggle=document.getElementById('panelToggle');
+  toggle.addEventListener('click',function(e){e.stopPropagation();panel.classList.toggle('expanded')});
+  document.addEventListener('click',function(e){if(!panel.contains(e.target))panel.classList.remove('expanded')});
+  var editing=false,t=null;
+  var bEdit=document.getElementById('btnEdit'),bSave=document.getElementById('btnSave'),bReset=document.getElementById('btnReset'),
+      st=document.getElementById('editStatus'),tag=document.getElementById('savedTag'),acc=document.getElementById('accentColor');
+  var cur=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();if(cur)acc.value=toHex(cur);
+  function setEdit(on){editing=on;document.body.classList.toggle('editing',on);
+    editables.forEach(function(el){on?el.setAttribute('contenteditable','true'):el.removeAttribute('contenteditable')});
+    bEdit.textContent=on?'✓ 완료':'✎ 편집';bEdit.classList.toggle('primary',!on);
+    st.textContent=on?'EDITING':'VIEW MODE';st.classList.toggle('on',on)}
+  function showSaved(){tag.classList.add('show');clearTimeout(showSaved._t);showSaved._t=setTimeout(function(){tag.classList.remove('show')},1200)}
+  function save(){try{var s={t:{},a:null};editables.forEach(function(el,i){s.t[i]=el.innerHTML});
+    s.a=document.documentElement.style.getPropertyValue('--accent')||null;localStorage.setItem(KEY,JSON.stringify(s));showSaved()}catch(e){}}
+  function autosave(){clearTimeout(t);t=setTimeout(save,400)}
+  editables.forEach(function(el){el.addEventListener('input',autosave);el.addEventListener('blur',autosave)});
+  bEdit.addEventListener('click',function(){setEdit(!editing)});
+  acc.addEventListener('input',function(){document.documentElement.style.setProperty('--accent',acc.value)});
+  acc.addEventListener('change',save);
+  bSave.addEventListener('click',function(){var was=editing;if(was)setEdit(false);
+    var c=document.documentElement.cloneNode(true);var p=c.querySelector('.edit-panel');if(p)p.remove();
+    c.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable')});
+    c.querySelectorAll('.editing').forEach(function(el){el.classList.remove('editing')});
+    var html='<!doctype html>\n<html lang="ko" data-skin="'+(document.documentElement.getAttribute('data-skin')||'')+'">\n'+c.innerHTML+'\n</html>';
+    var b=new Blob([html],{type:'text/html;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');
+    a.href=u;a.download=(document.title||'document').replace(/\s+/g,'_')+'.html';document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);if(was)setEdit(true)},100)});
+  bReset.addEventListener('click',function(){if(!confirm('편집 내용을 초기화합니다. 계속할까요?'))return;localStorage.removeItem(KEY);location.reload()});
+  function restore(){try{var r=localStorage.getItem(KEY);if(!r)return;var s=JSON.parse(r);
+    if(s.t)editables.forEach(function(el,i){if(s.t[i]!==undefined)el.innerHTML=s.t[i]});
+    if(s.a)document.documentElement.style.setProperty('--accent',s.a)}catch(e){}}
+  function toHex(c){c=c.trim();if(c[0]==='#')return c.length===4?'#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]:c;
+    var m=c.match(/\d+/g);if(!m)return'#FF6450';return'#'+m.slice(0,3).map(function(x){return('0'+parseInt(x).toString(16)).slice(-2)}).join('')}
+})();
+</script>
+</body>
+</html>

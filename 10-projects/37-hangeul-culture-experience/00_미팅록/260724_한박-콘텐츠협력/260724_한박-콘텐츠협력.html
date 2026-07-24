@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko" data-skin="data">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>260724_한박-콘텐츠협력</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --font-sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --font-mono:'SF Mono',ui-monospace,'JetBrains Mono','D2Coding',Menlo,Consolas,monospace;
+  --r-sm:4px; --r-md:8px; --r-full:9999px;
+  --dur-fast:150ms; --dur-base:250ms; --ease-out:cubic-bezier(.2,.8,.2,1);
+  --shadow-md:0 4px 16px rgba(20,20,20,.08); --shadow-lg:0 20px 48px rgba(20,20,20,.12);
+}
+[data-skin="data"]{
+  --surface:#FFFFFF; --surface-2:#F7F8FA; --surface-3:#F1F3F6;
+  --ink:#1A1F2E; --ink-2:#4A5468; --ink-3:#7A86A0;
+  --line:#E3E6EC; --line-2:#F0F2F6;
+  --accent:#FF6450; --accent-ink:#FFFFFF; --accent-hover:#E85540;
+  --accent-soft:#FEF0E7;
+  --ok:#2A7D5A; --warn:#D97706; --danger:#B8455E; --info:#2563EB;
+  --hi-bg:#FFF9E6; --hi-line:#E8C547; --review-bg:#FEF0E7; --review-line:#D97706;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--surface-2);color:var(--ink);
+  font-family:var(--font-sans);font-size:14px;line-height:1.7;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+.doc{max-width:920px;margin:40px auto;background:var(--surface);padding:60px 64px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);border-radius:var(--r-sm)}
+.pt{color:var(--accent);font-weight:700}
+.doc-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.16em;color:var(--ink-3);text-transform:uppercase;margin-bottom:18px}
+.doc-top .l{font-weight:600;color:var(--ink-2)}
+h1{font-size:28px;font-weight:800;letter-spacing:-0.025em;line-height:1.25;margin:0 0 14px}
+.intro{font-size:14px;color:var(--ink-2);line-height:1.7;margin:0 0 22px;max-width:84ch}
+hr.rule{border:none;border-top:1px solid var(--line);margin:0 0 24px}
+.meta-box{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;margin-bottom:28px}
+.meta-box .row{display:flex;border-bottom:1px solid var(--line-2)}
+.meta-box .row:last-child{border-bottom:none}
+.meta-box .lbl{flex:0 0 84px;background:var(--surface-2);padding:11px 14px;font-size:11px;color:var(--ink-3);font-weight:600;letter-spacing:.05em}
+.meta-box .val{flex:1;padding:11px 14px;font-size:13px;color:var(--ink)}
+.sec{margin-bottom:36px;break-inside:avoid}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:8px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.sh .left{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.sh .no{color:var(--accent);font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+.sh .nm{font-size:15px;font-weight:700;color:var(--ink)}
+.sh .resp{font-size:10px;letter-spacing:.08em;color:var(--ink-3);text-transform:uppercase;text-align:right;white-space:nowrap}
+.sec p.note{font-size:12.5px;color:var(--ink-2);margin:0 0 12px}
+.sec h3{font-size:13.5px;font-weight:700;margin:18px 0 8px;color:var(--ink)}
+table.kv{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 16px}
+table.kv th,table.kv td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+table.kv thead th{background:var(--surface-2);font-weight:600;font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+table.kv tbody th{width:26%;background:var(--surface-2);font-weight:600;font-size:12px;color:var(--ink-2)}
+.insight{background:var(--hi-bg);border-left:3px solid var(--hi-line);padding:13px 16px;margin:12px 0 18px;font-size:13px;border-radius:0 3px 3px 0}
+.review{background:var(--review-bg);border-left:3px solid var(--review-line);padding:13px 16px;margin:12px 0 18px;font-size:13px;border-radius:0 3px 3px 0}
+.review::before{content:"[검토] ";color:var(--review-line);font-weight:700;font-size:11px}
+.rv{color:var(--review-line);font-weight:700;font-size:11px}
+ul.decisions{list-style:none;margin:0 0 12px;padding:0}
+ul.decisions li{position:relative;padding:9px 0 9px 30px;border-bottom:1px dashed var(--line-2);font-size:13.5px}
+ul.decisions li::before{content:"✓";position:absolute;left:4px;top:8px;color:var(--ok);font-weight:800}
+ul.decisions li:last-child{border-bottom:none}
+ul.decisions strong{color:var(--ink)}
+.todo-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 14px}
+.todo-col{border:1px solid var(--line);border-radius:var(--r-md);padding:14px 18px}
+.todo-col .tc-h{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line-2)}
+.todo-col ul{list-style:none;margin:0;padding:0}
+.todo-col li{padding:7px 0 7px 24px;position:relative;font-size:13px;border-bottom:1px dashed var(--line-2)}
+.todo-col li:last-child{border-bottom:none}
+.todo-col li::before{content:"☐";position:absolute;left:2px;top:6px;color:var(--ink-3)}
+.todo-col .who{font-weight:700;color:var(--ink)}
+.todo-col .due{font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-left:6px;white-space:nowrap}
+ul.plain{margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2)}
+ul.plain li{margin-bottom:5px}
+ul.plain strong{color:var(--ink)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
+.ftr{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;gap:24px;font-size:11px;color:var(--ink-3)}
+.ftr .sum{max-width:62%;line-height:1.6;color:var(--ink-2)}
+.ftr .r{text-align:right}
+.ftr .r .date{color:var(--accent);font-weight:700;letter-spacing:.05em}
+.print-btn{position:fixed;top:24px;right:24px;background:var(--ink);color:#fff;border:none;padding:11px 18px;border-radius:24px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:var(--shadow-md);transition:transform var(--dur-fast),background var(--dur-fast);z-index:100;display:inline-flex;align-items:center;gap:7px}
+.print-btn:hover{background:var(--accent);transform:translateY(-1px)}
+.print-btn svg{width:15px;height:15px}
+.edit-panel{position:fixed;top:16px;left:16px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.edit-panel .panel-toggle{width:40px;height:40px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--ink);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);transition:all var(--dur-fast) var(--ease-out)}
+.edit-panel .panel-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.edit-panel.expanded .panel-toggle{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.edit-panel .panel-body{display:none;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px;min-width:184px;box-shadow:var(--shadow-lg)}
+.edit-panel.expanded .panel-body{display:flex}
+.edit-panel .status{font-size:9px;letter-spacing:.25em;color:var(--ink-3);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid var(--line-2)}
+.edit-panel .status.on{color:var(--accent)}
+.edit-panel button{background:transparent;border:1px solid var(--line);color:var(--ink-2);padding:8px 10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;border-radius:var(--r-sm);text-align:left;transition:all var(--dur-fast) var(--ease-out)}
+.edit-panel button:hover{background:var(--surface-2);color:var(--ink);border-color:var(--ink-3)}
+.edit-panel button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.edit-panel button.danger:hover{border-color:var(--danger);color:var(--danger)}
+.edit-panel label{font-size:9px;letter-spacing:.2em;color:var(--ink-3);margin-top:4px;text-transform:uppercase}
+.edit-panel input[type=color]{width:100%;height:30px;padding:2px;background:transparent;border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer}
+.edit-panel .divider{height:1px;background:var(--line-2);margin:4px 0}
+.edit-panel .saved-tag{font-size:9px;color:var(--ok);text-align:center;opacity:0;transition:opacity var(--dur-base)}
+.edit-panel .saved-tag.show{opacity:1}
+body.editing [contenteditable=true]{outline:1px dashed transparent;outline-offset:2px;border-radius:2px;transition:outline-color var(--dur-fast),background-color var(--dur-fast);cursor:text}
+body.editing [contenteditable=true]:hover{outline-color:color-mix(in srgb,var(--accent) 40%,transparent);background:color-mix(in srgb,var(--accent) 6%,transparent)}
+body.editing [contenteditable=true]:focus{outline:1px solid var(--accent)!important;background:color-mix(in srgb,var(--accent) 10%,transparent)}
+@page{size:A4;margin:14mm 13mm}
+@media print{
+  html,body{background:#fff;font-size:10.5pt;line-height:1.55}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .doc{box-shadow:none;margin:0;max-width:none;padding:0;border-radius:0}
+  .print-btn,.edit-panel{display:none!important}
+  .sec,.meta-box,.todo-col,table{break-inside:avoid}
+}
+@media (max-width:768px){.doc{padding:32px 22px;margin:0}.todo-grid,.two-col{grid-template-columns:1fr}h1{font-size:22px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="edit-panel" id="editPanel">
+  <button class="panel-toggle" id="panelToggle" title="편집 도구">✎</button>
+  <div class="panel-body">
+    <span class="status" id="editStatus">VIEW MODE</span>
+    <button id="btnEdit" class="primary">✎ 편집</button>
+    <div class="divider"></div>
+    <label>포인트 컬러</label>
+    <input type="color" id="accentColor" value="#FF6450">
+    <div class="divider"></div>
+    <button id="btnSave">↓ HTML 저장</button>
+    <button id="btnReset" class="danger">↺ 초기화</button>
+    <span class="saved-tag" id="savedTag">✓ 저장됨</span>
+  </div>
+</div>
+
+<button class="print-btn" onclick="window.print()" aria-label="PDF로 저장">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+  PDF로 저장
+</button>
+
+<div class="doc">
+
+  <div class="doc-top">
+    <span class="l">PROJECT RENT — MEETING NOTES</span>
+    <span class="r">2026.07.24 · 기획</span>
+  </div>
+
+  <h1>LA 한국문화원 K-Zone <span class="pt">한글박물관 콘텐츠 협력 미팅</span></h1>
+  <p class="intro">LA 한국문화원·코리아센터 리뉴얼(K-Zone)에 한글 콘텐츠를 어떻게 배치할 것인가를 협의. <strong>공간 기획 확정 → 한박 콘텐츠 후제안</strong> 순서 합의, 체험형·인터랙티브 방향 확인, 가용 예산 3~4천만 원 공유.</p>
+  <hr class="rule">
+
+  <!-- 01 개요 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">01</span><span class="nm">개요</span></div><span class="resp">SUMMARY</span></div>
+    <p class="note">LA 한국문화원 K-Zone 리뉴얼에 <strong>한글 콘텐츠 배치 방식</strong>을 논의한 기획 미팅. 핵심 합의는 <strong>"기획이 먼저, 콘텐츠 제안은 후순위"</strong> — 공간 기획과 배치가 확정된 후 한글박물관이 해당 공간에 맞는 콘텐츠를 제안하는 순서로 진행. 한글박물관 증축에 따른 <strong>화재보험 비용 급증으로 사업비 절반 이상 삭감</strong>, 가용 예산은 콘텐츠 제작비 약 <strong>3~4천만 원</strong>. Project Rent 측은 <strong>체험형 콘텐츠</strong>(이름 한글 변환 → 도장/티셔츠 → 의미 발견 → 테이크아웃) 기획 방향을 공유했으며, 한글박물관 측은 <strong>전시 콘텐츠·교육 키트·영상 소스 제공 가능성</strong>을 확인. 9월 말 오프닝 목표.</p>
+    <div class="meta-box">
+      <div class="row"><div class="lbl">일시</div><div class="val">2026-07-24</div></div>
+      <div class="row"><div class="lbl">참석</div><div class="val">한글박물관 과장님 / Project Rent 측</div></div>
+      <div class="row"><div class="lbl">안건</div><div class="val">공간 구조·역할 분담 / 콘텐츠 제공 방식 / 체험형 기획 방향 / 예산·일정 확인</div></div>
+      <div class="row"><div class="lbl">핵심 결정</div><div class="val">공간 기획 확정 후 한박 콘텐츠 후제안 / 체험형·인터랙티브 방향 합의</div></div>
+    </div>
+    <table class="kv">
+      <tbody>
+        <tr><th>공간</th><td>한국문화원 1층(상설 전시) + 코리아센터(팝업/체험형)</td></tr>
+        <tr><th>오프닝 목표</th><td>2026년 9월 말 (가장 긍정적 시나리오)</td></tr>
+        <tr><th>한박 가용 예산</th><td>콘텐츠 제작비 약 3,000~4,000만 원</td></tr>
+        <tr><th>시공 현황</th><td>퓨저빌리티 체크 중, 7월 말 기획 드래프트 → 8월 초중순 상세 확정</td></tr>
+        <tr><th>첫 시즌 테마</th><td>한글 (한글날 10/9 연계, 대중 인지도 최상)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 02 아젠다별 정리 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">02</span><span class="nm">아젠다별 정리</span></div><span class="resp">AGENDA</span></div>
+
+    <h3>A. 공간 구조 및 콘텐츠 배치 전략</h3>
+    <p class="note">두 개의 공간이 각기 다른 역할로 운영 예정. 한국문화원은 상설 전시관(28년 올림픽까지 유지), 코리아센터는 팝업 플레이스로 운영.</p>
+    <table class="kv">
+      <thead><tr><th>공간</th><th>성격</th><th>콘텐츠 방향</th><th>운영 주기</th></tr></thead>
+      <tbody>
+        <tr><td>한국문화원 1층</td><td>상설 전시관</td><td>클래식 전시, 프리미엄 클래스, 면대면 서비스</td><td>시즌별 주제 교체</td></tr>
+        <tr><td>코리아센터</td><td>팝업 플레이스</td><td>체험형·이벤트성, 기업 행사</td><td>상설 개념 없음</td></tr>
+      </tbody>
+    </table>
+    <p class="note">문화원은 <strong>천장이 낮고 공간이 좁아</strong> 대규모 체험 불가 → 프리미엄/프라이빗 클래스로 한정. 번잡한 체험(결과물 제작)은 코리아센터에서 소화. 두 공간을 <strong>하나의 주제로 연계</strong>하여 동선 유도(전시 관람 → 체험 → 기념물) 검토 중. 도보 약 20~30m.</p>
+    <p class="note">문화원 내 전시: <strong>한글</strong>(첫 시즌 메인) / <strong>한지·가구</strong>(상품 개발) / <strong>한복</strong>(굿즈·상품) / <strong>K-콘텐츠</strong>(코리아센터) / <strong>푸드</strong>(비중 약함). 시설은 상설이되 콘텐츠는 시즌별 교체 — "올드한 느낌" 탈피를 위해 가변성 확보가 이번 설계의 핵심.</p>
+    <div class="insight">기존 한옥 구조물: 끝에 위치한 것은 전시 쇼케이스로 활용, 가운데 것은 철거. 기둥 구조물에 한글 패턴 프로젝션 매핑도 검토 중 — 공간 대비 비용 효율이 높은 연출 방식.</div>
+
+    <h3>B. 콘텐츠 제공 방식 — 기획 먼저, 제안 후순위</h3>
+    <p class="note">한글박물관 핵심 입장: (1) 공간 기획 나온 후 제안하는 게 <strong>적중률이 높음</strong> (2) 불가능한 범위 제안 리스크 방지 (3) 외교행낭 운송비 절감 가능 (4) 가용 풀이 넓지 않으므로 <strong>보유 리스트 공유 → 기획사가 선택</strong>하는 방식이 효율적.</p>
+    <table class="kv">
+      <thead><tr><th>제공 가능 콘텐츠</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td>전시품 (기존 양질의 전시 콘텐츠)</td><td>시즌별 교체 가능</td></tr>
+        <tr><td>교육 키트 (연구교육과 개발, 외국인 체험용)</td><td>비용만 들이면 수량 무제한 제작·운송 가능</td></tr>
+        <tr><td>영상 소스 (실감 영상)</td><td>설명형 콘텐츠, 미디어아트용 연출 영상은 아님</td></tr>
+        <tr><td>인천공항 미디어 파사드 영상</td><td>옥스퍼드 사전 등재 단어 + 타이포 작가 협업. 변형 사용 원하지 않음</td></tr>
+        <tr><td>한글 상품 (이멘탈리오 등 해외 진출 상품)</td><td>신규 개발분은 시점 안 맞을 수 있음 → 기존 상품 우선</td></tr>
+        <tr><td>작가 작품</td><td>별도 비용 + 작가 협의 필요</td></tr>
+      </tbody>
+    </table>
+
+    <h3>C. 체험형 콘텐츠 기획 방향 (Project Rent 제안)</h3>
+    <p class="note">핵심 전환: <strong>"교육"에서 "경험(Experience)"으로</strong>. 해봤더니 재밌고 → 이쁘고 → 쿨한 것 같아 — 엔트리 레벨 관심 유도가 목표.</p>
+    <table class="kv">
+      <thead><tr><th>단계</th><th>내용</th><th>실행 형태 (참고)</th></tr></thead>
+      <tbody>
+        <tr><td>1. 이름 쓰기</td><td>자기 이름을 한글로 변환</td><td>AI 활용 또는 수기</td></tr>
+        <tr><td>2. 만들기</td><td>한글 이름을 결과물로 제작</td><td>도장 새기기, 티셔츠, 블록</td></tr>
+        <tr><td>3. 아트화</td><td>한글 이름 비주얼라이제이션</td><td>AI 기반 아티스틱 변환</td></tr>
+        <tr><td>4. 의미 발견</td><td>이름의 한국어 의미 탐색</td><td>Emily→별, Michelle→강 등</td></tr>
+        <tr><td>5. 테이크아웃</td><td>결과물 기념품화</td><td>보딩패스/패스포트 형태</td></tr>
+      </tbody>
+    </table>
+    <p class="note">한글박물관 우려사항: <strong>문화원 방문자는 이미 한글 이름 쓸 수 있는 수준</strong>일 가능성 높음 → 단순 이름 쓰기로는 부족, <strong>의미 발견</strong> 같은 심화 요소가 차별화 포인트. 필드트립 학생 vs 한글 헤비 유저 스펙트럼 고려 필요.</p>
+
+    <h3>D. 타겟 및 체류 전략</h3>
+    <p class="note">문화원장(이해돈 원장) 핵심 멘션: 체류형·체험형 콘텐츠 강화 필수 — 현재 <strong>1시간 이상 체류할 이유가 없어 수업 수강자도 없는 상태</strong>. LA 한인 10만 명을 핵심 타겟으로 병행 설정 — "자기 외국인 친구 데려오고 싶어지는" 퀄리티가 이상적 시나리오.</p>
+    <div class="insight">해외 한인 피드백: "K-컬쳐를 고급 문화로 끌어올려야 할 타이밍. 커머셜만 하면 안 됨." — 장사는 뒤에서 계속 하되, 앞에서는 고급 문화를 보여줘야 하는 시점.</div>
+
+    <h3>E. 예산 현실 및 일정</h3>
+    <p class="note">한글박물관 증축 → 화재보험 비용 급증 → <strong>사업비 반 이상 삭감</strong>. 가용 예산 약 3~4천만 원(콘텐츠 제작·개발). 커머셜 구조(미국 현지 판매 라이센스 테스팅)도 상부 요구사항에 포함.</p>
+    <table class="kv">
+      <thead><tr><th>마일스톤</th><th>시점</th></tr></thead>
+      <tbody>
+        <tr><td>기획 드래프트</td><td>1주 내 (7월 말)</td></tr>
+        <tr><td>전체 콘텐츠 라인업 미팅</td><td>드래프트 후 즉시</td></tr>
+        <tr><td>상세 기획 확정</td><td>8월 초중순</td></tr>
+        <tr><td>한박 콘텐츠 배치 제안</td><td>공간 확정 후</td></tr>
+        <tr><td>오프닝</td><td>9월 말 (최선)</td></tr>
+      </tbody>
+    </table>
+    <div class="review">미국 현지 시공은 라이센스 없이 진행 시 비용 폭등. 난이도별 분리(한국 업체 투입 포함)를 검토 중이나, 미국 행정 처리 시간이 변수.</div>
+  </div>
+
+  <!-- 03 의사결정 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">03</span><span class="nm">의사결정사항</span></div><span class="resp">DECISIONS</span></div>
+    <p class="note">이 회의에서 확정된 것만. 논의·검토 중 항목은 05 미해결로.</p>
+    <ul class="decisions">
+      <li><strong>콘텐츠 제안 순서</strong> — 공간 기획 확정 → 한박이 해당 공간에 맞는 콘텐츠 후제안 (선제안 방식 아님)</li>
+      <li><strong>체험형 방향 합의</strong> — 교육보다 경험(Experience) 중심, 인터랙티브 콘텐츠로 전환</li>
+      <li><strong>콘텐츠 소싱 방식</strong> — 한박이 가용 리스트 먼저 공유 → 기획사가 그 안에서 선택</li>
+      <li><strong>예산 투명 공유</strong> — 한박 가용 예산 3~4천만 원 수준 확인, 가능한 그림 안에서 설계</li>
+      <li><strong>첫 시즌 테마: 한글</strong> — 한글날(10/9) 연계 + 대중 인지도 최상</li>
+    </ul>
+  </div>
+
+  <!-- 04 To-Do -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">04</span><span class="nm">요청사항 / To-Do</span></div><span class="resp">R&amp;R</span></div>
+    <div class="todo-grid">
+      <div class="todo-col">
+        <div class="tc-h">우리 측 (Project Rent)</div>
+        <ul>
+          <li><span class="who">기획팀</span> — 공간 기획 드래프트 완료 (콘텐츠 라인업·배치 초안) <span class="due">7월 말</span></li>
+          <li><span class="who">기획팀</span> — 전체 스케줄 정리 후 한박에 공유 <span class="due">기획 후 즉시</span></li>
+          <li><span class="who">기획팀</span> — 미디어아트 소스 리사이징·리터칭 가능 여부 검토 <span class="due">미정</span></li>
+          <li><span class="who">기획팀</span> — 문화원↔코리아센터 동선 연계 설계 <span class="due">기획 시</span></li>
+        </ul>
+      </div>
+      <div class="todo-col">
+        <div class="tc-h">상대 측 (한글박물관)</div>
+        <ul>
+          <li><span class="who">과장님</span> — 가용 콘텐츠 풀 리스트 제공 <span class="due">미정</span></li>
+          <li><span class="who">과장님</span> — 교육 키트 컨디션 체크 (연구교육과) <span class="due">미정</span></li>
+          <li><span class="who">과장님</span> — 미디어아트용 연출 영상 소스 보유 현황 <span class="due">미정</span></li>
+          <li><span class="who">과장님</span> — 인천공항 영상 원본 소스 컨디션 확인 <span class="due">미정</span></li>
+          <li><span class="who">과장님</span> — 한글 상품 리스트 + 신규 개발 시점 <span class="due">미정</span></li>
+          <li><span class="who">과장님</span> — 세종학당 인기 콘텐츠 정보 공유 <span class="due">미정</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 미해결 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">05</span><span class="nm">미해결 · 후속 확인</span></div><span class="resp">OPEN ITEMS</span></div>
+    <ul class="plain">
+      <li><strong>코리아센터 vs 문화원 콘텐츠 최종 배분</strong> — 기획 확정 후 결정. 체험 파트가 문화원에서 소화 안 되면 코리아센터로 이동 가능</li>
+      <li><strong>문화원장(이해돈 원장) 의사결정</strong> — 강성이시라 본인 구상 있을 가능성 높음. 많은 제안보다 정리 후 하나씩 확인 방식 권장</li>
+      <li><strong>외벽 활용 가능 여부</strong> — 동선 유도 사이니지 등 외벽 활용은 규제 확인 필요</li>
+      <li><strong>커머셜 구조</strong> — 미국 현지 판매 라이센스 가능 여부 테스팅이 상부 요구사항</li>
+      <li><strong>미국 현지 시공 주체</strong> — 난이도별 분리(한국 업체 투입 포함) 검토 중, 행정 처리 시간 변수</li>
+      <li><strong>한글 상품 시점 미스매치</strong> — 올해 신규 개발 상품은 9월 말 오프닝에 안 맞을 수 있음 → 기존 상품으로 오프닝, 내년 교체 시 반영</li>
+    </ul>
+    <div class="review">한글날(10/9) 연계 홍보: 9월 말 오프닝이면 한글날 직전이라 홍보·언론 연계 시너지 가능 — 오프닝 행사에 한글날 메시지를 얹을 수 있는지 기획 시 검토 필요</div>
+    <div class="review">세종학당과의 프로그램 연계: 문화원 내 세종학당이 같이 있으므로 수강생 → 체험존 유도 동선·프로그램 패키지 가능성 검토</div>
+    <div class="review">[검토] 표시 안내 — 본 문서에서 [검토]로 표기된 항목은 회의 입력에 명시되지 않아 추론으로 보강한 내용입니다. 외부 공유 전 반드시 확인하십시오.</div>
+  </div>
+
+  <div class="ftr">
+    <div class="sum">다음 마일스톤: 7월 말 공간 기획 드래프트 완료 → 전체 콘텐츠 라인업 미팅 (한박 참석) → 8월 초중순 상세 확정</div>
+    <div class="r"><div class="date">2026. 07. 24</div><div>내부공유용</div></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var KEY='meeting_note_260724_hanbak_contents';
+  var editables=document.querySelectorAll('h1,h3,p,li,td,th,.intro,.val,.nm,.resp,.sum,.tc-h,.doc-top .l,.doc-top .r,.insight,.review');
+  restore();
+  var panel=document.getElementById('editPanel'),toggle=document.getElementById('panelToggle');
+  toggle.addEventListener('click',function(e){e.stopPropagation();panel.classList.toggle('expanded')});
+  document.addEventListener('click',function(e){if(!panel.contains(e.target))panel.classList.remove('expanded')});
+  var editing=false,t=null;
+  var bEdit=document.getElementById('btnEdit'),bSave=document.getElementById('btnSave'),bReset=document.getElementById('btnReset'),
+      st=document.getElementById('editStatus'),tag=document.getElementById('savedTag'),acc=document.getElementById('accentColor');
+  var cur=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();if(cur)acc.value=toHex(cur);
+  function setEdit(on){editing=on;document.body.classList.toggle('editing',on);
+    editables.forEach(function(el){on?el.setAttribute('contenteditable','true'):el.removeAttribute('contenteditable')});
+    bEdit.textContent=on?'✓ 완료':'✎ 편집';bEdit.classList.toggle('primary',!on);
+    st.textContent=on?'EDITING':'VIEW MODE';st.classList.toggle('on',on)}
+  function showSaved(){tag.classList.add('show');clearTimeout(showSaved._t);showSaved._t=setTimeout(function(){tag.classList.remove('show')},1200)}
+  function save(){try{var s={t:{},a:null};editables.forEach(function(el,i){s.t[i]=el.innerHTML});
+    s.a=document.documentElement.style.getPropertyValue('--accent')||null;localStorage.setItem(KEY,JSON.stringify(s));showSaved()}catch(e){}}
+  function autosave(){clearTimeout(t);t=setTimeout(save,400)}
+  editables.forEach(function(el){el.addEventListener('input',autosave);el.addEventListener('blur',autosave)});
+  bEdit.addEventListener('click',function(){setEdit(!editing)});
+  acc.addEventListener('input',function(){document.documentElement.style.setProperty('--accent',acc.value)});
+  acc.addEventListener('change',save);
+  bSave.addEventListener('click',function(){var was=editing;if(was)setEdit(false);
+    var c=document.documentElement.cloneNode(true);var p=c.querySelector('.edit-panel');if(p)p.remove();
+    c.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable')});
+    c.querySelectorAll('.editing').forEach(function(el){el.classList.remove('editing')});
+    var html='<!doctype html>\n<html lang="ko" data-skin="'+(document.documentElement.getAttribute('data-skin')||'')+'">\n'+c.innerHTML+'\n</html>';
+    var b=new Blob([html],{type:'text/html;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');
+    a.href=u;a.download=(document.title||'document').replace(/\s+/g,'_')+'.html';document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);if(was)setEdit(true)},100)});
+  bReset.addEventListener('click',function(){if(!confirm('편집 내용을 초기화합니다. 계속할까요?'))return;localStorage.removeItem(KEY);location.reload()});
+  function restore(){try{var r=localStorage.getItem(KEY);if(!r)return;var s=JSON.parse(r);
+    if(s.t)editables.forEach(function(el,i){if(s.t[i]!==undefined)el.innerHTML=s.t[i]});
+    if(s.a)document.documentElement.style.setProperty('--accent',s.a)}catch(e){}}
+  function toHex(c){c=c.trim();if(c[0]==='#')return c.length===4?'#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]:c;
+    var m=c.match(/\d+/g);if(!m)return'#FF6450';return'#'+m.slice(0,3).map(function(x){return('0'+parseInt(x).toString(16)).slice(-2)}).join('')}
+})();
+</script>
+</body>
+</html>

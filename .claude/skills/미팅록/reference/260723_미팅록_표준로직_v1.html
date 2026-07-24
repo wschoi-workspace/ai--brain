@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<!--
+================================================================================
+  미팅록 표준 로직 v1 — FILAMENT OUTPUT SYSTEM (CLASS ③ 실무문서 / data 스킨)
+--------------------------------------------------------------------------------
+  용도   : 미팅록 작성 로직의 독립 정의서. 회의 입력 1건 → 표준 미팅록 3종 산출.
+           개인 환경(아카이브 경로·드롭폴더·메모리 결합) 의존 없이
+           "딱 미팅록만"의 판단·구조화·산출 로직을 담는다.
+  출력   : ✅ PDF 저장(우상단) · ✅ 편집모드(좌상단 ✎) · ✅ 버전(파일명 _vN)
+  토큰   : 043 TOKENS.css data 스킨 인라인 (정본: 043_결과물_표준시스템/TOKENS.css)
+================================================================================
+-->
+<html lang="ko" data-skin="data">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미팅록 표준 로직 v1</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* ===== FILAMENT TOKENS v2 — data 스킨 (정본: TOKENS.css) ===== */
+:root{
+  --font-sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --font-mono:'SF Mono',ui-monospace,'JetBrains Mono','D2Coding',Menlo,Consolas,monospace;
+  --r-sm:4px; --r-md:8px; --r-full:9999px;
+  --dur-fast:150ms; --dur-base:250ms; --ease-out:cubic-bezier(.2,.8,.2,1);
+  --shadow-md:0 4px 16px rgba(20,20,20,.08); --shadow-lg:0 20px 48px rgba(20,20,20,.12);
+  --mat-sage:#8FA37E; --mat-rust:#B86C4A; --mat-amber:#D9A34B;
+}
+[data-skin="data"]{
+  --surface:#FFFFFF; --surface-2:#F7F8FA; --surface-3:#F1F3F6;
+  --ink:#1A1F2E; --ink-2:#4A5468; --ink-3:#7A86A0;
+  --line:#E3E6EC; --line-2:#F0F2F6;
+  --accent:#FF6450; --accent-ink:#FFFFFF; --accent-hover:#E85540;
+  --accent-soft:#FEF0E7;
+  --ok:#2A7D5A; --warn:#D97706; --danger:#B8455E; --info:#2563EB;
+  --hi-bg:#FFF9E6; --hi-line:#E8C547; --review-bg:#FEF0E7; --review-line:#D97706;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--surface-2);color:var(--ink);
+  font-family:var(--font-sans);font-size:14px;line-height:1.7;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+.doc{max-width:920px;margin:40px auto;background:var(--surface);padding:60px 64px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);border-radius:var(--r-sm)}
+
+.pt{color:var(--accent);font-weight:700}
+
+/* 브랜드 행 */
+.doc-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.16em;color:var(--ink-3);text-transform:uppercase;margin-bottom:18px}
+.doc-top .l{font-weight:600;color:var(--ink-2)}
+
+h1{font-size:30px;font-weight:800;letter-spacing:-0.025em;line-height:1.2;margin:0 0 14px}
+.intro{font-size:14px;color:var(--ink-2);line-height:1.7;margin:0 0 22px;max-width:84ch}
+hr.rule{border:none;border-top:1px solid var(--line);margin:0 0 24px}
+
+/* 메타 박스 */
+.meta-box{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;margin-bottom:28px}
+.meta-box .row{display:flex;border-bottom:1px solid var(--line-2)}
+.meta-box .row:last-child{border-bottom:none}
+.meta-box .lbl{flex:0 0 84px;background:var(--surface-2);padding:11px 14px;font-size:11px;color:var(--ink-3);font-weight:600;letter-spacing:.05em}
+.meta-box .val{flex:1;padding:11px 14px;font-size:13px;color:var(--ink)}
+
+/* CORE 콜아웃 */
+.core{background:var(--accent-soft);border-radius:var(--r-md);padding:20px 24px;margin-bottom:34px}
+.core-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.badge-core{background:var(--accent);color:var(--accent-ink);font-size:10px;font-weight:700;letter-spacing:.12em;padding:5px 11px;border-radius:var(--r-full)}
+.core-head .t{font-size:14px;font-weight:700;color:var(--ink)}
+.core-items{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.core-item{font-size:12.5px;color:var(--ink-2);line-height:1.55}
+.core-item .n{color:var(--accent);font-weight:800;margin-right:6px}
+.core-item strong{color:var(--ink);font-weight:700}
+
+/* 섹션 헤더 */
+.sec{margin-bottom:36px;break-inside:avoid}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:8px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.sh .left{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.sh .no{color:var(--accent);font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+.sh .nm{font-size:15px;font-weight:700;color:var(--ink)}
+.sh .resp{font-size:10px;letter-spacing:.08em;color:var(--ink-3);text-transform:uppercase;text-align:right;white-space:nowrap}
+.sec p.note{font-size:12.5px;color:var(--ink-2);margin:0 0 12px}
+
+/* 파이프라인 플로우 */
+.flow{display:grid;gap:0;margin:6px 0 8px}
+.flow-step{display:grid;grid-template-columns:44px 130px 1fr;gap:14px;align-items:start;padding:12px 4px;border-bottom:1px dashed var(--line)}
+.flow-step:last-child{border-bottom:none}
+.flow-step .fn{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.flow-step.out .fn{background:var(--ink)}
+.flow-step .ft-t{font-size:13.5px;font-weight:700;color:var(--ink);padding-top:4px}
+.flow-step .ft-d{font-size:12.5px;color:var(--ink-2);line-height:1.6;padding-top:4px}
+.flow-step .ft-d .pt{font-weight:600}
+
+/* 테이블 */
+table.kv{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 16px}
+table.kv th,table.kv td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+table.kv thead th{background:var(--surface-2);font-weight:600;font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;width:auto}
+table.kv tbody th{width:26%;background:var(--surface-2);font-weight:600;font-size:12px;color:var(--ink-2)}
+
+/* 비교 테이블 (톤 규칙) */
+table.cmp{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0 16px}
+table.cmp th,table.cmp td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.55}
+table.cmp thead th{font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+table.cmp thead th.bad{color:var(--danger)}
+table.cmp thead th.good{color:var(--ok)}
+table.cmp td.bad{color:var(--ink-3);text-decoration:line-through;text-decoration-color:rgba(184,69,94,.4);text-decoration-thickness:1px}
+table.cmp td.good{color:var(--ink);font-weight:500}
+
+/* 5블록 스택 */
+.blocks{display:grid;gap:8px;margin:6px 0 10px}
+.blk{display:grid;grid-template-columns:40px 168px 1fr;gap:14px;align-items:start;border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 16px;background:var(--surface)}
+.blk.acc{background:var(--accent-soft);border-color:rgba(255,100,80,.3)}
+.blk .bn{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--accent);padding-top:2px}
+.blk .bt{font-size:13px;font-weight:700;color:var(--ink);padding-top:1px}
+.blk .bd{font-size:12.5px;color:var(--ink-2);line-height:1.55}
+
+/* 산출물 카드 */
+.out-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:6px 0 14px}
+.out-card{border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px}
+.out-card .oc-file{font-family:var(--font-mono);font-size:11px;color:var(--accent);font-weight:700;margin-bottom:8px;word-break:break-all}
+.out-card .oc-t{font-size:13px;font-weight:700;margin-bottom:6px}
+.out-card .oc-d{font-size:12px;color:var(--ink-2);line-height:1.55}
+
+/* 저장 트리 */
+.timeline{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md);padding:20px 24px;margin:12px 0 18px;font-family:var(--font-mono);font-size:12px;line-height:1.9;white-space:pre;overflow-x:auto}
+.timeline .pt{color:var(--accent)}
+.timeline .dim{color:var(--ink-3)}
+
+/* 콜아웃 */
+.insight{background:var(--hi-bg);border-left:3px solid var(--hi-line);padding:13px 16px;margin:12px 0 18px;font-size:13px;border-radius:0 3px 3px 0}
+.review{background:var(--review-bg);border-left:3px solid var(--review-line);padding:13px 16px;margin:12px 0 18px;font-size:13px;border-radius:0 3px 3px 0}
+.review::before{content:"[검토] ";color:var(--review-line);font-weight:700;font-size:11px}
+.danger-box{background:rgba(184,69,94,.06);border-left:3px solid var(--danger);padding:13px 16px;margin:12px 0 6px;font-size:12.5px;border-radius:0 3px 3px 0;color:var(--ink-2)}
+.danger-box strong{color:var(--danger)}
+
+/* 태그·뱃지 */
+.badge{font-size:9px;font-weight:700;letter-spacing:.1em;padding:3px 8px;border-radius:var(--r-full);text-transform:uppercase;border:1px solid var(--accent);color:var(--accent)}
+ul.plain{margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2)}
+ul.plain li{margin-bottom:5px}
+ul.plain strong{color:var(--ink)}
+
+/* 2컬럼 */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
+
+/* 푸터 */
+.ftr{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;gap:24px;font-size:11px;color:var(--ink-3)}
+.ftr .sum{max-width:62%;line-height:1.6;color:var(--ink-2)}
+.ftr .r{text-align:right}
+.ftr .r .date{color:var(--accent);font-weight:700;letter-spacing:.05em}
+
+/* PDF 버튼 */
+.print-btn{position:fixed;top:24px;right:24px;background:var(--ink);color:#fff;border:none;padding:11px 18px;border-radius:24px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:var(--shadow-md);transition:transform var(--dur-fast),background var(--dur-fast);z-index:100;display:inline-flex;align-items:center;gap:7px}
+.print-btn:hover{background:var(--accent);transform:translateY(-1px)}
+.print-btn svg{width:15px;height:15px}
+
+/* ===== EDIT MODE (공용 모듈) ===== */
+.edit-panel{position:fixed;top:16px;left:16px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.edit-panel .panel-toggle{width:40px;height:40px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--ink);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);transition:all var(--dur-fast) var(--ease-out)}
+.edit-panel .panel-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.edit-panel.expanded .panel-toggle{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.edit-panel .panel-body{display:none;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px;min-width:184px;box-shadow:var(--shadow-lg)}
+.edit-panel.expanded .panel-body{display:flex}
+.edit-panel .status{font-size:9px;letter-spacing:.25em;color:var(--ink-3);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid var(--line-2)}
+.edit-panel .status.on{color:var(--accent)}
+.edit-panel button{background:transparent;border:1px solid var(--line);color:var(--ink-2);padding:8px 10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;border-radius:var(--r-sm);text-align:left;transition:all var(--dur-fast) var(--ease-out)}
+.edit-panel button:hover{background:var(--surface-2);color:var(--ink);border-color:var(--ink-3)}
+.edit-panel button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.edit-panel button.danger:hover{border-color:var(--danger);color:var(--danger)}
+.edit-panel label{font-size:9px;letter-spacing:.2em;color:var(--ink-3);margin-top:4px;text-transform:uppercase}
+.edit-panel input[type=color]{width:100%;height:30px;padding:2px;background:transparent;border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer}
+.edit-panel .divider{height:1px;background:var(--line-2);margin:4px 0}
+.edit-panel .saved-tag{font-size:9px;color:var(--ok);text-align:center;opacity:0;transition:opacity var(--dur-base)}
+.edit-panel .saved-tag.show{opacity:1}
+body.editing [contenteditable=true]{outline:1px dashed transparent;outline-offset:2px;border-radius:2px;transition:outline-color var(--dur-fast),background-color var(--dur-fast);cursor:text}
+body.editing [contenteditable=true]:hover{outline-color:color-mix(in srgb,var(--accent) 40%,transparent);background:color-mix(in srgb,var(--accent) 6%,transparent)}
+body.editing [contenteditable=true]:focus{outline:1px solid var(--accent)!important;background:color-mix(in srgb,var(--accent) 10%,transparent)}
+
+/* Print */
+@page{size:A4;margin:14mm 13mm}
+@media print{
+  html,body{background:#fff;font-size:10.5pt;line-height:1.55}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .doc{box-shadow:none;margin:0;max-width:none;padding:0;border-radius:0}
+  .print-btn,.edit-panel{display:none!important}
+  .sec,.core,.blk,.out-card,table,.timeline,.flow-step{break-inside:avoid}
+}
+@media (max-width:768px){.doc{padding:32px 22px;margin:0}.core-items,.out-grid,.two-col{grid-template-columns:1fr}h1{font-size:24px}.flow-step{grid-template-columns:36px 1fr;grid-template-rows:auto auto}.flow-step .ft-d{grid-column:2}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="edit-panel" id="editPanel">
+  <button class="panel-toggle" id="panelToggle" title="편집 도구">✎</button>
+  <div class="panel-body">
+    <span class="status" id="editStatus">VIEW MODE</span>
+    <button id="btnEdit" class="primary">✎ 편집</button>
+    <div class="divider"></div>
+    <label>포인트 컬러</label>
+    <input type="color" id="accentColor" value="#FF6450">
+    <div class="divider"></div>
+    <button id="btnSave">↓ HTML 저장</button>
+    <button id="btnReset" class="danger">↺ 초기화</button>
+    <span class="saved-tag" id="savedTag">✓ 저장됨</span>
+  </div>
+</div>
+
+<button class="print-btn" onclick="window.print()" aria-label="PDF로 저장">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+  PDF로 저장
+</button>
+
+<div class="doc">
+
+  <!-- 브랜드 행 -->
+  <div class="doc-top">
+    <span class="l">FILAMENT&amp;CO — MEETING NOTES STANDARD</span>
+    <span class="r">로직 정의서 · V1</span>
+  </div>
+
+  <h1>미팅록 <span class="pt">표준 로직</span></h1>
+  <p class="intro">회의 입력 1건(전사 텍스트·거친 메모·docx)을 받아 <span class="pt">표준 미팅록 3종</span>(MD 원본 · 공유용 HTML 보고서 · 액션 아이템)을 만들어내는 판단·구조화·산출 로직의 정의서. 특정 프로젝트·폴더·도구에 묶이지 않은 미팅록 전용 기준으로, 누가 어떤 회의를 정리해도 같은 구조와 톤이 나오게 한다.</p>
+  <hr class="rule">
+
+  <!-- 메타 박스 -->
+  <div class="meta-box">
+    <div class="row"><div class="lbl">목적</div><div class="val">회의록 수기 정리 시간을 0으로 — 입력만 주면 표준 산출물이 나온다</div></div>
+    <div class="row"><div class="lbl">적용 범위</div><div class="val">운영 · 콘셉트 · 정기 보고 · 협상 · 킥오프 등 모든 회의 유형 (한국어)</div></div>
+    <div class="row"><div class="lbl">산출물</div><div class="val">① 미팅록 MD &nbsp;② 공유용 HTML(A4 풀 보고서) &nbsp;③ 액션 아이템 MD — 총 3종</div></div>
+  </div>
+
+  <!-- CORE 3원칙 -->
+  <div class="core">
+    <div class="core-head">
+      <span class="badge-core">CORE</span>
+      <span class="t">3원칙 — 이 셋이 미팅록의 품질을 결정한다</span>
+    </div>
+    <div class="core-items">
+      <div class="core-item"><span class="n">1</span><strong>제안서가 아니라 풀 보고서</strong> — 사실만 나열하지 않는다. 사실 + 비즈니스 컨텍스트 + 인사이트 + 미해결까지 담는다.</div>
+      <div class="core-item"><span class="n">2</span><strong>추론은 전부 [검토] 표기</strong> — 입력에 없는 정보는 단정 금지. 보강한 항목은 반드시 [검토] 마커를 단다.</div>
+      <div class="core-item"><span class="n">3</span><strong>내부·외부 콘텐츠 동일</strong> — internal/external은 톤·헤더 스위치일 뿐, 정보량과 내용은 절대 달라지지 않는다.</div>
+    </div>
+  </div>
+
+  <!-- 00 파이프라인 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">00</span><span class="nm">전체 파이프라인 — 6단계</span></div><span class="resp">Input → Output</span></div>
+    <div class="flow">
+      <div class="flow-step"><div class="fn">1</div><div class="ft-t">입력 수집</div><div class="ft-d">전사 텍스트 · 거친 메모 · docx를 받는다. 녹음 파일은 받지 않는다(전사 텍스트로 변환 후 입력).</div></div>
+      <div class="flow-step"><div class="fn">2</div><div class="ft-t">메타데이터 파싱</div><div class="ft-d">날짜 · 프로젝트 · 미팅명(회차) · 참석자 · 유형 · 모드를 입력에서 추출한다. 못 찾으면 정해진 fallback.</div></div>
+      <div class="flow-step"><div class="fn">3</div><div class="ft-t">미팅 유형 판별</div><div class="ft-d">입력에 명시적 헤딩이 있으면 <span class="pt">그대로 사용</span>. 없으면 키워드로 유형을 추정해 본문 카테고리를 정한다.</div></div>
+      <div class="flow-step"><div class="fn">4</div><div class="ft-t">5블록 구조화</div><div class="ft-d">개요 → Summary → 안건별 본문 → 의사결정 → To-Do의 고정 골격에 내용을 배치한다.</div></div>
+      <div class="flow-step"><div class="fn">5</div><div class="ft-t">추론 보강</div><div class="ft-d">논의됐지만 명시 안 된 비즈니스 정보를 6개 카테고리에서 도출하고 전부 [검토] 표기한다.</div></div>
+      <div class="flow-step out"><div class="fn">6</div><div class="ft-t">산출 · 저장</div><div class="ft-d">MD + HTML(A4 doc) + actions.md 3종을 생성하고 해당 프로젝트의 미팅록 폴더에 저장한다.</div></div>
+    </div>
+  </div>
+
+  <!-- 01 입력 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">01</span><span class="nm">입력 규격</span></div><span class="resp">STEP 1</span></div>
+    <table class="kv">
+      <thead><tr><th style="width:30%">입력</th><th>처리</th></tr></thead>
+      <tbody>
+        <tr><td><strong>전사 텍스트</strong> (.txt/.md/붙여넣기)</td><td>그대로 사용</td></tr>
+        <tr><td><strong>거친 메모</strong></td><td>그대로 사용 — 짧고 조각나 있어도 5블록으로 재구조화</td></tr>
+        <tr><td><strong>docx</strong></td><td>텍스트 추출(UTF-8) 후 사용</td></tr>
+        <tr><td><strong>녹음 파일</strong> (mp3/m4a)</td><td>자동 전사하지 않는다 — 전사 텍스트로 변환해 다시 입력</td></tr>
+      </tbody>
+    </table>
+    <p class="note">입력이 100자 미만이면 내용 누락 가능성이 크므로 진행 전에 1회 확인한다.</p>
+  </div>
+
+  <!-- 02 메타 파싱 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">02</span><span class="nm">메타데이터 파싱</span></div><span class="resp">STEP 2</span></div>
+    <table class="kv">
+      <thead><tr><th style="width:18%">필드</th><th>추출 우선순위</th><th style="width:24%">Fallback</th></tr></thead>
+      <tbody>
+        <tr><td><strong>날짜</strong></td><td>입력 첫 줄·제목의 날짜 (2026-05-26 / 260526 / 5월 26일)</td><td>작성일(오늘)</td></tr>
+        <tr><td><strong>프로젝트명</strong></td><td>입력 제목 → 진행 중 프로젝트 목록과 매칭</td><td>1회 확인 요청</td></tr>
+        <tr><td><strong>미팅명·회차</strong></td><td>제목의 "1차 / 2차 / 킥오프 / 실사 / 주간보고"</td><td>"미팅"</td></tr>
+        <tr><td><strong>참석자</strong></td><td>입력에 명시된 사람·회사명</td><td>"기재 안 됨"</td></tr>
+        <tr><td><strong>유형</strong></td><td>03의 키워드 매핑</td><td>"일반"</td></tr>
+        <tr><td><strong>모드</strong></td><td>지정값 (internal / external)</td><td>internal</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 03 유형 판별 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">03</span><span class="nm">미팅 유형 판별 → 본문 카테고리</span></div><span class="resp">STEP 3</span></div>
+    <div class="insight"><strong>제1원칙 — 입력에 이미 헤딩이 있으면 그대로 쓴다.</strong> 화자가 잡아둔 안건 구조("프로젝트 개요 / 타임라인 / 운영·매출" 등)가 있으면 새로 추측하지 않고 그 구조를 존중한다. 추측은 헤딩이 없을 때만.</div>
+    <table class="kv">
+      <thead><tr><th style="width:26%">감지 키워드</th><th style="width:18%">유형</th><th>본문 카테고리 가이드</th></tr></thead>
+      <tbody>
+        <tr><td>시공 · 도면 · 공정 · 평수 · 오픈</td><td><strong>운영</strong></td><td>설계·시공 구조 / 타임라인 / 브랜드 방향성 / 운영·매출</td></tr>
+        <tr><td>Pain Points · 가설 · 콘셉트 · 포지셔닝</td><td><strong>콘셉트</strong></td><td>시장·환경 인식 / Pain Points / 핵심 콘셉트 / 포지셔닝</td></tr>
+        <tr><td>진행 상황 · 보고 · 리뷰</td><td><strong>정기 보고</strong></td><td>진행 상황 / 이슈 / 다음 마일스톤</td></tr>
+        <tr><td>단가 · 견적 · 협상 · 조정</td><td><strong>협상</strong></td><td>양측 입장 / 합의점 / 보류 항목</td></tr>
+        <tr><td>킥오프 · 오리엔테이션 · 첫 미팅</td><td><strong>킥오프</strong></td><td>프로젝트 개요 / 역할 분담 / 일정 / 위험 요소</td></tr>
+        <tr><td>해당 없음</td><td><strong>일반</strong></td><td>안건 A / 안건 B / 안건 C — 입력 흐름 순서대로</td></tr>
+      </tbody>
+    </table>
+    <p class="note">추정 결과는 한 줄로 확인받고 진행한다. 예: <span style="font-family:var(--font-mono);font-size:12px">추정 미팅 유형: 운영 미팅. 이대로 진행? (Y/n)</span></p>
+  </div>
+
+  <!-- 04 5블록 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">04</span><span class="nm">표준 5블록 골격</span></div><span class="resp">STEP 4 · 고정 구조</span></div>
+    <div class="blocks">
+      <div class="blk"><div class="bn">[1]</div><div class="bt">프로젝트 개요 / 배경</div><div class="bd">있을 때만. 운영 미팅=규모·범위·제약·일정, 콘셉트 미팅=배경·맥락·시장 인식, 일반 회의=생략 가능.</div></div>
+      <div class="blk"><div class="bn">[2]</div><div class="bt">Summary</div><div class="bd">한 문단 요약 + 키:값 테이블. 핵심 키워드는 굵게. 이 블록만 읽어도 회의가 재구성되어야 한다.</div></div>
+      <div class="blk"><div class="bn">[3]</div><div class="bt">본문 — 안건별 정리</div><div class="bd">03에서 정한 카테고리로 배치. 표·번호 매김·2컬럼을 사용하고, 논의의 맥락과 근거를 함께 적는다.</div></div>
+      <div class="blk acc"><div class="bn">[4]</div><div class="bt">의사결정사항 ✓</div><div class="bd">이 회의에서 확정된 것만. 체크리스트 형식 — 결정과 논의를 섞지 않는다.</div></div>
+      <div class="blk acc"><div class="bn">[5]</div><div class="bt">요청사항 / To-Do</div><div class="bd">양측 R&amp;R 분리(우리 측 / 상대 측) + 담당 + 기한. 기한 미정이면 "미정"으로 명시한다.</div></div>
+    </div>
+  </div>
+
+  <!-- 05 추론 보강 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">05</span><span class="nm">비즈니스 컨텍스트 추론 보강</span></div><span class="badge">전 항목 [검토] 표기</span></div>
+    <p class="note">미팅에서 논의됐지만 입력 텍스트에 명시되지 않은 비즈니스 정보를 아래 6개 카테고리에서 도출해 미팅록에 포함한다. v1의 실수였던 "사실만 깔끔하게 나열"을 막는 단계다.</p>
+    <div class="two-col">
+      <ul class="plain">
+        <li><strong>A. 매출·객단가</strong> — 목표 수치의 달성 메커니즘 (회전율, 구성 등)</li>
+        <li><strong>B. 벤치마크</strong> — 직전 임차인·인접·동급 매장 비교</li>
+        <li><strong>C. 수수료·비용</strong> — 별도 항목까지 합산한 실질 부담</li>
+      </ul>
+      <ul class="plain">
+        <li><strong>D. 일정</strong> — 개인·외부 일정과의 충돌 (휴가·승인·행사)</li>
+        <li><strong>E. 자금·계약</strong> — 권한 구조 (감리·결정 권한이 어디에 있나)</li>
+        <li><strong>F. 레퍼런스</strong> — 유사 사례의 성공/실패 패턴</li>
+      </ul>
+    </div>
+    <div class="review">추론으로 보강한 항목은 인라인 <strong>[검토]</strong> 마커 또는 검토 박스로 표시하고, 문서 하단에 "[검토] 표시 안내"를 자동 삽입한다. 외부 공유 전 [검토] 항목을 일괄 점검한다.</div>
+    <div class="danger-box"><strong>보강 금지선</strong> — 법적·재무적 수치 단정, 인물·기업에 대한 부정 평가, 입력에 없는 사실의 단정 서술. 이 셋은 어떤 경우에도 [검토] 없이 쓰지 않는다.</div>
+  </div>
+
+  <!-- 06 톤 규칙 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">06</span><span class="nm">톤 규칙 — 보고서 톤 유지</span></div><span class="resp">가장 중요</span></div>
+    <table class="cmp">
+      <thead><tr><th class="bad" style="width:46%">✕ 제안서 톤 (금지)</th><th class="good">✓ 미팅록 보고서 톤 (사용)</th></tr></thead>
+      <tbody>
+        <tr><td class="bad">큰 KPI 밴드로 수치 강조</td><td class="good">개요 키:값 테이블 + 본문 표·인사이트 박스</td></tr>
+        <tr><td class="bad">대형 카피라이팅 헤드 ("~합니다")</td><td class="good">차분한 번호 헤더 (01 · 02 · 03)</td></tr>
+        <tr><td class="bad">마케팅 카드 그리드</td><td class="good">키:값 테이블 + 번호 매김 + 2컬럼</td></tr>
+        <tr><td class="bad">"~합니다 · ~필수입니다"</td><td class="good">"~확정 · ~예정 · ~필요" 명사형</td></tr>
+        <tr><td class="bad">사실만 깔끔하게 나열</td><td class="good">사실 + 컨텍스트 + 인사이트 + 미해결까지</td></tr>
+      </tbody>
+    </table>
+    <table class="kv">
+      <thead><tr><th style="width:18%">스위치</th><th style="width:41%">internal</th><th>external</th></tr></thead>
+      <tbody>
+        <tr><td><strong>헤더</strong></td><td>미팅명 + 날짜</td><td>클라이언트명 + 프로젝트명 + 미팅명 + 날짜 정식 표기</td></tr>
+        <tr><td><strong>톤</strong></td><td>"~함, ~예정" 명사형 허용</td><td>"~합니다 / ~예정입니다" 또는 정돈된 명사형</td></tr>
+        <tr><td><strong>약어</strong></td><td>그대로 (PM 등)</td><td>첫 사용 시 풀네임 병기</td></tr>
+        <tr><td><strong>풋터</strong></td><td>내부공유용</td><td>회사명 정식 표기</td></tr>
+        <tr><td><strong>콘텐츠</strong></td><td colspan="2" style="color:var(--accent);font-weight:700">동일 — 정보 누락·요약 차이 없음 (CORE 3)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 07 산출물 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">07</span><span class="nm">산출물 3종 · 저장 규칙</span></div><span class="resp">STEP 6</span></div>
+    <div class="out-grid">
+      <div class="out-card">
+        <div class="oc-file">{YYMMDD}_{미팅명}.md</div>
+        <div class="oc-t">① 미팅록 원본</div>
+        <div class="oc-d">백업·검색·전달용 마크다운. 5블록 골격 그대로. 대표·팀 공유 요청 시 이 파일을 전달한다.</div>
+      </div>
+      <div class="out-card">
+        <div class="oc-file">{YYMMDD}_{미팅명}.html</div>
+        <div class="oc-t">② 공유용 A4 보고서</div>
+        <div class="oc-d">5섹션 — 01 개요(Summary+키:값) · 02 아젠다별 정리 · 03 의사결정 · 04 To-Do(2단 R&amp;R) · 05 미해결. PDF 저장 버튼 포함.</div>
+      </div>
+      <div class="out-card">
+        <div class="oc-file">{YYMMDD}_{미팅명}_actions.md</div>
+        <div class="oc-t">③ 액션 아이템</div>
+        <div class="oc-d">체크박스 목록만 분리 — 우리 측 / 상대 측 / 일정 마커. 담당·기한 필수(미정도 명시).</div>
+      </div>
+    </div>
+    <div class="timeline"><span class="dim">{프로젝트 폴더}/</span>
+└─ 00_미팅록/
+   └─ <span class="pt">{YYMMDD}_{미팅명}/</span>
+      ├─ {YYMMDD}_{미팅명}.md          <span class="dim">← ① 원본 (md 요청 시 이 파일)</span>
+      ├─ {YYMMDD}_{미팅명}.html        <span class="dim">← ② 공유용 보고서</span>
+      ├─ {YYMMDD}_{미팅명}_actions.md  <span class="dim">← ③ 액션</span>
+      └─ _source/                      <span class="dim">← 원본 입력 보관</span></div>
+    <ul class="plain">
+      <li><strong>저장 위치</strong> — 미팅록은 해당 프로젝트의 <strong>00_미팅록/</strong> 폴더에 둔다. 중앙 아카이브를 별도로 두지 않는다. 프로젝트가 없으면 미배정 폴더에 임시 보관 후 프로젝트 생성 시 이동.</li>
+      <li><strong>버전</strong> — 재생성 시 덮어쓰지 않고 <strong>_v2, _v3</strong> suffix. 같은 미팅의 internal/external 재생성은 같은 폴더 안에 <strong>_internal / _external</strong>로 분리.</li>
+      <li><strong>파일명</strong> — 날짜 6자리(YYMMDD) + 짧은 미팅 식별자(1차·킥오프·실사·주간보고). 공백은 _, 슬래시·콜론 제거.</li>
+    </ul>
+  </div>
+
+  <!-- 푸터 -->
+  <div class="ftr">
+    <div class="sum">입력 1건 → 파싱 → 유형 판별 → 5블록 → <span class="pt">[검토] 보강</span> → 3종 산출. 이 로직만 지키면 누가 정리해도 같은 미팅록이 나온다.</div>
+    <div class="r"><div class="date">2026. 07. 23</div><div>FILAMENT&amp;CO · MEETING NOTES STANDARD</div></div>
+  </div>
+
+</div>
+
+<script>
+/* ===== FILAMENT EDIT MODULE v2 (공용) ===== */
+(function(){
+  var KEY='filament_meeting_logic_v1';
+  var editables=document.querySelectorAll('h1,p,li,td,th,.intro,.core-item,.val,.nm,.resp,.ft-t,.ft-d,.bt,.bd,.oc-t,.oc-d,.sum,.core-head .t');
+  restore();
+  var panel=document.getElementById('editPanel'),toggle=document.getElementById('panelToggle');
+  toggle.addEventListener('click',function(e){e.stopPropagation();panel.classList.toggle('expanded')});
+  document.addEventListener('click',function(e){if(!panel.contains(e.target))panel.classList.remove('expanded')});
+  var editing=false,t=null;
+  var bEdit=document.getElementById('btnEdit'),bSave=document.getElementById('btnSave'),bReset=document.getElementById('btnReset'),
+      st=document.getElementById('editStatus'),tag=document.getElementById('savedTag'),acc=document.getElementById('accentColor');
+  var cur=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();if(cur)acc.value=toHex(cur);
+  function setEdit(on){editing=on;document.body.classList.toggle('editing',on);
+    editables.forEach(function(el){on?el.setAttribute('contenteditable','true'):el.removeAttribute('contenteditable')});
+    bEdit.textContent=on?'✓ 완료':'✎ 편집';bEdit.classList.toggle('primary',!on);
+    st.textContent=on?'EDITING':'VIEW MODE';st.classList.toggle('on',on)}
+  function showSaved(){tag.classList.add('show');clearTimeout(showSaved._t);showSaved._t=setTimeout(function(){tag.classList.remove('show')},1200)}
+  function save(){try{var s={t:{},a:null};editables.forEach(function(el,i){s.t[i]=el.innerHTML});
+    s.a=document.documentElement.style.getPropertyValue('--accent')||null;localStorage.setItem(KEY,JSON.stringify(s));showSaved()}catch(e){}}
+  function autosave(){clearTimeout(t);t=setTimeout(save,400)}
+  editables.forEach(function(el){el.addEventListener('input',autosave);el.addEventListener('blur',autosave)});
+  bEdit.addEventListener('click',function(){setEdit(!editing)});
+  acc.addEventListener('input',function(){document.documentElement.style.setProperty('--accent',acc.value)});
+  acc.addEventListener('change',save);
+  bSave.addEventListener('click',function(){var was=editing;if(was)setEdit(false);
+    var c=document.documentElement.cloneNode(true);var p=c.querySelector('.edit-panel');if(p)p.remove();
+    c.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable')});
+    c.querySelectorAll('.editing').forEach(function(el){el.classList.remove('editing')});
+    var html='<!doctype html>\n<html lang="ko" data-skin="'+(document.documentElement.getAttribute('data-skin')||'')+'">\n'+c.innerHTML+'\n</html>';
+    var b=new Blob([html],{type:'text/html;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');
+    a.href=u;a.download=(document.title||'document').replace(/\s+/g,'_')+'.html';document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);if(was)setEdit(true)},100)});
+  bReset.addEventListener('click',function(){if(!confirm('편집 내용을 초기화합니다. 계속할까요?'))return;localStorage.removeItem(KEY);location.reload()});
+  function restore(){try{var r=localStorage.getItem(KEY);if(!r)return;var s=JSON.parse(r);
+    if(s.t)editables.forEach(function(el,i){if(s.t[i]!==undefined)el.innerHTML=s.t[i]});
+    if(s.a)document.documentElement.style.setProperty('--accent',s.a)}catch(e){}}
+  function toHex(c){c=c.trim();if(c[0]==='#')return c.length===4?'#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]:c;
+    var m=c.match(/\d+/g);if(!m)return'#FF6450';return'#'+m.slice(0,3).map(function(x){return('0'+parseInt(x).toString(16)).slice(-2)}).join('')}
+})();
+</script>
+</body>
+</html>

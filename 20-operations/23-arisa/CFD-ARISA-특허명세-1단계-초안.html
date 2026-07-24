@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFD / ARISA — 특허 기본 명세서 초안 (Patent Family #1–#3)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root{
+    --bg:#1A1A1A; --bg-2:#141414; --bg-3:#222; --bg-4:#1e1e1e; --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+    --line:#333; --line-2:#2a2a2a; --accent:#6C5CE7; --accent-light:#A29BFE;
+    --green:#8FA37E; --amber:#D9A34B; --red:#E17055; --blue:#6F8AA3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+    background:var(--bg);color:var(--fg);font-weight:300;letter-spacing:-.01em;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1080px;margin:0 auto;padding:60px 56px 120px;}
+
+  /* Header */
+  header.top{border-bottom:1px solid var(--line-2);padding-bottom:34px;margin-bottom:48px;}
+  .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;font-weight:400;}
+  h1{font-size:40px;font-weight:300;letter-spacing:-.035em;line-height:1.12;margin:18px 0 0;}
+  h1 .ac{color:var(--accent);}
+  .lead{font-size:16px;font-weight:300;line-height:1.7;color:var(--fg-2);margin-top:20px;max-width:80ch;}
+  .lead b{color:var(--fg);font-weight:500;}
+
+  /* Sections */
+  section{margin-bottom:56px;}
+  h2.sec{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);font-weight:500;
+    padding-bottom:13px;border-bottom:1px solid var(--line-2);margin-bottom:22px;display:flex;justify-content:space-between;align-items:baseline;}
+  h2.sec .tag{font-size:10px;letter-spacing:.15em;color:var(--fg-3);}
+  h3{font-size:22px;font-weight:400;letter-spacing:-.02em;margin-bottom:6px;}
+  h3 .ac{color:var(--accent);}
+  h4{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:10px;}
+  .sub{font-size:14.5px;color:var(--fg-2);line-height:1.7;max-width:82ch;}
+  .sub b{color:var(--fg);font-weight:500;}
+  p.body{font-size:14px;color:var(--fg-2);line-height:1.75;margin-top:10px;max-width:82ch;}
+  p.body b{color:var(--fg);font-weight:500;}
+
+  /* Pills */
+  .pill{display:inline-block;font-size:10px;letter-spacing:.04em;padding:2px 9px;border-radius:3px;font-weight:500;white-space:nowrap;}
+  .pill.core{color:var(--accent-light);background:rgba(108,92,231,.13);border:1px solid rgba(108,92,231,.4);}
+  .pill.def{color:var(--green);background:rgba(143,163,126,.13);border:1px solid rgba(143,163,126,.35);}
+  .pill.dist{color:var(--blue);background:rgba(111,138,163,.13);border:1px solid rgba(111,138,163,.35);}
+  .pill.key{color:var(--red);background:rgba(225,112,85,.1);border:1px solid rgba(225,112,85,.35);}
+
+  /* Claims */
+  .claim{background:var(--bg-4);border:1px solid var(--line-2);border-left:3px solid var(--accent);padding:18px 22px;margin:12px 0;font-size:13.5px;line-height:1.8;color:var(--fg-2);}
+  .claim b{color:var(--fg);font-weight:500;}
+  .claim .cnum{font-size:10px;letter-spacing:.15em;color:var(--accent-light);text-transform:uppercase;font-weight:500;margin-bottom:8px;}
+  .dep{border-left-color:var(--line);margin-left:20px;font-size:13px;padding:14px 18px;}
+  .dep .cnum{color:var(--fg-3);}
+
+  /* Callout */
+  .callout{background:var(--bg-3);border:1px solid var(--line-2);padding:22px 26px;border-radius:5px;margin-top:14px;}
+  .callout.acc{border-color:var(--accent);}
+  .callout.green{border-color:var(--green);}
+  .callout.blue{border-color:var(--blue);}
+  .callout.amber{border-color:var(--amber);}
+  .callout h4{margin-bottom:10px;}
+
+  /* Lists */
+  ul.pts{list-style:none;margin-top:4px;}
+  ul.pts li{font-size:14px;color:var(--fg-2);line-height:1.65;padding:6px 0 6px 20px;position:relative;}
+  ul.pts li::before{content:"\2014";position:absolute;left:0;color:var(--fg-3);}
+  ul.pts li b{color:var(--fg);font-weight:500;}
+
+  /* Table */
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px;}
+  th{font-size:10px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:10px 11px 12px;font-weight:400;border-bottom:1px solid var(--line);}
+  td{padding:10px 11px;border-bottom:1px solid var(--line-2);color:var(--fg-2);font-weight:300;vertical-align:top;}
+  td:first-child{color:var(--fg);font-weight:500;}
+
+  /* Grid */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+
+  /* Separator */
+  .sep{border:none;border-top:1px solid var(--line-2);margin:48px 0;}
+  .sep-patent{border:none;border-top:2px solid var(--accent);margin:56px 0;opacity:.4;}
+
+  /* Vision box */
+  .vision-box{background:linear-gradient(135deg,rgba(108,92,231,.08),rgba(108,92,231,.02));border:1px solid rgba(108,92,231,.3);padding:22px 26px;margin:14px 0;}
+  .vision-box .vt{font-size:13px;letter-spacing:.15em;color:var(--accent-light);text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+  .vision-box .vb{font-size:15px;font-weight:300;line-height:1.65;color:var(--fg);}
+  .vision-box .vb b{font-weight:500;}
+
+  /* Pipeline */
+  .pipeline{display:flex;align-items:center;gap:0;margin:18px 0;}
+  .pipeline .stage{flex:1;background:var(--bg-3);border:1px solid var(--line-2);padding:14px 16px;text-align:center;}
+  .pipeline .stage .sl{font-size:9px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px;}
+  .pipeline .stage .sv{font-size:13px;color:var(--fg-2);line-height:1.5;}
+  .pipeline .stage .sv b{color:var(--fg);font-weight:500;}
+  .pipeline .arr{font-size:18px;color:var(--fg-3);padding:0 6px;flex-shrink:0;}
+
+  /* Term definition */
+  .term-row{display:grid;grid-template-columns:180px 1fr;gap:0;border-bottom:1px solid var(--line-2);padding:10px 0;}
+  .term-row .tl{font-size:13px;font-weight:500;color:var(--fg);}
+  .term-row .td{font-size:13px;color:var(--fg-2);line-height:1.6;}
+
+  /* Footer */
+  .foot{margin-top:80px;padding-top:24px;border-top:1px solid var(--line-2);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--fg-3);display:flex;justify-content:space-between;}
+
+  /* Note */
+  .note{font-size:12px;color:var(--amber);margin-top:14px;border-left:2px solid var(--amber);padding-left:14px;line-height:1.6;}
+
+  /* Patent header */
+  .patent-header{background:var(--bg-4);border:1px solid var(--line-2);padding:28px 30px;margin-bottom:24px;}
+  .patent-header.core{border-left:4px solid var(--accent);}
+  .patent-header.defense{border-left:4px solid var(--green);}
+  .patent-header.dist{border-left:4px solid var(--blue);}
+  .patent-header .ph{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .patent-header .ph h3{margin-bottom:0;}
+
+  /* Impl table */
+  .impl{background:var(--bg-3);border:1px solid var(--line-2);padding:18px 22px;margin-top:14px;border-radius:4px;}
+  .impl h4{font-size:13px;font-weight:500;color:var(--accent-light);margin-bottom:8px;}
+
+  @media(max-width:760px){
+    .wrap{padding:36px 22px 80px;}
+    h1{font-size:28px;}
+    .grid2{grid-template-columns:1fr;}
+    .pipeline{flex-direction:column;}
+    .pipeline .arr{transform:rotate(90deg);}
+    .term-row{grid-template-columns:1fr;gap:4px;}
+  }
+  @media print{
+    body{background:#fff;color:#111;}
+    .wrap{padding:40px 36px;}
+    :root{--bg:#fff;--bg-2:#f8f8f8;--bg-3:#f4f4f4;--bg-4:#fafafa;--fg:#111;--fg-2:#333;--fg-3:#888;--line:#ddd;--line-2:#eee;}
+    .claim{border-left-color:var(--accent)!important;background:#f9f8ff;}
+    .dep{background:#fafafa;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER
+     ═══════════════════════════════════════════════════════════ -->
+<header class="top">
+  <p class="eyebrow">CFD / ARISA &mdash; Patent Specification Draft (1단계)</p>
+  <h1>조직 커뮤니케이션 충실도 기반<br><span class="ac">업무 보정&middot;구조화&middot;재구성 시스템</span></h1>
+  <p class="lead">
+    <b>Patent Family #1&ndash;#3</b> &mdash; 변리사 전달용 기본 명세서 초안. 한국 특허 명세서 양식 기반.
+    본 문서는 3건의 특허(Correction&middot;Capture&middot;Distribution)를 통합 기술한다.
+  </p>
+  <p style="font-size:12px;color:var(--fg-3);margin-top:14px;line-height:1.6;">
+    출원인: 최원석 &middot; 발명자: 최원석<br>
+    작성일: 2026-07-24 &middot; 성격: 변리사 검토용 초안 (법률 문서 아님)
+  </p>
+</header>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     공통 서두 1. 발명의 명칭
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <h2 class="sec">1. 발명의 명칭<span class="tag">Title of Invention</span></h2>
+  <h3>조직 커뮤니케이션 충실도 기반 <span class="ac">업무 보정&middot;구조화&middot;재구성 시스템 및 방법</span></h3>
+  <p class="body">
+    영문: System and Method for Organizational Communication Fidelity-Based Work Correction, Structuring, and Reconstruction
+  </p>
+  <p class="body" style="margin-top:6px;color:var(--fg-3);">
+    약칭: <b style="color:var(--fg)">CFD(Communication Fidelity Design)</b> / <b style="color:var(--fg)">ARISA</b>
+  </p>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     공통 서두 2. 기술분야
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <h2 class="sec">2. 기술분야<span class="tag">Technical Field</span></h2>
+  <p class="body">
+    본 발명은 <b>조직 커뮤니케이션의 AI 기반 구조화, HR 테크(HR Tech), 및 업무 자동화</b> 분야에 관한 것으로,
+    보다 구체적으로는 조직 구성원이 다양한 커뮤니케이션 수단(메신저, 음성, 이메일, 회의, 파일 등)을 통해 발신하는
+    비정형 업무 커뮤니케이션을 수집하고, <b>조직 고유 프레임워크에 기반하여 분석&middot;보정</b>하며,
+    <b>수신자의 역할과 직위에 맞게 재구성&middot;배포</b>하는 시스템 및 방법에 관한 것이다.
+  </p>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     공통 서두 3. 배경기술
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <h2 class="sec">3. 배경기술<span class="tag">Background Art</span></h2>
+
+  <p class="body">
+    현대 조직에서 업무 커뮤니케이션은 슬랙(Slack), 마이크로소프트 팀즈(MS Teams), 노션(Notion), 이메일, 구두 지시 등
+    다수의 채널에 분산되어 발생한다. 이로 인해 다음과 같은 구조적 문제가 반복된다.
+  </p>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="callout">
+      <h4>기존 업무 도구의 한계</h4>
+      <ul class="pts">
+        <li><b>소스 분산</b> &mdash; 동일 업무에 대한 정보가 메신저, 이메일, 회의록, 파일 등 복수의 소스와 데이터 형태에 분산 저장되어 추적 불가</li>
+        <li><b>구조화 부재</b> &mdash; 비정형 자연어 보고가 그대로 전달되어, 핵심 정보 누락&middot;모호성&middot;동어반복이 검출되지 않음</li>
+        <li><b>발신자 능력편차</b> &mdash; 동일한 사실을 보고하더라도 발신자의 숙련도와 부서 전문성에 따라 표현 품질과 완결도에 현저한 차이가 발생</li>
+        <li><b>의사결정 유실</b> &mdash; 회의와 대화에서 내려진 의사결정이 구조적으로 추적&middot;축적되지 않아 반복 논의 발생</li>
+        <li><b>역할 부적합 배포</b> &mdash; 경영진에게 실무 세부사항이, 실무자에게 의사결정 맥락이 적절히 전달되지 않음</li>
+      </ul>
+    </div>
+    <div class="callout">
+      <h4>선행기술의 접근과 차별점</h4>
+      <ul class="pts">
+        <li><b>삼성SDS (KR 10-2026-0045539)</b> &mdash; <b>수신자</b>의 경험&middot;숙련도에 기반하여 제공 정보의 <b>상세도를 조정</b>하고 맞춤 UI를 생성. 그러나 <b>발신자</b>의 커뮤니케이션 능력편차 보정은 미개시</li>
+        <li><b>구글 (KR 10-2024-0137029)</b> &mdash; 관련 문서로 <b>ASR(음성인식) 바이어싱</b>하여 회의 문서를 생성. 그러나 멀티모달 멀티소스 수집, 역할별 재구성, 발신자 보정 모두 미개시</li>
+        <li>기존 도구들은 커뮤니케이션을 <b>"있는 그대로 정리"</b>하는 데 그치며, 발신 시점에서의 <b>품질 불균일</b>을 구조적으로 보정하지 않음</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     공통 서두 4. 해결하려는 과제
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <h2 class="sec">4. 해결하려는 과제<span class="tag">Problems to be Solved</span></h2>
+
+  <p class="body">본 발명이 해결하고자 하는 과제는 다음과 같다.</p>
+
+  <div class="callout acc" style="margin-top:14px">
+    <ul class="pts">
+      <li><b>과제 1 &mdash; 발신자 능력편차 보정</b>: 조직 구성원의 숙련도 및 소속 부서 전문성에 따른 커뮤니케이션 표현&middot;완결도 편차를 자동으로 보정하여, 발신자에 관계없이 균일한 품질의 구조화된 정보를 생성한다.</li>
+      <li><b>과제 2 &mdash; 멀티모달 멀티소스 통합 수집</b>: 조직 내 복수의 소스(메신저, 음성, 이메일, 회의, 파일) 및 데이터 형태(텍스트, 음성, 이미지, 문서)로부터 데이터를 통합 수집하고, 시스템이 산출한 문서까지 재수집 대상에 포함하여 공통 포맷으로 정규화함으로써 정보 유실을 방지한다.</li>
+      <li><b>과제 3 &mdash; 충실도(Fidelity) 검증</b>: AI가 커뮤니케이션을 처리하는 과정에서 발생하는 왜곡(추측, 동어반복, 모호성)을 검출&middot;차단하여 원정보의 충실도를 보장한다.</li>
+      <li><b>과제 4 &mdash; 역할별 적응형 재구성</b>: 동일한 구조화 데이터를 수신자의 역할&middot;직위에 맞게 선별&middot;재배열&middot;요약하여 의사결정 효율을 높인다.</li>
+      <li><b>과제 5 &mdash; 의사결정 구조 축적</b>: 커뮤니케이션에서 추출된 의사결정을 구조화&middot;추적&middot;축적하여 조직의 자산으로 전환한다.</li>
+    </ul>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     공통 서두 5. 발명의 효과
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <h2 class="sec">5. 발명의 효과<span class="tag">Effects of Invention</span></h2>
+
+  <div class="grid2">
+    <div class="callout">
+      <h4>커뮤니케이션 안정화</h4>
+      <ul class="pts">
+        <li>발신자 능력에 관계없이 <b>균일한 품질</b>의 구조화된 업무 데이터 생성</li>
+        <li>모호한 표현, 동어반복, 더미 표현을 검출&middot;보정하여 <b>정보 순도(Purity)</b> 향상</li>
+        <li>온보딩(Grace)에서 정상운영(Strict)으로 기대 수준이 <b>자동 상향</b>되어 조직 전체의 커뮤니케이션 레벨이 점진적으로 안정화</li>
+        <li>조직이 설계한 의사판단구조&middot;분석기준이 프레임워크로 내장되어, 일상적 업무보고&rarr;보정&rarr;피드백 반복이 곧 <b>강의실 없는 적응형 직무교육</b>으로 기능</li>
+      </ul>
+    </div>
+    <div class="callout">
+      <h4>의사결정 구조 자산화</h4>
+      <ul class="pts">
+        <li>커뮤니케이션에서 의사결정 요청을 <b>자동 추출&middot;구조화&middot;추적</b></li>
+        <li>미결 사안의 <b>자동 이월(carry-over)</b>로 의사결정 누락 방지</li>
+        <li>축적된 Decision Log가 조직의 <b>에셋(Asset)</b>으로 전환</li>
+        <li>거울(Mirror) 기능을 통해 사고 방식이 <b>마인드셋(Mindset)</b>으로 체화</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<hr class="sep-patent">
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PATENT #1 · CORE — CORRECTION ENGINE
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <div class="patent-header core">
+    <div class="ph">
+      <span class="pill core">Patent #1 &middot; Core</span>
+      <h3>Correction Engine &mdash; <span class="ac">보정 및 구조화</span></h3>
+    </div>
+    <p class="sub">
+      <b>발명의 명칭:</b> 조직 프레임워크 기반 비정형 커뮤니케이션의 보정 및 구조화 시스템 및 방법<br>
+      <b>역할:</b> Patent Family의 Core Patent &mdash; 가장 넓은 독립항으로 경쟁사 침해 구조의 핵심
+    </p>
+  </div>
+
+  <!-- 과제 해결 수단 -->
+  <h2 class="sec">P#1 &mdash; 과제 해결 수단<span class="tag">Means for Solving Problems</span></h2>
+
+  <p class="body">
+    상기 과제를 해결하기 위하여, 본 발명의 제1 양태에 따른 조직 커뮤니케이션 보정 시스템은
+    <b>입력부, 프레임워크 관리부, 발신자 프로파일 보정부, Fidelity 검증부, 보정 엔진, 및 출력부</b>를 포함한다.
+  </p>
+
+  <div class="pipeline" style="margin-top:18px">
+    <div class="stage" style="border-color:var(--line)"><div class="sl" style="color:var(--fg-3)">입력부</div><div class="sv"><b>비정형 데이터 수신</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:rgba(225,112,85,.4)"><div class="sl" style="color:var(--red)">발신자 프로파일 보정부</div><div class="sv"><b>능력편차 보정</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:rgba(108,92,231,.5)"><div class="sl" style="color:var(--accent-light)">프레임워크 매핑</div><div class="sv"><b>누락 식별&middot;보정</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:rgba(217,163,75,.4)"><div class="sl" style="color:var(--amber)">Fidelity 검증</div><div class="sv"><b>4축 Gate</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:var(--line)"><div class="sl" style="color:var(--fg-3)">출력부</div><div class="sv"><b>표준 형식 출력</b></div></div>
+  </div>
+
+  <p class="body">
+    특히, <b>발신자 프로파일 보정부</b>는 발신자의 숙련도 및 소속 부서 전문성에 기반하여
+    커뮤니케이션 표현&middot;완결도 편차를 보정하는 정규화 표현을 생성한다.
+    이는 기존 선행기술(삼성SDS)이 <b>수신자</b> 측의 상세도를 조정하는 것과 근본적으로 상이하며,
+    <b>발신 시점</b>에서의 신호 왜곡을 복원하는 것을 특징으로 한다.
+  </p>
+
+  <!-- 청구항 -->
+  <h2 class="sec" style="margin-top:36px">P#1 &mdash; 청구 범위<span class="tag">Claims</span></h2>
+
+  <div class="claim">
+    <div class="cnum">청구항 1 &mdash; 독립항 (시스템) <span class="pill key">Core</span></div>
+    조직 구성원의 비정형 커뮤니케이션 데이터를 수신하는 <b>입력부</b>;
+    조직의 업무 프레임워크를 저장&middot;관리하는 <b>프레임워크 관리부</b>;
+    <b>발신자의 숙련도 및 소속 부서 전문성에 기반하여 커뮤니케이션 표현&middot;완결도 편차를 보정하는 발신자 프로파일 보정부</b>;
+    상기 보정된 커뮤니케이션을 프레임워크에 매핑하여 누락 요소를 식별하고,
+    <b>Fidelity 검증(원문보존&middot;사실확인게이트&middot;모호성탐지&middot;불확실표시)</b>을 수행하며,
+    보정된 구조화 데이터를 생성하는 <b>보정 엔진</b>;
+    및 조직 표준 형식으로 출력하는 <b>출력부</b>를
+    포함하는 조직 커뮤니케이션 보정 시스템.
+  </div>
+
+  <div class="claim">
+    <div class="cnum">청구항 2 &mdash; 독립항 (방법)</div>
+    (a) 조직 구성원으로부터 비정형 커뮤니케이션 데이터를 <b>수신</b>하는 단계;
+    (b) 상기 발신자의 숙련도 및 소속 부서 전문성을 포함하는 <b>발신자 프로파일에 기반하여 커뮤니케이션 표현&middot;완결도 편차를 보정</b>하는 단계;
+    (c) 보정된 커뮤니케이션을 조직의 업무 프레임워크에 <b>매핑하여 누락 요소를 식별</b>하는 단계;
+    (d) 원문보존, 사실확인게이트, 모호성탐지, 불확실표시를 포함하는 <b>Fidelity 검증</b>을 수행하는 단계;
+    (e) 상기 (b)~(d) 단계의 결과에 기반하여 <b>구조화된 업무 데이터를 생성</b>하는 단계; 및
+    (f) 생성된 구조화 데이터를 조직 표준 형식으로 <b>출력</b>하는 단계
+    를 포함하는 조직 커뮤니케이션 보정 방법.
+  </div>
+
+  <div class="claim dep">
+    <div class="cnum">청구항 3 &mdash; 종속항 (7기준 완전성 검사)</div>
+    제1항 또는 제2항에 있어서, 상기 보정 엔진은 커뮤니케이션의 <b>완전성</b>을 7기준(Task, Output, Outcome, Decision, Support, Next, Reflection)으로 검사하고,
+    부족 요소에 대해 <b>최소 질문(일일보고 기준 3개 이하)</b>을 생성하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep">
+    <div class="cnum">청구항 4 &mdash; 종속항 (Fidelity Gate)</div>
+    제1항 또는 제2항에 있어서, 상기 Fidelity 검증은 <b>동어반복&middot;더미표현&middot;추상어</b>를 정규표현식 기반으로 탐지하여
+    구체적 내용으로 대체를 유도하고, <b>사실과 해석을 분리하는 질문</b>을 통해 AI 추측(hallucination)을 차단하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep">
+    <div class="cnum">청구항 5 &mdash; 종속항 (적응형 프레임워크)</div>
+    제1항 또는 제2항에 있어서, 상기 프레임워크 관리부는 조직별 <b>커스텀 프레임워크</b>를 정의&middot;갱신 가능하며,
+    보정 기준이 프레임워크 변경에 <b>적응적으로 갱신</b>되는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep">
+    <div class="cnum">청구항 6 &mdash; 종속항 (Type A/B/C 적응형 질문)</div>
+    제1항 또는 제2항에 있어서, 상기 보정 엔진은 커뮤니케이션을 <b>유형(A:진행공유, B:이슈, C:의사결정)</b>으로 자동 분류하고,
+    유형별로 질문 수를 동적 제어(A: 1개 이하, B 및 C: 3개 이하)하며,
+    질문 우선순위를 <b>팩트혼재 &gt; 리스크 &gt; 결정 &gt; 결과 &gt; 액션</b> 순으로 적용하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep">
+    <div class="cnum">청구항 7 &mdash; 종속항 (Grace/Strict 이원 루브릭)</div>
+    제1항 또는 제2항에 있어서, 상기 보정 엔진은 보정 기준을 <b>온보딩 기간(Grace)과 정상 운영(Strict)</b>으로 이원화하고,
+    <b>날짜 기반으로 자동 전환</b>하여 조직 학습곡선에 따라 기대 수준이 점진적으로 상향되는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep">
+    <div class="cnum">청구항 8 &mdash; 종속항 (조직 에셋 기반 적응형 직무교육)</div>
+    제1항 또는 제2항에 있어서, 상기 프레임워크 관리부는 조직이 의도한 <b>의사판단구조, 분석기준, 및 조직 성향</b>을 포함하는 조직 에셋을 프레임워크로서 설계&middot;등록 가능하며,
+    상기 보정 엔진은 일상적 업무보고의 제출과 보정 피드백의 반복을 통해 구성원이 상기 조직 에셋에 내재된 <b>사고방식&middot;판단기준&middot;분석 관점을 자연스럽게 체득</b>하도록 하는
+    <b>피드백 루프 기반 적응형 직무교육 기능</b>을 제공하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <!-- 실시예 -->
+  <h2 class="sec" style="margin-top:36px">P#1 &mdash; 실시예<span class="tag">Embodiment</span></h2>
+
+  <p class="body">본 발명의 바람직한 실시예로서, ARISA 시스템의 Correction Engine 구현을 설명한다.</p>
+
+  <div class="impl">
+    <h4>ARISA 엔진 매핑</h4>
+    <table>
+      <tr><th>청구항 구성</th><th>ARISA 모듈</th><th>구현 상세</th></tr>
+      <tr><td>입력부</td><td>Engine A &rarr; Engine B</td><td>멀티모달 수집부(P#2)에서 정규화된 데이터를 수신</td></tr>
+      <tr><td>프레임워크 관리부</td><td>COMPLETION_CHECK_PROMPT</td><td>7기준(Task/Output/Outcome/Decision/Support/Next/Reflection) 프레임워크 정의</td></tr>
+      <tr><td>발신자 프로파일 보정부</td><td>Engine B + arisa-employees.json</td><td>직원별 숙련도 프로파일(입사일, 부서, 등급)에 기반하여 Grace/Strict 모드 결정 및 보정 기준 차등 적용</td></tr>
+      <tr><td>Fidelity 검증</td><td>Engine B _VAGUE_RE</td><td>정규표현식 기반 동어반복&middot;추상어 패턴 탐지, 사실/해석 분리 질문 생성</td></tr>
+      <tr><td>보정 엔진</td><td>Engine C (STRUCTURE_PROMPT)</td><td>프레임워크 매핑 후 7섹션 구조화 &mdash; 의미 재구성&middot;표준화</td></tr>
+      <tr><td>출력부</td><td>format_report_for_employee()</td><td>조직 표준 형식(Markdown/HTML) 출력, 거울 기능 포함</td></tr>
+      <tr><td>채점 엔진</td><td>shared/report_score.py</td><td>Type A/B/C별 가중치(A:context25+priority25, C:decision30) 100점 만점, Grace&rarr;Strict 자동 전환(current_mode())</td></tr>
+    </table>
+  </div>
+
+  <p class="body" style="margin-top:14px">
+    상기 실시예에서, <b>Engine B</b>는 수신된 비정형 보고에 대해 먼저 발신자 프로파일(입사일 기반 Grace/Strict 판정)을 조회한 후,
+    해당 모드에 적합한 기대 수준으로 7기준 완전성 검사를 수행한다.
+    이때 _VAGUE_RE 정규표현식이 "순조롭게 진행 중", "다양한 방안을 검토" 등의 더미 표현을 탐지하면
+    구체적 사실로 대체할 것을 요구하는 질문을 생성한다.
+    <b>Engine C</b>는 보정 완료된 데이터를 7섹션 표준 구조(Status, Problem, Approach, Output, Outcome, Next, Reflection)로 재구성하여
+    후속 파이프라인(P#3 Distribution)에 전달한다.
+  </p>
+</section>
+
+
+<hr class="sep-patent">
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PATENT #2 · DEFENSE — CAPTURE ENGINE
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <div class="patent-header defense">
+    <div class="ph">
+      <span class="pill def">Patent #2 &middot; Defense</span>
+      <h3>Capture Engine &mdash; <span class="ac">멀티모달 멀티소스 수집</span></h3>
+    </div>
+    <p class="sub">
+      <b>발명의 명칭:</b> 멀티모달 멀티소스 조직 커뮤니케이션 수집 및 업무 데이터 생성 시스템 및 방법<br>
+      <b>역할:</b> Defense Patent &mdash; 입력 파이프라인의 방어적 봉쇄. 경쟁사 우회 차단
+    </p>
+  </div>
+
+  <!-- 과제 해결 수단 -->
+  <h2 class="sec">P#2 &mdash; 과제 해결 수단<span class="tag">Means for Solving Problems</span></h2>
+
+  <p class="body">
+    상기 과제를 해결하기 위하여, 본 발명의 제2 양태에 따른 멀티모달 멀티소스 조직 커뮤니케이션 수집 시스템은
+    <b>멀티모달 수집부, 소스 분류부, 분절부, 업무 생성부, 및 큐 관리부</b>를 포함한다.
+    조직 내 복수의 소스 및 데이터 형태(텍스트, 음성, 이미지, 문서, 시스템 산출물)로부터 데이터를 수집하고, 소스 타입을 자동 감지하여 통일된 업무 데이터로 변환한다.
+  </p>
+
+  <div class="pipeline" style="margin-top:18px">
+    <div class="stage" style="border-color:rgba(143,163,126,.4)"><div class="sl" style="color:var(--green)">멀티모달 수집부</div><div class="sv"><b>멀티소스 수신</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:rgba(143,163,126,.4)"><div class="sl" style="color:var(--green)">소스 분류부</div><div class="sv"><b>타입 자동감지</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:rgba(143,163,126,.4)"><div class="sl" style="color:var(--green)">분절부</div><div class="sv"><b>세그멘테이션</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:rgba(143,163,126,.4)"><div class="sl" style="color:var(--green)">업무 생성부</div><div class="sv"><b>업무 항목 추출</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:rgba(143,163,126,.4)"><div class="sl" style="color:var(--green)">큐 관리부</div><div class="sv"><b>정규화&middot;전달</b></div></div>
+  </div>
+
+  <!-- 청구항 -->
+  <h2 class="sec" style="margin-top:36px">P#2 &mdash; 청구 범위<span class="tag">Claims</span></h2>
+
+  <div class="claim" style="border-left-color:var(--green)">
+    <div class="cnum" style="color:var(--green)">청구항 1 &mdash; 독립항 (시스템)</div>
+    조직 구성원의 커뮤니케이션을 <b>복수의 소스 및 데이터 형태</b>(메신저, 음성, 이메일, 회의록, 첨부파일, 이미지, 및 시스템 산출물)로부터 수신하는 <b>멀티모달 수집부</b>;
+    수집된 데이터의 <b>소스 타입을 자동 감지</b>(AI디스커션, 팀미팅, 일일보고, 리서치)하는 <b>소스 분류부</b>;
+    <b>대화 단위로 세그멘테이션</b>하고 화자를 식별하는 <b>분절부</b>;
+    세그멘테이션된 대화에서 <b>업무 항목</b>을 추출하고 프로젝트에 자동 연결하는 <b>업무 생성부</b>;
+    다중 채널 데이터를 <b>공통 포맷으로 정규화</b>하여 후속 파이프라인에 전달하는 <b>큐 관리부</b>를
+    포함하는 멀티모달 멀티소스 조직 커뮤니케이션 수집 시스템.
+  </div>
+
+  <div class="claim" style="border-left-color:var(--green)">
+    <div class="cnum" style="color:var(--green)">청구항 2 &mdash; 독립항 (방법)</div>
+    (a) 조직 구성원의 커뮤니케이션을 메신저, 음성, 이메일, 회의록, 첨부파일, 이미지, 및 시스템 산출물을 포함하는 <b>복수의 소스 및 데이터 형태로부터 수신</b>하는 단계;
+    (b) 수집된 데이터에 대해 AI디스커션, 팀미팅, 일일보고, 리서치를 포함하는 <b>소스 타입을 자동 감지</b>하는 단계;
+    (c) 수집된 데이터를 <b>대화 단위로 세그멘테이션</b>하고 화자를 식별하는 단계;
+    (d) 세그멘테이션된 대화에서 <b>업무 항목을 추출</b>하고 프로젝트에 자동 연결하는 단계;
+    (e) 다중 채널 데이터를 <b>공통 포맷으로 정규화</b>하여 후속 보정 파이프라인에 전달하는 단계
+    를 포함하는 멀티모달 멀티소스 조직 커뮤니케이션 수집 방법.
+  </div>
+
+  <div class="claim dep" style="border-left-color:rgba(143,163,126,.3)">
+    <div class="cnum">청구항 3 &mdash; 종속항 (STT + 조직 용어 교정)</div>
+    제1항 또는 제2항에 있어서, 상기 분절부는 음성 입력에 대해 <b>STT(Speech-to-Text) 처리</b>를 수행하고,
+    <b>조직 고유 용어 사전</b>에 기반하여 STT 오인식을 교정하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep" style="border-left-color:rgba(143,163,126,.3)">
+    <div class="cnum">청구항 4 &mdash; 종속항 (복수 업무 식별 + 유형 부여)</div>
+    제1항 또는 제2항에 있어서, 상기 업무 생성부는 하나의 커뮤니케이션에서 <b>복수의 업무 항목</b>을 식별하고,
+    각 업무에 <b>보고 유형</b>(daily, meeting, research, decision, support, weekly)을 자동 부여하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep" style="border-left-color:rgba(143,163,126,.3)">
+    <div class="cnum">청구항 5 &mdash; 종속항 (소스 타입 자동감지)</div>
+    제1항 또는 제2항에 있어서, 상기 소스 분류부는 회의 텍스트에서 <b>AI 디스커션 신호</b>(키워드 점수)와
+    <b>팀 미팅 신호</b>(참석자 수)를 Bigram 점수로 산출하여 소스 타입을 자동 분류하고,
+    <b>타입별 상이한 구조화 프롬프트</b>를 적용하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep" style="border-left-color:rgba(143,163,126,.3)">
+    <div class="cnum">청구항 6 &mdash; 종속항 (대화형 상태머신 수집)</div>
+    제1항 또는 제2항에 있어서, 상기 멀티모달 수집부는 <b>복수의 독립 대화 흐름</b>(보고, 회의, 분장)을
+    상태 번호 오프셋으로 격리하며, 영구 저장 기반으로 <b>시스템 재시작에도 세션이 복구</b>되고,
+    대화 중 메타 질문 및 수정에 대해 <b>비선형 상태 복귀</b>가 가능한 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep" style="border-left-color:rgba(143,163,126,.3)">
+    <div class="cnum">청구항 7 &mdash; 종속항 (유실 방지 큐)</div>
+    제1항 또는 제2항에 있어서, 상기 큐 관리부는 저장 실패 시 <b>로컬 큐 파일에 자동 보관</b>하고,
+    고유 식별자 및 제출 시각으로 <b>재시도와 재제출을 구분(중복 제거)</b>하며,
+    파일 잠금 및 동기 쓰기로 <b>원자성</b>을 보장하고, 아카이브 파일로 <b>감사 추적</b>을 제공하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <!-- 실시예 -->
+  <h2 class="sec" style="margin-top:36px">P#2 &mdash; 실시예<span class="tag">Embodiment</span></h2>
+
+  <p class="body">본 발명의 바람직한 실시예로서, ARISA 시스템의 Capture Engine 구현을 설명한다.</p>
+
+  <div class="impl">
+    <h4>ARISA 엔진 매핑</h4>
+    <table>
+      <tr><th>청구항 구성</th><th>ARISA 모듈</th><th>구현 상세</th></tr>
+      <tr><td>멀티모달 수집부</td><td>Engine A (daily-report-bot.py)</td><td>텔레그램 메신저 기반 대화형 수집. 텍스트, 음성메시지, 파일 첨부, 사진 지원. 8+3+3 상태머신 기반 대화 흐름 관리. 향후 시스템 산출물(보정된 보고, 대시보드 브리프, 회의록 등)도 재수집 대상으로 확장 가능</td></tr>
+      <tr><td>소스 분류부</td><td>R4 Meeting OS 소스감지</td><td>AI 디스커션/팀 미팅 Bigram 점수 산출. 키워드 매칭(GPT/Claude/프롬프트 등) + 참석자 수 기반 자동 분류</td></tr>
+      <tr><td>분절부</td><td>shared/normalize.py</td><td>텍스트 정규화(유니코드, 공백, 줄바꿈), 화자 식별, 대화 세그멘테이션</td></tr>
+      <tr><td>업무 생성부</td><td>Engine A EXTRACTION_PROMPT</td><td>LLM 기반 업무 항목 추출. 프로젝트 자동 매칭(프로젝트 목록 + 키워드 유사도)</td></tr>
+      <tr><td>큐 관리부</td><td>shared/report_queue.py</td><td>JSONL 기반 유실 방지 큐. UUID + submitted_at dedup. flock+fsync 원자성. archive.jsonl 감사 추적</td></tr>
+    </table>
+  </div>
+
+  <p class="body" style="margin-top:14px">
+    상기 실시예에서, <b>Engine A</b>는 텔레그램 봇 인터페이스를 통해 직원의 일일 업무보고를 대화형으로 수집한다.
+    봇은 복수의 독립 대화 흐름(일일보고, 회의 전사, 주간분장)을 상태 번호 오프셋(0번대, 100번대, 200번대)으로 격리하며,
+    PicklePersistence 기반으로 봇 재시작에도 세션 상태가 복구된다.
+    수집된 데이터는 <b>shared/normalize.py</b>를 통해 공통 포맷으로 정규화된 후,
+    <b>shared/report_queue.py</b>에 의해 큐에 적재되어 후속 보정 파이프라인(P#1 Correction Engine)에 전달된다.
+    저장 실패 시 JSONL 로컬 큐에 자동 보관되며, UUID 기반 중복 제거로 재시도와 신규 제출을 구분한다.
+    나아가, 시스템이 산출한 문서(보정된 보고, 대시보드 브리프, 회의록 등)도 수집 대상에 포함되어,
+    Distribution(P#3) 출력이 다시 Capture(P#2)의 입력으로 재수집되는 <b>피드백 루프</b>를 형성한다.
+  </p>
+</section>
+
+
+<hr class="sep-patent">
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PATENT #3 · DISTRIBUTION
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <div class="patent-header dist">
+    <div class="ph">
+      <span class="pill dist">Patent #3 &middot; Distribution</span>
+      <h3>Distribution &mdash; <span class="ac">재구성 및 의사결정 축적</span></h3>
+    </div>
+    <p class="sub">
+      <b>발명의 명칭:</b> 역할 기반 커뮤니케이션 재구성 및 의사결정 구조 축적 시스템 및 방법<br>
+      <b>역할:</b> Distribution + Asset Patent &mdash; 출력단 보호 + 의사결정 구조의 자산화 선점
+    </p>
+  </div>
+
+  <!-- 과제 해결 수단 -->
+  <h2 class="sec">P#3 &mdash; 과제 해결 수단<span class="tag">Means for Solving Problems</span></h2>
+
+  <p class="body">
+    상기 과제를 해결하기 위하여, 본 발명의 제3 양태에 따른 역할 기반 커뮤니케이션 재구성 시스템은
+    <b>입력부, 역할 관리부, 재구성 엔진, 의사결정 추적부, 및 적응형 출력부</b>를 포함한다.
+    보정된 커뮤니케이션을 역할별로 재구성하되, 의사결정 이력을 구조화&middot;축적하여 조직의 에셋으로 전환한다.
+  </p>
+
+  <div class="pipeline" style="margin-top:18px">
+    <div class="stage" style="border-color:var(--line)"><div class="sl" style="color:var(--fg-3)">입력부</div><div class="sv"><b>구조화 데이터 수신</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:rgba(111,138,163,.4)"><div class="sl" style="color:var(--blue)">역할 관리부</div><div class="sv"><b>역할&middot;직위 관리</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:rgba(111,138,163,.4)"><div class="sl" style="color:var(--blue)">재구성 엔진</div><div class="sv"><b>선별&middot;재배열&middot;요약</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:rgba(111,138,163,.4)"><div class="sl" style="color:var(--blue)">의사결정 추적부</div><div class="sv"><b>Decision 추출&middot;축적</b></div></div>
+    <div class="arr">&rarr;</div>
+    <div class="stage" style="border-color:var(--line)"><div class="sl" style="color:var(--fg-3)">적응형 출력부</div><div class="sv"><b>역할별 출력</b></div></div>
+  </div>
+
+  <!-- 청구항 -->
+  <h2 class="sec" style="margin-top:36px">P#3 &mdash; 청구 범위<span class="tag">Claims</span></h2>
+
+  <div class="claim" style="border-left-color:var(--blue)">
+    <div class="cnum" style="color:var(--blue)">청구항 1 &mdash; 독립항 (시스템)</div>
+    구조화된 커뮤니케이션을 수신하는 <b>입력부</b>;
+    구성원의 <b>역할, 직위, 및 담당</b>을 관리하는 <b>역할 관리부</b>;
+    역할에 기반하여 정보를 <b>선별, 재배열, 및 요약</b>하는 <b>재구성 엔진</b>;
+    커뮤니케이션에서 <b>의사결정 요청을 자동 추출</b>하여 프로젝트, 긴급도, 선택지, 추천안, 기한, 및 지연영향을 포함하는 구조로 변환하고,
+    <b>상태 이력(open, resolved 등)을 축적</b>하는 <b>의사결정 추적부</b>;
+    및 역할별 최적 형식으로 출력하는 <b>적응형 출력부</b>를
+    포함하는 역할 기반 커뮤니케이션 재구성 시스템.
+  </div>
+
+  <div class="claim" style="border-left-color:var(--blue)">
+    <div class="cnum" style="color:var(--blue)">청구항 2 &mdash; 독립항 (방법)</div>
+    (a) 보정 및 구조화된 커뮤니케이션 데이터를 <b>수신</b>하는 단계;
+    (b) 수신자의 <b>역할, 직위, 및 담당 정보를 조회</b>하는 단계;
+    (c) 역할에 기반하여 정보를 <b>선별, 재배열, 및 요약</b>하여 재구성하는 단계;
+    (d) 커뮤니케이션에서 <b>의사결정 요청을 자동 추출</b>하고, 프로젝트, 긴급도, 선택지, 추천안, 기한, 및 지연영향을 포함하는 구조로 변환하는 단계;
+    (e) 추출된 의사결정의 <b>상태 이력을 축적</b>하는 단계; 및
+    (f) 역할별 최적 형식으로 <b>출력</b>하는 단계
+    를 포함하는 역할 기반 커뮤니케이션 재구성 방법.
+  </div>
+
+  <div class="claim dep" style="border-left-color:rgba(111,138,163,.3)">
+    <div class="cnum">청구항 3 &mdash; 종속항 (대표용 Decision 추출)</div>
+    제1항 또는 제2항에 있어서, 상기 재구성 엔진은 경영진(Executive)에 대해
+    <b>의사결정 사항을 최상위로 추출&middot;정렬</b>하고, 긴급도, 프로젝트, 및 출처별로 구조화하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep" style="border-left-color:rgba(111,138,163,.3)">
+    <div class="cnum">청구항 4 &mdash; 종속항 (사고 거울 &mdash; Mirror)</div>
+    제1항 또는 제2항에 있어서, 상기 적응형 출력부는 직원에게 보정된 보고와 함께
+    <b>Reflection(잘된 점, 부족한 점, 보완할 점)</b>을 회신하여 사고 거울(Mirror) 기능을 제공하되,
+    <b>Mirror(구조화 번역) 80%, Reflector(질문) 15%, Coach(코칭) 5%</b>의 비율로 운용하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep" style="border-left-color:rgba(111,138,163,.3)">
+    <div class="cnum">청구항 5 &mdash; 종속항 (시간축 적응 산출물)</div>
+    제1항 또는 제2항에 있어서, 상기 적응형 출력부는 <b>Daily, Weekly, 및 Monthly</b> 시간축에 따라
+    상이한 집계 수준과 분석 깊이의 산출물을 <b>자동 생성</b>하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep" style="border-left-color:rgba(111,138,163,.3)">
+    <div class="cnum">청구항 6 &mdash; 종속항 (Decision Carry-over)</div>
+    제1항 또는 제2항에 있어서, 상기 의사결정 추적부는 <b>미결 의사결정을 다음 기간의 브리프에 자동 이월</b>하고,
+    경과일 순으로 정렬하며, 소정 기간(예: 14일) 초과 시 <b>stale 상태를 감지&middot;경고</b>하고,
+    append-only 로그로 <b>감사 추적</b>을 제공하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <div class="claim dep" style="border-left-color:rgba(111,138,163,.3)">
+    <div class="cnum">청구항 7 &mdash; 종속항 (역할 계층 대시보드)</div>
+    제1항 또는 제2항에 있어서, 상기 적응형 출력부는
+    <b>admin(전체), leader(팀), 및 member(본인)</b>의 역할 계층에 따라
+    동일 데이터의 <b>가시 범위를 동적 필터링</b>하고,
+    개인 비밀번호(PIN) 자가설정 기반으로 인증하는 것을 특징으로 하는 시스템 또는 방법.
+  </div>
+
+  <!-- 실시예 -->
+  <h2 class="sec" style="margin-top:36px">P#3 &mdash; 실시예<span class="tag">Embodiment</span></h2>
+
+  <p class="body">본 발명의 바람직한 실시예로서, ARISA 시스템의 Distribution Engine 구현을 설명한다.</p>
+
+  <div class="impl">
+    <h4>ARISA 엔진 매핑</h4>
+    <table>
+      <tr><th>청구항 구성</th><th>ARISA 모듈</th><th>구현 상세</th></tr>
+      <tr><td>입력부</td><td>Engine C &rarr; Engine D</td><td>Correction Engine(P#1)에서 구조화된 7섹션 데이터를 수신</td></tr>
+      <tr><td>역할 관리부</td><td>users.json + arisa-employees.json</td><td>직원별 역할(admin/leader/member), 직위, 담당 파트, 프로젝트 할당 관리</td></tr>
+      <tr><td>재구성 엔진</td><td>Engine D (daily-brief-aggregate.py)</td><td>대표용 Daily Brief: 의사결정→이슈→진행상황 순 재배열. 팀장용: 소관 팀원 필터링. 직원용: 본인 보고 거울</td></tr>
+      <tr><td>의사결정 추적부</td><td>shared/decision.py</td><td>보고에서 Decision 자동 추출. 5상태(needed→pending→open→resolved→stale) 관리. JSONL append-only 감사 추적. 미결 자동이월(carry-over) + 14일 stale 감지</td></tr>
+      <tr><td>적응형 출력부</td><td>dashboard-server.py</td><td>웹 대시보드. admin(전체)/leader(팀)/member(본인) 탭. PIN 자가설정 인증. Daily/Weekly 시간축 산출물 자동 생성</td></tr>
+    </table>
+  </div>
+
+  <p class="body" style="margin-top:14px">
+    상기 실시예에서, <b>Engine D</b>는 매일 오전 자동 집계를 수행하여 전일 수집된 모든 직원의 구조화된 보고를 역할별로 재구성한다.
+    대표(admin)에게는 의사결정 사항이 최상위에 배치되고, 미결 사안의 경과일과 지연 영향이 강조된다.
+    <b>shared/decision.py</b>는 보고 텍스트에서 "결정 필요", "승인 요청" 등의 패턴을 감지하여 의사결정 요청을 자동 추출하고,
+    프로젝트, 긴급도, 선택지, 추천안, 기한을 포함하는 구조화된 형태로 변환한다.
+    직원에게는 <b>format_report_for_employee()</b>를 통해 본인의 보고가 구조화된 형태로 회신되며(Mirror 80%),
+    부족한 부분에 대한 질문(Reflector 15%)과 개선 제안(Coach 5%)이 함께 제공되어 사고 방식의 체화를 촉진한다.
+  </p>
+</section>
+
+
+<hr class="sep-patent">
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     공통 부록 — 도면의 간단한 설명
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <h2 class="sec">도면의 간단한 설명<span class="tag">Brief Description of Drawings</span></h2>
+
+  <div class="callout" style="margin-top:0">
+    <ul class="pts">
+      <li><b>[도 1]</b> 전체 시스템 아키텍처 &mdash; Capture(P#2) &rarr; Correction(P#1) &rarr; Distribution(P#3) 파이프라인 구성도 (시스템 산출물 재수집 피드백 루프 포함)</li>
+      <li><b>[도 2]</b> Patent #1 (Correction Engine) 상세 구성도 &mdash; 입력부, 발신자 프로파일 보정부, 프레임워크 관리부, Fidelity 검증부, 보정 엔진, 출력부의 데이터 흐름</li>
+      <li><b>[도 3]</b> Patent #2 (Capture Engine) 상세 구성도 &mdash; 멀티모달 수집부, 소스 분류부, 분절부, 업무 생성부, 큐 관리부의 데이터 흐름</li>
+      <li><b>[도 4]</b> Patent #3 (Distribution) 상세 구성도 &mdash; 입력부, 역할 관리부, 재구성 엔진, 의사결정 추적부, 적응형 출력부의 데이터 흐름</li>
+      <li><b>[도 5]</b> 발신자 프로파일 보정 프로세스 &mdash; 숙련도 판정(Grace/Strict), 부서 전문성 가중, 보정 기준 차등 적용 흐름도</li>
+      <li><b>[도 6]</b> Fidelity Gate 처리 흐름 &mdash; 원문보존, 사실확인, 모호성탐지, 불확실표시 4축 검증 흐름도</li>
+      <li><b>[도 7]</b> 의사결정 라이프사이클 &mdash; needed &rarr; pending &rarr; open &rarr; resolved / stale 상태 전이도</li>
+    </ul>
+  </div>
+
+  <p class="note">
+    실제 도면은 변리사와 협의 후 추가한다. 상기 설명은 도면의 구성과 범위를 정의하기 위한 것이다.
+  </p>
+</section>
+
+<hr class="sep">
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     공통 부록 — 용어 정의
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <h2 class="sec">용어 정의<span class="tag">Terminology</span></h2>
+
+  <div class="term-row"><div class="tl">CFD</div><div class="td"><b>Communication Fidelity Design</b> &mdash; 조직 커뮤니케이션의 충실도(원래 의도 대비 전달 정확도)를 설계하는 철학 및 방법론. 본 특허 포트폴리오의 상위 개념.</div></div>
+  <div class="term-row"><div class="tl">Fidelity Gate</div><div class="td">AI가 원정보를 처리하며 발생하는 왜곡을 차단하는 4축 검증 메커니즘. 원문보존(Verbatim Preservation), 사실확인게이트(Fact-check Gate), 모호성탐지(Ambiguity Detection), 불확실표시(Uncertainty Flagging).</div></div>
+  <div class="term-row"><div class="tl">발신자 프로파일 보정</div><div class="td">발신자의 숙련도(입사일 기반 경력 기간) 및 소속 부서 전문성에 기반하여 커뮨니케이션 표현&middot;완결도 편차를 보정하는 메커니즘. 삼성SDS의 "수신자 상세도 조정"과 구별되는 핵심 차별점.</div></div>
+  <div class="term-row"><div class="tl">Mirror / Reflector / Coach</div><div class="td">ARISA의 3계층 응답 비율. Mirror(80%): 보고를 구조화된 형태로 되돌려주는 번역. Reflector(15%): 부족한 점에 대한 질문. Coach(5%): 개선 방향 제안.</div></div>
+  <div class="term-row"><div class="tl">ReportScore</div><div class="td">보고 품질 100점 만점 점수. Type A(진행공유), B(이슈), C(의사결정)별 상이한 가중치 적용. 단일 SSOT(Single Source of Truth)로 관리.</div></div>
+  <div class="term-row"><div class="tl">Communication Purity</div><div class="td">커뮤니케이션 순도 &mdash; 동어반복, 더미 표현, 추상어가 제거된 비율. Fidelity Gate의 산출물.</div></div>
+  <div class="term-row"><div class="tl">Decision Carry-over</div><div class="td">미결 의사결정을 다음 기간의 브리프에 자동 이월하는 메커니즘. 경과일(age_days) 추적 + stale(14일 초과) 감지.</div></div>
+  <div class="term-row"><div class="tl">Multi-Modal Multi-Source Capture</div><div class="td">메신저, 음성, 이메일, 회의록, 첨부파일, 이미지, 및 시스템 산출물(보정된 보고, 대시보드 브리프 등) 등 조직 내 복수의 소스와 데이터 형태를 통합 수집하여 공통 포맷으로 정규화하는 것. "채널"이 아니라 "소스와 모달리티"로 정의함으로써 시스템 자체 산출물의 재수집(피드백 루프)까지 포괄.</div></div>
+  <div class="term-row"><div class="tl">Grace / Strict</div><div class="td">보정 기준의 이원 루브릭. Grace: 온보딩 기간의 관대한 기준. Strict: 정상 운영의 엄격한 기준. 날짜 기반 자동 전환.</div></div>
+  <div class="term-row"><div class="tl">Type A / B / C</div><div class="td">커뮤니케이션 유형 분류. A: 진행공유(Progress), B: 이슈(Issue), C: 의사결정(Decision). 유형별 상이한 질문 수와 가중치 적용.</div></div>
+</section>
+
+<hr class="sep">
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     공통 부록 — 선행기술 대비 차별점
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <h2 class="sec">선행기술 대비 차별점<span class="tag">Differentiation from Prior Art</span></h2>
+
+  <table>
+    <tr><th>선행기술</th><th>핵심 급소</th><th>본 발명과의 차이</th><th>리스크</th></tr>
+    <tr>
+      <td>삼성SDS + KAIST<br><span style="font-size:11px;color:var(--fg-3)">KR 10-2026-0045539</span></td>
+      <td><b>수신자</b> 경험/숙련도 &rarr; 제공 정보 <b>상세도 조정</b> &rarr; 맞춤 UI 생성</td>
+      <td>본 발명은 <b>발신자</b>의 숙련도&middot;부서 전문성에 기반한 <b>커뮤니케이션 능력편차 보정</b>(신호 복원). 삼성SDS는 발신자 보정을 미개시&middot;미시사. 방향이 반대 &mdash; 수신자 측 UI 조정 vs 발신 시점 품질 보정.</td>
+      <td><span style="color:var(--amber)">중</span></td>
+    </tr>
+    <tr>
+      <td>구글<br><span style="font-size:11px;color:var(--fg-3)">KR 10-2024-0137029</span></td>
+      <td>관련 문서로 <b>ASR 바이어싱</b> &rarr; 회의 문서 생성</td>
+      <td>본 발명은 ASR 바이어싱을 사용하지 않음. 구글 특허는 멀티모달 멀티소스 수집, 역할별 재구성, 발신자 보정 모두 미개시.</td>
+      <td><span style="color:var(--green)">낮음</span></td>
+    </tr>
+    <tr>
+      <td>급소축<br><span style="font-size:11px;color:var(--fg-3)">발신자 능력편차 보정</span></td>
+      <td><b>화이트 스페이스</b> &mdash; 직접 블로킹 선행특허 미발견</td>
+      <td>인접기술로 "도메인 용어 표준화"는 존재하나, "발신자 프로파일(숙련도+부서) 기반 커뮤니케이션 능력편차 보정"과는 구별됨. 단순 용어 표준화가 아니라 발신자 프로파일 기반 보정이 핵심.</td>
+      <td><span style="color:var(--green)">&mdash;</span></td>
+    </tr>
+  </table>
+
+  <div class="vision-box" style="margin-top:22px">
+    <div class="vt">핵심 차별점 요약</div>
+    <div class="vb">
+      기존 선행기술은 <b>"수신자 눈높이에 맞게 정보를 재포장"</b>하거나 <b>"음성 인식 정확도를 높이는"</b> 데 초점.
+      본 발명은 <b>"발신자의 능력편차로 왜곡된 조직 신호를 원래 의미로 복원"</b>하는 데 초점을 둔다.
+      이 방향 차이가 신규성의 급소이며, 선행기술 조사에서 화이트 스페이스로 확인되었다.
+    </div>
+  </div>
+</section>
+
+<hr class="sep">
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     공통 부록 — Family 전략 메모
+     ═══════════════════════════════════════════════════════════ -->
+<section>
+  <h2 class="sec">Family 전략 메모<span class="tag">Patent Family Strategy Notes</span></h2>
+
+  <div class="grid2">
+    <div class="callout acc">
+      <h4>3건 상호 인용 구조</h4>
+      <ul class="pts">
+        <li>P#1(Correction)은 P#2(Capture)로부터 멀티모달 정규화된 입력을 수신함을 인용</li>
+        <li>P#3(Distribution)은 P#1(Correction)의 구조화 출력을 수신함을 인용</li>
+        <li>P#2(Capture)의 큐 관리부는 P#1(Correction)에 데이터를 전달함을 인용</li>
+        <li>3건이 <b>Capture &rarr; Correction &rarr; Distribution</b> 하나의 파이프라인을 구성하되, 각각 독립 출원으로 개별 권리 확보</li>
+      </ul>
+    </div>
+    <div class="callout">
+      <h4>PCT 전략</h4>
+      <ul class="pts">
+        <li><b>한국 우선 출원</b> &rarr; 12개월 내 PCT 전환</li>
+        <li><b>미국&middot;일본 우선 지정</b> (HR Tech / SaaS 시장)</li>
+        <li>출원 시점: MVP 구현 완료 상태 = <b>구현 증거 확보됨</b></li>
+        <li>CFD 상표 등록 가능 여부 별도 확인</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout amber" style="margin-top:14px">
+    <h4>변리사 검토 요청 사항</h4>
+    <ul class="pts">
+      <li><b>독립항 범위:</b> "조직 프레임워크 기반" + "발신자 프로파일 보정" 한정자의 충분성 &mdash; 너무 넓으면 선행기술 저촉, 너무 좁으면 우회 가능</li>
+      <li><b>방법 청구항:</b> 시스템+방법 이중 보호의 실효성 검토</li>
+      <li><b>Family 구조:</b> 3건 동시 출원 vs 시차 출원 &mdash; 비용&middot;전략 관점</li>
+      <li><b>종속항 수치 한정:</b> Mirror 80/15/5 비율, 질문 수 제한(A:1/BC:3), 14일 stale &mdash; 수치 한정의 보호 효과 vs 우회 리스크</li>
+      <li><b>SW 특허 등록 가능성:</b> 한국의 SW 특허 최근 심사 트렌드 고려</li>
+      <li><b>선행기술 FTO:</b> 삼성SDS 특허와의 비침해 의견서 필요 여부</li>
+      <li><b>미정독 선행특허 3건:</b> 온더아이티(KR20110005946A), 에비드넷(KR102686793B1), 도큐가미(KR102865616B1) &mdash; 추가 정독 필요</li>
+    </ul>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════════ -->
+<div class="foot">
+  <span>by Project Rent &middot; Confidential &middot; 변리사 검토용 초안</span>
+  <span>2026-07-24</span>
+</div>
+
+</div>
+</body>
+</html>
