@@ -1917,11 +1917,63 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       MW_ASSIGNEES = ac.assignees || [];
       if(SESS.admin){ h+='<div class="mw-quick"><a class="mw-link" href="https://rent-hr-portal.fly.dev/" target="_blank" rel="noopener">🏢 HR 포털 바로가기 ↗</a><a class="mw-link" href="https://rent-hr-portal.fly.dev/onboard/admin/v2" target="_blank" rel="noopener">🧾 입퇴사 온보딩 ↗</a></div>'; }  // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크), 온보딩=입퇴사 자동화 대시보드 v2
       if(ex && ex.ok){
+        // R4 3차 — 대표창 재배치 (가이드 §6): ①오늘의 핵심 ②Decision ③Intervention
+        // ④Risk ⑤진행 상황 ⑥완료 승인 ⑦결재 확인. 지연·미지정은 하단 접힘.
         var D=ex.decisions||[], O=ex.overdue||[];
-        // R4 2차 — 이번 주 중요 프로젝트 써머리 (개별 나열 대신 프로젝트 단위 보고)
+        // ① 오늘의 핵심 할 일 (4~6개 — 대표의 하루 행동 기준)
+        var TF=ex.today_focus||[];
+        if(TF.length){
+          h+='<div class="mw-h">🎯 오늘의 핵심 할 일 <span class="sub2">'+TF.length+'개 — 오늘 반드시 결정·확인·지시할 것</span></div>';
+          TF.forEach(function(f,i){
+            var pj=f.project?(' · '+esc(f.project)):'';
+            h+='<div class="mw-card"><div class="t"><span class="mw-badge" style="background:var(--accent);color:#fff">'+(i+1)+' '+esc(f.act)+'</span> '
+              +esc(f.text)+'</div>'+((f.sub||pj)?('<div class="m">'+esc(f.sub||'')+pj+'</div>'):'')+'</div>';
+          });
+        }
+        // ② Decision — 결정 필요 (프로젝트별 그룹핑, 추천안·기한·지연영향 표시)
+        if(D.length){
+          h+='<div class="mw-h">⚖️ Decision · 결정 필요 <span class="sub2">'+D.length+'건 — 에스컬레이션·PM 미지정만 (나머지는 PM 라우팅)</span></div>';
+          var dg={}, dgo=[];
+          D.forEach(function(d){ var k=d.pname||d.project||'기타'; if(!(k in dg)){dg[k]=[];dgo.push(k);} dg[k].push(d); });
+          dgo.forEach(function(k){
+            if(dgo.length>1) h+='<div class="m" style="margin:8px 2px 4px;font-weight:600;color:var(--fg-2)">'+esc(k)+'</div>';
+            dg[k].forEach(function(d){
+              var age=d.age>0?(' · '+d.age+'일 경과'):'';
+              var eb=d.esc?('<span class="mw-badge mw-urgent">▲ '+esc(d.esc)+'</span> '):'';
+              var act=d.logged_at?('<a class="dc-act" data-la="'+esc(d.logged_at)+'" data-action="resolve">✓ 결정 입력</a>'):'';
+              var sub=esc(d.who||'')+((dgo.length<=1&&(d.pname||d.project))?(' · '+esc(d.pname||d.project)):'')+age;
+              if(d.recommendation) sub+='<br>추천안: '+esc(d.recommendation);
+              if(d.deadline) sub+=' · 기한 '+esc(d.deadline);
+              if(d.delay_impact) sub+='<br>지연 시: '+esc(d.delay_impact);
+              h+='<div class="mw-card ex-red"><div class="t">'+eb+esc(d.title)+act+'</div><div class="m">'+sub+'</div></div>';
+            });
+          });
+        }
+        // ③ Intervention — 개입 필요
+        var IV=ex.interventions||[];
+        if(IV.length){
+          h+='<div class="mw-h">🤝 Intervention · 개입 필요 <span class="sub2">'+IV.length+'건 — 조율·지시·지원이 필요한 지점</span></div>';
+          IV.forEach(function(it){
+            var eb=it.esc?('<span class="mw-badge mw-urgent">▲ PM 요청</span> '):'';
+            var act=it.logged_at?('<a class="dc-act" data-la="'+esc(it.logged_at)+'" data-action="resolve">✓ 처리 입력</a>'):'';
+            h+='<div class="mw-card ex-amber"><div class="t">'+eb+esc(it.title)+act+'</div><div class="m">'
+              +esc(it.who||'')+(it.project?(' · '+esc(it.project)):'')+(it.detail?('<br>'+esc(it.detail)):'')+'</div></div>';
+          });
+        }
+        // ④ Risk — 높음 기본 노출, 나머지 접힘
+        var RK=ex.risks||[];
+        if(RK.length){
+          var hi=RK.filter(function(r){return r.urgency==='high';}), lo=RK.filter(function(r){return r.urgency!=='high';});
+          h+='<div class="mw-h">⚠️ Risk · 리스크 <span class="sub2">높음 '+hi.length+'건'+(lo.length?(' · 그 외 '+lo.length+'건 접힘'):'')+'</span></div>';
+          function rkCard(r){ return '<div class="mw-card ex-red"><div class="t">'+esc(r.title)+'</div><div class="m">'
+            +esc(r.who||'')+(r.project?(' · '+esc(r.project)):'')+(r.detail?('<br>'+esc(r.detail)):'')+'</div></div>'; }
+          hi.forEach(function(r){ h+=rkCard(r); });
+          if(lo.length){ h+='<details class="mw-done-sec"><summary>▸ 중간·낮음 리스크 '+lo.length+'건</summary>'; lo.forEach(function(r){ h+=rkCard(r); }); h+='</details>'; }
+        }
+        // ⑤ 진행 상황 — 이번 주 중요 프로젝트 써머리 (2차)
         var PS=ex.project_summary||[];
         if(PS.length){
-          h+='<div class="mw-h">📌 이번 주 중요 프로젝트 <span class="sub2">보고·분장 활동 상위 '+PS.length+'개 — 프로젝트 단위 써머리</span></div>';
+          h+='<div class="mw-h">📌 진행 상황 · 이번 주 중요 프로젝트 <span class="sub2">보고·분장 활동 상위 '+PS.length+'개</span></div>';
           PS.forEach(function(s){
             var chips='';
             if(s.decisions) chips+='<span class="mw-badge mw-urgent">결정 '+s.decisions+'</span> ';
@@ -1933,16 +1985,46 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
               +pr+(s.dday?(' · D-day '+esc(s.dday)):'')+(s.status?(' · '+esc(s.status)):'')+'</div></div>';
           });
         }
-        if(D.length){
-          h+='<div class="mw-h">🧾 결재·확인 필요 <span class="sub2">'+D.length+'건 — 에스컬레이션·PM 미지정 결정만 (나머지는 PM에게 라우팅)</span></div>';
-          D.forEach(function(d){
-            var age=d.age>0?(' · '+d.age+'일 경과'):'';
-            var pj=d.project?(' · '+esc(d.project)):'';
-            var eb=d.esc?('<span class="mw-badge mw-urgent">▲ '+esc(d.esc)+'</span> '):'';
-            var act=d.logged_at?('<a class="dc-act" data-la="'+esc(d.logged_at)+'" data-action="resolve">✓ 결정 입력</a>'):'';
-            h+='<div class="mw-card ex-red"><div class="t">'+eb+esc(d.title)+act+'</div><div class="m">'+esc(d.who||'')+pj+age+'</div></div>';
+        // ⑥ 완료 승인 대기 (대표 차례만) — 프로젝트별 그룹핑
+        var AP2=ex.approvals||[];
+        if(AP2.length){
+          h+='<div class="mw-h">✅ 완료 승인 대기 <span class="sub2">'+AP2.length+'건 — 대표 차례만 (리더·PM 단계 제외)</span></div>';
+          var ag={}, ago=[];
+          AP2.forEach(function(a){ var k=(a.project||'').trim()||'기타'; if(!(k in ag)){ag[k]=[];ago.push(k);} ag[k].push(a); });
+          ago.sort(function(a,b){ if(a==='기타') return 1; if(b==='기타') return -1; return a.localeCompare(b,'ko'); });
+          ago.forEach(function(k){
+            h+='<details class="mw-done-sec" open><summary>▸ '+esc(k)+' '+ag[k].length+'건</summary>';
+            ag[k].forEach(function(a){
+              var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
+              var st=(a.status||'')==='승인대기'?'<span class="st-wait">PM 클리어</span> ':'';
+              h+='<div class="mw-card"><div class="t">'+st+esc(a.task)+mwChainBtns(a)+mwStBtn(a,'삭제','🗑')+mwChk(a)
+                +'</div><div class="m">'+esc(a.assignee||'미지정')+dl+'</div></div>';
+            });
+            h+='</details>';
           });
         }
+        // ⑦ 결재 확인 필요 — [결재] 송금·승인 등 지출성만 분리
+        var PY=ex.payments||[];
+        if(PY.length){
+          h+='<div class="mw-h">🧾 결재 확인 필요 <span class="sub2">'+PY.length+'건 — 송금·지출 승인</span></div>';
+          PY.forEach(function(d){
+            var act=d.logged_at?('<a class="dc-act" data-la="'+esc(d.logged_at)+'" data-action="resolve">✓ 결재 처리</a>'):'';
+            h+='<div class="mw-card ex-red"><div class="t">'+esc(d.title)+act+'</div><div class="m">'
+              +esc(d.who||'')+((d.pname||d.project)?(' · '+esc(d.pname||d.project)):'')+'</div></div>';
+          });
+        }
+        // 하단 — 지연·미지정·단계 처리는 요약·접힘 (핵심을 가리지 않게)
+        if(O.length){
+          h+='<details class="mw-done-sec"><summary>▸ ⏰ 지연 업무 '+O.length+'건 — 마감 경과·미완료 분장</summary>';
+          O.forEach(function(a){
+            var pj=a.project?(esc(a.project)+' · '):'';
+            h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+' <span class="mw-badge mw-urgent">D+'+a.days_overdue+'</span>'
+              +(a.row?(mwStBtn(a,'삭제','🗑')+mwChk(a)):'')+'</div>'
+              +'<div class="m">'+pj+esc(a.assignee||'미지정')+' · 마감 '+esc(a.deadline||'')+' · '+esc(a.status||'미착수')+'</div></div>';
+          });
+          h+='</details>';
+        }
+        h+=mwUnassignedHtml(ex.unassigned||[]);   // A2 — 담당 미지정 배정 큐 (대표: 리더급에게 배정)
         var PR=ex.pm_routed||[], SG=ex.staged||{};
         var sgTot=(SG['파트리더']||0)+(SG['PM']||0);
         if(PR.length||sgTot){
@@ -1954,18 +2036,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
             +(sgTot?('승인 대기: 리더 검토 '+(SG['파트리더']||0)+'건 · PM 클리어 '+(SG['PM']||0)+'건'):'')
             +'</div></div>';
         }
-        if(O.length){
-          h+='<div class="mw-h">⏰ 지연 업무 <span class="sub2">'+O.length+'건 — 마감 경과·미완료 분장</span></div>';
-          O.forEach(function(a){
-            var pj=a.project?(esc(a.project)+' · '):'';
-            h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+' <span class="mw-badge mw-urgent">D+'+a.days_overdue+'</span>'
-              +(a.row?(mwStBtn(a,'삭제','🗑')+mwChk(a)):'')+'</div>'
-              +'<div class="m">'+pj+esc(a.assignee||'미지정')+' · 마감 '+esc(a.deadline||'')+' · '+esc(a.status||'미착수')+'</div></div>';
-          });
-        }
-        h+=mwUnassignedHtml(ex.unassigned||[]);   // A2 — 담당 미지정 배정 큐 (대표: 리더급에게 배정)
-        h+=mwApprovalsHtml(ex.approvals||[]);
-        if(!D.length && !O.length && !(ex.approvals||[]).length && !(ex.unassigned||[]).length){ h+='<div class="mw-h">✅ 지연·결재·승인 대기 없음</div>'; }
+        if(!TF.length && !D.length && !O.length && !AP2.length && !(ex.unassigned||[]).length){ h+='<div class="mw-h">✅ 지연·결재·승인 대기 없음</div>'; }
       }
       // R4 2차 — PM 클리어 큐: 내가 PM인 프로젝트의 승인 대기 분장 + 라우팅된 결정
       var PQ=mw.pm_queue||[], PD=mw.pm_decisions||[];
@@ -4387,22 +4458,48 @@ class H(BaseHTTPRequestHandler):
                                             "project": d.get("project") or "",
                                             "age": d.get("age_days", 0),
                                             "dtype": d.get("decision_type") or "",
-                                            "logged_at": d.get("logged_at") or ""})
+                                            "logged_at": d.get("logged_at") or "",
+                                            "urgency": d.get("urgency") or "",
+                                            "recommendation": d.get("recommendation") or "",
+                                            "deadline": d.get("deadline") or "",
+                                            "delay_impact": d.get("delay_impact") or ""})
                 except Exception:
                     pass
+            interventions, risks = [], []
             try:
                 bfiles = sorted(f for f in BRIEF_DIR.glob("daily-brief-2*.json")
                                 if re.fullmatch(r"daily-brief-\d{4}-\d{2}-\d{2}", f.stem))
                 if bfiles:
                     bd = json.loads(bfiles[-1].read_text(encoding="utf-8"))
+                    bdate = (bd.get("date") or "").strip()
                     for it in bd.get("decision_summary") or []:
+                        # decision_summary는 decision+intervention 혼합 — 개입은 items 추출이 담당
+                        if (it.get("category") or "decision") != "decision":
+                            continue
                         t = (it.get("title") or "").strip()
                         if t and t not in titles:
                             titles.add(t)
                             proj = (it.get("project") or "")
                             proj = "" if str(proj).lower() in ("none", "null") else proj
                             raw_dec.append({"title": t, "who": it.get("source_employee") or "",
-                                            "project": proj, "age": 0, "dtype": "", "logged_at": ""})
+                                            "project": proj, "age": 0, "dtype": "", "logged_at": "",
+                                            "urgency": it.get("urgency") or "",
+                                            "recommendation": it.get("recommendation") or "",
+                                            "deadline": it.get("deadline") or "",
+                                            "delay_impact": it.get("delay_impact") or ""})
+                    # R4 3차 — Intervention·Risk: 브리프 분류 항목 (대표 개입·리스크 섹션)
+                    for it in bd.get("items") or []:
+                        cat = (it.get("category") or "").strip()
+                        if cat not in ("intervention", "risk"):
+                            continue
+                        proj = (it.get("project") or "")
+                        proj = "" if str(proj).lower() in ("none", "null") else proj
+                        row = {"title": (it.get("title") or "").strip(),
+                               "detail": (it.get("detail") or "").strip(),
+                               "who": it.get("source_employee") or "", "project": proj,
+                               "urgency": (it.get("urgency") or "").strip().lower(),
+                               "date": bdate}
+                        (interventions if cat == "intervention" else risks).append(row)
             except Exception:
                 pass
             decisions, pm_routed = [], []
@@ -4410,6 +4507,7 @@ class H(BaseHTTPRequestHandler):
             for d in raw_dec:
                 pm, pname = _decision_pm(d, all_projs)
                 if pname:
+                    d["pname"] = pname
                     dec_by_proj[pname] = dec_by_proj.get(pname, 0) + 1
                 if d.get("dtype") in _ESCALATED_TYPES:
                     d["esc"] = _ESCALATE_LABEL.get(d["dtype"], "에스컬레이션")
@@ -4418,6 +4516,16 @@ class H(BaseHTTPRequestHandler):
                     pm_routed.append({"pm": pm, "title": d["title"], "project": pname or d.get("project") or ""})
                 else:
                     decisions.append(d)
+            # 결재 확인(지출·송금 승인)은 의사결정과 분리 — [결재] 태그 기준 (가이드 §6-7)
+            payments = [d for d in decisions if (d.get("title") or "").startswith("[결재]")]
+            decisions = [d for d in decisions if not (d.get("title") or "").startswith("[결재]")]
+            # 에스컬레이션 유형 분리 — 개입 요청(pm-intervention)은 Intervention 섹션으로
+            for d in [x for x in decisions if x.get("dtype") == "pm-intervention"]:
+                decisions.remove(d)
+                interventions.insert(0, {"title": d["title"], "detail": "", "who": d.get("who") or "",
+                                         "project": d.get("pname") or d.get("project") or "",
+                                         "urgency": "high", "date": "", "esc": True,
+                                         "logged_at": d.get("logged_at") or ""})
             # 프로젝트 써머리 — 이번 주 보고·분장 활동 상위 3~4개만 대표에게 (개별 나열 대신)
             summary = []
             for e in act.values():
@@ -4434,7 +4542,39 @@ class H(BaseHTTPRequestHandler):
                                 "percent": ru["percent"], "task_total": ru["total"]})
             summary.sort(key=lambda s: (-s["week"], -s["overdue"]))
             summary = summary[:4]
+            # R4 3차 — 오늘의 핵심 할 일 (가이드 §6-1): 대표의 하루 행동 기준 4~6개 랭킹.
+            # 순서: 급한 결정(기한·긴급) > 결재 > 개입 > 높은 리스크 > 지연·승인 묶음
+            focus = []
+            tdy = today.isoformat()
+
+            def _urg(d):
+                return 0 if (d.get("urgency") or "").lower() == "high" else 1
+
+            for d in sorted(decisions, key=lambda x: (_urg(x), -(x.get("age") or 0)))[:3]:
+                dl = (d.get("deadline") or "").strip()
+                focus.append({"act": "결정", "text": d["title"],
+                              "project": d.get("pname") or d.get("project") or "",
+                              "sub": ("기한 " + dl + " · " if dl else "") + (d.get("recommendation") or "")[:60]})
+            for d in payments[:1]:
+                focus.append({"act": "결재", "text": d["title"],
+                              "project": d.get("pname") or d.get("project") or "", "sub": ""})
+            for it in [x for x in interventions if x.get("urgency") in ("high", "") or x.get("esc")][:1]:
+                focus.append({"act": "개입", "text": it["title"], "project": it.get("project") or "",
+                              "sub": (it.get("detail") or "")[:60]})
+            for it in [x for x in risks if x.get("urgency") == "high"][:1]:
+                focus.append({"act": "확인", "text": it["title"], "project": it.get("project") or "",
+                              "sub": (it.get("detail") or "")[:60]})
+            if len(focus) < 6 and approvals:
+                focus.append({"act": "승인", "text": f"완료 승인 대기 {len(approvals)}건 처리", "project": "",
+                              "sub": "아래 완료 승인 대기 섹션"})
+            if len(focus) < 6 and overdue:
+                worst = overdue[0]
+                focus.append({"act": "지시", "text": f"지연 업무 {len(overdue)}건 정리 — 최장 D+{worst.get('days_overdue')}",
+                              "project": worst.get("project") or "", "sub": "지연 목록에서 패스·재분장 판단"})
+            focus = focus[:6]
             return self._send(200, {"ok": True, "overdue": overdue, "decisions": decisions,
+                                    "payments": payments, "interventions": interventions,
+                                    "risks": risks, "today_focus": focus,
                                     "pm_routed": pm_routed, "staged": staged,
                                     "project_summary": summary,
                                     "approvals": approvals, "unassigned": unassigned})
