@@ -363,13 +363,29 @@ def _categories(recs: list[dict]) -> dict:
     return dict(c.most_common())
 
 
+# 미해결 결정 impact 신호 — daily-brief-aggregate의 정렬 규칙과 일관 (결재·금전 > 기한 > 기타)
+_DEC_PAY_KW = ("승인", "결재", "송금", "결제", "계약", "비용", "지출", "예산", "견적", "발주")
+_DEC_DUE_KW = ("오늘", "내일", "이번 주", "이번주", "금요", "마감", "기한", "까지")
+
+
 def _open_decisions(recs: list[dict]) -> list[str]:
-    out = []
+    """미해결 결정을 impact 순으로 정렬해 상위 5개 — 결재·금전 > 기한 명시 > 기타.
+
+    기존은 수집 순서대로 5개만 취해 우선순위가 없었다(나열). 정렬만 추가, 내용 무손실.
+    """
+    scored = []
     for r in recs:
         v = (r["decision_needed"] or "").strip()
-        if v and v not in ("없음", "-"):
-            out.append(v[:70])
-    return out[:5]
+        if not v or v in ("없음", "-"):
+            continue
+        rank = 2
+        if any(k in v for k in _DEC_PAY_KW):
+            rank = 0
+        elif any(k in v for k in _DEC_DUE_KW) or re.search(r"\d{1,2}[/.\-]\d{1,2}", v):
+            rank = 1
+        scored.append((rank, v[:70]))
+    scored.sort(key=lambda x: x[0])  # stable: 동률은 원래(보고) 순서 유지
+    return [v for _, v in scored[:5]]
 
 
 def _empty_growth() -> dict:

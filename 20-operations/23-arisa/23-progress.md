@@ -2,6 +2,20 @@
 
 ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용.
 
+## 2026-07-25 — 정보 취합·분류 기준 정립(맥킨지 × 6-Layer) + 결정론적 정렬 반영
+
+문제: Engine D가 7범주 분류까지는 하나 범주 내부 우선순위·상위 종합이 비어 `items`가 "LLM 응답=시트 행 순서"로 나열. 정렬은 대표창 렌더링(`_prio_rank` view-zone)에서만 부분 적용 → JSON 소비자(팀 브리프·개인 카드·API)는 미정렬.
+
+기준 정의: `arisa-info-classification-criteria-v1.md`/`.html` 신설. 맥킨지 6종(MECE·Pyramid·Impact×Urgency·80/20·SCQA/So What·Ghost Deck) × Reporting OS **6-Layer 확장 매핑**. "취합=정렬완료" 원칙. 분류축 SSOT는 `26-reporting-os` 6-Layer, 정렬 구현 SSOT는 `sort_items`.
+
+코드 반영(`daily-brief-aggregate.py`):
+1. **`sort_items()` 신설** — 결정론적 키 `(CAT_ORDER, URG_RANK, _prio_rank, -age_days)`. 기존 상수·함수 재사용, stable sort로 동률은 원순서 유지(내용 무손실).
+2. **적용** — `build_brief_data`(carried 이월 직후)·`build_team_brief_data`에서 정렬 → `brief/*.json`이 소스부터 정렬, 모든 소비자 공유.
+3. **BRIEF_PROMPT 보강** — items 우선순위 반환 지시 + headline=Governing Thought 명확화(보조, 신뢰는 정렬에).
+4. **weekly `_open_decisions`** — 미해결 결정 impact 순(결재·금전>기한>기타) 정렬 후 top5.
+
+검증: 실데이터+합성 케이스로 범주 단조증가·urgency/impact/age 정렬·무손실 확인. weekly 정렬 확인. **맥미니 미배포**(워크스페이스 반영까지, 배포는 별도).
+
 ## 2026-07-22 — 김준호 보고 누락 진단 + 봇 의도 감지 개선
 
 김준호 22일간 보고 0건(메타시트 6/30 1건뿐). 원인: /report 없이 텍스트 직접 전송 → 플로우 밖이라 시트 미저장. 조치:

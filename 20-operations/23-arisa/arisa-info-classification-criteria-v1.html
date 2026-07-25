@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISA 정보 취합·분류 기준 v1 — 맥킨지 사고법 × 6-Layer</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E0E12; --panel:#16161D; --panel2:#1C1C26; --line:#2A2A38;
+    --ink:#EDEDF2; --muted:#9A9AAB; --dim:#6E6E82;
+    --accent:#8B7CF0; --accent2:#6C5CE7;
+    --amber:#F0B45A; --red:#E86A6A; --blue:#5AA9F0; --green:#5FCf8f; --violet:#C08BC9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Pretendard',sans-serif;
+    line-height:1.72;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:940px;margin:0 auto;padding:64px 28px 120px}
+  .kicker{font-size:12.5px;font-weight:700;letter-spacing:.14em;color:var(--accent);text-transform:uppercase}
+  h1{font-size:33px;font-weight:800;margin:14px 0 10px;letter-spacing:-.02em;line-height:1.25}
+  .sub{color:var(--muted);font-size:14.5px}
+  .meta{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+    color:var(--dim);font-size:12.5px;display:flex;flex-wrap:wrap;gap:8px 20px}
+  .meta code{color:var(--muted);background:var(--panel2);padding:1px 7px;border-radius:5px;font-size:11.5px}
+  section{margin-top:52px}
+  h2{font-size:21px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:baseline;gap:11px}
+  h2 .n{color:var(--accent);font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+  h2 + .lead{color:var(--muted);font-size:14.5px;margin-top:9px}
+  h3{font-size:15.5px;font-weight:700;margin:26px 0 10px;color:var(--ink)}
+  p{margin:12px 0;color:#D6D6E0;font-size:15px}
+  em{color:var(--amber);font-style:normal;font-weight:600}
+  strong{color:var(--ink);font-weight:700}
+  .callout{background:linear-gradient(180deg,rgba(139,124,240,.10),rgba(139,124,240,.03));
+    border:1px solid rgba(139,124,240,.28);border-radius:14px;padding:20px 22px;margin:22px 0}
+  .callout .big{font-size:16.5px;font-weight:700;color:var(--ink)}
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.7px}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:700;font-size:12px;letter-spacing:.02em;
+    background:var(--panel);border-bottom:1px solid var(--line)}
+  td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+  tr:hover td{background:rgba(255,255,255,.015)}
+  code{font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:12.5px;
+    background:var(--panel2);color:var(--accent);padding:1.5px 6px;border-radius:5px}
+  .rule{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 22px;margin:20px 0}
+  .rule ol{list-style:none;counter-reset:r}
+  .rule li{counter-increment:r;padding:15px 0 15px 46px;position:relative;border-bottom:1px solid var(--line);font-size:14.5px}
+  .rule li:last-child{border-bottom:none}
+  .rule li::before{content:counter(r);position:absolute;left:0;top:13px;width:28px;height:28px;
+    display:grid;place-items:center;background:var(--accent2);color:#fff;border-radius:8px;
+    font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+  .rule li b{color:var(--accent);font-weight:700}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0;font-size:13px;color:var(--muted)}
+  .flow .tok{background:var(--panel2);border:1px solid var(--line);padding:6px 12px;border-radius:8px;color:var(--ink);font-weight:600}
+  .flow .arr{color:var(--dim)}
+  ul.check{list-style:none;margin:14px 0}
+  ul.check li{padding:9px 0 9px 30px;position:relative;border-bottom:1px solid var(--line);font-size:14px;color:#D6D6E0}
+  ul.check li:last-child{border-bottom:none}
+  ul.check li::before{content:"";position:absolute;left:2px;top:15px;width:14px;height:14px;
+    border:1.6px solid var(--accent);border-radius:4px}
+  .layer-tag{display:inline-block;padding:1px 8px;border-radius:6px;font-size:11.5px;font-weight:700;color:#0E0E12}
+  .foot{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">ARISA · Information Classification Standard</div>
+  <h1>정보 취합·분류 기준 v1</h1>
+  <div class="sub">맥킨지 사고법 × Reporting OS 6-Layer 확장 — "취합 = 정렬 완료"</div>
+  <div class="meta">
+    <span>2026-07-25 · v1.0 · by Project Rent</span>
+    <span>분류축 SSOT <code>reporting-os 6-Layer</code></span>
+    <span>정렬 구현 <code>daily-brief-aggregate.py · sort_items</code></span>
+  </div>
+
+  <section>
+    <h2><span class="n">00</span> 왜 이 문서인가 — "취합됐지만 나열됐다"</h2>
+    <p>ARISA는 매일 직원 보고를 취합하고, Engine D(LLM)가 <strong>7범주로 분류</strong>까지 한다. 그러나 각 범주 <strong>내부의 우선순위</strong>와 조직 전체의 <strong>종합(한 문장 결론)</strong>이 비어 있어, 대표가 보는 것은 여전히 "분류된 나열"이었다.</p>
+    <p>Reporting OS의 6-Layer는 이 병을 정확히 지목한다 — Priority Layer가 빠지면 <em>"10가지 나열 → 그래서 중요한 게 뭐야?"</em> 가 된다. 이 문서는 그 Priority(우선순위)와 Context(종합)를 <strong>맥킨지 사고법으로 규율</strong>하고, <strong>결정론적 정렬 규칙</strong>으로 코드에 못박는다.</p>
+    <div class="callout"><span class="big">원칙 한 줄 — 취합 = 정렬 완료.</span><br>정보가 모이는 순간, 이미 "무엇을 먼저 볼지"가 정해져 있어야 한다.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">01</span> 맥킨지 방법론 큐레이션</h2>
+    <p class="lead">정보취합·의사결정에 실제로 쓰는 것만 선별. 각 방법론에 "ARISA 어디에 사는가"를 붙였다.</p>
+    <table>
+      <thead><tr><th>방법론</th><th>핵심</th><th>ARISA 적용 지점</th></tr></thead>
+      <tbody>
+        <tr><td>MECE</td><td>상호배타·전체포괄</td><td>7범주 경계 규율 — <code>support</code>(직원이 뭘 원하는지 아는 상태) vs <code>intervention</code>(대표 판단·코칭)을 겹치지 않게</td></tr>
+        <tr><td>Pyramid Principle</td><td>결론 먼저</td><td><code>headline</code>을 조직 전체의 <strong>Governing Thought</strong> 한 문장으로 규정 → 범주→항목이 지지</td></tr>
+        <tr><td>Impact × Urgency</td><td>영향도 × 시급성</td><td>정렬 2·3차 키 — <code>urgency</code> × impact 신호(결재·금전·기한)</td></tr>
+        <tr><td>80/20 (Pareto)</td><td>20%가 결과의 80%</td><td><code>top5</code>·<code>decision_summary</code>가 "오늘 볼 20%"를 뽑는 근거</td></tr>
+        <tr><td>SCQA / So What·Now What</td><td>상황→갈등→질문→답</td><td>decision의 <code>detail</code>(배경→상태→액션) + 추천안·기한·미결영향 구조</td></tr>
+        <tr><td>Ghost Deck</td><td>제목만 읽어 논증 완결</td><td>품질 체크 — item <code>title</code>만 위→아래로 읽어 조직 상황이 그려지는지</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="n">02</span> 6-Layer 확장 매핑 <span style="font-size:13px;font-weight:600;color:var(--dim)">핵심</span></h2>
+    <p class="lead">6-Layer는 "어디에 속하나"(분류), 이 매핑은 "그래서 어떤 순서로 보나"(정렬)를 더한다.</p>
+    <table>
+      <thead><tr><th>6-Layer</th><th>ARISA 7범주</th><th>맥킨지 렌즈</th><th>정렬 기여</th></tr></thead>
+      <tbody>
+        <tr><td><span class="layer-tag" style="background:var(--accent)">Decision</span></td><td><code>decision</code></td><td>Pyramid 정점 · Impact×Urgency</td><td>최상위. 결재·승인 > 금전 > 기한</td></tr>
+        <tr><td><span class="layer-tag" style="background:var(--violet)">Priority</span></td><td>범주 가로지름</td><td>80/20</td><td><code>top5</code>·<code>decision_summary</code> 선정</td></tr>
+        <tr><td><span class="layer-tag" style="background:var(--red)">Risk</span></td><td><code>risk</code> / <code>anomaly</code></td><td>MECE 리스크 분해</td><td>urgency · 손실·기한 결부</td></tr>
+        <tr><td><span class="layer-tag" style="background:var(--blue)">Progress</span></td><td><code>project</code></td><td>So What</td><td>상태변화순</td></tr>
+        <tr><td><span class="layer-tag" style="background:var(--green)">Thinking</span></td><td><code>intervention</code> / <code>growth</code></td><td>사실/의견 근거구분</td><td>코칭 필요도</td></tr>
+        <tr><td><span class="layer-tag" style="background:var(--amber)">Context</span></td><td><code>headline</code> · 귀속</td><td>Governing Thought</td><td>종합 한 문장</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="n">03</span> 정렬·종합 규칙 <span style="font-size:13px;font-weight:600;color:var(--dim)">코드와 1:1 · sort_items</span></h2>
+    <p class="lead">취합된 <code>items</code>는 결정론적 키로 정렬된다. LLM 응답 순서(=시트 행 순서)에 의존하지 않는다.</p>
+    <div class="rule"><ol>
+      <li><b>범주</b> — <code>CAT_ORDER</code>: decision → intervention → risk → support → project → growth → anomaly</li>
+      <li><b>긴급도</b> — <code>URG_RANK</code>: high → mid → low</li>
+      <li><b>impact 신호</b> — <code>_prio_rank</code>: 결재·승인 &gt; 비용·금전 &gt; 리스크 &gt; 개입 &gt; 기타<br><span style="color:var(--dim);font-size:12.5px">키워드: 승인·결재·송금·결제·계약 / 비용·지출·예산·견적·단가·금액·발주</span></li>
+      <li><b>미결 경과</b> — <code>age_days</code> 큰 것 우선: 오래 방치된 결정이 위로</li>
+      <li><b>종합 — Governing Thought</b>: <code>headline</code>은 결정·리스크 우선의 한 문장. 근거 없으면 공란</li>
+    </ol></div>
+    <p style="color:var(--dim);font-size:13px">동률은 stable sort로 기존 순서 유지 → 정렬만 바뀌고 내용은 무손실.</p>
+    <h3>적용 지점 — JSON 출력부터 정렬</h3>
+    <div class="flow">
+      <span class="tok">직원 보고</span><span class="arr">→</span>
+      <span class="tok">Engine D 분류</span><span class="arr">→</span>
+      <span class="tok">carried 이월</span><span class="arr">→</span>
+      <span class="tok" style="border-color:var(--accent);color:var(--accent)">sort_items ★</span><span class="arr">→</span>
+      <span class="tok">JSON / 대표창 / 팀 / API</span>
+    </div>
+    <p><code>build_brief_data()</code>·<code>build_team_brief_data()</code>에서 정렬 → <code>20-operations/23-arisa/brief/*.json</code>이 소스부터 정렬되어 <strong>모든 소비자가 공유</strong>. 주간은 <code>weekly-report-aggregate.py</code>의 <code>_open_decisions()</code>가 impact 순 정렬.</p>
+  </section>
+
+  <section>
+    <h2><span class="n">04</span> 품질 게이트 — Ghost Deck 테스트</h2>
+    <p class="lead">"정렬됐는가"를 넘어 "논리가 서는가"를 점검한다.</p>
+    <ul class="check">
+      <li><strong>headline만 읽어</strong> 오늘 조직에서 가장 먼저 볼 것이 잡히는가? (Governing Thought)</li>
+      <li><strong>item title만 위→아래로 읽어</strong> 각 프로젝트 상황이 그려지는가? (Ghost Deck)</li>
+      <li>decision 항목에 <strong>So What/Now What</strong>(추천안·기한·미결영향)이 채워졌는가?</li>
+      <li>같은 정보가 두 범주에 중복되거나(MECE 위반), 빠진 위험이 없는가?</li>
+      <li>Priority가 "10가지 나열"이 아니라 <strong>top5로 압축</strong>됐는가? (80/20)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="n">05</span> 버전 로드맵</h2>
+    <table>
+      <tbody>
+        <tr><td>v1 (현재)</td><td>6-Layer 확장 매핑 + <code>sort_items</code> 결정론적 정렬 + 주간 <code>_open_decisions</code> 정렬</td></tr>
+        <tr><td>v1.1</td><td>BRIEF_PROMPT의 Governing Thought 품질 자동 채점 (Report Score 연동)</td></tr>
+        <tr><td>v2</td><td>Outcome·Learning Layer 연결 — 결정 이후 결과 회수까지 정렬축 확장</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="foot">분류축 SSOT = 6-Layer 문서 · 정렬 구현 SSOT = <code>sort_items</code> · 동일 내용 md 병행 (arisa-info-classification-criteria-v1.md) · by Project Rent</div>
+
+</div>
+</body>
+</html>

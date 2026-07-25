@@ -245,6 +245,13 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
 
 [urgency] high=오늘 안 보면 손실/기한 / mid=이번 주 / low=인지만
 
+[정렬·종합 규칙 — 피라미드 원칙(결론 먼저) + Impact×Urgency]
+- headline은 조직 전체의 Governing Thought(최상위 결론) 한 문장 — 결정·리스크를 우선해
+  "오늘 조직에서 가장 먼저 볼 것"을 압축. 근거 없으면 빈 문자열.
+- items는 다음 순서로 정렬해 반환: ①범주(decision→intervention→risk→support→project→growth→anomaly)
+  ②각 범주 안에서 urgency(high→mid→low) ③같은 urgency면 결재·금전·기한이 걸린 것 먼저.
+  (시스템이 이 규칙으로 재정렬하지만, 응답 자체도 이 순서를 따르면 품질이 높아진다.)
+
 [decision 항목 구조 (§9-3)] decision 항목에는 보고에 근거가 있을 때만 다음을 채워라(없으면 ""):
   recommendation=담당자의 추천안, deadline=결정이 필요한 기한, delay_impact=미결정 시 영향
 
@@ -656,6 +663,7 @@ def build_brief_data(target: str, day: dict | None = None,
     res = engine_d(blocks)
     items = res["items"]
     items += _carried_decision_items(target)  # 과거 미결(open) 결정 이월 — 정해질 때까지 노출
+    items = sort_items(items)  # 취합=정렬완료: JSON 출력부터 우선순위 정렬 (모든 소비자 공유)
     unmatched = sorted({nm for nm in day if nm not in BY_NAME})
     counts = {c: sum(1 for it in items if it["category"] == c) for c in CAT_META}
     people = _people_summary(day, assignments)
@@ -710,7 +718,7 @@ def build_team_brief_data(target: str, team: str, day: dict,
     tday = {nm: d for nm, d in day.items() if d.get("team") == team}
     blocks = [_emp_block(nm, d) for nm, d in tday.items()]
     res = engine_d(blocks) if blocks else {"items": [], "headline": ""}
-    items = res["items"]
+    items = sort_items(res["items"])  # 팀 brief도 소스부터 우선순위 정렬
     counts = {c: sum(1 for it in items if it["category"] == c) for c in CAT_META}
     return {
         "date": target,
@@ -900,6 +908,24 @@ def _prio_rank(it: dict) -> int:
     if it.get("category") == "intervention":
         return 4
     return 5
+
+
+def sort_items(items: list[dict]) -> list[dict]:
+    """취합된 items를 결정론적 우선순위로 정렬한다 — "취합=정렬완료" 원칙.
+
+    정렬 기준 (ARISA 정보 분류 기준 v1 · 6-Layer 확장):
+      ① 범주       CAT_ORDER (decision→intervention→risk→support→project→growth→anomaly)
+      ② 긴급도     URG_RANK  (high→mid→low)
+      ③ impact 신호 _prio_rank (결재·승인 > 비용 > 리스크 > 개입 > 기타)
+      ④ 미결 경과   age_days 큰 것 우선 (오래 방치된 결정이 위로)
+    stable sort이므로 동률은 기존(LLM/시트) 순서 유지. 정렬만 하고 내용은 무손실.
+    """
+    def _key(it: dict):
+        cat = it.get("category")
+        cat_idx = CAT_ORDER.index(cat) if cat in CAT_ORDER else len(CAT_ORDER)
+        urg = URG_RANK.get(it.get("urgency"), 1)
+        return (cat_idx, urg, _prio_rank(it), -(it.get("age_days") or 0))
+    return sorted(items, key=_key)
 
 
 def _norm_proj(p) -> str:
