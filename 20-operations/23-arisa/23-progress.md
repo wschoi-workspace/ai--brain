@@ -697,3 +697,10 @@ engine_d에 실제와 유사한 보고 블록 3건(결정+승인권자 명시·�
 - flyctl deploy(rent-hr-portal) → 머신 683557df405178 헬스·스모크 통과, DNS 검증 OK
 - 프로덕션 검증: `/` 200, `/v1`(templates/portal.html 직서빙) 신 토큰 #6C5CE7·#202020만 검출, 구 #6666FF 0건. 참고: `/`는 portal-v2/index.html(별도 UI)이라 이번 변환 스코프 밖
 - **R4 1~5차 전체 종결** — 잔여는 실전 관찰(브리프 project_cards·월 간트)뿐
+
+## 2026-07-26 (2차) — HR 포털 메인(portal-v2) 기본 테마 다크 전환 (대표 승인 배포)
+
+- 발견: portal-v2엔 다크 토큰이 기설계돼 있었음(`[data-theme=dark][data-variant=v1]` — bg #0B0B12·surface #15151C). 색상 재정의 없이 App.jsx DEFAULTS `"theme": "light"→"dark"` 1줄로 전 직원 기본 다크 (테마는 localStorage 미저장, 매 로드 DEFAULTS 기점)
+- 안전 확인: 증명서 PDF 렌더(cert_util.jsx)는 테마 변수 미사용 → 인쇄 출력 화이트 유지 / TweaksPanel(헤더 버튼)로 개인별 라이트 복귀 가능
+- 맥미니 hr-workspace 커밋 `fc048e4` → flyctl deploy → 머신 헬스 통과, 프로덕션 App.jsx에서 "theme": "dark" 서빙 확인
+- 참고: 템플릿 6종(5차)과 달리 portal-v2 다크는 자체 팔레트(#6666FF 유지) — ARISA 청보라(#6C5CE7) 통일은 별도 판단 사항
