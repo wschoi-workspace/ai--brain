@@ -980,8 +980,12 @@ def _project_section(data: dict) -> str:
 
     def _lst(items, fmt, empty):
         return "".join(fmt(x) for x in items) if items else f'<li class="pw-e">{empty}</li>'
-    cards = []
+    full, collapsed = [], []
     for p in projs:
+        # 변동(status-log)만 있고 처리·예정·차주·리스크·결정이 전무하면 접어둔다
+        if not (p["done"] or p["planned"] or p["next_week"] or p["risks"] or p["decisions"]):
+            collapsed.append(p)
+            continue
         done = _lst(p["done"],
                     lambda x: f'<li>{_esc(x["task"])}<span class="pw-who">{_esc(x["who"])}</span></li>', "처리 완료 없음")
         planned = _lst(p["planned"],
@@ -1001,7 +1005,7 @@ def _project_section(data: dict) -> str:
             meta.append(_esc(p["status"]))
         if p["dday"]:
             meta.append(_esc(str(p["dday"])))
-        cards.append(f'''<div class="card pw-card">
+        full.append(f'''<div class="card pw-card">
           <div class="card-h"><h3>{_esc(p["name"])}</h3><span class="muted">{" · ".join(meta)}</span></div>
           <div class="pw-g">
             <div class="pw-col"><div class="pw-hh">✅ 금주 처리</div><ul class="pw-l">{done}</ul></div>
@@ -1012,7 +1016,20 @@ def _project_section(data: dict) -> str:
             <div class="pw-col"><div class="pw-hh">🔄 주요 변동</div><ul class="pw-l">{changes}</ul></div>
           </div>
         </div>''')
-    return '<h2 class="sec">프로젝트별 주간 써머리</h2><div class="grid pw-grid">' + "".join(cards) + "</div>"
+    out = '<h2 class="sec">프로젝트별 주간 써머리</h2>'
+    out += ('<div class="grid pw-grid">' + "".join(full) + "</div>") if full else '<div class="muted">이번 주 진행 항목이 있는 프로젝트가 없습니다.</div>'
+    if collapsed:
+        rows = "".join(
+            f'<div class="pw-cr"><b>{_esc(p["name"])}</b>'
+            + (f'<span class="muted"> · PM {_esc(p["pm"])}</span>' if p["pm"] else "")
+            + f'<span class="pw-who">변동 {len(p["changes"])}건: '
+            + ", ".join(f'{_esc(c["task"])}({_esc(c["from"])}→{_esc(c["to"])})' for c in p["changes"][:4])
+            + ("…" if len(p["changes"]) > 4 else "") + "</span></div>"
+            for p in collapsed)
+        out += (f'<details class="pw-collapse"><summary>변동만 있는 프로젝트 {len(collapsed)}개 '
+                '<span class="muted">— 상태 변동 외 처리·결정·리스크 없음</span></summary>'
+                + rows + "</details>")
+    return out
 
 
 def render_html(data: dict) -> str:
@@ -1147,6 +1164,13 @@ border-radius:8px;padding:10px 14px;font-size:13px;margin:16px 0}}
 .pw-slip{{color:var(--amber)}}
 .pw-ok{{color:var(--green)}}
 .pw-risk{{color:var(--red)}}
+.pw-collapse{{margin-top:12px;background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:2px 16px}}
+.pw-collapse summary{{cursor:pointer;font-size:13px;color:var(--fg);padding:10px 0;list-style:none}}
+.pw-collapse summary::-webkit-details-marker{{display:none}}
+.pw-collapse summary::before{{content:"▸ ";color:var(--muted)}}
+.pw-collapse[open] summary::before{{content:"▾ "}}
+.pw-cr{{font-size:12.5px;padding:8px 0;border-top:1px solid var(--line)}}
+.pw-cr b{{font-weight:600}}
 @media(max-width:720px){{.pw-g{{grid-template-columns:1fr}}}}
 footer{{margin-top:40px;color:var(--muted);font-size:11px;text-align:center;border-top:1px solid var(--line);padding-top:16px}}
 /* 성장지표는 대표(admin)만 — 직원 로그인 시 숨김(측정설계 v2) */
