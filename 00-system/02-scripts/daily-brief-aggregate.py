@@ -88,6 +88,7 @@ from shared.employee import load_employees as _load_emp
 from shared import normalize as _N, gws as _gws
 from shared.decision import load_open_decisions as _load_open_decisions
 from shared import status as _ST  # 상태·우선순위 단일출처 (G2)
+from shared import project_match as _PMM  # 프로젝트명 별칭 매칭 단일출처 (R4 4차)
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
 except Exception:
@@ -325,21 +326,45 @@ PERSON_BRIEF_PROMPT = """당신은 직원 개인의 아침 업무 브리퍼다. 
 반환: {"focus":"...","new_todos":[...],"project_updates":[...],"completed":[...]}"""
 
 
-def _portfolio_names() -> list[str]:
-    """포트폴리오 프로젝트명 목록 — 개인 브리프의 project 정규화 참조용."""
+_PROJ_REGISTRY: list[dict] | None = None
+
+
+def _project_registry() -> list[dict]:
+    """포트폴리오 프로젝트 dict 목록 (활성만, 1회 로드) — 별칭 매칭·PM·상태 참조용 (R4 4차)."""
+    global _PROJ_REGISTRY
+    if _PROJ_REGISTRY is not None:
+        return _PROJ_REGISTRY
     out = []
     pdir = WORKSPACE / "00-system" / "01-templates" / "_data" / "projects"
     try:
         for f in pdir.glob("*.json"):
             try:
-                n = (json.loads(f.read_text(encoding="utf-8")).get("name") or "").strip()
-                if n:
-                    out.append(n)
+                p = json.loads(f.read_text(encoding="utf-8"))
+                if (p.get("name") or "").strip() and not p.get("archived"):
+                    out.append(p)
             except Exception:
                 pass
     except Exception:
         pass
+    _PROJ_REGISTRY = out
     return out
+
+
+def _canon_proj(name: str) -> dict | None:
+    """프로젝트 표기(별칭·구표기 포함) → 포트폴리오 프로젝트 dict. 미매칭이면 None.
+    같은 프로젝트가 다른 이름으로 흩어져 별개 카드가 되는 문제의 방지 지점."""
+    n = (str(name or "")).strip()
+    if not n or n.lower() in ("null", "none"):
+        return None
+    try:
+        return next((p for p in _project_registry() if _PMM.match_project_p(n, p)), None)
+    except Exception:
+        return None
+
+
+def _portfolio_names() -> list[str]:
+    """포트폴리오 프로젝트명 목록 — 개인 브리프의 project 정규화 참조용."""
+    return [p.get("name") or "" for p in _project_registry() if p.get("name")]
 
 
 def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[dict]) -> dict | None:
@@ -551,6 +576,75 @@ def _people_summary(day: dict, assignments: list[dict] | None = None) -> list[di
     return out
 
 
+def build_project_cards(items: list[dict], assignments: list[dict]) -> list[dict]:
+    """프로젝트 통합 카드 (R4 4차, 가이드 §9) — 같은 프로젝트의 결정·개입·리스크·진행·할일을
+    하나의 카드로. exec-attn(대표창)·주간 간트가 소비하는 구조화 JSON."""
+    cards: dict = {}
+
+    def _slot(raw):
+        cp = _canon_proj(raw)
+        name = (cp.get("name") if cp else None) or _norm_proj(raw)
+        if not name:
+            return None
+        if name not in cards:
+            m = cp or {}
+            cards[name] = {"name": name, "pid": m.get("id") or "", "pm": m.get("pm") or "",
+                           "status": ((m.get("brief") or {}).get("status") or "").strip(),
+                           "dday": m.get("dday") or "",
+                           "decisions": [], "interventions": [], "risks": [], "progress": [],
+                           "week_goal": [], "open": 0, "done": 0, "next_action": None}
+        return cards[name]
+
+    for it in items:
+        c = _slot(it.get("project"))
+        if not c:
+            continue
+        cat = (it.get("category") or "").strip()
+        row = {"title": (it.get("title") or "").strip(), "urgency": (it.get("urgency") or "").strip(),
+               "who": it.get("source_employee") or "", "recommendation": it.get("recommendation") or "",
+               "deadline": it.get("deadline") or "", "delay_impact": it.get("delay_impact") or ""}
+        if cat == "decision":
+            c["decisions"].append(row)
+        elif cat == "intervention":
+            c["interventions"].append(row)
+        elif cat == "risk":
+            c["risks"].append(row)
+        elif cat in ("project", "support", "anomaly"):
+            c["progress"].append(row)
+    seen = set()
+    for a in assignments or []:
+        key = (a.get("project"), a.get("task"), a.get("assignee"), a.get("deadline"), a.get("status"))
+        if key in seen:
+            continue
+        seen.add(key)
+        c = _slot(a.get("project"))
+        if not c:
+            continue
+        st = _ST.norm_assign_status(a.get("status"))
+        if _ST.is_assign_done(st):
+            c["done"] += 1
+            continue
+        if st in _ST.ASSIGN_DROPPED_STATES:
+            continue
+        c["open"] += 1
+        if len(c["week_goal"]) < 4:
+            c["week_goal"].append({"task": a.get("task") or "", "assignee": a.get("assignee") or "",
+                                   "deadline": a.get("deadline") or "", "status": st})
+        # 다음 행동 = 가장 이른 마감의 미완 분장
+        dl = (a.get("deadline") or "9999").strip() or "9999"
+        cur = c["next_action"]
+        if cur is None or dl < (cur.get("deadline") or "9999"):
+            c["next_action"] = {"task": a.get("task") or "", "assignee": a.get("assignee") or "",
+                                "deadline": a.get("deadline") or ""}
+    out = [c for c in cards.values()
+           if c["decisions"] or c["interventions"] or c["risks"] or c["progress"] or c["open"]]
+    # 브리프 우선순위(가이드 §9): Decision > Intervention > Risk > 진행 > 나머지
+    out.sort(key=lambda c: (0 if c["decisions"] else 1 if c["interventions"] else 2 if c["risks"] else 3,
+                            -(len(c["decisions"]) + len(c["interventions"]) + len(c["risks"])),
+                            -c["open"]))
+    return out
+
+
 def build_brief_data(target: str, day: dict | None = None,
                      team_datas: dict | None = None,
                      assignments: list[dict] | None = None) -> dict:
@@ -605,6 +699,7 @@ def build_brief_data(target: str, day: dict | None = None,
         "people": people,
         "teams": teams,
         "assignments": assignments or [],
+        "project_cards": build_project_cards(items, assignments or []),  # R4 4차 — 프로젝트 통합 카드
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
@@ -840,19 +935,25 @@ def _view_zone(data: dict, single: bool = False) -> str:
         return ""
     headline = f'<div class="sz-hl">{_esc(data["headline"])}</div>' if data.get("headline") else ""
 
-    # ── 프로젝트 단위 ──
+    # ── 프로젝트 단위 (R4 4차: 별칭 정규화 — 같은 프로젝트는 하나의 카드로 통합) ──
     proj: dict = {}
+
+    def _pkey(raw):
+        cp = _canon_proj(raw)
+        name = (cp.get("name") if cp else None) or _norm_proj(raw) or "프로젝트 미지정"
+        if name not in proj:
+            proj[name] = {"items": [], "asg": [], "meta": cp or {}}
+        return name
+
     for it in items:
-        p = _norm_proj(it.get("project")) or "프로젝트 미지정"
-        proj.setdefault(p, {"items": [], "asg": []})["items"].append(it)
+        proj[_pkey(it.get("project"))]["items"].append(it)
     _seen = set()
     for a in assignments:
         key = (a.get("project"), a.get("task"), a.get("assignee"), a.get("deadline"), a.get("status"))
         if key in _seen:  # 이중 등록 표시 중복 제거 (시트 무변경)
             continue
         _seen.add(key)
-        p = _norm_proj(a.get("project")) or "프로젝트 미지정"
-        proj.setdefault(p, {"items": [], "asg": []})["asg"].append(a)
+        proj[_pkey(a.get("project"))]["asg"].append(a)
 
     def _proj_rank(p):
         best = min((_prio_rank(i) for i in proj[p]["items"]), default=6)
@@ -866,7 +967,15 @@ def _view_zone(data: dict, single: bool = False) -> str:
         if asg:
             asg = f'<div class="vz-sub">할 일 · 이번주 분장</div>{asg}'
         if rows or asg:
-            pblocks.append(f'<div class="vz-block"><div class="vz-head">📁 {_esc(p)}</div>{rows}{asg}</div>')
+            m = g.get("meta") or {}
+            sub = []
+            if m.get("pm"):
+                sub.append(f'PM {_esc(m["pm"])}')
+            bst = ((m.get("brief") or {}).get("status") or "").strip()
+            if bst:
+                sub.append(_esc(bst))
+            meta_html = f' <span class="cnt">{" · ".join(sub)}</span>' if sub else ""
+            pblocks.append(f'<div class="vz-block"><div class="vz-head">📁 {_esc(p)}{meta_html}</div>{rows}{asg}</div>')
     pview = "".join(pblocks) or '<div class="muted">오늘 항목이 없습니다.</div>'
 
     if single:  # 팀 브리프 — 프로젝트 단위 뷰만 (토글·스크립트 없음)

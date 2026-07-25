@@ -13,6 +13,7 @@ ARISA 성장지표(해상도·Growth6)는 자리만 마련(placeholder)해 추�
 from __future__ import annotations
 
 import os
+import re
 import sys
 import json
 import html
@@ -113,6 +114,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from shared.employee import load_employees as _load_emp
 from shared import normalize as _N, gws as _gws
 from shared import status as _ST  # 상태·우선순위 단일출처 (G2)
+from shared import project_match as _PMM  # 프로젝트명 별칭 매칭 단일출처 (R4 4차)
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
 except Exception:
@@ -470,6 +472,196 @@ def week_range(spec: str) -> tuple[date, date]:
     return mon, mon + timedelta(days=6)
 
 
+def _project_registry() -> list[dict]:
+    """포트폴리오 프로젝트 dict 목록 (활성만) — 간트 행·별칭 매칭용 (R4 4차)."""
+    out = []
+    pdir = WORKSPACE / "00-system" / "01-templates" / "_data" / "projects"
+    try:
+        for f in pdir.glob("*.json"):
+            try:
+                p = json.loads(f.read_text(encoding="utf-8"))
+                if (p.get("name") or "").strip() and not p.get("archived"):
+                    out.append(p)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return out
+
+
+def _latest_brief_cards() -> dict:
+    """최신 daily-brief JSON의 project_cards → {프로젝트명: {dec, itv, risk}} (간트 도트용)."""
+    try:
+        bdir = WORKSPACE / "20-operations" / "23-arisa" / "brief"
+        files = sorted(f for f in bdir.glob("daily-brief-2*.json")
+                       if re.fullmatch(r"daily-brief-\d{4}-\d{2}-\d{2}", f.stem))
+        if not files:
+            return {}
+        bd = json.loads(files[-1].read_text(encoding="utf-8"))
+        return {(c.get("name") or ""): {"dec": len(c.get("decisions") or []),
+                                        "itv": len(c.get("interventions") or []),
+                                        "risk": len(c.get("risks") or [])}
+                for c in bd.get("project_cards") or []}
+    except Exception:
+        return {}
+
+
+def build_gantt_rows(week_start: date, assignments: list[dict]) -> list[dict]:
+    """주간 프로젝트 간트 (R4 4차, 가이드 §10) — 프로젝트별 1행, 2주 윈도우(이번주+다음주).
+    브리프 project_cards의 결정·개입·리스크가 도트로 반영된다."""
+    w0 = week_start
+    days = 14
+    cards = _latest_brief_cards()
+    rows = []
+    for p in _project_registry():
+        name = p.get("name") or ""
+        # 이번주 분장·지연 집계 (별칭 매칭)
+        wk_cnt, late = 0, 0
+        for a in assignments or []:
+            if not _PMM.match_project_p((a.get("project") or ""), p):
+                continue
+            wk_cnt += 1
+            if _ST.is_overdue(a.get("deadline"), a.get("status")):
+                late += 1
+        start = (p.get("start") or "").strip()[:10]
+        end = (p.get("end") or p.get("dday") or "").strip()[:10]
+        # 종료가 지난주 이전이고 이번주 활동도 없으면 제외
+        if end and end < w0.isoformat() and not wk_cnt:
+            continue
+        bar = None
+        try:
+            sd = date.fromisoformat(start) if start else None
+            ed = date.fromisoformat(end) if end else None
+            if sd and ed and ed >= sd:
+                b0 = max((sd - w0).days, 0)
+                b1 = min((ed - w0).days, days - 1)
+                if b1 >= 0 and b0 <= days - 1:
+                    bar = {"left": round(b0 / days * 100, 1),
+                           "width": round((b1 - b0 + 1) / days * 100, 1)}
+        except ValueError:
+            pass
+        ru = _ST.task_rollup(p.get("tasks"))
+        teams = sorted({team_of(m) for m in (p.get("members") or []) if team_of(m)})
+        c = cards.get(name) or {}
+        rows.append({"name": name, "pid": p.get("id") or "", "pm": p.get("pm") or "",
+                     "teams": teams, "status": ((p.get("brief") or {}).get("status") or "").strip(),
+                     "start": start, "end": end, "percent": ru["percent"], "task_total": ru["total"],
+                     "week_tasks": wk_cnt, "late": late, "bar": bar,
+                     "dec": c.get("dec", 0), "itv": c.get("itv", 0), "risk": c.get("risk", 0)})
+    # 이번주 활동 많은 순 → 일정 있는 순
+    rows.sort(key=lambda r: (-r["week_tasks"], 0 if r["bar"] else 1, r["name"]))
+    return rows
+
+
+def _gantt_section(data: dict) -> str:
+    """주간 프로젝트 간트 렌더 — 자체 CSS(외부 라이브러리 없음), 필터는 data-속성+JS."""
+    rows = data.get("gantt") or []
+    if not rows:
+        return ""
+    w = data["week"]
+    w0 = date.fromisoformat(w["start"])
+    today = date.today()
+    # 요일 그리드 헤더 (2주)
+    cells = []
+    for i in range(14):
+        d = w0 + timedelta(days=i)
+        cls = "gd-we" if d.weekday() >= 5 else ""
+        cells.append(f'<div class="gd {cls}">{d.day}</div>')
+    tpos = None
+    if 0 <= (today - w0).days < 14:
+        tpos = round((today - w0).days / 14 * 100 + 100 / 28, 1)  # 칸 중앙
+    st_color = {"Done": "var(--green,#8FA37E)", "At Risk": "var(--red,#E17055)",
+                "Hold": "var(--muted,#8A857E)"}
+    pms = sorted({r["pm"] for r in rows if r["pm"]})
+    all_teams = sorted({t for r in rows for t in r["teams"]})
+    body = []
+    for r in rows:
+        chips = ""
+        if r["dec"]:
+            chips += f'<span class="gt-dot gt-dec" title="결정 필요">◆{r["dec"]}</span>'
+        if r["itv"]:
+            chips += f'<span class="gt-dot gt-itv" title="개입 필요">▲{r["itv"]}</span>'
+        if r["risk"]:
+            chips += f'<span class="gt-dot gt-risk" title="리스크">●{r["risk"]}</span>'
+        if r["late"]:
+            chips += f'<span class="gt-dot gt-late" title="지연 분장">지연 {r["late"]}</span>'
+        col = st_color.get(r["status"], "var(--accent,#6C5CE7)")
+        bar = (f'<div class="gt-bar" style="left:{r["bar"]["left"]}%;width:{r["bar"]["width"]}%;'
+               f'background:{col}"></div>') if r["bar"] else '<span class="gt-nodate">일정 미입력</span>'
+        pr = f' · {r["percent"]}%' if r["task_total"] else ""
+        sub = f'PM {_esc(r["pm"] or "미지정")} · {_esc("/".join(r["teams"]) or "-")} · 이번주 {r["week_tasks"]}건{pr}'
+        body.append(
+            f'<div class="gt-row" data-pm="{_esc(r["pm"])}" data-teams="{_esc(",".join(r["teams"]))}"'
+            f' data-late="{1 if r["late"] else 0}" data-dec="{1 if (r["dec"] or r["itv"]) else 0}">'
+            f'<div class="gt-label"><div class="gt-name">{_esc(r["name"])} {chips}</div>'
+            f'<div class="gt-sub">{sub}</div></div>'
+            f'<div class="gt-track">{bar}</div></div>')
+    pm_chips = "".join(f'<button class="gt-f" data-k="pm" data-v="{_esc(p)}">{_esc(p)}</button>' for p in pms)
+    tm_chips = "".join(f'<button class="gt-f" data-k="team" data-v="{_esc(t)}">{_esc(t)}</button>' for t in all_teams)
+    today_line = f'<div class="gt-today" style="left:{tpos}%"></div>' if tpos is not None else ""
+    return f'''<h2 class="sec">주간 프로젝트 현황 · 간트</h2>
+<style>
+.gt-wrap{{background:var(--card,#202020);border:1px solid var(--line,#333);border-radius:12px;padding:14px 16px;margin-bottom:18px}}
+.gt-filters{{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}}
+.gt-f{{background:transparent;border:1px solid var(--line,#333);border-radius:14px;color:var(--muted,#8A857E);padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit}}
+.gt-f.on{{background:var(--accent,#6C5CE7);border-color:var(--accent,#6C5CE7);color:#fff}}
+.gt-head{{display:flex;margin-left:290px;position:relative}}
+.gt-head .gd{{flex:1;text-align:center;font-size:9.5px;color:var(--muted,#8A857E)}}
+.gt-head .gd-we{{color:var(--red,#E17055);opacity:.7}}
+.gt-body{{position:relative}}
+.gt-row{{display:flex;align-items:center;border-top:1px solid var(--line,#333);padding:7px 0}}
+.gt-row.gt-hide{{display:none}}
+.gt-label{{width:290px;flex-shrink:0;padding-right:12px}}
+.gt-name{{font-size:12.5px;font-weight:600}}
+.gt-sub{{font-size:10.5px;color:var(--muted,#8A857E);margin-top:2px}}
+.gt-track{{flex:1;position:relative;height:16px;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(100%/14 - 1px),var(--line,#333) calc(100%/14 - 1px),var(--line,#333) calc(100%/14))}}
+.gt-bar{{position:absolute;top:2px;height:12px;border-radius:6px;opacity:.85;min-width:6px}}
+.gt-nodate{{font-size:10px;color:var(--muted,#8A857E);opacity:.6;line-height:16px;padding-left:6px}}
+.gt-today{{position:absolute;top:0;bottom:0;width:2px;background:var(--red,#E17055);opacity:.55;pointer-events:none}}
+.gt-dot{{font-size:9.5px;font-weight:700;margin-left:5px;padding:1px 5px;border-radius:4px}}
+.gt-dec{{color:#fff;background:var(--red,#E17055)}}
+.gt-itv{{color:#1A1A1A;background:var(--amber,#D9A34B)}}
+.gt-risk{{color:var(--red,#E17055);border:1px solid var(--red,#E17055)}}
+.gt-late{{color:var(--amber,#D9A34B);border:1px solid var(--amber,#D9A34B)}}
+</style>
+<div class="gt-wrap">
+<div class="gt-filters">
+  <button class="gt-f" data-k="late" data-v="1">지연만</button>
+  <button class="gt-f" data-k="dec" data-v="1">결정·개입만</button>
+  {pm_chips}{tm_chips}
+  <span style="font-size:10px;color:var(--muted,#8A857E);margin-left:auto">이번주+다음주 · {_esc(w["range"])}부터 14일 · ◆결정 ▲개입 ●리스크</span>
+</div>
+<div class="gt-head">{"".join(cells)}</div>
+<div class="gt-body" style="position:relative">{today_line}{"".join(body)}</div>
+</div>
+<script>
+(function(){{
+  var fs=document.querySelectorAll('.gt-f'), act={{}};
+  function apply(){{
+    document.querySelectorAll('.gt-row').forEach(function(r){{
+      var show=true;
+      if(act.pm && r.getAttribute('data-pm')!==act.pm) show=false;
+      if(act.team && (','+r.getAttribute('data-teams')+',').indexOf(','+act.team+',')<0) show=false;
+      if(act.late && r.getAttribute('data-late')!=='1') show=false;
+      if(act.dec && r.getAttribute('data-dec')!=='1') show=false;
+      r.classList.toggle('gt-hide', !show);
+    }});
+  }}
+  fs.forEach(function(b){{
+    b.onclick=function(){{
+      var k=b.getAttribute('data-k'), v=b.getAttribute('data-v');
+      if(act[k]===v){{ delete act[k]; b.classList.remove('on'); }}
+      else {{
+        act[k]=v;
+        fs.forEach(function(x){{ if(x.getAttribute('data-k')===k) x.classList.toggle('on', x===b); }});
+      }}
+      apply();
+    }};
+  }});
+}})();
+</script>'''
+
+
 def build_dashboard_data(week_start: date, week_end: date) -> dict:
     daily = fetch_daily()
     basket = fetch_basket()
@@ -533,6 +725,7 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
                     "open_decisions": total_decisions},
         "teams": teams, "persons": persons,
         "assignments": assignments,
+        "gantt": build_gantt_rows(week_start, assignments),  # R4 4차 — 주간 프로젝트 간트
         "unmatched_names": unmatched,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
@@ -545,6 +738,7 @@ def slice_team_data(data: dict, team: str) -> dict:
     d["teams"] = [t for t in data["teams"] if t["team"] == team]
     d["persons"] = [p for p in data["persons"] if p["team"] == team]
     d["assignments"] = [a for a in data.get("assignments", []) if a.get("team") == team]
+    d["gantt"] = [g for g in data.get("gantt", []) if team in (g.get("teams") or [])]  # R4 4차
     d["unmatched_names"] = []  # 팀 스코프 — 미매칭 경고 생략
     persons = d["persons"]
     team_obj = d["teams"][0] if d["teams"] else None
@@ -780,6 +974,7 @@ body.is-admin .growth{{display:block}}
   <div class="stat"><b>{s["active_people"]}</b><small>활성 인원</small></div>
   <div class="stat"><b>{s["open_decisions"]}</b><small>미해결 의사결정</small></div>
 </div>
+{_gantt_section(data)}
 <h2 class="sec">파트별</h2><div class="grid">{"".join(team_cards)}</div>
 <h2 class="sec">개인별</h2><div class="grid">{"".join(person_cards)}</div>
 <footer>Generated by weekly-report-aggregate.py · {_esc(data["generated_at"])} · by Project Rent</footer>
