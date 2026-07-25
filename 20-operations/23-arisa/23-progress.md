@@ -690,3 +690,10 @@ engine_d에 실제와 유사한 보고 블록 3건(결정+승인권자 명시·�
 - 배포 전 해시 대조: 맥미니의 dashboard-server.py·shared 5종·approval-rules.json은 로컬 HEAD와 **이미 일치**(R4 1~3차 기배포 확인), aggregate 2종만 HEAD 베이스와 일치 → 깨끗한 배포 조건
 - 표준 패턴 수행: /tmp 백업(*.bak-r4-4) → scp 2파일 → py_compile OK → 해시 일치(94959fdc·8c8fd25f) → dashboard kickstart(신규 PID 86744, _DBA 런타임 import 캐시 갱신 목적) → 8780 200 + arisa-os.com 200
 - 실전 관찰 대기: 내일 아침 브리프의 project_cards 생성·exec-attn 소비, 월 08:30 주간 리포트 간트 렌더
+
+## 2026-07-26 — R4 5차 배포: HR 포털 다크 변환 fly.io 프로덕션 반영 (대표 승인)
+
+- 맥미니 hr-workspace 커밋 `ecc7637`(템플릿 6종만 — .hr-service-token·완료계약아카이브(PII)·hr-contract-archive.py는 untracked로 제외, 커밋 금지 유지)
+- flyctl deploy(rent-hr-portal) → 머신 683557df405178 헬스·스모크 통과, DNS 검증 OK
+- 프로덕션 검증: `/` 200, `/v1`(templates/portal.html 직서빙) 신 토큰 #6C5CE7·#202020만 검출, 구 #6666FF 0건. 참고: `/`는 portal-v2/index.html(별도 UI)이라 이번 변환 스코프 밖
+- **R4 1~5차 전체 종결** — 잔여는 실전 관찰(브리프 project_cards·월 간트)뿐
