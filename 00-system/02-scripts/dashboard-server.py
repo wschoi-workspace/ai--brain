@@ -1945,7 +1945,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
               if(d.recommendation) sub+='<br>추천안: '+esc(d.recommendation);
               if(d.deadline) sub+=' · 기한 '+esc(d.deadline);
               if(d.delay_impact) sub+='<br>지연 시: '+esc(d.delay_impact);
-              if(d.recommender||d.decider){ var rp=[]; if(d.recommender)rp.push('추천 '+esc(d.recommender)); if(d.decider)rp.push('결정 '+esc(d.decider)); sub+='<br>결정권한: '+rp.join(' → '); }
+              if(d.recommender||d.decider){ var rp=[]; if(d.recommender)rp.push('추천 '+esc(d.recommender)); if(d.decider)rp.push('결정 '+esc(d.decider)+(d.decider_is_pm?'(PM)':'')); sub+='<br>결정권한: '+rp.join(' → '); }
               h+='<div class="mw-card ex-red"><div class="t">'+eb+esc(d.title)+act+'</div><div class="m">'+sub+'</div></div>';
             });
           });
@@ -4516,6 +4516,10 @@ class H(BaseHTTPRequestHandler):
                 if pname:
                     d["pname"] = pname
                     dec_by_proj[pname] = dec_by_proj.get(pname, 0) + 1
+                # 결정권한 폴백 — 결정권자 미상이면 프로젝트 PM에게 (지어낸 게 아님을 (PM)로 표시)
+                if not (d.get("decider") or "").strip() and pm:
+                    d["decider"] = pm
+                    d["decider_is_pm"] = True
                 if d.get("dtype") in _ESCALATED_TYPES:
                     d["esc"] = _ESCALATE_LABEL.get(d["dtype"], "에스컬레이션")
                     decisions.append(d)
