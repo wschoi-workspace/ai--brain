@@ -62,10 +62,15 @@ except Exception:
     _asgws = None
 try:
     from shared.decision import load_open_decisions as _load_open_decisions
+    from shared.decision import save_decision_log as _save_decision_log
+    from shared.decision import close_decision as _close_decision
 except Exception:
     _load_open_decisions = None
+    _save_decision_log = None
+    _close_decision = None
 from shared import status as _ST  # 상태·우선순위 단일출처 (G2) — 배포 시 shared/status.py 동반 필수
 from shared import naming as _NM  # 프로젝트 네이밍 규칙 (P2) — 배포 시 shared/naming.py 동반 필수
+from shared import approval as _AP  # 승인 체인·권한 (R4 2차) — 배포 시 shared/approval.py 동반 필수
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
     from shared.status_log import load_history as _load_st_history  # 이력 조회 (G7)
@@ -1872,6 +1877,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       h+='</div>'; box.innerHTML=h;
       mwBindParse();
       mwBindStatus(box);
+      mwBindChain(box);
       mwBindBulk(box);
       mwBindSelfAssign(box);
       mwBindEdit(box);
@@ -1882,7 +1888,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           var n=ch.getAttribute('data-name');
           var list=document.getElementById('lh-todo-list'); if(!list) return;
           list.innerHTML=mwAssignListHtml(n?teamTodo.filter(function(a){return (a.assignee||'미지정')===n;}):teamTodo, true);
-          mwBindStatus(list); mwBindBulk(box); mwBindEdit(list); mwBindInline(list);
+          mwBindStatus(list); mwBindChain(list); mwBindBulk(box); mwBindEdit(list); mwBindInline(list);
         };
       });
       box.querySelectorAll('.lh-proj').forEach(function(el){ el.onclick=function(){ showTab('projects'); }; });
@@ -1912,13 +1918,41 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       if(SESS.admin){ h+='<div class="mw-quick"><a class="mw-link" href="https://rent-hr-portal.fly.dev/" target="_blank" rel="noopener">🏢 HR 포털 바로가기 ↗</a><a class="mw-link" href="https://rent-hr-portal.fly.dev/onboard/admin/v2" target="_blank" rel="noopener">🧾 입퇴사 온보딩 ↗</a></div>'; }  // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크), 온보딩=입퇴사 자동화 대시보드 v2
       if(ex && ex.ok){
         var D=ex.decisions||[], O=ex.overdue||[];
+        // R4 2차 — 이번 주 중요 프로젝트 써머리 (개별 나열 대신 프로젝트 단위 보고)
+        var PS=ex.project_summary||[];
+        if(PS.length){
+          h+='<div class="mw-h">📌 이번 주 중요 프로젝트 <span class="sub2">보고·분장 활동 상위 '+PS.length+'개 — 프로젝트 단위 써머리</span></div>';
+          PS.forEach(function(s){
+            var chips='';
+            if(s.decisions) chips+='<span class="mw-badge mw-urgent">결정 '+s.decisions+'</span> ';
+            if(s.overdue) chips+='<span class="mw-badge" style="background:var(--amber,#D9A34B);color:#1A1A1A">지연 '+s.overdue+'</span> ';
+            if(s.awaiting) chips+='<span class="st-wait">승인 대기 '+s.awaiting+'</span> ';
+            var pr=s.task_total?(' · 진행 '+s.percent+'%'):'';
+            h+='<div class="mw-card"><div class="t">'+esc(s.name)+' '+chips+'</div>'
+              +'<div class="m">PM '+esc(s.pm||'미지정')+' · 이번주 활동 '+s.week+'건 · 완료 '+s.done
+              +pr+(s.dday?(' · D-day '+esc(s.dday)):'')+(s.status?(' · '+esc(s.status)):'')+'</div></div>';
+          });
+        }
         if(D.length){
-          h+='<div class="mw-h">🧾 결재·확인 필요 <span class="sub2">'+D.length+'건 — 미해결 결정·승인 요청</span></div>';
+          h+='<div class="mw-h">🧾 결재·확인 필요 <span class="sub2">'+D.length+'건 — 에스컬레이션·PM 미지정 결정만 (나머지는 PM에게 라우팅)</span></div>';
           D.forEach(function(d){
             var age=d.age>0?(' · '+d.age+'일 경과'):'';
             var pj=d.project?(' · '+esc(d.project)):'';
-            h+='<div class="mw-card ex-red"><div class="t">'+esc(d.title)+'</div><div class="m">'+esc(d.who||'')+pj+age+'</div></div>';
+            var eb=d.esc?('<span class="mw-badge mw-urgent">▲ '+esc(d.esc)+'</span> '):'';
+            var act=d.logged_at?('<a class="dc-act" data-la="'+esc(d.logged_at)+'" data-action="resolve">✓ 결정 입력</a>'):'';
+            h+='<div class="mw-card ex-red"><div class="t">'+eb+esc(d.title)+act+'</div><div class="m">'+esc(d.who||'')+pj+age+'</div></div>';
           });
+        }
+        var PR=ex.pm_routed||[], SG=ex.staged||{};
+        var sgTot=(SG['파트리더']||0)+(SG['PM']||0);
+        if(PR.length||sgTot){
+          var byPm={}; PR.forEach(function(x){ byPm[x.pm]=(byPm[x.pm]||0)+1; });
+          var pmTxt=Object.keys(byPm).map(function(k){ return esc(k)+' '+byPm[k]; }).join(' · ');
+          h+='<div class="mw-card" style="opacity:.75"><div class="t">🔀 단계 처리 중 — 대표 확인 불필요</div><div class="m">'
+            +(PR.length?('결정 PM 검토 '+PR.length+'건 ('+pmTxt+')'):'')
+            +(PR.length&&sgTot?' · ':'')
+            +(sgTot?('승인 대기: 리더 검토 '+(SG['파트리더']||0)+'건 · PM 클리어 '+(SG['PM']||0)+'건'):'')
+            +'</div></div>';
         }
         if(O.length){
           h+='<div class="mw-h">⏰ 지연 업무 <span class="sub2">'+O.length+'건 — 마감 경과·미완료 분장</span></div>';
@@ -1932,6 +1966,23 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         h+=mwUnassignedHtml(ex.unassigned||[]);   // A2 — 담당 미지정 배정 큐 (대표: 리더급에게 배정)
         h+=mwApprovalsHtml(ex.approvals||[]);
         if(!D.length && !O.length && !(ex.approvals||[]).length && !(ex.unassigned||[]).length){ h+='<div class="mw-h">✅ 지연·결재·승인 대기 없음</div>'; }
+      }
+      // R4 2차 — PM 클리어 큐: 내가 PM인 프로젝트의 승인 대기 분장 + 라우팅된 결정
+      var PQ=mw.pm_queue||[], PD=mw.pm_decisions||[];
+      if(PQ.length||PD.length){
+        h+='<div class="mw-h">🧭 PM 클리어 <span class="sub2">내 프로젝트 '+(PQ.length+PD.length)+'건 — 정리 후 필요한 것만 대표에게</span></div>';
+        PD.forEach(function(d){
+          var age=d.age>0?(' · '+d.age+'일 경과'):'';
+          h+='<div class="mw-card ex-red"><div class="t">'+esc(d.title)
+            +'<a class="dc-act" data-la="'+esc(d.logged_at)+'" data-action="resolve">✓ 결정</a>'
+            +'<a class="dc-act" data-la="'+esc(d.logged_at)+'" data-action="escalate">▲ 대표</a>'
+            +'</div><div class="m">'+esc(d.who||'')+(d.project?(' · '+esc(d.project)):'')+age+'</div></div>';
+        });
+        PQ.forEach(function(a){
+          var pj=a.pname||a.project||'';
+          h+='<div class="mw-card"><div class="t"><span class="st-wait">승인대기</span> '+esc(a.task)+mwChainBtns(a)
+            +'</div><div class="m">'+(pj?(esc(pj)+' · '):'')+esc(a.assignee||'미지정')+(a.deadline?(' · 마감 '+esc(a.deadline)):'')+'</div></div>';
+        });
       }
       if(ac.canAssign){ h+=mwAssignHtml(ac.level||'담당자'); }
       h+=mwDailyFocusHtml(mw.daily);
@@ -1954,6 +2005,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       h+='</div>'; box.innerHTML=h;
       mwBindParse();
       mwBindStatus(box);
+      mwBindChain(box);
       mwBindBulk(box);
       mwBindSelfAssign(box);
       mwBindEdit(box);
@@ -2352,17 +2404,97 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       };
     });
   }
+  // ── R4 2차: 승인 체인 버튼 (검토 통과·반려·PM 클리어·에스컬레이션) ──
+  function mwRvBtn(a, action, label){
+    return '<a class="rv-act" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')
+      +'" data-action="'+action+'">'+label+'</a>';
+  }
+  function mwPcBtn(a, choice, label){
+    return '<a class="pc-act" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')
+      +'" data-choice="'+choice+'">'+label+'</a>';
+  }
+  function mwChainBtns(a){
+    // 완료 = 파트리더 검토 차례 → 검토 통과(서버가 PM 유무로 승인대기/전결 판단) · 반려
+    // 승인대기 = PM 클리어 차례 → 정상완료·수정·지연·패스·대표 3종
+    if((a.status||'')==='승인대기'){
+      return mwPcBtn(a,'정상완료','✓ 정상완료')+mwPcBtn(a,'수정필요','↩ 수정')+mwPcBtn(a,'지연','⏱ 지연')
+        +mwPcBtn(a,'패스','⏭ 패스')+mwPcBtn(a,'▲','▲ 대표');
+    }
+    return mwRvBtn(a,'pass','✓ 검토 통과')+mwRvBtn(a,'return','↩ 반려');
+  }
   function mwApprovalsHtml(AP){
     if(!AP||!AP.length) return '';
-    var h='<div class="mw-h">✅ 완료 승인 대기 <span class="sub2">'+AP.length+'건 — 승인 시 프로젝트 포트폴리오에 완료 기록</span></div>';
+    var h='<div class="mw-h">✅ 완료 승인 대기 <span class="sub2">'+AP.length+'건 — 검토 통과 시 PM 클리어로, PM 없으면 승인 확정</span></div>';
     AP.forEach(function(a){
       var pj=a.project?(esc(a.project)+' · '):'';
       var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
-      h+='<div class="mw-card"><div class="t">'+esc(a.task)
-        +mwStBtn(a,'승인','✓ 승인')+mwStBtn(a,'진행중','↩ 반려')+mwStBtn(a,'삭제','🗑')+mwChk(a)
+      var st=(a.status||'')==='승인대기'?'<span class="st-wait">PM 클리어</span> ':'';
+      h+='<div class="mw-card"><div class="t">'+st+esc(a.task)
+        +mwChainBtns(a)+mwStBtn(a,'삭제','🗑')+mwChk(a)
         +'</div><div class="m">'+pj+esc(a.assignee||'미지정')+dl+'</div></div>';
     });
     return h;
+  }
+  var _ESC_PICK={'1':'대표보고필요','2':'대표결정필요','3':'대표지원필요'};
+  function mwBindChain(scope){
+    scope.querySelectorAll('.rv-act').forEach(function(el){
+      el.onclick=function(){
+        var action=el.getAttribute('data-action');
+        var payload={user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
+          task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),action:action};
+        if(action==='return'){ var c=prompt('반려 사유를 입력하세요 (담당자에게 전달됩니다)'); if(!c) return; payload.comment=c; }
+        else if(!confirm('검토 통과 처리할까요?\\nPM이 지정된 프로젝트면 PM 클리어 대기로, 아니면 승인 확정됩니다.')) return;
+        el.textContent='…';
+        fetch('/api/assign-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(function(r){return r.json();}).then(function(d){
+          if(!d.ok) alert(d.error||'처리 실패');
+          else if(d.status==='승인대기') alert('✅ 검토 통과 — PM '+(d.next||'')+' 클리어 대기로 넘어갔습니다.'+(d.notified?' (알림 발송)':''));
+          renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    });
+    scope.querySelectorAll('.pc-act').forEach(function(el){
+      el.onclick=function(){
+        var choice=el.getAttribute('data-choice'), comment='';
+        if(choice==='▲'){
+          var k=prompt('대표 에스컬레이션 유형을 선택하세요:\\n1 = 대표 보고 필요\\n2 = 대표 결정 필요\\n3 = 대표 지원 필요');
+          choice=_ESC_PICK[(k||'').trim()]; if(!choice) return;
+          comment=prompt('대표에게 전달할 메모 (선택)')||'';
+        } else if(choice==='정상완료'){
+          if(!confirm('정상 완료로 승인할까요?\\n대표 화면에는 올라가지 않고 프로젝트 로그·포트폴리오에 기록됩니다.')) return;
+        } else {
+          comment=prompt(choice+' 사유를 입력하세요'); if(!comment) return;
+        }
+        el.textContent='…';
+        fetch('/api/pm-clear',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
+            task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),choice:choice,comment:comment})})
+        .then(function(r){return r.json();}).then(function(d){
+          if(!d.ok) alert(d.error||'처리 실패');
+          else if(d.escalated) alert('▲ 대표에게 에스컬레이션되었습니다.'+(d.notified?' (텔레그램 발송)':''));
+          renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    });
+    scope.querySelectorAll('.dc-act').forEach(function(el){
+      el.onclick=function(){
+        var action=el.getAttribute('data-action');
+        var payload={user:SESS.name,pin:SESS.pin,logged_at:el.getAttribute('data-la'),action:action};
+        if(action==='resolve'){
+          var rz=prompt('결정 내용을 입력하세요 (해결 처리되어 목록에서 사라집니다)'); if(!rz) return; payload.resolution=rz;
+        } else {
+          var k=prompt('대표 에스컬레이션 유형:\\n1 = 대표 보고 필요\\n2 = 대표 결정 필요 (기본)\\n3 = 대표 지원 필요');
+          payload.choice=_ESC_PICK[(k||'').trim()]||'대표결정필요';
+          payload.comment=prompt('PM 코멘트 (선택)')||'';
+        }
+        el.textContent='…';
+        fetch('/api/decision-clear',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(function(r){return r.json();}).then(function(d){
+          if(!d.ok) alert(d.error||'처리 실패');
+          renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    });
   }
   function mwAssignCard(a, withAssignee){
     var st=a.status||'미착수';
@@ -2374,6 +2506,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     var canDel = SESS.admin || (SESS.lead_teams||[]).length;
     if(!withAssignee && a.row){
       if(st==='완료'){ act='<span class="st-wait">⏳ 승인 대기</span>'+mwStBtn(a,'진행중','↩ 되돌리기'); }
+      else if(st==='승인대기'){ act='<span class="st-wait">⏳ PM 클리어 대기</span>'; }
       else{
         if(st==='미착수') act+=mwStBtn(a,'진행중','▶ 진행');
         act+=mwStBtn(a,'완료','✓ 완료');
@@ -2391,7 +2524,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     (A||[]).forEach(function(a){
       var key=[(a.project||''),(a.task||''),(a.assignee||''),(a.deadline||''),(a.status||'')].join('|');
       if(seen[key]) return; seen[key]=1;
-      if((a.status||'')==='완료'){ done.push(a); return; }
+      if((a.status||'')==='완료'||(a.status||'')==='승인대기'){ done.push(a); return; }
       var p=(a.project||'').trim()||'기타';
       if(!(p in groups)){ groups[p]=[]; order.push(p); }
       groups[p].push(a);
@@ -2993,6 +3126,68 @@ def _can_approve(uid, assignee):
     if is_admin(uid):
         return True
     return is_leader(uid) and emp_team(assignee) in set(lead_teams_of(uid))
+
+
+# ── R4 2차: 승인 체인 (담당자→파트리더→PM→대표) + 결정 PM 라우팅 ──────
+
+_ESCALATED_TYPES = ("pm-report", "pm-decision", "pm-intervention")
+_ESCALATE_LABEL = {"pm-report": "대표 보고", "pm-decision": "대표 결정 필요", "pm-intervention": "대표 지원 필요"}
+
+
+def _resolve_project_cached(assign, projs):
+    """분장 → 프로젝트 dict (사전 로드된 projs 사용 — 루프 내 반복 호출용).
+    pid 우선(병합 mergedInto 추적), 없으면 이름·별칭 매칭."""
+    pid = (assign.get("pid") or "").strip()
+    if pid:
+        p = next((x for x in projs if (x.get("id") or "") == pid), None)
+        if p and p.get("mergedInto"):
+            p = next((x for x in projs if (x.get("id") or "") == p["mergedInto"]), p)
+        if p:
+            return p
+    pn = (assign.get("project") or "").strip()
+    if not pn:
+        return None
+    return next((x for x in projs if not x.get("archived") and _match_project_p(pn, x)), None)
+
+
+def _can_clear_assign(uid, assign):
+    """검토 통과·PM 클리어·최종 승인 권한 — 파트리더·PM·대표 (프로젝트 맥락 포함)."""
+    p = _find_project_for_assign(assign)
+    return _AP.can_clear(uid, assign.get("assignee") or "", p, load_emp(),
+                         admin=is_admin(uid), lead_teams=lead_teams_of(uid))
+
+
+def _decision_pm(d, projs=None):
+    """결정 항목 → 담당 PM 라우팅. (pm, 프로젝트 정식명). 매칭 실패 시 ("","").
+    실무자 판단 요청이 대표에게 직행하지 않고 프로젝트 PM에게 먼저 가는 관문."""
+    pn = (d.get("project") or "").strip()
+    if not pn:
+        return "", ""
+    try:
+        projs = projs if projs is not None else load_projects()
+        p = next((x for x in projs if not x.get("archived") and _match_project_p(pn, x)), None)
+    except Exception:
+        p = None
+    if not p:
+        return "", ""
+    return (p.get("pm") or "").strip(), (p.get("name") or "")
+
+
+def _notify_admins(msg):
+    """대표(admin) 전원에게 텔레그램 발송. 성공 수 반환."""
+    sent = 0
+    for n, u in (load_users() or {}).items():
+        if u.get("role") in ("대표", "admin"):
+            cid = _tg_chat_id(n)
+            if cid and _tg_send(cid, msg):
+                sent += 1
+    return sent
+
+
+def _notify_person(name, msg):
+    """특정 직원에게 텔레그램 발송 — 채팅 미연결이면 0."""
+    cid = _tg_chat_id(name)
+    return 1 if (cid and _tg_send(cid, msg)) else 0
 
 
 def _record_done_task(assign, approver):
@@ -4088,22 +4283,75 @@ class H(BaseHTTPRequestHandler):
                                   "tasks": [{"task": t.get("task"), "start": t.get("start"), "end": t.get("end"),
                                              "status": t.get("status"), "priority": t.get("priority"),
                                              "division": t.get("division")} for t in ts]})
+            # R4 2차 — PM 큐: 내가 PM인 프로젝트의 승인 대기 분장 + PM 라우팅된 결정
+            pm_queue, pm_decisions = [], []
+            all_projs = load_projects()
+            if any((p.get("pm") or "") == uid and not p.get("archived") for p in all_projs):
+                emp = load_emp()
+                for a in _assign_read():
+                    st = (a.get("status") or "")
+                    if st not in _ST.ASSIGN_AWAITING_APPROVAL_STATES:
+                        continue
+                    p = _resolve_project_cached(a, all_projs)
+                    lvl, person = _AP.next_step(st, a.get("assignee") or "", p, emp)
+                    if lvl == "PM" and person == uid:
+                        a["pname"] = (p or {}).get("name") or a.get("project") or ""
+                        pm_queue.append(a)
+                if _load_open_decisions:
+                    try:
+                        for d in _load_open_decisions(14):
+                            if (d.get("decision_type") or "") in _ESCALATED_TYPES:
+                                continue  # 이미 대표 에스컬레이션됨
+                            pm, pname = _decision_pm(d, all_projs)
+                            if pm == uid:
+                                pm_decisions.append({"title": d.get("decision_needed") or "",
+                                                     "who": d.get("source_employee") or "",
+                                                     "project": pname or d.get("project") or "",
+                                                     "age": d.get("age_days", 0),
+                                                     "logged_at": d.get("logged_at") or ""})
+                    except Exception:
+                        pass
             return self._send(200, {"ok": True, "user": uid, "assignments": mine, "projects": projs,
+                                    "pm_queue": pm_queue, "pm_decisions": pm_decisions,
                                     "daily": _person_workbrief(uid, mine)})
         if path == "/api/exec-attn":
-            # 대표창 — 지연 업무(마감 경과·미완료 분장) + 결재·확인 필요(미해결 결정)
+            # 대표창 (R4 2차) — 대표 차례인 것만 노출: 결정은 PM 라우팅 후 잔여·에스컬레이션,
+            # 승인은 다음 단계가 대표인 건만. 리더·PM 처리 중 건수는 요약으로만 표시.
             uid = (q.get("user") or [""])[0]
             if not is_admin(uid):
                 return self._send(403, {"ok": False, "error": "대표 전용"})
             today = datetime.date.today()
             reg_cut = today - datetime.timedelta(days=30)
+            wk_start = today - datetime.timedelta(days=today.weekday())
+            all_projs = load_projects()
+            emp = load_emp()
             overdue, seen = [], set()
-            approvals = []
+            approvals, staged = [], {"파트리더": 0, "PM": 0}
             unassigned, useen = [], set()  # filament 반영 — 담당 미지정 배정 큐
+            act = {}  # pid → 프로젝트 주간 활동 집계 (써머리용)
             for a in _assign_read():
                 st = (a.get("status") or "미착수")
+                p = _resolve_project_cached(a, all_projs)
+                if p and st not in _ST.ASSIGN_DROPPED_STATES:
+                    e = act.setdefault(p.get("id") or p.get("name"), {"p": p, "week": 0, "done": 0,
+                                                                      "overdue": 0, "awaiting": 0})
+                    ds = (a.get("date") or "").strip()[:10]
+                    if ds >= wk_start.isoformat():
+                        e["week"] += 1
+                    if _ST.is_assign_done(st):
+                        e["done"] += 1
+                    if a.get("days_overdue"):
+                        e["overdue"] += 1
+                    if st in _ST.ASSIGN_AWAITING_APPROVAL_STATES:
+                        e["awaiting"] += 1
                 if st in _ST.ASSIGN_AWAITING_APPROVAL_STATES:
-                    approvals.append(a)   # 승인 대기 큐 (대표 승인용)
+                    # 승인 체인 — 다음 처리자가 대표인 건만 대표 큐에, 나머지는 단계 집계
+                    lvl, person = _AP.next_step(st, a.get("assignee") or "", p, emp)
+                    if lvl == "대표" or person == uid:
+                        a["await"] = lvl
+                        approvals.append(a)
+                    elif lvl in staged:
+                        staged[lvl] += 1
                 if st in _ST.ASSIGN_CLOSED_STATES:
                     continue
                 ds = (a.get("date") or "").strip()[:10]
@@ -4126,17 +4374,20 @@ class H(BaseHTTPRequestHandler):
                 seen.add(key)
                 overdue.append(a)
             overdue.sort(key=lambda x: -x["days_overdue"])
-            # 결재·확인 필요 — 미해결 결정 이월 로그 + 최신 브리프 decision_summary 병합
-            decisions, titles = [], set()
+            # 결재·확인 필요 — 미해결 결정 이월 + 브리프 decision_summary 병합 후 PM 라우팅:
+            # 프로젝트 PM이 있으면 PM 큐로(대표 미노출), 에스컬레이션·PM 부재만 대표에게.
+            raw_dec, titles = [], set()
             if _load_open_decisions:
                 try:
                     for d in _load_open_decisions(14):
                         t = (d.get("decision_needed") or "").strip()
                         if t and t not in titles:
                             titles.add(t)
-                            decisions.append({"title": t, "who": d.get("source_employee") or "",
-                                              "project": d.get("project") or "",
-                                              "age": d.get("age_days", 0)})
+                            raw_dec.append({"title": t, "who": d.get("source_employee") or "",
+                                            "project": d.get("project") or "",
+                                            "age": d.get("age_days", 0),
+                                            "dtype": d.get("decision_type") or "",
+                                            "logged_at": d.get("logged_at") or ""})
                 except Exception:
                     pass
             try:
@@ -4150,11 +4401,42 @@ class H(BaseHTTPRequestHandler):
                             titles.add(t)
                             proj = (it.get("project") or "")
                             proj = "" if str(proj).lower() in ("none", "null") else proj
-                            decisions.append({"title": t, "who": it.get("source_employee") or "",
-                                              "project": proj, "age": 0})
+                            raw_dec.append({"title": t, "who": it.get("source_employee") or "",
+                                            "project": proj, "age": 0, "dtype": "", "logged_at": ""})
             except Exception:
                 pass
+            decisions, pm_routed = [], []
+            dec_by_proj = {}
+            for d in raw_dec:
+                pm, pname = _decision_pm(d, all_projs)
+                if pname:
+                    dec_by_proj[pname] = dec_by_proj.get(pname, 0) + 1
+                if d.get("dtype") in _ESCALATED_TYPES:
+                    d["esc"] = _ESCALATE_LABEL.get(d["dtype"], "에스컬레이션")
+                    decisions.append(d)
+                elif pm and pm != uid:
+                    pm_routed.append({"pm": pm, "title": d["title"], "project": pname or d.get("project") or ""})
+                else:
+                    decisions.append(d)
+            # 프로젝트 써머리 — 이번 주 보고·분장 활동 상위 3~4개만 대표에게 (개별 나열 대신)
+            summary = []
+            for e in act.values():
+                if not e["week"]:
+                    continue
+                p = e["p"]
+                ru = _ST.task_rollup(p.get("tasks"))
+                brief = p.get("brief") or {}
+                summary.append({"id": p.get("id"), "name": p.get("name"), "pm": p.get("pm") or "",
+                                "status": brief.get("status") or "", "dday": p.get("dday") or "",
+                                "week": e["week"], "done": e["done"], "overdue": e["overdue"],
+                                "awaiting": e["awaiting"],
+                                "decisions": dec_by_proj.get(p.get("name") or "", 0),
+                                "percent": ru["percent"], "task_total": ru["total"]})
+            summary.sort(key=lambda s: (-s["week"], -s["overdue"]))
+            summary = summary[:4]
             return self._send(200, {"ok": True, "overdue": overdue, "decisions": decisions,
+                                    "pm_routed": pm_routed, "staged": staged,
+                                    "project_summary": summary,
                                     "approvals": approvals, "unassigned": unassigned})
         if path == "/api/lead-home":
             # 리더 홈 — 팀 Todo(이번주 분장) + 진행중 프로젝트 + 팀원 오늘 보고 카드(HTML fragment)
@@ -4771,17 +5053,19 @@ class H(BaseHTTPRequestHandler):
             if not task or task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
                 return self._send(409, {"ok": False, "error": "행 내용이 달라졌습니다 — 새로고침 후 다시 시도"})
             reason = (b.get("reason") or "").strip()
+            _asg_ctx = {"assignee": assignee, "project": (r[1] or "").strip(), "pid": (r[10] or "").strip()}
             if new_st == "승인":
-                if not _can_approve(uid, assignee):
-                    return self._send(403, {"ok": False, "error": "승인 권한 없음(대표·해당 팀 리더)"})
+                # R4 2차 — 프로젝트 PM도 승인 가능 (담당자→파트리더→PM→대표 체인)
+                if not _can_clear_assign(uid, _asg_ctx):
+                    return self._send(403, {"ok": False, "error": "승인 권한 없음(대표·해당 팀 리더·담당 PM)"})
             elif new_st == "삭제":
                 # 대표·해당 팀 리더 + 본인(잘못 등록 정리) — 본인 삭제는 아래에서 리더·대표에 알림
                 if not (_can_approve(uid, assignee) or assignee == uid):
                     return self._send(403, {"ok": False, "error": "삭제 권한 없음(대표·팀 리더·본인)"})
             elif new_st in _ST.ASSIGN_TERMINAL_STATES:
-                # R4 개편 1차 — 완료 없는 종료(패스·취소 등)는 리더·대표 확정 + 사유 필수
-                if not _can_approve(uid, assignee):
-                    return self._send(403, {"ok": False, "error": "종료 처리 권한 없음(대표·해당 팀 리더)"})
+                # R4 개편 1차 — 완료 없는 종료(패스·취소 등)는 리더·PM·대표 확정 + 사유 필수
+                if not _can_clear_assign(uid, _asg_ctx):
+                    return self._send(403, {"ok": False, "error": "종료 처리 권한 없음(대표·해당 팀 리더·담당 PM)"})
                 if not reason:
                     return self._send(400, {"ok": False, "error": "종료 사유(reason)를 입력해주세요"})
             elif not (assignee == uid or _can_approve(uid, assignee)):
@@ -4814,6 +5098,142 @@ class H(BaseHTTPRequestHandler):
                                                        f"아리사 OS 내 업무 '완료 승인 대기'에서 승인해주세요.")
             return self._send(200, {"ok": True, "status": new_st, "portfolio_recorded": recorded,
                                     "notified": notified})
+        if path in ("/api/assign-review", "/api/pm-clear"):
+            # R4 2차 — 승인 체인. assign-review: 파트리더 검토(통과→승인대기/PM 부재 시 전결 승인,
+            # 반려→진행중). pm-clear: PM 클리어 7선택지(정상완료·수정필요·지연·패스·대표 3종).
+            if not (_asgws and DAILY_SHEET):
+                return self._send(500, {"ok": False, "error": "시트 미설정"})
+            try:
+                row = int(b.get("row") or 0)
+            except (TypeError, ValueError):
+                row = 0
+            if row < 2:
+                return self._send(400, {"ok": False, "error": "row 확인"})
+            try:
+                cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:K{row}", retries=2, timeout=20)
+            except Exception:
+                cur = []
+            r = (list(cur[0]) + [""] * 11)[:11] if cur else [""] * 11
+            assignee = (r[3] or "").strip()
+            task = (r[4] or "").strip()
+            if not task or task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
+                return self._send(409, {"ok": False, "error": "행 내용이 달라졌습니다 — 새로고침 후 다시 시도"})
+            cur_st = _ST.norm_assign_status(r[7])
+            assign = {"date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
+                      "assignee": assignee, "task": task, "deadline": (r[5] or "").strip(),
+                      "pid": (r[10] or "").strip(), "status": cur_st}
+            if not _can_clear_assign(uid, assign):
+                return self._send(403, {"ok": False, "error": "처리 권한 없음(파트리더·PM·대표)"})
+            comment = (b.get("comment") or "").strip()
+            proj = _find_project_for_assign(assign)
+            pname = (proj or {}).get("name") or assign["project"] or "기타"
+
+            def _set_st(new_st, reason="", approved=""):
+                try:
+                    ok2 = _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!H{row}", [[new_st]], timeout=20)
+                except Exception as e2:
+                    return str(e2)[:80]
+                if not ok2:
+                    return "시트 업데이트 실패"
+                _log_st("dashboard-" + ("review" if path.endswith("assign-review") else "pm-clear"),
+                        uid, new_st, from_status=cur_st, row=row, date=assign["date"],
+                        project=assign["project"], pid=assign["pid"], task=task,
+                        assignee=assignee, note=comment, reason=reason, approved_by=approved)
+                return ""
+
+            if path == "/api/assign-review":
+                action = (b.get("action") or "").strip()
+                if action == "return":
+                    if not comment:
+                        return self._send(400, {"ok": False, "error": "반려 사유(comment)를 입력해주세요"})
+                    err = _set_st("진행중")
+                    if err:
+                        return self._send(500, {"ok": False, "error": err})
+                    n = _notify_person(assignee, f"↩ 반려 — {uid}\n▸ [{pname}] {task}\n사유: {comment}")
+                    return self._send(200, {"ok": True, "status": "진행중", "notified": n})
+                # 검토 통과: PM이 있으면 승인대기(PM 클리어 대기), 없거나 본인이 PM이면 전결 승인
+                pm = ((proj or {}).get("pm") or "").strip()
+                if pm and pm not in (uid, assignee):
+                    err = _set_st("승인대기", approved=uid)
+                    if err:
+                        return self._send(500, {"ok": False, "error": err})
+                    n = _notify_person(pm, f"🧾 PM 클리어 요청 — {uid} 검토 통과\n▸ [{pname}] {task} · {assignee}\n\n"
+                                           f"아리사 OS 내 업무 'PM 클리어'에서 처리해주세요.")
+                    return self._send(200, {"ok": True, "status": "승인대기", "next": pm, "notified": n})
+                err = _set_st("승인", approved=uid)
+                if err:
+                    return self._send(500, {"ok": False, "error": err})
+                _record_done_task(assign, uid)
+                return self._send(200, {"ok": True, "status": "승인", "final": True})
+
+            # /api/pm-clear
+            choice = (b.get("choice") or "").strip()
+            eff = _AP.PM_CLEAR_EFFECTS.get(choice)
+            if not eff:
+                return self._send(400, {"ok": False, "error": "choice 확인 — " + "/".join(_ST.PM_CLEAR_CHOICES)})
+            if choice in ("수정필요", "지연", "패스") and not comment:
+                return self._send(400, {"ok": False, "error": f"{choice} 사유(comment)를 입력해주세요"})
+            notified = 0
+            if eff["to"]:
+                err = _set_st(eff["to"], reason=comment if choice == "패스" else "",
+                              approved=uid if eff["to"] in ("승인", "패스") else "")
+                if err:
+                    return self._send(500, {"ok": False, "error": err})
+                if eff["to"] == "승인":
+                    _record_done_task(assign, uid)
+                elif eff["to"] == "진행중":
+                    notified = _notify_person(assignee, f"↩ 수정 필요 — PM {uid}\n▸ [{pname}] {task}\n사유: {comment}")
+            else:
+                # 상태 유지 건 — 지연 관리·대표 에스컬레이션은 이력만 남기고 시트는 불변
+                _log_st("dashboard-pm-clear", uid, cur_st, from_status=cur_st, row=row,
+                        date=assign["date"], project=assign["project"], pid=assign["pid"],
+                        task=task, assignee=assignee, note=f"[{choice}] {comment}".strip())
+            if eff["escalate"] and _save_decision_log:
+                label = _ESCALATE_LABEL.get(eff["escalate"], choice)
+                _save_decision_log({"decision_needed": f"[{label}] {task}" + (f" — {comment}" if comment else ""),
+                                    "date": datetime.date.today().isoformat(), "name": uid,
+                                    "decision": {"project": pname, "decision_type": eff["escalate"],
+                                                 "urgency": eff["urgency"] or "medium"}})
+                notified = _notify_admins(f"▲ {label} — PM {uid}\n▸ [{pname}] {task} · {assignee}"
+                                          + (f"\n{comment}" if comment else ""))
+            return self._send(200, {"ok": True, "choice": choice, "status": eff["to"] or cur_st,
+                                    "escalated": bool(eff["escalate"]), "notified": notified})
+        if path == "/api/decision-clear":
+            # R4 2차 — PM 라우팅된 결정 처리: 자체 결정(resolve) 또는 대표 에스컬레이션(escalate)
+            if not (_close_decision and _load_open_decisions):
+                return self._send(500, {"ok": False, "error": "decision 모듈 미로드"})
+            logged_at = (b.get("logged_at") or "").strip()
+            action = (b.get("action") or "").strip()
+            note = (b.get("resolution") or b.get("comment") or "").strip()
+            if not logged_at or action not in ("resolve", "escalate"):
+                return self._send(400, {"ok": False, "error": "logged_at·action(resolve|escalate) 확인"})
+            entry = next((d for d in _load_open_decisions(9999) if d.get("logged_at") == logged_at), None)
+            if not entry:
+                return self._send(404, {"ok": False, "error": "미해결 결정을 찾지 못했습니다"})
+            pm, pname = _decision_pm(entry)
+            if not (is_admin(uid) or (pm and pm == uid)):
+                return self._send(403, {"ok": False, "error": "처리 권한 없음(담당 PM·대표)"})
+            title = entry.get("decision_needed") or ""
+            if action == "resolve":
+                if not note:
+                    return self._send(400, {"ok": False, "error": "결정 내용(resolution)을 입력해주세요"})
+                if not _close_decision(logged_at, note, uid):
+                    return self._send(500, {"ok": False, "error": "결정 close 실패"})
+                return self._send(200, {"ok": True, "resolved": True})
+            # escalate — 원본 close 후 에스컬레이션 타입으로 재기록 (exec-attn 대표 결정란에 노출)
+            choice = (b.get("choice") or "대표결정필요").strip()
+            etype = {"대표보고필요": "pm-report", "대표결정필요": "pm-decision",
+                     "대표지원필요": "pm-intervention"}.get(choice, "pm-decision")
+            _close_decision(logged_at, f"대표 에스컬레이션({choice})", uid)
+            if _save_decision_log:
+                _save_decision_log({"decision_needed": title + (f" — PM: {note}" if note else ""),
+                                    "date": datetime.date.today().isoformat(), "name": uid,
+                                    "decision": {"project": pname or entry.get("project") or "",
+                                                 "decision_type": etype,
+                                                 "urgency": "high" if etype != "pm-report" else "medium"}})
+            n = _notify_admins(f"▲ {_ESCALATE_LABEL.get(etype)} — PM {uid}\n▸ [{pname or entry.get('project') or '기타'}] {title}"
+                               + (f"\n{note}" if note else ""))
+            return self._send(200, {"ok": True, "escalated": True, "notified": n})
         if path == "/api/project/doc-analyze":
             # 프로젝트 자료(회의록) 업로드 + AI 브리프 갱신 제안 (diff) — PM·대표
             pid = (b.get("id") or "").strip()
