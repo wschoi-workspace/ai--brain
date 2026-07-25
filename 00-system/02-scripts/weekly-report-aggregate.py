@@ -120,6 +120,10 @@ try:
 except Exception:
     def _log_st(*a, **k):
         return False
+try:
+    from shared.decision import load_open_decisions as _load_open_decisions  # 미해결 결정 (프로젝트 써머리)
+except Exception:
+    _load_open_decisions = None
 
 
 def load_employees() -> dict:
@@ -483,6 +487,10 @@ def week_range(spec: str) -> tuple[date, date]:
         this_monday = today - timedelta(days=today.weekday())
         last_monday = this_monday - timedelta(days=7)
         return last_monday, last_monday + timedelta(days=6)
+    if spec == "this":  # 이번 주(월~일) — 토요일 마감 회고용
+        today = datetime.now().date()
+        mon = today - timedelta(days=today.weekday())
+        return mon, mon + timedelta(days=6)
     base = datetime.strptime(spec, "%Y-%m-%d").date()
     mon = base - timedelta(days=base.weekday())
     return mon, mon + timedelta(days=6)
@@ -520,6 +528,121 @@ def _latest_brief_cards() -> dict:
                 for c in bd.get("project_cards") or []}
     except Exception:
         return {}
+
+
+def _week_brief_items(week_start: date, week_end: date) -> dict:
+    """주간 daily-brief JSON에서 risk·decision 항목을 프로젝트명별로 수집(집계 시 title dedup)."""
+    out = {"risk": defaultdict(list), "decision": defaultdict(list)}
+    bdir = WORKSPACE / "20-operations" / "23-arisa" / "brief"
+    ws, we = week_start.isoformat(), week_end.isoformat()
+    try:
+        for f in bdir.glob("daily-brief-2*.json"):
+            if not re.fullmatch(r"daily-brief-\d{4}-\d{2}-\d{2}", f.stem):
+                continue
+            if not (ws <= f.stem.replace("daily-brief-", "") <= we):
+                continue
+            bd = json.loads(f.read_text(encoding="utf-8"))
+            for it in bd.get("items") or []:
+                cat = it.get("category")
+                if cat in ("risk", "decision"):
+                    out[cat][(it.get("project") or "").strip()].append(it)
+    except Exception:
+        pass
+    return out
+
+
+def _week_status_changes(week_start: date, week_end: date) -> list[dict]:
+    """주간 상태 변동(status-log jsonl) — ts가 이번 주인 것만."""
+    rows = []
+    fp = WORKSPACE / "20-operations" / "23-arisa" / "status-log" / "assign-status.jsonl"
+    ws, we = week_start.isoformat(), week_end.isoformat()
+    try:
+        for line in fp.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                e = json.loads(line)
+            except Exception:
+                continue
+            if ws <= (e.get("ts") or "")[:10] <= we:
+                rows.append(e)
+    except Exception:
+        pass
+    return rows
+
+
+def _proj_slice(by_projname: dict, p: dict) -> list[dict]:
+    """프로젝트명 키 dict에서 프로젝트 p에 별칭 매칭되는 항목만 모아 반환."""
+    out = []
+    for pn, items in by_projname.items():
+        if pn and _PMM.match_project_p(pn, p):
+            out.extend(items)
+    return out
+
+
+def aggregate_project(p: dict, assignments: list[dict], brief_items: dict,
+                      status_changes: list[dict], open_decs: list[dict],
+                      week_start: date, week_end: date) -> dict:
+    """프로젝트 1개 주간 써머리 — 금주처리/예정대비/차주예정/리스크/의사결정(RAPID)/변동."""
+    ws, we = week_start.isoformat(), week_end.isoformat()
+    nws = (week_end + timedelta(days=1)).isoformat()
+    nwe = (week_end + timedelta(days=7)).isoformat()
+    pm = (p.get("pm") or "").strip()
+    done, planned, nxt = [], [], []
+    for a in assignments or []:
+        if not _PMM.match_project_p((a.get("project") or ""), p):
+            continue
+        st = a.get("status") or ""
+        task = (a.get("task") or "").strip()
+        who = a.get("assignee") or ""
+        dl = (a.get("deadline") or "").strip()[:10]
+        adate = (a.get("date") or "").strip()[:10]
+        is_done = st in _ST.ASSIGN_DONE_STATES
+        if is_done and ((ws <= adate <= we) or (ws <= dl <= we)):
+            done.append({"task": task, "who": who})
+        if dl and ws <= dl <= we:
+            planned.append({"task": task, "who": who, "deadline": dl, "done": is_done})
+        if dl and nws <= dl <= nwe:
+            nxt.append({"task": task, "who": who, "deadline": dl})
+    risks, seenr = [], set()
+    for it in _proj_slice(brief_items.get("risk", {}), p):
+        t = (it.get("title") or "").strip()
+        if t and t not in seenr:
+            seenr.add(t)
+            risks.append({"title": t, "who": it.get("source_employee") or ""})
+    decs, seend = [], set()
+
+    def _add_dec(title, rec, dec_person, deadline):
+        title = (title or "").strip()
+        if not title or title in seend:
+            return
+        seend.add(title)
+        is_pm = not (dec_person or "").strip() and bool(pm)
+        decs.append({"title": title, "recommender": (rec or "").strip(),
+                     "decider": (dec_person or "").strip() or pm,
+                     "decider_is_pm": is_pm, "deadline": (deadline or "").strip()[:10]})
+    for it in _proj_slice(brief_items.get("decision", {}), p):
+        _add_dec(it.get("title"), it.get("recommender") or it.get("source_employee"),
+                 it.get("decider"), it.get("deadline"))
+    for d in open_decs or []:
+        if _PMM.match_project_p((d.get("project") or ""), p):
+            _add_dec(d.get("decision_needed"), d.get("source_employee"),
+                     d.get("decider"), d.get("deadline"))
+    changes = []
+    for e in status_changes or []:
+        if _PMM.match_project_p((e.get("project") or ""), p):
+            changes.append({"task": (e.get("task") or "").strip()[:44],
+                            "from": e.get("from") or "", "to": e.get("to") or "",
+                            "at": (e.get("ts") or "")[:10]})
+    changes.sort(key=lambda x: x["at"], reverse=True)
+    brief = p.get("brief") or {}
+    res = {"name": (p.get("name") or "").strip(), "pm": pm,
+           "status": (brief.get("status") or "").strip(), "dday": p.get("dday") or "",
+           "done": done, "planned": planned, "next_week": nxt,
+           "risks": risks, "decisions": decs, "changes": changes[:8]}
+    res["has_activity"] = bool(done or planned or nxt or risks or decs or changes)
+    return res
 
 
 def build_gantt_rows(week_start: date, assignments: list[dict]) -> list[dict]:
@@ -732,6 +855,17 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
             t["assignment_done"] = 0
             t["assignment_rate"] = None
 
+    # ─── 프로젝트별 주간 써머리 (금주처리/예정대비/차주/리스크/의사결정 RAPID/변동) ───
+    brief_items = _week_brief_items(week_start, week_end)
+    status_changes = _week_status_changes(week_start, week_end)
+    open_decs = _load_open_decisions(21) if _load_open_decisions else []
+    projects = []
+    for p in _project_registry():
+        ps = aggregate_project(p, assignments, brief_items, status_changes, open_decs, week_start, week_end)
+        if ps["has_activity"]:
+            projects.append(ps)
+    projects.sort(key=lambda x: (-(len(x["decisions"]) + len(x["risks"])), -len(x["done"])))
+
     return {
         "week": {"start": ws, "end": we,
                  "label": f"{week_start.isocalendar().year}년 W{week_start.isocalendar().week:02d}",
@@ -742,6 +876,7 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
         "teams": teams, "persons": persons,
         "assignments": assignments,
         "gantt": build_gantt_rows(week_start, assignments),  # R4 4차 — 주간 프로젝트 간트
+        "projects": projects,  # 프로젝트별 주간 써머리
         "unmatched_names": unmatched,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
@@ -755,6 +890,8 @@ def slice_team_data(data: dict, team: str) -> dict:
     d["persons"] = [p for p in data["persons"] if p["team"] == team]
     d["assignments"] = [a for a in data.get("assignments", []) if a.get("team") == team]
     d["gantt"] = [g for g in data.get("gantt", []) if team in (g.get("teams") or [])]  # R4 4차
+    d["projects"] = [pr for pr in data.get("projects", [])
+                     if (BY_NAME.get(pr.get("pm"), {}) or {}).get("team") == team]  # PM 소속 팀 기준
     d["unmatched_names"] = []  # 팀 스코프 — 미매칭 경고 생략
     persons = d["persons"]
     team_obj = d["teams"][0] if d["teams"] else None
@@ -833,6 +970,49 @@ def _growth_gauges(g: dict) -> str:
 
 def _chips(items, cls="chip") -> str:
     return "".join(f'<span class="{cls}">{_esc(i)}</span>' for i in items) or '<span class="muted">—</span>'
+
+
+def _project_section(data: dict) -> str:
+    """프로젝트별 주간 써머리 섹션 — 6칸(금주처리·예정대비·차주·리스크·의사결정·변동)."""
+    projs = data.get("projects") or []
+    if not projs:
+        return ""
+
+    def _lst(items, fmt, empty):
+        return "".join(fmt(x) for x in items) if items else f'<li class="pw-e">{empty}</li>'
+    cards = []
+    for p in projs:
+        done = _lst(p["done"],
+                    lambda x: f'<li>{_esc(x["task"])}<span class="pw-who">{_esc(x["who"])}</span></li>', "처리 완료 없음")
+        planned = _lst(p["planned"],
+                       lambda x: f'<li class="{"pw-ok" if x["done"] else "pw-slip"}">{"✓" if x["done"] else "○"} {_esc(x["task"])}<span class="pw-who">~{_esc(x["deadline"][5:])}</span></li>', "예정 없음")
+        nxt = _lst(p["next_week"],
+                   lambda x: f'<li>{_esc(x["task"])}<span class="pw-who">~{_esc(x["deadline"][5:])} · {_esc(x["who"])}</span></li>', "차주 예정 없음")
+        risks = _lst(p["risks"],
+                     lambda x: f'<li class="pw-risk">{_esc(x["title"])}<span class="pw-who">{_esc(x["who"])}</span></li>', "리스크 없음")
+        decs = _lst(p["decisions"],
+                    lambda x: f'<li>{_esc(x["title"])}<span class="pw-who">추천 {_esc(x["recommender"] or "—")} → 결정 {_esc(x["decider"] or "미정")}{"(PM)" if x["decider_is_pm"] else ""}{" · ~" + _esc(x["deadline"][5:]) if x.get("deadline") else ""}</span></li>', "결정 없음")
+        changes = _lst(p["changes"],
+                       lambda x: f'<li>{_esc(x["task"])}<span class="pw-who">{_esc(x["from"])}→{_esc(x["to"])} · {_esc(x["at"][5:])}</span></li>', "변동 없음")
+        meta = []
+        if p["pm"]:
+            meta.append(f'PM {_esc(p["pm"])}')
+        if p["status"]:
+            meta.append(_esc(p["status"]))
+        if p["dday"]:
+            meta.append(_esc(str(p["dday"])))
+        cards.append(f'''<div class="card pw-card">
+          <div class="card-h"><h3>{_esc(p["name"])}</h3><span class="muted">{" · ".join(meta)}</span></div>
+          <div class="pw-g">
+            <div class="pw-col"><div class="pw-hh">✅ 금주 처리</div><ul class="pw-l">{done}</ul></div>
+            <div class="pw-col"><div class="pw-hh">🎯 예정 대비</div><ul class="pw-l">{planned}</ul></div>
+            <div class="pw-col"><div class="pw-hh">➡️ 차주 예정</div><ul class="pw-l">{nxt}</ul></div>
+            <div class="pw-col"><div class="pw-hh">⚠️ 리스크</div><ul class="pw-l">{risks}</ul></div>
+            <div class="pw-col"><div class="pw-hh">⚖️ 의사결정구조</div><ul class="pw-l">{decs}</ul></div>
+            <div class="pw-col"><div class="pw-hh">🔄 주요 변동</div><ul class="pw-l">{changes}</ul></div>
+          </div>
+        </div>''')
+    return '<h2 class="sec">프로젝트별 주간 써머리</h2><div class="grid pw-grid">' + "".join(cards) + "</div>"
 
 
 def render_html(data: dict) -> str:
@@ -954,6 +1134,20 @@ letter-spacing:.08em;margin:32px 0 14px;border-bottom:1px solid var(--line);padd
 .gz-na b{{color:var(--line)}}
 .warn{{background:rgba(217,163,75,.1);border:1px solid rgba(217,163,75,.3);color:var(--amber);
 border-radius:8px;padding:10px 14px;font-size:13px;margin:16px 0}}
+.pw-grid{{grid-template-columns:1fr}}
+.pw-card{{padding:16px 18px}}
+.pw-g{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 20px;margin-top:8px}}
+.pw-col{{min-width:0}}
+.pw-hh{{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:.02em}}
+.pw-l{{list-style:none}}
+.pw-l li{{font-size:12px;padding:4px 0;border-bottom:1px solid var(--line);line-height:1.45}}
+.pw-l li:last-child{{border:0}}
+.pw-e{{color:var(--muted);font-size:11px}}
+.pw-who{{display:block;color:var(--muted);font-size:10.5px;margin-top:1px}}
+.pw-slip{{color:var(--amber)}}
+.pw-ok{{color:var(--green)}}
+.pw-risk{{color:var(--red)}}
+@media(max-width:720px){{.pw-g{{grid-template-columns:1fr}}}}
 footer{{margin-top:40px;color:var(--muted);font-size:11px;text-align:center;border-top:1px solid var(--line);padding-top:16px}}
 /* 성장지표는 대표(admin)만 — 직원 로그인 시 숨김(측정설계 v2) */
 .growth{{display:none}}
@@ -991,6 +1185,7 @@ body.is-admin .growth{{display:block}}
   <div class="stat"><b>{s["open_decisions"]}</b><small>미해결 의사결정</small></div>
 </div>
 {_gantt_section(data)}
+{_project_section(data)}
 <h2 class="sec">파트별</h2><div class="grid">{"".join(team_cards)}</div>
 <h2 class="sec">개인별</h2><div class="grid">{"".join(person_cards)}</div>
 <footer>Generated by weekly-report-aggregate.py · {_esc(data["generated_at"])} · by Project Rent</footer>
