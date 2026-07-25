@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 시대, 디자이너가 디자인해야 할 것</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5A4BD1;
+    --primary-light: #A29BFE;
+    --primary-subtle: #EDE9FE;
+    --black: #1A1A2E;
+    --dark-gray: #4A4A68;
+    --mid-gray: #7F7F9E;
+    --light-gray: #E8E8F0;
+    --off-white: #F7F7FB;
+    --warm: #E9DCC8;
+    --rust: #B86C4A;
+    --neg: #E17055;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; color: var(--black);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .deck {
+    position: relative;
+    width: 100vw; height: calc(100vw * 9 / 16);
+    max-height: 100vh; max-width: calc(100vh * 16 / 9);
+  }
+
+  .slide {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 5% 7%; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; background: #fff;
+  }
+  .slide.active { opacity: 1; pointer-events: auto; }
+
+  /* Slide Variants */
+  .slide--cover { background: linear-gradient(135deg, var(--primary) 0%, var(--black) 100%); color: #fff; text-align: center; }
+  .slide--dark { background: var(--black); color: #fff; text-align: center; }
+  .slide--accent { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #fff; text-align: center; }
+  .slide--subtle { background: var(--off-white); }
+  .slide--scene { background: #0d0d1a; color: #fff; }
+
+  /* Typography */
+  .slide-badge {
+    display: inline-block; padding: 10px 28px; border-radius: 24px;
+    font-size: 20px; font-weight: 500; margin-bottom: 32px; letter-spacing: 1px;
+    background: rgba(255,255,255,0.15);
+  }
+  .slide--subtle .slide-badge { background: var(--primary-subtle); color: var(--primary); }
+
+  .slide-title {
+    font-size: 67px; font-weight: 800; line-height: 1.2; margin-bottom: 24px; letter-spacing: -0.5px;
+    max-width: 1100px; word-break: keep-all;
+  }
+  .slide-title .highlight { color: var(--primary-light); }
+  .slide--subtle .slide-title .highlight,
+  .slide:not(.slide--cover):not(.slide--dark):not(.slide--accent):not(.slide--scene) .slide-title .highlight { color: var(--primary); }
+
+  .slide-subtitle { font-size: 28px; font-weight: 400; opacity: 0.85; line-height: 1.6; max-width: 900px; }
+
+  .slide-section {
+    font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; color: var(--primary);
+  }
+  .slide--dark .slide-section, .slide--accent .slide-section, .slide--cover .slide-section, .slide--scene .slide-section { color: var(--primary-light); }
+
+  .big-quote { font-size: 56px; font-weight: 800; line-height: 1.35; text-align: center; max-width: 1000px; word-break: keep-all; }
+  .big-quote .accent { color: var(--primary); }
+  .slide--dark .big-quote .accent, .slide--accent .big-quote .accent, .slide--scene .big-quote .accent { color: var(--primary-light); }
+
+  .slide-body { font-size: 27px; line-height: 1.8; color: var(--dark-gray); max-width: 1000px; text-align: left; width: 100%; }
+  .slide--dark .slide-body, .slide--scene .slide-body { color: rgba(255,255,255,0.8); }
+
+  /* Scene Box */
+  .scene-box {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 36px 40px; max-width: 1000px; width: 100%; text-align: left; margin-top: 28px;
+  }
+  .scene-box p { font-size: 25px; line-height: 1.8; margin-bottom: 10px; color: rgba(255,255,255,0.75); }
+  .scene-box p strong { color: #fff; font-weight: 700; }
+  .scene-box .scene-label {
+    font-size: 15px; letter-spacing: 2px; text-transform: uppercase; color: var(--primary-light); margin-bottom: 14px;
+  }
+
+  .slide--subtle .scene-box {
+    background: #fff; border: 1px solid var(--light-gray); box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .slide--subtle .scene-box p { color: var(--dark-gray); }
+  .slide--subtle .scene-box p strong { color: var(--black); }
+  .slide--subtle .scene-box .scene-label { color: var(--primary); }
+
+  /* Two Column */
+  .two-col { display: flex; gap: 28px; max-width: 1100px; width: 100%; margin-top: 28px; }
+  .col-card {
+    flex: 1; border-radius: 16px; padding: 28px 24px; text-align: left;
+  }
+  .col-card--light { background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.15); }
+  .col-card--dark { background: rgba(225,112,85,0.08); border: 1px solid rgba(225,112,85,0.15); }
+  .slide--dark .col-card--light, .slide--scene .col-card--light { background: rgba(108,92,231,0.15); border-color: rgba(108,92,231,0.25); }
+  .slide--dark .col-card--dark, .slide--scene .col-card--dark { background: rgba(225,112,85,0.12); border-color: rgba(225,112,85,0.2); }
+
+  .col-card .col-label { font-size: 17px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; font-weight: 700; }
+  .col-card--light .col-label { color: var(--primary); }
+  .col-card--dark .col-label { color: var(--neg); }
+  .col-card p { font-size: 22px; line-height: 1.7; margin-bottom: 8px; }
+  .col-card .col-result { margin-top: 14px; font-weight: 700; font-size: 24px; }
+  .col-card--light .col-result { color: var(--primary); }
+  .col-card--dark .col-result { color: var(--neg); }
+  .slide--dark .col-card p, .slide--scene .col-card p { color: rgba(255,255,255,0.7); }
+  .slide--dark .col-card .col-result, .slide--scene .col-card .col-result { color: var(--primary-light); }
+  .slide--dark .col-card--dark .col-result, .slide--scene .col-card--dark .col-result { color: var(--neg); }
+
+  /* KPI Cards */
+  .kpi-row { display: flex; gap: 24px; justify-content: center; margin: 32px 0; flex-wrap: wrap; }
+  .kpi-card { text-align: center; padding: 28px 28px; border-radius: 16px; min-width: 170px; flex: 1; max-width: 220px; }
+  .slide--dark .kpi-card, .slide--scene .kpi-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); }
+  .slide--subtle .kpi-card { background: #fff; border: 1px solid var(--light-gray); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .kpi-num { font-size: 39px; font-weight: 800; color: var(--primary); display: block; margin-bottom: 10px; }
+  .slide--dark .kpi-num, .slide--scene .kpi-num { color: var(--primary-light); }
+  .kpi-label { font-size: 18px; color: var(--mid-gray); font-weight: 500; line-height: 1.4; }
+  .slide--dark .kpi-label, .slide--scene .kpi-label { color: rgba(255,255,255,0.5); }
+
+  /* Compare Table */
+  .compare-table {
+    max-width: 1000px; width: 100%; margin-top: 28px;
+    border-collapse: collapse; border-radius: 16px; overflow: hidden;
+  }
+  .compare-table th {
+    font-size: 17px; letter-spacing: 2px; text-transform: uppercase; padding: 18px 28px;
+    font-weight: 700;
+  }
+  .compare-table th:first-child { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.4); text-align: left; }
+  .compare-table th:last-child { background: rgba(108,92,231,0.15); color: var(--primary-light); text-align: left; }
+  .compare-table td { padding: 16px 28px; font-size: 24px; line-height: 1.5; border-top: 1px solid rgba(255,255,255,0.06); }
+  .compare-table td:first-child { color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.02); }
+  .compare-table td:last-child { color: #fff; font-weight: 600; background: rgba(108,92,231,0.06); }
+
+  /* Part Divider */
+  .part-label { font-size: 18px; letter-spacing: 4px; text-transform: uppercase; color: var(--primary-light); margin-bottom: 16px; }
+
+  /* Chain Visual */
+  .chain {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center;
+    margin-top: 28px; max-width: 1100px;
+  }
+  .chain-item {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    padding: 16px 28px; border-radius: 12px; font-size: 25px; font-weight: 600; color: #fff;
+  }
+  .chain-item.active { background: var(--primary); border-color: var(--primary); }
+  .chain-arrow { color: rgba(255,255,255,0.3); font-size: 28px; }
+
+  /* Navigation */
+  .nav { position: fixed; bottom: 24px; right: 32px; display: flex; align-items: center; gap: 12px; z-index: 100; }
+  .nav-counter { font-size: 13px; color: rgba(255,255,255,0.5); font-weight: 500; }
+  .nav-btn {
+    width: 36px; height: 36px; border: none; border-radius: 8px; cursor: pointer;
+    background: rgba(255,255,255,0.15); color: #fff; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.25); }
+
+  .speaker-note {
+    display: none; position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(30,30,46,0.95); color: #cdd6f4;
+    padding: 20px 40px; font-size: 15px; line-height: 1.6;
+    max-height: 30vh; overflow-y: auto; z-index: 200; backdrop-filter: blur(12px);
+  }
+  .speaker-note::before {
+    content: '강사 노트 (N키로 토글)'; display: block; font-size: 11px;
+    font-weight: 700; color: var(--primary-light); letter-spacing: 1px; margin-bottom: 10px;
+  }
+  .speaker-note.visible { display: block; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--primary); transition: width 0.3s ease; z-index: 100; }
+
+  /* Edit Mode */
+  .edit-btn {
+    position: fixed; top: 16px; right: 16px; z-index: 300;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500;
+    padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    font-family: 'Pretendard Variable', sans-serif;
+  }
+  .edit-btn:hover { background: rgba(108,92,231,0.2); border-color: rgba(108,92,231,0.4); color: var(--primary-light); }
+  .edit-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .save-btn {
+    position: fixed; top: 16px; right: 100px; z-index: 300;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500;
+    padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    font-family: 'Pretendard Variable', sans-serif;
+    display: none;
+  }
+  .save-btn:hover { background: rgba(108,92,231,0.2); border-color: rgba(108,92,231,0.4); color: var(--primary-light); }
+  body.editing .save-btn { display: block; }
+
+  body.editing [contenteditable="true"] {
+    outline: 2px dashed rgba(108,92,231,0.5);
+    outline-offset: 4px; border-radius: 4px;
+  }
+  body.editing [contenteditable="true"]:focus {
+    outline-color: var(--primary);
+    background: rgba(108,92,231,0.05);
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CH0. OPENING (4장)                          -->
+<!-- ═══════════════════════════════════════════ -->
+
+<!-- 01. COVER -->
+<div class="slide slide--cover active" data-note="오프닝. 타이틀을 읽고 3초 멈춤. '오늘은 AI 도구 이야기가 아닙니다. 디자이너가 무엇을 디자인해야 하는지에 대한 이야기입니다.'">
+  <div class="slide-badge">Design Value Lecture</div>
+  <h1 class="slide-title">AI 시대,<br><span class="highlight">디자이너가 디자인해야 할 것</span></h1>
+  <p class="slide-subtitle">기능의 시대에서 가치의 시대로</p>
+</div>
+
+<!-- 02. -->
+<div class="slide slide--dark" data-note="3초 침묵. 청중이 스스로 읽게 합니다. '이 질문에 대한 여러분의 답은 무엇인가요? 포트폴리오를 만드는 사람? 예쁜 것을 만드는 사람? 잠시 생각해보세요.'">
+  <h1 class="big-quote">
+    디자이너는<br><span class="accent">어떤 사람</span>입니까?
+  </h1>
+</div>
+
+<!-- 03. -->
+<div class="slide slide--dark" data-note="톤을 살짝 낮추며. 'AI가 로고도 만들고, 레이아웃도 잡고, 렌더링도 합니다. 3분이면 됩니다. 그러면 디자이너에게 무엇이 남는 걸까요?'">
+  <h1 class="big-quote">
+    AI가 더 빠르게 할 수 있다면,<br><span class="accent">디자이너에게<br>무엇이 남는가?</span>
+  </h1>
+</div>
+
+<!-- 04. -->
+<div class="slide slide--accent" data-note="에너지 전환. 확신 있게. '이 강의의 전제입니다. 세상이 바뀌면 직업의 정의도 바뀌어야 합니다. 디자이너의 정의도 마찬가지입니다.'">
+  <h1 class="big-quote">
+    세상이 바뀌면<br><span class="accent" style="color:#fff;">직업의 정의도<br>바뀌어야 합니다</span>
+  </h1>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CH1. 나는 디자이너를 그만둔 적이 없다 (6장)   -->
+<!-- ═══════════════════════════════════════════ -->
+
+<!-- 05. COVER -->
+<div class="slide slide--cover" data-note="챕터 전환. '제 이야기를 잠깐 하겠습니다.'">
+  <div class="part-label">Chapter 1</div>
+  <h1 class="slide-title">나는 디자이너를<br><span class="highlight">그만둔 적이 없다</span></h1>
+</div>
+
+<!-- 06. -->
+<div class="slide slide--subtle" data-note="'저는 산업디자인을 전공하고 LG전자에서 시작했습니다. 제품을 디자인했습니다. 그런데 시간이 지나면서 제가 디자인하는 대상이 계속 바뀌었습니다.'">
+  <div class="slide-section">시작점</div>
+  <h1 class="slide-title" style="font-size:59px;">산업디자인 전공,<br><span class="highlight">LG전자에서 시작</span></h1>
+  <p class="slide-subtitle" style="margin-top:12px; opacity:1; color:var(--dark-gray);">
+    제품을 디자인하는 사람으로 커리어를 시작했습니다.<br>
+    그런데 시간이 지나면서, 디자인하는 대상이 계속 바뀌었습니다.
+  </p>
+</div>
+
+<!-- 07. -->
+<div class="slide slide--scene" data-note="'제품에서 브랜드로, 브랜드에서 공간으로, 공간에서 경험으로, 경험에서 운영으로, 운영에서 비즈니스로. 형태는 바뀌었지만 저는 항상 디자인을 하고 있었습니다.'">
+  <div class="slide-section">디자인 대상의 확장</div>
+  <h1 class="slide-title" style="font-size:50px;">디자인하는 <span class="highlight">대상</span>이 바뀌었습니다</h1>
+  <div class="scene-box">
+    <div class="scene-label">경로</div>
+    <p><strong>제품</strong> &mdash; 물성과 형태를 다루는 일</p>
+    <p><strong>브랜드</strong> &mdash; 인식과 메시지를 다루는 일</p>
+    <p><strong>공간</strong> &mdash; 경험의 무대를 만드는 일</p>
+    <p><strong>경험</strong> &mdash; 사람의 행동을 설계하는 일</p>
+    <p><strong>운영</strong> &mdash; 지속 가능한 구조를 만드는 일</p>
+    <p><strong>비즈니스</strong> &mdash; 가치가 작동하는 시스템을 만드는 일</p>
+  </div>
+</div>
+
+<!-- 08. -->
+<div class="slide slide--dark" data-note="체인을 하나씩 짚으며. '제품에서 시작해서 조직과 시스템까지. 형태가 바뀌었을 뿐, 본질은 같습니다. 문제를 정의하고, 해결 구조를 설계하는 일.'">
+  <div class="slide-section">확장의 궤적</div>
+  <div class="chain">
+    <span class="chain-item">제품</span>
+    <span class="chain-arrow">&rarr;</span>
+    <span class="chain-item">브랜드</span>
+    <span class="chain-arrow">&rarr;</span>
+    <span class="chain-item">공간</span>
+    <span class="chain-arrow">&rarr;</span>
+    <span class="chain-item">경험</span>
+    <span class="chain-arrow">&rarr;</span>
+    <span class="chain-item">운영</span>
+    <span class="chain-arrow">&rarr;</span>
+    <span class="chain-item active">비즈니스</span>
+  </div>
+  <p class="slide-subtitle" style="margin-top:32px;">
+    형태가 바뀌었을 뿐, 본질은 같습니다.<br>
+    <strong>문제를 정의하고, 해결 구조를 설계하는 일.</strong>
+  </p>
+</div>
+
+<!-- 09. -->
+<div class="slide slide--accent" data-note="확신 있게. '디자이너를 그만둔 게 아닙니다. 디자인하는 대상이 제품에서 비즈니스로 확장된 겁니다. 여러분도 마찬가지일 수 있습니다.'">
+  <h1 class="big-quote">
+    디자인하는 대상이<br><span class="accent" style="color:#fff;">제품에서 비즈니스로</span><br>확장된 것
+  </h1>
+</div>
+
+<!-- 10. -->
+<div class="slide slide--dark" data-note="질문을 던지고 3초 침묵. 청중이 자기 범위를 떠올리게. '지금 여러분이 디자인하고 있는 것은 어디까지입니까? 화면? 제품? 경험? 아니면 그 너머?'">
+  <h1 class="big-quote">
+    여러분이 지금<br>디자인하는 것은<br><span class="accent">어디까지</span>입니까?
+  </h1>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CH2. 디자인의 기준 자체가 바뀌고 있다 (7장)   -->
+<!-- ═══════════════════════════════════════════ -->
+
+<!-- 11. COVER -->
+<div class="slide slide--cover" data-note="챕터 전환.">
+  <div class="part-label">Chapter 2</div>
+  <h1 class="slide-title">디자인의 기준 자체가<br><span class="highlight">바뀌고 있다</span></h1>
+</div>
+
+<!-- 12. -->
+<div class="slide slide--subtle" data-note="'불과 몇 년 전까지, 렌더링을 잘하는 것 자체가 경쟁력이었습니다. 포토샵, 일러스트, 3D — 이 도구를 능숙하게 다루는 것만으로 충분했습니다. 기능 자체가 희소했으니까요.'">
+  <div class="slide-section">기능이 희소했던 시대</div>
+  <h1 class="slide-title" style="font-size:59px;">도구를 다루는 것 자체가<br><span class="highlight">경쟁력이던 시절</span></h1>
+  <p class="slide-subtitle" style="margin-top:12px; opacity:1; color:var(--dark-gray);">
+    렌더링, 모델링, 레이아웃, 타이포그래피.<br>
+    이 기능을 숙련하는 데 수천 시간이 필요했습니다.<br>
+    <strong>기능 자체가 희소했기 때문에, 기능이 곧 가치였습니다.</strong>
+  </p>
+</div>
+
+<!-- 13. -->
+<div class="slide slide--scene" data-note="'이제 AI로 누구나 할 수 있는 것들을 한번 보겠습니다. 이 목록을 보면서 불안해지셔도 됩니다. 정상입니다.'">
+  <div class="slide-section">AI로 누구나 할 수 있는 것</div>
+  <h1 class="slide-title" style="font-size:48px;">지금 AI가 <span class="highlight">몇 분 만에</span> 해내는 것들</h1>
+  <div class="scene-box">
+    <div class="scene-label">2026년 현재</div>
+    <p><strong>로고 시안</strong> &mdash; 텍스트 프롬프트 하나로 수십 개 생성</p>
+    <p><strong>3D 렌더링</strong> &mdash; 참조 이미지 한 장이면 포토리얼 렌더</p>
+    <p><strong>UI/UX 와이어프레임</strong> &mdash; 기능 명세만으로 자동 생성</p>
+    <p><strong>브랜드 가이드라인</strong> &mdash; 컬러, 타이포, 레이아웃 규칙 자동 도출</p>
+    <p><strong>공간 배치 시뮬레이션</strong> &mdash; 평면도 입력하면 동선 최적화</p>
+    <p style="margin-top:12px; color: var(--primary-light);">이 모든 것을 디자인 전공자가 아닌 사람도 할 수 있습니다.</p>
+  </div>
+</div>
+
+<!-- 14. -->
+<div class="slide slide--dark" data-note="3초 침묵 후. '누구나 만들 수 있는 시대에, 디자이너의 전문성은 어디에 있습니까?'">
+  <h1 class="big-quote">
+    누구나 만들 수 있는 시대에<br><span class="accent">디자이너의 전문성은<br>어디에 있습니까?</span>
+  </h1>
+</div>
+
+<!-- 15. -->
+<div class="slide slide--accent" data-note="에너지 높여서. '기능만으로 가치를 인정받던 시대가 끝나고 있습니다. 이건 위기가 아니라 전환점입니다.'">
+  <h1 class="big-quote">
+    기능만으로<br>가치를 인정받던 시대가<br><span class="accent" style="color:#fff;">끝나고 있습니다</span>
+  </h1>
+</div>
+
+<!-- 16. -->
+<div class="slide slide--subtle" data-note="'포토샵을 잘 다루는 것이 디자이너의 본질이 아니듯, AI를 잘 다루는 것도 본질이 아닙니다. 기술과 기능은 목적이 아니라 도구입니다. 문제는 — 그 도구로 무엇을 하려는가.'">
+  <div class="slide-section">본질</div>
+  <h1 class="slide-title" style="font-size:53px;">기술과 기능은<br><span class="highlight">목적이 아니라 도구</span></h1>
+  <p class="slide-subtitle" style="margin-top:12px; opacity:1; color:var(--dark-gray);">
+    포토샵을 잘 다루는 것이 디자이너의 본질이 아니듯,<br>
+    AI를 잘 다루는 것도 본질이 아닙니다.<br><br>
+    문제는 &mdash; <strong>그 도구로 무엇을 하려는가.</strong>
+  </p>
+</div>
+
+<!-- 17. -->
+<div class="slide slide--dark" data-note="질문을 띄워두고 다음 챕터로. '이 질문을 가지고 다음으로 넘어가겠습니다.'">
+  <h1 class="big-quote">
+    디자이너는<br><span class="accent">무엇으로</span><br>가치를 만들어야 하는가?
+  </h1>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CH3. 기능의 시대에서 가치의 시대로 (7장)       -->
+<!-- ═══════════════════════════════════════════ -->
+
+<!-- 18. COVER -->
+<div class="slide slide--cover" data-note="챕터 전환. 핵심 챕터 시작.">
+  <div class="part-label">Chapter 3</div>
+  <h1 class="slide-title">기능의 시대에서<br><span class="highlight">가치의 시대로</span></h1>
+</div>
+
+<!-- 19. -->
+<div class="slide slide--scene" data-note="'기능의 시대 디자이너는 이런 사람이었습니다. 주어진 문제에 좋은 답을 만드는 사람. 클라이언트가 로고를 원하면 로고를, 공간을 원하면 공간을. 주어진 문제를 잘 푸는 것이 실력이었습니다.'">
+  <div class="slide-section">기능의 시대</div>
+  <h1 class="big-quote" style="font-size:50px;">
+    주어진 문제에<br><span class="accent">좋은 답을 만드는 사람</span>
+  </h1>
+  <p class="slide-subtitle" style="margin-top:24px; color:rgba(255,255,255,0.6);">
+    클라이언트가 문제를 정의하고, 디자이너가 답을 만들었습니다.<br>
+    답의 품질 = 디자이너의 실력
+  </p>
+</div>
+
+<!-- 20. -->
+<div class="slide slide--accent" data-note="톤 전환. 확신 있게. '가치의 시대 디자이너는 다릅니다. 결과물을 만들기 전에 질문합니다. 이 문제가 맞는가? 이 방향이 맞는가? 질문의 깊이가 결과의 차원을 결정합니다.'">
+  <div class="slide-section">가치의 시대</div>
+  <h1 class="big-quote" style="font-size:50px;">
+    결과물 전에<br><span class="accent" style="color:#fff;">질문하는 사람</span>
+  </h1>
+  <p class="slide-subtitle" style="margin-top:24px;">
+    이 문제가 맞는가? 이 방향이 맞는가?<br>
+    <strong>질문의 깊이가 결과의 차원을 결정합니다.</strong>
+  </p>
+</div>
+
+<!-- 21. -->
+<div class="slide slide--scene" data-note="비교표를 한 줄씩 짚으며. '역할, 핵심 질문, 도구 관계, 가치 기준, 차별화, 결과물 — 모든 것이 바뀝니다.'">
+  <div class="slide-section">기능 vs 가치</div>
+  <table class="compare-table">
+    <tr><th>기능의 시대</th><th>가치의 시대</th></tr>
+    <tr><td>주어진 문제를 푸는 사람</td><td>풀어야 할 문제를 정의하는 사람</td></tr>
+    <tr><td>"어떻게 만들까?"</td><td>"왜 이것을 만들어야 하는가?"</td></tr>
+    <tr><td>도구 숙련이 경쟁력</td><td>도구는 수단, 관점이 경쟁력</td></tr>
+    <tr><td>결과물의 완성도</td><td>결과물이 만드는 변화</td></tr>
+    <tr><td>기술로 차별화</td><td>해석으로 차별화</td></tr>
+    <tr><td>아름다운 산출물</td><td>작동하는 가치 구조</td></tr>
+  </table>
+</div>
+
+<!-- 22. -->
+<div class="slide slide--dark" data-note="핵심 메시지. '좋은 답을 만드는 사람에서, 어떤 질문에 답해야 하는지를 결정하는 사람으로. 이것이 전환의 핵심입니다.'">
+  <h1 class="big-quote">
+    <span class="accent">어떤 질문에 답해야 하는지를<br>결정하는 사람</span>
+  </h1>
+</div>
+
+<!-- 23. -->
+<div class="slide slide--subtle" data-note="양쪽을 짚으며. '왼쪽은 AI가 잘합니다. 이미 합니다. 오른쪽은 AI가 할 수 없습니다. 바로 여기에 디자이너의 자리가 있습니다.'">
+  <div class="slide-section">AI의 경계</div>
+  <h1 class="slide-title" style="font-size:48px;">AI가 할 수 있는 것 vs <span class="highlight">할 수 없는 것</span></h1>
+  <div class="two-col" style="margin-top:20px;">
+    <div class="col-card col-card--dark">
+      <div class="col-label">AI가 할 수 있는 것</div>
+      <p>시안을 빠르게 생성</p>
+      <p>데이터를 분석하고 패턴 발견</p>
+      <p>기존 스타일을 학습하고 재현</p>
+      <p>반복 작업을 자동화</p>
+      <p class="col-result" style="color:var(--mid-gray);">실행의 속도와 양</p>
+    </div>
+    <div class="col-card col-card--light">
+      <div class="col-label">AI가 할 수 없는 것</div>
+      <p>이 문제가 진짜 문제인지 판단</p>
+      <p>맥락 속에서 방향을 설정</p>
+      <p>사용자의 감정과 욕망을 해석</p>
+      <p>가치 판단과 윤리적 결정</p>
+      <p class="col-result">판단의 깊이와 방향</p>
+    </div>
+  </div>
+</div>
+
+<!-- 24. -->
+<div class="slide slide--accent" data-note="Chapter 3 결론. '어떤 문제가 중요한지는 사람이 판단합니다. 이것이 디자이너의 자리입니다.'">
+  <h1 class="big-quote">
+    어떤 문제가 중요한지는<br><span class="accent" style="color:#fff;">사람이 판단합니다</span>
+  </h1>
+  <p class="slide-subtitle" style="margin-top:24px;">
+    그리고 그 판단을 구조화하는 사람이<br>이 시대의 디자이너입니다.
+  </p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CH4. 비즈니스도 디자인의 대상이다 (6장)       -->
+<!-- ═══════════════════════════════════════════ -->
+
+<!-- 25. COVER -->
+<div class="slide slide--cover" data-note="챕터 전환.">
+  <div class="part-label">Chapter 4</div>
+  <h1 class="slide-title">비즈니스도<br><span class="highlight">디자인의 대상이다</span></h1>
+</div>
+
+<!-- 26. -->
+<div class="slide slide--dark" data-note="조용히, 무게감 있게. '아름다운 공간을 만들었습니다. 수상도 했습니다. 그런데 6개월 뒤 문을 닫았습니다. 왜일까요? 디자인은 완벽했는데, 비즈니스가 설계되지 않았기 때문입니다.'">
+  <h1 class="big-quote" style="font-size:50px;">
+    아름다운 공간을 만들었습니다.<br><br>
+    <span class="accent">그런데 지속되지 않습니다.</span>
+  </h1>
+</div>
+
+<!-- 27. -->
+<div class="slide slide--scene" data-note="하나씩 짚으며. '이 질문들 중 하나라도 빠지면, 아무리 좋은 디자인도 지속되지 않습니다.'">
+  <div class="slide-section">디자인이 지속되려면</div>
+  <h1 class="slide-title" style="font-size:48px;">디자인 <span class="highlight">이후</span>의 질문들</h1>
+  <div class="scene-box">
+    <div class="scene-label">지속 가능성의 조건</div>
+    <p><strong>이 공간에 누가 오는가?</strong> &mdash; 타깃과 동선의 설계</p>
+    <p><strong>왜 다시 오는가?</strong> &mdash; 재방문 동기의 구조</p>
+    <p><strong>이 경험이 어떻게 수익이 되는가?</strong> &mdash; 비즈니스 모델</p>
+    <p><strong>운영할 수 있는 구조인가?</strong> &mdash; 실행 가능성</p>
+    <p><strong>시간이 지나도 작동하는가?</strong> &mdash; 지속 가능성</p>
+  </div>
+</div>
+
+<!-- 28. -->
+<div class="slide slide--subtle" data-note="프로젝트렌트 사례. '저희는 공간을 기획할 때 항상 메시지에서 시작합니다. 이 공간이 전하려는 메시지가 명확해야, 이후의 모든 의사결정이 일관됩니다.'">
+  <div class="slide-section">프로젝트렌트의 방식</div>
+  <h1 class="slide-title" style="font-size:50px;">메시지에서 시작하면<br><span class="highlight">의사결정이 일관됩니다</span></h1>
+  <div class="scene-box" style="margin-top:20px;">
+    <div class="scene-label">메시지 → 의사결정 체인</div>
+    <p><strong>메시지</strong> &mdash; 이 공간은 무엇을 말하려 하는가</p>
+    <p><strong>경험 설계</strong> &mdash; 그 메시지를 어떤 경험으로 전달하는가</p>
+    <p><strong>공간 구조</strong> &mdash; 경험이 작동하는 물리적 조건</p>
+    <p><strong>운영 모델</strong> &mdash; 이 구조를 누가, 어떻게 운영하는가</p>
+    <p><strong>비즈니스</strong> &mdash; 이 전체가 어떻게 지속되는가</p>
+  </div>
+</div>
+
+<!-- 29. -->
+<div class="slide slide--accent" data-note="핵심 메시지. '디자인이 현실에서 작동하고 지속되게 만드는 구조. 이것이 비즈니스 디자인입니다.'">
+  <h1 class="big-quote">
+    디자인이 현실에서<br>작동하고 지속되게 만드는<br><span class="accent" style="color:#fff;">구조</span>
+  </h1>
+</div>
+
+<!-- 30. -->
+<div class="slide slide--dark" data-note="질문을 띄우고 3초 침묵. 다음 챕터로 연결.">
+  <h1 class="big-quote">
+    이 시대의 디자이너에게<br>필요한 힘은<br><span class="accent">무엇인가?</span>
+  </h1>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CH5. AI 시대 디자이너에게 필요한 5가지 힘 (6장) -->
+<!-- ═══════════════════════════════════════════ -->
+
+<!-- 31. COVER -->
+<div class="slide slide--cover" data-note="챕터 전환. '다섯 가지로 정리했습니다.'">
+  <div class="part-label">Chapter 5</div>
+  <h1 class="slide-title">AI 시대 디자이너에게<br><span class="highlight">필요한 5가지 힘</span></h1>
+</div>
+
+<!-- 32. -->
+<div class="slide slide--scene" data-note="5개 카드를 하나씩 짚으며. '관찰, 질문, 판단, 연결, 실행과 검증. 이 다섯 가지는 AI가 대신할 수 없는, 디자이너 고유의 능력입니다.'">
+  <div class="slide-section">5가지 핵심 역량</div>
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <span class="kpi-num">01</span>
+      <span class="kpi-label">관찰하는 힘</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">02</span>
+      <span class="kpi-label">질문하는 힘</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">03</span>
+      <span class="kpi-label">판단하는 힘</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">04</span>
+      <span class="kpi-label">연결하는 힘</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-num">05</span>
+      <span class="kpi-label">실행하고<br>검증하는 힘</span>
+    </div>
+  </div>
+</div>
+
+<!-- 33. -->
+<div class="slide slide--subtle" data-note="'관찰은 보는 것이 아니라 의미를 읽는 것입니다. 질문은 주어진 문제를 의심하는 것에서 시작합니다.'">
+  <div class="slide-section">01 + 02</div>
+  <div class="two-col">
+    <div class="col-card col-card--light">
+      <div class="col-label">관찰하는 힘</div>
+      <p>데이터가 아닌 <strong>맥락</strong>을 읽는 능력</p>
+      <p>사용자의 행동 뒤에 숨은 <strong>동기</strong>를 포착</p>
+      <p>현장에서 <strong>패턴</strong>을 발견하는 감각</p>
+      <p class="col-result">AI는 데이터를 처리하지만,<br>의미를 읽지는 못합니다</p>
+    </div>
+    <div class="col-card col-card--light">
+      <div class="col-label">질문하는 힘</div>
+      <p>주어진 문제를 <strong>의심</strong>하는 것</p>
+      <p>"이 문제가 진짜 문제인가?"</p>
+      <p>더 나은 질문이 <strong>더 나은 답</strong>을 만듦</p>
+      <p class="col-result">AI는 답을 잘하지만,<br>질문을 만들지는 못합니다</p>
+    </div>
+  </div>
+</div>
+
+<!-- 34. -->
+<div class="slide slide--subtle" data-note="'판단은 여러 선택지 중 하나를 고르는 용기입니다. 연결은 서로 다른 영역의 지식을 엮어 새로운 가치를 만드는 능력입니다.'">
+  <div class="slide-section">03 + 04</div>
+  <div class="two-col">
+    <div class="col-card col-card--light">
+      <div class="col-label">판단하는 힘</div>
+      <p>여러 방향 중 <strong>하나를 선택</strong>하는 용기</p>
+      <p>불확실한 상황에서 <strong>기준</strong>을 세우는 능력</p>
+      <p>"이것은 하지 않겠다"는 <strong>결정</strong></p>
+      <p class="col-result">AI는 옵션을 나열하지만,<br>책임지고 선택하지는 못합니다</p>
+    </div>
+    <div class="col-card col-card--light">
+      <div class="col-label">연결하는 힘</div>
+      <p>서로 다른 영역의 <strong>지식을 엮는</strong> 능력</p>
+      <p>기술 × 사람 × 비즈니스의 <strong>교차점</strong></p>
+      <p>분절된 것들을 <strong>하나의 경험</strong>으로 통합</p>
+      <p class="col-result">AI는 정보를 모으지만,<br>의미를 연결하지는 못합니다</p>
+    </div>
+  </div>
+</div>
+
+<!-- 35. -->
+<div class="slide slide--scene" data-note="'다섯 번째 힘입니다. 실행하고 검증하는 힘. 관찰→질문→판단→연결을 거쳐 실행하고, 실행 결과를 다시 관찰로 되돌리는 순환 구조.'">
+  <div class="slide-section">05</div>
+  <h1 class="slide-title" style="font-size:48px;"><span class="highlight">실행하고 검증하는 힘</span></h1>
+  <div class="scene-box">
+    <div class="scene-label">순환 구조</div>
+    <p><strong>실행</strong> &mdash; 관점을 현실에 옮기는 단계</p>
+    <p><strong>검증</strong> &mdash; 현실의 반응을 다시 읽는 단계</p>
+    <p><strong>수정</strong> &mdash; 관찰로 되돌아가 다시 시작</p>
+    <p style="margin-top:16px; color: var(--primary-light);">관찰 &rarr; 질문 &rarr; 판단 &rarr; 연결 &rarr; 실행 &rarr; 검증 &rarr; 다시 관찰</p>
+    <p style="color: var(--primary-light);"><strong>이 순환을 빠르게 돌리는 사람이 성장합니다.</strong></p>
+  </div>
+</div>
+
+<!-- 36. -->
+<div class="slide slide--accent" data-note="Chapter 5 결론. '중요한 건 AI가 이 능력을 대신하는 게 아니라는 겁니다. AI는 이 능력을 증폭합니다. 관찰을 더 넓게, 질문을 더 깊게, 실행을 더 빠르게.'">
+  <h1 class="big-quote">
+    AI는 이 능력을<br>대신하기보다<br><span class="accent" style="color:#fff;">증폭합니다</span>
+  </h1>
+  <p class="slide-subtitle" style="margin-top:24px;">
+    관찰을 더 넓게. 질문을 더 깊게. 실행을 더 빠르게.<br>
+    <strong>기반이 되는 힘이 있어야 증폭도 가능합니다.</strong>
+  </p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CH6. CLOSING (2장)                          -->
+<!-- ═══════════════════════════════════════════ -->
+
+<!-- 37. -->
+<div class="slide slide--dark" data-note="마무리 질문. 3초 침묵 후 천천히. '이 질문을 가지고 돌아가세요. 여러분은 어떤 가치를 만드는 사람이 될 것인가.'">
+  <h1 class="big-quote" style="font-size:53px;">
+    어떤 가치를 만드는 사람이<br><span class="accent">될 것인가</span>
+  </h1>
+</div>
+
+<!-- 38. FINAL -->
+<div class="slide slide--cover" data-note="마지막. 2초 멈춤 후 '감사합니다.' Q&A로 전환.">
+  <h1 class="slide-title" style="font-size:62px;">
+    이미지가 아니라<br><span class="highlight">가치</span>입니다
+  </h1>
+  <p class="slide-subtitle" style="margin-top:32px; opacity:0.5;">
+    by Project Rent
+  </p>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div class="nav">
+  <span class="nav-counter" id="counter">1 / 38</span>
+  <button class="nav-btn" onclick="prev()" aria-label="이전">&#9666;</button>
+  <button class="nav-btn" onclick="next()" aria-label="다음">&#9656;</button>
+</div>
+
+<!-- Edit / Save Buttons -->
+<button class="edit-btn" id="editBtn" onclick="toggleEdit()">&#9998; Edit</button>
+<button class="save-btn" onclick="saveSlides()">&#8595; Save</button>
+
+<!-- Speaker Notes -->
+<div class="speaker-note" id="speakerNote"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const speakerNote = document.getElementById('speakerNote');
+  let current = 0;
+  let notesVisible = false;
+
+  function show(idx) {
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    current = idx;
+    counter.textContent = `${idx + 1} / ${slides.length}`;
+    progress.style.width = `${((idx + 1) / slides.length) * 100}%`;
+    const note = slides[idx].getAttribute('data-note') || '';
+    speakerNote.innerHTML = note;
+  }
+
+  function next() { if (current < slides.length - 1) show(current + 1); }
+  function prev() { if (current > 0) show(current - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (document.body.classList.contains('editing') && e.target.getAttribute('contenteditable')) return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { e.preventDefault(); show(0); }
+    if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+    if (e.key === 'n' || e.key === 'N') {
+      if (document.body.classList.contains('editing')) return;
+      notesVisible = !notesVisible;
+      speakerNote.classList.toggle('visible', notesVisible);
+    }
+    if (e.key === 'f' || e.key === 'F') {
+      if (document.body.classList.contains('editing')) return;
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+    if (e.key === 'Escape' && document.body.classList.contains('editing')) {
+      toggleEdit();
+    }
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diff) > 50) { diff < 0 ? next() : prev(); }
+  });
+
+  // ─── Edit Mode ───
+  let isEditing = false;
+  const editableSelectors = 'h1, h2, h3, p, .slide-badge, .slide-subtitle, .slide-section, .part-label, .col-label, .col-result, .kpi-label, .scene-label, td, th';
+
+  function toggleEdit() {
+    isEditing = !isEditing;
+    const btn = document.getElementById('editBtn');
+    if (isEditing) {
+      document.body.classList.add('editing');
+      btn.classList.add('active');
+      btn.textContent = '✓ 편집 중';
+      document.querySelectorAll('.slide ' + editableSelectors).forEach(el => {
+        el.setAttribute('contenteditable', 'true');
+        el.setAttribute('spellcheck', 'false');
+      });
+    } else {
+      document.body.classList.remove('editing');
+      btn.classList.remove('active');
+      btn.textContent = '✎ Edit';
+      document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+        el.removeAttribute('contenteditable');
+      });
+    }
+  }
+
+  // ─── Save HTML ───
+  function saveSlides() {
+    // 편집 모드 해제 후 저장
+    if (isEditing) toggleEdit();
+    const blob = new Blob([document.documentElement.outerHTML], { type: 'text/html;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'designer-value-lecture-slides-edited.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }
+
+  show(0);
+</script>
+</body>
+</html>
