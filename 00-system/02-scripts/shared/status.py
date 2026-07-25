@@ -9,12 +9,25 @@ weekly-report-aggregate에 흩어져 있던 판정 튜플·매핑·뱃지 클래
 from __future__ import annotations
 
 # ── 분장 상태 (주간분장 시트 H열, SSOT) — 한글 canonical ──────────────
-ASSIGN_STATES = ("미착수", "진행중", "완료", "승인", "삭제")
+# R4 개편 1차(2026-07-25): 검토 흐름 3종(검토중·승인대기·보류) + 종료 5종 추가.
+# 기존 5값(미착수/진행중/완료/승인/삭제)은 값·의미 불변 — 시트 데이터 무마이그레이션.
+ASSIGN_STATES = ("미착수", "진행중", "검토중", "승인대기", "보류",
+                 "완료", "승인", "패스", "취소", "미실행종료", "일정경과종료",
+                 "다른업무로통합", "삭제")
 ASSIGN_DEFAULT = "미착수"
+# 종료 상태 — 완료 없이 닫힘. 전이 시 사유(reason) 필수 (API 레이어에서 강제)
+ASSIGN_TERMINAL_STATES = ("패스", "취소", "미실행종료", "일정경과종료", "다른업무로통합")
+# 목록·집계에서 완전 제외 (status_log 이력에만 남음) — 종전 '삭제' 단독 필터의 일반화
+ASSIGN_DROPPED_STATES = ("삭제",) + ASSIGN_TERMINAL_STATES
 ASSIGN_DONE_STATES = ("완료", "승인")      # 완료 판정 (승인 포함)
-ASSIGN_HIDDEN_STATES = ("승인", "삭제")     # 내 업무·팀 목록에서 숨김
-ASSIGN_OPEN_STATES = ("미착수", "진행중")   # 미완(진행 대상)
-ASSIGN_CLOSED_STATES = ("완료", "승인", "삭제")  # 브리프 '이번주 할일'에서 제외
+ASSIGN_HIDDEN_STATES = ("승인",) + ASSIGN_DROPPED_STATES  # 내 업무·팀 목록에서 숨김
+ASSIGN_OPEN_STATES = ("미착수", "진행중", "검토중", "승인대기", "보류")  # 미완(진행 대상)
+ASSIGN_CLOSED_STATES = ASSIGN_DONE_STATES + ASSIGN_DROPPED_STATES  # 브리프 '이번주 할일'에서 제외
+# 승인 대기 큐 판정 — 담당자 완료 보고(완료) + PM 검토 통과(승인대기, 2차 승인 체인)
+ASSIGN_AWAITING_APPROVAL_STATES = ("완료", "승인대기")
+# PM 클리어 선택지 (2차 /api/pm-clear에서 소비 — 어휘만 선정의)
+PM_CLEAR_CHOICES = ("정상완료", "수정필요", "지연", "패스",
+                    "대표보고필요", "대표결정필요", "대표지원필요")
 
 # ── 우선순위 (주간분장 시트 J열) ──────────────────────────────────────
 PRIORITIES = ("일반", "긴급")
@@ -30,12 +43,16 @@ TASK_DONE_STATES = ("Done", "완료")
 BRIEF_STATES = ("Not Started", "In Progress", "On Track", "At Risk", "Hold", "Done")
 
 # ── 매핑: 분장(한글) → 태스크(영문) / 진행률 ─────────────────────────
+# 종료 5종은 매핑하지 않음 — 소비처가 ASSIGN_DROPPED_STATES로 먼저 걸러낸다(삭제와 동일 취급)
 ASSIGN_TO_TASK = {"미착수": "Not Started", "진행중": "In Progress",
+                  "검토중": "In Progress", "승인대기": "In Progress", "보류": "In Progress",
                   "완료": "Done", "승인": "Done"}
-ASSIGN_TO_PROGRESS = {"미착수": 0, "진행중": 50, "완료": 100, "승인": 100}
+ASSIGN_TO_PROGRESS = {"미착수": 0, "진행중": 50, "검토중": 70, "승인대기": 90, "보류": 30,
+                      "완료": 100, "승인": 100}
 
 # ── 표시: 분장 상태 → 뱃지 CSS 클래스 (daily-brief·weekly 공통) ───────
-ASSIGN_BADGE_CLASS = {"완료": "as-done", "승인": "as-done", "진행중": "as-doing"}
+ASSIGN_BADGE_CLASS = {"완료": "as-done", "승인": "as-done", "진행중": "as-doing",
+                      "검토중": "as-doing", "승인대기": "as-doing"}
 ASSIGN_BADGE_DEFAULT = "as-todo"
 
 

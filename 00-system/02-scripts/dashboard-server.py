@@ -1123,9 +1123,124 @@ function mt5blockSections(d,tag){
   if(d.quality_note) b+=tag.warn('⚠ '+d.quality_note);
   return b;
 }
+// FILAMENT 5블록 PDF/문서 전용 CSS — /미팅록 스킬과 동일 품질
+var FILAMENT_CSS='*{box-sizing:border-box}body{margin:0;padding:0;background:#F7F8FA;color:#1A1F2E;font-family:\\'Pretendard Variable\\',\\'Apple SD Gothic Neo\\',sans-serif;font-size:14px;line-height:1.7;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}'
+  +'.doc{max-width:920px;margin:40px auto;background:#fff;padding:60px 64px;box-shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);border-radius:4px}'
+  +'.doc-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.16em;color:#7A86A0;text-transform:uppercase;margin-bottom:18px}'
+  +'.doc-top .l{font-weight:600;color:#4A5468}'
+  +'h1{font-size:28px;font-weight:800;letter-spacing:-0.025em;line-height:1.25;margin:0 0 14px}'
+  +'.pt{color:#FF6450;font-weight:700}'
+  +'.intro{font-size:14px;color:#4A5468;line-height:1.7;margin:0 0 22px;max-width:84ch}'
+  +'hr.rule{border:none;border-top:1px solid #E3E6EC;margin:0 0 24px}'
+  +'.meta-box{border:1px solid #E3E6EC;border-radius:4px;overflow:hidden;margin-bottom:28px}'
+  +'.meta-box .row{display:flex;border-bottom:1px solid #F0F2F6}.meta-box .row:last-child{border-bottom:none}'
+  +'.meta-box .lbl{flex:0 0 100px;background:#F7F8FA;padding:11px 14px;font-size:11px;color:#7A86A0;font-weight:600;letter-spacing:.05em}'
+  +'.meta-box .val{flex:1;padding:11px 14px;font-size:13px;color:#1A1F2E}'
+  +'.sec{margin-bottom:36px;break-inside:avoid}'
+  +'.sh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:8px;margin-bottom:14px;border-bottom:1px solid #E3E6EC}'
+  +'.sh .left{display:flex;align-items:baseline;gap:9px}.sh .no{color:#FF6450;font-weight:800;font-size:15px}.sh .nm{font-size:15px;font-weight:700}'
+  +'.sh .resp{font-size:10px;letter-spacing:.08em;color:#7A86A0;text-transform:uppercase}'
+  +'p.note{font-size:12.5px;color:#4A5468;margin:0 0 12px}'
+  +'h3{font-size:13.5px;font-weight:700;margin:18px 0 8px;color:#1A1F2E}'
+  +'table.kv{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 16px}'
+  +'table.kv th,table.kv td{text-align:left;padding:10px 14px;border-bottom:1px solid #E3E6EC;vertical-align:top}'
+  +'table.kv thead th{background:#F7F8FA;font-weight:600;font-size:11px;color:#7A86A0;text-transform:uppercase;letter-spacing:.05em}'
+  +'table.kv tbody th{width:26%;background:#F7F8FA;font-weight:600;font-size:12px;color:#4A5468}'
+  +'.insight{background:#FFF9E6;border-left:3px solid #E8C547;padding:13px 16px;margin:12px 0 18px;font-size:13px;border-radius:0 3px 3px 0}'
+  +'.review{background:#FEF0E7;border-left:3px solid #D97706;padding:13px 16px;margin:12px 0 18px;font-size:13px;border-radius:0 3px 3px 0}'
+  +'.aug-tag{display:inline-block;background:#FEF0E7;color:#D97706;font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;margin-right:4px}'
+  +'ul.decisions{list-style:none;margin:0 0 12px;padding:0}'
+  +'ul.decisions li{position:relative;padding:9px 0 9px 30px;border-bottom:1px dashed #F0F2F6;font-size:13.5px}'
+  +'ul.decisions li::before{content:"\\2713";position:absolute;left:4px;top:8px;color:#2A7D5A;font-weight:800}'
+  +'.todo-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 14px}'
+  +'.todo-col{border:1px solid #E3E6EC;border-radius:8px;padding:14px 18px}'
+  +'.todo-col .tc-h{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#FF6450;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #F0F2F6}'
+  +'.todo-col ul{list-style:none;margin:0;padding:0}'
+  +'.todo-col li{padding:7px 0 7px 24px;position:relative;font-size:13px;border-bottom:1px dashed #F0F2F6}'
+  +'.todo-col li:last-child{border-bottom:none}'
+  +'.todo-col li::before{content:"\\2610";position:absolute;left:2px;top:6px;color:#7A86A0}'
+  +'.todo-col .who{font-weight:700;color:#1A1F2E}'
+  +'.todo-col .due{font-family:monospace;font-size:11px;color:#FF6450;margin-left:6px}'
+  +'ul.plain{margin:0 0 12px;padding-left:18px;font-size:13px;color:#4A5468}ul.plain li{margin-bottom:5px}ul.plain strong{color:#1A1F2E}'
+  +'.ftr{margin-top:44px;padding-top:18px;border-top:1px solid #E3E6EC;display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;color:#7A86A0}'
+  +'.ftr .sum{max-width:62%;line-height:1.6;color:#4A5468}.ftr .r{text-align:right}.ftr .r .date{color:#FF6450;font-weight:700}'
+  +'@page{size:A4;margin:14mm 13mm}'
+  +'@media print{html,body{background:#fff;font-size:10.5pt;line-height:1.55}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+  +'.doc{box-shadow:none;margin:0;max-width:none;padding:0;border-radius:0}.sec,.meta-box,.todo-col,table{break-inside:avoid}}';
+function build5blockDoc(d){
+  var title=d.title_guess||'미팅록', m=d.metadata||{}, bs=d.block_2_summary||{};
+  var h='<div class="doc"><div class="doc-top"><span class="l">PROJECT RENT — MEETING NOTES</span><span class="r">'
+    +esc(m.date||new Date().toISOString().slice(0,10))+' · '+esc(m.type_label||'일반 미팅')+'</span></div>'
+    +'<h1>'+(m.project_name?esc(m.project_name)+' ':'')+'<span class="pt">'+esc(m.meeting_name||title)+'</span></h1>'
+    +'<p class="intro">'+esc(bs.paragraph||'')+'</p><hr class="rule">';
+  // 01 개요
+  h+='<div class="sec"><div class="sh"><div class="left"><span class="no">01</span><span class="nm">개요</span></div><span class="resp">SUMMARY</span></div>'
+    +'<p class="note">'+esc(bs.paragraph||'')+'</p><div class="meta-box">';
+  if(m.date) h+='<div class="row"><div class="lbl">일시</div><div class="val">'+esc(m.date)+'</div></div>';
+  if(m.participants) h+='<div class="row"><div class="lbl">참석</div><div class="val">'+esc(m.participants)+'</div></div>';
+  if(m.type_label) h+='<div class="row"><div class="lbl">유형</div><div class="val">'+esc(m.type_label)+'</div></div>';
+  (bs.key_values||[]).forEach(function(kv){h+='<div class="row"><div class="lbl">'+esc(kv.key)+'</div><div class="val">'+esc(kv.value)+'</div></div>';});
+  h+='</div>';
+  var ov=d.block_1_overview||{};
+  if(ov.exists&&(ov.items||[]).length){
+    h+='<table class="kv"><tbody>';
+    (ov.items||[]).forEach(function(it){h+='<tr><th>'+esc(it.key)+'</th><td>'+esc(it.value)+'</td></tr>';});
+    h+='</tbody></table>';
+  }
+  h+='</div>';
+  // 02 아젠다
+  var agendas=d.block_3_agenda||[];
+  if(agendas.length){
+    h+='<div class="sec"><div class="sh"><div class="left"><span class="no">02</span><span class="nm">아젠다별 정리</span></div><span class="resp">AGENDA</span></div>';
+    agendas.forEach(function(a,i){
+      h+='<h3>'+(i+1)+'. '+esc(a.title||'')+(a.category?' <span style="font-size:11px;color:#7A86A0;font-weight:400">('+esc(a.category)+')</span>':'')+'</h3>';
+      if(a.discussion) h+='<p class="note">'+esc(a.discussion)+'</p>';
+      if(a.insight) h+='<div class="insight">'+esc(a.insight)+'</div>';
+      (a.augmentation||[]).forEach(function(aug){
+        h+='<div class="review"><span class="aug-tag">'+esc(aug.category)+'</span> '+esc(aug.content)+'</div>';
+      });
+    });
+    h+='</div>';
+  }
+  // 03 의사결정
+  var decs=d.block_4_decisions||[];
+  if(decs.length){
+    h+='<div class="sec"><div class="sh"><div class="left"><span class="no">03</span><span class="nm">의사결정사항</span></div><span class="resp">DECISIONS</span></div>'
+      +'<p class="note">이 회의에서 확정된 것만.</p><ul class="decisions">';
+    decs.forEach(function(x){h+='<li><strong>'+esc(x.decision)+'</strong>'+(x.detail?' — '+esc(x.detail):'')+'</li>';});
+    h+='</ul></div>';
+  }
+  // 04 To-Do
+  var td=d.block_5_todos||{}, ours=td.ours||[], theirs=td.theirs||[];
+  if(ours.length||theirs.length){
+    h+='<div class="sec"><div class="sh"><div class="left"><span class="no">04</span><span class="nm">요청사항 / To-Do</span></div><span class="resp">R&amp;R</span></div><div class="todo-grid">';
+    h+='<div class="todo-col"><div class="tc-h">우리 측</div><ul>';
+    ours.forEach(function(t){h+='<li><span class="who">'+esc(t.assignee)+'</span> — '+esc(t.task)+' <span class="due">'+esc(t.due)+'</span></li>';});
+    if(!ours.length) h+='<li>해당 없음</li>';
+    h+='</ul></div><div class="todo-col"><div class="tc-h">상대 측</div><ul>';
+    theirs.forEach(function(t){h+='<li><span class="who">'+esc(t.assignee)+'</span> — '+esc(t.task)+' <span class="due">'+esc(t.due)+'</span></li>';});
+    if(!theirs.length) h+='<li>해당 없음</li>';
+    h+='</ul></div></div></div>';
+  }
+  // 05 미해결
+  var oi=d.open_items||[];
+  if(oi.length){
+    h+='<div class="sec"><div class="sh"><div class="left"><span class="no">05</span><span class="nm">미해결 · 후속 확인</span></div><span class="resp">OPEN ITEMS</span></div><ul class="plain">';
+    oi.forEach(function(x){h+='<li><strong>'+esc(x.item)+'</strong> — '+esc(x.status)+'</li>';});
+    h+='</ul></div>';
+  }
+  // 푸터
+  h+='<div class="ftr"><div class="sum">'+esc(d.closing||'')+'</div><div class="r"><div class="date">'+esc(m.date||new Date().toISOString().slice(0,10))+'</div><div>내부공유용</div></div></div></div>';
+  return '<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title>'
+    +'<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">'
+    +'<style>'+FILAMENT_CSS+'</style></head><body>'+h+'</body></html>';
+}
 function buildMeetingDoc(){
   if(!lastMeeting) return '';
   var d=lastMeeting, title=(d.title_guess||'회의록');
+  // 5블록 → FILAMENT 스킨으로 출력
+  if(is5block(d)) return build5blockDoc(d);
+  // 레거시 10섹션 → 기존 docShell
   var tag={
     h2:function(t){return '<h2>'+t+'</h2>';},
     h3:function(t){return '<h3>'+t+'</h3>';},
@@ -1143,8 +1258,7 @@ function buildMeetingDoc(){
     todos.map(function(t){return [stars(t.priority),esc(t.task),esc(t.owner||'확인 필요'),esc(t.due||'확인 필요'),esc(t.output||''),esc(t.done_criteria||'')];}));};
   tag.verify=function(items,answers){return '<ul>'+items.map(function(x,i){
     return '<li>'+esc(x)+((answers[i]||'').trim()?' — <b>답변:</b> '+esc(answers[i]):'')+'</li>';}).join('')+'</ul>';};
-  var subtitle=is5block(d)?'5블록 미팅록':'실행 중심 회의록';
-  var b='<h1>'+esc(title)+'</h1><p class="meta">'+new Date().toLocaleDateString('ko-KR')+' · '+subtitle+'</p>'
+  var b='<h1>'+esc(title)+'</h1><p class="meta">'+new Date().toLocaleDateString('ko-KR')+' · 실행 중심 회의록</p>'
     +mtSections(lastMeeting,tag)
     +'<p class="foot">by Project Rent · ARISA 문서 시뮬레이터</p>';
   return docShell(title,b);
@@ -1717,7 +1831,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         h+='<div class="mw-h">📥 받은 업무 <span class="sub2">— 대표 지시·리더 이관 · [상세 분장]으로 팀원에게 쪼개서 배분하세요</span></div>';
         received.forEach(function(a,i){
           var st=a.status||'미착수';
-          var badge='<span class="lh-st '+(st==='완료'?'lh-done':(st==='진행중'?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
+          var badge='<span class="lh-st '+(st==='완료'?'lh-done':((st==='진행중'||st==='검토중'||st==='승인대기')?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
           var urg=(a.priority==='긴급')?'<span class="mw-badge mw-urgent">긴급</span>':'';
           var pj=a.project?(esc(a.project)+' · '):'';
           var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
@@ -1739,7 +1853,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         var pf={}, pfo=[];
         teamTodo.forEach(function(a){ var n=a.assignee||'미지정';
           if(!(n in pf)){ pf[n]=0; pfo.push(n); }
-          if(a.status==='미착수'||a.status==='진행중') pf[n]++;
+          if(['미착수','진행중','검토중','승인대기','보류'].indexOf(a.status)>=0) pf[n]++;
         });
         h+='<div class="pf-bar"><span class="pf-chip on" data-name="">전체 '+teamTodo.length+'</span>';
         pfo.forEach(function(n){ h+='<span class="pf-chip" data-name="'+esc(n)+'">'+esc(n)+' '+pf[n]+'</span>'; });
@@ -2065,7 +2179,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   function mwDueHtml(A){
     // ⏰ 마감 임박(A1 — filament '오늘' 탭: 지난·오늘·내일 모아보기)
     var t0=mwLocalDate(0), t1=mwLocalDate(1);
-    var open=(A||[]).filter(function(a){ return a.status==='미착수'||a.status==='진행중'; });
+    var open=(A||[]).filter(function(a){ return ['미착수','진행중','검토중','승인대기','보류'].indexOf(a.status)>=0; });
     var late=open.filter(function(a){ return a.days_overdue>0; });
     var soon=open.filter(function(a){ return !a.days_overdue && ((a.deadline||'').slice(0,10)===t0||(a.deadline||'').slice(0,10)===t1); });
     if(!late.length && !soon.length) return '';
@@ -2252,7 +2366,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   }
   function mwAssignCard(a, withAssignee){
     var st=a.status||'미착수';
-    var badge='<span class="lh-st '+(st==='완료'?'lh-done':(st==='진행중'?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
+    var badge='<span class="lh-st '+(st==='완료'?'lh-done':((st==='진행중'||st==='검토중'||st==='승인대기')?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
     var urg=(a.priority==='긴급')?'<span class="mw-badge mw-urgent">긴급</span>':'';
     var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
     var who=withAssignee?esc(a.assignee||'미지정'):'';
@@ -2372,6 +2486,18 @@ def load_users():
                             "role": "대표" if x.get("role") == "admin" else (x.get("role") or "직원")}
                 for x in u if x.get("name")}
     return u
+
+def load_approval_rules():
+    """결재 권한 4단계 규칙 (R4 개편 1차) — _data/approval-rules.json.
+    소비는 2차 shared/approval.py(chain_for/required_level)에서. 파일 없으면 안전 기본값."""
+    try:
+        doc = json.loads((DATA / "approval-rules.json").read_text(encoding="utf-8"))
+        if isinstance(doc, dict) and doc.get("levels"):
+            return doc
+    except Exception:
+        pass
+    return {"levels": ["담당자", "파트리더", "PM", "대표"], "rules": [],
+            "defaults": {"minLevel": "파트리더"}}
 
 def load_projects():
     out = []
@@ -2514,34 +2640,13 @@ def is_leader(uid):
     return bool(lead_teams_of(uid))
 
 
-_PROJ_STOP = {"프로젝트", "행사", "팝업", "기획", "관련", "운영", "브랜드", "상세"}
+# 매칭 로직 단일출처 이관 (R4 개편 1차) — 배포 시 shared/project_match.py 동반 필수.
+# 로컬 별칭 유지로 기존 호출부 무변경. daily-brief·weekly·classifier도 같은 모듈을 쓴다(4차).
+from shared import project_match as _PM
 
-
-def _proj_tokens(s):
-    """프로젝트명 → 매칭용 토큰 집합 (영숫자·한글 단어, 일반어 제외)."""
-    toks = set()
-    for t in re.findall(r"[A-Za-z0-9]+|[가-힣]+", (s or "").lower()):
-        if len(t) >= 2 and t not in _PROJ_STOP:
-            toks.add(t)
-    return toks
-
-
-def _match_project(ap, pname):
-    """분장 프로젝트명(ap) vs 포트폴리오명(pname) — 표기 변형 허용 매칭.
-    ① 정규화 상호 포함 ② 유의 토큰 교집합 (영문 3자+/한글 2자+, 일반어 제외)."""
-    na = re.sub(r"[^a-z0-9가-힣]", "", (ap or "").lower())
-    nb = re.sub(r"[^a-z0-9가-힣]", "", (pname or "").lower())
-    if na and nb and (na in nb or nb in na):
-        return True
-    common = _proj_tokens(ap) & _proj_tokens(pname)
-    return any(len(t) >= 3 or re.fullmatch(r"[가-힣]{2,}", t) for t in common)
-
-
-def _match_project_p(ap, p):
-    """분장 프로젝트명(ap) vs 프로젝트 dict — 정식 명칭 + aliases(별칭·구표기)까지 매칭."""
-    if _match_project(ap, p.get("name") or ""):
-        return True
-    return any(_match_project(ap, al) for al in (p.get("aliases") or []))
+_proj_tokens = _PM.proj_tokens
+_match_project = _PM.match_project
+_match_project_p = _PM.match_project_p
 
 
 def _resolve_pid(project):
@@ -2593,10 +2698,13 @@ def _memory_hub(p):
 
 
 def _find_project_for_assign(assign):
-    """분장 → 프로젝트 dict. pid(ID Relation) 우선, 없으면 이름 토큰 매칭 폴백 (G1)."""
+    """분장 → 프로젝트 dict. pid(ID Relation) 우선, 없으면 이름 토큰 매칭 폴백 (G1).
+    병합된 프로젝트의 구 pid는 살아남은 대상(mergedInto)으로 따라간다 (R4 1차)."""
     pid = (assign.get("pid") or "").strip()
     if pid:
         p = get_project(pid)
+        if p and p.get("mergedInto"):
+            p = get_project(p["mergedInto"]) or p
         if p:
             return p
     pn = (assign.get("project") or "").strip()
@@ -2605,14 +2713,16 @@ def _find_project_for_assign(assign):
     return next((p for p in load_projects() if _match_project_p(pn, p)), None)
 
 
-def _project_assignments(pname, aliases=None, pid=""):
+def _project_assignments(pname, aliases=None, pid="", merged_pids=None):
     """최근 2주 주간분장 중 프로젝트가 매칭되는 항목 — 프로젝트 상세 '분장 업무' 섹션용.
     (엄격한 '이번주' 필터는 주가 바뀌면 미완료 할일이 사라져 2주 윈도우 사용.)
-    완전 동일 행은 표시 중복 제거. G1: 행에 pid 있으면 ID 일치 우선, 없으면 이름 토큰 매칭."""
+    완전 동일 행은 표시 중복 제거. G1: 행에 pid 있으면 ID 일치 우선, 없으면 이름 토큰 매칭.
+    merged_pids: 흡수 병합된 원본 프로젝트 ID들(mergedIds) — 구 pid로 등록된 분장 행도 연결."""
     pname = (pname or "").strip()
     if not pname:
         return []
     names = [pname] + list(aliases or [])
+    pids = ({pid} | {m for m in (merged_pids or []) if m}) if pid else set()
     today = datetime.date.today()
     ws = today - datetime.timedelta(days=today.weekday() + 7)  # 지난주 월요일부터
     we = today
@@ -2625,12 +2735,12 @@ def _project_assignments(pname, aliases=None, pid=""):
             continue
         if not (ws <= d <= we):
             continue
-        if (a.get("status") or "") == "삭제":
+        if (a.get("status") or "") in _ST.ASSIGN_DROPPED_STATES:
             continue
         ap = (a.get("project") or "").strip()
         apid = (a.get("pid") or "").strip()
-        if pid and apid:
-            if apid != pid:  # ID Relation — 확정 연결 (G1)
+        if pids and apid:
+            if apid not in pids:  # ID Relation — 확정 연결 (G1, 병합 원본 pid 포함)
                 continue
         elif not ap or not any(_match_project(ap, n) for n in names):
             continue
@@ -2639,7 +2749,7 @@ def _project_assignments(pname, aliases=None, pid=""):
             continue
         seen.add(key)
         out.append(a)
-    out.sort(key=lambda a: (a.get("status") == "완료", a.get("deadline") or "9999"))
+    out.sort(key=lambda a: (_ST.is_assign_done(a.get("status")), a.get("deadline") or "9999"))
     return out
 
 
@@ -2973,7 +3083,8 @@ def _find_dup_project(name, projects):
             continue
         if _match_project_p(name, p):
             return p
-        sim = _NM.name_similarity(name, p.get("name") or "")
+        sim = max([_NM.name_similarity(name, p.get("name") or "")]
+                  + [_NM.name_similarity(name, al) for al in (p.get("aliases") or []) if al])
         if sim >= _NM.SIMILARITY_DUP and sim > best_sim:
             best, best_sim = p, sim
     return best
@@ -3012,7 +3123,7 @@ def _sync_assign_status(p):
         st = sheet.get(t["akey"])
         if not st:
             continue
-        if st == "삭제":
+        if st in _ST.ASSIGN_DROPPED_STATES:
             removed.append(t["akey"])
             continue
         new_st = _ASSIGN_ST_MAP.get(st, "Not Started")
@@ -3967,7 +4078,7 @@ class H(BaseHTTPRequestHandler):
             # 개인 대시보드 — 내 분장(미완) + 내 프로젝트 일정(owner)
             uid = (q.get("user") or [""])[0]
             mine = [a for a in _assign_read() if a["assignee"] == uid and a["status"] not in _ASSIGN_HIDDEN_STATES]
-            mine.sort(key=lambda a: (a["status"] == "완료", a["status"] != "진행중", a.get("deadline") or "9999"))
+            mine.sort(key=lambda a: (_ST.is_assign_done(a["status"]), a["status"] != "진행중", a.get("deadline") or "9999"))
             projs = []
             for p in load_projects():
                 ts = [t for t in (p.get("tasks") or []) if t.get("owner") == uid
@@ -3991,9 +4102,9 @@ class H(BaseHTTPRequestHandler):
             unassigned, useen = [], set()  # filament 반영 — 담당 미지정 배정 큐
             for a in _assign_read():
                 st = (a.get("status") or "미착수")
-                if st == "완료":
+                if st in _ST.ASSIGN_AWAITING_APPROVAL_STATES:
                     approvals.append(a)   # 승인 대기 큐 (대표 승인용)
-                if st in _ASSIGN_DONE_STATES or st == "삭제":
+                if st in _ST.ASSIGN_CLOSED_STATES:
                     continue
                 ds = (a.get("date") or "").strip()[:10]
                 try:
@@ -4062,7 +4173,7 @@ class H(BaseHTTPRequestHandler):
             unassigned = []  # filament 반영 — 담당 미지정(팀 귀속 또는 팀 공란) 배정 큐
             for a in _assign_read():
                 # 승인 대기(완료)는 날짜 무관 전체 — 리더 승인 큐
-                if (a.get("status") or "") == "완료" and (a.get("team") in teams or emp_team(a.get("assignee")) in teams):
+                if (a.get("status") or "") in _ST.ASSIGN_AWAITING_APPROVAL_STATES and (a.get("team") in teams or emp_team(a.get("assignee")) in teams):
                     approvals.append(a)
                 ds = (a.get("date") or "").strip()[:10]
                 try:
@@ -4080,7 +4191,7 @@ class H(BaseHTTPRequestHandler):
                     continue
                 if a.get("team") in teams or emp_team(a.get("assignee")) in teams:
                     assigns.append(a)
-            assigns.sort(key=lambda a: (a["status"] == "완료", a["status"] != "진행중",
+            assigns.sort(key=lambda a: (_ST.is_assign_done(a["status"]), a["status"] != "진행중",
                                         a.get("deadline") or "9999", a.get("assignee") or ""))
             # 받은 업무 출처 라벨 (L열 등록자) — 과거 행(공란)은 종전 표기 유지 (2026-07-20)
             for a in assigns:
@@ -4148,7 +4259,7 @@ class H(BaseHTTPRequestHandler):
             if not can_view(uid, p): return self._send(403, {"ok": False, "error": "forbidden"})
             if _sync_assign_status(p): save_project(p)  # 분장 시트(SSOT) 상태 lazy 반영
             return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
-                                    "assignments": _project_assignments(p.get("name") or "", p.get("aliases"), p.get("id") or ""),
+                                    "assignments": _project_assignments(p.get("name") or "", p.get("aliases"), p.get("id") or "", p.get("mergedIds")),
                                     "memory": _memory_hub(p)})  # B1 — ARISA 메모리 링크백
         if path == "/api/project/open-assigns":
             # 아카이브 모달 사전 경고용 — 열린 분장(미착수·진행중, 전 기간)
@@ -4659,6 +4770,7 @@ class H(BaseHTTPRequestHandler):
             task = (r[4] or "").strip()
             if not task or task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
                 return self._send(409, {"ok": False, "error": "행 내용이 달라졌습니다 — 새로고침 후 다시 시도"})
+            reason = (b.get("reason") or "").strip()
             if new_st == "승인":
                 if not _can_approve(uid, assignee):
                     return self._send(403, {"ok": False, "error": "승인 권한 없음(대표·해당 팀 리더)"})
@@ -4666,6 +4778,12 @@ class H(BaseHTTPRequestHandler):
                 # 대표·해당 팀 리더 + 본인(잘못 등록 정리) — 본인 삭제는 아래에서 리더·대표에 알림
                 if not (_can_approve(uid, assignee) or assignee == uid):
                     return self._send(403, {"ok": False, "error": "삭제 권한 없음(대표·팀 리더·본인)"})
+            elif new_st in _ST.ASSIGN_TERMINAL_STATES:
+                # R4 개편 1차 — 완료 없는 종료(패스·취소 등)는 리더·대표 확정 + 사유 필수
+                if not _can_approve(uid, assignee):
+                    return self._send(403, {"ok": False, "error": "종료 처리 권한 없음(대표·해당 팀 리더)"})
+                if not reason:
+                    return self._send(400, {"ok": False, "error": "종료 사유(reason)를 입력해주세요"})
             elif not (assignee == uid or _can_approve(uid, assignee)):
                 return self._send(403, {"ok": False, "error": "본인 분장만 변경할 수 있습니다"})
             try:
@@ -4676,7 +4794,8 @@ class H(BaseHTTPRequestHandler):
                 return self._send(500, {"ok": False, "error": "시트 업데이트 실패"})
             _log_st("dashboard", uid, new_st, from_status=_ST.norm_assign_status(r[7]), row=row,
                     date=(r[0] or "").strip(), project=(r[1] or "").strip(), pid=(r[10] or "").strip(),
-                    task=task, assignee=assignee)  # G5 — 상태 전이 이력
+                    task=task, assignee=assignee, reason=reason,
+                    approved_by=uid if new_st in _ST.ASSIGN_TERMINAL_STATES + ("승인",) else "")  # G5 — 상태 전이 이력
             recorded = False
             notified = 0
             assign = {"date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
@@ -4882,6 +5001,52 @@ class H(BaseHTTPRequestHandler):
             p["members"] = clean
             save_project(p)
             return self._send(200, {"ok": True, "members": clean})
+        if path == "/api/project/merge":
+            # R4 개편 1차 — 동일 프로젝트 흡수 병합: 원본(id) 명칭·별칭이 대상(into)의 별칭이
+            # 되고 tasks·members 이관. 원본은 mergedInto+archived로 보존(롤백 = 필드 제거).
+            if not is_admin(uid):
+                return self._send(403, {"ok": False, "error": "병합은 대표만 가능합니다"})
+            src_id = (b.get("id") or "").strip()
+            dst_id = (b.get("into") or "").strip()
+            if not src_id or not dst_id or src_id == dst_id:
+                return self._send(400, {"ok": False, "error": "id·into 확인"})
+            src, dst = get_project(src_id), get_project(dst_id)
+            if not src or not dst:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if src.get("mergedInto"):
+                return self._send(400, {"ok": False, "error": "이미 병합된 프로젝트입니다"})
+            if dst.get("archived"):
+                return self._send(400, {"ok": False, "error": "아카이브 프로젝트로는 병합할 수 없습니다"})
+            # 별칭 이전 — 원본 정식명 + 원본 별칭 (대상 표기와 중복 제거)
+            have = {(dst.get("name") or "").strip()} | {(a or "").strip() for a in (dst.get("aliases") or [])}
+            for n in [src.get("name") or ""] + list(src.get("aliases") or []):
+                n = (n or "").strip()
+                if n and n not in have:
+                    dst.setdefault("aliases", []).append(n)
+                    have.add(n)
+            # 업무 이관 — akey(시트 연동 키) 중복 제외
+            dkeys = {t.get("akey") for t in (dst.get("tasks") or []) if t.get("akey")}
+            moved = 0
+            for t in (src.get("tasks") or []):
+                if t.get("akey") and t["akey"] in dkeys:
+                    continue
+                dst.setdefault("tasks", []).append(t)
+                moved += 1
+            for m in (src.get("members") or []):
+                if m not in (dst.get("members") or []):
+                    dst.setdefault("members", []).append(m)
+            # 구 pid로 등록된 분장 행 연결용 (K열 재기입 없이 조회 측에서 흡수)
+            if src_id not in (dst.get("mergedIds") or []):
+                dst.setdefault("mergedIds", []).append(src_id)
+            src["mergedInto"] = dst_id
+            src["archived"] = True
+            save_project(dst)
+            save_project(src)
+            _log_st("project-merge", uid, "병합", project=src.get("name") or src_id, pid=src_id,
+                    note=f"→ {dst.get('name') or dst_id}({dst_id}) 흡수 병합 · tasks {moved}건 이관",
+                    approved_by=uid)
+            return self._send(200, {"ok": True, "into": dst_id, "moved": moved,
+                                    "aliases": dst.get("aliases") or []})
         if path == "/api/project/archive":
             # P1 — 프로젝트 아카이브 라이프사이클 (Team Ops Guide 2부-④).
             # 완료 조건 3종(납품·정산·회고 2줄) 충족 시에만 아카이브. 삭제가 아니라 이동:

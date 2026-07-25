@@ -495,7 +495,7 @@ def fetch_assignments(target: str) -> list[dict]:
             continue
         if not (r[4] or "").strip():
             continue
-        if (r[7] or "").strip() == "삭제":
+        if (r[7] or "").strip() in _ST.ASSIGN_DROPPED_STATES:
             continue
         items.append({
             "row": i + 2,  # 시트 실제 행 — 보고 기반 자동 완료 처리용
