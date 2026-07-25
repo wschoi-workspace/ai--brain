@@ -1,8 +1,9 @@
-# ARISA 정보 취합·분류 기준 v1 — 맥킨지 사고법 × 6-Layer 확장
+# ARISA 정보 취합·분류 기준 v1.1 — 맥킨지 사고법 × 6-Layer 확장
 
-> 작성: 2026-07-25 · v1.0 · by Project Rent
+> 작성: 2026-07-25 · v1.1 · by Project Rent
 > SSOT 연계: [`26-reporting-os/reporting-os-보고체계-정의-v1.md`](../26-reporting-os/reporting-os-보고체계-정의-v1.md) (6-Layer 분류축)
-> 코드 반영: `00-system/02-scripts/daily-brief-aggregate.py` (`sort_items`), `weekly-report-aggregate.py` (`_open_decisions`)
+> 코드 반영: `00-system/02-scripts/daily-brief-aggregate.py` (`sort_items`·`headline` 가설·decision RAPID), `weekly-report-aggregate.py` (`_open_decisions`)
+> v1.1 추가: 가설 주도(Day-1 Answer) 헤드라인 · 결정권한(RAPID) 메타 · 검토 방법론 전체 기록(§6)
 
 ---
 
@@ -28,6 +29,8 @@ Reporting OS의 6-Layer 정의는 이 병을 정확히 지목한다 — Priority
 | **80/20 (Pareto)** | 20%가 결과의 80% | `top5`·`decision_summary`가 "오늘 볼 20%"를 뽑는 근거 |
 | **SCQA / So What·Now What** | 상황→갈등→질문→답, 데이터→의미→액션 | decision 항목의 `detail`(배경→상태→액션) + `recommendation/deadline/delay_impact` 구조 |
 | **Ghost Deck (액션타이틀 테스트)** | 제목만 읽어 논증이 완결되는가 | 품질 체크 — item `title`만 위→아래로 읽었을 때 조직 상황이 그려지는지 |
+| **가설 주도 / Day-1 Answer** *(v1.1)* | 요약이 아닌 반증 가능한 주장을 먼저 세운다 | `headline`을 "오늘 조직 상태에 대한 가설" 한 문장으로 — 고유명사·수치를 넣어 검증 가능하게 (Governing Thought의 격상) |
+| **결정권한 (RAPID)** *(v1.1)* | 결정을 "무엇"만이 아니라 "누가"까지 | decision 항목에 `recommender`(추천자)·`decider`(최종 결정권자) 부착 — R4 PM 라우팅의 방법론적 정식화. RAPID는 Bain 프레임(맥킨지도 decision-rights를 동일 강조) |
 
 > 참조 자산(신규 작성 대신 재사용): `00-system/01-templates/consulting-report-template.md`(Pyramid·SCQA·MECE 이슈트리·Ghost Deck), `00-system/01-templates/executive-report-framework.md`(So What/Now What·Rule of Three).
 
@@ -57,7 +60,8 @@ Reporting OS의 6-Layer(분류축)를 **ARISA 7범주 · 맥킨지 렌즈 · 정
 3. **3차 — impact 신호** `_prio_rank`: 결재·승인 > 비용·금전 > 리스크 > 개입 > 기타
    (키워드: 승인·결재·송금·결제·계약 / 비용·지출·예산·견적·단가·금액·발주)
 4. **4차 — 미결 경과** `age_days` 큰 것 우선: 오래 방치된 결정이 위로 (`carried` 이월 항목)
-5. **종합 — Governing Thought**: `headline`은 결정·리스크 우선의 한 문장. 근거 없으면 공란.
+5. **종합 — 가설(Day-1 Answer)** *(v1.1)*: `headline`은 결정·리스크 우선의 **반증 가능한 한 문장 주장**. 고유명사·수치를 넣어 검증 가능하게. 근거 없으면 공란.
+6. **결정권한(RAPID)** *(v1.1)*: decision 항목에 `recommender`(추천자) → `decider`(결정권자)를 부착. 보고에서 식별될 때만(추측 금지), 대표창 카드에 "결정권한: 추천 A → 결정 B"로 표시.
 
 > 동률(같은 키)은 stable sort로 기존 순서를 유지 → 정렬만 바뀌고 내용은 무손실.
 
@@ -75,18 +79,44 @@ Reporting OS의 6-Layer(분류축)를 **ARISA 7범주 · 맥킨지 렌즈 · 정
 
 취합 결과물이 "정렬됐는가"를 넘어 "논리가 서는가"를 점검한다.
 
-- [ ] **headline만 읽어** 오늘 조직에서 가장 먼저 볼 것이 잡히는가? (Governing Thought)
+- [ ] **headline만 읽어** 오늘 조직 상태에 대한 **가설**이 서는가? 반증 가능한가? (Day-1 Answer)
 - [ ] **item `title`만 위→아래로 읽어** 각 프로젝트 상황이 그려지는가? (Ghost Deck)
 - [ ] decision 항목에 **So What/Now What**(추천안·기한·미결영향)이 채워졌는가?
+- [ ] decision 항목에 **결정권한**(추천자→결정권자)이 식별됐는가? (RAPID)
 - [ ] 같은 정보가 두 범주에 중복되거나(MECE 위반), 빠진 위험이 없는가?
 - [ ] Priority가 "10가지 나열"이 아니라 **top5로 압축**됐는가? (80/20)
 
 ---
 
-## 5. 버전 로드맵
-- **v1** (현재): 6-Layer 확장 매핑 + `sort_items` 결정론적 정렬 + 주간 `_open_decisions` 정렬
-- **v1.1**: BRIEF_PROMPT의 Governing Thought 품질 자동 채점(Report Score 연동)
-- **v2**: Outcome·Learning Layer 연결 — 결정 이후 결과 회수까지 정렬축 확장
+## 6. 검토된 맥킨지·컨설팅 방법론 전체 (채택/보류 판단)
+
+정보취합·의사결정 관련 방법론을 폭넓게 검토하고, ARISA의 실제 갭에 꽂히는 것만 채택했다. 나머지는 "왜 지금은 아닌가"를 남겨 재검토 근거로 둔다.
+
+| 방법론 | 출처 | 채우는 갭 | 판단 | 반영처 |
+|---|---|---|---|---|
+| MECE | McKinsey/Minto | 분류 경계 | ✅ 채택 v1 | 7범주 규율 |
+| Pyramid Principle | Minto(McKinsey) | 종합 구조 | ✅ 채택 v1 | headline·항목 지지 |
+| Impact×Urgency | 컨설팅 통용 | 우선순위 | ✅ 채택 v1 | 정렬 2·3차 키 |
+| 80/20 (Pareto) | Pareto | 압축 | ✅ 채택 v1 | top5·decision_summary |
+| SCQA·So What | Minto(McKinsey) | 결정 서술 | ✅ 채택 v1 | decision detail |
+| Ghost Deck | McKinsey | 품질검증 | ✅ 채택 v1 | title 테스트 |
+| **가설 주도·Day-1 Answer** | McKinsey 핵심 | 종합이 요약에 머묾 | ✅ **채택 v1.1** | `headline` 프롬프트 |
+| **결정권한(RAPID)** | Bain(개념은 통용) | 결정에 "누가"가 없음 | ✅ **채택 v1.1** | decision `recommender`/`decider` |
+| **이슈 트리·로직 트리** | McKinsey/Minto | 복잡 항목 분해 | 🔸 **문서 원리만** — 데일리 자동화엔 과함, 무거운 소수 decision에 수동 적용 | (원리) |
+| **Driver Tree(동인 분해)** | McKinsey | 주간 지표가 집계뿐 | 🔸 **주간 별도** — 완료율·ReportScore를 동인으로 분해, weekly-dashboard 대상 | (weekly 검토) |
+| **5 Whys·근본원인** | Toyota/Lean(컨설팅 통용) | anomaly가 플래그에 머묾 | ⏭ **v2** — LLM 자동 근본원인은 지어내기 위험, 신중 도입 | — |
+| **7S · Three Horizons · Where-to-Play** | McKinsey | 조직·전략 진단 | ⏭ **분기 리뷰용** — 매일 취합엔 부적합, 별도 렌즈로 분리 | — |
+| **Rule of Three** | 수사학/컨설팅 | 인지 부하 | ➖ **흡수됨** — top5·압축 규칙에 이미 반영, 중복 | (기존) |
+
+> 채택 원칙(80/20): 데일리 판단 품질을 가장 크게 올리고 구현이 가벼운 것부터. 가설 헤드라인·결정권한이 v1.1 우선. 이슈트리·Driver·5Whys는 각각 "무거운 항목·주간·v2"라는 제자리가 있어 데일리에 억지로 넣지 않는다.
+
+---
+
+## 7. 버전 로드맵
+- **v1**: 6-Layer 확장 매핑 + `sort_items` 결정론적 정렬 + 주간 `_open_decisions` 정렬
+- **v1.1** (현재): 가설 주도(Day-1) 헤드라인 + 결정권한(RAPID) 메타 + 검토 방법론 전체 기록(§6)
+- **v1.2**: 이슈 트리(무거운 decision 분해) · Driver Tree(주간 지표) 실전 적용 검토
+- **v2**: 5 Whys(anomaly 근본원인) + Outcome·Learning Layer 연결 — 결정 이후 결과 회수까지 정렬축 확장
 
 ---
 

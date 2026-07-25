@@ -246,14 +246,16 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
 [urgency] high=오늘 안 보면 손실/기한 / mid=이번 주 / low=인지만
 
 [정렬·종합 규칙 — 피라미드 원칙(결론 먼저) + Impact×Urgency]
-- headline은 조직 전체의 Governing Thought(최상위 결론) 한 문장 — 결정·리스크를 우선해
-  "오늘 조직에서 가장 먼저 볼 것"을 압축. 근거 없으면 빈 문자열.
+- headline은 조직 전체의 Governing Thought를 '가설(Day-1 Answer)'로 세운다 — 요약이 아니라
+  반증 가능한 한 문장 주장. 결정·리스크 우선, 고유명사·수치를 넣어 검증 가능하게.
+  (예: "X·Y·Z 3건이 승인 대기로 묶여 이번주 진행의 병목이다.") 근거 없으면 빈 문자열.
 - items는 다음 순서로 정렬해 반환: ①범주(decision→intervention→risk→support→project→growth→anomaly)
   ②각 범주 안에서 urgency(high→mid→low) ③같은 urgency면 결재·금전·기한이 걸린 것 먼저.
   (시스템이 이 규칙으로 재정렬하지만, 응답 자체도 이 순서를 따르면 품질이 높아진다.)
 
-[decision 항목 구조 (§9-3)] decision 항목에는 보고에 근거가 있을 때만 다음을 채워라(없으면 ""):
-  recommendation=담당자의 추천안, deadline=결정이 필요한 기한, delay_impact=미결정 시 영향
+[decision 항목 구조 (§9-3 + 결정권한 RAPID)] decision 항목에는 보고에 근거가 있을 때만 채워라(없으면 ""):
+  recommendation=담당자의 추천안, deadline=결정이 필요한 기한, delay_impact=미결정 시 영향,
+  recommender=추천·상신한 사람(대개 보고자), decider=최종 결정 권한자(대표/PM 등 보고에서 식별될 때만 — 추측 금지)
 
 [압축 규칙 — 이해가 길이보다 우선 (2026-07-20)]
 - 축약으로 맥락이 사라지면 안 된다. 처음 읽는 사람이 title+detail만으로
@@ -263,7 +265,7 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
 - 원문이 단순하면 짧게, 복잡하면 충분히 길게. 억지로 한 줄에 구겨 넣지 마라.
 
 반드시 아래 JSON만 출력:
-{"headline":"오늘 이 조직/팀이 가장 주목해야 할 핵심을 한 문장으로(의사결정·리스크 우선). 근거 없으면 빈 문자열.",
+{"headline":"오늘 조직 상태에 대한 가설(Day-1 Answer) 한 문장 — 반증 가능한 주장, 결정·리스크 우선, 고유명사·수치 포함. 근거 없으면 빈 문자열.",
  "items":[{"category":"decision|intervention|risk|support|project|growth|anomaly",
   "title":"핵심 한 줄 (무엇에 대한 건인지 알 수 있게 고유명사·핵심 수치 포함)",
   "detail":"2~4문장: ①배경(무슨 프로젝트의 무슨 일인지) ②현재 상태(수치·날짜·경과 포함) ③대표가 해야 할 액션. 원문 근거 범위 안에서 상황이 그려지도록 서술",
@@ -271,7 +273,7 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
   "source_employee":"근거 보고 직원명",
   "project":"프로젝트명 또는 null",
   "related":"근거가 된 산출물/이슈 한 줄",
-  "recommendation":"", "deadline":"", "delay_impact":""}]}"""
+  "recommendation":"", "deadline":"", "delay_impact":"", "recommender":"", "decider":""}]}"""
 
 
 def engine_d(blocks: list[str]) -> dict:
@@ -312,6 +314,9 @@ def engine_d(blocks: list[str]) -> dict:
                 "recommendation": (it.get("recommendation") or "").strip(),
                 "deadline": (it.get("deadline") or "").strip(),
                 "delay_impact": (it.get("delay_impact") or "").strip(),
+                # 결정권한 RAPID (경량): 추천자·최종 결정권자 (근거 있을 때만)
+                "recommender": (it.get("recommender") or "").strip(),
+                "decider": (it.get("decider") or "").strip(),
             })
         return {"items": out, "headline": headline}
     except Exception as e:
@@ -495,6 +500,9 @@ def _carried_decision_items(target: str) -> list[dict]:
             "recommendation": (e.get("recommendation") or "").strip(),
             "deadline": (e.get("deadline") or "").strip(),
             "delay_impact": (e.get("delay_impact") or "").strip(),
+            # 결정권한 RAPID: 상신자 = 보고자, 결정권자는 축적돼 있으면 표면화
+            "recommender": (e.get("source_employee") or "").strip(),
+            "decider": (e.get("decider") or "").strip(),
             "carried": True,
             "age_days": age,
         })
@@ -609,7 +617,8 @@ def build_project_cards(items: list[dict], assignments: list[dict]) -> list[dict
         cat = (it.get("category") or "").strip()
         row = {"title": (it.get("title") or "").strip(), "urgency": (it.get("urgency") or "").strip(),
                "who": it.get("source_employee") or "", "recommendation": it.get("recommendation") or "",
-               "deadline": it.get("deadline") or "", "delay_impact": it.get("delay_impact") or ""}
+               "deadline": it.get("deadline") or "", "delay_impact": it.get("delay_impact") or "",
+               "recommender": it.get("recommender") or "", "decider": it.get("decider") or ""}
         if cat == "decision":
             c["decisions"].append(row)
         elif cat == "intervention":
@@ -824,6 +833,14 @@ def _item_card(it: dict, people_by_name: dict | None = None) -> str:
         v = (it.get(key) or "").strip()
         if v:
             dec_bits.append(f'<div class="rel">· {lab}: {_esc(v)}</div>')
+    # 결정권한 RAPID — 추천자 → 결정권자 (있는 것만 한 줄로)
+    rapid = []
+    if (it.get("recommender") or "").strip():
+        rapid.append(f'추천 {_esc(it["recommender"].strip())}')
+    if (it.get("decider") or "").strip():
+        rapid.append(f'결정 {_esc(it["decider"].strip())}')
+    if rapid:
+        dec_bits.append(f'<div class="rel">· 결정권한: {" → ".join(rapid)}</div>')
     dec_html = "".join(dec_bits)
     src_html = _card_source_html(it, people_by_name)
     return f'''<div class="card">

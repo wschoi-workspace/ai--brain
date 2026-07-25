@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ARISA 정보 취합·분류 기준 v1 — 맥킨지 사고법 × 6-Layer</title>
+<title>ARISA 정보 취합·분류 기준 v1.1 — 맥킨지 사고법 × 6-Layer</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
@@ -66,10 +66,11 @@
 <div class="wrap">
 
   <div class="kicker">ARISA · Information Classification Standard</div>
-  <h1>정보 취합·분류 기준 v1</h1>
+  <h1>정보 취합·분류 기준 v1.1</h1>
   <div class="sub">맥킨지 사고법 × Reporting OS 6-Layer 확장 — "취합 = 정렬 완료"</div>
   <div class="meta">
-    <span>2026-07-25 · v1.0 · by Project Rent</span>
+    <span>2026-07-25 · v1.1 · by Project Rent</span>
+    <span style="color:var(--amber)">v1.1 추가: 가설 주도 헤드라인 · 결정권한(RAPID) · 방법론 전체 기록</span>
     <span>분류축 SSOT <code>reporting-os 6-Layer</code></span>
     <span>정렬 구현 <code>daily-brief-aggregate.py · sort_items</code></span>
   </div>
@@ -93,6 +94,8 @@
         <tr><td>80/20 (Pareto)</td><td>20%가 결과의 80%</td><td><code>top5</code>·<code>decision_summary</code>가 "오늘 볼 20%"를 뽑는 근거</td></tr>
         <tr><td>SCQA / So What·Now What</td><td>상황→갈등→질문→답</td><td>decision의 <code>detail</code>(배경→상태→액션) + 추천안·기한·미결영향 구조</td></tr>
         <tr><td>Ghost Deck</td><td>제목만 읽어 논증 완결</td><td>품질 체크 — item <code>title</code>만 위→아래로 읽어 조직 상황이 그려지는지</td></tr>
+        <tr style="background:rgba(240,180,90,.05)"><td>가설 주도 · Day-1 Answer <span style="color:var(--amber);font-size:10.5px;font-weight:700">v1.1</span></td><td>요약이 아닌 반증 가능한 주장을 먼저</td><td><code>headline</code>을 "오늘 조직 상태 가설" 한 문장으로 — 고유명사·수치로 검증 가능하게</td></tr>
+        <tr style="background:rgba(240,180,90,.05)"><td>결정권한 (RAPID) <span style="color:var(--amber);font-size:10.5px;font-weight:700">v1.1</span></td><td>결정에 "무엇"만이 아니라 "누가"까지</td><td>decision에 <code>recommender</code>·<code>decider</code> 부착 — R4 PM 라우팅의 정식화 (RAPID는 Bain 프레임)</td></tr>
       </tbody>
     </table>
   </section>
@@ -121,7 +124,8 @@
       <li><b>긴급도</b> — <code>URG_RANK</code>: high → mid → low</li>
       <li><b>impact 신호</b> — <code>_prio_rank</code>: 결재·승인 &gt; 비용·금전 &gt; 리스크 &gt; 개입 &gt; 기타<br><span style="color:var(--dim);font-size:12.5px">키워드: 승인·결재·송금·결제·계약 / 비용·지출·예산·견적·단가·금액·발주</span></li>
       <li><b>미결 경과</b> — <code>age_days</code> 큰 것 우선: 오래 방치된 결정이 위로</li>
-      <li><b>종합 — Governing Thought</b>: <code>headline</code>은 결정·리스크 우선의 한 문장. 근거 없으면 공란</li>
+      <li><b>종합 — 가설(Day-1 Answer)</b> <span style="color:var(--amber);font-size:11px;font-weight:700">v1.1</span>: <code>headline</code>은 결정·리스크 우선의 <b>반증 가능한 한 문장 주장</b>. 근거 없으면 공란</li>
+      <li><b>결정권한(RAPID)</b> <span style="color:var(--amber);font-size:11px;font-weight:700">v1.1</span>: decision에 <code>recommender</code> → <code>decider</code> 부착, 카드에 "추천 A → 결정 B" 표시 (근거 있을 때만)</li>
     </ol></div>
     <p style="color:var(--dim);font-size:13px">동률은 stable sort로 기존 순서 유지 → 정렬만 바뀌고 내용은 무손실.</p>
     <h3>적용 지점 — JSON 출력부터 정렬</h3>
@@ -139,21 +143,42 @@
     <h2><span class="n">04</span> 품질 게이트 — Ghost Deck 테스트</h2>
     <p class="lead">"정렬됐는가"를 넘어 "논리가 서는가"를 점검한다.</p>
     <ul class="check">
-      <li><strong>headline만 읽어</strong> 오늘 조직에서 가장 먼저 볼 것이 잡히는가? (Governing Thought)</li>
+      <li><strong>headline만 읽어</strong> 오늘 조직 상태에 대한 <strong>가설</strong>이 서는가? 반증 가능한가? (Day-1 Answer)</li>
       <li><strong>item title만 위→아래로 읽어</strong> 각 프로젝트 상황이 그려지는가? (Ghost Deck)</li>
       <li>decision 항목에 <strong>So What/Now What</strong>(추천안·기한·미결영향)이 채워졌는가?</li>
+      <li>decision 항목에 <strong>결정권한</strong>(추천자→결정권자)이 식별됐는가? (RAPID)</li>
       <li>같은 정보가 두 범주에 중복되거나(MECE 위반), 빠진 위험이 없는가?</li>
       <li>Priority가 "10가지 나열"이 아니라 <strong>top5로 압축</strong>됐는가? (80/20)</li>
     </ul>
   </section>
 
   <section>
+    <h2><span class="n">04·5</span> 검토된 방법론 전체 <span style="font-size:13px;font-weight:600;color:var(--dim)">채택/보류 판단</span></h2>
+    <p class="lead" style="color:var(--muted);font-size:14px">폭넓게 검토하고 ARISA의 실제 갭에 꽂히는 것만 채택. 나머지는 "왜 지금은 아닌가"를 남겨 재검토 근거로.</p>
+    <table>
+      <thead><tr><th>방법론</th><th>출처</th><th>채우는 갭</th><th>판단</th></tr></thead>
+      <tbody>
+        <tr><td>MECE · Pyramid · Impact×Urgency · 80/20 · SCQA · Ghost Deck</td><td>McKinsey/Minto 등</td><td>분류·종합·우선순위·품질</td><td><span style="color:var(--green)">✅ 채택 v1</span></td></tr>
+        <tr style="background:rgba(240,180,90,.05)"><td>가설 주도 · Day-1 Answer</td><td>McKinsey 핵심</td><td>종합이 요약에 머묾</td><td><span style="color:var(--amber)">✅ 채택 v1.1</span></td></tr>
+        <tr style="background:rgba(240,180,90,.05)"><td>결정권한 (RAPID)</td><td>Bain(개념 통용)</td><td>결정에 "누가"가 없음</td><td><span style="color:var(--amber)">✅ 채택 v1.1</span></td></tr>
+        <tr><td>이슈 트리 · 로직 트리</td><td>McKinsey/Minto</td><td>복잡 항목 분해</td><td><span style="color:var(--violet)">🔸 문서 원리만 (무거운 소수에 수동)</span></td></tr>
+        <tr><td>Driver Tree (동인 분해)</td><td>McKinsey</td><td>주간 지표가 집계뿐</td><td><span style="color:var(--violet)">🔸 주간 별도 (weekly-dashboard)</span></td></tr>
+        <tr><td>5 Whys · 근본원인</td><td>Toyota/Lean</td><td>anomaly가 플래그에 머묾</td><td><span style="color:var(--dim)">⏭ v2 (자동 근본원인 신중)</span></td></tr>
+        <tr><td>7S · Three Horizons · Where-to-Play</td><td>McKinsey</td><td>조직·전략 진단</td><td><span style="color:var(--dim)">⏭ 분기 리뷰용 (데일리 부적합)</span></td></tr>
+        <tr><td>Rule of Three</td><td>수사학/컨설팅</td><td>인지 부하</td><td><span style="color:var(--dim)">➖ 흡수됨 (top5에 반영)</span></td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--dim);font-size:13px"><strong style="color:var(--muted)">채택 원칙(80/20)</strong> — 데일리 판단 품질을 가장 크게 올리고 구현이 가벼운 것부터. 이슈트리·Driver·5Whys는 각각 "무거운 항목·주간·v2"라는 제자리가 있어 데일리에 억지로 넣지 않는다.</p>
+  </section>
+
+  <section>
     <h2><span class="n">05</span> 버전 로드맵</h2>
     <table>
       <tbody>
-        <tr><td>v1 (현재)</td><td>6-Layer 확장 매핑 + <code>sort_items</code> 결정론적 정렬 + 주간 <code>_open_decisions</code> 정렬</td></tr>
-        <tr><td>v1.1</td><td>BRIEF_PROMPT의 Governing Thought 품질 자동 채점 (Report Score 연동)</td></tr>
-        <tr><td>v2</td><td>Outcome·Learning Layer 연결 — 결정 이후 결과 회수까지 정렬축 확장</td></tr>
+        <tr><td>v1</td><td>6-Layer 확장 매핑 + <code>sort_items</code> 결정론적 정렬 + 주간 <code>_open_decisions</code> 정렬</td></tr>
+        <tr style="background:rgba(240,180,90,.05)"><td>v1.1 (현재)</td><td>가설 주도(Day-1) 헤드라인 + 결정권한(RAPID) 메타 + 검토 방법론 전체 기록</td></tr>
+        <tr><td>v1.2</td><td>이슈 트리(무거운 decision 분해) · Driver Tree(주간 지표) 실전 적용 검토</td></tr>
+        <tr><td>v2</td><td>5 Whys(anomaly 근본원인) + Outcome·Learning Layer 연결 — 결정 이후 결과 회수까지</td></tr>
       </tbody>
     </table>
   </section>
