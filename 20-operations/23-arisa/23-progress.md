@@ -2,6 +2,15 @@
 
 ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용.
 
+## 2026-07-26 — RAPID 라이브 대표창 노출 + 프로젝트 주간 써머리 (배포 완료)
+
+**① RAPID 라이브 대표창** (`dashboard-server.py` exec-attn): 두 decision 소스(open_decisions·브리프 decision_summary)에 recommender/decider 부착 → 프론트 카드에 "결정권한: 추천 A → 결정 B". **결정권자 미상 시 프로젝트 PM 폴백**(`_decision_pm`), 추론임을 "(PM)" 마커로 표시. 커밋 454968d·abb7933. scp+kickstart 재기동(HTTP 200).
+
+**② 프로젝트 주간 써머리** (`weekly-report-aggregate.py`): `aggregate_project()` 신설 — 프로젝트별 6섹션(금주처리/예정대비[완료·미완]/차주예정/리스크/의사결정구조 RAPID+PM폴백/주요변동 status-log). 소스 재사용(assignments·주간브리프 risk·decision·decisions.jsonl·status-log). `_project_section` 렌더+CSS, 간트 아래 배치, 팀 스코프 필터. `week_range "this"` 추가. 커밋 eacf2c6.
+- 실데이터 검증(읽기전용): 이번주 10개 프로젝트 활동, "중기 팝업스토어" 결정에 "추천 김도영 → 배성원(PM)" 확인.
+- **자동화**: 새 launchd `com.projectrent.weekly-project`(토 09:30 `--week this`) 부트스트랩 — 금주 마감 회고를 토 10시 전 생성. 기존 월 08:30(지난주 회고)은 유지, 동일 ISO주라 충돌 없음.
+- ⚠️ 첫 자동 출력은 다음 토요일. 오늘 즉시 보려면 수동 실행 필요(단 update_assignment_status_in_sheet 시트 동기화 부작용 있음 → --no-telegram 권장).
+
 ## 2026-07-25 — v1.1 평일 실데이터 검증 (가설 헤드라인·RAPID 실동작 확인)
 
 engine_d에 실제와 유사한 보고 블록 3건(결정+승인권자 명시·리스크·질문) 투입해 맥미니 venv311로 실호출:
