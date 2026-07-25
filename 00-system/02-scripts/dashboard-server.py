@@ -1945,6 +1945,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
               if(d.recommendation) sub+='<br>추천안: '+esc(d.recommendation);
               if(d.deadline) sub+=' · 기한 '+esc(d.deadline);
               if(d.delay_impact) sub+='<br>지연 시: '+esc(d.delay_impact);
+              if(d.recommender||d.decider){ var rp=[]; if(d.recommender)rp.push('추천 '+esc(d.recommender)); if(d.decider)rp.push('결정 '+esc(d.decider)); sub+='<br>결정권한: '+rp.join(' → '); }
               h+='<div class="mw-card ex-red"><div class="t">'+eb+esc(d.title)+act+'</div><div class="m">'+sub+'</div></div>';
             });
           });
@@ -4462,7 +4463,10 @@ class H(BaseHTTPRequestHandler):
                                             "urgency": d.get("urgency") or "",
                                             "recommendation": d.get("recommendation") or "",
                                             "deadline": d.get("deadline") or "",
-                                            "delay_impact": d.get("delay_impact") or ""})
+                                            "delay_impact": d.get("delay_impact") or "",
+                                            # 결정권한 RAPID — 추천자=상신 직원, 결정권자는 축적돼 있으면
+                                            "recommender": d.get("source_employee") or "",
+                                            "decider": d.get("decider") or ""})
                 except Exception:
                     pass
             interventions, risks = [], []
@@ -4486,7 +4490,10 @@ class H(BaseHTTPRequestHandler):
                                             "urgency": it.get("urgency") or "",
                                             "recommendation": it.get("recommendation") or "",
                                             "deadline": it.get("deadline") or "",
-                                            "delay_impact": it.get("delay_impact") or ""})
+                                            "delay_impact": it.get("delay_impact") or "",
+                                            # 결정권한 RAPID — 브리프 LLM이 추론한 추천자·결정권자
+                                            "recommender": it.get("recommender") or it.get("source_employee") or "",
+                                            "decider": it.get("decider") or ""})
                     # R4 3차 — Intervention·Risk: 브리프 분류 항목 (대표 개입·리스크 섹션)
                     for it in bd.get("items") or []:
                         cat = (it.get("category") or "").strip()
