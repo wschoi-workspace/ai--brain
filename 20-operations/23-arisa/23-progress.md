@@ -643,3 +643,10 @@ ARISA 운영(브리프·대시보드·봇) 작업 이력. 세션 이어가기용
 - **send-pin-notice.py 결함 수정**: load_pins가 로컬 users.json(테스트 사본·구버전 PIN)을 읽던 문제 → 맥미니 SSOT(ssh cat)에서 읽도록 변경(로컬 폴백 시 경고 표시). 이 결함 그대로 썼다면 전원에게 틀린 PIN(0000~8888)이 나갈 뻔함
 - 메시지 개선: "복구로 처음 안내 PIN으로 돌아감" 설명 + 대소문자/복사 가이드. SSOT에서 읽으므로 변경한 사람에겐 변경된 현재 PIN이 발송됨(정확)
 - ⚠️ 미커밋: send-pin-notice.py 수정분 (+어제 미지정 큐 수정분) — 다음 커밋에 포함
+
+## 2026-07-25 — R4 개편 4차 커밋·맥미니 배포 (프로젝트 통합 카드·주간 간트)
+
+- 커밋 2건: `bae926f` feat(R4 4차 — daily-brief build_project_cards §9 + weekly build_gantt_rows §10, shared/project_match 별칭 SSOT 소비) / `c598e8f` chore(병행 산출물 — AX 디자이너 슬라이드·R-Europe 미팅 PDF·데일리노트·status-log)
+- 배포 전 해시 대조: 맥미니의 dashboard-server.py·shared 5종·approval-rules.json은 로컬 HEAD와 **이미 일치**(R4 1~3차 기배포 확인), aggregate 2종만 HEAD 베이스와 일치 → 깨끗한 배포 조건
+- 표준 패턴 수행: /tmp 백업(*.bak-r4-4) → scp 2파일 → py_compile OK → 해시 일치(94959fdc·8c8fd25f) → dashboard kickstart(신규 PID 86744, _DBA 런타임 import 캐시 갱신 목적) → 8780 200 + arisa-os.com 200
+- 실전 관찰 대기: 내일 아침 브리프의 project_cards 생성·exec-attn 소비, 월 08:30 주간 리포트 간트 렌더
