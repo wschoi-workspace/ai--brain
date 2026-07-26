@@ -72,6 +72,7 @@ from shared import status as _ST  # 상태·우선순위 단일출처 (G2) — �
 from shared import naming as _NM  # 프로젝트 네이밍 규칙 (P2) — 배포 시 shared/naming.py 동반 필수
 from shared import provenance as _PV  # 업무 출처·회의 참조 (갭A) — 배포 시 shared/provenance.py 동반 필수
 from shared import today_plan as _TP  # 오늘 하기로 한 일 (갭C) — 배포 시 shared/today_plan.py 동반 필수
+from shared import assign_sheet as _AS  # 주간분장 컬럼·파싱 SSOT — 배포 시 shared/assign_sheet.py 동반 필수
 from shared import approval as _AP  # 승인 체인·권한 (R4 2차) — 배포 시 shared/approval.py 동반 필수
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
@@ -92,30 +93,12 @@ def _week_label(d=None):
 
 
 def _assign_read():
-    """주간분장 탭 → dict 리스트. 탭 없거나 gws 실패 시 [] (안전 — 개인탭이 죽지 않게)."""
-    if not (_asgws and DAILY_SHEET):
-        return []
-    try:
-        rows = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A2:N5000", retries=2, timeout=20)
-    except Exception:
-        return []
-    out = []
-    for i, r in enumerate(rows):
-        r = list(r) + [""] * (14 - len(r))
-        # 시트 헤더: 날짜·프로젝트명·팀구분·담당자·업무내용·일정(완료예상)·결과물·상태·이해관계자·우선순위·프로젝트ID(K, G1)·등록자(L, 2026-07-20)·출처(M)·출처ID(N, 갭A 2026-07-26)
-        a = {"row": i + 2,  # 시트 실제 행 번호 (A2부터) — 상태 업데이트용
-             "date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
-             "team": (r[2] or "").strip(), "assignee": (r[3] or "").strip(),
-             "task": (r[4] or "").strip(), "deadline": (r[5] or "").strip(),
-             "result": (r[6] or "").strip(), "status": _ST.norm_assign_status(r[7]),
-             "stakeholder": (r[8] or "").strip(), "priority": _ST.norm_priority(r[9]),
-             "pid": (r[10] or "").strip(), "by": (r[11] or "").strip(),
-             # 갭A — 이 업무가 '무엇에서' 나왔는가(회의·일일보고·주간계획…)와 그 원본 참조
-             "source": (r[12] or "").strip(), "source_ref": (r[13] or "").strip()}
-        # filament 반영 — 지연 N일(열린 분장만)을 모든 소비자(내 업무·리더 홈·대표창)에 공급
-        a["days_overdue"] = _ST.overdue_days(a["deadline"]) if _ST.is_overdue(a["deadline"], a["status"]) else 0
-        out.append(a)
-    return out
+    """주간분장 탭 → dict 리스트. 탭 없거나 gws 실패 시 [] (안전 — 개인탭이 죽지 않게).
+
+    컬럼 정의·파싱·지연 판정은 shared/assign_sheet.py가 단일 출처 (2026-07-26).
+    봇도 같은 모듈로 읽는다 — 보고 → 상태 환류가 서버와 같은 해석을 쓰게 하려는 것.
+    """
+    return _AS.read(_asgws, DAILY_SHEET, _ST)
 
 
 def _assign_append(assignee, task, deadline, priority, by, project="", result="", stakeholder="",

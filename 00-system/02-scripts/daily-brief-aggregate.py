@@ -335,7 +335,10 @@ PERSON_BRIEF_PROMPT = """당신은 직원 개인의 아침 업무 브리퍼다. 
   '블로커'·'현장실사'·'전기 공사' 같은 업무 라벨·공정 단계명은 project가 아니다 — 상위 프로젝트를 찾아 쓰고, 불명확하면 빈 문자열.
 - completed: [현재 분장] 번호 목록 중 어제 보고에서 '완료했다/마쳤다/발주 완료' 등 명시적으로 완료 보고된 항목만.
   각 {"idx":분장 번호,"basis":"보고 속 완료 근거 한 줄"}. 진행 중·예정·부분 완료는 절대 포함 금지. 없으면 [].
-반환: {"focus":"...","new_todos":[...],"project_updates":[...],"completed":[...]}"""
+- in_progress: [현재 분장] 중 어제 보고에서 **착수·진행이 확인된** 항목(아직 완료 아님).
+  예: "~검토 중", "~작업 진행", "1차 시안 공유", "미팅 완료(후속 남음)" 등 손을 댄 흔적.
+  각 {"idx":분장 번호,"basis":"보고 속 근거 한 줄"}. 예정·계획만 있고 착수 안 한 것은 제외. completed와 중복 금지. 없으면 [].
+반환: {"focus":"...","new_todos":[...],"project_updates":[...],"completed":[...],"in_progress":[...]}"""
 
 
 _PROJ_REGISTRY: list[dict] | None = None
@@ -432,20 +435,32 @@ def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[
                       "deadline": dl, "basis": (t.get("basis") or "").strip()[:150]})
     ups = [{"project": (u.get("project") or "").strip(), "update": (u.get("update") or "").strip()}
            for u in (r.get("project_updates") or []) if (u.get("update") or "").strip()]
-    completed = []
-    for c in (r.get("completed") or []):
-        try:
-            a = mine[int(c.get("idx")) - 1]
-        except (TypeError, ValueError, IndexError):
-            continue
-        if a.get("status") in _ST.ASSIGN_OPEN_STATES:
-            completed.append({"row": a.get("row"), "task": a["task"],
-                              "project": a.get("project") or "",
-                              "pid": a.get("pid") or "", "from": a.get("status") or "",
-                              "assignee": a.get("assignee") or name,
-                              "basis": (c.get("basis") or "").strip()[:150]})
+    def _pick(key, want_from):
+        """LLM이 지목한 분장 번호 → 전이 대상 dict 목록 (열린 분장만)."""
+        out = []
+        for c in (r.get(key) or []):
+            try:
+                a = mine[int(c.get("idx")) - 1]
+            except (TypeError, ValueError, IndexError):
+                continue
+            st = a.get("status") or ""
+            if st not in _ST.ASSIGN_OPEN_STATES or (want_from and st not in want_from):
+                continue
+            out.append({"row": a.get("row"), "task": a["task"],
+                        "project": a.get("project") or "",
+                        "pid": a.get("pid") or "", "from": st,
+                        "assignee": a.get("assignee") or name,
+                        "basis": (c.get("basis") or "").strip()[:150]})
+        return out
+
+    completed = _pick("completed", None)
+    # 착수 확인 → '진행중' 전이 (2026-07-26). 미착수에서만 올린다 —
+    # 검토중·승인대기·보류를 진행중으로 되돌리면 승인 흐름이 역행한다.
+    done_rows = {c["row"] for c in completed}
+    in_progress = [x for x in _pick("in_progress", ("미착수",)) if x["row"] not in done_rows]
     return {"date": date_str, "name": name, "focus": (r.get("focus") or "").strip(),
             "new_todos": todos, "project_updates": ups, "completed": completed,
+            "in_progress": in_progress,
             "generated_at": datetime.now().isoformat(timespec="seconds")}
 
 
@@ -1530,21 +1545,26 @@ def main():
             (pdir / f"my-brief-{args.date}-{name}.json").write_text(
                 json.dumps(pb, ensure_ascii=False, indent=1), encoding="utf-8")
             print(f"개인 브리프: {name} — 신규할일 {len(pb['new_todos'])} · 프로젝트 업데이트 {len(pb['project_updates'])}"
-                  f" · 완료보고 {len(pb.get('completed') or [])}")
-            # 보고에서 완료로 언급된 분장 → 시트 '완료'(승인 대기) 자동 처리
-            for c in pb.get("completed") or []:
-                if not c.get("row"):
-                    continue
-                try:
-                    ok = _gws.values_update(DAILY_SHEET, f"주간분장!H{c['row']}", [["완료"]])
-                except Exception:
-                    ok = False
-                if ok:
-                    _log_st("daily-brief-auto", "auto", "완료", from_status=c.get("from") or "",
-                            row=c.get("row"), project=c.get("project") or "", pid=c.get("pid") or "",
-                            task=c.get("task") or "", assignee=c.get("assignee") or name,
-                            note=c.get("basis") or "")  # G5·G7 — 보고 근거 문장
-                print(f"  ↳ 자동 완료: {c['task'][:34]} {'✓' if ok else '실패'}")
+                  f" · 완료보고 {len(pb.get('completed') or [])} · 착수 {len(pb.get('in_progress') or [])}")
+            # 보고에서 언급된 분장 → 시트 상태 자동 반영
+            #   완료: 기존대로 '완료'(승인 대기)  /  착수: 미착수 → '진행중' (2026-07-26)
+            # 진행중 전이를 추가한 이유 — 사람들이 매일 보고하는 대부분은 '하는 중'인데
+            # 완료만 잡아내던 탓에 열린 분장이 미착수로 화석화됐다(브리프 57개에서 완료 2건).
+            for kind, items in (("완료", pb.get("completed") or []),
+                                ("진행중", pb.get("in_progress") or [])):
+                for c in items:
+                    if not c.get("row"):
+                        continue
+                    try:
+                        ok = _gws.values_update(DAILY_SHEET, f"주간분장!H{c['row']}", [[kind]])
+                    except Exception:
+                        ok = False
+                    if ok:
+                        _log_st("daily-brief-auto", "auto", kind, from_status=c.get("from") or "",
+                                row=c.get("row"), project=c.get("project") or "", pid=c.get("pid") or "",
+                                task=c.get("task") or "", assignee=c.get("assignee") or name,
+                                note=c.get("basis") or "")  # G5·G7 — 보고 근거 문장
+                    print(f"  ↳ 자동 {kind}: {c['task'][:34]} {'✓' if ok else '실패'}")
 
     # ─── 지각 제출 재집계 (G6) — 직전 브리프 소스일에 새 제출이 있으면 재생성 ───
     if not args.no_late_check:

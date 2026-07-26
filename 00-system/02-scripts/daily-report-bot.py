@@ -33,10 +33,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import NetworkError, TimedOut
 from telegram.ext import (
     Application,
+    CallbackQueryHandler,
     CommandHandler,
     ConversationHandler,
     MessageHandler,
@@ -74,6 +75,13 @@ from shared.decision import save_decision_log as _save_decision_log  # noqa: E40
 from shared import report_score as _report_score  # noqa: E402  (채점 SSOT — 2026-07-20)
 from shared.naming import clean_project_name as _nm_clean  # noqa: E402  (P2 네이밍 규칙)
 from shared import provenance as _PV  # noqa: E402  (갭B 업무 출처 — 배포 시 shared/provenance.py 동반)
+from shared import status as _ST  # noqa: E402  (상태 어휘 SSOT)
+from shared import assign_sheet as _AS  # noqa: E402  (주간분장 파싱 SSOT)
+try:
+    from shared.status_log import log_status_change as _log_st  # noqa: E402
+except Exception:  # 로깅 실패가 보고 흐름을 막지 않는다
+    def _log_st(*a, **k):
+        return False
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -1219,6 +1227,156 @@ async def _employee_memory(update: Update, report: dict) -> None:
         logger.exception("employee memory failed")  # 보고 본흐름은 영향 없음
 
 
+# ── 보고 → 분장 상태 환류 (노션 가이드 대조 2026-07-26, 우선순위 1) ──────────
+# 기존 자동 처리(daily-brief)는 "명시적 완료"만, 그것도 하루 뒤 아침에 반영했다.
+# 실측: 개인 브리프 57개에서 완료 추출 2건 — 사실상 미작동이라 미착수 78건이 화석화.
+# 해법: 자동으로 바꾸지 말고 **보고 직후 본인에게 물어본다**. 사람이 1탭으로 확정하면
+# 후보를 넉넉히 뽑아도 안전하다(오탐의 비용이 '버튼 안 누름'으로 끝난다).
+STATUS_SYNC_PROMPT = """너는 업무보고와 업무분장을 대조하는 매칭기다.
+[오늘 보고한 업무]와 [현재 열린 분장]을 비교해, 같은 일을 가리키는 쌍을 찾는다.
+
+규칙:
+- 표현이 달라도 같은 일이면 매칭한다 (예: "도면 3차 수정" ↔ "주방 도면 최종화").
+- 확신이 없으면 넣지 마라. 애매한 것보다 놓치는 게 낫다(사람이 버튼으로 확정한다).
+- suggest는 보고된 상태를 그대로 옮긴다: 완료→"완료", 진행중/시작→"진행중".
+- 이미 분장 상태와 같으면(진행중인데 진행중) 제외한다. 바꿀 게 없으면 안 묻는다.
+- 최대 5쌍. 없으면 빈 배열.
+
+반환 JSON: {"matches":[{"idx":분장번호,"suggest":"진행중|완료","basis":"보고 속 근거 한 줄"}]}"""
+
+
+def _open_assigns_for(name: str) -> list:
+    """그 사람의 열린 분장 (시트 SSOT). 실패 시 [] — 보고 흐름을 막지 않는다."""
+    try:
+        return _AS.open_for(_AS.read(_gws, SHEET_ID, _ST), name, _ST)
+    except Exception as e:
+        logger.error(f"open assigns load error: {e}")
+        return []
+
+
+def _reported_tasks(report: dict) -> list:
+    """보고된 업무 목록 [(업무, 상태)] — 핵심 + 서브."""
+    out = []
+    for t in (report.get("core_tasks") or []):
+        if (t.get("task") or "").strip():
+            out.append((t["task"].strip(), (t.get("status") or "").strip()))
+    for t in (report.get("sub_tasks") or []):
+        if (t.get("task") or "").strip():
+            out.append((t["task"].strip(), (t.get("status") or "").strip()))
+    return out
+
+
+def _match_report_to_assigns(report: dict, assigns: list) -> list:
+    """보고 ↔ 열린 분장 매칭 → [{row, task, suggest, basis, from}] (최대 5).
+
+    LLM이 실패하면 빈 목록(조용히 넘어감) — 물어보지 않는 것이 잘못 묻는 것보다 낫다.
+    """
+    rep = _reported_tasks(report)
+    if not (rep and assigns):
+        return []
+    rep_txt = "\n".join(f"- {t} [{s or '상태 미기재'}]" for t, s in rep)[:3000]
+    asg_txt = "\n".join(
+        f"{i}. {a['task']} (프로젝트 {a.get('project') or '-'} · 현재 {a.get('status')})"
+        for i, a in enumerate(assigns, 1))[:3000]
+    r = call_gpt(STATUS_SYNC_PROMPT,
+                 f"[오늘 보고한 업무]\n{rep_txt}\n\n[현재 열린 분장]\n{asg_txt}")
+    if not isinstance(r, dict):
+        return []
+    out, seen = [], set()
+    for m in (r.get("matches") or [])[:5]:
+        try:
+            a = assigns[int(m.get("idx")) - 1]
+        except (TypeError, ValueError, IndexError):
+            continue
+        sug = (m.get("suggest") or "").strip()
+        if sug not in ("진행중", "완료"):
+            continue
+        if sug == a.get("status") or a.get("row") in seen:
+            continue          # 이미 그 상태면 물어볼 이유가 없다
+        seen.add(a.get("row"))
+        out.append({"row": a.get("row"), "task": a.get("task") or "",
+                    "project": a.get("project") or "", "pid": a.get("pid") or "",
+                    "from": a.get("status") or "", "suggest": sug,
+                    "basis": (m.get("basis") or "").strip()[:120]})
+    return out
+
+
+async def _ask_status_sync(update: Update, report: dict) -> None:
+    """보고 직후 '이거 상태 바꿀까요?' 확인 카드 — 매칭이 없으면 아무것도 보내지 않는다."""
+    name = (report.get("name") or "").strip()
+    if not name:
+        return
+    try:
+        assigns = await asyncio.to_thread(_open_assigns_for, name)
+        matches = await asyncio.to_thread(_match_report_to_assigns, report, assigns)
+    except Exception as e:
+        logger.error(f"status sync match error: {e}")
+        return
+    if not matches:
+        return
+    logger.info(f"status-sync: {name} 후보 {len(matches)}건")
+    await update.message.reply_text(
+        f"📋 오늘 보고와 연결되는 분장이 {len(matches)}건 있어요.\n"
+        "버튼을 누르면 업무 상태가 바로 갱신됩니다. (안 눌러도 보고는 이미 저장됐어요)")
+    for m in matches:
+        pj = f"[{m['project']}] " if m["project"] else ""
+        body = (f"▸ {pj}{m['task']}\n"
+                f"현재: {m['from']} → 제안: {m['suggest']}")
+        if m["basis"]:
+            body += f"\n근거: {m['basis']}"
+        # callback_data는 64바이트 제한 — 행·코드 + 업무 지문(행 밀림 시 오처리 방지)
+        sig = _AS.task_sig(m["task"])
+        kb = InlineKeyboardMarkup([[
+            InlineKeyboardButton("▶ 진행중", callback_data=f"asy:{m['row']}:p:{sig}"),
+            InlineKeyboardButton("✓ 완료", callback_data=f"asy:{m['row']}:d:{sig}"),
+            InlineKeyboardButton("✕ 아님", callback_data=f"asy:{m['row']}:x:{sig}"),
+        ]])
+        await update.message.reply_text(body, reply_markup=kb)
+
+
+async def on_status_sync_click(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """확인 카드 버튼 처리 — 본인 분장인지 시트에서 재확인한 뒤에만 갱신한다."""
+    q = update.callback_query
+    await q.answer()
+    try:
+        _, row_s, code, sig = (q.data or "").split(":")
+        row = int(row_s)
+    except (ValueError, AttributeError):
+        return
+    # 텔레그램 ID가 명부에 없을 수 있으므로(미학습 계정) 방금 보고한 이름을 폴백으로 쓴다
+    emp = employee_by_tid(q.from_user.id)
+    name = (emp or {}).get("name") or (context.user_data or {}).get("name") or ""
+    if not name or is_offboarded(uid=q.from_user.id, name=name):
+        await q.edit_message_text("⚠️ 계정을 확인할 수 없어 상태를 바꾸지 못했어요.")
+        return
+    if code == "x":
+        await q.edit_message_text(f"{q.message.text}\n\n— 연결하지 않았습니다.")
+        return
+    new_st = "진행중" if code == "p" else "완료"
+    # 행이 밀렸거나 남의 업무면 갱신하지 않는다 (시트 재확인 — 오처리 방지의 핵심)
+    cur = await asyncio.to_thread(
+        lambda: _AS.verify_row(_gws, SHEET_ID, row, name, _ST, expect_sig=sig))
+    if not cur:
+        await q.edit_message_text(
+            f"{q.message.text}\n\n⚠️ 그 사이 업무 목록이 바뀌어 갱신하지 못했어요. "
+            "아리사 OS '내 업무'에서 직접 바꿔주세요.")
+        return
+    if cur["status"] == new_st:
+        await q.edit_message_text(f"{q.message.text}\n\n✅ 이미 {new_st} 상태예요.")
+        return
+    ok = await asyncio.to_thread(_AS.set_status, _gws, SHEET_ID, row, new_st)
+    if not ok:
+        await q.edit_message_text(f"{q.message.text}\n\n⚠️ 시트 갱신에 실패했어요. 잠시 후 다시 시도해주세요.")
+        return
+    _log_st("report-sync", name, new_st, from_status=cur["status"], row=row,
+            date=cur.get("date") or "", project=cur.get("project") or "",
+            pid=cur.get("pid") or "", task=cur.get("task") or "", assignee=name,
+            note="일일보고 직후 본인 확인")
+    logger.info(f"status-sync applied: {name} row={row} {cur['status']}→{new_st}")
+    tail = " (팀장 승인 대기로 넘어가요)" if new_st == "완료" else ""
+    await q.edit_message_text(f"{q.message.text}\n\n✅ {new_st}(으)로 변경했어요.{tail}")
+
+
 async def finalize_and_send(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -1307,6 +1465,7 @@ async def finalize_and_send(
 
     await update.message.reply_text("\n".join(status_lines))
     await _employee_memory(update, report)  # ARISA 직원 거울: 재부상 + 누적
+    await _ask_status_sync(update, report)  # 보고 → 분장 상태 환류 확인 (2026-07-26)
     context.user_data.pop("pending_report", None)
     return ConversationHandler.END
 
@@ -2295,6 +2454,9 @@ def main() -> None:
 
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(conv)
+
+    # 보고 → 분장 상태 환류 버튼 (2026-07-26) — 대화 핸들러와 무관한 콜백이라 어디서든 동작
+    app.add_handler(CallbackQueryHandler(on_status_sync_click, pattern=r"^asy:"))
 
     # /meeting — 회의록 6종 리포트 (ARISA 1.0 통합)
     if _MEETING_AVAILABLE:
