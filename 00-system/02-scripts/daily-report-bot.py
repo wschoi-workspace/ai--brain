@@ -1242,7 +1242,7 @@ STATUS_SYNC_PROMPT = """너는 업무보고와 업무분장을 대조하는 매�
 - 이미 분장 상태와 같으면(진행중인데 진행중) 제외한다. 바꿀 게 없으면 안 묻는다.
 - 최대 5쌍. 없으면 빈 배열.
 
-반환 JSON: {"matches":[{"idx":분장번호,"suggest":"진행중|완료","basis":"보고 속 근거 한 줄"}]}"""
+반환 JSON: {"matches":[{"idx":분장번호,"rep":보고업무번호,"suggest":"진행중|완료","basis":"보고 속 근거 한 줄"}]}"""
 
 
 def _open_assigns_for(name: str) -> list:
@@ -1255,14 +1255,15 @@ def _open_assigns_for(name: str) -> list:
 
 
 def _reported_tasks(report: dict) -> list:
-    """보고된 업무 목록 [(업무, 상태)] — 핵심 + 서브."""
+    """보고된 업무 목록 [(업무, 상태, 산출물)] — 핵심 + 서브(서브는 산출물 없음)."""
     out = []
     for t in (report.get("core_tasks") or []):
         if (t.get("task") or "").strip():
-            out.append((t["task"].strip(), (t.get("status") or "").strip()))
+            out.append((t["task"].strip(), (t.get("status") or "").strip(),
+                        (t.get("output") or "").strip()))
     for t in (report.get("sub_tasks") or []):
         if (t.get("task") or "").strip():
-            out.append((t["task"].strip(), (t.get("status") or "").strip()))
+            out.append((t["task"].strip(), (t.get("status") or "").strip(), ""))
     return out
 
 
@@ -1274,7 +1275,8 @@ def _match_report_to_assigns(report: dict, assigns: list) -> list:
     rep = _reported_tasks(report)
     if not (rep and assigns):
         return []
-    rep_txt = "\n".join(f"- {t} [{s or '상태 미기재'}]" for t, s in rep)[:3000]
+    rep_txt = "\n".join(f"{i}. {t} [{s or '상태 미기재'}]" + (f" | 산출물: {o}" if o else "")
+                        for i, (t, s, o) in enumerate(rep, 1))[:3000]
     asg_txt = "\n".join(
         f"{i}. {a['task']} (프로젝트 {a.get('project') or '-'} · 현재 {a.get('status')})"
         for i, a in enumerate(assigns, 1))[:3000]
@@ -1294,14 +1296,18 @@ def _match_report_to_assigns(report: dict, assigns: list) -> list:
         if sug == a.get("status") or a.get("row") in seen:
             continue          # 이미 그 상태면 물어볼 이유가 없다
         seen.add(a.get("row"))
+        try:                       # 매칭된 보고 업무의 산출물 — 완료 확정 시 결과물 칸에 옮긴다
+            output = rep[int(m.get("rep")) - 1][2]
+        except (TypeError, ValueError, IndexError):
+            output = ""
         out.append({"row": a.get("row"), "task": a.get("task") or "",
                     "project": a.get("project") or "", "pid": a.get("pid") or "",
-                    "from": a.get("status") or "", "suggest": sug,
+                    "from": a.get("status") or "", "suggest": sug, "output": output,
                     "basis": (m.get("basis") or "").strip()[:120]})
     return out
 
 
-async def _ask_status_sync(update: Update, report: dict) -> None:
+async def _ask_status_sync(update: Update, report: dict, context=None) -> None:
     """보고 직후 '이거 상태 바꿀까요?' 확인 카드 — 매칭이 없으면 아무것도 보내지 않는다."""
     name = (report.get("name") or "").strip()
     if not name:
@@ -1315,6 +1321,9 @@ async def _ask_status_sync(update: Update, report: dict) -> None:
     if not matches:
         return
     logger.info(f"status-sync: {name} 후보 {len(matches)}건")
+    ctx_out = {str(m["row"]): m.get("output") or "" for m in matches if m.get("output")}
+    if ctx_out and context is not None:
+        context.user_data["sync_out"] = ctx_out   # 완료 확정 시 결과물 칸에 옮길 산출물
     await update.message.reply_text(
         f"📋 오늘 보고와 연결되는 분장이 {len(matches)}건 있어요.\n"
         "버튼을 누르면 업무 상태가 바로 갱신됩니다. (안 눌러도 보고는 이미 저장됐어요)")
@@ -1368,12 +1377,20 @@ async def on_status_sync_click(update: Update, context: ContextTypes.DEFAULT_TYP
     if not ok:
         await q.edit_message_text(f"{q.message.text}\n\n⚠️ 시트 갱신에 실패했어요. 잠시 후 다시 시도해주세요.")
         return
+    # 결과물 칸 되살리기 — 완료일 때만, 보고에 적힌 산출물이 있고 칸이 비어 있을 때만 (2026-07-26)
+    out_txt = ""
+    if new_st == "완료" and not (cur.get("result") or "").strip():
+        out_txt = ((context.user_data or {}).get("sync_out") or {}).get(str(row), "")
+        if out_txt:
+            await asyncio.to_thread(_AS.set_result, _gws, SHEET_ID, row, out_txt)
     _log_st("report-sync", name, new_st, from_status=cur["status"], row=row,
             date=cur.get("date") or "", project=cur.get("project") or "",
             pid=cur.get("pid") or "", task=cur.get("task") or "", assignee=name,
             note="일일보고 직후 본인 확인")
     logger.info(f"status-sync applied: {name} row={row} {cur['status']}→{new_st}")
     tail = " (팀장 승인 대기로 넘어가요)" if new_st == "완료" else ""
+    if out_txt:
+        tail += f"\n📦 결과물도 함께 기록했어요: {out_txt[:60]}"
     await q.edit_message_text(f"{q.message.text}\n\n✅ {new_st}(으)로 변경했어요.{tail}")
 
 
@@ -1465,7 +1482,7 @@ async def finalize_and_send(
 
     await update.message.reply_text("\n".join(status_lines))
     await _employee_memory(update, report)  # ARISA 직원 거울: 재부상 + 누적
-    await _ask_status_sync(update, report)  # 보고 → 분장 상태 환류 확인 (2026-07-26)
+    await _ask_status_sync(update, report, context)  # 보고 → 분장 상태 환류 확인 (2026-07-26)
     context.user_data.pop("pending_report", None)
     return ConversationHandler.END
 

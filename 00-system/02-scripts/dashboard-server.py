@@ -102,7 +102,7 @@ def _assign_read():
 
 
 def _assign_append(assignee, task, deadline, priority, by, project="", result="", stakeholder="",
-                   source="", source_ref=""):
+                   source="", source_ref="", task_type=""):
     """주간분장 append. 사용자 헤더 순서: 날짜·프로젝트명·팀·담당자·업무내용·일정·결과물·상태·이해관계자·우선순위."""
     if not (_asgws and DAILY_SHEET):
         return False, "시트 미설정"
@@ -111,7 +111,7 @@ def _assign_append(assignee, task, deadline, priority, by, project="", result=""
     # M·N열 출처·출처ID — '누가 넣었나'(by)와 별개로 '무엇에서 나왔나'를 남긴다 (갭A, 2026-07-26)
     row = [datetime.date.today().isoformat(), project, team, assignee, task, deadline,
            result, "미착수", stakeholder, priority, _resolve_pid(project), (by or "").strip(),
-           (source or "").strip(), (source_ref or "").strip()]
+           (source or "").strip(), (source_ref or "").strip(), _AS.norm_type(task_type)]
     try:
         ok = _asgws.append_to_sheet(DAILY_SHEET, f"{ASSIGN_TAB}!A1", row, timeout=20)
         return bool(ok), "" if ok else "주간분장 탭 없음/append 실패"
@@ -342,7 +342,8 @@ def _llm_todo(text, max_items=12):
              "그 항목의 project는 '봉은사'. 상위 프로젝트가 명시된 문장의 하위 항목들은 모두 같은 project를 상속한다. 불명확하면 빈칸. "
              "마감(deadline)은 텍스트에 명시적 날짜·요일이 있을 때만 오늘 기준 YYYY-MM-DD로 계산하고, 없거나 불명확하면 반드시 빈칸. "
              "임의 날짜 생성 절대 금지. priority는 '긴급' 근거 없으면 '일반'. "
-             '반드시 JSON만 출력: {"items":[{"task":"...","project":"","deadline":"","priority":"일반"}]}')
+             f"type은 업무 성격을 {list(_AS.TASK_TYPES)} 중 하나로 추정한다(불명확하면 빈칸). "
+             '반드시 JSON만 출력: {"items":[{"task":"...","project":"","deadline":"","priority":"일반","type":""}]}')
     payload = json.dumps({"model": "gpt-4o-mini", "temperature": 0.2,
                           "response_format": {"type": "json_object"},
                           "messages": [{"role": "system", "content": sys_p},
@@ -1963,8 +1964,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       h+=mwTeamTodayHtml(lh.team_today);            // C — 팀원이 오늘 하기로 한 일
       h+=mwUnassignedHtml(lh.unassigned||[]);       // A2 — 담당 미지정 배정 큐
       h+=mwIncompleteHtml(lh.incomplete, false);    // 입력 완결성 — 마감·프로젝트 누락
+      h+=mwCalHtml(A);                              // 마감 달력 — 월 단위 몰림 확인
       h+='<div class="mw-h">팀 Todo · 이번주 분장 <span class="sub2">'+esc((lh.teams||[]).join(' · '))
-        +mwSrcMixHtml(lh.source_mix)+'</span></div>';
+        +mwSrcMixHtml(lh.source_mix)+mwTypeMixHtml(lh.type_mix)+'</span></div>';
       if(teamTodo.length){
         // B3 — 담당자별 보기 (filament 팀 보드 사이드바 패턴: 이름 + 열린 건수)
         var pf={}, pfo=[];
@@ -2446,6 +2448,58 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     });
     return h;
   }
+  var MW_TYPES=__TASK_TYPES__;
+  function mwTypeOpts(cur){
+    return '<option value="">유형…</option>'+MW_TYPES.map(function(t){
+      return '<option'+(t===cur?' selected':'')+'>'+esc(t)+'</option>';}).join('');
+  }
+  function mwCalHtml(A){
+    // 마감 달력(노션 가이드 §5.2 '팀 캘린더') — 간트는 2주 창이라 월 단위 몰림이 안 보인다.
+    // 이번 달 + 다음 달 마감 건수를 날짜 칸에 찍어 '언제 몰리는지'만 빠르게 본다.
+    var open=(A||[]).filter(function(a){ return ['미착수','진행중','검토중','승인대기','보류'].indexOf(a.status)>=0
+      && /^\d{4}-\d{2}-\d{2}/.test(a.deadline||''); });
+    if(!open.length) return '';
+    var cnt={}, mx=0;
+    open.forEach(function(a){ var d=a.deadline.slice(0,10); cnt[d]=(cnt[d]||0)+1; if(cnt[d]>mx) mx=cnt[d]; });
+    var now=new Date(), t0=mwLocalDate(0);
+    var h='<div class="mw-h">📅 마감 달력 <span class="sub2">열린 업무 '+open.length+'건 · 진한 칸일수록 마감이 몰린 날</span></div>'
+      +'<div class="mw-card" style="padding:14px 16px">';
+    for(var mo=0; mo<2; mo++){
+      var base=new Date(now.getFullYear(), now.getMonth()+mo, 1);
+      var y=base.getFullYear(), m=base.getMonth();
+      var days=new Date(y, m+1, 0).getDate(), lead=base.getDay();
+      var total=0;
+      for(var dd=1; dd<=days; dd++){
+        var k2=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+dd).slice(-2);
+        total+=cnt[k2]||0;
+      }
+      h+='<div style="font-size:12px;font-weight:700;margin:'+(mo?'14px':'0')+' 0 6px">'
+        +y+'년 '+(m+1)+'월 <span style="color:var(--muted);font-weight:400">마감 '+total+'건</span></div>'
+        +'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
+      ['일','월','화','수','목','금','토'].forEach(function(w){
+        h+='<div style="font-size:10px;color:var(--muted);text-align:center;padding:2px 0">'+w+'</div>'; });
+      for(var i=0;i<lead;i++) h+='<div></div>';
+      for(var d2=1; d2<=days; d2++){
+        var key=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d2).slice(-2);
+        var n=cnt[key]||0, op=n?(0.18+0.62*Math.min(1,n/Math.max(2,mx))):0;
+        var today=(key===t0);
+        h+='<div title="'+key+(n?(' · 마감 '+n+'건'):'')+'" style="text-align:center;padding:5px 0;border-radius:6px;font-size:11px;'
+          +'background:'+(n?('rgba(108,92,231,'+op.toFixed(2)+')'):'var(--bg-3)')+';'
+          +(today?'outline:1px solid var(--accent);':'')
+          +'color:'+(n?'#fff':'var(--muted)')+'">'+d2+(n?('<div style="font-size:9px;opacity:.85">'+n+'</div>'):'')+'</div>';
+      }
+      h+='</div>';
+    }
+    return h+'</div>';
+  }
+  function mwTypeMixHtml(M){
+    // 업무 유형 분포 — '우리 팀 시간이 어디로 가는가'. 전부 미분류면 표시하지 않는다.
+    var m=(M||[]).filter(function(x){ return x.type!=='미분류'; });
+    if(!m.length) return '';
+    var tot=(M||[]).reduce(function(s,x){return s+x.count;},0);
+    return ' · 유형 ' + (M||[]).map(function(x){
+      return esc(x.type)+' '+Math.round(x.count*100/(tot||1))+'%'; }).join(' · ');
+  }
   function mwIncompleteHtml(L, mine){
     // 입력 완결성 감시(노션 가이드 §5.4) — 마감 없는 업무는 지연 판정이 아예 안 걸린다.
     // '이번 주에 비우는 것'이 목표라 건수를 앞세우고, ✏️로 그 자리에서 채우게 한다.
@@ -2593,7 +2647,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   function mwEditBtn(a){
     return '<a class="ed-btn st-act" title="내용 수정" data-row="'+a.row+'" data-task="'+esc(a.task)
       +'" data-assignee="'+esc(a.assignee||'')+'" data-project="'+esc(a.project||'')
-      +'" data-deadline="'+esc(a.deadline||'')+'">✏️</a>';
+      +'" data-deadline="'+esc(a.deadline||'')+'" data-result="'+esc(a.result||'')
+      +'" data-type="'+esc(a.type||'')+'">✏️</a>';
   }
   function mwBindEdit(scope){
     var inS='background:var(--bg-3);border:1px solid var(--line);border-radius:7px;color:var(--fg);padding:7px 9px;font-family:inherit;font-size:12px';
@@ -2607,6 +2662,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           +'<input class="ef-task" value="'+esc(el.getAttribute('data-task'))+'" placeholder="업무 내용" style="flex:2;min-width:220px;'+inS+'">'
           +'<input class="ef-proj" value="'+esc(el.getAttribute('data-project')||'')+'" placeholder="프로젝트" style="flex:1;min-width:130px;'+inS+'">'
           +'<input class="ef-dl" type="date" value="'+esc(el.getAttribute('data-deadline')||'')+'" style="'+inS+'">'
+          +'<input class="ef-res" value="'+esc(el.getAttribute('data-result')||'')+'" placeholder="결과물(산출물)" style="flex:1;min-width:150px;'+inS+'">'
+          +'<select class="ef-type" style="'+inS+'">'+mwTypeOpts(el.getAttribute('data-type')||'')+'</select>'
           +'<button class="ef-save" style="background:var(--accent);border:0;border-radius:7px;color:#fff;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit">저장</button>'
           +'<button class="ef-cancel" style="background:transparent;border:1px solid var(--line);border-radius:7px;color:var(--muted);padding:7px 12px;font-size:12px;cursor:pointer;font-family:inherit">취소</button></div>';
         card.parentNode.insertBefore(d, card.nextSibling);
@@ -2619,7 +2676,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
             body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
               task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),
               new_task:nt,new_project:d.querySelector('.ef-proj').value.trim(),
-              new_deadline:d.querySelector('.ef-dl').value})})
+              new_deadline:d.querySelector('.ef-dl').value,
+              new_result:d.querySelector('.ef-res').value.trim(),
+              new_type:d.querySelector('.ef-type').value})})
           .then(function(r){return r.json();}).then(function(res){
             if(!res.ok) alert(res.error||'수정 실패');
             renderMyWork();
@@ -4300,6 +4359,8 @@ class H(BaseHTTPRequestHandler):
             # 통합 셸 — 로그인 1회, 역할별 탭(프로젝트/Brief/Weekly/Decision)
             # 리더 홈(팀 Todo·팀원 보고 카드)이 브리프 카드 스타일을 쓰므로 CARD_CSS 주입
             html = UNIFIED_SHELL.replace("</style>", BRIEF_CARD_CSS + "</style>", 1)
+            # 업무 유형 어휘는 shared/assign_sheet가 SSOT — 화면 셀렉트에 그대로 주입
+            html = html.replace("__TASK_TYPES__", json.dumps(list(_AS.TASK_TYPES), ensure_ascii=False))
             return self._send(200, html.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/projects":
             # 포트폴리오 HTML (구 / 핸들러) — 셸 iframe 또는 직접 접속(자체 로그인)
@@ -4891,6 +4952,7 @@ class H(BaseHTTPRequestHandler):
                                     "source_mix": _PV.source_mix(assigns, _ST),  # 갭B — 업무 유입 출처 분포
                                     "team_today": _team_today(assigns),          # 갭C — 팀원별 오늘 계획 대비
                                     "incomplete": _AS.incomplete(assigns, _ST),  # 입력 완결성 — 마감·프로젝트 누락
+                                    "type_mix": _AS.type_mix(assigns, _ST),      # 업무 유형 분포 — 시간이 어디로 가는가
                                     "today_plan": _TP.load_person(DATA, datetime.date.today().isoformat(), uid),
                                     "brief_html": brief_html, "brief_date": brief_date,
                                     "daily": _person_workbrief(uid, [a for a in assigns if a.get("assignee") == uid])})
@@ -5386,7 +5448,8 @@ class H(BaseHTTPRequestHandler):
                 pn = name_map.get(pn, pn)
                 ok, msg = _assign_append(assignee, task, (it.get("deadline") or "").strip(),
                                          (it.get("priority") or "일반").strip(), uid,
-                                         project=pn, source=commit_src, source_ref=commit_ref)
+                                         project=pn, source=commit_src, source_ref=commit_ref,
+                                         task_type=it.get("type") or "")
                 if ok:
                     added += 1
                     it2 = dict(it); it2["project"] = pn
@@ -5464,6 +5527,8 @@ class H(BaseHTTPRequestHandler):
             new_task = (b.get("new_task") or "").strip()
             new_project_raw = b.get("new_project")   # 키 생략 = 변경 안 함 (담당자만 변경·미지정 배정용)
             new_dl_raw = b.get("new_deadline")
+            new_res_raw = b.get("new_result")       # 결과물(G) — 키 생략 = 변경 안 함
+            new_type_raw = b.get("new_type")        # 유형(O) — 키 생략 = 변경 안 함
             if row < 2 or not new_task:
                 return self._send(400, {"ok": False, "error": "row·업무 내용 확인"})
             try:
@@ -5475,6 +5540,8 @@ class H(BaseHTTPRequestHandler):
             old_task = (r[4] or "").strip()
             new_project = (r[1] or "").strip() if new_project_raw is None else str(new_project_raw).strip()
             new_dl = (r[5] or "").strip() if new_dl_raw is None else str(new_dl_raw).strip()
+            # 결과물 칸 되살리기(2026-07-26) — 94건 전부 공란이던 죽은 컬럼
+            new_result = (r[6] or "").strip() if new_res_raw is None else str(new_res_raw).strip()[:300]
             if new_dl != (r[5] or "").strip() and new_dl and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", new_dl):
                 return self._send(400, {"ok": False, "error": "마감일 형식(YYYY-MM-DD)"})
             if not old_task or old_task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
@@ -5493,7 +5560,8 @@ class H(BaseHTTPRequestHandler):
             old_project = (r[1] or "").strip()
             try:
                 for col, old_v, new_v in (("B", old_project, new_project), ("E", old_task, new_task),
-                                          ("F", (r[5] or "").strip(), new_dl)):
+                                          ("F", (r[5] or "").strip(), new_dl),
+                                          ("G", (r[6] or "").strip(), new_result)):
                     if new_v != old_v:
                         if not _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!{col}{row}", [[new_v]], timeout=20):
                             return self._send(500, {"ok": False, "error": f"{col}열 업데이트 실패"})
@@ -5503,6 +5571,8 @@ class H(BaseHTTPRequestHandler):
                     _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!C{row}", [[emp_team(final_assignee) or ""]], timeout=20)
                 if new_project != old_project:  # G1 — 프로젝트 변경 시 ID Relation(K) 재확정
                     _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!K{row}", [[_resolve_pid(new_project)]], timeout=20)
+                if new_type_raw is not None:    # 유형(O) — 목록 밖 값은 set_type이 걸러낸다
+                    _AS.set_type(_asgws, DAILY_SHEET, row, new_type_raw)
             except Exception as e:
                 return self._send(500, {"ok": False, "error": str(e)[:80]})
             # 포트폴리오 akey 정합 — 기존 반영분 제거 후 새 값으로 재기록 (상태는 시트 lazy sync가 유지)
