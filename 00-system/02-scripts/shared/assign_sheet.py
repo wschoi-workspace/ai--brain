@@ -66,6 +66,37 @@ def set_status(gws, sheet_id, row, status, timeout: int = 20) -> bool:
         return False
 
 
+# 노션 가이드 §4.1 '⚠️입력누락' — 이게 비면 업무가 아니라 메모다.
+# 담당자는 '미지정 큐'(A2)가 이미 잡으므로 여기서는 마감·프로젝트만 본다.
+REQUIRED_FIELDS = (("deadline", "마감일"), ("project", "프로젝트"))
+
+
+def missing_fields(a) -> list:
+    """이 분장에서 비어 있는 필수 항목 이름 목록. 완결이면 []."""
+    a = a or {}
+    return [label for key, label in REQUIRED_FIELDS if not (a.get(key) or "").strip()]
+
+
+def incomplete(assigns, status_mod, assignee=None) -> list:
+    """열린 분장 중 필수 항목이 빈 것 → [분장 + missing]. 마감 없는 것을 앞에 둔다.
+
+    마감이 없으면 지연 판정이 아예 작동하지 않는다(is_overdue가 비ISO를 지연 아님으로
+    처리) — 화면에서 영원히 늦지 않는 업무가 되므로 프로젝트 누락보다 먼저 보여준다.
+    """
+    out = []
+    for a in (assigns or []):
+        if a.get("status") not in status_mod.ASSIGN_OPEN_STATES:
+            continue
+        if assignee and a.get("assignee") != assignee:
+            continue
+        miss = missing_fields(a)
+        if miss:
+            out.append({**a, "missing": miss})
+    out.sort(key=lambda x: (0 if "마감일" in x["missing"] else 1,
+                            x.get("assignee") or "", x.get("row") or 0))
+    return out
+
+
 def task_sig(task) -> str:
     """업무명 지문 6자 — 텔레그램 callback_data(64B 제한)에 업무 동일성을 실어 보내기 위한 것."""
     import hashlib

@@ -1962,6 +1962,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       h+=mwDueHtml(A);                              // A1 — 지난·오늘·내일 마감 모아보기
       h+=mwTeamTodayHtml(lh.team_today);            // C — 팀원이 오늘 하기로 한 일
       h+=mwUnassignedHtml(lh.unassigned||[]);       // A2 — 담당 미지정 배정 큐
+      h+=mwIncompleteHtml(lh.incomplete, false);    // 입력 완결성 — 마감·프로젝트 누락
       h+='<div class="mw-h">팀 Todo · 이번주 분장 <span class="sub2">'+esc((lh.teams||[]).join(' · '))
         +mwSrcMixHtml(lh.source_mix)+'</span></div>';
       if(teamTodo.length){
@@ -2173,6 +2174,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       MW_TODAY=mw.today_plan||[];        // 갭C — 내가 오늘 하기로 선언한 항목
       var A=mw.assignments||[];
       h+=mwTodayHtml(mw.today_summary, A);
+      h+=mwIncompleteHtml(mw.incomplete, true);     // 내 업무 중 마감·프로젝트 누락
       h+='<div class="mw-h">✅ 오늘 할 일 · 내 분장 <span class="sub2">☀️를 누르면 오늘 하기로 선언 · 🆕 제안 = 어제 보고에서 도출</span></div>';
       if(A.length){ h+=mwAssignListHtml(A, false); }
       h+=mwNewTodosHtml(mw.daily);
@@ -2262,6 +2264,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     });
     if(!items.length){ msg.textContent='등록할 항목이 없습니다'; return; }
     if(items.some(function(i){return !i.assignee;})){ msg.textContent='모든 항목에 담당자를 지정하세요'; return; }
+    // 입력 완결성 게이트 — 마감 없는 업무는 지연 판정이 영원히 안 걸린다(등록 단계에서 막는다)
+    var noDl=items.filter(function(i){return !(i.deadline||'').trim();});
+    if(noDl.length){ msg.textContent='마감일을 입력하세요 — 미입력 '+noDl.length+'건 (마감이 없으면 지연 관리가 되지 않습니다)'; return; }
     var names=[]; items.forEach(function(i){ var p=(i.project||'').trim(); if(p && names.indexOf(p)<0) names.push(p); });
     if(!names.length){ mwSend(items, []); return; }
     msg.textContent='프로젝트 확인 중…';
@@ -2439,6 +2444,25 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         +'<div class="t">'+(dn?'✅ ':'○ ')+esc(a.task)+mwOvBadge(a)+'</div>'
         +'<div class="m">'+(a.project?esc(a.project)+' · ':'')+esc(a.status||'')+(a.deadline?(' · 마감 '+esc(a.deadline)):'')+'</div></div>';
     });
+    return h;
+  }
+  function mwIncompleteHtml(L, mine){
+    // 입력 완결성 감시(노션 가이드 §5.4) — 마감 없는 업무는 지연 판정이 아예 안 걸린다.
+    // '이번 주에 비우는 것'이 목표라 건수를 앞세우고, ✏️로 그 자리에서 채우게 한다.
+    if(!L||!L.length) return '';
+    var dl=L.filter(function(a){ return (a.missing||[]).indexOf('마감일')>=0; }).length;
+    var h='<div class="mw-h">⚠️ 입력 누락 <span class="sub2">'+L.length+'건'
+      +(dl?(' · 마감 없음 '+dl+'건 — 지연 판정이 작동하지 않습니다'):'')
+      +' — ✏️로 채워주세요</span></div>';
+    L.slice(0,12).forEach(function(a){
+      var tags=(a.missing||[]).map(function(m){
+        return '<span class="mw-badge" style="background:rgba(231,76,60,.16);color:#E74C3C">'+esc(m)+' 없음</span>';
+      }).join(' ');
+      h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+' '+tags+mwEditBtn(a)+'</div>'
+        +'<div class="m">'+(mine?'':esc(a.assignee||'미지정')+' · ')
+        +(a.project?esc(a.project):'프로젝트 미연결')+' · '+esc(a.status||'')+'</div></div>';
+    });
+    if(L.length>12) h+='<div class="sub2" style="padding:2px 2px 8px">…외 '+(L.length-12)+'건</div>';
     return h;
   }
   function mwTeamTodayHtml(T){
@@ -4576,6 +4600,7 @@ class H(BaseHTTPRequestHandler):
                                     "pm_queue": pm_queue, "pm_decisions": pm_decisions,
                                     "today_plan": _tkeys,
                                     "today_summary": _TP.summarize(_tkeys, mine, _ST),
+                                    "incomplete": _AS.incomplete(mine, _ST),  # 내 업무 중 마감·프로젝트 누락
                                     "daily": _person_workbrief(uid, mine)})
         if path == "/api/exec-attn":
             # 대표창 (R4 2차) — 대표 차례인 것만 노출: 결정은 PM 라우팅 후 잔여·에스컬레이션,
@@ -4865,6 +4890,7 @@ class H(BaseHTTPRequestHandler):
                                     "unassigned": unassigned,
                                     "source_mix": _PV.source_mix(assigns, _ST),  # 갭B — 업무 유입 출처 분포
                                     "team_today": _team_today(assigns),          # 갭C — 팀원별 오늘 계획 대비
+                                    "incomplete": _AS.incomplete(assigns, _ST),  # 입력 완결성 — 마감·프로젝트 누락
                                     "today_plan": _TP.load_person(DATA, datetime.date.today().isoformat(), uid),
                                     "brief_html": brief_html, "brief_date": brief_date,
                                     "daily": _person_workbrief(uid, [a for a in assigns if a.get("assignee") == uid])})
