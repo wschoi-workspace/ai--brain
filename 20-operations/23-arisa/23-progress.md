@@ -704,3 +704,8 @@ engine_d에 실제와 유사한 보고 블록 3건(결정+승인권자 명시·�
 - 안전 확인: 증명서 PDF 렌더(cert_util.jsx)는 테마 변수 미사용 → 인쇄 출력 화이트 유지 / TweaksPanel(헤더 버튼)로 개인별 라이트 복귀 가능
 - 맥미니 hr-workspace 커밋 `fc048e4` → flyctl deploy → 머신 헬스 통과, 프로덕션 App.jsx에서 "theme": "dark" 서빙 확인
 - 참고: 템플릿 6종(5차)과 달리 portal-v2 다크는 자체 팔레트(#6666FF 유지) — ARISA 청보라(#6C5CE7) 통일은 별도 판단 사항
+
+## 2026-07-26 (3차) — portal-v2 브랜드 컬러 청보라 통일 (⚠️ fly 배포 대기)
+
+- 맥미니 hr-workspace 커밋 `5e61515`: #6666FF→#6C5CE7·#5353FF→#5B4BD5·#8A8AFF→#8A7DEC·#E1E1FF→#E4DFFB·#CDCEFB→#D4CDF7·rgba(102,102,255→108,92,231), styles.css+JSX 4종(Certificate/Overtime/TeamReport/UnifiedAdmin), 구색상 잔존 0건. 재직증명서 포인트 컬러 포함(용지 화이트 유지)
+- **⚠️ flyctl deploy 미실행** — 권한 분류기 차단, "배포 승인" 대기 상태에서 세션 종료. 다음 세션: `ssh macmini-ts 'cd ~/hr-workspace/20-operations/21-hr/portal && ~/.fly/bin/flyctl deploy'` 실행 + 프로덕션 styles.css에서 #6C5CE7 확인만 하면 끝
