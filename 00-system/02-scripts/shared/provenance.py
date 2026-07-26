@@ -18,9 +18,13 @@ import re
 SRC_MEETING = "회의"        # 회의분석 결과 → 액션 등록 (N열 = "<pid>|<ts>")
 SRC_DAILY = "일일보고"      # 어제 보고에서 도출된 제안 수락 (N열 = 보고 날짜)
 SRC_PLAN = "주간계획"       # 주간업무계획.xlsx 파싱 (N열 = 파일명)
-SRC_DIRECT = "대표지시"     # 대표·리더의 직접 분장
+SRC_DIRECT = "대표지시"     # 대표가 직접 분장 (N열 = 경로: 셸·텔레그램)
+SRC_RELAY = "리더분장"      # 리더가 팀원에게 분장·이관
 SRC_SELF = "본인등록"       # 담당자 자발 등록
-SOURCES = (SRC_MEETING, SRC_DAILY, SRC_PLAN, SRC_DIRECT, SRC_SELF)
+SOURCES = (SRC_MEETING, SRC_DAILY, SRC_PLAN, SRC_DIRECT, SRC_RELAY, SRC_SELF)
+
+# 출처 미상(빈값) = 이 체계 도입(2026-07-26) 이전 행. 집계에서 별도 표기한다.
+SRC_UNKNOWN_LABEL = "출처 미상"
 
 _TS_RE = re.compile(r"\d{8}-\d{6}")
 
@@ -71,6 +75,37 @@ def norm_due(raw) -> str:
             except ValueError:
                 return ""
     return ""  # 자유 텍스트(예: '오픈 전까지')는 마감으로 승격하지 않는다
+
+
+def normalize_source(raw) -> str:
+    """시트 M열 원문 → 알려진 출처 값. 모르는 값·빈값은 "" (미상)."""
+    s = (raw or "").strip()
+    return s if s in SOURCES else ""
+
+
+def assign_source(is_admin_user: bool) -> str:
+    """대표·리더의 직접 분장 출처. 누가 넣었는지(L열 by)와 별개로 '지시 경로'를 남긴다."""
+    return SRC_DIRECT if is_admin_user else SRC_RELAY
+
+
+def source_mix(assigns, status_mod=None) -> list:
+    """업무 유입 출처 분포 → [{"source", "label", "count"}] (많은 순, 미상은 항상 끝).
+
+    '업무가 어디서 생기는가'를 보는 집계 — 회의에서만 쏟아지는지, 대표 지시가 대부분인지.
+    status_mod를 주면 삭제·종료 5종을 분모에서 뺀다(실제로 살아 있는 업무 기준).
+    """
+    rows = assigns or []
+    if status_mod is not None:
+        rows = [a for a in rows
+                if (a.get("status") or "") not in status_mod.ASSIGN_DROPPED_STATES]
+    cnt = {}
+    for a in rows:
+        cnt[normalize_source(a.get("source"))] = cnt.get(normalize_source(a.get("source")), 0) + 1
+    known = sorted(((s, n) for s, n in cnt.items() if s), key=lambda x: (-x[1], x[0]))
+    out = [{"source": s, "label": s, "count": n} for s, n in known]
+    if cnt.get(""):
+        out.append({"source": "", "label": SRC_UNKNOWN_LABEL, "count": cnt[""]})
+    return out
 
 
 def action_rollup(assigns, status_mod) -> dict:

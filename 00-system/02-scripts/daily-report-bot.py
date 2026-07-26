@@ -73,6 +73,7 @@ from shared.employee import load_employees as _load_emp  # noqa: E402
 from shared.decision import save_decision_log as _save_decision_log  # noqa: E402
 from shared import report_score as _report_score  # noqa: E402  (채점 SSOT — 2026-07-20)
 from shared.naming import clean_project_name as _nm_clean  # noqa: E402  (P2 네이밍 규칙)
+from shared import provenance as _PV  # noqa: E402  (갭B 업무 출처 — 배포 시 shared/provenance.py 동반)
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -1998,15 +1999,17 @@ def _week_label() -> str:
 def save_assignment_to_sheet(team: str, task: str, assignee: str,
                               deadline: str, priority: str, project: str = "") -> bool:
     """주간분장 탭에 1행 등록 — 신스키마(셸 분장과 동일):
-    날짜|프로젝트명|팀|담당자|업무내용|일정|결과물|상태|이해관계자|우선순위|프로젝트ID(G1).
-    (구스키마 W라벨 행을 잘못된 칸에 append하던 버그 수정 — 2026-07-18)"""
+    날짜|프로젝트명|팀|담당자|업무내용|일정|결과물|상태|이해관계자|우선순위|프로젝트ID(G1)|등록자(L)|출처(M)|출처ID(N).
+    (구스키마 W라벨 행을 잘못된 칸에 append하던 버그 수정 — 2026-07-18)
+    /assign은 대표 전용이므로 출처는 항상 '대표지시', 경로는 텔레그램 (갭B, 2026-07-26)"""
     pr = "긴급" if priority in ("긴급", "최우선") else "일반"
     registry = _load_project_registry()
     project = _nm_clean(project)  # P2 — 네이밍 규칙 자동 정리 (Team Ops Guide 2부-①)
     row = [
         datetime.now().strftime("%Y-%m-%d"), project or "", team,
         assignee or "팀", task, deadline, "", "미착수", "", pr,
-        _project_pid(project, registry),
+        _project_pid(project, registry), "",
+        _PV.SRC_DIRECT, "텔레그램 /assign",
     ]
     return _gws.append_to_sheet(
         SHEET_ID, "주간분장!A1", row,

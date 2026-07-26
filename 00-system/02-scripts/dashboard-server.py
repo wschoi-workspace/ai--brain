@@ -71,6 +71,7 @@ except Exception:
 from shared import status as _ST  # 상태·우선순위 단일출처 (G2) — 배포 시 shared/status.py 동반 필수
 from shared import naming as _NM  # 프로젝트 네이밍 규칙 (P2) — 배포 시 shared/naming.py 동반 필수
 from shared import provenance as _PV  # 업무 출처·회의 참조 (갭A) — 배포 시 shared/provenance.py 동반 필수
+from shared import today_plan as _TP  # 오늘 하기로 한 일 (갭C) — 배포 시 shared/today_plan.py 동반 필수
 from shared import approval as _AP  # 승인 체인·권한 (R4 2차) — 배포 시 shared/approval.py 동반 필수
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
@@ -142,6 +143,23 @@ def _meeting_actions(pid, ts, assigns=None):
         return []
     return [a for a in (assigns if assigns is not None else _assign_read())
             if (a.get("source_ref") or "") == ref]
+
+
+def _team_today(assigns):
+    """갭C — 오늘 선언한 팀원별 계획 대비 실행 [{name, planned, done, percent}] (많은 순).
+
+    선언하지 않은 사람은 목록에 넣지 않는다 — '아직 안 정한 사람 명단'이 아니라
+    '오늘 무엇을 하기로 했는지'를 보는 화면이다.
+    """
+    today = datetime.date.today().isoformat()
+    day = _TP.load_day(DATA, today)
+    out = []
+    for name, keys in day.items():
+        mine = [a for a in (assigns or []) if a.get("assignee") == name]
+        s = _TP.summarize(keys, mine, _ST)
+        if s["planned"]:
+            out.append({"name": name, **s})
+    return sorted(out, key=lambda x: (-x["planned"], x["name"]))
 
 
 def _meeting_todo_candidates(result):
@@ -1817,7 +1835,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
               brief:document.getElementById('f-brief'),weekly:document.getElementById('f-weekly'),
               docsim:document.getElementById('f-docsim')};
   var SESS=null, curTab='mywork', curScope='', loaded={projects:false,brief:false,weekly:false,docsim:false};
-  var MW_ASSIGNEES=[];
+  var MW_ASSIGNEES=[], MW_ORIGIN=null;   // 갭B — 검토 초안의 유입 출처(주간계획 업로드 등)
+  var MW_TODAY=[];                        // 갭C — 오늘 하기로 선언한 항목 키
   var SESS_KEYS=['pm_sess','brief_sess','weekly_sess','team_brief_sess','team_weekly_sess'];
   var CLEAR_KEYS=SESS_KEYS.concat(['arisa_sess','arisa_token']);
   function tabBtn(t){ return document.querySelector('.tab[data-t="'+t+'"]'); }
@@ -1891,6 +1910,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
             fx.value='';
             if(d.ok && d.items && d.items.length){
               msg.textContent='검토 초안 '+d.items.length+'건 생성 ('+ (d.rows||0) +'개 행) — 담당자 지정 후 등록하세요.';
+              MW_ORIGIN={origin:'plan',ref:f.name};   // 갭B — 출처를 등록까지 물고 간다
               mwRenderTodos(d.items);
             } else { msg.textContent=d.error||'항목을 뽑지 못했습니다.'; }
           }).catch(function(){ fx.value=''; msg.textContent='서버 오류'; });
@@ -1907,7 +1927,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         body:JSON.stringify({user:SESS.name,pin:SESS.pin,text:txt})})
         .then(function(r){return r.json();}).then(function(d){
           pb.disabled=false;
-          if(d.ok && d.items && d.items.length){ msg.textContent='검토 후 각 항목에 담당자를 지정하고 승인하세요.'; mwRenderTodos(d.items); }
+          if(d.ok && d.items && d.items.length){ msg.textContent='검토 후 각 항목에 담당자를 지정하고 승인하세요.'; MW_ORIGIN=null; mwRenderTodos(d.items); }
           else { msg.textContent='항목을 뽑지 못했습니다. 더 구체적으로 적어보세요.'; }
         }).catch(function(){ pb.disabled=false; msg.textContent='서버 오류'; });
     };
@@ -1923,6 +1943,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     ]).then(function(res){
       var lh=res[0]||{}, ac=res[1]||{}, h='<div class="mw-wrap">';
       MW_ASSIGNEES = ac.assignees || [];
+      MW_TODAY = lh.today_plan || [];   // 갭C — 리더 본인의 오늘 선언
       var A=lh.assignments||[];
       // 위계 분리: 받은 업무(대표→리더 본인) vs 팀 Todo(리더→팀원 배분분)
       var _rcSeen={};
@@ -1956,8 +1977,10 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         });
       }
       h+=mwDueHtml(A);                              // A1 — 지난·오늘·내일 마감 모아보기
+      h+=mwTeamTodayHtml(lh.team_today);            // C — 팀원이 오늘 하기로 한 일
       h+=mwUnassignedHtml(lh.unassigned||[]);       // A2 — 담당 미지정 배정 큐
-      h+='<div class="mw-h">팀 Todo · 이번주 분장 <span class="sub2">'+esc((lh.teams||[]).join(' · '))+'</span></div>';
+      h+='<div class="mw-h">팀 Todo · 이번주 분장 <span class="sub2">'+esc((lh.teams||[]).join(' · '))
+        +mwSrcMixHtml(lh.source_mix)+'</span></div>';
       if(teamTodo.length){
         // B3 — 담당자별 보기 (filament 팀 보드 사이드바 패턴: 이름 + 열린 건수)
         var pf={}, pfo=[];
@@ -1987,6 +2010,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       mwBindSelfAssign(box);
       mwBindEdit(box);
       mwBindInline(box);
+      mwBindToday(box);   // 갭C — 오늘 선언 토글
       box.querySelectorAll('.pf-chip').forEach(function(ch){
         ch.onclick=function(){
           box.querySelectorAll('.pf-chip').forEach(function(c){ c.classList.toggle('on', c===ch); });
@@ -2163,8 +2187,10 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       }
       if(ac.canAssign){ h+=mwAssignHtml(ac.level||'담당자'); }
       h+=mwDailyFocusHtml(mw.daily);
-      h+='<div class="mw-h">✅ 오늘 할 일 · 내 분장 <span class="sub2">🆕 제안 = 어제 보고에서 도출 — [분장 등록]으로 확정</span></div>';
+      MW_TODAY=mw.today_plan||[];        // 갭C — 내가 오늘 하기로 선언한 항목
       var A=mw.assignments||[];
+      h+=mwTodayHtml(mw.today_summary, A);
+      h+='<div class="mw-h">✅ 오늘 할 일 · 내 분장 <span class="sub2">☀️를 누르면 오늘 하기로 선언 · 🆕 제안 = 어제 보고에서 도출</span></div>';
       if(A.length){ h+=mwAssignListHtml(A, false); }
       h+=mwNewTodosHtml(mw.daily);
       if(!A.length && !((mw.daily||{}).new_todos||[]).length){ h+='<div class="mw-empty">배정된 분장이 없습니다.</div>'; }
@@ -2187,6 +2213,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       mwBindSelfAssign(box);
       mwBindEdit(box);
       mwBindInline(box);
+      mwBindToday(box);   // 갭C — 오늘 선언 토글
     }).catch(function(){ box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>'; });
   }
   function mwAsOpts(sel){ return MW_ASSIGNEES.map(function(a){var lbl=a.name+' ('+(a.team||'')+(a.leader?' 리더 · 이관':'')+')';return '<option value="'+esc(a.name)+'"'+(a.name===sel?' selected':'')+'>'+esc(lbl)+'</option>';}).join(''); }
@@ -2338,7 +2365,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     var msg=document.getElementById('mw-msg');
     msg.textContent='등록 중…';
     fetch('/api/assign-commit',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({user:SESS.name,pin:SESS.pin,items:items,projectActions:projectActions||[]})})
+      body:JSON.stringify({user:SESS.name,pin:SESS.pin,items:items,projectActions:projectActions||[],
+        origin:(MW_ORIGIN||{}).origin||'',originRef:(MW_ORIGIN||{}).ref||''})})
       .then(function(r){return r.json();}).then(function(d){
         if(d.added){
           var extra=[];
@@ -2371,7 +2399,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         +'<div class="t"><span class="mw-badge" style="background:rgba(108,92,231,.16);color:var(--accent)">🆕 제안</span> '
         +esc(t.task)
         +'<a class="ns-add st-act" style="border-color:var(--accent);color:var(--accent)" data-task="'+esc(t.task)
-        +'" data-project="'+esc(t.project||'')+'" data-deadline="'+esc(t.deadline||'')+'">+ 분장 등록</a></div>'
+        +'" data-src-ref="'+esc(d.date||'')+'"'   // 갭B — 이 제안이 나온 보고 날짜
+        +' data-project="'+esc(t.project||'')+'" data-deadline="'+esc(t.deadline||'')+'">+ 분장 등록</a></div>'
         +'<div class="m">'+pj+esc(t.basis||'어제 보고에서 도출')+dl+'</div></div>';
     }).join('');
   }
@@ -2389,7 +2418,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         el.textContent='등록 중…';
         fetch('/api/assign-self',{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({user:SESS.name,pin:SESS.pin,task:el.getAttribute('data-task'),
-            project:el.getAttribute('data-project'),deadline:el.getAttribute('data-deadline')})})
+            project:el.getAttribute('data-project'),deadline:el.getAttribute('data-deadline'),
+            source:'일일보고',source_ref:el.getAttribute('data-src-ref')||''})})
         .then(function(r){return r.json();}).then(function(d){
           if(!d.ok) alert(d.error||'등록 실패');
           renderMyWork();
@@ -2400,6 +2430,66 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   function mwOvBadge(a){
     // 지연 N일 배지(A1 — filament) — 서버 _assign_read가 열린 분장에만 days_overdue 부여
     return (a.days_overdue>0)?' <span class="mw-badge mw-urgent">지연 '+a.days_overdue+'일</span>':'';
+  }
+  function mwTodayKey(a){ return a.row+'|'+String(a.task||'').trim().slice(0,40); }
+  function mwSunBtn(a){
+    // 갭C — 오늘 하기로 한 일 선언 토글. 본인 카드(내 분장)에서만 노출한다.
+    if(!a.row) return '';
+    var on=MW_TODAY.indexOf(mwTodayKey(a))>=0;
+    return ' <a class="tp-btn st-act" data-row="'+a.row+'" data-task="'+esc(a.task)+'" data-on="'+(on?1:0)+'"'
+      +' title="'+(on?'오늘 목록에서 빼기':'오늘 하기로 정하기')+'"'
+      +(on?' style="border-color:#f4c430;color:#f4c430"':'')+'>'+(on?'☀️ 오늘':'☀️')+'</a>';
+  }
+  function mwTodayHtml(s, A){
+    // 갭C — 계획 대비 실행. 선언이 없으면 안내 한 줄만(잔소리하지 않는다).
+    s=s||{};
+    if(!s.planned){
+      return '<div class="mw-h">☀️ 오늘 하기로 한 일 <span class="sub2">아직 정하지 않았습니다 — 아래 분장에서 ☀️를 눌러 오늘 할 것을 골라보세요</span></div>';
+    }
+    var keys=MW_TODAY, rest=[];
+    (A||[]).forEach(function(a){ if(keys.indexOf(mwTodayKey(a))>=0) rest.push(a); });
+    var h='<div class="mw-h">☀️ 오늘 하기로 한 일 <span class="sub2">'+s.planned+'건 중 '+s.done+'건 완료 · '+s.percent+'%'
+      +(s.stale?(' · 목록에서 사라진 '+s.stale+'건 제외'):'')+'</span></div>';
+    rest.forEach(function(a){
+      var dn=(a.status==='완료'||a.status==='승인');
+      h+='<div class="mw-card" style="border-left:3px solid '+(dn?'#2ECC71':'#f4c430')+'">'
+        +'<div class="t">'+(dn?'✅ ':'○ ')+esc(a.task)+mwOvBadge(a)+'</div>'
+        +'<div class="m">'+(a.project?esc(a.project)+' · ':'')+esc(a.status||'')+(a.deadline?(' · 마감 '+esc(a.deadline)):'')+'</div></div>';
+    });
+    return h;
+  }
+  function mwTeamTodayHtml(T){
+    // 갭C — 팀원이 스스로 정한 오늘. 선언한 사람만 나온다(미선언자 명단이 아니다).
+    if(!T||!T.length) return '';
+    var tot=T.reduce(function(s,x){return s+x.planned;},0), dn=T.reduce(function(s,x){return s+x.done;},0);
+    var h='<div class="mw-h">☀️ 팀원이 오늘 하기로 한 일 <span class="sub2">'+T.length+'명 · 계획 '+tot+'건 중 '+dn+'건 완료</span></div>';
+    T.forEach(function(x){
+      var w=x.percent;
+      h+='<div class="mw-card"><div class="t">'+esc(x.name)+' <span class="mw-badge" style="background:rgba(244,196,48,.14);color:#f4c430">'+x.done+'/'+x.planned+' · '+w+'%</span></div>'
+        +'<div class="m" style="background:var(--bg-3);border-radius:4px;height:5px;margin-top:6px;overflow:hidden">'
+        +'<div style="height:100%;width:'+w+'%;background:'+(w>=100?'#2ECC71':'#f4c430')+'"></div></div></div>';
+    });
+    return h;
+  }
+  function mwBindToday(scope){
+    scope.querySelectorAll('.tp-btn').forEach(function(el){
+      el.onclick=function(){
+        el.textContent='…';
+        fetch('/api/today-plan',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
+            task:el.getAttribute('data-task'),on:el.getAttribute('data-on')!=='1'})})
+        .then(function(r){return r.json();}).then(function(d){
+          if(!d.ok) alert(d.error||'저장 실패');
+          renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    });
+  }
+  function mwSrcMixHtml(mix){
+    // 갭B — 업무가 어디서 생기는지(회의·지시·일일보고…). 미상만 있으면 표시하지 않는다.
+    var m=(mix||[]).filter(function(x){ return x.source; });
+    if(!m.length) return '';
+    return ' · 유입 ' + m.map(function(x){ return esc(x.label)+' '+x.count; }).join(' · ');
   }
   function mwLocalDate(off){
     var d=new Date(Date.now()+(off||0)*86400000);
@@ -2689,15 +2779,16 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         act+=mwStBtn(a,'완료','✓ 완료');
         act+=mwStBtn(a,'완료','📣 완료·보고',true);
       }
-      act+=mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 수정·삭제 가능 (잘못 등록 정정)
+      act+=mwSunBtn(a)+mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 수정·삭제 + 오늘 선언(갭C)
     }
     if(withAssignee && a.row && canDel){ act+=mwInlineSel(a)+mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a); }  // B2 — 인라인 상태·담당자
     return '<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+mwOvBadge(a)+mwSrcChip(a)+act+'</div><div class="m">'+who+dl+'</div></div>';
   }
   function mwSrcChip(a){
-    // 갭A — 이 업무가 어디서 나왔는지(회의·일일보고…). 출처가 없는 과거 행은 아무것도 붙지 않는다.
+    // 갭A·B — 이 업무가 어디서 나왔는지. 출처가 없는 과거 행은 아무것도 붙지 않는다.
     if(!a.source) return '';
-    var ic=(a.source==='회의')?'🎙':(a.source==='일일보고')?'📝':(a.source==='주간계획')?'📅':'•';
+    var IC={'회의':'🎙','일일보고':'📝','주간계획':'📅','대표지시':'📌','리더분장':'📎','본인등록':'✋'};
+    var ic=IC[a.source]||'•';
     return ' <span class="mw-badge" title="출처: '+esc(a.source)+(a.source_ref?' ('+esc(a.source_ref)+')':'')
       +'" style="background:rgba(108,92,231,.16);color:#A99BF5">'+ic+' '+esc(a.source)+'</span>';
   }
@@ -4495,8 +4586,13 @@ class H(BaseHTTPRequestHandler):
                                                      "logged_at": d.get("logged_at") or ""})
                     except Exception:
                         pass
+            # 갭C — 오늘 본인이 선언한 항목 + 계획 대비 실행 요약
+            _td = datetime.date.today().isoformat()
+            _tkeys = _TP.load_person(DATA, _td, uid)
             return self._send(200, {"ok": True, "user": uid, "assignments": mine, "projects": projs,
                                     "pm_queue": pm_queue, "pm_decisions": pm_decisions,
+                                    "today_plan": _tkeys,
+                                    "today_summary": _TP.summarize(_tkeys, mine, _ST),
                                     "daily": _person_workbrief(uid, mine)})
         if path == "/api/exec-attn":
             # 대표창 (R4 2차) — 대표 차례인 것만 노출: 결정은 PM 라우팅 후 잔여·에스컬레이션,
@@ -4784,6 +4880,9 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True, "teams": teams, "assignments": assigns,
                                     "projects": projs, "approvals": approvals,
                                     "unassigned": unassigned,
+                                    "source_mix": _PV.source_mix(assigns, _ST),  # 갭B — 업무 유입 출처 분포
+                                    "team_today": _team_today(assigns),          # 갭C — 팀원별 오늘 계획 대비
+                                    "today_plan": _TP.load_person(DATA, datetime.date.today().isoformat(), uid),
                                     "brief_html": brief_html, "brief_date": brief_date,
                                     "daily": _person_workbrief(uid, [a for a in assigns if a.get("assignee") == uid])})
         if path == "/api/projects":
@@ -5207,6 +5306,11 @@ class H(BaseHTTPRequestHandler):
             # + 프로젝트 연동: projectActions(create=포트폴리오 카드 자동 생성 / merge=기존 정식 명칭으로 치환)
             #   등록 성공 항목은 대상 프로젝트 tasks에 영구 반영(akey 중복 방지)
             items = b.get("items") or []
+            # 갭B — 출처: 주간계획 업로드에서 온 항목이면 '주간계획'(ref=파일명), 아니면 지시 경로
+            if (b.get("origin") or "") == "plan":
+                commit_src, commit_ref = _PV.SRC_PLAN, (b.get("originRef") or "주간업무계획")[:80]
+            else:
+                commit_src, commit_ref = _PV.assign_source(is_admin(uid)), "분장 화면"
             actions = {}
             for a in (b.get("projectActions") or []):
                 n = (a.get("name") or "").strip()
@@ -5273,7 +5377,7 @@ class H(BaseHTTPRequestHandler):
                 pn = name_map.get(pn, pn)
                 ok, msg = _assign_append(assignee, task, (it.get("deadline") or "").strip(),
                                          (it.get("priority") or "일반").strip(), uid,
-                                         project=pn)
+                                         project=pn, source=commit_src, source_ref=commit_ref)
                 if ok:
                     added += 1
                     it2 = dict(it); it2["project"] = pn
@@ -5305,17 +5409,41 @@ class H(BaseHTTPRequestHandler):
                       or assignee in set(load_emp().get("team_leads", {}).values())):
                 return self._send(403, {"ok": False, "error": "자기 팀원 또는 타팀 리더(이관)에게만 분장할 수 있습니다"})
             ok, msg = _assign_append(assignee, task, (b.get("deadline") or "").strip(),
-                                     (b.get("priority") or "일반").strip(), uid)
+                                     (b.get("priority") or "일반").strip(), uid,
+                                     source=_PV.assign_source(is_admin(uid)), source_ref="분장 화면")
             return self._send(200 if ok else 500, {"ok": ok, "error": msg})
         if path == "/api/assign-self":
             # 본인 분장 등록 — 개인 브리프 '새로 해야 할 일' 제안 수락용 (assignee=본인 강제)
             task = (b.get("task") or "").strip()
             if not task:
                 return self._send(400, {"ok": False, "error": "업무 내용 필수"})
+            # 갭B — 같은 API를 '어제 보고 도출 제안 수락'과 '자발 등록'이 함께 쓴다.
+            # 클라이언트가 보고 날짜를 주면 일일보고 출처로 남긴다(제안의 근거를 되짚을 수 있게).
+            src_ref = (b.get("source_ref") or "").strip()[:40]
+            if (b.get("source") or "") == _PV.SRC_DAILY:
+                self_src, self_ref = _PV.SRC_DAILY, src_ref
+            else:
+                self_src, self_ref = _PV.SRC_SELF, ""
             ok, msg = _assign_append(uid, task, (b.get("deadline") or "").strip(),
                                      (b.get("priority") or "일반").strip(), uid,
-                                     project=(b.get("project") or "").strip())
+                                     project=(b.get("project") or "").strip(),
+                                     source=self_src, source_ref=self_ref)
             return self._send(200 if ok else 500, {"ok": ok, "error": msg})
+        if path == "/api/today-plan":
+            # 갭C — '오늘 하기로 한 일' 선언/해제. 본인 분장만(남의 하루를 대신 정하지 않는다).
+            row = b.get("row")
+            task = (b.get("task") or "").strip()
+            on = bool(b.get("on"))
+            key = _TP.make_key(row, task)
+            if not key:
+                return self._send(400, {"ok": False, "error": "row·task 필수"})
+            mine = [a for a in _assign_read() if a.get("assignee") == uid]
+            if not any(_TP.make_key(a.get("row"), a.get("task")) == key for a in mine):
+                return self._send(403, {"ok": False, "error": "본인에게 배정된 업무만 오늘 할 일로 정할 수 있습니다"})
+            today = datetime.date.today().isoformat()
+            keys = _TP.toggle(DATA, today, uid, key, on)
+            return self._send(200, {"ok": True, "today_plan": keys,
+                                    "today_summary": _TP.summarize(keys, mine, _ST)})
         if path == "/api/assign-edit":
             # 분장 내용 수정(업무·프로젝트·마감) — 본인 + 대표·해당 팀 리더. 잘못 등록 정정용
             if not (_asgws and DAILY_SHEET):
