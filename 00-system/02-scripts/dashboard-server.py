@@ -70,6 +70,7 @@ except Exception:
     _close_decision = None
 from shared import status as _ST  # 상태·우선순위 단일출처 (G2) — 배포 시 shared/status.py 동반 필수
 from shared import naming as _NM  # 프로젝트 네이밍 규칙 (P2) — 배포 시 shared/naming.py 동반 필수
+from shared import provenance as _PV  # 업무 출처·회의 참조 (갭A) — 배포 시 shared/provenance.py 동반 필수
 from shared import approval as _AP  # 승인 체인·권한 (R4 2차) — 배포 시 shared/approval.py 동반 필수
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
@@ -94,39 +95,90 @@ def _assign_read():
     if not (_asgws and DAILY_SHEET):
         return []
     try:
-        rows = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A2:L5000", retries=2, timeout=20)
+        rows = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A2:N5000", retries=2, timeout=20)
     except Exception:
         return []
     out = []
     for i, r in enumerate(rows):
-        r = list(r) + [""] * (12 - len(r))
-        # 시트 헤더: 날짜·프로젝트명·팀구분·담당자·업무내용·일정(완료예상)·결과물·상태·이해관계자·우선순위·프로젝트ID(K, G1)·등록자(L, 2026-07-20)
+        r = list(r) + [""] * (14 - len(r))
+        # 시트 헤더: 날짜·프로젝트명·팀구분·담당자·업무내용·일정(완료예상)·결과물·상태·이해관계자·우선순위·프로젝트ID(K, G1)·등록자(L, 2026-07-20)·출처(M)·출처ID(N, 갭A 2026-07-26)
         a = {"row": i + 2,  # 시트 실제 행 번호 (A2부터) — 상태 업데이트용
              "date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
              "team": (r[2] or "").strip(), "assignee": (r[3] or "").strip(),
              "task": (r[4] or "").strip(), "deadline": (r[5] or "").strip(),
              "result": (r[6] or "").strip(), "status": _ST.norm_assign_status(r[7]),
              "stakeholder": (r[8] or "").strip(), "priority": _ST.norm_priority(r[9]),
-             "pid": (r[10] or "").strip(), "by": (r[11] or "").strip()}
+             "pid": (r[10] or "").strip(), "by": (r[11] or "").strip(),
+             # 갭A — 이 업무가 '무엇에서' 나왔는가(회의·일일보고·주간계획…)와 그 원본 참조
+             "source": (r[12] or "").strip(), "source_ref": (r[13] or "").strip()}
         # filament 반영 — 지연 N일(열린 분장만)을 모든 소비자(내 업무·리더 홈·대표창)에 공급
         a["days_overdue"] = _ST.overdue_days(a["deadline"]) if _ST.is_overdue(a["deadline"], a["status"]) else 0
         out.append(a)
     return out
 
 
-def _assign_append(assignee, task, deadline, priority, by, project="", result="", stakeholder=""):
+def _assign_append(assignee, task, deadline, priority, by, project="", result="", stakeholder="",
+                   source="", source_ref=""):
     """주간분장 append. 사용자 헤더 순서: 날짜·프로젝트명·팀·담당자·업무내용·일정·결과물·상태·이해관계자·우선순위."""
     if not (_asgws and DAILY_SHEET):
         return False, "시트 미설정"
     team = emp_team(assignee) or ""
     # L열 등록자(by) — 받은 업무 섹션의 출처 표시(대표 지시/리더 이관/본인 등록)용 (2026-07-20)
+    # M·N열 출처·출처ID — '누가 넣었나'(by)와 별개로 '무엇에서 나왔나'를 남긴다 (갭A, 2026-07-26)
     row = [datetime.date.today().isoformat(), project, team, assignee, task, deadline,
-           result, "미착수", stakeholder, priority, _resolve_pid(project), (by or "").strip()]
+           result, "미착수", stakeholder, priority, _resolve_pid(project), (by or "").strip(),
+           (source or "").strip(), (source_ref or "").strip()]
     try:
         ok = _asgws.append_to_sheet(DAILY_SHEET, f"{ASSIGN_TAB}!A1", row, timeout=20)
         return bool(ok), "" if ok else "주간분장 탭 없음/append 실패"
     except Exception as e:
         return False, str(e)[:80]
+
+
+def _meeting_actions(pid, ts, assigns=None):
+    """회의(프로젝트 문서 pid|ts)에서 파생된 분장 목록 — 시트 순서 유지 (갭A)."""
+    ref = _PV.meeting_ref(pid, ts)
+    if not ref:
+        return []
+    return [a for a in (assigns if assigns is not None else _assign_read())
+            if (a.get("source_ref") or "") == ref]
+
+
+def _meeting_todo_candidates(result):
+    """회의분석 결과 → 분장 등록 후보 [{assignee, task, due}] (갭A).
+
+    5블록(block_5_todos.ours)과 레거시 10섹션(todos)을 모두 받는다. 상대 측(theirs)은
+    우리 조직의 분장이 아니므로 제외한다 — 남의 할 일을 우리 시트에 넣으면 지연 통계가 오염된다.
+    """
+    r = result if isinstance(result, dict) else {}
+    out = []
+    for t in ((r.get("block_5_todos") or {}).get("ours") or []):
+        task = (str(t.get("task") or "")).strip()
+        if task:
+            out.append({"assignee": (str(t.get("assignee") or "")).strip(),
+                        "task": task, "due": _PV.norm_due(t.get("due"))})
+    if not out:  # 레거시 스키마 — owner/due 키
+        for t in (r.get("todos") or []):
+            task = (str(t.get("task") or "")).strip()
+            if task:
+                out.append({"assignee": (str(t.get("owner") or "")).strip(),
+                            "task": task, "due": _PV.norm_due(t.get("due"))})
+    return out[:30]
+
+
+def _doc_action_index(pid, assigns=None):
+    """{ts: rollup} — 프로젝트 문서함 회의별 실행률 (docs 배지·상세용).
+
+    분장 시트를 문서 수만큼 반복해서 읽지 않도록 한 번 읽어 ts로 접는다.
+    """
+    out = {}
+    rows = assigns if assigns is not None else _assign_read()
+    for a in rows:
+        rp, rt = _PV.parse_meeting_ref(a.get("source_ref"))
+        if rp != (pid or "") or not rt:
+            continue
+        out.setdefault(rt, []).append(a)
+    return {ts: _PV.action_rollup(v, _ST) for ts, v in out.items()}
 
 
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
@@ -817,6 +869,16 @@ h1{font-size:22px;font-weight:700;margin-bottom:4px}
       <button class="draft-btn" id="pj-submit">제출</button>
     </div>
     <div id="pj-msg" style="font-size:12px;color:var(--muted);margin-top:10px;min-height:16px"></div>
+    <div id="pj-actions" style="display:none;margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px">✅ 이 회의의 할 일을 분장으로 등록</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px">등록하면 담당자의 '내 업무'에 뜨고, 이 회의의 <b>실행률</b>로 집계됩니다. 담당자를 배정할 권한이 없거나 이름이 확인되지 않은 항목은 <b>담당 미지정</b>으로 들어가 리더가 지정합니다.</div>
+      <div id="pj-act-list" style="max-height:230px;overflow-y:auto;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="draft-btn" style="background:var(--bg3);border:1px solid var(--line)" onclick="pjClose()">나중에</button>
+        <button class="draft-btn" id="pj-act-submit">선택 항목 등록</button>
+      </div>
+      <div id="pj-act-msg" style="font-size:12px;color:var(--muted);margin-top:10px;min-height:16px"></div>
+    </div>
   </div>
 </div>
 </div>
@@ -1559,7 +1621,49 @@ window.pjOpen=function(type){
       });
   }).catch(function(){document.getElementById('pj-msg').textContent='서버 연결 실패';});
 };
-window.pjClose=function(){document.getElementById('pj-modal').style.display='none';pjCtx=null;};
+window.pjClose=function(){document.getElementById('pj-modal').style.display='none';pjCtx=null;
+  document.getElementById('pj-actions').style.display='none';
+  document.getElementById('pj-act-list').innerHTML='';
+  document.getElementById('pj-act-msg').textContent='';};
+// 갭A — 회의 제출 후 to-do를 분장으로 넘기는 2단계. 여기서 끊기면 회의는 문서로만 남는다.
+var pjAct=null;
+function pjRenderActions(pid,ts,cands){
+  pjAct={pid:pid,ts:ts};
+  var IN='background:var(--bg3);border:1px solid var(--line);color:var(--fg);border-radius:6px;padding:5px 7px;font-size:11px;font-family:inherit';
+  document.getElementById('pj-act-list').innerHTML=cands.map(function(t,i){
+    return '<div class="pj-act-row" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">'
+      +'<input type="checkbox" class="pa-on" data-i="'+i+'" checked style="accent-color:var(--accent);flex-shrink:0">'
+      +'<input class="pa-task" value="'+esc(t.task||'')+'" style="'+IN+';flex:1;min-width:0">'
+      +'<input class="pa-who" value="'+esc(t.assignee||'')+'" placeholder="담당" style="'+IN+';width:64px;flex-shrink:0">'
+      +'<input class="pa-due" type="date" value="'+esc(t.due||'')+'" style="'+IN+';width:120px;flex-shrink:0">'
+      +'</div>';
+  }).join('');
+  document.getElementById('pj-actions').style.display='block';
+}
+document.getElementById('pj-act-submit').onclick=function(){
+  if(!pjAct) return;
+  var msg=document.getElementById('pj-act-msg'), btn=this, items=[];
+  document.querySelectorAll('#pj-act-list .pj-act-row').forEach(function(r){
+    if(!r.querySelector('.pa-on').checked) return;
+    var task=r.querySelector('.pa-task').value.trim();
+    if(task) items.push({task:task,assignee:r.querySelector('.pa-who').value.trim(),due:r.querySelector('.pa-due').value});
+  });
+  if(!items.length){msg.textContent='등록할 항목을 선택해주세요.';return;}
+  btn.disabled=true; msg.textContent='등록 중…';
+  fetch('/api/meeting-actions',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({pid:pjAct.pid,ts:pjAct.ts,items:items})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      btn.disabled=false;
+      if(!d.ok){msg.textContent=(d.error||'등록 실패')+((d.errors||[]).length?' — '+d.errors.join(', '):'');return;}
+      var ex=[]; if(d.unassigned) ex.push('담당 미지정 '+d.unassigned+'건');
+      if(d.skipped) ex.push('중복 제외 '+d.skipped+'건');
+      msg.innerHTML='<span style="color:var(--green)">✅ '+d.added+'건 등록'+(ex.length?' ('+ex.join(' · ')+')':'')+' — 이 회의 실행률 '+((d.rollup||{}).percent||0)+'%</span>';
+      document.getElementById('pj-act-submit').style.display='none';
+      setTimeout(pjClose,3500);
+    })
+    .catch(function(){btn.disabled=false;msg.textContent='서버 연결 실패';});
+};
 document.getElementById('pj-submit').onclick=function(){
   var pid=document.getElementById('pj-select').value, msg=document.getElementById('pj-msg');
   if(!pjCtx){return;}
@@ -1575,6 +1679,7 @@ document.getElementById('pj-submit').onclick=function(){
       btn.disabled=false;
       if(!d.ok){msg.textContent=d.error||'제출 실패';return;}
       msg.innerHTML='<span style="color:var(--green)">✅ 제출 완료 — 프로젝트 문서함에 저장됐습니다.<br>브리프 갱신안은 AI 분석 후 PM 승인 대기열에 올라갑니다.</span>';
+      if((d.candidates||[]).length){ btn.style.display='none'; pjRenderActions(pid,(d.doc||{}).ts,d.candidates); return; }
       setTimeout(pjClose,3000);
     })
     .catch(function(){btn.disabled=false;msg.textContent='서버 연결 실패';});
@@ -2587,7 +2692,14 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       act+=mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 수정·삭제 가능 (잘못 등록 정정)
     }
     if(withAssignee && a.row && canDel){ act+=mwInlineSel(a)+mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a); }  // B2 — 인라인 상태·담당자
-    return '<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+mwOvBadge(a)+act+'</div><div class="m">'+who+dl+'</div></div>';
+    return '<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+mwOvBadge(a)+mwSrcChip(a)+act+'</div><div class="m">'+who+dl+'</div></div>';
+  }
+  function mwSrcChip(a){
+    // 갭A — 이 업무가 어디서 나왔는지(회의·일일보고…). 출처가 없는 과거 행은 아무것도 붙지 않는다.
+    if(!a.source) return '';
+    var ic=(a.source==='회의')?'🎙':(a.source==='일일보고')?'📝':(a.source==='주간계획')?'📅':'•';
+    return ' <span class="mw-badge" title="출처: '+esc(a.source)+(a.source_ref?' ('+esc(a.source_ref)+')':'')
+      +'" style="background:rgba(108,92,231,.16);color:#A99BF5">'+ic+' '+esc(a.source)+'</span>';
   }
   function mwAssignListHtml(A, withAssignee){
     // 열린 분장 중심(A3 — filament 완료/보관함 분리) — 완료(승인 대기)는 하단 접힘.
@@ -4693,6 +4805,7 @@ class H(BaseHTTPRequestHandler):
             if _sync_assign_status(p): save_project(p)  # 분장 시트(SSOT) 상태 lazy 반영
             return self._send(200, {"ok": True, "project": p, "canEdit": can_edit(uid, p), "canManage": can_manage(uid, p),
                                     "assignments": _project_assignments(p.get("name") or "", p.get("aliases"), p.get("id") or "", p.get("mergedIds")),
+                                    "docActions": _doc_action_index(p.get("id") or ""),  # 갭A — 회의별 실행률
                                     "memory": _memory_hub(p)})  # B1 — ARISA 메모리 링크백
         if path == "/api/project/open-assigns":
             # 아카이브 모달 사전 경고용 — 열린 분장(미착수·진행중, 전 기간)
@@ -4729,6 +4842,26 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True, "title": meta.get("title") or ts,
                                     "by": meta.get("by") or "", "ts": ts,
                                     "text": f.read_text(encoding="utf-8")})
+        if path == "/api/meeting-actions":
+            # 갭A — 이 회의에서 나온 액션의 실행 현황(목록 + 실행률). 프로젝트 열람 권한자.
+            uid = (q.get("user") or [""])[0] or (sess.get("name") or "")
+            pid = (q.get("id") or [""])[0]
+            ts = (q.get("ts") or [""])[0]
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_view(uid, p):
+                return self._send(403, {"ok": False, "error": "열람 권한 없음"})
+            if not _PV.meeting_ref(pid, ts):
+                return self._send(400, {"ok": False, "error": "회의 참조(ts) 형식 오류"})
+            acts = _meeting_actions(pid, ts)
+            meta = next((d for d in (p.get("docs") or []) if d.get("ts") == ts), {})
+            return self._send(200, {"ok": True, "title": meta.get("title") or ts,
+                                    "rollup": _PV.action_rollup(acts, _ST),
+                                    "actions": [{"task": a.get("task"), "assignee": a.get("assignee"),
+                                                 "deadline": a.get("deadline"), "status": a.get("status"),
+                                                 "days_overdue": a.get("days_overdue", 0)}
+                                                for a in acts]})
         if path == "/api/project/memory-doc":
             # ARISA 메모리 원문 열람(B1) — 프로젝트 열람 권한자, 새 탭 HTML
             uid = (q.get("user") or [""])[0]
@@ -4897,8 +5030,78 @@ class H(BaseHTTPRequestHandler):
             if _mutate_project(pid, _add_doc) is None:
                 return self._send(404, {"ok": False, "error": "프로젝트 없음"})
             threading.Thread(target=_bg_propose, args=(pid, ts, title, who, md), daemon=True).start()
+            # 갭A — 회의 제출이면 5블록 to-do(우리 측)를 분장 등록 후보로 함께 돌려준다.
+            # 여기서 끊기던 것이 정확히 '회의 → 실행' 갭이었다(등록은 /api/meeting-actions).
+            cands = _meeting_todo_candidates(result) if dtype == "meeting" else []
             return self._send(200, {"ok": True, "doc": {"ts": ts, "title": title},
+                                    "pid": pid, "candidates": cands,
                                     "note": "브리프 갱신안을 생성해 PM 승인 대기열에 올립니다."})
+        if path == "/api/meeting-actions":
+            # 갭A — 회의(프로젝트 문서 pid|ts)의 to-do를 주간분장으로 등록. 쿠키 세션 인증.
+            # 담당자 배정 권한은 기존 분장 정책을 그대로 따르되, 권한 밖·미매칭 담당자는
+            # 등록을 거부하는 대신 '담당 미지정 큐'로 흘려보낸다(액션 유실 방지, A2 기능 재사용).
+            who = sess.get("name") or ""
+            if not who:
+                return self._send(401, {"ok": False, "error": "로그인이 필요합니다. 아리사 OS에서 다시 로그인해주세요."})
+            pid = (b.get("pid") or "").strip()
+            ts = (b.get("ts") or "").strip()
+            ref = _PV.meeting_ref(pid, ts)
+            if not ref:
+                return self._send(400, {"ok": False, "error": "회의 참조(pid·ts) 형식 오류"})
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_view(who, p):
+                return self._send(403, {"ok": False, "error": "이 프로젝트에 등록 권한이 없습니다."})
+            items = b.get("items")
+            if not isinstance(items, list) or not items:
+                return self._send(400, {"ok": False, "error": "등록할 항목이 없습니다."})
+            if len(items) > 30:
+                return self._send(400, {"ok": False, "error": "한 번에 30건까지 등록할 수 있습니다."})
+            known = set(load_users().keys())
+            leads = set(load_emp().get("team_leads", {}).values())
+            my_teams = set(lead_teams_of(who))
+            existing = {(a.get("task") or "").strip() for a in _meeting_actions(pid, ts)}
+            pname = p.get("name") or ""
+            added, skipped, unassigned, errs, ok_items = 0, 0, 0, [], []
+            for it in items:
+                task = (it.get("task") or "").strip()
+                if not task:
+                    continue
+                if task in existing:      # 같은 회의에서 이미 등록된 액션 — 재등록 방지
+                    skipped += 1
+                    continue
+                cand = (it.get("assignee") or "").strip()
+                assignee = ""
+                if cand in known:
+                    if cand == who:
+                        assignee = cand                      # 본인 것은 항상 허용
+                    elif is_admin(who):
+                        assignee = cand if cand in leads else ""   # 대표는 리더 경유(기존 정책)
+                    elif who in leads:
+                        assignee = cand if (emp_team(cand) in my_teams or cand in leads) else ""
+                if not assignee:
+                    unassigned += 1
+                a_it = {"assignee": assignee, "task": task,
+                        "deadline": _PV.norm_due(it.get("due") or it.get("deadline")),
+                        "priority": _ST.norm_priority(it.get("priority"))}
+                ok, msg = _assign_append(a_it["assignee"], task, a_it["deadline"],
+                                         a_it["priority"], who, project=pname,
+                                         source=_PV.SRC_MEETING, source_ref=ref)
+                if ok:
+                    added += 1
+                    existing.add(task)
+                    if a_it["assignee"]:
+                        ok_items.append(a_it)
+                else:
+                    errs.append(msg or "append 실패")
+            if ok_items:   # 담당자가 확정된 것만 프로젝트 tasks에 반영(진행률 롤업 연결)
+                def _add_tasks(pp):
+                    _append_assign_tasks(pp, ok_items)
+                _mutate_project(pid, _add_tasks)
+            return self._send(200, {"ok": added > 0, "added": added, "skipped": skipped,
+                                    "unassigned": unassigned, "errors": errs,
+                                    "rollup": _PV.action_rollup(_meeting_actions(pid, ts), _ST)})
         if path == "/api/simulator/draft":
             sim_mode = b.get("mode", "daily")
             text = (b.get("text") or "").strip()

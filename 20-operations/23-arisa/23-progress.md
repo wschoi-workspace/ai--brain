@@ -709,3 +709,35 @@ engine_d에 실제와 유사한 보고 블록 3건(결정+승인권자 명시·�
 
 - 맥미니 hr-workspace 커밋 `5e61515`: #6666FF→#6C5CE7·#5353FF→#5B4BD5·#8A8AFF→#8A7DEC·#E1E1FF→#E4DFFB·#CDCEFB→#D4CDF7·rgba(102,102,255→108,92,231), styles.css+JSX 4종(Certificate/Overtime/TeamReport/UnifiedAdmin), 구색상 잔존 0건. 재직증명서 포인트 컬러 포함(용지 화이트 유지)
 - **⚠️ flyctl deploy 미실행** — 권한 분류기 차단, "배포 승인" 대기 상태에서 세션 종료. 다음 세션: `ssh macmini-ts 'cd ~/hr-workspace/20-operations/21-hr/portal && ~/.fly/bin/flyctl deploy'` 실행 + 프로덕션 styles.css에서 #6C5CE7 확인만 하면 끝
+
+## 2026-07-26 (4차) — 노션 PM 갭 분석 2차: 갭A(회의↔할 일 연결) 구현
+
+### 배경
+- 노션 템플릿 "[직장인을 위한] 업무 관리 시스템"(에그디자인 배포) 분석 — DB 3종(할 일/회의/프로젝트) + dual relation + 진행률 롤업 + '오늘 할 일' 체크박스. 7/18 1차 갭 분석에서 롤업·상태·우선순위는 이미 흡수, 남은 실질 갭 3건 도출
+- **갭A(구현)** 회의가 1급 엔티티가 아님 — 회의분석이 to-do 5~12개를 뽑고도 화면 산출물로 끝나 분장과 끊김(시뮬레이터에 시트 배선 grep 0건) → "회의에서 정한 것 중 몇 %가 완료됐나"를 측정 불가
+- **갭B(후속)** 출처가 L열 등록자(사람)뿐 — 무엇에서 나왔는지는 UI 문구로만 존재
+- **갭C(후속)** 담당자 본인의 '오늘 선언' 계층 부재(현재는 마감·지연 기반 자동 산출 + 대표 today_focus LLM)
+- 판단 보류: 중요도 3단계(노션) → 현행 2단계 유지 권고('보통'에 몰려 변별력 소실)
+
+### 설계 — 회의 ID를 새로 만들지 않는다
+- 회의 식별자 = **프로젝트 문서함의 (pid, ts)** 재사용 (`/api/simulator/submit-doc`이 생성, DOC_DIR/<pid>/<ts>.json|.md). 별도 회의 테이블·시트 탭 없음
+- 주간분장 시트 **M열 출처 · N열 출처ID**(= `<pid>|<ts>`) 추가 — 헤더 라벨 반영 완료, 기존 129행 불변(뒤 컬럼이라 하위호환)
+
+### 구현
+- `shared/provenance.py`(신규): 출처 어휘 SSOT(회의·일일보고·주간계획·대표지시·본인등록), `meeting_ref`/`parse_meeting_ref`, `norm_due`, `action_rollup`
+- `dashboard-server.py`: `_assign_read` A2:N(14칸)·`_assign_append(source, source_ref)`, `_meeting_actions`/`_doc_action_index`/`_meeting_todo_candidates`, **POST·GET `/api/meeting-actions`**, `/api/project`에 `docActions`, submit-doc 응답에 등록 후보(candidates), 회의 제출 후 2단계 등록 UI, 분장 카드 출처 칩(`mwSrcChip`)
+- `포트폴리오_대시보드.html`: 회의록 아카이브에 실행률 배지(`실행 3/7 · 43% ⏰2`) + 클릭 시 액션 목록 펼침(`toggleMeetingActions`)
+- 정책 보존: 대표=리더·본인, 리더=자기 팀원+타팀 리더, 직원=본인. **권한 밖·미매칭 담당자는 거부가 아니라 '담당 미지정 큐'로 강등**(액션 유실 방지, A2 재사용)
+- `norm_due`: '미정·확인 필요·오픈 전까지'는 마감으로 승격하지 않고 빈칸 — 비ISO를 그대로 두면 `is_overdue`가 영원히 지연 판정을 못 하는 조용한 구멍이 생김
+
+### 검증
+- 유닛 38항목 ✓ (ref 조립·파싱, due 정규화, 롤업에서 취소·삭제 분모 제외, theirs 제외, 12칸 구데이터 하위호환)
+- 인프로세스 E2E 30항목 ✓ (시트·데이터 전부 스텁 — 운영 무오염): 권한 강등 4종, 중복 방지, 400/403/404, GET 롤업, docActions
+- 운영 시트 실데이터 읽기 회귀 ✓ 129행·열린 80·지연 47 (종전 동일)
+- 배포 전 해시 대조: 맥미니 = 로컬 HEAD 완전 일치(깨끗한 조건)
+
+### 후속
+- [ ] 갭B — assign-commit/self/plan 경로에 출처 라벨 채우기(대표지시·본인등록·일일보고·주간계획)
+- [ ] 갭C — 담당자 '오늘 선언' 플래그 + 저녁 보고 대조(계획 대비 실행률)
+- [ ] 회의 실행률의 주간 리포트·대표창 노출(현재는 프로젝트 상세·제출 직후만)
+- [ ] 마감일 월 캘린더 뷰(간트는 2주 윈도우)

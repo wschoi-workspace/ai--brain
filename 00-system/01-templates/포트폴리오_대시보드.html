@@ -1400,10 +1400,11 @@ async function openProject(id){
     const r=await apiGet('/project?id='+encodeURIComponent(id)+'&user='+encodeURIComponent(CURRENT_USER));
     if(!r.ok){ alert(r.error||'열기 실패'); return; } p=r.project; canEdit=!!r.canEdit; window.CURRENT_ASSIGN=r.assignments||[];
     window.CURRENT_MEMORY=r.memory||null;
+    window.CURRENT_DOC_ACT=r.docActions||{};   // 갭A — 회의 ts별 액션 실행률
   } else {
     p=PROJECTS_CACHE.find(x=>x.id===id)||allProjects().find(x=>x.id===id);
     if(!p){ alert('프로젝트를 찾을 수 없습니다.'); return; } canEdit=amAdmin()||p.pm===CURRENT_USER; window.CURRENT_ASSIGN=[];
-    window.CURRENT_MEMORY=null;
+    window.CURRENT_MEMORY=null; window.CURRENT_DOC_ACT={};
   }
   CURRENT_PROJECT=p; CURRENT_CAN_EDIT=canEdit;
   state={brief:Object.assign({},p.brief), tasks:JSON.parse(JSON.stringify(p.tasks||[])), issues:JSON.parse(JSON.stringify(p.issues||[]))};
@@ -1500,10 +1501,29 @@ async function openDocView(ts){
   $('#docview-body').textContent=r.text;
   $('#docview-modal').classList.add('show');
 }
+// 갭A — 회의별 액션 실행 현황 펼치기. 같은 배지를 다시 누르면 접는다.
+let MA_OPEN=null;
+async function toggleMeetingActions(ts){
+  const el=document.getElementById('ma-panel'); if(!el) return;
+  if(MA_OPEN===ts){ MA_OPEN=null; el.innerHTML=''; return; }
+  MA_OPEN=ts; el.innerHTML='<div style="font-size:11px;color:var(--fg-3);padding:8px 0">불러오는 중…</div>';
+  const r=await apiGet('/meeting-actions?id='+encodeURIComponent(CURRENT_PROJECT.id)
+    +'&ts='+encodeURIComponent(ts)+'&user='+encodeURIComponent(CURRENT_USER));
+  if(!r.ok){ el.innerHTML='<div style="font-size:11px;color:var(--fg-3);padding:8px 0">'+esc(r.error||'불러오지 못했습니다')+'</div>'; return; }
+  const ro=r.rollup||{};
+  el.innerHTML='<div style="background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:8px">'
+    +`<div style="font-size:11.5px;font-weight:700;margin-bottom:6px">🎙 ${esc(r.title)} — 이 회의에서 나온 할 일 <span style="color:var(--accent-lt)">${ro.done}/${ro.total} 완료 (${ro.percent}%)</span>${ro.overdue?` <span style="color:#E74C3C">· 지연 ${ro.overdue}건</span>`:''}</div>`
+    +(r.actions||[]).map(a=>`<div style="font-size:11.5px;line-height:1.7;border-top:1px solid var(--line);padding:4px 0">
+        <span style="color:var(--fg-3);display:inline-block;min-width:52px">${esc(a.assignee||'미지정')}</span>
+        <span style="color:var(--fg-2)">${esc(a.task||'')}</span>
+        <span style="color:var(--fg-3);font-size:10.5px"> · ${esc(a.status||'')}${a.deadline?' · ~'+esc(a.deadline):''}${a.days_overdue?' <span style="color:#E74C3C">지연 '+a.days_overdue+'일</span>':''}</span>
+      </div>`).join('')
+    +'</div>';
+}
 async function renderDocLogAfterFetch(){
   // 자료만 저장된 경우(변경 0건) 최신 docs 메타 반영
   const r=await apiGet('/project?id='+encodeURIComponent(CURRENT_PROJECT.id)+'&user='+encodeURIComponent(CURRENT_USER));
-  if(r.ok){ CURRENT_PROJECT=r.project; renderDocLog(); }
+  if(r.ok){ CURRENT_PROJECT=r.project; window.CURRENT_DOC_ACT=r.docActions||{}; renderDocLog(); }
 }
 function renderDocLog(){
   const el=$('#doc-log'); if(!el) return;
@@ -1544,13 +1564,20 @@ function renderDocLog(){
     const byDate={};
     docs.forEach(d=>{ const day=(d.ts||'').slice(0,8).replace(/(\d{4})(\d{2})(\d{2})/,'$1-$2-$3');
       (byDate[day]=byDate[day]||[]).push(d); });
-    h+='<div class="lab">📚 회의록 · 자료 아카이브 <span style="font-weight:400;color:var(--fg-3)">(클릭하면 원문 열람)</span></div>';
+    h+='<div class="lab">📚 회의록 · 자료 아카이브 <span style="font-weight:400;color:var(--fg-3)">(클릭하면 원문 열람 · 실행률 배지를 누르면 그 회의에서 나온 할 일)</span></div>';
+    const DA=window.CURRENT_DOC_ACT||{};
     Object.keys(byDate).forEach(day=>{
       h+=`<div style="margin:7px 0 4px;font-size:10.5px;color:var(--fg-3);font-weight:600">${esc(day)}</div>`
         +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-        +byDate[day].map(d=>`<a onclick="openDocView('${esc(d.ts)}')" style="cursor:pointer;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--fg-2)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">${d.type==='meeting'?'🎙':d.type==='brief'?'📋':'📄'} ${esc(d.title)} <span style="color:var(--fg-3)">${esc((d.ts||'').slice(9,11))}:${esc((d.ts||'').slice(11,13))} · ${esc(d.by||'')}</span></a>`).join('')
+        +byDate[day].map(d=>{
+          const ro=DA[d.ts];
+          // 갭A — 회의에서 나온 액션의 실행률. 회의가 문서로만 남는지, 실행으로 이어졌는지를 여기서 본다.
+          const badge=ro&&ro.total?`<a onclick="event.stopPropagation();toggleMeetingActions('${esc(d.ts)}')" title="이 회의에서 나온 할 일 ${ro.done}/${ro.total} 완료${ro.overdue?' · 지연 '+ro.overdue+'건':''}" style="cursor:pointer;margin-left:5px;font-size:10px;border-radius:5px;padding:1px 6px;background:${ro.percent>=100?'rgba(46,204,113,.16)':ro.overdue?'rgba(231,76,60,.16)':'rgba(108,92,231,.16)'};color:${ro.percent>=100?'#2ECC71':ro.overdue?'#E74C3C':'var(--accent-lt)'}">실행 ${ro.done}/${ro.total} · ${ro.percent}%${ro.overdue?' ⏰'+ro.overdue:''}</a>`:'';
+          return `<span style="display:inline-flex;align-items:center"><a onclick="openDocView('${esc(d.ts)}')" style="cursor:pointer;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--fg-2)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">${d.type==='meeting'?'🎙':d.type==='brief'?'📋':'📄'} ${esc(d.title)} <span style="color:var(--fg-3)">${esc((d.ts||'').slice(9,11))}:${esc((d.ts||'').slice(11,13))} · ${esc(d.by||'')}</span></a>${badge}</span>`;
+        }).join('')
         +'</div>';
     });
+    h+='<div id="ma-panel"></div>';   // 갭A — 실행률 배지를 누르면 여기에 액션 목록이 펼쳐진다
     h+='<div style="margin-bottom:10px"></div>';
   }
   if(logs.length){
