@@ -1373,7 +1373,23 @@ async def on_status_sync_click(update: Update, context: ContextTypes.DEFAULT_TYP
     if cur["status"] == new_st:
         await q.edit_message_text(f"{q.message.text}\n\n✅ 이미 {new_st} 상태예요.")
         return
-    ok = await asyncio.to_thread(_AS.set_status, _gws, SHEET_ID, row, new_st)
+    # WS2 — 전이 게이트. report-sync는 verify_row로 본인·업무를 재확인한 뒤이므로 사람 취급이지만,
+    # 승인대기·검토중처럼 이미 검토 단계로 넘어간 행을 다시 완료로 되돌리는 것은 막는다.
+    ok, g_why = await asyncio.to_thread(
+        lambda: _AS.set_status_guarded(_gws, SHEET_ID, row, new_st,
+                                       from_status=cur["status"], source="report-sync",
+                                       status_mod=_ST))
+    if not ok and g_why:
+        if cur["status"] in ("검토중", "승인대기"):
+            hint = " 리더 검토를 기다리는 중이에요."
+        elif cur["status"] == "승인":
+            hint = " 이미 승인이 끝난 업무예요."
+        else:
+            hint = " 아리사 OS '내 업무'에서 직접 바꿔주세요."
+        logger.info(f"status-sync blocked: {name} row={row} {g_why}")
+        await q.edit_message_text(
+            f"{q.message.text}\n\n🧾 지금은 '{cur['status']}' 상태라 그대로 두었어요.{hint}")
+        return
     if not ok:
         await q.edit_message_text(f"{q.message.text}\n\n⚠️ 시트 갱신에 실패했어요. 잠시 후 다시 시도해주세요.")
         return
@@ -1386,7 +1402,7 @@ async def on_status_sync_click(update: Update, context: ContextTypes.DEFAULT_TYP
     _log_st("report-sync", name, new_st, from_status=cur["status"], row=row,
             date=cur.get("date") or "", project=cur.get("project") or "",
             pid=cur.get("pid") or "", task=cur.get("task") or "", assignee=name,
-            note="일일보고 직후 본인 확인")
+            note=" ".join(x for x in (_ST.transition_note(g_why), "일일보고 직후 본인 확인") if x))
     logger.info(f"status-sync applied: {name} row={row} {cur['status']}→{new_st}")
     tail = " (팀장 승인 대기로 넘어가요)" if new_st == "완료" else ""
     if out_txt:

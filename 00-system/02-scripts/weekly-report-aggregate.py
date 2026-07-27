@@ -53,6 +53,8 @@ DASHBOARD_BASE_URL = os.environ.get("DASHBOARD_BASE_URL", "https://server-mini-m
 # 차트 6색 팔레트 (project-rent)
 PALETTE = ["#6C5CE7", "#A29BFE", "#6F8AA3", "#8FA37E", "#D9A34B", "#E17055", "#B0B0B0"]
 TEAM_ORDER = ["경영", "사업기획", "공간팀", "기획팀", "운영팀", "감사"]
+# WS2 — --dry-run: 분장 H열 역기입과 상태 이력을 둘 다 건드리지 않고 무엇이 바뀔지만 출력
+ASSIGN_DRY_RUN = False
 
 # ─── ARISA 성장지표 (측정설계 v2) ───
 # 14요소 사전. daily 기대셋(일일보고 기준): 필수 4 + 선택 4. (중요도·난이도 가중은 자가표시
@@ -153,7 +155,9 @@ def fetch_daily() -> dict:
     return {
         "core": _gws_values_get(DAILY_SHEET, "핵심업무!A2:L5000"),
         "sub":  _gws_values_get(DAILY_SHEET, "서브업무!A2:F5000"),
-        "meta": _gws_values_get(DAILY_SHEET, "메타!A2:L5000"),
+        # WS3b — N열(ReportScore 총점)·O열(항목별 점수 JSON)까지 읽는다. 봇이 이미 쓰고 있는데
+        # 주간 집계는 L열까지만 읽어서 채점이 추세로 올라오지 못했다.
+        "meta": _gws_values_get(DAILY_SHEET, "메타!A2:O5000"),
     }
 
 
@@ -218,10 +222,18 @@ def match_assignments_to_daily(assignments: list[dict], records: list[dict]) -> 
     return assignments
 
 
-def update_assignment_status_in_sheet(assignments: list[dict]) -> int:
-    """시트 '주간분장' 탭의 상태 컬럼(H열)을 매칭 결과로 업데이트."""
+def update_assignment_status_in_sheet(assignments: list[dict], dry_run: bool = False) -> tuple:
+    """시트 '주간분장' 탭의 상태 컬럼(H열)을 매칭 결과로 업데이트. 반환 (갱신, 차단).
+
+    WS2(2026-07-27): 역기입 예외가 '미착수' 하나뿐이어서, 시트가 검토중·승인대기·보류여도
+    키워드 추정값(대개 '진행중')으로 덮어썼다 — 매주 월 08:30에 리더 검토 대기·대표 보류
+    카드가 되돌아갔다. 이제 자동 전이 테이블(_ST.AUTO_TRANSITIONS)을 통과한 것만 쓴다.
+    match_assignments_to_daily가 추정한 값은 팀별 달성률 집계에도 쓰이므로 그대로 두고,
+    시트 기입만 막는다 — 사람이 세운 판단은 배치가 건드리지 않는다.
+    """
     rows = _gws_values_get(DAILY_SHEET, "주간분장!A2:J5000")
     updated = 0
+    blocked = 0
     for a in assignments:
         if a["status"] in (_ST.ASSIGN_DEFAULT,):  # 미착수는 시트 역기입 생략
             continue
@@ -231,17 +243,36 @@ def update_assignment_status_in_sheet(assignments: list[dict]) -> int:
                     and normalize_name(r[3]) == a["assignee"]):
                 if (r[7] or "").strip() != a["status"]:
                     row_num = i + 2  # 1-indexed header
-                    _gws.values_update(
-                        DAILY_SHEET, f"주간분장!H{row_num}",
-                        [[a["status"]]], timeout=10,
-                    )
-                    _log_st("weekly-auto", "auto", a["status"],
-                            from_status=_ST.norm_assign_status(r[7]), row=row_num,
-                            date=a.get("date") or "", project=a.get("project") or "",
-                            task=a.get("task") or "", assignee=a.get("assignee") or "")  # G5
+                    from_st = _ST.norm_assign_status(r[7])
+                    g_ok, g_why = _ST.check_transition(from_st, a["status"], "weekly-auto")
+                    if not g_ok:
+                        blocked += 1
+                        if dry_run:
+                            sys.stderr.write(f"[assign:dry] 차단 H{row_num} {g_why}\n")
+                        else:
+                            # 차단도 이력에 남긴다(to=from) — 무엇을 막았는지가 enforce 판단 근거
+                            _log_st("weekly-auto", "auto", from_st, from_status=from_st,
+                                    row=row_num, date=a.get("date") or "",
+                                    project=a.get("project") or "", task=a.get("task") or "",
+                                    assignee=a.get("assignee") or "",
+                                    note=_ST.transition_note(g_why))
+                        break
+                    if dry_run:
+                        # 시트도 이력도 건드리지 않는다 — 드라이런이 감사 로그를 오염시키면 안 된다
+                        sys.stderr.write(f"[assign:dry] H{row_num} {from_st}→{a['status']}\n")
+                    else:
+                        _gws.values_update(
+                            DAILY_SHEET, f"주간분장!H{row_num}",
+                            [[a["status"]]], timeout=10,
+                        )
+                        _log_st("weekly-auto", "auto", a["status"],
+                                from_status=from_st, row=row_num,
+                                date=a.get("date") or "", project=a.get("project") or "",
+                                task=a.get("task") or "", assignee=a.get("assignee") or "",
+                                note=_ST.transition_note(g_why))  # G5 (+ shadow 위반 사유)
                     updated += 1
                 break
-    return updated
+    return updated, blocked
 
 
 def fetch_basket() -> list[list]:
@@ -252,7 +283,8 @@ def fetch_basket() -> list[list]:
 def _rec(**kw) -> dict:
     base = dict(date=None, name="", team="", category="기타", task="", status="",
                 tools="", output="", issue="", outcome="", blocker="",
-                decision_needed="", support_needed="", reflection="", raw="", source="")
+                decision_needed="", support_needed="", reflection="", raw="", source="",
+                score=None, report_type="", score_mode="")   # WS3b — ReportScore
     base.update(kw)
     return base
 
@@ -277,15 +309,29 @@ def normalize_daily(daily: dict) -> list[dict]:
             continue
         out.append(_rec(date=d, name=nm, team=team_of(nm), category=(r[3] or "기타").strip(),
                         task=r[4], status=(r[5] or "").strip(), source="daily-sub"))
-    # 메타: 날짜·이름·팀·내일·개선·블로커·첨부·결정·지원·reflection·raw·질문
+    # 메타: 날짜·이름·팀·내일·개선·블로커·첨부·결정·지원·reflection·raw·질문·submitted_at
+    #       ·ReportScore 총점(N)·항목별 점수 JSON(O)
     for r in daily["meta"]:
-        r = r + [""] * (12 - len(r))
+        r = r + [""] * (15 - len(r))     # 15칸 패딩 — N·O가 빈 과거 행도 안전하게
         d = normalize_date(r[0]); nm = normalize_name(r[1])
         if not d or not nm:
             continue
+        score, rtype, smode = None, "", ""
+        try:
+            score = int(float(str(r[13]).strip()))
+        except (TypeError, ValueError):
+            score = None
+        if str(r[14] or "").strip():
+            try:
+                det = json.loads(r[14])
+                rtype = str(det.get("type") or "").strip()
+                smode = str(det.get("mode") or "").strip()
+            except Exception:
+                pass                     # 깨진 JSON은 삼킨다 — 채점 없는 행으로 취급
         out.append(_rec(date=d, name=nm, team=team_of(nm), category="_meta",
                         blocker=r[5], decision_needed=r[7], support_needed=r[8],
-                        reflection=r[9], raw=r[10], source="daily-meta"))
+                        reflection=r[9], raw=r[10], source="daily-meta",
+                        score=score, report_type=rtype, score_mode=smode))
     return out
 
 
@@ -444,6 +490,36 @@ def compute_growth(recs: list[dict]) -> dict:
     }
 
 
+SCORE_NOISE_BAND = 5     # |전주 대비| 이 이하는 '보합' — 12명 규모에서 잔파동은 신호가 아니다
+
+
+def _score_stats(recs: list[dict]) -> dict:
+    """ReportScore 집계 (WS3b). 채점된 메타 레코드만 본다.
+
+    총점 단순 평균이 타당한 근거: report_score.TYPE_WEIGHTS는 A·B·C 유형 모두 합계 100이라
+    총점 스케일이 동일하다. 다만 유형별 채점 항목 수가 다르므로(A 5개·C 7개) 유형 구성이
+    주마다 바뀌면 실력 변화 없이 평균이 흔들린다 — 그래서 by_type과 구성비를 함께 노출해
+    눈으로 잡게 한다. 유형별 정규화·가중 보정은 도입하지 않는다(규모 대비 과잉).
+    """
+    vals = [(r.get("score"), (r.get("report_type") or "").strip(), (r.get("score_mode") or "").strip())
+            for r in recs if r.get("source") == "daily-meta" and isinstance(r.get("score"), int)]
+    if not vals:
+        return {"n": 0, "avg": None, "by_type": {}, "modes": {}}
+    by_type: dict = {}
+    modes: dict = {}
+    for sc, t, m in vals:
+        if t:
+            b = by_type.setdefault(t, {"n": 0, "sum": 0})
+            b["n"] += 1
+            b["sum"] += sc
+        if m:
+            modes[m] = modes.get(m, 0) + 1
+    for t, b in by_type.items():
+        b["avg"] = round(b.pop("sum") / b["n"])
+    return {"n": len(vals), "avg": round(sum(v[0] for v in vals) / len(vals)),
+            "by_type": by_type, "modes": modes}
+
+
 def aggregate_person(name: str, recs: list[dict]) -> dict:
     vol, comp = _completion(recs)
     return {
@@ -455,6 +531,7 @@ def aggregate_person(name: str, recs: list[dict]) -> dict:
         "tools": _tools(recs),
         "open_decisions": _open_decisions(recs),
         "growth": compute_growth(recs),
+        "score": _score_stats(recs),      # WS3b
     }
 
 
@@ -477,7 +554,67 @@ def aggregate_team(team: str, recs: list[dict], members: list[str]) -> dict:
         "categories": _categories(recs),
         "common_blockers": common[:4],
         "tools": _tools(recs),
+        "score": _score_stats(recs),      # WS3b
     }
+
+
+def _prev_week_data(week_start: date):
+    """직전 주 weekly-data JSON — 없으면 None.
+
+    W29·W30처럼 결번이 실제로 존재한다(브리프 미생성 주). 없으면 추세를 만들지 않는다.
+    """
+    pw = week_start - timedelta(days=7)
+    iso = pw.isocalendar()
+    p = OUT_DIR / f"weekly-data-{iso.year}-W{iso.week:02d}.json"
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def _attach_score_trend(data: dict, prev: dict | None) -> dict:
+    """개인·팀 score에 전주 대비 delta·arrow를 주입 (WS3b).
+
+    grace→strict 전환(report_score.GRACE_END = 2026-10-20) 단절 처리: score_detail의 mode가
+    전주와 다르면 비교를 생략한다. 기준이 바뀐 주에 추세선을 이으면 전원이 급락한 것처럼
+    보이는 오독이 확실하다.
+    """
+    def _mode_of(s):
+        modes = (s or {}).get("modes") or {}
+        return max(modes, key=modes.get) if modes else ""
+
+    def _apply(cur, old):
+        sc = cur.get("score") or {}
+        if not sc.get("n"):
+            return
+        prev_sc = (old or {}).get("score") or {}
+        if not prev_sc.get("n") or prev_sc.get("avg") is None or sc.get("avg") is None:
+            sc["prev_avg"], sc["delta"], sc["arrow"] = None, None, None
+            return
+        if _mode_of(sc) != _mode_of(prev_sc):
+            sc["prev_avg"], sc["delta"], sc["arrow"] = prev_sc["avg"], None, None
+            sc["note"] = "채점 기준 변경 — 비교 생략"
+            return
+        d = sc["avg"] - prev_sc["avg"]
+        sc["prev_avg"] = prev_sc["avg"]
+        sc["delta"] = d
+        sc["arrow"] = "→" if abs(d) <= SCORE_NOISE_BAND else ("↑" if d > 0 else "↓")
+
+    if not prev:
+        for row in (data.get("persons") or []) + (data.get("teams") or []):
+            sc = row.get("score") or {}
+            if sc.get("n"):
+                sc["prev_avg"], sc["delta"], sc["arrow"] = None, None, None
+        return data
+    pp = {p.get("name"): p for p in (prev.get("persons") or [])}
+    pt = {t.get("team"): t for t in (prev.get("teams") or [])}
+    for p in (data.get("persons") or []):
+        _apply(p, pp.get(p.get("name")))
+    for t in (data.get("teams") or []):
+        _apply(t, pt.get(t.get("team")))
+    return data
 
 
 # ─── 주차 계산 ───
@@ -834,11 +971,17 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
 
     # ─── 주간분장 ↔ 일일보고 교차 매칭 ───
     assignments = fetch_assignments(week_start, week_end)
+    assign_blocked = 0
     if assignments:
         assignments = match_assignments_to_daily(assignments, wk)
-        updated = update_assignment_status_in_sheet(assignments)
-        if updated:
-            sys.stderr.write(f"[assign] {updated}건 상태 업데이트\n")
+        updated, assign_blocked = update_assignment_status_in_sheet(
+            assignments, dry_run=ASSIGN_DRY_RUN)
+        if updated or assign_blocked:
+            msg = f"[assign] {updated}건 상태 업데이트"
+            if assign_blocked:
+                # WS2 — 갱신 건수가 줄어든 이유를 여기서 보이게 한다(완료율 낮아 보임 대응)
+                msg += f" · 자동 갱신 차단 {assign_blocked}건"
+            sys.stderr.write(msg + "\n")
     # 팀별 분장 달성률 계산
     assign_by_team = defaultdict(list)
     for a in assignments:
@@ -866,13 +1009,14 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
             projects.append(ps)
     projects.sort(key=lambda x: (-(len(x["decisions"]) + len(x["risks"])), -len(x["done"])))
 
-    return {
+    out = {
         "week": {"start": ws, "end": we,
                  "label": f"{week_start.isocalendar().year}년 W{week_start.isocalendar().week:02d}",
                  "range": f"{week_start.strftime('%m/%d')}–{week_end.strftime('%m/%d')}"},
         "summary": {"total_reports": len([r for r in wk if r["source"] in WORK_SRC]),
                     "avg_completion": avg_comp, "active_people": len(by_person),
-                    "open_decisions": total_decisions},
+                    "open_decisions": total_decisions,
+                    "assign_blocked": assign_blocked},  # WS2 — 자동 갱신 차단 건수
         "teams": teams, "persons": persons,
         "assignments": assignments,
         "gantt": build_gantt_rows(week_start, assignments),  # R4 4차 — 주간 프로젝트 간트
@@ -880,6 +1024,8 @@ def build_dashboard_data(week_start: date, week_end: date) -> dict:
         "unmatched_names": unmatched,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
+    # WS3b — 전주 대비 ReportScore 추세 주입 (직전 주 JSON이 없으면 화살표 없이 통과)
+    return _attach_score_trend(out, _prev_week_data(week_start))
 
 
 def slice_team_data(data: dict, team: str) -> dict:
@@ -945,6 +1091,35 @@ def _comp_bar(pct) -> str:
     col = "var(--green)" if pct >= 70 else ("var(--amber)" if pct >= 40 else "var(--red)")
     return (f'<div class="bar"><div class="bar-fill" style="width:{pct}%;background:{col}"></div>'
             f'<span class="bar-lbl">{pct}%</span></div>')
+
+
+def _score_row(sc: dict, label: str = "보고 점수") -> str:
+    """ReportScore 한 줄 — 평균 + 전주 대비 화살표 + 유형 구성비 (WS3b).
+
+    유형 구성비를 같이 보여주는 이유: 유형별 채점 항목 수가 달라서(A 5개·C 7개) 구성이
+    바뀌면 평균이 실력과 무관하게 움직인다. 숫자만 보면 오독하게 된다.
+    """
+    sc = sc or {}
+    if not sc.get("n") or sc.get("avg") is None:
+        return ""
+    arrow = sc.get("arrow")
+    d = sc.get("delta")
+    if arrow == "↑":
+        tr = f'<span class="sc-arrow sc-up">↑+{d}</span>'
+    elif arrow == "↓":
+        tr = f'<span class="sc-arrow sc-down">↓{d}</span>'
+    elif arrow == "→":
+        tr = f'<span class="sc-arrow sc-flat">→ 보합</span>'
+    else:
+        tr = ''
+    note = f'<span class="sc-note">{_esc(sc["note"])}</span>' if sc.get("note") else ""
+    if not note and sc.get("prev_avg") is None:
+        note = '<span class="sc-note">전주 데이터 없음</span>'
+    mix = " / ".join(f'{t} {b["n"]}' for t, b in sorted((sc.get("by_type") or {}).items()))
+    mix_html = f'<span class="sc-note">유형 {_esc(mix)}</span>' if mix else ""
+    return (f'<div class="row score-row"><span class="k">{_esc(label)}</span>'
+            f'<div class="vals"><b>{sc["avg"]}</b>/100 <span class="muted">(n={sc["n"]})</span>'
+            f'{tr}{note}{mix_html}</div></div>')
 
 
 def _growth_gauges(g: dict) -> str:
@@ -1070,6 +1245,7 @@ def render_html(data: dict) -> str:
           <div class="donut-wrap">{_donut(t["categories"])}</div>
           {assign_row}
           <div class="row"><span class="k">완료율</span>{_comp_bar(t["completion_rate"])}</div>
+          {_score_row(t.get("score"), "보고 점수 평균")}
           <div class="row"><span class="k">공통 블로커</span><div class="vals">{cb}</div></div>
           <div class="row"><span class="k">도구</span><div class="vals">{_chips(t["tools"])}</div></div>
         </div>''')
@@ -1087,6 +1263,7 @@ def render_html(data: dict) -> str:
           <div class="row"><span class="k">도구</span><div class="vals">{_chips(p["tools"])}</div></div>
           <div class="row"><span class="k">반복 블로커</span><div class="vals">{blk}</div></div>
           <div class="row"><span class="k">미해결 의사결정</span><ul class="dec">{dec}</ul></div>
+          {_score_row(p.get("score"))}
           {_growth_gauges(p["growth"])}
         </div>''')
 
@@ -1176,6 +1353,12 @@ footer{{margin-top:40px;color:var(--muted);font-size:11px;text-align:center;bord
 /* 성장지표는 대표(admin)만 — 직원 로그인 시 숨김(측정설계 v2) */
 .growth{{display:none}}
 body.is-admin .growth{{display:block}}
+/* WS3b — ReportScore도 같은 게이트를 쓴다(새 게이트를 만들지 않는다) */
+.score-row{{display:none}}
+body.is-admin .score-row{{display:flex}}
+.sc-arrow{{margin-left:6px;font-weight:600}}
+.sc-up{{color:var(--green)}} .sc-down{{color:var(--red)}} .sc-flat{{color:var(--muted)}}
+.sc-note{{color:var(--muted);font-size:11px;margin-left:6px}}
 /* 로그인 게이트 */
 #login-gate{{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}}
 #login-box{{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:38px 40px;width:330px;text-align:center}}
@@ -1277,6 +1460,20 @@ def _telegram_summary(data: dict, html_path: Path):
            f"• 활성 {s['active_people']}명 · 미해결 의사결정 {s['open_decisions']}건\n")
     if top_blockers:
         msg += "\n🔔 공통 블로커\n" + "\n".join(f"– {b}" for b in top_blockers[:3])
+    # WS3b — 팀 평균만. 개인 점수는 텔레그램에 넣지 않는다(단톡 노출 = 평가 압박).
+    tsc = [(t["team"], t.get("score") or {}) for t in data["teams"]]
+    tsc = [(nm, sc) for nm, sc in tsc if sc.get("n") and sc.get("avg") is not None]
+    if tsc:
+        rows = []
+        for nm, sc in tsc:
+            tail = ""
+            if sc.get("delta") is not None:
+                tail = f" ({sc['arrow']}{sc['delta']:+d})" if sc.get("arrow") != "→" else " (보합)"
+            rows.append(f"– {nm}: {sc['avg']}{tail}")
+        msg += "\n\n📊 보고 점수 평균\n" + "\n".join(rows)
+    # WS2 — 알림 채널을 새로 만들지 않고 기존 요약에 1줄만 (기록 우선 원칙)
+    if s.get("assign_blocked"):
+        msg += f"\n\n⚠️ 자동 상태 갱신 차단 {s['assign_blocked']}건 — 검토·보류 상태 보호"
     # 폰에서 열리는 원격 URL — 고정 URL은 .env DASHBOARD_BASE_URL로 관리
     msg += f"\n\n📄 {DASHBOARD_BASE_URL}/dashboard"
     try:
@@ -1295,7 +1492,13 @@ def main():
     ap.add_argument("--week", default="last", help="'last' 또는 YYYY-MM-DD(그 주)")
     ap.add_argument("--open", action="store_true")
     ap.add_argument("--no-telegram", action="store_true")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="분장 H열 역기입·상태 이력을 쓰지 않고 무엇이 바뀔지만 출력 (WS2)")
     args = ap.parse_args()
+    if args.dry_run:
+        global ASSIGN_DRY_RUN
+        ASSIGN_DRY_RUN = True
+        print("🔍 dry-run — 분장 상태 역기입·이력 기록 없음")
     ws, we = week_range(args.week)
     print(f"주간 범위: {ws} ~ {we}")
 

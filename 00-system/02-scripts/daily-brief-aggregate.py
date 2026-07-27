@@ -91,9 +91,13 @@ from shared import status as _ST  # 상태·우선순위 단일출처 (G2)
 from shared import project_match as _PMM  # 프로젝트명 별칭 매칭 단일출처 (R4 4차)
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
+    from shared.status_log import load_history as _load_st_history  # 정체 판정 (WS4b)
 except Exception:
     def _log_st(*a, **k):
         return False
+
+    def _load_st_history(*a, **k):
+        return []
 
 
 def load_employees() -> dict:
@@ -240,8 +244,13 @@ BRIEF_PROMPT = """너는 ARISA Engine D — Decision Engine이다. 대표(최원
 - project : 프로젝트 진행상태 변화(완료/지연/전환). outcome 기반.
 - growth : 직원 사고가 또렷해진/약했던 신호(좋은 질문, 의미연결, 반복 약점). 오늘의질문 활용.
 - anomaly : 이상 신호 — ①결과 없이 활동만 나열된 보고 ②서로 다른 보고 간 내용 충돌
-  ③특정 담당자에게 업무 과다 집중 ④리스크·결정 항목이 있어 보이는데 "없음"으로만 채워진 보고.
-  오늘 보고 범위에서 보이는 것만. 근거 없이 만들지 마라.
+  ③특정 담당자에게 업무 과다 집중 ④리스크·결정 항목이 있어 보이는데 "없음"으로만 채워진 보고
+  ⑤나쁜 소식 매장 — 부정 정보가 긍정 서술의 종속절·후미에 묻힌 보고
+    (예: "전반적으로 순조롭게 진행되고 있고, 다만 업체 회신이 아직…"). 좋은 소식 사이에
+    낀 지연·초과·불확실을 끌어내 title에 결론으로 올려라.
+  ⑥완화 어휘로만 서술된 리스크 — "진행 중/확인 중/거의 완료/조금 늦어질 듯/~것 같다"처럼
+    날짜·수치·주체·결과가 없는 표현으로 위험을 언급하고 영향 범위·조치가 빠진 보고.
+  ⑤⑥은 오늘 보고 텍스트만으로 판정한다(과거 이력 불필요). 근거 없이 만들지 마라.
 
 [urgency] high=오늘 안 보면 손실/기한 / mid=이번 주 / low=인지만
 
@@ -453,7 +462,11 @@ def build_person_workbrief(date_str: str, name: str, d: dict, assignments: list[
                         "basis": (c.get("basis") or "").strip()[:150]})
         return out
 
-    completed = _pick("completed", None)
+    # WS2 — 자동 전이 테이블에서 직접 유도한다(want_from을 손으로 적으면 두 곳이 어긋난다).
+    # 종전 None이어서 승인대기·검토중에서도 완료로 역행했다 — 승인대기는 이미 담당자
+    # 완료 보고를 거쳐 리더 검토까지 통과한 상태이므로 보고 문장으로 되돌리면 안 된다.
+    completed = _pick("completed", tuple(f for f, tos in _ST.AUTO_TRANSITIONS.items()
+                                        if "완료" in tos))
     # 착수 확인 → '진행중' 전이 (2026-07-26). 미착수에서만 올린다 —
     # 검토중·승인대기·보류를 진행중으로 되돌리면 승인 흐름이 역행한다.
     done_rows = {c["row"] for c in completed}
@@ -676,6 +689,60 @@ def build_project_cards(items: list[dict], assignments: list[dict]) -> list[dict
     return out
 
 
+def _stagnant_assigns(assignments: list[dict] | None, target: str,
+                      min_days: int = 14, limit: int = 5) -> list[dict]:
+    """마감이 지난 지 오래됐는데 상태도 그동안 움직이지 않은 열린 분장 → anomaly 항목.
+
+    WS4b(2026-07-27) — stakeholder-communication의 실패 패턴 "상태 변화 없는 3주 연속
+    옐로우"의 결정론적 축소판. 진짜 3주 정체 판정은 status_log 이력이 필요한데 실측 1줄뿐이라
+    (2026-07-27 감사) 지금 만들면 항상 빈 배열인 죽은 코드가 된다. 그래서 이력 유무에
+    의존하지 않고 시트만으로 판정하고, 이력이 있으면 그것으로 한 번 더 걸러낸다.
+    이력이 200건 이상 쌓이면 status_log.stalled_since로 정교화한다(트리거 2026-08-24).
+
+    LLM이 아니라 계산으로 잡는다 — 정체는 텍스트 해석이 아니라 날짜 산수다.
+    """
+    try:
+        today = datetime.strptime(target, "%Y-%m-%d").date()
+    except ValueError:
+        return []
+    cand = []
+    for a in assignments or []:
+        st = a.get("status") or ""
+        if st not in _ST.ASSIGN_OPEN_STATES:
+            continue
+        days = _ST.overdue_days(a.get("deadline") or "", today)
+        if days < min_days:
+            continue
+        # 이력이 있으면 최근 전이 시점을 본다. 없으면 '움직인 적 없음'으로 간주한다.
+        hist = _load_st_history(task=a.get("task") or "",
+                               assignee=a.get("assignee") or "", limit=1)
+        if hist:
+            try:
+                last = datetime.strptime((hist[0].get("ts") or "")[:10], "%Y-%m-%d").date()
+                if (today - last).days < min_days:
+                    continue      # 최근에 움직였다 — 정체가 아니다
+            except ValueError:
+                pass
+        cand.append((days, a))
+    cand.sort(key=lambda x: -x[0])
+    out = []
+    for days, a in cand[:limit]:
+        proj = (a.get("project") or "").strip()
+        who = (a.get("assignee") or "").strip()
+        out.append({
+            "category": "anomaly", "urgency": "mid",
+            "title": f"{days}일 정체 — [{proj or '미지정'}] {a.get('task') or ''}",
+            "detail": (f"담당 {who or '미지정'} · 마감 {a.get('deadline') or '미기재'} "
+                       f"({days}일 경과) · 상태 '{a.get('status')}'에서 {min_days}일 이상 변화 없음. "
+                       f"진행 중인지, 막혔는지, 접을 것인지 확인이 필요하다."),
+            "source_employee": who, "project": proj or None,
+            "related": "주간분장 시트 자동 판정(보고 텍스트 아님)",
+            "recommendation": "", "deadline": (a.get("deadline") or ""), "delay_impact": "",
+            "recommender": "", "decider": "", "age_days": days,
+        })
+    return out
+
+
 def build_brief_data(target: str, day: dict | None = None,
                      team_datas: dict | None = None,
                      assignments: list[dict] | None = None) -> dict:
@@ -687,6 +754,7 @@ def build_brief_data(target: str, day: dict | None = None,
     res = engine_d(blocks)
     items = res["items"]
     items += _carried_decision_items(target)  # 과거 미결(open) 결정 이월 — 정해질 때까지 노출
+    items += _stagnant_assigns(assignments, target)  # WS4b — 오래 멈춘 분장(계산 판정)
     items = sort_items(items)  # 취합=정렬완료: JSON 출력부터 우선순위 정렬 (모든 소비자 공유)
     unmatched = sorted({nm for nm in day if nm not in BY_NAME})
     counts = {c: sum(1 for it in items if it["category"] == c) for c in CAT_META}
@@ -1378,6 +1446,11 @@ def save_and_notify(data: dict, do_open: bool, no_telegram: bool) -> Path:
         subprocess.run(["open", str(html_path)], check=False)
     if not no_telegram and MANAGER_BOT_TOKEN and MANAGER_CHAT_ID:
         _telegram_brief(data)
+    else:
+        # WS4c — 발송하지 않을 때는 실제 메시지를 그대로 보여준다(순서 변경 눈 검증용)
+        print("─── 텔레그램 메시지 (미발송) " + "─" * 22)
+        print(_brief_message(data))
+        print("─" * 50)
     return html_path
 
 
@@ -1411,23 +1484,59 @@ def _overdue_open_count(target: str) -> int:
     return n
 
 
-def _telegram_brief(data: dict):
+_COUNT_LABELS = (("decision", "결정"), ("intervention", "개입"), ("risk", "리스크"),
+                 ("support", "지원"), ("project", "프로젝트"), ("growth", "성장"),
+                 ("anomaly", "⚡이상신호"))
+
+
+def _the_one(data: dict):
+    """오늘 대표가 먼저 볼 단 하나 — sort_items 결과의 1순위를 그대로 쓴다.
+
+    별도 랭킹을 만들지 않는 이유: sort_items가 이미 범주(CAT_ORDER) → 긴급도 →
+    _prio_rank(결재·비용) → 미결 경과로 결정론적 정렬을 하고, 대시보드 대표창도 같은
+    순서를 쓴다. 여기서 다른 우선순위를 세우면 텔레그램과 화면이 서로 다른 답을 내고,
+    그 순간 둘 다 신뢰를 잃는다.
+    """
+    top = data.get("top5") or []
+    return top[0] if top else None
+
+
+def _brief_message(data: dict) -> str:
+    # WS4c — 역피라미드: 헤드라인 → 지금 하나 → 카운트 → 목록.
+    # 알림 미리보기에는 2~3줄만 보이므로 첫 줄을 카운트가 아니라 결론이 차지해야 한다.
+    # 카운트 라인은 지우지 않고 순서만 내리고 압축한다(먼저 보던 습관을 깨지 않는다).
     c = data["counts"]
-    msg = (f"🗂 대표 Daily Brief {data['date']}({data['weekday']})\n"
-           f"결정 {c['decision']} · 개입 {c['intervention']} · 리스크 {c['risk']} "
-           f"· 지원 {c['support']} · 프로젝트 {c['project']} · 성장 {c['growth']}"
-           + (f" · ⚡이상신호 {c['anomaly']}" if c.get("anomaly") else "") + "\n")
+    lines = []
+    hl = (data.get("headline") or "").strip()
+    if hl:
+        lines.append(hl[:90])
+    one = _the_one(data)
+    if one:
+        lab = CAT_META[one["category"]][0].split(" ")[0]
+        lines.append(f"▶ 지금 하나: [{lab}] {one['title']}")
+    if not lines:
+        # headline도 top5도 없는 날 — 빈 줄이 첫 줄이 되는 사고 방지
+        lines.append("오늘 들어온 보고 없음")
+    msg = "\n".join(lines) + "\n"
+
+    cnt = " · ".join(f"{lbl} {c.get(k) or 0}" for k, lbl in _COUNT_LABELS if c.get(k))
+    msg += f"\n🗂 대표 Daily Brief {data['date']}({data['weekday']})"
+    msg += (f" · {cnt}\n" if cnt else "\n")
     ov = _overdue_open_count(data["date"])
     if ov:
         msg += f"⏰ 마감 초과 {ov}건 — 대시보드 '내 업무'에서 처리\n"
-    if data["top5"]:
-        msg += "\n오늘 봐야 할 것:\n"
-        for it in data["top5"]:
+    rest = (data.get("top5") or [])[1:]
+    if rest:
+        msg += "\n그 다음:\n"
+        for it in rest:
             lab = CAT_META[it["category"]][0].split(" ")[0]
             msg += f"• [{lab}] {it['title']}\n"
-    else:
-        msg += "\n오늘 들어온 보고 없음\n"
     msg += f"\n📄 {DASHBOARD_BASE_URL}/dashboard"
+    return msg
+
+
+def _telegram_brief(data: dict):
+    msg = _brief_message(data)
     try:
         import urllib.request
         url = f"https://api.telegram.org/bot{MANAGER_BOT_TOKEN}/sendMessage"
@@ -1555,6 +1664,17 @@ def main():
                 for c in items:
                     if not c.get("row"):
                         continue
+                    # WS2 — 전이 게이트. _pick이 소스에서 이미 좁혔으므로 여기서 걸리는 건
+                    # 보고 시점과 시트 현재값이 어긋난 경우(사이에 리더가 검토를 넣었다 등).
+                    g_ok, g_why = _ST.check_transition(c.get("from") or "", kind, "daily-brief-auto")
+                    if not g_ok:
+                        _log_st("daily-brief-auto", "auto", c.get("from") or "",
+                                from_status=c.get("from") or "", row=c.get("row"),
+                                project=c.get("project") or "", pid=c.get("pid") or "",
+                                task=c.get("task") or "", assignee=c.get("assignee") or name,
+                                note=_ST.transition_note(g_why))
+                        print(f"  ↳ 자동 {kind} 차단: {c['task'][:30]} — {g_why}")
+                        continue
                     try:
                         ok = _gws.values_update(DAILY_SHEET, f"주간분장!H{c['row']}", [[kind]])
                     except Exception:
@@ -1563,7 +1683,8 @@ def main():
                         _log_st("daily-brief-auto", "auto", kind, from_status=c.get("from") or "",
                                 row=c.get("row"), project=c.get("project") or "", pid=c.get("pid") or "",
                                 task=c.get("task") or "", assignee=c.get("assignee") or name,
-                                note=c.get("basis") or "")  # G5·G7 — 보고 근거 문장
+                                note=" ".join(x for x in (_ST.transition_note(g_why),
+                                                          c.get("basis") or "") if x))  # G5·G7 — 보고 근거
                     print(f"  ↳ 자동 {kind}: {c['task'][:34]} {'✓' if ok else '실패'}")
 
     # ─── 지각 제출 재집계 (G6) — 직전 브리프 소스일에 새 제출이 있으면 재생성 ───

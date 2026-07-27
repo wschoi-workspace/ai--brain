@@ -27,23 +27,51 @@ SOURCES = (SRC_MEETING, SRC_DAILY, SRC_PLAN, SRC_DIRECT, SRC_RELAY, SRC_SELF)
 SRC_UNKNOWN_LABEL = "출처 미상"
 
 _TS_RE = re.compile(r"\d{8}-\d{6}")
+# 회의 액션 ID (A1·S12 등) — 자유 텍스트가 출처ID로 흘러드는 것을 막는 좁은 형식 (WS1)
+_ACTION_ID_RE = re.compile(r"[A-Z]\d{1,3}")
 
 
-def meeting_ref(pid: str, ts: str) -> str:
-    """(프로젝트ID, 문서 ts) → 출처ID 문자열. 형식 위반이면 빈 문자열."""
+def meeting_ref(pid: str, ts: str, action_id: str = "") -> str:
+    """(프로젝트ID, 문서 ts[, 액션 ID]) → 출처ID 문자열. 형식 위반이면 빈 문자열.
+
+    WS1(2026-07-27): 3번째 세그먼트로 회의 액션 ID를 옵션 추가한다. 의존성 본문은
+    문서함 JSON(doc["result"])에 이미 있으므로 시트에 복제하지 않고, 액션 단위로
+    조인할 키만 얹는다 — 업무명으로 조인하면 /api/assign-edit의 업무명 편집에 조용히 깨진다.
+    """
     pid = (pid or "").strip()
     ts = (ts or "").strip()
     if not pid or not _TS_RE.fullmatch(ts):
         return ""
+    aid = (action_id or "").strip()
+    if aid and _ACTION_ID_RE.fullmatch(aid):
+        return f"{pid}|{ts}|{aid}"
     return f"{pid}|{ts}"
 
 
 def parse_meeting_ref(ref):
-    """출처ID → (pid, ts). 회의 참조가 아니면 (None, None)."""
-    pid, sep, ts = (ref or "").strip().partition("|")
-    if not (sep and pid and _TS_RE.fullmatch(ts)):
-        return None, None
+    """출처ID → (pid, ts). 회의 참조가 아니면 (None, None).
+
+    3세그먼트 형식도 받는다(액션 ID는 버림) — 기존 소비처의 시그니처를 바꾸지 않기 위해.
+    """
+    pid, ts, _ = parse_meeting_ref3(ref)
     return pid, ts
+
+
+def parse_meeting_ref3(ref):
+    """출처ID → (pid, ts, action_id). 회의 참조가 아니면 (None, None, "").
+
+    레거시 2세그먼트("<pid>|<ts>")는 action_id를 ""로 돌려준다 — 왕복 보존.
+    """
+    parts = (ref or "").strip().split("|", 2)
+    if len(parts) < 2:
+        return None, None, ""
+    pid, ts = parts[0].strip(), parts[1].strip()
+    if not (pid and _TS_RE.fullmatch(ts)):
+        return None, None, ""
+    aid = parts[2].strip() if len(parts) > 2 else ""
+    if aid and not _ACTION_ID_RE.fullmatch(aid):
+        aid = ""      # 알 수 없는 3번째 세그먼트는 무시(참조 자체는 유효하게 둔다)
+    return pid, ts, aid
 
 
 def is_meeting_action(a) -> bool:

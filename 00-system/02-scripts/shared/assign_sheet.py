@@ -78,6 +78,26 @@ def set_status(gws, sheet_id, row, status, timeout: int = 20) -> bool:
         return False
 
 
+def set_status_guarded(gws, sheet_id, row, status, *, from_status, source,
+                       status_mod, admin: bool = False, timeout: int = 20) -> tuple:
+    """전이 게이트를 통과한 뒤 H열 갱신 (WS2). 반환 (시트 갱신됨?, 위반사유).
+
+    반환값 구분:
+      (True,  "")     정상 전이
+      (True,  사유)   shadow 모드 위반 — 시트는 갱신됨, 호출측이 note에 사유를 남긴다
+      (False, 사유)   enforce 차단 — 시트 불변
+      (False, "")     게이트는 통과했으나 시트 쓰기 실패(네트워크·권한)
+
+    로깅은 호출측 책임이다 — 경로마다 남길 필드(reason·approved_by·pid·note)가 다르고,
+    여기서 로그까지 쓰면 기존 _log_st와 이중 기록이 된다. 위반사유가 비어 있지 않으면
+    호출측은 status_mod.transition_note(사유)를 log_status_change의 note에 실어야 한다.
+    """
+    ok, why = status_mod.check_transition(from_status, status, source, admin)
+    if not ok:
+        return (False, why)
+    return (set_status(gws, sheet_id, row, status, timeout=timeout), why)
+
+
 # 노션 가이드 §4.1 '⚠️입력누락' — 이게 비면 업무가 아니라 메모다.
 # 담당자는 '미지정 큐'(A2)가 이미 잡으므로 여기서는 마감·프로젝트만 본다.
 REQUIRED_FIELDS = (("deadline", "마감일"), ("project", "프로젝트"))
