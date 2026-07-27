@@ -1857,7 +1857,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     <button class="tab" data-t="docsim">문서 시뮬레이터</button>
     <button class="tab" data-t="brief" style="display:none">오늘 Brief</button>
     <button class="tab" data-t="weekly" style="display:none">이번 주</button>
-    <button class="tab-ext" id="tab-hr" onclick="window.open('https://rent-hr-portal.fly.dev/','_blank')">HR 포털 ↗</button><!-- 전 직원 노출 (2026-07-22) — 포털 자체가 staff/manager/admin 개인별 권한 강제 -->
+    <button class="tab-ext" id="tab-hr" onclick="window.open('/sso/hr','_blank')">HR 포털 ↗</button><!-- 전 직원 노출 (2026-07-22) — 포털 자체가 staff/manager/admin 개인별 권한 강제 -->
     <select id="scope-sel" style="display:none"></select>
     <span class="who" id="who"></span>
   </div>
@@ -2086,7 +2086,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     ]).then(function(res){
       var mw=res[0]||{}, ac=res[1]||{}, ex=res[2], h='<div class="mw-wrap">';
       MW_ASSIGNEES = ac.assignees || [];
-      if(SESS.admin){ h+='<div class="mw-quick"><a class="mw-link" href="https://rent-hr-portal.fly.dev/" target="_blank" rel="noopener">🏢 HR 포털 바로가기 ↗</a><a class="mw-link" href="https://rent-hr-portal.fly.dev/onboard/admin/v2" target="_blank" rel="noopener">🧾 입퇴사 온보딩 ↗</a></div>'; }  // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크), 온보딩=입퇴사 자동화 대시보드 v2
+      if(SESS.admin){ h+='<div class="mw-quick"><a class="mw-link" href="/sso/hr" target="_blank" rel="noopener">🏢 HR 포털 바로가기 ↗</a><a class="mw-link" href="https://rent-hr-portal.fly.dev/onboard/admin/v2" target="_blank" rel="noopener">🧾 입퇴사 온보딩 ↗</a></div>'; }  // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크), 온보딩=입퇴사 자동화 대시보드 v2
       if(ex && ex.ok){
         // R4 3차 — 대표창 재배치 (가이드 §6): ①오늘의 핵심 ②Decision ③Intervention
         // ④Risk ⑤진행 상황 ⑥완료 승인 ⑦결재 확인. 지연·미지정은 하단 접힘.
@@ -3151,6 +3151,53 @@ def lead_teams_of(uid):
     if is_admin(uid):
         return sorted(set(tl.keys()))
     return sorted([team for team, leader in tl.items() if leader == uid])
+
+# ── PIN 정책 (plan: partitioned-beaming-turing, 2026-07-27) ──────────
+# HR 포털 SSO를 켜면서 PIN 하나의 가치가 올라갔다(ARISA 로그인 → HR 본인 데이터 접근).
+# 최소 8자 + 숫자전용 거부 + 시도 제한. 기존 PIN은 변경 시점부터 새 정책이 적용된다.
+PIN_MIN_LEN = 8
+PIN_MAX_FAILS = 5
+PIN_LOCK_SEC = 900          # 15분
+_pin_fails = {}             # uid -> [실패횟수, 최초실패시각]
+
+
+def _pin_policy_error(new_pin):
+    """새 PIN이 정책을 위반하면 사용자용 메시지, 통과면 None."""
+    v = str(new_pin or "")
+    if len(v) < PIN_MIN_LEN:
+        return f"PIN은 {PIN_MIN_LEN}자 이상이어야 합니다."
+    if v.isdigit():
+        return "숫자로만 된 PIN은 사용할 수 없습니다. 영문자를 섞어주세요."
+    if len(set(v)) < 4:
+        return "같은 문자가 너무 반복됩니다. 조금 더 다양하게 만들어주세요."
+    return None
+
+
+def _pin_locked(uid):
+    """잠금 중이면 남은 초, 아니면 0."""
+    rec = _pin_fails.get(uid)
+    if not rec:
+        return 0
+    cnt, first = rec
+    if cnt < PIN_MAX_FAILS:
+        return 0
+    left = int(PIN_LOCK_SEC - (time.time() - first))
+    if left <= 0:
+        _pin_fails.pop(uid, None)
+        return 0
+    return left
+
+
+def _pin_fail(uid):
+    cnt, first = _pin_fails.get(uid, [0, time.time()])
+    if time.time() - first > PIN_LOCK_SEC:   # 창 만료 → 리셋
+        cnt, first = 0, time.time()
+    _pin_fails[uid] = [cnt + 1, first]
+
+
+def _pin_ok(uid):
+    _pin_fails.pop(uid, None)
+
 
 def set_pin(uid, new_pin):
     """users.json에 PIN 저장(첫 설정/변경) — dict/list 스키마 모두 지원. 성공 True."""
@@ -5187,15 +5234,22 @@ class H(BaseHTTPRequestHandler):
             users = load_users()
             u = users.get(uid)
             if not u: return self._send(401, {"ok": False, "error": "등록되지 않은 이름입니다."})
+            _left = _pin_locked(uid)
+            if _left:
+                return self._send(429, {"ok": False, "reason": "locked",
+                                        "error": f"로그인 시도가 많아 잠겼습니다. {_left // 60 + 1}분 후 다시 시도해주세요."})
             cur = str(u.get("pin") or "")
             pin_set = False
             if cur == "":
-                # PIN 미설정 → 첫 로그인 시 본인이 설정
-                if len(str(pin)) < 4:
-                    return self._send(400, {"ok": False, "error": "첫 로그인입니다. PIN을 4자 이상으로 설정해주세요."})
+                # PIN 미설정 → 첫 로그인 시 본인이 설정 (신규 정책 적용)
+                _err = _pin_policy_error(pin)
+                if _err:
+                    return self._send(400, {"ok": False, "error": f"첫 로그인입니다. {_err}"})
                 set_pin(uid, pin); pin_set = True
             elif cur != str(pin):
+                _pin_fail(uid)
                 return self._send(401, {"ok": False, "error": "ID 또는 PIN이 올바르지 않습니다."})
+            _pin_ok(uid)
             tok = issue_web_session(uid)  # 서버측 세션 쿠키 (2026-07-22 공개 전환)
             return self._send(200, {"ok": True, "name": uid, "role": u.get("role", "직원"),
                                     "admin": is_admin(uid), "lead_teams": lead_teams_of(uid), "pin_set": pin_set},
@@ -5205,7 +5259,8 @@ class H(BaseHTTPRequestHandler):
             # PIN 변경(자가설정) — 현재 PIN 검증 후 새 PIN 저장
             uid = b.get("id", ""); cur = b.get("pin", ""); new = b.get("new_pin", "")
             if not auth(uid, cur): return self._send(401, {"ok": False, "error": "현재 PIN이 올바르지 않습니다."})
-            if len(str(new)) < 4: return self._send(400, {"ok": False, "error": "새 PIN은 4자 이상이어야 합니다."})
+            _err = _pin_policy_error(new)
+            if _err: return self._send(400, {"ok": False, "error": _err})
             set_pin(uid, new)
             return self._send(200, {"ok": True})
         if path == "/api/simulator/review":
