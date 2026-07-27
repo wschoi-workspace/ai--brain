@@ -1879,6 +1879,40 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   var MW_TODAY=[];                        // 갭C — 오늘 하기로 선언한 항목 키
   var SESS_KEYS=['pm_sess','brief_sess','weekly_sess','team_brief_sess','team_weekly_sess'];
   var CLEAR_KEYS=SESS_KEYS.concat(['arisa_sess','arisa_token']);
+  // [2026-07-27] PIN 변경 후 다른 탭의 캐시 PIN이 낡아 쓰기 API가 "인증 실패"만 뱉던 문제.
+  // 원인을 알 수 없는 alert 대신 안내 후 자동 로그아웃시킨다. (쓰기 API는 body의 평문 PIN을 재검증)
+  var _authFailShown=false;
+  function _authFailGuard(d){
+    if(!d || d.ok!==false) return false;
+    var e=String(d.error||'');
+    // 쓰기 API의 PIN 재검증 실패만 잡는다.
+    // session_required(미로그인)까지 잡으면 로그인 화면에서도 발동해 새로고침 루프가 된다.
+    if(e.indexOf('인증 실패')<0) return false;
+    // 로그인 상태에서만 — 미로그인 시엔 로그인 화면이 이미 떠 있으므로 개입하지 않는다
+    var _hasSess=false;
+    try{ _hasSess = !!localStorage.getItem('pm_sess'); }catch(_e){}
+    if(!_hasSess) return false;
+    if(_authFailShown) return true;
+    _authFailShown=true;
+    alert('로그인 정보가 만료되었습니다.\\n\\nPIN을 변경하셨다면 이 창에는 이전 PIN이 남아 있어 저장이 되지 않습니다.\\n확인을 누르면 로그아웃되니 새 PIN으로 다시 로그인해주세요.');
+    try{ CLEAR_KEYS.forEach(function(k){localStorage.removeItem(k);}); }catch(_e){}
+    location.reload();
+    return true;
+  }
+  (function(){
+    var _f=window.fetch;
+    window.fetch=function(){
+      return _f.apply(this, arguments).then(function(res){
+        try{
+          var ct=res.headers.get('content-type')||'';
+          if(res.status===401 && ct.indexOf('application/json')>=0){
+            res.clone().json().then(function(j){ _authFailGuard(j); }).catch(function(){});
+          }
+        }catch(_e){}
+        return res;
+      });
+    };
+  })();
   function tabBtn(t){ return document.querySelector('.tab[data-t="'+t+'"]'); }
   function srcFor(t){
     if(t==='projects') return '/projects';
