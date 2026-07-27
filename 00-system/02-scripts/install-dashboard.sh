@@ -9,7 +9,7 @@ set -e
 SCRIPTS="$(cd "$(dirname "$0")" && pwd)"
 SERVER="$SCRIPTS/dashboard-server.py"
 PY="$(command -v python3 || echo /usr/bin/python3)"
-PORT="${DASHBOARD_PORT:-8770}"
+PORT="${DASHBOARD_PORT:-8780}"
 LABEL="com.projectrent.dashboard"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 

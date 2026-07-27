@@ -6,7 +6,7 @@ PM이 수정하면 서버에 저장되어 대표·팀원 모두 같은 데이터
 
 데이터: 00-system/01-templates/_data/  (users.json + projects/{id}.json)
 권한:   대표=전체 열람·수정·생성·삭제 / PM=본인 프로젝트 수정 / 직원=배정 프로젝트 열람
-실행:   python3 dashboard-server.py [port]   (기본 8770, 127.0.0.1 — Tailscale serve로 노출)
+실행:   python3 dashboard-server.py [port]   (기본 8780, 127.0.0.1 — cloudflared 터널로 arisa-os.com 노출)
 """
 import json, os, re, secrets, sys, threading, time, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -41,7 +41,7 @@ DATA = Path(os.environ.get("DASHBOARD_DATA") or (BASE / "_data"))
 PROJ_DIR = DATA / "projects"
 DOC_DIR = DATA / "project-docs"   # 프로젝트 자료(회의록) 원문 — JSON에는 메타만
 HOST = os.environ.get("DASHBOARD_HOST", "127.0.0.1")
-PORT = int(os.environ.get("DASHBOARD_PORT", "8770"))
+PORT = int(os.environ.get("DASHBOARD_PORT", "8780"))  # 운영 포트 — cloudflared·plist와 일치
 # ARISA 주간 대시보드 서빙 — /weekly. 성장지표는 대표 토큰(?key=WEEKLY_KEY)일 때만 노출.
 WEEKLY_DIR = Path(os.environ.get("WEEKLY_DIR") or (_WS / "20-operations" / "23-arisa" / "weekly"))
 WEEKLY_KEY = os.environ.get("WEEKLY_KEY", "")

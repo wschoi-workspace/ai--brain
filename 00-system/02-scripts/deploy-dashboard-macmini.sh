@@ -19,13 +19,13 @@ launchctl unload "$PLIST_DST" 2>/dev/null || true
 launchctl load "$PLIST_DST"
 sleep 2
 echo -n "  dashboard-server(통합 셸): "
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8770/
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8780/
 echo ""
 
 echo ""
 echo "=== Phase 1: 프록시 검증 ==="
 echo -n "  /arisa2/api/health: "
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8770/arisa2/api/health
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8780/arisa2/api/health
 echo ""
 
 echo ""
@@ -46,10 +46,10 @@ else
 fi
 
 echo ""
-echo "=== Phase 3: Tailscale serve 전환 (443 → 8770) + Funnel off ==="
-echo "  1) 기존 443 프록시(8787) 제거 후 8770으로 교체:"
+echo "=== Phase 3: Tailscale serve 전환 (443 → 8780) + Funnel off ==="
+echo "  1) 기존 443 프록시(8787) 제거 후 8780으로 교체:"
 echo "     sudo tailscale serve --https=443 off   # 기존 8787 제거(설정돼 있다면)"
-echo "     sudo tailscale serve --bg 8770         # 443 → localhost:8770"
+echo "     sudo tailscale serve --bg 8780         # 443 → localhost:8780"
 echo "  2) 외부 인터넷 공개(Funnel) 끄기 — tailnet 전용:"
 echo "     sudo tailscale funnel --https=8443 off"
 echo "     (또는 전체: sudo tailscale funnel reset)"

@@ -26,21 +26,21 @@ bash ~/do-better-workspace/00-system/02-scripts/install-dashboard.sh
 # 포트 변경:            DASHBOARD_PORT=9000 bash …/install-dashboard.sh
 # 제거:                 bash …/uninstall-dashboard.sh
 ```
-→ 빌드(시드 생성) + plist 생성·로드 + 헬스체크까지 자동. `http://127.0.0.1:8770` 가동.
+→ 빌드(시드 생성) + plist 생성·로드 + 헬스체크까지 자동. `http://127.0.0.1:8780` 가동.
 
 > 모든 스크립트가 **스크립트 위치 기준 상대경로**로 동작 → 어느 맥/사용자에서도 그대로 실행됩니다.
 
 ## 3. Tailscale로 노출 (포트 개방 없이, 사내·재택)
-맥미니에 Tailscale 설치·로그인(이미 설치됨). 그다음 localhost:8770을 tailnet에 게시:
+맥미니에 Tailscale 설치·로그인(이미 설치됨). 그다음 localhost:8780을 tailnet에 게시:
 ```bash
 TS=/Applications/Tailscale.app/Contents/MacOS/Tailscale
-$TS serve --bg 8770
+$TS serve --bg 8780
 $TS serve status          # 게시 URL 확인
 ```
 → `https://<맥미니이름>.<tailnet>.ts.net/` 형태의 **HTTPS 링크**가 나옵니다.
 - 이 링크는 **같은 Tailscale 조직(테일넷)에 로그인한 기기만** 접속 가능 → 안전.
 - 직원 기기에 Tailscale 설치 + 회사 테일넷 로그인 → 위 링크 접속.
-- (구버전 Tailscale은 `$TS serve https / http://127.0.0.1:8770` 형태)
+- (구버전 Tailscale은 `$TS serve https / http://127.0.0.1:8780` 형태)
 
 ## 4. 직원 안내 (로그인)
 | 역할 | ID | PIN |
@@ -82,6 +82,6 @@ $TS serve status          # 게시 URL 확인
 - 데이터는 맥미니 `_data/`에만 존재 → 백업이 곧 안전장치.
 
 ## 문제 해결
-- 화면 안 뜸: `cat /tmp/pr-dashboard.err`, `curl http://127.0.0.1:8770/api/health`
+- 화면 안 뜸: `cat /tmp/pr-dashboard.err`, `curl http://127.0.0.1:8780/api/health`
 - 로그인 실패: `_data/users.json`에 해당 ID·PIN 있는지 확인.
 - 외부 접속 안 됨: 직원 기기 Tailscale 로그인 상태, `$TS serve status` 확인.

@@ -21,7 +21,7 @@
 **do-better-workspace 계열 (.venv311 = uv/Python3.11, 또는 `/usr/bin/python3`)**
 | plist | 스크립트 | 스케줄 |
 |---|---|---|
-| com.projectrent.dashboard | 02-scripts/dashboard-server.py | KeepAlive (8770) · `/usr/bin/python3` (표준lib) |
+| com.projectrent.dashboard | 02-scripts/dashboard-server.py | KeepAlive (8780) · `/usr/bin/python3` (표준lib) |
 | com.projectrent.daily-brief | 02-scripts/daily-brief-aggregate.py | 07:30 |
 | com.projectrent.weekly-report | 02-scripts/weekly-report-aggregate.py | 월 08:30 |
 | com.projectrent.daily-checkin | 02-scripts/daily-report-checkin.py | 22:00 |
@@ -119,7 +119,7 @@ pkill -9 -f 'daily-report-bot.py|bot.py|basket-ops-bot.py|telegram_bot.py'
 
 ## Phase 7 — 검증
 - `launchctl list | grep -E 'projectrent|arisa|basket'` 전부 로드
-- `curl 127.0.0.1:8770/api/health` → `{"ok":true}`
+- `curl 127.0.0.1:8780/api/health` → `{"ok":true}`
 - 텔레그램 각 봇에 `/report` 등 테스트 (409 없음 = polling 단일)
 - daily-brief 수동 1회 `--no-telegram` → 팀 파일 생성
 - gws 시트 읽기 동작(oauth)
