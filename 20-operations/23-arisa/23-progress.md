@@ -965,3 +965,89 @@ staff / lead / admin 체계로 가되 lead는 후속. **대표 외 전원 staff*
 ### 잔여 리스크
 - **퇴사처리 갭**: `/퇴사처리`가 HR 포털을 건드리지 않아 발급된 HR SSO 세션은 독립 생존. 브라우저 종료 만료 정책이 노출 창을 좁힘. 완전 차단하려면 HR `blocked` 처리 추가 필요
 - fly 머신 스케일아웃 시 jti 볼륨이 머신별 분리 → 리플레이 창 재개방 (현재 1대)
+
+### 병렬 세션 충돌로 origin/main이 깨졌던 사건 — 복구 완료 (2026-07-27)
+맥미니 동기화를 조사하다 발견. **다른 세션이 같은 시간대에 HR 포털 SSO 작업을 진행**하고 있었고, 그 세션의 커밋에 이 세션의 미커밋 `dashboard-server.py` 변경이 함께 들어갔다.
+
+| 항목 | 내용 |
+|---|---|
+| 섞인 커밋 | `e16b9b2 feat(arisa): HR 포털 SSO — /sso/hr 티켓 발급 라우트 + shared/sso_ticket.py` |
+| 함께 들어간 것 | dashboard-server.py의 WS 변경 전량 — `meeting_link` import · `check_transition` 2 · `_attach_deps` 3 · `project_signal` · `mwDepsChip` 2 |
+| 빠진 것 | `shared/meeting_link.py`(신규) · `shared/status.py`·`assign_sheet.py`·`provenance.py`의 신규 함수 |
+| 결과 | **origin/main의 dashboard-server.py가 `ModuleNotFoundError: shared.meeting_link`로 기동 불가.** HEAD를 archive해 실측 확인 |
+| push 여부 | e16b9b2가 origin/main 조상 = **GitHub에 깨진 커밋이 올라가 있었다** |
+| 맥미니 영향 | 없음 — 맥미니는 `9762222`에 머물러 그 커밋을 받지 않았다. 배포를 중단한 것이 결과적으로 맥미니를 보호했다 |
+
+**복구**: `cf7c269 fix(arisa): 깨진 HEAD 정합 복구 — WS1~4 누락 모듈 커밋` → push. 커밋 전 `git add -A`를 쓰지 않고 **내 파일 13건만 명시 지정**했다(당시 워킹트리에 다른 세션의 대량 삭제 200여 건이 섞여 있었다). push 전 `git archive HEAD` 후 단독 import + 테스트 재실행으로 정합을 실측 확인(4모듈 정상 · 51/51 · 35/35).
+
+**교훈**: 두 세션이 같은 파일을 동시에 만지면 `git add`가 남의 미커밋 변경을 삼킨다. 병렬 작업 시 커밋은 **파일을 명시 지정**하고, 커밋 후 `git archive HEAD`로 정합을 확인한다(테스트 통과 ≠ 커밋 정합).
+
+### 맥미니 동기화 — 지금 하지 않는다 (2026-07-27 판단)
+조사 중 **맥미니 파일이 실시간으로 바뀌는 것을 관측**했다. scp로 가져온 시점의 `dashboard-server.py` md5가 커밋 `9762222`와 정확히 일치했는데, 직후 맥미니에서 `git diff HEAD`를 돌리자 SSO 패치 85줄이 미커밋으로 나타났다 — 다른 세션이 그 사이에 맥미니로 SSO를 배포하고 있었다.
+
+- 맥미니 미커밋 3종(`dashboard-server.py` M · `check-pin-policy.py` ?? · `shared/sso_ticket.py` ??)은 **모두 로컬에 이미 커밋된 내용**(e16b9b2·e769c69) = 맥미니 고유 손실 위험은 없다
+- 그러나 **다른 세션이 능동적으로 조작 중인 대상에 pull/checkout/scp를 하면 그 작업을 파괴한다**
+- 맥미니 실제 미커밋은 8건뿐이다(앞서 기록한 307건은 mtime 기반 초기 stat — `git status` 실행으로 인덱스가 갱신되며 정리됨). 동기화 자체는 fast-forward로 단순하다
+- LAN `macmini`(192.168.219.249:22) 타임아웃 지속 → Tailscale `macmini-ts`만 가용. remote로도 등록돼 있다(`ssh://macmini-ts/...`)
+
+→ **선행 조건: HR SSO 세션 종료 확인.** 그 뒤 맥미니에서 `git stash`(또는 미커밋 3종이 로컬 커밋과 동일함을 확인 후 `checkout`) → `git pull` → 서비스 재기동. 대시보드가 맥미니 launchctl에 아예 없는 원인도 이때 함께 확인한다.
+
+### 맥미니 동기화 완료 (2026-07-27 19:47)
+크로스체크 결과 **다른 세션이 이미 맥미니를 진행시켜 놓았다** — HEAD가 `9762222` → `f940ad5`(R4 개편 1·2·3차 반영)로 올라가 있었고 `com.arisa.pin-policy-check` 잡이 신규 등록돼 있었다. 그 위에 이어서 동기화했다.
+
+**절차와 안전장치**
+1. 무손실 검증 — 맥미니 미커밋 `dashboard-server.py`의 추가 85줄이 **전부 로컬 커밋에 존재**함을 확인(삭제 7줄 중 1건은 주석 부분문자열 매칭 오탐). `check-pin-policy.py`·`sso_ticket.py`는 md5까지 로컬 HEAD와 **완전 동일**
+2. 백업 — `/tmp/dashboard-server.py.bak-presync-20260727`(5769줄)
+3. `git stash push` 2회 — tracked(dashboard-server + pycache) / untracked(sso 파일 2종). `rm` 대신 stash를 써서 되돌릴 수 있게 했다
+4. `git pull --ff-only` — 1차는 untracked 2종 충돌로 abort(사전 확인에서 innisfree·inbox만 보고 이 둘을 놓쳤다) → stash 후 재시도 성공
+5. 검증 — 8파일 md5 **로컬과 전부 일치** · `py_compile` 3.9.6 8건 통과 · shared 5모듈 import+함수 정상 · **테스트 110개 통과**(51/35/24) · 루트 `status.py` 제거 확인 · 모드 `shadow` / enforce 2026-08-17
+
+**보존된 맥미니 고유 파일**(untracked 3건, pull이 건드리지 않음): `10-projects/40-innisfree-sns/` · `80-r-tech/84-scripts/innisfree/` · second-brain inbox 1건
+
+**⚠️ 앞선 기록 정정 — 대시보드는 맥미니에서 정상 가동 중이다.** 이 문서 위쪽에 "대시보드가 맥미니 launchctl에 아예 없다"고 두 번 적었으나 **사실이 아니다**. `com.projectrent.dashboard`(KeepAlive=true·RunAtLoad=true, 8780 LISTEN)로 돌고 있었고, 첫 조사에서 `launchctl list | grep ... | head -20`에 잘려 놓친 것이었다. `com.projectrent.r4meeting`(8781)도 가동 중.
+
+**서비스 반영 상태**
+| 대상 | 처리 |
+|---|---|
+| `com.arisa.daily-report-bot` | **04:00 자동 재시작에 맡김**(`com.arisa.daily-report-bot-restart`). 변경은 `set_status_guarded` 하나이고 shadow 모드라 동작 변화 0 — 오늘 20:00 보고를 구코드로 받아도 결과가 같다 |
+| 배치(daily-brief 07:30 · weekly 월 08:30) | 재기동 불필요 — 실행 시 파일을 읽으므로 **이미 반영 완료** |
+| `com.projectrent.dashboard` | **KeepAlive라 자동 재시작이 없다**(죽을 때만 작동). 프로세스가 19:12:54 시작 = pull 이전이라 구코드를 물고 있었음 → **2026-07-28 00:00 재기동 예약**(맥미니 nohup PID 19384 → `launchctl kickstart -k gui/501/com.projectrent.dashboard`, 로그 `/tmp/dash-restart-20260728.log`) |
+
+**다음 세션 확인 항목**: ① `/tmp/dash-restart-20260728.log`에 kickstart 기록·새 PID가 남았는지 ② 대시보드 '내 업무'에 회의 출처 분장의 선행/BLOCKING 칩, 대표창 ⑤에 신호등이 뜨는지(첫 회의 제출 후) ③ `status-log/assign-status.jsonl`에 `[transition-shadow]` 위반이 쌓이는지 → 08-17 enforce 판단 근거 ④ 맥미니 stash 4건 정리 여부(pre-sync 2건은 로컬 커밋과 동일함이 검증됨 → drop 가능)
+
+## 2026-07-27 (2차) — 산출물 소실 사고 + 재발 방지
+
+### 사고
+대시보드가 **18일 전 브리프(7/09)와 3주 전 주간(W28)** 을 서빙 중인 것을 발견. 배치는 정상이었다.
+```
+07:31 daily-brief-2026-07-27 정상 생성 (로그 ✅)
+08:30 weekly-report-2026-W30 정상 생성 (로그 ✅ + 텔레그램 전송)
+09:47 git reset --hard  → 미커밋 산출물 삭제
+12:32 git pull          → 커밋에 있던 7/09·W28로 복원 (brief/ 21개 덮어씀)
+```
+**원인**: `brief/`·`weekly/` 산출물이 git 추적 대상. 배포할 때마다 당일 결과물이 커밋 시점으로 되돌아감.
+**아무도 몰랐다** — 배치 로그는 성공, 화면은 조용히 과거를 보여줌.
+
+### 조치 1 — 추적 해제 (근본)
+- `.gitignore` 추가: `brief/daily-brief-*`, `brief/person/`, `weekly/weekly-report-*`
+- `git rm --cached` 130건 (커밋 `044f5dc`). 로컬 파일 보존
+- ⚠️ 다른 클론 pull 시 작업트리에서 삭제됨 → 맥미니는 `tar czf` 백업(149파일) → pull(127→13) → 복원(127) 순서로 진행
+- 검증: `git reset --hard` 실제 실행 후에도 산출물 생존 확인
+
+### 조치 2 — 복구
+- `daily-brief-aggregate.py` 재실행 → 7/27 전사+팀별 4종
+- `weekly-report-aggregate.py --week last` → W30 전사+팀별 4종 (384건·10명·미매칭 0)
+- 대시보드 서빙 확인: `대표 Daily Brief · 2026-07-27` / `주간 업무 대시보드 · 2026년 W30`
+- W29는 미복구 — 과거 날짜 재생성은 시트 윈도우 만료 위험
+
+### 조치 3 — 감시 (원인 무관 탐지)
+`arisa-artifact-guard.py` + `com.arisa.artifact-guard` (매일 **10:00·18:00** 2회, 사고가 09:47·12:32에 났으므로 오전 1회로는 부족)
+1. 오늘자 브리프 존재 / 최신 브리프가 과거 날짜인지
+2. 지난주 주간 리포트 존재
+3. **산출물이 다시 git 추적됐는지** — 재발 방지 장치 자체를 감시
+이상 시 대표 텔레그램 알림. 정상/이상 양쪽 판정 검증 완료(브리프 임시 은닉 → 탐지 → 복원 확인).
+
+### 남은 위험 (판단 필요)
+배치가 쓰는데 여전히 git 추적 중 — 되돌려지면 이력·명부가 과거로 회귀:
+- `20-operations/23-arisa/status-log/assign-status.jsonl` (업무 상태 로그)
+- `00-system/02-scripts/offboarded.json` (**퇴사 차단 명부** — 되돌려지면 퇴사자 접근 부활 가능)
