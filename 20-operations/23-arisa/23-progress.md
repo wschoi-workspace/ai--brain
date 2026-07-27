@@ -1051,3 +1051,23 @@ staff / lead / admin 체계로 가되 lead는 후속. **대표 외 전원 staff*
 배치가 쓰는데 여전히 git 추적 중 — 되돌려지면 이력·명부가 과거로 회귀:
 - `20-operations/23-arisa/status-log/assign-status.jsonl` (업무 상태 로그)
 - `00-system/02-scripts/offboarded.json` (**퇴사 차단 명부** — 되돌려지면 퇴사자 접근 부활 가능)
+
+### 조치 4 — 런타임 상태 파일도 추적 해제 (대표 지시)
+같은 함정에 걸려 있던 2건 추가 처리 (커밋 `433f5ce`):
+- `00-system/02-scripts/offboarded.json` — 퇴사자 차단 명부. 되돌려지면 **차단 해제된 퇴사자가 봇에 재접근** 가능
+- `20-operations/23-arisa/status-log/` — 업무 상태 로그. 맥미니 1807B/5줄 vs 커밋본 340B/1줄로 이미 벌어져 있었음
+두 파일 모두 어떤 스크립트도 git add/commit 하지 않는 순수 런타임 상태 → 추적 해제 안전.
+
+⚠️ 맥미니 pull이 두 번 막혔다:
+1. `assign-status.jsonl` 로컬 수정분 → `git checkout --`로 정리(백업 있었기에 안전)
+2. **내가 앞서 scp한 `arisa-artifact-guard.py`가 미추적 상태로 남아 커밋과 충돌**
+   → 커밋본과 동일함을 diff로 확인 후 제거하고 pull
+   교훈: scp로 맥미니에 먼저 올린 파일은 나중에 같은 경로로 커밋될 때 pull을 막는다.
+
+검증: `git reset --hard` 실행 후에도 offboarded 1명·assign-status 5줄 보존, 조나연 차단 유지 확인.
+
+### 파수꾼 확장
+`arisa-artifact-guard.py`에 상태 파일 감시 추가:
+- 존재 여부 + **항목 수 비감소** (`.guard-state.json`에 기준선 보관)
+- 4종 파일 재추적 감시(브리프·주간·offboarded·assign-status)
+검증: 명부를 2명→1명으로 축소시켜 `⚠️ 퇴사자 차단 명부 항목 감소 2→1` 탐지 확인.

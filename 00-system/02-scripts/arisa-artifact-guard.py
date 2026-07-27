@@ -28,6 +28,12 @@ BRIEF = os.path.join(WS, "20-operations/23-arisa/brief")
 WEEKLY = os.path.join(WS, "20-operations/23-arisa/weekly")
 EMP = os.path.join(WS, "00-system/02-scripts/arisa-employees.json")
 
+# 배치·봇이 실시간으로 쓰는 상태 파일 — 되돌려지면 항목 수가 줄어든다
+STATE_FILES = [
+    ("00-system/02-scripts/offboarded.json", "퇴사자 차단 명부"),
+    ("20-operations/23-arisa/status-log/assign-status.jsonl", "업무 상태 로그"),
+]
+
 
 def tg_token():
     try:
@@ -110,9 +116,42 @@ def main():
                       and "-" not in f[len("weekly-report-2026-W00"):])
         issues.append(f"지난주 리포트 없음 — {tag} (최신 보유: {have[-1] if have else '없음'})")
 
-    # 3) 재발 방지 장치 감시 — 산출물이 다시 추적되면 경고
+    # 3) 런타임 상태 파일 — 존재 + 항목 수 비감소 (되돌려지면 줄어든다)
+    #    offboarded.json이 과거로 회귀하면 차단 해제된 퇴사자가 봇에 다시 접근할 수 있다.
+    state_snap = os.path.join(WS, "20-operations/23-arisa/.guard-state.json")
+    prev = {}
+    try:
+        prev = json.load(open(state_snap, encoding="utf-8"))
+    except Exception:
+        pass
+    cur = {}
+    for rel, label in STATE_FILES:
+        path = os.path.join(WS, rel)
+        if not os.path.exists(path):
+            issues.append(f"{label} 파일 없음 — {rel}")
+            continue
+        try:
+            if rel.endswith(".jsonl"):
+                n = sum(1 for line in open(path, encoding="utf-8") if line.strip())
+            else:
+                n = len(json.load(open(path, encoding="utf-8")))
+        except Exception as e:
+            issues.append(f"{label} 읽기 실패 — {e!r}")
+            continue
+        cur[rel] = n
+        if rel in prev and n < prev[rel]:
+            issues.append(f"⚠️ {label} 항목 감소 {prev[rel]}→{n} — 배포로 과거 상태가 덮였을 수 있음 ({rel})")
+    if cur:
+        try:
+            json.dump({**prev, **cur}, open(state_snap, "w", encoding="utf-8"))
+        except Exception:
+            pass
+
+    # 4) 재발 방지 장치 감시 — 산출물이 다시 추적되면 경고
     for rel in (f"20-operations/23-arisa/brief/daily-brief-{today.isoformat()}.html",
-                f"20-operations/23-arisa/weekly/weekly-report-{tag}.html"):
+                f"20-operations/23-arisa/weekly/weekly-report-{tag}.html",
+                "00-system/02-scripts/offboarded.json",
+                "20-operations/23-arisa/status-log/assign-status.jsonl"):
         if os.path.exists(os.path.join(WS, rel)) and git_tracked(rel):
             issues.append(f"⚠️ 산출물이 다시 git 추적됨 — {rel}"
                           " (.gitignore 무력화, 배포 시 또 소실됨)")
