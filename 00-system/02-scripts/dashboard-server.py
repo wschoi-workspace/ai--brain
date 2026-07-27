@@ -17,6 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from shared import report_score as _report_score  # 채점 SSOT (2026-07-20 갭 해소)
+from shared import sso_ticket as _sso_ticket      # HR 포털 SSO 티켓 서명 (2026-07-27)
 
 # .env 로드(WEEKLY_KEY 등 — 환경 미설정 시 do-better-workspace/.env에서 보충)
 _WS = Path(__file__).resolve().parent.parent.parent
@@ -27,6 +28,11 @@ for _envp in (_WS / ".env",):
             if _l and not _l.startswith("#") and "=" in _l:
                 _k, _, _v = _l.partition("=")
                 os.environ.setdefault(_k.strip(), _v.strip())
+
+# ARISA → HR 포털 SSO (plan: partitioned-beaming-turing, 2026-07-27)
+# 시크릿이 없으면 티켓 없이 평문 URL로 보낸다 = 자동 폴백. 롤백은 .env 한 줄 삭제.
+HR_PORTAL_URL = (os.environ.get("HR_PORTAL_URL") or "https://rent-hr-portal.fly.dev").rstrip("/")
+ARISA_SSO_SECRET = (os.environ.get("ARISA_SSO_SECRET") or "").strip()
 
 # 이관 가능: 경로는 스크립트 기준(상대) + 환경변수로 덮어쓰기 가능
 BASE = Path(os.environ.get("DASHBOARD_BASE") or (Path(__file__).resolve().parent.parent / "01-templates"))
@@ -74,6 +80,7 @@ from shared import provenance as _PV  # 업무 출처·회의 참조 (갭A) — 
 from shared import today_plan as _TP  # 오늘 하기로 한 일 (갭C) — 배포 시 shared/today_plan.py 동반 필수
 from shared import assign_sheet as _AS  # 주간분장 컬럼·파싱 SSOT — 배포 시 shared/assign_sheet.py 동반 필수
 from shared import approval as _AP  # 승인 체인·권한 (R4 2차) — 배포 시 shared/approval.py 동반 필수
+from shared import meeting_link as _ML  # 회의 액션 선행·차단 조회 (WS1) — 배포 시 shared/meeting_link.py 동반 필수
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
     from shared.status_log import load_history as _load_st_history  # 이력 조회 (G7)
@@ -120,12 +127,17 @@ def _assign_append(assignee, task, deadline, priority, by, project="", result=""
 
 
 def _meeting_actions(pid, ts, assigns=None):
-    """회의(프로젝트 문서 pid|ts)에서 파생된 분장 목록 — 시트 순서 유지 (갭A)."""
-    ref = _PV.meeting_ref(pid, ts)
-    if not ref:
+    """회의(프로젝트 문서 pid|ts)에서 파생된 분장 목록 — 시트 순서 유지 (갭A).
+
+    WS1 하위호환 필수: source_ref가 액션ID를 포함한 3세그먼트("<pid>|<ts>|A1")일 수 있으므로
+    문자열 동등 비교를 쓰지 않는다. 여기서 놓치면 신규 등록 액션이 회의 실행률 롤업에서
+    조용히 빠진다(레거시 2세그먼트는 그대로 매칭된다).
+    """
+    if not _PV.meeting_ref(pid, ts):
         return []
+    want = ((pid or "").strip(), (ts or "").strip())
     return [a for a in (assigns if assigns is not None else _assign_read())
-            if (a.get("source_ref") or "") == ref]
+            if _PV.parse_meeting_ref3(a.get("source_ref"))[:2] == want]
 
 
 def _team_today(assigns):
@@ -146,25 +158,67 @@ def _team_today(assigns):
 
 
 def _meeting_todo_candidates(result):
-    """회의분석 결과 → 분장 등록 후보 [{assignee, task, due}] (갭A).
+    """회의분석 결과 → 분장 등록 후보 [{assignee, task, due, action_id, depends_on, blocking}] (갭A).
 
-    5블록(block_5_todos.ours)과 레거시 10섹션(todos)을 모두 받는다. 상대 측(theirs)은
-    우리 조직의 분장이 아니므로 제외한다 — 남의 할 일을 우리 시트에 넣으면 지연 통계가 오염된다.
+    5블록(block_5_todos.ours)과 레거시 10섹션(todos)을 받고, WS1부터 R4 Meeting OS(엔진 B)의
+    actions[] 스키마도 받는다 — 8781 결과를 붙여넣으면 선행·차단 정보까지 그대로 살아온다.
+    상대 측(theirs)은 우리 조직의 분장이 아니므로 제외한다 — 남의 할 일을 우리 시트에 넣으면
+    지연 통계가 오염된다.
+
+    action_id는 등록 시 N열 출처ID 3번째 세그먼트로 들어가 회의록의 의존성 본문과 조인된다.
     """
     r = result if isinstance(result, dict) else {}
+    idx = _ML.action_index(r)      # 엔진 A/B 공통 형태의 선행·차단 인덱스
     out = []
-    for t in ((r.get("block_5_todos") or {}).get("ours") or []):
-        task = (str(t.get("task") or "")).strip()
+
+    acts = r.get("actions")
+    if isinstance(acts, list) and acts:      # ── 엔진 B (R4 Meeting OS)
+        for a in acts:
+            task = (str((a or {}).get("title") or "")).strip()
+            if not task:
+                continue
+            aid = str(a.get("id") or "").strip()
+            d = idx.get(aid) or {}
+            out.append({"assignee": (str(a.get("suggestedOwner") or "")).strip(),
+                        "task": task, "due": _PV.norm_due(a.get("deadline")),
+                        "action_id": aid, "depends_on": d.get("depends_on") or [],
+                        "blocking": d.get("blocking") or []})
+        return out[:30]
+
+    for i, t in enumerate(((r.get("block_5_todos") or {}).get("ours") or []), 1):
+        task = (str((t or {}).get("task") or "")).strip()
         if task:
+            d = idx.get(f"A{i}") or {}
             out.append({"assignee": (str(t.get("assignee") or "")).strip(),
-                        "task": task, "due": _PV.norm_due(t.get("due"))})
-    if not out:  # 레거시 스키마 — owner/due 키
+                        "task": task, "due": _PV.norm_due(t.get("due")),
+                        "action_id": f"A{i}", "depends_on": d.get("depends_on") or [],
+                        "blocking": d.get("blocking") or []})
+    if not out:  # 레거시 스키마 — owner/due 키 (의존성 개념 없음)
         for t in (r.get("todos") or []):
             task = (str(t.get("task") or "")).strip()
             if task:
                 out.append({"assignee": (str(t.get("owner") or "")).strip(),
-                            "task": task, "due": _PV.norm_due(t.get("due"))})
+                            "task": task, "due": _PV.norm_due(t.get("due")),
+                            "action_id": "", "depends_on": [], "blocking": []})
     return out[:30]
+
+
+def _attach_deps(assigns):
+    """회의 출처 분장에 선행·차단 정보를 붙인다 (WS1). 같은 회의 문서는 1회만 읽는다.
+
+    표시 전용 — 어떤 상태 전이도 막지 않는다(G9 의존성 엔진은 도입 보류 유지).
+    """
+    cache = {}
+    for a in assigns or []:
+        try:
+            d = _ML.deps_for(a, DOC_DIR, _PV, cache)
+        except Exception:
+            d = None
+        if d:
+            a["deps"] = d
+            a["deps_text"] = _ML.deps_summary(d)
+            a["deps_blocking"] = _ML.has_blocking(d)
+    return assigns
 
 
 def _doc_action_index(pid, assigns=None):
@@ -619,7 +673,7 @@ MEETING_SUMMARY_PROMPT = """너는 ARISA, Project Rent의 프로젝트 사고 �
   }],
   "block_4_decisions": [{"decision": "확정 사항", "detail": "부연"}],
   "block_5_todos": {
-    "ours": [{"assignee": "담당", "task": "할 일", "due": "기한 또는 미정"}],
+    "ours": [{"assignee": "담당", "task": "할 일", "due": "기한 또는 미정", "depends_on": ["같은 회의 안의 다른 할 일 문구 — 그것이 먼저 끝나야 이 일을 시작할 수 있는 경우만. 추측하지 말고 회의에서 선후관계가 실제로 언급됐을 때만. 없으면 빈 배열"], "blocked_by": "외부 자료·승인·회신을 못 받으면 이 일이 멈추는 경우 그 조건 한 줄. 없으면 빈 문자열"}],
     "theirs": [{"assignee": "담당", "task": "할 일", "due": "기한 또는 미정"}]
   },
   "open_items": [{"item": "미해결", "status": "상태"}],
@@ -1751,6 +1805,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .td-row select,.td-row input[type=date]{background:var(--bg-3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 10px;font-size:12px;font-family:inherit}
 .td-row .td-del{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;width:32px;height:34px;cursor:pointer;font-size:16px;flex-shrink:0}
 .mw-card{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:12px 15px;margin-bottom:7px}
+.mw-deps{font-size:11.5px;color:var(--muted);margin-top:4px;padding-left:2px;line-height:1.5}
+.mw-deps-block{color:#FF7675}
 .mw-card .t{font-size:14px;font-weight:500}
 .mw-card .m{font-size:12px;color:var(--muted);margin-top:4px}
 .mw-badge{font-size:11px;border-radius:5px;padding:1px 7px;margin-left:8px}
@@ -2092,13 +2148,20 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           h+='<div class="mw-h">📌 진행 상황 · 이번 주 중요 프로젝트 <span class="sub2">보고·분장 활동 상위 '+PS.length+'개</span></div>';
           PS.forEach(function(s){
             var chips='';
+            // WS3c — 신호등: 분장 이행이 말하는 상태. 회색(⚪)은 '판정 보류'이며 색을 칠하지 않는다.
+            var SIG={red:'🔴',amber:'🟡',green:'🟢',gray:'⚪'};
+            if(s.signal) chips+='<span class="mw-badge" title="'+esc(s.signal_why||'')+'">'
+              +SIG[s.signal]+' '+esc(s.signal_why||'')+'</span> ';
             if(s.decisions) chips+='<span class="mw-badge mw-urgent">결정 '+s.decisions+'</span> ';
-            if(s.overdue) chips+='<span class="mw-badge" style="background:var(--amber,#D9A34B);color:#1A1A1A">지연 '+s.overdue+'</span> ';
             if(s.awaiting) chips+='<span class="st-wait">승인 대기 '+s.awaiting+'</span> ';
             var pr=s.task_total?(' · 진행 '+s.percent+'%'):'';
+            // 선언(brief.status)과 자동 판정이 어긋나면 PM에게 선언 갱신을 요구한다
+            var mm=s.declared_mismatch
+              ? '<div class="mw-deps">선언 '+esc(s.status)+' ↔ 자동 🔴 — 프로젝트 상태 갱신 필요</div>' : '';
             h+='<div class="mw-card"><div class="t">'+esc(s.name)+' '+chips+'</div>'
               +'<div class="m">PM '+esc(s.pm||'미지정')+' · 이번주 활동 '+s.week+'건 · 완료 '+s.done
-              +pr+(s.dday?(' · D-day '+esc(s.dday)):'')+(s.status?(' · '+esc(s.status)):'')+'</div></div>';
+              +pr+(s.dday?(' · D-day '+esc(s.dday)):'')+(s.status?(' · '+esc(s.status)):'')+'</div>'
+              +mm+'</div>';
           });
         }
         // ⑥ 완료 승인 대기 (대표 차례만) — 프로젝트별 그룹핑
@@ -2848,7 +2911,14 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       act+=mwSunBtn(a)+mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 수정·삭제 + 오늘 선언(갭C)
     }
     if(withAssignee && a.row && canDel){ act+=mwInlineSel(a)+mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a); }  // B2 — 인라인 상태·담당자
-    return '<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+mwOvBadge(a)+mwSrcChip(a)+act+'</div><div class="m">'+who+dl+'</div></div>';
+    return '<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+mwOvBadge(a)+mwSrcChip(a)+act+'</div><div class="m">'+who+dl+'</div>'+mwDepsChip(a)+'</div>';
+  }
+  function mwDepsChip(a){
+    // WS1 — 회의에서 나온 선후관계·차단 요인. 표시만 한다(진행·완료를 막지 않는다).
+    // 회의 출처가 아니거나 회의록에 선행·차단이 없으면 아무것도 붙지 않는다.
+    if(!a.deps_text) return '';
+    return '<div class="mw-deps'+(a.deps_blocking?' mw-deps-block':'')+'" title="회의록에서 자동 연결">'
+      +esc(a.deps_text)+'</div>';
   }
   function mwSrcChip(a){
     // 갭A·B — 이 업무가 어디서 나왔는지. 출처가 없는 과거 행은 아무것도 붙지 않는다.
@@ -4327,6 +4397,24 @@ class H(BaseHTTPRequestHandler):
         sess = self._gate(path)
         if sess is None:
             return
+        # HR 포털 SSO — 로그인한 사용자의 신원을 서명 티켓으로 넘긴다.
+        # 세션 검증은 위 _gate가 이미 했다(쿠키 없으면 여기 못 옴).
+        if path == "/sso/hr":
+            if not ARISA_SSO_SECRET:
+                # 시크릿 미설정 → 기존 동작(평문 URL)으로 폴백
+                return self._send(302, b"", "text/plain; charset=utf-8",
+                                  {"Location": HR_PORTAL_URL})
+            name = sess.get("name") or ""
+            role = (load_users().get(name) or {}).get("role", "")
+            try:
+                t = _sso_ticket.issue_hr(name, role, ARISA_SSO_SECRET)
+            except Exception as e:
+                print(f"[sso] 티켓 발급 실패({name}): {e}", flush=True)
+                return self._send(302, b"", "text/plain; charset=utf-8",
+                                  {"Location": HR_PORTAL_URL})
+            return self._send(302, b"", "text/plain; charset=utf-8",
+                              {"Location": f"{HR_PORTAL_URL}/sso/arisa?t={quote(t)}",
+                               "Referrer-Policy": "no-referrer"})
         if path.startswith("/r4"):
             # R4(회의분석 Pro) — 대표 회의 세션 데이터 포함 → admin 세션만 (tailnet 직결 8781은 별도)
             if not sess.get("admin"):
@@ -4617,6 +4705,7 @@ class H(BaseHTTPRequestHandler):
             uid = (q.get("user") or [""])[0]
             mine = [a for a in _assign_read() if a["assignee"] == uid and a["status"] not in _ASSIGN_HIDDEN_STATES]
             mine.sort(key=lambda a: (_ST.is_assign_done(a["status"]), a["status"] != "진행중", a.get("deadline") or "9999"))
+            _attach_deps(mine)   # WS1 — 회의에서 나온 선행·차단을 카드에 표시(진행은 막지 않는다)
             projs = []
             for p in load_projects():
                 ts = [t for t in (p.get("tasks") or []) if t.get("owner") == uid
@@ -4683,7 +4772,10 @@ class H(BaseHTTPRequestHandler):
                 p = _resolve_project_cached(a, all_projs)
                 if p and st not in _ST.ASSIGN_DROPPED_STATES:
                     e = act.setdefault(p.get("id") or p.get("name"), {"p": p, "week": 0, "done": 0,
-                                                                      "overdue": 0, "awaiting": 0})
+                                                                      "overdue": 0, "awaiting": 0,
+                                                                      "open": []})
+                    if st in _ST.ASSIGN_OPEN_STATES:
+                        e["open"].append(a)   # WS3a — 신호등 판정 입력(열린 분장)
                     ds = (a.get("date") or "").strip()[:10]
                     if ds >= wk_start.isoformat():
                         e["week"] += 1
@@ -4822,12 +4914,20 @@ class H(BaseHTTPRequestHandler):
                 p = e["p"]
                 ru = _ST.task_rollup(p.get("tasks"))
                 brief = p.get("brief") or {}
+                # WS3a·WS3c — 데이터가 말하는 상태(신호등)와 PM이 선언한 상태(brief.status)를
+                # 나란히 둔다. 자동으로 덮어쓰지 않는다 — 사람의 판단을 시스템이 지우지 않는다.
+                sig = _ST.project_signal(p, e.get("open"))
+                declared = (brief.get("status") or "").strip()
+                mismatch = bool(declared in ("On Track", "In Progress")
+                                and sig["grade"] == "red")
                 summary.append({"id": p.get("id"), "name": p.get("name"), "pm": p.get("pm") or "",
-                                "status": brief.get("status") or "", "dday": p.get("dday") or "",
+                                "status": declared, "dday": p.get("dday") or "",
                                 "week": e["week"], "done": e["done"], "overdue": e["overdue"],
                                 "awaiting": e["awaiting"],
                                 "decisions": dec_by_proj.get(p.get("name") or "", 0),
-                                "percent": ru["percent"], "task_total": ru["total"]})
+                                "percent": ru["percent"], "task_total": ru["total"],
+                                "signal": sig["grade"], "signal_why": sig["why"],
+                                "signal_score": sig["score"], "declared_mismatch": mismatch})
             summary.sort(key=lambda s: (-s["week"], -s["overdue"]))
             summary = summary[:4]
             # R4 3차 — 오늘의 핵심 할 일 (가이드 §6-1): 대표의 하루 행동 기준 4~6개 랭킹.
@@ -4903,6 +5003,7 @@ class H(BaseHTTPRequestHandler):
                     assigns.append(a)
             assigns.sort(key=lambda a: (_ST.is_assign_done(a["status"]), a["status"] != "진행중",
                                         a.get("deadline") or "9999", a.get("assignee") or ""))
+            _attach_deps(assigns)   # WS1 — 팀 목록도 같은 카드(mwAssignCard)를 쓴다
             # 받은 업무 출처 라벨 (L열 등록자) — 과거 행(공란)은 종전 표기 유지 (2026-07-20)
             for a in assigns:
                 by = (a.get("by") or "").strip()
@@ -5255,9 +5356,13 @@ class H(BaseHTTPRequestHandler):
                 a_it = {"assignee": assignee, "task": task,
                         "deadline": _PV.norm_due(it.get("due") or it.get("deadline")),
                         "priority": _ST.norm_priority(it.get("priority"))}
+                # WS1 — 액션ID를 출처ID 3번째 세그먼트로 남긴다. 회의록의 선행·차단 본문과
+                # 액션 단위로 조인하기 위한 키다(업무명 조인은 업무명 편집에 깨진다).
                 ok, msg = _assign_append(a_it["assignee"], task, a_it["deadline"],
                                          a_it["priority"], who, project=pname,
-                                         source=_PV.SRC_MEETING, source_ref=ref)
+                                         source=_PV.SRC_MEETING,
+                                         source_ref=_PV.meeting_ref(pid, ts,
+                                                                    it.get("action_id") or ""))
                 if ok:
                     added += 1
                     existing.add(task)
@@ -5631,15 +5736,22 @@ class H(BaseHTTPRequestHandler):
                     return self._send(400, {"ok": False, "error": "종료 사유(reason)를 입력해주세요"})
             elif not (assignee == uid or _can_approve(uid, assignee)):
                 return self._send(403, {"ok": False, "error": "본인 분장만 변경할 수 있습니다"})
+            # WS2 — 상태 전이 게이트. 어휘 멤버십(위 :5604)만으로는 완료→미착수 역행이 통과했다.
+            # shadow 모드에서는 통과시키고 사유만 이력에 남긴다(3주 위반 실측 후 enforce).
+            from_st = _ST.norm_assign_status(r[7])
+            g_ok, g_why = _ST.check_transition(from_st, new_st, "dashboard", admin=is_admin(uid))
+            if not g_ok:
+                return self._send(400, {"ok": False, "code": "transition",
+                                        "error": "상태 전이 불가: " + g_why})
             try:
                 ok = _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!H{row}", [[new_st]], timeout=20)
             except Exception as e:
                 return self._send(500, {"ok": False, "error": str(e)[:80]})
             if not ok:
                 return self._send(500, {"ok": False, "error": "시트 업데이트 실패"})
-            _log_st("dashboard", uid, new_st, from_status=_ST.norm_assign_status(r[7]), row=row,
+            _log_st("dashboard", uid, new_st, from_status=from_st, row=row,
                     date=(r[0] or "").strip(), project=(r[1] or "").strip(), pid=(r[10] or "").strip(),
-                    task=task, assignee=assignee, reason=reason,
+                    task=task, assignee=assignee, reason=reason, note=_ST.transition_note(g_why),
                     approved_by=uid if new_st in _ST.ASSIGN_TERMINAL_STATES + ("승인",) else "")  # G5 — 상태 전이 이력
             recorded = False
             notified = 0
@@ -5690,6 +5802,13 @@ class H(BaseHTTPRequestHandler):
             pname = (proj or {}).get("name") or assign["project"] or "기타"
 
             def _set_st(new_st, reason="", approved=""):
+                # WS2 — 승인 체인의 단일 초크포인트(반려·검토 통과·PM 클리어 7선택지가 모두 여기를
+                # 지난다). 정상 승인 흐름은 전부 허용 테이블에 있음을 회귀 테스트로 고정해 두었다
+                # (tests/test_status_transitions.py §3) — 여기서 차단이 뜨면 데이터 이상 신호다.
+                g_ok, g_why = _ST.check_transition(cur_st, new_st,
+                                                   "dashboard", admin=is_admin(uid))
+                if not g_ok:
+                    return "상태 전이 불가: " + g_why
                 try:
                     ok2 = _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!H{row}", [[new_st]], timeout=20)
                 except Exception as e2:
@@ -5699,7 +5818,9 @@ class H(BaseHTTPRequestHandler):
                 _log_st("dashboard-" + ("review" if path.endswith("assign-review") else "pm-clear"),
                         uid, new_st, from_status=cur_st, row=row, date=assign["date"],
                         project=assign["project"], pid=assign["pid"], task=task,
-                        assignee=assignee, note=comment, reason=reason, approved_by=approved)
+                        assignee=assignee, note=" ".join(x for x in (_ST.transition_note(g_why),
+                                                                     comment) if x),
+                        reason=reason, approved_by=approved)
                 return ""
 
             if path == "/api/assign-review":
@@ -5911,6 +6032,9 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True, "action": action, "applied": out["applied"], "project": p2})
         if path == "/api/assign-bulk-delete":
             # 체크리스트 일괄 삭제 — 스냅샷 1회 검증 후 행별 '삭제' 마킹 (+포트폴리오 제거)
+            # WS2 — 전이 게이트를 붙이지 않는다: '삭제'는 모든 from에서 무조건 허용이므로
+            # (_ST.can_transition 특례) 게이트를 통과할 뿐이고, 최대 200건에 검사를 걸면
+            # 정리 작업이 부분 실패로 갈린다.
             items = b.get("items") or []
             if not items or len(items) > 200:
                 return self._send(400, {"ok": False, "error": "items 확인(1~200건)"})
@@ -6023,6 +6147,8 @@ class H(BaseHTTPRequestHandler):
             src["archived"] = True
             save_project(dst)
             save_project(src)
+            # WS2 — '병합'은 ASSIGN_STATES 밖의 의사(pseudo) 상태이며 시트 H열을 쓰지 않는
+            # 로그 전용 호출이다. 여기에 전이 게이트를 감싸면 프로젝트 병합이 막힌다.
             _log_st("project-merge", uid, "병합", project=src.get("name") or src_id, pid=src_id,
                     note=f"→ {dst.get('name') or dst_id}({dst_id}) 흡수 병합 · tasks {moved}건 이관",
                     approved_by=uid)
