@@ -826,3 +826,142 @@ engine_d에 실제와 유사한 보고 블록 3건(결정+승인권자 명시·�
 - 유닛 +16 ✓ (유형 정규화·분포·set_type O열 한정·목록밖 거부·구행 14칸 하위호환, 산출물 매칭 rep 이상값 안전, set_result G열 한정)
 - 기존 6개 스위트 전부 통과(갭A E2E는 시트 칸수 기대값 14→15 갱신 — 의도된 스키마 확장)
 - 실데이터 회귀: 129행·열린 80·지연 47·누락 32 불변, 유형 분포 = 미분류 94(신규 등록분부터 채워짐)
+
+## 2026-07-27 — GitHub 스킬 채굴 이식 (WS1·WS2·WS3·WS4) · 로컬 완료, 맥미니 배포 대기
+
+**배경**: "GitHub에 노션처럼 업무관리 특화된 스킬·솔루션이 있나" 조사 → 자체 호스팅 앱(Plane 54.7k·AppFlowy 69.4k·Huly 26.9k)은 PR 보드+ARISA 통합 대시보드와 SSOT가 쪼개져 보류. 스킬 3종에서 로직만 차용.
+- [mattjoyce/kanban-skill](https://github.com/mattjoyce/kanban-skill) (Apache-2.0) — 차용은 `blocked_by` 필드가 아니라 **"게이트를 데이터 규칙으로 강제한다"는 사상**
+- [rampstackco/claude-skills](https://github.com/rampstackco/claude-skills) `stakeholder-communication` (MIT) — 나쁜 소식 5항목·헤드라인 완화 금지·역피라미드
+- [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) `senior-pm` — 프로젝트 헬스 파생 스코어·RAG·추세
+
+### 실측으로 뒤집힌 전제 3건 (착수 전 가정 → 조사 결과)
+1. **"매주 월요일 상태가 되돌아가고 있다" → 잠재 파손이었다.** `weekly-report-aggregate.update_assignment_status_in_sheet`의 역기입 예외가 `미착수` 하나뿐인 것은 사실이나(코드 경로 열림), 감사 결과 시트 상태 분포가 미착수 69·삭제 34·완료 17·진행중 7·승인 2로 **검토중·승인대기·보류가 0건**이었다(R4 1차 07-25 도입 상태가 아직 실사용 전). `match_assignments_to_daily`가 완료·승인을 skip하고 `fetch_assignments`가 DROPPED를 제외하므로 현재 데이터에서는 발현되지 않는다. → R4 승인 흐름이 쓰이기 시작하는 순간 터진다. **보호 대상 데이터가 아직 없는 지금이 게이트 도입에 가장 안전한 시점.**
+2. **회의 의존성은 "소실"이 아니라 미추출+미연결이었다.** 시뮬레이터가 2개다 — 엔진 A(`dashboard-server.py` `block_5_todos.ours`, 시트로 실제 등록)는 dependencies 필드가 **없고**, 엔진 B(`meeting-simulator-server.py:309` `actions[].dependencies`, 8781)는 시트로 가는 경로가 **없다**. `dashboard-server.py`의 `dependencies` grep 0건이 이 때문.
+3. **프로젝트 헬스 입력이 "없다"보다 나쁜 "뜻이 다르다"였다.** `end`/`dday`는 21개 중 20개가 등록 주(7/16~22) 기준 짧은 창, `tasks.progress`는 자동 생성 골격이라 대부분 0% → 이 둘로 5차원을 계산하면 **20/21이 빨강**(정보 0). budget+actual 동시 기재 1/21, brief.risk 3/21, brief.status **21/21이 "In Progress"**(= 죽은 필드), status_log 1줄.
+
+### WS2 — 상태 전이 게이트 (최우선, shadow)
+- `shared/status.py`: `TRANSITIONS`(사람 13상태) · `AUTO_TRANSITIONS`(자동 4전이만) · `ADMIN_ONLY`(승인→진행중·완료·검토중) · `AUTO_SOURCES`/`CONFIRMED_SOURCES` · `source_class`/`transition_mode`/`can_transition`/`check_transition`/`transition_note`
+  - **fail-open**: 어휘 밖 from/to는 항상 통과 (구 데이터로 운영이 멈추는 사고 배제)
+  - `*→삭제` 무조건 허용 (bulk-delete 200건·프로젝트 삭제 보호)
+  - `report_score.current_mode()` 동형 — `ENFORCE_FROM=2026-08-17`, env `ARISA_TRANSITION_MODE`(shadow|enforce|off) 킬스위치
+  - shadow는 위반이어도 쓰기를 통과시키고 사유만 `[transition-shadow]` note로 남긴다 → 호출측 분기가 `ok` 하나뿐이라 **enforce 플립에 코드 변경 없음**
+- `shared/assign_sheet.py`: `set_status_guarded` (게이트→쓰기, 로깅은 호출측 — 경로별 필드가 다르고 `_log_st` 이중기록 방지)
+- 연결 5경로: `/api/assign-status`(400 `code:transition`) · `_set_st` 클로저(반려·검토통과·PM클리어 7선택지 단일 초크포인트) · `daily-brief` 자동전이 루프 + `_pick`의 want_from을 **`AUTO_TRANSITIONS`에서 유도**(손으로 적으면 두 곳이 어긋난다) · `weekly` `update_assignment_status_in_sheet`(+`dry_run`, 차단 카운트 반환) · 봇 `on_status_sync_click`(승인대기·검토중이면 "리더 검토를 기다리는 중이에요")
+- 게이트를 **붙이지 않은** 곳에 주석 명시: bulk-delete(`*→삭제`) · `project-merge`의 `to="병합"`(어휘 밖 의사 상태·시트 미기록 로그 전용)
+- 검증: `tests/test_status_transitions.py` **51/51** — 전이 12케이스 + 모드 전환 + **PM_CLEAR_EFFECTS 7선택지 전량 회귀**(게이트가 승인 체인을 죽이면 최악) + 테이블 정합(AUTO ⊆ 사람)
+- 감사: `migration/audit-assign-status.py`(읽기 전용) → **어휘 밖 값 0건 = 마이그레이션 불필요 확정**, status_log 리플레이 위반 0건
+
+### WS1 — 회의 의존성 (표시만 · G9 엔진은 보류 유지)
+- **신규 `shared/meeting_link.py`**: `load_result`/`action_index`(엔진 A·B 양쪽 스키마 수용, B의 dependencies는 ID→제목 변환)/`deps_for`(캐시 주입)/`deps_summary`/`has_blocking`
+- **저장하지 않는다**: 의존성 본문은 이미 `DOC_DIR/<pid>/<ts>.json`의 `doc["result"]`에 있고 조회 키도 N열에 있다. 시트 열 추가 0·프로젝트 JSON 변경 0 — 회의록이 회의 정보의 SSOT
+- `shared/provenance.py`: `meeting_ref(pid, ts, action_id="")` 3세그먼트 + `parse_meeting_ref3`. 액션ID는 `^[A-Z]\d{1,3}$`만 허용(자유 텍스트 유입 차단)
+- **하위호환 필수 조치**: `_meeting_actions`의 `source_ref == ref` 문자열 동등 비교 → `parse_meeting_ref3(...)[:2]` 비교. 안 바꾸면 3세그먼트 신규 액션이 회의 실행률 롤업에서 조용히 빠진다
+- 엔진 A 프롬프트 `block_5_todos.ours`에 선택 필드 2개(`depends_on`·`blocked_by`, 없으면 빈 배열/빈 문자열) · `_meeting_todo_candidates`가 엔진 B `actions[]`도 파싱 · `/api/meeting-actions`가 액션ID를 N열에 기록
+- `_attach_deps` → my-work·lead-home 주입(같은 (pid,ts) 1회만 읽음) · `mwDepsChip` 칩 + `.mw-deps` CSS
+- 검증: `tests/test_meeting_link.py` **35/35** — 엔진 A/B 픽스처 · 존재하지 않는 참조 무시 · **레거시 2세그먼트 왕복** · 업무명 편집 시 액션ID가 조인을 지킴 · 캐시 1회
+- ⚠️ 현재 `project-docs/` 폴더 없음 = 회의 제출 이력 0건 → **첫 회의 제출 시점부터 실효**
+
+### WS3 — 프로젝트 신호등 + ReportScore 추세
+- `shared/status.py:project_signal` — **분장 이행 기준**(지연 건수·최장 경과일·미해결 이슈). 🔴 지연 3건↑/최장 14일↑ · 🟡 지연 1~2/최장 7일↑/이슈 5건↑ · 🟢 지연 없음 · ⚪ 열린 분장 0건=판정 보류(색 안 칠함). `HEALTH_WEIGHTS` 5차원은 정의로 보존(확장 슬롯), `signal_missing`이 결측 축을 회색 라벨로 노출
+  - 실측 분포: **red 5 · amber 8 · green 2 · gray 6** (여수 섬 박람회 지연 14/18건이 최악)
+- 대표창 ⑤ 진행상황에 신호등 칩 + **`선언 On Track ↔ 자동 🔴` 불일치 배지**(brief.status 자동 덮어쓰기 없음 — 사람의 판단을 지우지 않는다). 지연 칩은 신호등 why와 중복이라 제거
+- weekly는 주간 스코프만 읽어 신호등이 오해를 만들므로 **대시보드에만 적용**(간트 컬러바·statbar 타일은 도입 안 함)
+- ReportScore: 메타 읽기 `A2:L`→**`A2:O`**, `_rec`에 score/report_type/score_mode, `_score_stats`/`_prev_week_data`/`_attach_score_trend`, `_score_row` 표시(`body.is-admin` 게이트 재사용), 텔레그램은 팀 평균만
+  - 결번(W29·W30) → 추세 생략 / mode 상이 → `delta=None` + "채점 기준 변경 — 비교 생략"(strict 전환 오독 방지) / |Δ|≤5 = 보합
+  - **첫 실측 W30 생성**(3주 만): 채점 95건·전체 평균 44·A 50(n=50)/B 68(n=7)/C 72(n=6)·파트 평균 65~71·개인 40~78
+
+### WS4 — 나쁜 소식 전달
+- `27-team-ops-guide/team-ops-guide-v1.html` **규칙 ⑥ 신설**(2026-07-27 확정): 헤드라인 완화 금지 + 금지 완충어(=`report_score.RUBRIC_RULES_STRICT`와 **같은 목록** — 채점기와 가이드가 다른 말을 하면 학습이 안 된다) + 5항목 구조 + 에스컬레이션 임계값(`approval-rules.json`이 SSOT, 표는 반영)
+- `daily-brief-aggregate.py`: `BRIEF_PROMPT` anomaly ⑤(나쁜 소식 매장 — 부정 정보가 긍정 서술 종속절에 묻힘) ⑥(완화 어휘로만 서술된 리스크) 추가 · `_stagnant_assigns` **결정론적** 정체 감지(LLM 아님 — 정체는 날짜 산수)
+- `_telegram_brief` → `_brief_message` 분리 + **역피라미드**: 헤드라인(이미 `data["headline"]`에 있었으나 HTML에만 쓰였다 — 배관만 연결) → `▶ 지금 하나`(별도 랭킹 없이 `sort_items` 1순위 = 대표창과 같은 답) → 카운트(0 범주 생략) → `그 다음` top5[1:]. headline 빈값이면 L1 생략(빈 줄이 첫 줄 되는 사고 방지). `--no-telegram` 시 메시지 stdout 출력
+- 검증: `tests/test_ops_guide_thresholds.py` **24/24**(문서 임계값 ↔ approval-rules.json 대조)
+- `_stagnant_assigns` 실측 0건 — 코드 정상이나 지연 46건의 **최장 경과가 10일**이라 14일 임계 미달(며칠 내 발현). 마감 미기재 16건은 기존 미지정 큐가 잡는 별건
+
+### 열린 항목
+- **맥미니 배포 미실행** — 로컬만 반영. 대상: `shared/{status,assign_sheet,provenance,meeting_link}.py` + `dashboard-server.py` + `daily-brief-aggregate.py` + `weekly-report-aggregate.py` + `daily-report-bot.py`. 배포 전 **베이스 해시 대조**(로컬≠맥미니 선례) · `py_compile` 3.9.6 · dashboard+bot kickstart
+- **루트 `00-system/02-scripts/status.py`(5상태 구버전) 제거 보류** — 삭제 명령이 거부됨. `import status` 참조 0건이지만 `sys.path.insert(0, SCRIPTS)` 때문에 지금도 import가 성공하므로 맥미니 배포 시 혼동 위험. 백업 = scratchpad + git 이력
+- **Phase 6 (2026-08-17)**: shadow 3주 위반 실측 후 `ARISA_TRANSITION_MODE=enforce` plist env 1줄 플립(재배포 없음). report_score `GRACE_END`(10/20)와 겹치지 않게 앞으로 뺐다
+- **Phase 7 (2026-08-24 트리거)**: `status_log.stalled_since` = "3주 상태 변화 없음". **선행 조건 `load_history` ≥ 200건** — 미충족 시 착수하지 않는다(지금 만들면 항상 빈 배열인 죽은 코드)
+- Timeline·Budget·Quality 헬스 차원은 `brief.end` 실제 종료일 관리 + status_log 축적 후 opt-in
+
+### ⚠️ 배포 중단 — 맥미니가 58 커밋 뒤처져 있다 (2026-07-27 확인)
+전수 배포를 승인받아 착수했으나 **베이스 해시 대조 단계에서 중단**했다. 이번 변경분을 밀어 넣으면 실행 중인 봇이 깨질 수 있다.
+
+| 확인 항목 | 결과 |
+|---|---|
+| 맥미니 git HEAD | `9762222` (feat(shell): 입퇴사 온보딩 바로가기) — **로컬이 58 커밋 앞섬** |
+| 맥미니 미커밋 변경 | 307개 파일 (pull 안 된 상태 + 로컬 변경 혼재) |
+| `shared/status.py` | 맥미니 **93줄** = R4 이전 5상태 구버전 (로컬 HEAD 133줄 13상태) |
+| `dashboard-server.py` | 맥미니 **3572줄** vs 로컬 HEAD 6112줄 (2540줄 차이) |
+| 최신 마커 | `ASSIGN_TERMINAL_STATES`·`PM_CLEAR_CHOICES`·`sort_items`·`project_cards` 맥미니에 **전부 없음** |
+| 대시보드 서비스 | **맥미니에서 실행되지 않음** — `ps`/`launchctl`에 dashboard-server 없음 |
+| 실행 중인 것 | `com.arisa.daily-report-bot`(PID 9949, 구버전 코드) · zero-server · second-brain · watcher · cloudflared · basket.ops-bot |
+| LAN 접속 | `macmini`(192.168.219.249:22) 타임아웃 → `macmini-ts`(Tailscale)로만 접속됨 |
+
+**차단 사유**: 새 `shared/status.py`(전이 게이트·신호등)는 맥미니의 구버전 소비처(`dashboard-server.py` 3572줄, `ASSIGN_TERMINAL_STATES` 없음)와 맞지 않는다. shared만 넣으면 구 소비처가, 소비처만 넣으면 shared가 깨진다. 실행 중인 봇(9949)이 직접 영향을 받는다.
+
+**선행 작업 필요**: 이번 WS 배포가 아니라 **맥미니 58커밋 동기화**가 먼저다. 맥미니 미커밋 307개 파일의 정체 파악(맥미니 고유 작업인지 단순 dirty인지) → 커밋/스태시 판단 → pull → 서비스 재기동 순서. 별도 세션 권장.
+
+**정합성 경고**: 기존 progress·메모리에는 R4 1~5차와 정보기준 v1이 "맥미니 배포 완료"로 기록돼 있으나 **실제 맥미니 파일에는 반영돼 있지 않다**. 어느 시점부터 배포가 끊겼는지 확인이 필요하다(대시보드가 맥미니에서 돌지 않는 것과 같은 원인일 가능성).
+
+## 2026-07-27 — ARISA ↔ HR 포털 SSO 통합 (플랜: partitioned-beaming-turing)
+
+### 발단
+김도영님 HR 포털 로그인 불가 신고 → 조사 결과 비밀번호를 잊은 게 맞았으나 **셀프 리셋이 본인에게 도달할 수 없는 구조**였음(카카오워크 이메일 매칭 실패 → 대표 방으로만 폴백). 같은 점검에서 비밀번호 미설정 계정 2건(이메일만 알면 로그인 가능) 발견. → "HR 포털 별도 비밀번호 체계 자체가 사고 원인" 판단 → ARISA 로그인으로 통합.
+
+### 선행 조치 (SSO 이전)
+- 메신저 발송 채널 카카오워크 → **텔레그램 전환**: `messenger.provider=telegram`(settings), `TELEGRAM_BOT_TOKEN`=ARISA 일일보고봇, `OWNER_CHAT_ID` 등록
+  - ⚠️ 전환 전제가 전무했음 — 봇 토큰 미설정 + `telegram_chat_id` **0/13**. ARISA `arisa-employees.json`의 `by_telegram_id`에서 재직자 11명 백필
+  - 사용자 노출 문구를 provider 연동형으로 수정(`_messenger_label()`) → 토글 롤백 시 문구도 함께 되돌아감
+- 비밀번호 리셋·가이드 발송: 김도영·김준호·윤혜정 3명 (미설정 2건 해소 → 재직자 11/11 비번 설정)
+
+### SSO 아키텍처 — 서명 티켓 + 톱레벨 리다이렉트
+```
+ARISA 셸 "HR 포털" 탭 → window.open('/sso/hr')
+  → ARISA: arisa_sid 쿠키 검증(기존 _gate) → HS256 티켓 서명(TTL 90초, jti 1회용)
+  → 302 https://rent-hr-portal.fly.dev/sso/arisa?t=<jwt>   ← 톱레벨이라 SameSite=Lax 통과
+  → HR: 서명·exp·iss·aud·purpose 검증 + jti 소비 → arisa_name 매핑 → 세션 발급
+  → 303 /?sso=1 → SPA가 /api/me로 신원 복원
+```
+- **핵심 발견**: HR 탭이 원래 iframe이 아니라 `window.open` 새 탭이었음 → SameSite 우회·iframe 개조 불필요. 목적지 한 줄만 교체
+- cross-site fetch·iframe 미사용 → `SameSite=None` 완화 없음
+
+### 보안 정책 (대표 확정)
+- **admin ceiling**: SSO 진입 시 `admin`→`staff`로 낮춤. 대표 본인도 예외 없음. 전 직원 급여·주민번호는 기존 이메일+비밀번호 로그인 전용
+- **세션 수명**: `session.permanent=False` — 브라우저 종료 시 만료 (30일 상속 거부)
+- **권한은 티켓으로 넘기지 않음** — HR role은 항상 employees.json에서만. 티켓의 `arisa_role`은 로그용
+- fail-closed: 매핑 0건/중복/차단/name 누락 전부 세션 미생성 + `?sso_error=` 안내
+
+### 변경 파일
+| 위치 | 내용 |
+|---|---|
+| `00-system/02-scripts/shared/sso_ticket.py` | 신규 — HS256 서명기(stdlib만, `ensure_ascii=True`로 한글 sub 이스케이프) |
+| `00-system/02-scripts/dashboard-server.py` | `/sso/hr` 라우트, 탭·퀵링크 SSO 경유, PIN 정책 강화 |
+| HR `sso/{__init__,token,routes}.py` | 신규 블루프린트 — `onboard/token.py` 패턴 복제 |
+| HR `hr-portal-server.py` | 블루프린트 등록, `_PUBLIC_ENDPOINTS` 추가, **`/api/me` 신설** |
+| HR `settings.py` | `arisa_sso.secret`(마스킹) + `arisa_sso.enable`(기본 0) |
+| HR `portal-v2/components/App.jsx` | 부팅 하이드레이션 — localStorage를 SSOT→**캐시**로 강등 |
+| HR `Dockerfile` | `COPY sso ./sso` |
+| `/data/employees.json` | `arisa_name` 11명 백필 + role 정리 |
+
+### 실행·검증
+P0 매핑(11/11, 중복·NFD 0) → P1 다크배포 → P2 프런트 → P3 티켓검증 9종 → P4 ARISA 라우트 → P5 탭 전환 → P6 PIN 정책. 각 단계 독립 롤백.
+- 브라우저 실검증: 배성원·김도영·최원석 3계정 — 로그인창 없이 진입, 본인 이름 표시, 관리자 UI 미노출, 콘솔 에러 0
+- 이중 킬스위치: HR `ARISA_SSO_ENABLE=0`(30초) / ARISA `.env` 한 줄 삭제(평문 URL 폴백)
+
+### ⚠️ 사고 2건 (교훈)
+1. **리플레이 방지 실패** — jti 소비 세트를 인메모리 dict로 두었는데 gunicorn `--workers 2`라 워커가 다르면 같은 티켓이 통과. `/data` 볼륨 파일 + `flock`으로 전환, 저장소 오류 시 fail-closed. **검증에서 잡지 못했으면 그대로 나갈 뻔한 구멍**
+2. **맥미니 대시보드 다운(약 1분)** — 로컬 `dashboard-server.py`를 통째로 scp했는데 로컬본이 미배포 변경분(`shared/provenance`, `shared.status.is_overdue`)을 요구해 기동 실패. 백업 복원 후 **배포본에 SSO 부분만 패치**하는 방식으로 전환
+   → **교훈: 맥미니는 로컬보다 뒤처져 있다. 전체 복사 금지, 부분 패치할 것**
+
+### HR 권한 레벨 정리 (대표 지시)
+staff / lead / admin 체계로 가되 lead는 후속. **대표 외 전원 staff** — 배성원·전제훈 `manager`→`staff`(7/22 승인권 회수로 이미 staff와 동일 권한이었음), 최원석만 admin.
+
+### PIN 정책 강화
+최소 8자 + 숫자전용 거부 + 반복문자 거부 + 5회 실패 시 15분 잠금. 기존 PIN은 변경 시점부터 적용(강제 무효화 시 락아웃 우려).
+- 미충족 2명 중 대표 완료(11자 혼합, 옛 PIN 거부 확인) / **윤혜정 1명 잔여** → 텔레그램 안내 발송
+- `com.arisa.pin-policy-check` launchd 1회성 예약(**2026-07-30 09:00**): 미충족 시 본인 리마인드 + 대표 보고, 실행 후 자체 해제
+
+### 잔여 리스크
+- **퇴사처리 갭**: `/퇴사처리`가 HR 포털을 건드리지 않아 발급된 HR SSO 세션은 독립 생존. 브라우저 종료 만료 정책이 노출 창을 좁힘. 완전 차단하려면 HR `blocked` 처리 추가 필요
+- fly 머신 스케일아웃 시 jti 볼륨이 머신별 분리 → 리플레이 창 재개방 (현재 1대)

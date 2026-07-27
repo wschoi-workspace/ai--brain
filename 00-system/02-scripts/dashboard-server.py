@@ -2956,7 +2956,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   }
   function changePin(){
     var cur=prompt('현재 PIN을 입력하세요'); if(!cur) return;
-    var nw=prompt('새 PIN (4자 이상)'); if(!nw) return;
+    var nw=prompt('새 PIN (8자 이상, 숫자만은 불가)'); if(!nw) return;
     fetch('/api/set-pin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:SESS.name,pin:cur,new_pin:nw})})
       .then(function(r){return r.json();}).then(function(d){
         if(d.ok){ SESS.pin=nw; var j=JSON.stringify(SESS); SESS_KEYS.forEach(function(k){localStorage.setItem(k,j);}); alert('PIN이 변경되었습니다'); }
