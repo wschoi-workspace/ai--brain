@@ -97,6 +97,14 @@ def main():
     issues = []
 
     # 1) 오늘자 브리프
+    # 브리프 배치는 07:30, 주간은 월 08:30에 돈다. 그 전에 점검하면 "아직 안 만들어진 것"을
+    # 소실로 오인한다(2026-07-28 00:34 수동 실행에서 실제 오탐). 예약 실행은 10:00·18:00이라
+    # 정상 운영에선 걸리지 않지만, 수동 실행 대비 가드를 둔다.
+    BATCH_DONE_HOUR = 9
+    if datetime.now().hour < BATCH_DONE_HOUR:
+        print(f"[guard] {datetime.now():%m/%d %H:%M} 배치 시간 전({BATCH_DONE_HOUR}시) — 브리프·주간 점검 생략", flush=True)
+        return 0
+
     bf = os.path.join(BRIEF, f"daily-brief-{today.isoformat()}.html")
     if not os.path.exists(bf):
         issues.append(f"오늘자 브리프 없음 — daily-brief-{today.isoformat()}.html")
