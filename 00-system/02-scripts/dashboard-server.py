@@ -8,7 +8,7 @@ PM이 수정하면 서버에 저장되어 대표·팀원 모두 같은 데이터
 권한:   대표=전체 열람·수정·생성·삭제 / PM=본인 프로젝트 수정 / 직원=배정 프로젝트 열람
 실행:   python3 dashboard-server.py [port]   (기본 8780, 127.0.0.1 — cloudflared 터널로 arisa-os.com 노출)
 """
-import json, os, re, secrets, sys, threading, time, datetime
+import json, os, re, secrets, shutil, sys, threading, time, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, quote
 from urllib.request import urlopen, Request
@@ -3785,13 +3785,15 @@ def _open_assigns(p):
     return sorted(out, key=lambda x: x["deadline"] or "9999")
 
 
-def _archive_log(pid, name, by, action, retro=None):
-    """아카이브 전이 기록 (P1) — DATA/archive-log.jsonl append. 90-archive 풀 스크립트의 소스."""
+def _archive_log(pid, name, by, action, retro=None, **extra):
+    """아카이브·삭제 전이 기록 (P1) — DATA/archive-log.jsonl append. 90-archive 풀 스크립트의 소스.
+    extra: snapshot·tasks·pm 등 부가 정보(빈 값은 기록하지 않음)."""
     try:
         entry = {"ts": datetime.datetime.now().isoformat(timespec="seconds"),
                  "pid": pid, "name": name or "", "by": by, "action": action}
         if retro:
             entry["retro"] = retro
+        entry.update({k: v for k, v in extra.items() if v not in (None, "")})
         with _lock:
             with open(DATA / "archive-log.jsonl", "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry, ensure_ascii=False) + "\n")
@@ -6395,9 +6397,28 @@ class H(BaseHTTPRequestHandler):
                                     assignee=a.get("assignee") or "")  # G5
                     except Exception:
                         pass
+            # 삭제 전 스냅샷 + 감사 기록 (2026-07-28).
+            # 그동안 삭제만 아무 흔적도 남기지 않아(아카이브·병합은 archive-log 기록),
+            # 사라진 프로젝트를 "언제 누가 왜 지웠는지" 추적할 수 없었다.
+            # ('중기 팝업스토어' 유실 조사에서 드러난 구멍 — 파일도 로그도 남지 않았다)
             f = PROJ_DIR / f"{_safe(pid)}.json"
-            if f.exists(): f.unlink()
-            return self._send(200, {"ok": True, "assigns_deleted": assigns_deleted})
+            snap = ""
+            if f.exists():
+                try:
+                    tdir = PROJ_DIR / "_trash"          # glob("*.json") 대상이 아니라 목록에 안 잡힘
+                    tdir.mkdir(parents=True, exist_ok=True)
+                    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+                    snap_path = tdir / f"{_safe(pid)}.{stamp}.json"
+                    shutil.copy(f, snap_path)
+                    snap = snap_path.name
+                except Exception as e:  # 스냅샷 실패가 삭제를 막지는 않되, 로그에 남긴다
+                    snap = f"snapshot-failed: {e}"
+                f.unlink()
+            _archive_log(pid, p.get("name"), uid, "delete", snapshot=snap,
+                         pm=p.get("pm") or "", tasks=len(p.get("tasks") or []),
+                         issues=len(p.get("issues") or []), assigns_deleted=assigns_deleted)
+            return self._send(200, {"ok": True, "assigns_deleted": assigns_deleted,
+                                    "snapshot": snap})
         return self._send(404, {"ok": False, "error": "not found"})
 
 if __name__ == "__main__":
