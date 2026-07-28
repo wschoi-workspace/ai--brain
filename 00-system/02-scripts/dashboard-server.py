@@ -1387,6 +1387,57 @@ function buildMeetingDoc(){
   return docShell(title,b);
 }
 window.buildMeetingDoc=buildMeetingDoc;
+// 내려받는 HTML 자체에 편집 툴바를 심는다 — 파일을 브라우저로 열면 바로 고치고 다시 저장할 수 있다.
+// 서버 저장·재업로드 경로를 두지 않으므로 편집물은 사용자 로컬 파일에만 존재한다(XSS 표면 없음).
+function mtEditableDoc(html){
+  if(!html) return '';
+  var css='<style id="ae-css">'
+    +'#ae-bar{position:fixed;top:12px;right:12px;z-index:99999;display:flex;gap:8px;align-items:center;'
+    +'background:#1A1A1A;color:#fff;border-radius:10px;padding:8px 12px;box-shadow:0 4px 18px rgba(0,0,0,.28);'
+    +'font:600 12px/1.2 -apple-system,BlinkMacSystemFont,Pretendard,"Malgun Gothic",sans-serif}'
+    +'#ae-bar .ae-t{opacity:.55;font-weight:700;letter-spacing:.04em;font-size:10px}'
+    +'#ae-bar button{font:inherit;cursor:pointer;border:0;border-radius:7px;padding:6px 10px;background:#6C5CE7;color:#fff}'
+    +'#ae-bar button:hover{filter:brightness(1.12)}'
+    +'#ae-bar #ae-stat{opacity:.75;font-weight:500;min-width:96px}'
+    +'#ae-doc[contenteditable="true"]{outline:2px dashed #6C5CE7;outline-offset:8px}'
+    +'@media print{#ae-bar{display:none!important}#ae-doc[contenteditable="true"]{outline:0}}'
+    +'</style>';
+  var bar='<div id="ae-bar"><span class="ae-t">ARISA</span>'
+    +'<button type="button" id="ae-toggle">✏️ 편집 켜기</button>'
+    +'<button type="button" id="ae-save">💾 저장(내려받기)</button>'
+    +'<span id="ae-stat">읽기 전용</span></div>';
+  var js='<script id="ae-js">(function(){'
+    +'var doc=document.getElementById("ae-doc"),tg=document.getElementById("ae-toggle"),'
+    +'sv=document.getElementById("ae-save"),st=document.getElementById("ae-stat");'
+    +'if(!doc||!tg||!sv||!st)return;var on=false,dirty=false;'
+    +'function p(n){return (n<10?"0":"")+n;}'
+    +'function setOn(v){on=v;doc.contentEditable=v?"true":"false";'
+    +'tg.textContent=v?"✏️ 편집 끄기":"✏️ 편집 켜기";'
+    +'st.textContent=dirty?"수정됨 — 저장 안 함":(v?"편집 중":"읽기 전용");}'
+    +'tg.addEventListener("click",function(){setOn(!on);});'
+    +'doc.addEventListener("input",function(){dirty=true;st.textContent="수정됨 — 저장 안 함";});'
+    +'sv.addEventListener("click",function(){'
+    +'var wasOn=on;setOn(false);st.textContent="읽기 전용";'
+    +'var out="<!DOCTYPE html>"+document.documentElement.outerHTML;'
+    +'var d=new Date(),nm="meeting-summary-"+d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())'
+    +'+"-edited-"+p(d.getHours())+p(d.getMinutes())+".html";'
+    +'var b=new Blob([out],{type:"text/html"}),a=document.createElement("a");'
+    +'a.href=URL.createObjectURL(b);a.download=nm;a.click();'
+    +'setTimeout(function(){URL.revokeObjectURL(a.href);},1000);'
+    +'dirty=false;if(wasOn)setOn(true);'
+    +'st.textContent="저장됨 "+p(d.getHours())+":"+p(d.getMinutes());});'
+    +'window.addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue="";}});'
+    +'})();<\\/script>';
+  // 본문을 래퍼로 감싸 툴바가 편집 대상에 들어가지 않게 한다
+  return html.replace('<body>','<body><div id="ae-doc">',1)
+             .replace('</body>','</div>'+bar+css+js+'</body>',1);
+}
+window.mtEditableDoc=mtEditableDoc;
+window.mtExportHtml=function(){var html=mtEditableDoc(buildMeetingDoc());if(!html)return;
+  var blob=new Blob([html],{type:'text/html'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='meeting-summary-'+new Date().toISOString().slice(0,10)+'.html';a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},1000);};
 window.mtExportPDF=function(){var html=buildMeetingDoc();if(!html)return;var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},400);};
 window.mtExportDoc=function(){var html=buildMeetingDoc();if(!html)return;
   var blob=new Blob(['\\ufeff'+html],{type:'application/msword'});
@@ -1397,6 +1448,7 @@ function renderMeetingResult(d){
   var h='<div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px">'
     +'<button class="draft-btn" style="background:var(--green)" onclick="pjOpen(\\'meeting\\')">📌 프로젝트에 제출</button>'
     +'<button class="draft-btn" onclick="mtExportPDF()">🖨 PDF로 저장</button>'
+    +'<button class="draft-btn" style="background:var(--bg3);border:1px solid var(--line)" onclick="mtExportHtml()" title="내려받은 파일을 브라우저로 열면 바로 편집·재저장할 수 있습니다">⬇ HTML(편집 가능)</button>'
     +'<button class="draft-btn" style="background:var(--bg3);border:1px solid var(--line)" onclick="mtExportDoc()">문서(.doc)</button></div>';
   // 화면용 다크테마 태그 세트 (문서용 mtSections와 공용 데이터)
   var tag={
