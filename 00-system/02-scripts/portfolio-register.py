@@ -271,6 +271,17 @@ def build(src: dict, cur: dict | None, replace_tasks: bool) -> tuple[dict, dict]
     if partners:
         d["partners"] = partners
 
+    # 별칭 — 합집합. 보고·분장의 표기 변형이 이 프로젝트로 매칭되는 근거라
+    # 유실·재등록 시 함께 복원되어야 한다(정식명과 같은 값은 의미 없으므로 제외).
+    seen_a, aliases = set(), []
+    for a in [*(d.get("aliases") or []), *(src.get("aliases") or [])]:
+        na = norm(a)
+        if na and na not in seen_a and na != d["name"]:
+            seen_a.add(na)
+            aliases.append(na)
+    if aliases:
+        d["aliases"] = aliases
+
     brief = dict(d.get("brief") or {})
     brief.update({k: v for k, v in (src.get("brief") or {}).items() if v not in (None, "")})
     brief.setdefault("name", d["name"])
@@ -497,6 +508,8 @@ def main() -> None:
         for p in final["partners"]:
             tail = " · ".join(x for x in (p.get("org"), p.get("role")) if x)
             print(f"  파트너 : {p['name']} <{p['email']}>" + (f" — {tail}" if tail else ""))
+    if final.get("aliases"):
+        print(f"  별칭   : {', '.join(final['aliases'])}")
     print(f"  브리프 : {sum(1 for k in BRIEF_FIELDS if norm(final['brief'].get(k)))}/{len(BRIEF_FIELDS)} 필드")
     print(f"  태스크 : +{st['tasks_added']} (중복 skip {st['tasks_skipped']}) → 총 {st['tasks_total']}")
     print(f"  이슈   : +{st['issues_added']} (중복 skip {st['issues_skipped']}) → 총 {st['issues_total']}")
