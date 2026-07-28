@@ -92,7 +92,15 @@ TASK_DEFAULT = "Not Started"
 TASK_DONE_STATES = ("Done", "완료")
 
 # ── 프로젝트 brief 상태 (LLM 산출 허용값) ─────────────────────────────
-BRIEF_STATES = ("Not Started", "In Progress", "On Track", "At Risk", "Hold", "Done")
+# Hold = 보류(재개 전제) / Dropped = 중단·무산(재개 없이 종료) — 아카이브 시 구분해 기록한다
+BRIEF_STATES = ("Not Started", "In Progress", "On Track", "At Risk", "Hold", "Done", "Dropped")
+
+# 프로젝트 중단 사유 귀속 — 책임 소재를 남겨야 회고가 학습으로 이어진다
+DROP_CAUSES = {
+    "client": "클라이언트 사유",      # 예산 철회·방향 전환·발주 취소
+    "internal": "우리 측 사유",       # 역량·일정·리소스·관리 미흡
+    "external": "외부·시장 요인",     # 수요 부족·규제·환경 변화
+}
 
 # ── 매핑: 분장(한글) → 태스크(영문) / 진행률 ─────────────────────────
 # 종료 5종은 매핑하지 않음 — 소비처가 ASSIGN_DROPPED_STATES로 먼저 걸러낸다(삭제와 동일 취급)

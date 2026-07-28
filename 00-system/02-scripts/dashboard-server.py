@@ -6252,8 +6252,12 @@ class H(BaseHTTPRequestHandler):
                                     "aliases": dst.get("aliases") or []})
         if path == "/api/project/archive":
             # P1 — 프로젝트 아카이브 라이프사이클 (Team Ops Guide 2부-④).
-            # 완료 조건 3종(납품·정산·회고 2줄) 충족 시에만 아카이브. 삭제가 아니라 이동:
-            # 파일은 그대로 두고 archived 메타를 얹어 활성 목록·매칭에서 분리한다. 복원은 대표만.
+            # 종료 유형 2종:
+            #   kind=done    — 완료 조건 3종(납품·정산·회고 2줄)
+            #   kind=dropped — 중단·무산. 납품·정산이 성립하지 않으므로 대신
+            #                  중단 사유 귀속(클라이언트/우리 측/외부) + 상세 + 회고 2줄
+            # 삭제가 아니라 이동: 파일은 그대로 두고 archived 메타를 얹어 활성 목록·매칭에서
+            # 분리한다. 복원은 대표만.
             pid = b.get("id", "")
             p = get_project(pid)
             if not p:
@@ -6278,20 +6282,41 @@ class H(BaseHTTPRequestHandler):
                                             "error": f"열린 분장 {len(oa)}건 — 완료·승인 처리 후 아카이브하거나, 그래도 진행하려면 확인이 필요합니다"})
             retro_good = (b.get("retro_good") or "").strip()
             retro_bad = (b.get("retro_bad") or "").strip()
+            # 종료 유형 — done(완료) / dropped(중단·무산). 중단은 납품·정산이 성립하지
+            # 않으므로 완료 조건 대신 '왜 엎어졌는지'와 책임 소재를 남기게 한다.
+            kind = (b.get("kind") or "done").strip()
+            if kind not in ("done", "dropped"):
+                return self._send(400, {"ok": False, "error": f"kind 허용값 아님: {kind!r} (done/dropped)"})
             missing = []
-            if not b.get("delivery"): missing.append("산출물 납품")
-            if not b.get("settlement"): missing.append("정산")
+            if kind == "done":
+                if not b.get("delivery"): missing.append("산출물 납품")
+                if not b.get("settlement"): missing.append("정산")
+            else:
+                cause = (b.get("drop_cause") or "").strip()
+                detail = (b.get("drop_detail") or "").strip()
+                if cause not in _ST.DROP_CAUSES:
+                    missing.append("중단 사유 구분(클라이언트/우리 측/외부)")
+                if not detail: missing.append("중단 사유 상세")
             if not retro_good: missing.append("회고(잘된 것)")
             if not retro_bad: missing.append("회고(아쉬운 것)")
             if missing:
+                label = "완료 조건" if kind == "done" else "중단 기록 조건"
                 return self._send(400, {"ok": False,
-                                        "error": "완료 조건 미충족: " + ", ".join(missing)})
-            p["archived"] = {"date": datetime.date.today().isoformat(), "by": uid,
-                             "delivery": True, "settlement": True,
-                             "retro": {"good": retro_good, "bad": retro_bad}}
-            p.setdefault("brief", {})["status"] = "Done"
+                                        "error": f"{label} 미충족: " + ", ".join(missing)})
+            arch = {"date": datetime.date.today().isoformat(), "by": uid, "kind": kind,
+                    "retro": {"good": retro_good, "bad": retro_bad}}
+            if kind == "done":
+                arch.update({"delivery": True, "settlement": True})
+            else:
+                cause = (b.get("drop_cause") or "").strip()
+                arch.update({"drop": {"cause": cause,
+                                      "causeLabel": _ST.DROP_CAUSES[cause],
+                                      "detail": (b.get("drop_detail") or "").strip(),
+                                      "settled": bool(b.get("settlement"))}})
+            p["archived"] = arch
+            p.setdefault("brief", {})["status"] = "Done" if kind == "done" else "Dropped"
             save_project(p)
-            _archive_log(pid, p.get("name"), uid, "archive",
+            _archive_log(pid, p.get("name"), uid, "archive" if kind == "done" else "drop",
                          retro={"good": retro_good, "bad": retro_bad})
             return self._send(200, {"ok": True, "archived": p["archived"]})
         if path == "/api/project/delete":
