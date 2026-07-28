@@ -287,8 +287,10 @@ body.view-detail #view-login,body.view-detail #view-portfolio{display:none}
 .pf-card .pc-del:hover{color:var(--rust)}
 .pf-card .pc-mem-line{font-size:11px;color:var(--fg-3);margin-top:8px;line-height:1.5}
 .pf-card .pc-mem-line b{color:var(--fg-2);font-weight:600;margin-right:4px}
-.pf-card .pc-mem{position:absolute;bottom:13px;left:14px;font-size:11px;color:var(--accent-lt);cursor:pointer;font-weight:600;opacity:0;transition:.12s}
-.pf-card:hover .pc-mem{opacity:1}
+/* 카드 하단 액션 — 이전엔 배지 3개가 모두 같은 좌표(absolute bottom/left)라 겹쳐 뭉개졌다 */
+.pf-card .pc-acts{position:absolute;bottom:13px;left:14px;right:64px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;opacity:0;transition:.12s}
+.pf-card:hover .pc-acts{opacity:1}
+.pf-card .pc-mem{font-size:11px;color:var(--accent-lt);cursor:pointer;font-weight:600;white-space:nowrap}
 .pf-card .pc-mem:hover{color:var(--accent)}
 .modal .m-hint{font-size:10.5px;color:var(--fg-3);margin:4px 0 2px}
 .pf-card.add{display:flex;align-items:center;justify-content:center;border-style:dashed;color:var(--fg-3);font-size:13px;font-weight:600;min-height:130px}
@@ -1317,9 +1319,11 @@ function pfCard(p){
     <div class="pc-mem-line"><b>멤버</b> ${(p.members||[]).map(esc).join(', ')||'<span style="color:var(--fg-3)">미배정</span>'}</div>
     ${(p.partners||[]).length?`<div class="pc-mem-line"><b>파트너</b> ${(p.partners||[]).map(x=>
       `<span title="${esc(x.email||'')}">${esc(x.name||'')}${x.org?` <span style="color:var(--fg-3)">(${esc(x.org)})</span>`:''}</span>`).join(', ')}</div>`:''}
-    ${p.canManage?`<span class="pc-mem" title="멤버 배정" onclick="event.stopPropagation();openMembersModal('${esc(p.id)}')">👥 멤버 배정</span>`:''}
-    ${(amAdmin()||p.pm===CURRENT_USER)?`<span class="pc-mem" title="아카이브" onclick="event.stopPropagation();openArchModal('${esc(p.id)}')">📦 아카이브</span>`:''}
-    ${amAdmin()?`<span class="pc-mem" title="다른 프로젝트로 흡수 병합" onclick="event.stopPropagation();mergeProject('${esc(p.id)}')">⇄ 병합</span>`:''}
+    <div class="pc-acts">
+      ${p.canManage?`<span class="pc-mem" title="멤버 배정" onclick="event.stopPropagation();openMembersModal('${esc(p.id)}')">👥 멤버 배정</span>`:''}
+      ${(amAdmin()||p.pm===CURRENT_USER)?`<span class="pc-mem" title="아카이브" onclick="event.stopPropagation();openArchModal('${esc(p.id)}')">📦 아카이브</span>`:''}
+      ${amAdmin()?`<span class="pc-mem" title="다른 프로젝트로 흡수 병합" onclick="event.stopPropagation();mergeProject('${esc(p.id)}')">⇄ 병합</span>`:''}
+    </div>
     ${(amAdmin()||p.pm===CURRENT_USER)?`<span class="pc-del" title="삭제" onclick="event.stopPropagation();deleteProject('${esc(p.id)}')">🗑 삭제</span>`:''}
   </div>`;
 }
