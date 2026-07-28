@@ -6178,6 +6178,13 @@ class H(BaseHTTPRequestHandler):
                         return self._send(200, {"ok": False, "dup": {"id": dup.get("id"),
                                                 "name": dup.get("name") or dup.get("id")},
                                                 "cleaned": cleaned})
+            if existing:
+                # 화면 폼이 아직 다루지 않는 필드는 기존 값을 되살린다.
+                # save 는 통째 덮어쓰기라, 이게 없으면 카드를 한 번 저장하는 순간
+                # 폼에 없는 데이터(외부 파트너 등)가 조용히 사라진다.
+                for k in ("partners",):
+                    if k not in p and existing.get(k):
+                        p[k] = existing[k]
             save_project(p)
             return self._send(200, {"ok": True, "name": p.get("name")})
         if path == "/api/project/members":
