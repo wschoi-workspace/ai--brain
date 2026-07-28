@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ko" data-skin="data">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>260721_KCCLA-전시기획-구조설계</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --font-sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --font-mono:'SF Mono',ui-monospace,'JetBrains Mono','D2Coding',Menlo,Consolas,monospace;
+  --r-sm:4px; --r-md:8px; --r-full:9999px;
+  --dur-fast:150ms; --dur-base:250ms; --ease-out:cubic-bezier(.2,.8,.2,1);
+  --shadow-md:0 4px 16px rgba(20,20,20,.08); --shadow-lg:0 20px 48px rgba(20,20,20,.12);
+}
+[data-skin="data"]{
+  --surface:#FFFFFF; --surface-2:#F7F8FA; --surface-3:#F1F3F6;
+  --ink:#1A1F2E; --ink-2:#4A5468; --ink-3:#7A86A0;
+  --line:#E3E6EC; --line-2:#F0F2F6;
+  --accent:#FF6450; --accent-ink:#FFFFFF; --accent-hover:#E85540;
+  --accent-soft:#FEF0E7;
+  --ok:#2A7D5A; --warn:#D97706; --danger:#B8455E; --info:#2563EB;
+  --hi-bg:#FFF9E6; --hi-line:#E8C547; --review-bg:#FEF0E7; --review-line:#D97706;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--surface-2);color:var(--ink);
+  font-family:var(--font-sans);font-size:14px;line-height:1.7;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+.doc{max-width:920px;margin:40px auto;background:var(--surface);padding:60px 64px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);border-radius:var(--r-sm)}
+.pt{color:var(--accent);font-weight:700}
+
+.doc-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.16em;color:var(--ink-3);text-transform:uppercase;margin-bottom:18px}
+.doc-top .l{font-weight:600;color:var(--ink-2)}
+h1{font-size:28px;font-weight:800;letter-spacing:-0.025em;line-height:1.25;margin:0 0 14px}
+.intro{font-size:14px;color:var(--ink-2);line-height:1.7;margin:0 0 22px;max-width:84ch}
+hr.rule{border:none;border-top:1px solid var(--line);margin:0 0 24px}
+
+.meta-box{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;margin-bottom:28px}
+.meta-box .row{display:flex;border-bottom:1px solid var(--line-2)}
+.meta-box .row:last-child{border-bottom:none}
+.meta-box .lbl{flex:0 0 84px;background:var(--surface-2);padding:11px 14px;font-size:11px;color:var(--ink-3);font-weight:600;letter-spacing:.05em}
+.meta-box .val{flex:1;padding:11px 14px;font-size:13px;color:var(--ink)}
+
+.sec{margin-bottom:36px;break-inside:avoid}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:8px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.sh .left{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.sh .no{color:var(--accent);font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+.sh .nm{font-size:15px;font-weight:700;color:var(--ink)}
+.sh .resp{font-size:10px;letter-spacing:.08em;color:var(--ink-3);text-transform:uppercase;text-align:right;white-space:nowrap}
+.sec p.note{font-size:12.5px;color:var(--ink-2);margin:0 0 12px}
+.sec h3{font-size:13.5px;font-weight:700;margin:18px 0 8px;color:var(--ink)}
+
+table.kv{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 16px}
+table.kv th,table.kv td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+table.kv thead th{background:var(--surface-2);font-weight:600;font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+table.kv tbody th{width:26%;background:var(--surface-2);font-weight:600;font-size:12px;color:var(--ink-2)}
+
+.insight{background:var(--hi-bg);border-left:3px solid var(--hi-line);padding:13px 16px;margin:12px 0 18px;font-size:13px;border-radius:0 3px 3px 0}
+.review{background:var(--review-bg);border-left:3px solid var(--review-line);padding:13px 16px;margin:12px 0 18px;font-size:13px;border-radius:0 3px 3px 0}
+.review::before{content:"[검토] ";color:var(--review-line);font-weight:700;font-size:11px}
+.rv{color:var(--review-line);font-weight:700;font-size:11px}
+
+ul.decisions{list-style:none;margin:0 0 12px;padding:0}
+ul.decisions li{position:relative;padding:9px 0 9px 30px;border-bottom:1px dashed var(--line-2);font-size:13.5px}
+ul.decisions li::before{content:"✓";position:absolute;left:4px;top:8px;color:var(--ok);font-weight:800}
+ul.decisions li:last-child{border-bottom:none}
+ul.decisions strong{color:var(--ink)}
+
+.todo-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 14px}
+.todo-col{border:1px solid var(--line);border-radius:var(--r-md);padding:14px 18px}
+.todo-col .tc-h{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line-2)}
+.todo-col ul{list-style:none;margin:0;padding:0}
+.todo-col li{padding:7px 0 7px 24px;position:relative;font-size:13px;border-bottom:1px dashed var(--line-2)}
+.todo-col li:last-child{border-bottom:none}
+.todo-col li::before{content:"☐";position:absolute;left:2px;top:6px;color:var(--ink-3)}
+.todo-col .who{font-weight:700;color:var(--ink)}
+.todo-col .due{font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-left:6px;white-space:nowrap}
+
+ul.plain{margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2)}
+ul.plain li{margin-bottom:5px}
+ul.plain strong{color:var(--ink)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
+
+.ftr{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;gap:24px;font-size:11px;color:var(--ink-3)}
+.ftr .sum{max-width:62%;line-height:1.6;color:var(--ink-2)}
+.ftr .r{text-align:right}
+.ftr .r .date{color:var(--accent);font-weight:700;letter-spacing:.05em}
+
+.print-btn{position:fixed;top:24px;right:24px;background:var(--ink);color:#fff;border:none;padding:11px 18px;border-radius:24px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:var(--shadow-md);transition:transform var(--dur-fast),background var(--dur-fast);z-index:100;display:inline-flex;align-items:center;gap:7px}
+.print-btn:hover{background:var(--accent);transform:translateY(-1px)}
+.print-btn svg{width:15px;height:15px}
+
+.edit-panel{position:fixed;top:16px;left:16px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.edit-panel .panel-toggle{width:40px;height:40px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--ink);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);transition:all var(--dur-fast) var(--ease-out)}
+.edit-panel .panel-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.edit-panel.expanded .panel-toggle{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.edit-panel .panel-body{display:none;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px;min-width:184px;box-shadow:var(--shadow-lg)}
+.edit-panel.expanded .panel-body{display:flex}
+.edit-panel .status{font-size:9px;letter-spacing:.25em;color:var(--ink-3);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid var(--line-2)}
+.edit-panel .status.on{color:var(--accent)}
+.edit-panel button{background:transparent;border:1px solid var(--line);color:var(--ink-2);padding:8px 10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;border-radius:var(--r-sm);text-align:left;transition:all var(--dur-fast) var(--ease-out)}
+.edit-panel button:hover{background:var(--surface-2);color:var(--ink);border-color:var(--ink-3)}
+.edit-panel button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.edit-panel button.danger:hover{border-color:var(--danger);color:var(--danger)}
+.edit-panel label{font-size:9px;letter-spacing:.2em;color:var(--ink-3);margin-top:4px;text-transform:uppercase}
+.edit-panel input[type=color]{width:100%;height:30px;padding:2px;background:transparent;border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer}
+.edit-panel .divider{height:1px;background:var(--line-2);margin:4px 0}
+.edit-panel .saved-tag{font-size:9px;color:var(--ok);text-align:center;opacity:0;transition:opacity var(--dur-base)}
+.edit-panel .saved-tag.show{opacity:1}
+body.editing [contenteditable=true]{outline:1px dashed transparent;outline-offset:2px;border-radius:2px;transition:outline-color var(--dur-fast),background-color var(--dur-fast);cursor:text}
+body.editing [contenteditable=true]:hover{outline-color:color-mix(in srgb,var(--accent) 40%,transparent);background:color-mix(in srgb,var(--accent) 6%,transparent)}
+body.editing [contenteditable=true]:focus{outline:1px solid var(--accent)!important;background:color-mix(in srgb,var(--accent) 10%,transparent)}
+
+@page{size:A4;margin:14mm 13mm}
+@media print{
+  html,body{background:#fff;font-size:10.5pt;line-height:1.55}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .doc{box-shadow:none;margin:0;max-width:none;padding:0;border-radius:0}
+  .print-btn,.edit-panel{display:none!important}
+  .sec,.meta-box,.todo-col,table{break-inside:avoid}
+}
+@media (max-width:768px){.doc{padding:32px 22px;margin:0}.todo-grid,.two-col{grid-template-columns:1fr}h1{font-size:22px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="edit-panel" id="editPanel">
+  <button class="panel-toggle" id="panelToggle" title="편집 도구">✎</button>
+  <div class="panel-body">
+    <span class="status" id="editStatus">VIEW MODE</span>
+    <button id="btnEdit" class="primary">✎ 편집</button>
+    <div class="divider"></div>
+    <label>포인트 컬러</label>
+    <input type="color" id="accentColor" value="#FF6450">
+    <div class="divider"></div>
+    <button id="btnSave">↓ HTML 저장</button>
+    <button id="btnReset" class="danger">↺ 초기화</button>
+    <span class="saved-tag" id="savedTag">✓ 저장됨</span>
+  </div>
+</div>
+
+<button class="print-btn" onclick="window.print()" aria-label="PDF로 저장">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+  PDF로 저장
+</button>
+
+<div class="doc">
+
+  <div class="doc-top">
+    <span class="l">PROJECT RENT — MEETING NOTES</span>
+    <span class="r">2026.07.21 · 기획</span>
+  </div>
+
+  <h1>KCCLA 전시·운영 <span class="pt">구조 설계 회의</span></h1>
+  <p class="intro">LA 한국문화원(KCCLA) 리뉴얼 전시 구조를 시간축 기반 블록으로 재설계하고, 한국문화원(슬로우)과 코리아센터(드라이브) 운영 모드를 분리 확정. 예산 축소 대응·법인 리스크·마케팅 전략까지 논의, 차주 초 워크숍에서 마스터플랜 확정 합의.</p>
+  <hr class="rule">
+
+  <!-- 01 개요 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">01</span><span class="nm">개요</span></div><span class="resp">SUMMARY</span></div>
+    <p class="note">LA 한국문화원 리뉴얼 전시·운영의 <strong>시간축 블록 구조</strong>를 확정한 기획 회의. 기존에 콘텐츠별로 산발적으로 나열되던 구성을 <strong>패션(개막) → 한글/텍스트힙 → 라이프스타일/슈퍼마켓</strong>의 순차 블록으로 재편. 한국문화원은 <strong>도슨트 기반 슬로우 모드</strong>, 코리아센터는 <strong>이벤트 기반 드라이브 구조</strong>로 분리. 디지털 체험 기기 예산(5천만원)의 체험 콘텐츠 전용, 예산 집행 일정(8월 초 필수), 유니원 법인의 리테일 리스크 등 실행 과제를 도출하고, 금요일까지 콘텐츠·예산 드래프트 후 <strong>차주 초 워크숍에서 마스터플랜 확정</strong>하기로 합의.</p>
+    <div class="meta-box">
+      <div class="row"><div class="lbl">일시</div><div class="val">2026-07-21 (화) 11:17 ~ 12:12 (55분)</div></div>
+      <div class="row"><div class="lbl">참석</div><div class="val">최원석 대표(프로젝트렌트), 유니원 담당자, 기타 3명</div></div>
+      <div class="row"><div class="lbl">안건</div><div class="val">전시 블록 구조 재설계 / 예산 배분 / 운영 인력 / 마케팅 전략 / 법인·리스크 체크</div></div>
+      <div class="row"><div class="lbl">핵심 결정</div><div class="val">시간축 블록 구조 확정(패션→한글→라이프스타일) / 패션쇼 개막 한정</div></div>
+    </div>
+    <table class="kv">
+      <tbody>
+        <tr><th>공간</th><td>한국문화원(상설 도슨트) + 코리아센터(이벤트 드라이브)</td></tr>
+        <tr><th>주관사</th><td>유니원 (사업 낙찰)</td></tr>
+        <tr><th>예산 현황</th><td>원래 1억(7천+3천) → 문화원 측 축소 중, 4천 확보까지 합의</td></tr>
+        <tr><th>시공</th><td>원장님 지시로 진행 확정</td></tr>
+        <tr><th>내부 코드명</th><td>"빙" (원장 빙)</td></tr>
+        <tr><th>다음 마일스톤</th><td>금요일 드래프트 → 차주 초 워크숍 마스터플랜 확정</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 02 아젠다별 정리 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">02</span><span class="nm">아젠다별 정리</span></div><span class="resp">AGENDA</span></div>
+
+    <h3>A. 방향성 / 디렉션 (WHY)</h3>
+    <p class="note">한국문화원은 "예산 줄이는 대신 자율성 확보" — 웬만하면 마음대로 하세요 분위기. 코리아센터는 단기 이벤트 베이스, <strong>원장님 핵심 기대는 '북적거림'</strong>. 원장님은 2년 뒤 문체부 복귀 목표이며, 성과 = 국내 메이저 언론 노출.</p>
+    <div class="insight">원장님의 성과 기준이 '국내 신문 기사화'라는 점은 마케팅 전략의 핵심 설계 변수. 미국 현지 PR보다 한국 언론 타겟팅이 우선순위.</div>
+
+    <h3>B. 전시 블록 구조 (WHAT) — 핵심 안건</h3>
+    <p class="note">기존 콘텐츠별 나열 구성을 시간축 기반 블록으로 재편. 아래 구조로 확정.</p>
+    <p class="note"><strong>공간 오픈 순서</strong> — 한국문화원은 공사 중으로 초기에 사용 불가. <strong>코리아센터만 먼저 오픈</strong>하고, 한국문화원은 공사 완료 후 합류. 단, 물류가 2~3회 쪼개질 수 있어 비용 리스크 존재.</p>
+    <table class="kv">
+      <thead><tr><th>시기</th><th>코리아센터</th><th>한국문화원</th></tr></thead>
+      <tbody>
+        <tr><td><strong>9월 ~ 10월 초</strong></td><td>패션 + 개막식 (패션쇼 개막 한정)<br><span style="font-size:11px;color:var(--ink-3)">※ 패션만으로 콘텐츠 부족 우려("그들만의 리그") → 이벤트·파티·커피 등 보강 필수</span></td><td>공사 중 (사용 불가)<br>→ 공사 완료 시 합류</td></tr>
+        <tr><td><strong>10월</strong><br>한글날·한복의날</td><td>한글 / 텍스트힙 + 독립출판·웹툰<br>→ 라이브러리 모드 최대 확장</td><td>도슨트 모드 상설 시작<br>한글·한복 체험 일부 이관<br><span style="font-size:11px;color:var(--ink-3)">※ 한글은 VIP 프라이빗 불가 — VIP는 라이프스타일 블록이 핵심</span></td></tr>
+        <tr><td><strong>11월 ~ 연말</strong></td><td>라이프스타일 + 푸드<br>서울슈퍼마켓 / 케이마트 컨셉 (세일즈 연계)<br><span style="font-size:11px;color:var(--ink-3)">※ 가능하면 조금씩 당겨 시작</span></td><td>라이프스타일 확장 + VIP 클래스 집중<br>한지: 12월 유네스코 등재 기념일 연계</td></tr>
+      </tbody>
+    </table>
+    <p class="note"><strong>운영 모드 분리</strong> — 한국문화원: 도슨트 1명 상설 교대, 느긋한 체험·설명(슬로우). 코리아센터: 금토일 인력 집중, 평일 슬로우/뮤트. 흥행 시 주중 최소 2명 필요.</p>
+    <p class="note"><strong>드라이브 콘텐츠 설계</strong> — 블록 전환기마다 이벤트 집중 (예: 삼양 라면 체험행사, 한식 원데이 클래스, 코리아 위크). 주말 단위로 협찬 기반 체험 프로그램 순환 → "조용한 게 싫다"는 원장님 기대 충족. 반상설 + 이벤트 하이브리드로 변화감 유지.</p>
+    <div class="insight">블록 전환 시점(9→10월, 10→11월)이 마케팅·PR의 핵심 타이밍. 각 전환기에 이벤트 + 뉴스거리를 집중 설계해야 콘텐츠 순환 구조가 작동. 무게 중심은 9월~10월 사이에 에너지 집중 → 이후 우아한 확장.</div>
+
+    <h3>C-1. 시즌1 참여형 체험 콘텐츠 (마스터시트)</h3>
+    <p class="note">한글·한지를 직접 만들어 가져가는 5종 체험 콘텐츠 확정:</p>
+    <table class="kv">
+      <thead><tr><th>체험</th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td>① 한글 티셔츠</td><td>한글 프린트 · 원하는 문장 · 현장 프린팅</td></tr>
+        <tr><td>② 한글 양말</td><td>한글 그래픽 적용 · 기념품화</td></tr>
+        <tr><td>③ 폰트 프로젝트</td><td>국내 폰트 디자이너 협업 · 라이선스 · 커스텀 의류 제작</td></tr>
+        <tr><td>④ 한글 인장</td><td>3D프린팅 · 목걸이형 기념품 · 한국식 Seal Culture</td></tr>
+        <tr><td>⑤ 한지 아트</td><td>스탬프 · 부적 · 도장 · 아트워크 제작</td></tr>
+      </tbody>
+    </table>
+    <p class="note">공간 전체를 "한국의 텍스트 문화를 가장 깊게 경험할 수 있는 공간"으로 설계. K-Craft 작가(한지 조명·공예·현대 공예) 협업으로 시즌 전체 구성.</p>
+
+    <h3>C-2. 시즌2 커머셜 확장 (마스터시트)</h3>
+    <p class="note"><strong>한국문화원(Experience)</strong>: 프라이빗 클래스 · 다도 · 공예 워크숍 · Korean Dining · 작가 토크 · 막걸리 브랜드 협업 · 라이프스타일 클래스.<br>
+    <strong>코리아센터(Commerce)</strong>: 쇼핑 · 상품 설명 · 제품 체험 · 판매 · 브랜드 소개. Experience → Commerce 구조.<br>
+    <strong>핵심 추가</strong>: <strong>한국 공예 작가들의 작품을 편집·전시·판매 + 뮤츠(국중박) 상품 판매까지 최대한 커머셜한 형태로 확장</strong> 고려.</p>
+
+    <h3>C-3. 커뮤니티 확장 — LA 전체가 무대 (마스터시트)</h3>
+    <table class="kv">
+      <thead><tr><th>확장 축</th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td>Dining Collaboration</td><td>한식 레스토랑 · 발효 브랜드 · K-Dining Week · 한국 작가 테이블웨어</td></tr>
+        <tr><td>Gallery Collaboration</td><td>Studio KOE 등 현지 갤러리 · 한국 공예 전시 · 작품 판매</td></tr>
+        <tr><td>Korean Community</td><td>한인 슈퍼마켓 · 문화공간 · 공예 갤러리 · 지역 파트너</td></tr>
+      </tbody>
+    </table>
+    <div class="insight">LA 전체가 하나의 K-Lifestyle Festival처럼 확장되는 구조. 문화원 안에서 끝나지 않고 외부 커뮤니티로 뻗어나가는 것이 시즌2의 차별점.</div>
+
+    <h3>D. 디지털 체험 기기 예산 → 삭제·전용 확정</h3>
+    <p class="note">삼성 AI 기기 포함 소프트웨어 5개 = <strong>5천만원</strong> 배정이었으나, 뷰티 슬롯 부재로 "섬처럼 떠다니는" 상태. → <strong>기기 배치 삭제, 해당 예산을 콘텐츠·인력 등으로 전용 협의 완료</strong>. 5천만원이 가용 예산으로 재배분 가능.</p>
+
+    <h3>D. 콘텐츠 소싱 · 이해관계자 (CAN)</h3>
+    <table class="kv">
+      <thead><tr><th>소싱처</th><th>기대 콘텐츠</th><th>상태</th></tr></thead>
+      <tbody>
+        <tr><td>공진원(한국공예디자인문화진흥원)</td><td>한복·라이프스타일 지원</td><td>지원 요청 예정</td></tr>
+        <tr><td>항공 박물관</td><td>패션 관련</td><td>확인 중</td></tr>
+        <tr><td>국중박 문화재단(뮤츠 라인)</td><td>전통문화 상품 IP → 판매 연계</td><td>담당자 태핑 중</td></tr>
+        <tr><td>한국관광공사</td><td>콘텐츠 협조 + 예산 지원</td><td>"원장님 지시"로 거부권 없음</td></tr>
+        <tr><td>멜로즈 팝업</td><td>커피/티 + 한국 작가 제품</td><td>협조 확보</td></tr>
+        <tr><td>삼양 등 식품기업</td><td>라면 체험행사 · 원데이 클래스</td><td>협찬 타진 예정</td></tr>
+      </tbody>
+    </table>
+    <p class="note"><strong>드라이브 콘텐츠</strong> — 블록 전환기마다 체험행사·클래스·파티 등 이벤트성 콘텐츠로 방문 트래픽 유도. "조용한 게 싫다"는 원장님 기대 충족 핵심.</p>
+    <div class="review">공진원 지원 범위·예산 규모, 관광공사의 실질 협조 수준은 미확인. 태원 본부장 라인 통해 구체적 확인 필요.</div>
+
+    <h3>E. 예산 · 집행 구조 (HOW)</h3>
+    <p class="note"><strong>예산 배분 3층 구조</strong>로 정리 합의:</p>
+    <table class="kv">
+      <tbody>
+        <tr><th>기본 가용 콘텐츠</th><td>프로젝트 예산 내 직접 집행</td></tr>
+        <tr><th>유니원 릴레이션</th><td>유니원 네트워크 기반 소싱·협력</td></tr>
+        <tr><th>이해관계자 지원</th><td>공진원·관광공사·기업 협찬 (원장님 삥 / 자체 연끌)</td></tr>
+      </tbody>
+    </table>
+    <p class="note"><strong>집행 일정</strong> — 다원 사태 이후 선집행 한도 50%로 캡. 50% 선집행(오프닝 시 대부분 소진) → 즉시 20% 추가 신청. 인테리어는 초기 70% 또는 50+20 즉시 구조 필요. <strong>8월 초에 예산이 움직여야만</strong> 10월 오픈 가능. "언제까지 예산 컨디션 만들어 주실 거예요"로 커뮤니케이션 필요. 계약서부터 빨리 넣어야 한다.</p>
+    <p class="note"><strong>비용 구조 추정</strong> — 체류·집행비 약 1억 + 물류(왕복·관세) 5천~8천 + 집기 제작·배송 1.5~2억 + 공사비 3~4억 = <strong>최소 3억 이상 선소진</strong> 후 콘텐츠 예산 투입.</p>
+
+    <h3>F. 리스크 · 기회 (IF)</h3>
+    <table class="kv">
+      <thead><tr><th>리스크</th><th>내용</th><th>대응 방향</th></tr></thead>
+      <tbody>
+        <tr><td><strong>법인 리테일 리스크</strong></td><td>유니원이 사업 낙찰 주관사이면서 직접 결제 주체가 되면 국정감사 리스크</td><td>제3자 파트너 또는 별도 법인 검토. 프로젝트렌트 법인 설립 or LA 현지 레퓨테이션 검증 파트너 활용</td></tr>
+        <tr><td><strong>LA 파트너 신뢰</strong></td><td>대표님 과거 부정적 경험 → 현지 파트너 끼우기 부담</td><td>레퓨테이션 검증된 2인 후보 확보 (GFFG 행정처리 인물 + 갤러리스트 네트워크 인물)</td></tr>
+        <tr><td><strong>법적 그레이 영역</strong></td><td>운영 방식 일부 그레이 존 — 민원·법적 이슈 시 책임 문제. 완전 합법 시 기본 공사 ~10억, 전시 포함 ~16~20억 (비현실적)</td><td>원장님의 정책적·행정적 의사결정 기반으로 추진. 일정 수준 리스크 전제</td></tr>
+        <tr><td><strong>공사비 추가</strong></td><td>기본 시설 공사 약 4.5억 추가 발생 예정 → 콘텐츠 예산 감소</td><td>공사 범위 일부 축소 / 콘텐츠 예산 추가 확보 / 우선순위 재조정</td></tr>
+        <tr><td><strong>물류 비용 초과</strong></td><td>왕복·관세·국내 배송 합산 시 예상 초과 가능</td><td>가능한 현지 조달 비중 높이기</td></tr>
+        <tr><td><strong>인건비 부담</strong></td><td>코리아센터 상설 2명 필요 시 주중 운영비 증가</td><td>디지털 체험 예산 전용으로 1명 추가 커버</td></tr>
+        <tr><td><strong>일정 리스크</strong></td><td>공사·콘텐츠 제작·물류·현장 준비 동시 진행 — 가장 큰 리스크</td><td>일정 관리 집중, 8월 초 착수 필수</td></tr>
+      </tbody>
+    </table>
+    <div class="review">원장님의 '북적거림' 기대와 예산 제약 사이 갭이 프로젝트 전반의 핵심 리스크. 콘텐츠 순환 구조로 비용 효율화하되, 블록 전환기 예산 집중 투입 전략이 필요.</div>
+
+    <h3>G. 마케팅 전략</h3>
+    <p class="note"><strong>오프닝</strong>: 보도자료 + 온라인 볼륨 뿌리기 (조간 배포 + 영상 송출).<br>
+    <strong>메인</strong>: 블록 전환 시점(10~11월)에 메이저 언론 기획기사 타겟. 특파원 활용 vs 에어프레미아로 기자 직접 초청 비교 검토.<br>
+    <strong>현지</strong>: LA 타임스 연계 고려. 프로젝트렌트 마케팅 툴 미국 창 리셋 진행 중.<br>
+    <strong>문화원 자체</strong>: 판촉 예산 별도 보유 → 컨디션 체크 필요.</p>
+    <div class="insight">오프닝보다 미들(라이프스타일 전환 시점)이 기사화에 유리. LA 현지 식당 연계(코리아 위크 등)로 체험 콘텐츠 + 기사 소재를 동시에 만드는 전략이 효과적.</div>
+  </div>
+
+  <!-- 03 의사결정 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">03</span><span class="nm">의사결정사항</span></div><span class="resp">DECISIONS</span></div>
+    <p class="note">이 회의에서 확정된 것만. 논의·검토 중 항목은 05 미해결로.</p>
+    <ul class="decisions">
+      <li><strong>전시 블록 구조 확정</strong> — 패션(개막 한정) → 한글/텍스트힙 → 라이프스타일/슈퍼마켓 시간축 순차 구성</li>
+      <li><strong>패션쇼는 개막식 한정</strong> — 이후 콘텐츠 일부만 코리아센터로 이관, 메인 전환</li>
+      <li><strong>한국문화원 운영 모드</strong> — 도슨트 기반 슬로우 모드, VIP 프라이빗 클래스 전용</li>
+      <li><strong>코리아센터 운영 모드</strong> — 이벤트 기반 드라이브 구조, 금토일 인력 집중</li>
+      <li><strong>디지털 체험 기기(5천) 삭제 및 예산 전용</strong> — 기기 배치 취소, 해당 예산을 콘텐츠·인력 등으로 전용 협의 완료</li>
+      <li><strong>시공 진행</strong> — "원장님 지시"로 진행 확정</li>
+      <li><strong>외벽</strong> — 도색까지만 이번 차수, 꾸미기는 내년 예산</li>
+      <li><strong>오프닝 행사</strong> — 유니원이 리드, 프로젝트렌트 연계 설계</li>
+    </ul>
+  </div>
+
+  <!-- 04 To-Do (2단 R&R) -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">04</span><span class="nm">요청사항 / To-Do</span></div><span class="resp">R&amp;R</span></div>
+    <div class="todo-grid">
+      <div class="todo-col">
+        <div class="tc-h">우리 측 (프로젝트 렌트)</div>
+        <ul>
+          <li><span class="who">최원석</span> — 회의 구조 캡처·참석자 공유 <span class="due">07-21 당일</span></li>
+          <li><span class="who">최원석</span> — LA 현지 마케팅 플랜 체크 완료 <span class="due">07-28</span></li>
+          <li><span class="who">최원석</span> — 마케팅 툴 미국 창 리셋 <span class="due">진행 중</span></li>
+          <li><span class="who">최원석</span> — 차주 초 워크숍 마스터플랜 확정 <span class="due">07-28</span></li>
+          <li><span class="who">윤혜정</span> — 조사 리스트 기반 리서치 실행 (AI 리서치 골조 → 사람이 검증·컨택 = 피저빌리티 체크 단계. 인턴 2주 확보 대전제) <span class="due">07-28~</span></li>
+        </ul>
+      </div>
+      <div class="todo-col">
+        <div class="tc-h">상대 측 (유니원)</div>
+        <ul>
+          <li><span class="who">유니원</span> — 프로젝트별 예산 재배분 정리 <span class="due">07-25</span></li>
+          <li><span class="who">유니원</span> — 가용 콘텐츠 + 릴레이션 + 이해관계자 정리 <span class="due">07-25 (금)</span></li>
+          <li><span class="who">유니원</span> — 개막식/오프닝 행사 설계 리드 <span class="due">미정</span></li>
+          <li><span class="who">유니원</span> — 마케팅 플랜 러프 (풀+예산+미국 레퍼런스) <span class="due">미정</span></li>
+          <li><span class="who">유니원</span> — 문화원 판촉 예산 컨디션 체크 <span class="due">미정</span></li>
+          <li><span class="who">유니원</span> — 태원 본부장 예산 집행 일정 확인 <span class="due">즉시</span></li>
+          <li><span class="who">유니원</span> — 리테일/법인/푸드 라이센스 → 상무님 확인 <span class="due">즉시</span></li>
+          <li><span class="who">유니원</span> — 국중박 뮤츠 상품 소싱 라인 확인 <span class="due">미정</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 미해결 -->
+  <div class="sec">
+    <div class="sh"><div class="left"><span class="no">05</span><span class="nm">미해결 · 후속 확인</span></div><span class="resp">OPEN ITEMS</span></div>
+    <ul class="plain">
+      <li><strong>전체 가용 예산 총규모</strong> — 문화원 측 예산 확정 대기. 태원 본부장 확인 후 재배분</li>
+      <li><strong>법인/리테일 구조</strong> — 유니원 직접 vs 제3자 vs 프로젝트렌트 법인. 국정감사 리스크 대응 방안 미결</li>
+      <li><strong>한국 미디어 핸들링</strong> — 현지 특파원 활용 vs 기자 직접 초청(에어프레미아). 비용 대비 기획기사 확보 가능성 비교 필요</li>
+      <li><strong>코리아센터 추가 인력</strong> — 디지털 체험 예산 전용 시 1명 추가 가능 여부</li>
+      <li><strong>라이프스타일 블록 후반</strong> — 11월 중순 이후 추가 콘텐츠 또는 이벤트 구상 필요</li>
+      <li><strong>외벽 꾸미기</strong> — 내년 예산으로 유도하되 원장님 설득 필요</li>
+      <li><strong>푸드 라이센스</strong> — 미국 법인에서 푸드 판매 가능 여부 별도 확인</li>
+      <li><strong>물류 분할 리스크</strong> — 코리아센터 선오픈 + 한국문화원 후합류 시 물류가 2~3회 쪼개질 수 있음. 비용 재검토 필요</li>
+      <li><strong>후반 블록 추가 콘텐츠</strong> — 텍스트힙→라이프스타일 전환 후 너무 길어질 경우 "다른 거 뭐 없어" 챌린지 대비 → 짧은 이벤트 또는 반상설+이벤트 하이브리드</li>
+    </ul>
+    <div class="review">[검토] 표시 안내 — 본 문서에서 [검토]로 표기된 항목은 회의 입력에 명시되지 않아 추론으로 보강한 내용입니다. 외부 공유 전 반드시 확인하십시오.</div>
+  </div>
+
+  <div class="ftr">
+    <div class="sum">다음 마일스톤: 07-25(금) 콘텐츠·예산 드래프트 → 07-28(차주 초) 워크숍 마스터플랜 확정</div>
+    <div class="r"><div class="date">2026. 07. 21</div><div>내부공유용</div></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var KEY='meeting_note_260721_kccla-exhibition-structure';
+  var editables=document.querySelectorAll('h1,h3,p,li,td,th,.intro,.val,.nm,.resp,.sum,.tc-h,.doc-top .l,.doc-top .r,.insight,.review');
+  restore();
+  var panel=document.getElementById('editPanel'),toggle=document.getElementById('panelToggle');
+  toggle.addEventListener('click',function(e){e.stopPropagation();panel.classList.toggle('expanded')});
+  document.addEventListener('click',function(e){if(!panel.contains(e.target))panel.classList.remove('expanded')});
+  var editing=false,t=null;
+  var bEdit=document.getElementById('btnEdit'),bSave=document.getElementById('btnSave'),bReset=document.getElementById('btnReset'),
+      st=document.getElementById('editStatus'),tag=document.getElementById('savedTag'),acc=document.getElementById('accentColor');
+  var cur=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();if(cur)acc.value=toHex(cur);
+  function setEdit(on){editing=on;document.body.classList.toggle('editing',on);
+    editables.forEach(function(el){on?el.setAttribute('contenteditable','true'):el.removeAttribute('contenteditable')});
+    bEdit.textContent=on?'✓ 완료':'✎ 편집';bEdit.classList.toggle('primary',!on);
+    st.textContent=on?'EDITING':'VIEW MODE';st.classList.toggle('on',on)}
+  function showSaved(){tag.classList.add('show');clearTimeout(showSaved._t);showSaved._t=setTimeout(function(){tag.classList.remove('show')},1200)}
+  function save(){try{var s={t:{},a:null};editables.forEach(function(el,i){s.t[i]=el.innerHTML});
+    s.a=document.documentElement.style.getPropertyValue('--accent')||null;localStorage.setItem(KEY,JSON.stringify(s));showSaved()}catch(e){}}
+  function autosave(){clearTimeout(t);t=setTimeout(save,400)}
+  editables.forEach(function(el){el.addEventListener('input',autosave);el.addEventListener('blur',autosave)});
+  bEdit.addEventListener('click',function(){setEdit(!editing)});
+  acc.addEventListener('input',function(){document.documentElement.style.setProperty('--accent',acc.value)});
+  acc.addEventListener('change',save);
+  bSave.addEventListener('click',function(){var was=editing;if(was)setEdit(false);
+    var c=document.documentElement.cloneNode(true);var p=c.querySelector('.edit-panel');if(p)p.remove();
+    c.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable')});
+    c.querySelectorAll('.editing').forEach(function(el){el.classList.remove('editing')});
+    var html='<!doctype html>\n<html lang="ko" data-skin="'+(document.documentElement.getAttribute('data-skin')||'')+'">\n'+c.innerHTML+'\n</html>';
+    var b=new Blob([html],{type:'text/html;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');
+    a.href=u;a.download=(document.title||'document').replace(/\s+/g,'_')+'.html';document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);if(was)setEdit(true)},100)});
+  bReset.addEventListener('click',function(){if(!confirm('편집 내용을 초기화합니다. 계속할까요?'))return;localStorage.removeItem(KEY);location.reload()});
+  function restore(){try{var r=localStorage.getItem(KEY);if(!r)return;var s=JSON.parse(r);
+    if(s.t)editables.forEach(function(el,i){if(s.t[i]!==undefined)el.innerHTML=s.t[i]});
+    if(s.a)document.documentElement.style.setProperty('--accent',s.a)}catch(e){}}
+  function toHex(c){c=c.trim();if(c[0]==='#')return c.length===4?'#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]:c;
+    var m=c.match(/\d+/g);if(!m)return'#FF6450';return'#'+m.slice(0,3).map(function(x){return('0'+parseInt(x).toString(16)).slice(-2)}).join('')}
+})();
+</script>
+</body>
+</html>
