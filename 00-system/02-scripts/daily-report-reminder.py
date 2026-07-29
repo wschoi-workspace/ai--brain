@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """일일 업무보고 미완료자 자동 리마인더 — 매일 20:00 / 22:00.
 
-정책(2026-07-01, 대표 지시):
-  - '완료' 기준 = 데일리 업무보고(인사이트 시트 메타/핵심업무). 매출보고(바스켓)는 제외.
-    → 매장스텝(운영팀)이 매출만 올린 경우도 '미완료'로 보고 업무보고를 요청한다.
+정책(2026-07-01 대표 지시, 2026-07-29 보강):
+  - '완료' 기준 = 데일리 업무보고(인사이트 시트 메타/핵심업무)
+    + 실내용 있는 매장보고(바스켓 일일보고 업무보고 칸 or 매장마감 탭 담당자).
+    → 매출 숫자만 올린 경우는 여전히 '미완료'로 보고 업무보고를 요청한다.
   - 대상 = arisa-employees.json by_telegram_id (대표·퇴사자 제외, 명부가 단일 출처).
   - 미완료자에게 daily-report-bot으로 개별 DM.
 런타임: .venv311 (gws subprocess + stdlib). 사용: python daily-report-reminder.py [--dry]
@@ -23,6 +24,7 @@ for envp in (WS / ".env", Path.home() / "arisa-project-memory" / ".env"):
                 os.environ.setdefault(k.strip(), v.strip())
 
 DAILY = os.environ.get("DAILY_REPORT_SHEET_ID", "")
+BASKET = os.environ.get("BASKET_REPORT_SHEET_ID", "")
 BOT_TOKEN = os.environ.get("DAILY_REPORT_BOT_TOKEN", "")
 MGR_TOKEN = os.environ.get("DAILY_REPORT_MANAGER_BOT_TOKEN", "")
 MGR_CHAT = os.environ.get("DAILY_REPORT_MANAGER_CHAT_ID", "")
@@ -99,6 +101,15 @@ def main():
     for r in core_rows:
         if len(r) >= 2 and str(r[0]).startswith(today):
             reported.add(norm(r[1]))
+    # 매장보고 완료 인정(2026-07-29 정책): 바스켓 업무보고 실내용 or 매장마감 담당자.
+    # 읽기 실패는 참고정보라 빈 리스트로 무시(리마인드가 조금 더 나가는 쪽이 안전).
+    today_yy = now.strftime("%y%m%d")
+    for r in (gws_get(BASKET, "일일보고!A:I") or []):
+        if len(r) >= 9 and str(r[1]).strip() == today_yy and str(r[8]).strip():
+            reported.add(norm(r[2]))
+    for r in (gws_get(BASKET, "매장마감!A:C") or []):
+        if len(r) >= 3 and str(r[1]).strip() == today_yy:
+            reported.add(norm(r[2]))
 
     todo = [n for n in TARGETS if n not in reported]
     done = [n for n in TARGETS if n in reported]

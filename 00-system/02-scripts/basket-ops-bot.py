@@ -49,6 +49,7 @@ SHEET_ID    = os.environ.get("BASKET_REPORT_SHEET_ID", "")
 SHEET_TAB   = os.environ.get("BASKET_REPORT_SHEET_TAB", "일일보고")
 TODO_TAB    = os.environ.get("BASKET_TODO_SHEET_TAB", "TODO이행")
 PROGRESS_TAB= os.environ.get("BASKET_PROGRESS_SHEET_TAB", "진행로그")
+CLOSING_TAB = os.environ.get("BASKET_CLOSING_SHEET_TAB", "매장마감")
 STORE_ID    = os.environ.get("BASKET_STORE_ID", "basket")
 OPENAI_KEY  = os.environ.get("OPENAI_API_KEY", "")
 MODEL       = os.environ.get("BASKET_BOT_MODEL", "gpt-4o-mini")
@@ -161,7 +162,34 @@ STRUCT_PROMPT = """너는 Basket 매장 운영팀의 일일보고 정리 비서�
 }
 JSON만 출력."""
 
-def gpt_structure(text: str, prev: dict | None = None) -> dict:
+# 매장 마감보고 — 개인 일일업무보고와 별개 문서. '매장마감' 탭에 매장 단위로 기록한다.
+# (기존엔 마감보고가 제출자의 일일보고 '업무보고' 칸에 병합돼 매출이 매출 칸에 안 잡혔음)
+CLOSING_PROMPT = """너는 매장 일일 마감보고 정리 비서다.
+운영자가 전달한 매장 마감보고(담당자·일 매출·판매 상세 포함)를 아래 JSON 스키마로 구조화한다.
+규칙: 보고에 적힌 내용만 담는다(지어내지 않음). 없으면 빈 문자열. 원문 표현을 최대한 보존한다.
+'clarify'에는 꼭 되물어야 할 핵심 질문만 0~2개 담는다. 매장명이 보고에 없으면 반드시
+"어느 매장 마감보고인가요? (리진/바스켓/아랑재 등)"을 clarify에 넣는다.
+
+스키마:
+{
+ "store": "매장명(리진/바스켓/아랑재/올드타운/여수 등, 명시 없으면 빈 문자열)",
+ "date": "보고에 적힌 영업일(YYMMDD 6자리, 없으면 빈 문자열)",
+ "manager": "담당자 이름",
+ "visitors": "방문객 체감 수준",
+ "sales": "일 매출(숫자+원)",
+ "drinks": "음료 판매(잔수·품목별 상세)",
+ "desserts": "디저트 판매(개수·품목별 상세)",
+ "notes": "특이사항",
+ "clarify": ["되물을 질문1", "되물을 질문2"]
+}
+JSON만 출력."""
+
+def is_closing_report(text: str) -> bool:
+    """매장 마감보고 감지 — 담당자+일 매출 패턴 또는 '마감보고' 명시."""
+    t = text.replace(" ", "")
+    return ("마감보고" in t) or ("담당자" in t and "일매출" in t)
+
+def gpt_structure(text: str, prev: dict | None = None, prompt: str = STRUCT_PROMPT) -> dict:
     if not client:
         return {"notes": text, "clarify": []}
     user = text if not prev else f"[1차 보고]\n{prev.get('_raw','')}\n\n[보완 답변]\n{text}"
@@ -169,7 +197,7 @@ def gpt_structure(text: str, prev: dict | None = None) -> dict:
         resp = client.chat.completions.create(
             model=MODEL, temperature=0.2,
             response_format={"type": "json_object"},
-            messages=[{"role": "system", "content": STRUCT_PROMPT},
+            messages=[{"role": "system", "content": prompt},
                       {"role": "user", "content": user}],
         )
         data = json.loads(resp.choices[0].message.content)
@@ -191,6 +219,50 @@ def _basket_append(tab: str, row: list, dedup_cols: list, author: str = "") -> b
 
 def append_sheet(row: list) -> bool:
     return _basket_append(SHEET_TAB, row, [1, 2, 14], author=str(row[2]) if len(row) > 2 else "")
+
+def append_closing(row: list) -> bool:
+    return _basket_append(CLOSING_TAB, row, [1, 2, 10], author=str(row[2]) if len(row) > 2 else "")
+
+def build_closing_row(d: dict, submitter: str) -> list:
+    """매장마감 탭 11열: 매장·날짜·담당자·제출자·방문객체감·일매출·음료·디저트·특이·원문·시각."""
+    now = datetime.now()
+    date_ = (d.get("date") or "").strip()
+    if not (len(date_) == 6 and date_.isdigit()):
+        date_ = now.strftime("%y%m%d")
+    return [
+        d.get("store", ""), date_, d.get("manager", ""), submitter,
+        d.get("visitors", ""), d.get("sales", ""), d.get("drinks", ""), d.get("desserts", ""),
+        d.get("notes", ""), (d.get("_raw") or "").strip(), now.strftime("%H:%M"),
+    ]
+
+CLOSING_FIELDS = [("store", "매장"), ("date", "영업일"), ("manager", "담당자"), ("visitors", "방문객 체감"),
+                  ("sales", "일 매출"), ("drinks", "음료"), ("desserts", "디저트"), ("notes", "특이사항")]
+
+def closing_summary_text(d: dict, submitter: str) -> str:
+    lines = [f"🏪 *매장 마감보고* — 제출 {_md(submitter)}", ""]
+    for key, label in CLOSING_FIELDS:
+        v = (d.get(key) or "").strip()
+        if v:
+            lines.append(f"*{label}*\n{_md(v)}")
+    return "\n".join(lines) if len(lines) > 2 else "내용이 비어 있습니다."
+
+def closing_push_text(d: dict, submitter: str) -> str:
+    """제출 완료 → 대표 푸시용 마감보고 요약."""
+    store = (d.get("store") or "매장?").strip() or "매장?"
+    L = [f"🏪 *{_md(store)} 마감보고* {(d.get('date') or datetime.now().strftime('%y%m%d'))}"
+         + (f" · 담당 {_md(d['manager'])}" if (d.get("manager") or "").strip() else "")]
+    if (d.get("sales") or "").strip():
+        L.append("💰 일매출 " + _md(d["sales"].strip()))
+    if (d.get("visitors") or "").strip():
+        L.append("👥 방문객 " + _md(d["visitors"].strip()))
+    if (d.get("drinks") or "").strip():
+        L.append("☕ " + _md(_trunc(d["drinks"], 200)))
+    if (d.get("desserts") or "").strip():
+        L.append("🍰 " + _md(_trunc(d["desserts"], 200)))
+    if (d.get("notes") or "").strip():
+        L.append("📍 " + _md(_trunc(d["notes"], 180)))
+    L.append(f"(제출: {_md(submitter)})")
+    return "\n".join(L)
 
 def build_row(d: dict, author: str) -> list:
     now = datetime.now()
@@ -243,6 +315,7 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🧺 Basket 운영 봇입니다.\n"
         "• 오늘 업무를 편하게 쭉 적으면 → 일일보고로 정리·기록합니다.\n"
+        "• 매장 마감보고(담당자·일 매출·판매 상세)는 자동 감지해 매장 기록으로 따로 정리합니다.\n"
         "• /jot 내용 — 낮에 짬짬이 진행상황을 빠르게 기록(웹앱이 모아 보고로 구성).\n"
         "• /todo — 오늘 요일의 TO-DO 체크리스트를 띄웁니다.\n"
         "(지출·장비·대관·스태프·구매·입점·특이사항 등 생각나는 대로 적어 주세요)")
@@ -250,8 +323,11 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 async def recv_report(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
-    await update.message.reply_text("정리 중…")
-    d = gpt_structure(text)
+    # 매장 마감보고는 개인 일일보고와 별도 경로(매장마감 탭)로 — 병합 방지
+    closing = is_closing_report(text)
+    ctx.user_data["closing"] = closing
+    await update.message.reply_text("🏪 매장 마감보고로 정리 중…" if closing else "정리 중…")
+    d = gpt_structure(text, prompt=CLOSING_PROMPT if closing else STRUCT_PROMPT)
     ctx.user_data["d"] = d
     clarify = [q for q in (d.get("clarify") or []) if q][:2]
     if clarify:
@@ -264,15 +340,17 @@ async def recv_report(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def recv_clarify(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ans = update.message.text.strip()
     if ans and ans not in ("없음", "없어요", "-"):
-        ctx.user_data["d"] = gpt_structure(ans, prev=ctx.user_data.get("d"))
+        prompt = CLOSING_PROMPT if ctx.user_data.get("closing") else STRUCT_PROMPT
+        ctx.user_data["d"] = gpt_structure(ans, prev=ctx.user_data.get("d"), prompt=prompt)
     return await show_confirm(update, ctx)
 
 async def show_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     d = ctx.user_data["d"]
     author = _author(update)
     ctx.user_data["author"] = author
+    text = closing_summary_text(d, author) if ctx.user_data.get("closing") else summary_text(d, author)
     kb = ReplyKeyboardMarkup([["✅ 등록", "✏️ 다시"]], one_time_keyboard=True, resize_keyboard=True)
-    await update.message.reply_text(summary_text(d, author), parse_mode="Markdown", reply_markup=kb)
+    await update.message.reply_text(text, parse_mode="Markdown", reply_markup=kb)
     return WAITING_CONFIRM
 
 async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -284,25 +362,31 @@ async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not ("등록" in choice or "✅" in choice or choice.lower() in ("ok", "확인", "저장", "네", "넵", "응")):
         return await recv_report(update, ctx)
     d = ctx.user_data["d"]; author = ctx.user_data.get("author", "운영자")
+    closing = bool(ctx.user_data.get("closing"))
     # 빈 행 가드: 실제 보고 섹션이 전부 비거나(빈 입력·GPT 구조화 실패) 무의미 토큰뿐이면 저장하지 않는다.
     _TRIVIAL = {"기록완료", "완료", "끝", "기록", "없음", "없습니다", "done", "ok", "오케이", "넵", "네"}
-    if not any((d.get(k) or "").strip() and (d.get(k) or "").strip() not in _TRIVIAL for k, _ in SECTIONS):
+    _keys = [k for k, _ in (CLOSING_FIELDS if closing else SECTIONS) if k != "date"]
+    if not any((d.get(k) or "").strip() and (d.get(k) or "").strip() not in _TRIVIAL for k in _keys):
         await update.message.reply_text(
             "보고 내용이 비어 있어 저장하지 않았어요 🙏 오늘 한 일을 적어 다시 보내주세요.",
             reply_markup=ReplyKeyboardRemove())
         ctx.user_data.clear()
         return ConversationHandler.END
-    ok = append_sheet(build_row(d, author))
-    # 대표에게 일일보고 요약 푸시
+    if closing:
+        ok = append_closing(build_closing_row(d, author))
+    else:
+        ok = append_sheet(build_row(d, author))
+    # 대표에게 요약 푸시
     if MANAGER_ID:
         try:
-            summary = daily_summary(d, author)
+            summary = closing_push_text(d, author) if closing else daily_summary(d, author)
             if not ok:
                 summary += "\n⚠️ 시트 저장 실패 → 로컬 큐 보관, 자동 재시도 예정"
             await ctx.bot.send_message(chat_id=MANAGER_ID, text=summary, parse_mode="Markdown")
         except Exception as e:
             logger.error(f"manager summary fail: {e}")
-    msg = "✅ 일일보고 등록 완료." + ("" if ok else " (⚠️ 시트 저장 지연 — 자동 재시도 예정, 다시 보내실 필요 없어요)")
+    done = "✅ 매장 마감보고 등록 완료." if closing else "✅ 일일보고 등록 완료."
+    msg = done + ("" if ok else " (⚠️ 시트 저장 지연 — 자동 재시도 예정, 다시 보내실 필요 없어요)")
     if MANAGER_ID:
         msg += "\n📤 요약을 대표에게 전달했습니다."
     await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
