@@ -62,6 +62,8 @@ from shared.logging import TokenRedactingFilter  # noqa: E402
 from shared import gws as _gws  # noqa: E402
 from shared import report_queue as _rq  # noqa: E402
 from shared.employee import load_employees as _load_emp  # noqa: E402
+from shared import closing as _closing  # noqa: E402  매장 마감보고 SSOT(daily-report-bot과 공유)
+from shared import closing as _closing  # noqa: E402  (매장 마감보고 SSOT — daily-report-bot과 공유)
 for _h in logging.getLogger().handlers:
     _h.addFilter(TokenRedactingFilter())  # 기존엔 필터 없어 토큰 평문 노출 — 보안 개선
 logger = logging.getLogger("basket-ops-bot")
@@ -162,33 +164,6 @@ STRUCT_PROMPT = """너는 Basket 매장 운영팀의 일일보고 정리 비서�
 }
 JSON만 출력."""
 
-# 매장 마감보고 — 개인 일일업무보고와 별개 문서. '매장마감' 탭에 매장 단위로 기록한다.
-# (기존엔 마감보고가 제출자의 일일보고 '업무보고' 칸에 병합돼 매출이 매출 칸에 안 잡혔음)
-CLOSING_PROMPT = """너는 매장 일일 마감보고 정리 비서다.
-운영자가 전달한 매장 마감보고(담당자·일 매출·판매 상세 포함)를 아래 JSON 스키마로 구조화한다.
-규칙: 보고에 적힌 내용만 담는다(지어내지 않음). 없으면 빈 문자열. 원문 표현을 최대한 보존한다.
-'clarify'에는 꼭 되물어야 할 핵심 질문만 0~2개 담는다. 매장명이 보고에 없으면 반드시
-"어느 매장 마감보고인가요? (리진/바스켓/아랑재 등)"을 clarify에 넣는다.
-
-스키마:
-{
- "store": "매장명(리진/바스켓/아랑재/올드타운/여수 등, 명시 없으면 빈 문자열)",
- "date": "보고에 적힌 영업일(YYMMDD 6자리, 없으면 빈 문자열)",
- "manager": "담당자 이름",
- "visitors": "방문객 체감 수준",
- "sales": "일 매출(숫자+원)",
- "drinks": "음료 판매(잔수·품목별 상세)",
- "desserts": "디저트 판매(개수·품목별 상세)",
- "notes": "특이사항",
- "clarify": ["되물을 질문1", "되물을 질문2"]
-}
-JSON만 출력."""
-
-def is_closing_report(text: str) -> bool:
-    """매장 마감보고 감지 — 담당자+일 매출 패턴 또는 '마감보고' 명시."""
-    t = text.replace(" ", "")
-    return ("마감보고" in t) or ("담당자" in t and "일매출" in t)
-
 def gpt_structure(text: str, prev: dict | None = None, prompt: str = STRUCT_PROMPT) -> dict:
     if not client:
         return {"notes": text, "clarify": []}
@@ -220,23 +195,14 @@ def _basket_append(tab: str, row: list, dedup_cols: list, author: str = "") -> b
 def append_sheet(row: list) -> bool:
     return _basket_append(SHEET_TAB, row, [1, 2, 14], author=str(row[2]) if len(row) > 2 else "")
 
+# 매장 마감보고 — 개인 일일업무보고와 별개 문서(shared.closing이 SSOT).
+CLOSING_PROMPT = _closing.PROMPT
+CLOSING_FIELDS = _closing.FIELDS
+is_closing_report = _closing.is_closing_report
+build_closing_row = _closing.build_row
+
 def append_closing(row: list) -> bool:
     return _basket_append(CLOSING_TAB, row, [1, 2, 10], author=str(row[2]) if len(row) > 2 else "")
-
-def build_closing_row(d: dict, submitter: str) -> list:
-    """매장마감 탭 11열: 매장·날짜·담당자·제출자·방문객체감·일매출·음료·디저트·특이·원문·시각."""
-    now = datetime.now()
-    date_ = (d.get("date") or "").strip()
-    if not (len(date_) == 6 and date_.isdigit()):
-        date_ = now.strftime("%y%m%d")
-    return [
-        d.get("store", ""), date_, d.get("manager", ""), submitter,
-        d.get("visitors", ""), d.get("sales", ""), d.get("drinks", ""), d.get("desserts", ""),
-        d.get("notes", ""), (d.get("_raw") or "").strip(), now.strftime("%H:%M"),
-    ]
-
-CLOSING_FIELDS = [("store", "매장"), ("date", "영업일"), ("manager", "담당자"), ("visitors", "방문객 체감"),
-                  ("sales", "일 매출"), ("drinks", "음료"), ("desserts", "디저트"), ("notes", "특이사항")]
 
 def closing_summary_text(d: dict, submitter: str) -> str:
     lines = [f"🏪 *매장 마감보고* — 제출 {_md(submitter)}", ""]
@@ -247,22 +213,10 @@ def closing_summary_text(d: dict, submitter: str) -> str:
     return "\n".join(lines) if len(lines) > 2 else "내용이 비어 있습니다."
 
 def closing_push_text(d: dict, submitter: str) -> str:
-    """제출 완료 → 대표 푸시용 마감보고 요약."""
-    store = (d.get("store") or "매장?").strip() or "매장?"
-    L = [f"🏪 *{_md(store)} 마감보고* {(d.get('date') or datetime.now().strftime('%y%m%d'))}"
-         + (f" · 담당 {_md(d['manager'])}" if (d.get("manager") or "").strip() else "")]
-    if (d.get("sales") or "").strip():
-        L.append("💰 일매출 " + _md(d["sales"].strip()))
-    if (d.get("visitors") or "").strip():
-        L.append("👥 방문객 " + _md(d["visitors"].strip()))
-    if (d.get("drinks") or "").strip():
-        L.append("☕ " + _md(_trunc(d["drinks"], 200)))
-    if (d.get("desserts") or "").strip():
-        L.append("🍰 " + _md(_trunc(d["desserts"], 200)))
-    if (d.get("notes") or "").strip():
-        L.append("📍 " + _md(_trunc(d["notes"], 180)))
-    L.append(f"(제출: {_md(submitter)})")
-    return "\n".join(L)
+    """제출 완료 → 대표 푸시용 마감보고 요약(Markdown 이스케이프 적용)."""
+    lines = _closing.push_lines(d, submitter)
+    head, *rest = lines
+    return "\n".join([f"*{_md(head)}*"] + [_md(x) for x in rest])
 
 def build_row(d: dict, author: str) -> list:
     now = datetime.now()
@@ -316,6 +270,7 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         "🧺 Basket 운영 봇입니다.\n"
         "• 오늘 업무를 편하게 쭉 적으면 → 일일보고로 정리·기록합니다.\n"
         "• 매장 마감보고(담당자·일 매출·판매 상세)는 자동 감지해 매장 기록으로 따로 정리합니다.\n"
+        "  → 마감보고와 본인 일일업무보고는 별개입니다. 각각 보내주세요.\n"
         "• /jot 내용 — 낮에 짬짬이 진행상황을 빠르게 기록(웹앱이 모아 보고로 구성).\n"
         "• /todo — 오늘 요일의 TO-DO 체크리스트를 띄웁니다.\n"
         "(지출·장비·대관·스태프·구매·입점·특이사항 등 생각나는 대로 적어 주세요)")
@@ -389,6 +344,9 @@ async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     msg = done + ("" if ok else " (⚠️ 시트 저장 지연 — 자동 재시도 예정, 다시 보내실 필요 없어요)")
     if MANAGER_ID:
         msg += "\n📤 요약을 대표에게 전달했습니다."
+    if closing:
+        # 정책(2026-07-29): 마감보고는 매장 기록. 담당자 본인의 일일업무보고는 별도 제출.
+        msg += "\n\nℹ️ 마감보고는 매장 기록으로 저장됩니다. 본인 일일업무보고는 따로 보내주세요."
     await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
     ctx.user_data.clear()
     return ConversationHandler.END

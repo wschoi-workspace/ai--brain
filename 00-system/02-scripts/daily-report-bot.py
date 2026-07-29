@@ -77,6 +77,7 @@ from shared.naming import clean_project_name as _nm_clean  # noqa: E402  (P2 네
 from shared import provenance as _PV  # noqa: E402  (갭B 업무 출처 — 배포 시 shared/provenance.py 동반)
 from shared import status as _ST  # noqa: E402  (상태 어휘 SSOT)
 from shared import assign_sheet as _AS  # noqa: E402  (주간분장 파싱 SSOT)
+from shared import closing as _closing  # noqa: E402  (매장 마감보고 SSOT — basket-ops-bot과 공유)
 try:
     from shared.status_log import log_status_change as _log_st  # noqa: E402
 except Exception:  # 로깅 실패가 보고 흐름을 막지 않는다
@@ -538,6 +539,31 @@ _REPORT_INTENT_RE = re.compile(
 )
 
 
+async def _handle_closing(update: Update, text: str, submitter: str) -> bool:
+    """매장 마감보고면 '매장마감' 탭에 매장 기록으로 저장하고 True.
+
+    정책(2026-07-29): 마감보고는 매장 담당자가 일일업무보고와 **별도로** 내는 문서다.
+    어느 봇으로 보내든 같은 탭에 모이도록 basket-ops-bot과 shared.closing을 공유한다.
+    (과거엔 제출자의 일일보고 '업무보고' 칸에 병합돼 매출이 매출 칸에 안 잡혔다)
+    """
+    if not _closing.is_closing_report(text):
+        return False
+    d = await asyncio.to_thread(call_gpt, _closing.PROMPT, text) or {}
+    d["_raw"] = text
+    row = _closing.build_row(d, submitter)
+    ok = await asyncio.to_thread(_closing.append_row, row)
+    store = row[0] or "매장 미상"
+    msg = (f"🏪 매장 마감보고로 저장했습니다 — {store} {row[1]}"
+           + ("" if ok else "\n(⚠️ 시트 저장 지연 — 자동 재시도 예정, 다시 보내실 필요 없어요)")
+           + "\n\nℹ️ 마감보고는 매장 기록입니다. 본인 일일업무보고는 /report 로 따로 제출해주세요.")
+    if not row[0]:
+        msg += "\n❓ 어느 매장인지 적혀 있지 않았습니다 — 매장명을 알려주시면 채워 넣겠습니다."
+    await update.message.reply_text(msg)
+    await asyncio.to_thread(send_to_manager, "\n".join(_closing.push_lines(d, submitter)))
+    logger.info(f"closing report saved via daily-report-bot: {store} by {submitter} (ok={ok})")
+    return True
+
+
 async def receive_inquiry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message or not update.message.text:
         return
@@ -550,6 +576,10 @@ async def receive_inquiry(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
     emp = employee_by_tid(uid)
     name = emp["name"] if emp else (update.effective_user.full_name or str(uid))
+
+    # 매장 마감보고는 플로우 밖으로 와도 매장 기록으로 받는다(별도 문서라 /report 안내 대상 아님)
+    if await _handle_closing(update, text, name):
+        return
 
     # 업무보고 의도 감지: 키워드 2개 이상 or 3줄 이상이면 보고로 보내려 한 것으로 판단
     intent_hits = len(_REPORT_INTENT_RE.findall(text))
@@ -1604,6 +1634,13 @@ async def receive_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
 async def receive_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
+    # 마감보고를 업무 나열 자리에 붙여넣은 경우 — 매장 기록으로 빼고 본인 업무보고를 계속 받는다
+    if _closing.is_closing_report(text):
+        emp = employee_by_tid(update.effective_user.id)
+        name = emp["name"] if emp else (update.effective_user.full_name or "")
+        if await _handle_closing(update, text, name):
+            await update.message.reply_text("이어서 오늘 본인 업무를 알려주세요 🙌")
+            return WAITING_TASKS
     context.user_data.setdefault("raw_log", []).append(f"[업무 나열] {text}")
     await update.message.reply_text("정리하고 있어요... ⏳")
 

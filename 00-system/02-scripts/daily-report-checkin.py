@@ -2,8 +2,9 @@
 """일일보고 정착 점검 — 매일 밤 22:00, 오늘 보고 현황(N/10·미보고자)을 대표 텔레그램 발송.
 
 가이드 정착 추적용: 누가 보고했고 누가 빠졌는지 매일 밤 대표에게 1줄 요약.
-완료 판정 = 데일리 업무보고(메타 + 핵심업무) + 실내용 있는 매장보고(바스켓 업무보고/매장마감, 2026-07-29 정책).
-매출 숫자만 올린 경우는 여전히 미완('매출보고만'으로 별도 줄 표시)
+완료 판정 = 데일리 업무보고(메타 + 핵심업무)만. 바스켓 매출보고는 완료에서 제외하고 별도 줄로 표시.
+매장 마감보고도 완료로 치지 않는다 — 담당자가 일일업무보고와 별도로 내는 문서(2026-07-29 대표 지시).
+매장별 마감보고 제출 현황은 참고용으로 한 줄 덧붙인다.
 (reminder와 동일 기준; 매출만 올린 매장스텝도 '미완료'로 집계).
 토요일(2026-07-04 대표 지시): 일일 점검 대신 이번 주(월~토) 인별 보고일수 '주간 써머리'를 발송.
 런타임: .venv311 (gws subprocess + stdlib). 사용: python daily-report-checkin.py [--dry] [--weekly]
@@ -122,7 +123,7 @@ def main():
     today_yy = now.strftime("%y%m%d")
     # 토요일엔 일일 점검 대신 주간 써머리 발송(대표 지시 2026-07-04). --weekly로 강제 가능(테스트용).
     weekly = "--weekly" in sys.argv or now.weekday() == 5
-    # 완료 판정 = 데일리 업무보고(메타 + 핵심업무) + 실내용 있는 매장보고(2026-07-29 정책).
+    # 완료 판정 = 데일리 업무보고(메타 + 핵심업무)만. 매출보고·매장 마감보고는 별도 문서.
     meta_rows = gws_get(DAILY, "메타!A:B")
     core_rows = gws_get(DAILY, "핵심업무!A:B")
     # 가드: 시트 읽기 실패(gws 인증/네트워크 장애) 시 '전원 미보고' 허위 요약을 막고 대표에게 장애만 알림
@@ -151,34 +152,31 @@ def main():
     for r in core_rows:
         if len(r) >= 2 and str(r[0]).startswith(today):
             reported.add(norm(r[1]))
-    # 바스켓 보고 판정(2026-07-29 정책): 업무보고(worklog)에 실내용이 있거나 매장마감 보고의
-    # 담당자면 '매장보고 완료'로 인정. 매출 숫자만 있으면 기존대로 '매출보고만'(미완).
-    # 읽기 실패는 참고정보라 무시(None→[])
-    basket_any, basket_work = set(), set()
-    for r in (gws_get(BASKET, "일일보고!A:I") or []):
+    # 바스켓 매출보고(참고용, 완료 판정에는 미포함). 읽기 실패는 참고정보라 무시(None→[])
+    basket = set()
+    for r in (gws_get(BASKET, "일일보고!A:C") or []):
         if len(r) >= 3 and str(r[1]).strip() == today_yy:
-            n = norm(r[2])
-            basket_any.add(n)
-            if len(r) >= 9 and str(r[8]).strip():
-                basket_work.add(n)
+            basket.add(norm(r[2]))
+    # 매장 마감보고(별도 문서 — 업무보고 완료로 치지 않고 매장별 제출 현황만 참고 표시)
+    closings = []
     for r in (gws_get(BASKET, "매장마감!A:C") or []):
-        if len(r) >= 3 and str(r[1]).strip() == today_yy:
-            basket_work.add(norm(r[2]))
+        if len(r) >= 2 and str(r[1]).strip() == today_yy:
+            store = (r[0] or "").strip() or "매장?"
+            mgr = norm(r[2]) if len(r) >= 3 else ""
+            closings.append(f"{store}({mgr})" if mgr else store)
 
     done = [n for n in TARGETS if n in reported]
-    store_done = [n for n in TARGETS if n in basket_work and n not in reported]
-    todo = [n for n in TARGETS if n not in reported and n not in basket_work]
-    sales_only = [n for n in TARGETS if n in basket_any and n not in reported and n not in basket_work]
-    total_done = len(done) + len(store_done)
-    msg = f"🌙 일일보고 점검 · {today}\n\n업무보고 {total_done}/{len(TARGETS)}명 완료"
-    if store_done:
-        msg += f"\n🧺 매장보고로 완료: " + ", ".join(store_done)
+    todo = [n for n in TARGETS if n not in reported]
+    basket_only = [n for n in TARGETS if n in basket and n not in reported]
+    msg = f"🌙 일일보고 점검 · {today}\n\n업무보고 {len(done)}/{len(TARGETS)}명 완료"
     if todo:
         msg += "\n⬜ 미보고: " + ", ".join(todo)
     else:
         msg += "\n✅ 전원 완료! 🎉"
-    if sales_only:
-        msg += "\n💰 매출보고만(업무보고 미완): " + ", ".join(sales_only)
+    if basket_only:
+        msg += "\n🧺 매출보고만(업무보고 미완): " + ", ".join(basket_only)
+    if closings:
+        msg += "\n🏪 매장 마감보고: " + ", ".join(sorted(set(closings)))
     send_summary(msg)
 
 
