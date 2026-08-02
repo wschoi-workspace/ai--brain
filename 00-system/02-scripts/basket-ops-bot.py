@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 """
-basket-ops-bot.py — Basket 운영팀 일일업무 보고 봇 (전용)
+basket-ops-bot.py — 매장관리 봇 (매장 운영 기록 전용)
+
+정체성(2026-07-30 재정의): 이 봇은 **매장 운영 기록**을 매장별로 모은다.
+개인 일일업무보고는 ARISA 봇(daily-report-bot) 담당이고, 매장 마감보고는
+담당자가 업무보고와 별도로 내는 문서다(2026-07-29 대표 지시).
+매장은 stores.json(shared.stores)이 명부이며 /addstore로 늘린다 — 시트·웹앱은
+원래 store_id로 매장을 나누는 구조인데 봇이 'basket' 하나로 고정해 넣고 있었다.
 
 흐름(혼합 입력):
   운영자가 텔레그램에 자유롭게 보고 입력
+   → 마감보고면 매장마감 탭으로 분기(shared.closing), 아니면 아래 운영보고 경로
    → OpenAI가 11섹션으로 구조화 + 부족/모호한 핵심만 되물음(최대 2개)
-   → 운영자 보완 → 요약 확인
+   → 운영자 보완 → 매장 귀속·요약 확인
    → 구글 시트(일일보고 리스트)에 1행 append
    → 승인·결재 필요 건(③송금·승인 / ⑤장비 견적·AS / ⑩입점)은 매니저에게 별도 강조 전송
 
@@ -21,7 +28,7 @@ basket-ops-bot.py — Basket 운영팀 일일업무 보고 봇 (전용)
 실행: python3 basket-ops-bot.py  (launchd 상시가동 권장 — *.plist 참조)
 """
 from __future__ import annotations
-import json, logging, os, subprocess, sys, atexit
+import json, logging, os, re, subprocess, sys, atexit
 from datetime import datetime
 from pathlib import Path
 
@@ -63,6 +70,7 @@ from shared import gws as _gws  # noqa: E402
 from shared import report_queue as _rq  # noqa: E402
 from shared.employee import load_employees as _load_emp  # noqa: E402
 from shared import closing as _closing  # noqa: E402  매장 마감보고 SSOT(daily-report-bot과 공유)
+from shared import stores as _stores  # noqa: E402  매장 명부 SSOT(신규 매장 확장)
 from shared import closing as _closing  # noqa: E402  (매장 마감보고 SSOT — daily-report-bot과 공유)
 for _h in logging.getLogger().handlers:
     _h.addFilter(TokenRedactingFilter())  # 기존엔 필터 없어 토큰 평문 노출 — 보안 개선
@@ -218,10 +226,11 @@ def closing_push_text(d: dict, submitter: str) -> str:
     head, *rest = lines
     return "\n".join([f"*{_md(head)}*"] + [_md(x) for x in rest])
 
-def build_row(d: dict, author: str) -> list:
+def build_row(d: dict, author: str, store_id: str | None = None) -> list:
     now = datetime.now()
     return [
-        STORE_ID, now.strftime("%y%m%d"), author, d.get("sales",""), d.get("jichul",""), d.get("approval",""),
+        (store_id if store_id is not None else STORE_ID),
+        now.strftime("%y%m%d"), author, d.get("sales",""), d.get("jichul",""), d.get("approval",""),
         d.get("notes",""), d.get("equipment",""), d.get("worklog",""), d.get("rental",""),
         d.get("staff",""), d.get("purchase",""), d.get("tenant",""), d.get("reflection",""),
         now.strftime("%H:%M"),
@@ -250,7 +259,7 @@ def _trunc(s: str, n: int) -> str:
 
 def daily_summary(d: dict, author: str) -> str:
     """제출 완료 → 대표 푸시용 일일보고 요약 (매출·결재필요·업무·특이)."""
-    L = [f"🧺 *Basket 일일보고* {datetime.now():%y%m%d} · {_md(author)}", ""]
+    L = [f"🧺 *매장 운영보고* {datetime.now():%y%m%d} · {_md(author)}", ""]
     if (d.get("sales") or "").strip():
         sales = d["sales"].strip()
         L.append("💰 매출 " + _md(sales) + ("원" if sales[-1:].isdigit() else ""))
@@ -267,13 +276,15 @@ def daily_summary(d: dict, author: str) -> str:
 # ---- 텔레그램 핸들러 ----
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🧺 Basket 운영 봇입니다.\n"
-        "• 오늘 업무를 편하게 쭉 적으면 → 일일보고로 정리·기록합니다.\n"
-        "• 매장 마감보고(담당자·일 매출·판매 상세)는 자동 감지해 매장 기록으로 따로 정리합니다.\n"
-        "  → 마감보고와 본인 일일업무보고는 별개입니다. 각각 보내주세요.\n"
-        "• /jot 내용 — 낮에 짬짬이 진행상황을 빠르게 기록(웹앱이 모아 보고로 구성).\n"
-        "• /todo — 오늘 요일의 TO-DO 체크리스트를 띄웁니다.\n"
-        "(지출·장비·대관·스태프·구매·입점·특이사항 등 생각나는 대로 적어 주세요)")
+        "🏪 매장관리 봇입니다. 매장 운영 기록을 매장별로 모읍니다.\n\n"
+        "• 매장 마감보고(담당자·일 매출·판매 상세) → 매장 기록으로 정리\n"
+        "  ※ 마감보고와 본인 일일업무보고는 별개입니다. 업무보고는 ARISA 봇에 따로 제출해 주세요.\n"
+        "• 매장 운영 보고(지출·장비·대관·스태프·구매·입점·특이사항) → 그냥 적어 주세요\n"
+        "• /jot 내용 — 낮에 짬짬이 진행상황 기록\n"
+        "• /todo — 오늘 요일 TO-DO 체크리스트\n"
+        "• /stores — 등록 매장 보기 · /addstore — 신규 매장 등록(관리자)\n\n"
+        f"보고에 매장명(예: {', '.join(s['name'] for s in _stores.active_stores()[:3])})을 적어 주시면 "
+        "그 매장 기록으로 분류됩니다.")
     return WAITING_REPORT
 
 async def recv_report(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -281,6 +292,10 @@ async def recv_report(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     # 매장 마감보고는 개인 일일보고와 별도 경로(매장마감 탭)로 — 병합 방지
     closing = is_closing_report(text)
     ctx.user_data["closing"] = closing
+    # 매장 귀속: 한 곳만 언급되면 그 매장, 여러 곳·미언급이면 기본 매장 버킷
+    # (시트·웹앱은 원래 store_id로 매장을 나누는 구조인데 봇이 'basket' 고정으로 넣어왔다)
+    if not closing:
+        ctx.user_data["store_id"] = _stores.attribute(text) or STORE_ID
     await update.message.reply_text("🏪 매장 마감보고로 정리 중…" if closing else "정리 중…")
     d = gpt_structure(text, prompt=CLOSING_PROMPT if closing else STRUCT_PROMPT)
     ctx.user_data["d"] = d
@@ -295,15 +310,25 @@ async def recv_report(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def recv_clarify(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ans = update.message.text.strip()
     if ans and ans not in ("없음", "없어요", "-"):
-        prompt = CLOSING_PROMPT if ctx.user_data.get("closing") else STRUCT_PROMPT
+        closing = ctx.user_data.get("closing")
+        prompt = CLOSING_PROMPT if closing else STRUCT_PROMPT
         ctx.user_data["d"] = gpt_structure(ans, prev=ctx.user_data.get("d"), prompt=prompt)
+        if not closing:
+            # 보완 답변에서 매장을 밝힌 경우 반영(1차에서 못 잡았을 수 있다)
+            found = _stores.attribute(ctx.user_data["d"].get("_raw") or ans)
+            if found:
+                ctx.user_data["store_id"] = found
     return await show_confirm(update, ctx)
 
 async def show_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     d = ctx.user_data["d"]
     author = _author(update)
     ctx.user_data["author"] = author
-    text = closing_summary_text(d, author) if ctx.user_data.get("closing") else summary_text(d, author)
+    if ctx.user_data.get("closing"):
+        text = closing_summary_text(d, author)
+    else:
+        store = _stores.display(ctx.user_data.get("store_id", STORE_ID))
+        text = f"🏪 매장: {_md(store)}\n\n" + summary_text(d, author)
     kb = ReplyKeyboardMarkup([["✅ 등록", "✏️ 다시"]], one_time_keyboard=True, resize_keyboard=True)
     await update.message.reply_text(text, parse_mode="Markdown", reply_markup=kb)
     return WAITING_CONFIRM
@@ -327,14 +352,16 @@ async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             reply_markup=ReplyKeyboardRemove())
         ctx.user_data.clear()
         return ConversationHandler.END
+    store_id = ctx.user_data.get("store_id", STORE_ID)
     if closing:
         ok = append_closing(build_closing_row(d, author))
     else:
-        ok = append_sheet(build_row(d, author))
+        ok = append_sheet(build_row(d, author, store_id))
     # 대표에게 요약 푸시
     if MANAGER_ID:
         try:
-            summary = closing_push_text(d, author) if closing else daily_summary(d, author)
+            summary = (closing_push_text(d, author) if closing
+                       else f"🏪 *{_md(_stores.display(store_id))}*\n" + daily_summary(d, author))
             if not ok:
                 summary += "\n⚠️ 시트 저장 실패 → 로컬 큐 보관, 자동 재시도 예정"
             await ctx.bot.send_message(chat_id=MANAGER_ID, text=summary, parse_mode="Markdown")
@@ -354,17 +381,55 @@ async def recv_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 # ---- /jot (낮 동안 짬짬이 진행로그) ----
 def append_progress(author: str, text: str) -> bool:
     now = datetime.now()
-    row = [STORE_ID, now.strftime("%y%m%d"), now.strftime("%H:%M"), author, text]
+    row = [_stores.attribute(text) or STORE_ID,
+           now.strftime("%y%m%d"), now.strftime("%H:%M"), author, text]
     return _basket_append(PROGRESS_TAB, row, [1, 2, 3], author=author)
 
 async def cmd_jot(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     text = (update.message.text or "").partition(" ")[2].strip()
     if not text:
-        await update.message.reply_text("사용법: /jot 다음에 진행상황을 적어주세요.\n예) /jot 오전 발주 완료, 사진전 대관 회신대기")
+        await update.message.reply_text("사용법: /jot 다음에 진행상황을 적어주세요.\n예) /jot 리진 오전 발주 완료, 사진전 대관 회신대기")
         return
     author = _author(update)
     ok = append_progress(author, text)
-    await update.message.reply_text("📝 진행 기록됨" + ("" if ok else " (⚠️ 시트 저장 지연 — 자동 재시도 예정)"))
+    store = _stores.display(_stores.attribute(text) or STORE_ID)
+    await update.message.reply_text(f"📝 진행 기록됨 · {store}"
+                                    + ("" if ok else " (⚠️ 시트 저장 지연 — 자동 재시도 예정)"))
+
+
+# ---- 매장 명부 (신규 매장 확장) ----
+async def cmd_stores(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🏪 등록 매장\n" + "\n".join(_stores.summary_lines())
+        + "\n\n신규 매장 등록: /addstore 매장명 [별칭1,별칭2]\n예) /addstore 성수점 성수,성수팝업")
+
+
+async def cmd_addstore(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """신규 매장 등록 — 매니저(대표)만. 보고 기록의 기준 명부라 아무나 못 바꾸게 한다."""
+    uid = str(update.effective_user.id) if update.effective_user else ""
+    if MANAGER_ID and uid != str(MANAGER_ID):
+        await update.message.reply_text("매장 등록은 관리자만 가능합니다. 대표님께 요청해 주세요 🙏")
+        return
+    args = (update.message.text or "").partition(" ")[2].strip()
+    if not args:
+        await update.message.reply_text(
+            "사용법: /addstore 매장명 [별칭1,별칭2]\n예) /addstore 성수점 성수,seongsu\n"
+            "(별칭에 영문을 하나 넣으면 그게 시트 store_id가 됩니다)")
+        return
+    name, _, alias_str = args.partition(" ")
+    aliases = [a.strip() for a in alias_str.replace(" ", ",").split(",") if a.strip()]
+    # 영문 별칭이 있으면 시트 store_id로 쓴다(한글만이면 store6 같은 무의미 슬러그가 된다)
+    ascii_alias = next((a for a in aliases if re.fullmatch(r"[A-Za-z][A-Za-z0-9 _-]*", a)), "")
+    ok, msg = _stores.add(name.strip(), aliases,
+                          store_id=_stores.slugify(ascii_alias) if ascii_alias else "")
+    if ok:
+        logger.info(f"store added by {uid}: {msg}")
+        await update.message.reply_text(
+            f"✅ 매장 등록 — {msg}\n이제 보고에 '{name.strip()}'이 언급되면 이 매장 기록으로 분류됩니다.\n"
+            "※ 매장 담당자가 웹앱(매장코드·PIN)으로 볼 수 있게 하려면 시트 '담당자' 탭에 행을 추가해 주세요.\n\n"
+            + "🏪 등록 매장\n" + "\n".join(_stores.summary_lines()))
+    else:
+        await update.message.reply_text(f"⚠️ {msg}")
 
 
 # ---- /todo (요일별 체크리스트) ----
@@ -455,6 +520,8 @@ def main():
     app.add_handler(TypeHandler(Update, log_chat), group=-1)
     app.add_handler(todo_conv)
     app.add_handler(CommandHandler("jot", cmd_jot))
+    app.add_handler(CommandHandler("stores", cmd_stores))
+    app.add_handler(CommandHandler("addstore", cmd_addstore))
     conv = ConversationHandler(
         entry_points=[CommandHandler("start", cmd_start),
                       CommandHandler("report", cmd_start),
@@ -468,7 +535,8 @@ def main():
     )
     app.add_handler(conv)
     app.add_error_handler(on_error)
-    logger.info("Basket 운영 일일보고 봇 시작")
+    logger.info(f"매장관리 봇 시작 — 등록 매장 {len(_stores.active_stores())}곳: "
+                + ", ".join(s["id"] for s in _stores.active_stores()))
     # drop_pending_updates=False: 슬립/재시작 동안 쌓인 보고·명령을 깨어난 뒤 빠짐없이 처리.
     # (Telegram이 미확정 update를 최대 24h 보관 → 마지막 offset부터 재수신)
     app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=False)

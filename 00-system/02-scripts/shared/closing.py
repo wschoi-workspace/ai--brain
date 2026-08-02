@@ -11,6 +11,7 @@ from datetime import datetime
 
 from . import gws as _gws
 from . import report_queue as _rq
+from . import stores as _stores
 
 TAB = os.environ.get("BASKET_CLOSING_SHEET_TAB", "매장마감")
 
@@ -50,6 +51,15 @@ def is_closing_report(text: str) -> bool:
     return ("마감보고" in t) or ("담당자" in t and "일매출" in t)
 
 
+def normalize_store(raw: str) -> str:
+    """LLM이 뽑은 매장명 → 명부의 정식 매장명. 미등록이면 적힌 그대로 둔다(기록 유실 방지)."""
+    raw = (raw or "").strip()
+    if not raw:
+        return ""
+    sid = _stores.resolve(raw)
+    return _stores.display(sid) if sid else raw
+
+
 def build_row(d: dict, submitter: str) -> list:
     """구조화 결과 → 매장마감 탭 1행. date가 YYMMDD가 아니면 오늘 날짜."""
     now = datetime.now()
@@ -57,7 +67,7 @@ def build_row(d: dict, submitter: str) -> list:
     if not (len(date_) == 6 and date_.isdigit()):
         date_ = now.strftime("%y%m%d")
     return [
-        d.get("store", ""), date_, d.get("manager", ""), submitter,
+        normalize_store(d.get("store", "")), date_, d.get("manager", ""), submitter,
         d.get("visitors", ""), d.get("sales", ""), d.get("drinks", ""), d.get("desserts", ""),
         d.get("notes", ""), (d.get("_raw") or d.get("raw") or "").strip(), now.strftime("%H:%M"),
     ]
@@ -77,7 +87,7 @@ def append_row(row: list) -> bool:
 
 def push_lines(d: dict, submitter: str) -> list[str]:
     """대표 푸시용 요약 라인(플레인 텍스트 — 발신 봇이 포맷을 입힌다)."""
-    store = (d.get("store") or "매장?").strip() or "매장?"
+    store = normalize_store(d.get("store", "")) or "매장?"
     head = f"🏪 {store} 마감보고 {(d.get('date') or datetime.now().strftime('%y%m%d'))}"
     if (d.get("manager") or "").strip():
         head += f" · 담당 {d['manager'].strip()}"
