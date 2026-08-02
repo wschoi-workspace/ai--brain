@@ -76,7 +76,8 @@ ADMIN_ONLY = (("승인", "진행중"), ("승인", "완료"), ("승인", "검토�
 # status_log의 source 값 기준 분류 (log_status_change docstring과 동일 어휘)
 AUTO_SOURCES = ("daily-brief-auto", "weekly-auto")
 # 사람이 버튼을 눌렀고 verify_row로 본인·업무 동일성까지 재확인한 전이 → 사람 취급
-CONFIRMED_SOURCES = ("report-sync",)
+# report-followup(봇 진행률 되묻기 응답)도 verify_row를 두 번 통과한 뒤에만 쓴다 — 사람 취급.
+CONFIRMED_SOURCES = ("report-sync", "report-followup")
 
 ENFORCE_FROM = _date(2026, 8, 17)   # 3주 shadow 후 전환 (report_score.GRACE_END와 겹치지 않게)
 ENV_MODE_KEY = "ARISA_TRANSITION_MODE"   # shadow|enforce|off — plist env 1줄로 즉시 롤백
@@ -110,6 +111,16 @@ ASSIGN_TO_TASK = {"미착수": "Not Started", "진행중": "In Progress",
 ASSIGN_TO_PROGRESS = {"미착수": 0, "진행중": 50, "검토중": 70, "승인대기": 90, "보류": 30,
                       "완료": 100, "승인": 100}
 
+# ── 진행률 밴드 (vNext Phase 1) — 상태가 아니라 '표시 라벨'이다 ────────
+# 대표 원안의 5단계(Not Started 0 / Planning 20 / In Progress 50 / Review 80 / Done 100)를
+# ASSIGN_STATES에 새 상태로 추가하지 않는다. 어휘 13종·TRANSITIONS는 불변이 계약이다.
+# 대신 진행률을 독립 축으로 두면 "상태는 미착수인데 20% 입력된 행"이 Planning을 자연히
+# 흡수한다 — 없던 상태를 만들지 않고 원안의 의도를 만족시키는 유일한 방법.
+PROGRESS_BANDS = ((100, "Done"), (80, "Review"), (50, "In Progress"),
+                  (1, "Planning"), (0, "Not Started"))
+# 진행률이 이 일수만큼 안 움직인 '진행중' 분장 = follow-up 우선 대상 (coach·followup 공용)
+PROGRESS_STALE_DAYS = 5
+
 # ── 표시: 분장 상태 → 뱃지 CSS 클래스 (daily-brief·weekly 공통) ───────
 ASSIGN_BADGE_CLASS = {"완료": "as-done", "승인": "as-done", "진행중": "as-doing",
                       "검토중": "as-doing", "승인대기": "as-doing"}
@@ -140,6 +151,48 @@ def assign_to_task(st) -> str:
 
 def assign_to_progress(st) -> int:
     return ASSIGN_TO_PROGRESS.get(st or "", 0)
+
+
+def norm_progress(raw):
+    """시트 P열 원문 → 0~100 정수, 미입력·형식오류는 None.
+
+    None과 0을 구분하는 것이 이 함수의 전부다. 0으로 뭉개면 '아직 안 적었다'와
+    '적었는데 0%다'가 같아져서 effective_progress가 실입력을 무시하게 된다.
+    """
+    s = str(raw if raw is not None else "").strip().rstrip("%").strip()
+    if not s:
+        return None
+    try:
+        n = int(float(s))
+    except (TypeError, ValueError):
+        return None
+    return max(0, min(100, n))
+
+
+def effective_progress(a) -> int:
+    """분장 1건의 진행률 — 사람이 적은 값(P열)이 상태 파생 사다리보다 우선.
+
+    P열이 비면 ASSIGN_TO_PROGRESS를 그대로 반환하므로 기존 동작이 보존된다
+    (무마이그레이션). 완료·승인은 실입력이 무엇이든 100 — 닫힌 업무가 70%로
+    남아 롤업을 갉아먹는 것을 막는다.
+    """
+    a = a or {}
+    st = a.get("status") or ""
+    if st in ASSIGN_DONE_STATES:
+        return 100
+    p = norm_progress(a.get("progress"))
+    return p if p is not None else ASSIGN_TO_PROGRESS.get(st, 0)
+
+
+def progress_band(pct) -> str:
+    """0~100 → 대표 어휘 라벨. 표시 전용이며 데이터에 쓰지 않는다."""
+    n = norm_progress(pct)
+    if n is None:
+        return "Not Started"
+    for floor, label in PROGRESS_BANDS:
+        if n >= floor:
+            return label
+    return "Not Started"
 
 
 def badge_class(st) -> str:

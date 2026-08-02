@@ -80,6 +80,7 @@ from shared import provenance as _PV  # 업무 출처·회의 참조 (갭A) — 
 from shared import today_plan as _TP  # 오늘 하기로 한 일 (갭C) — 배포 시 shared/today_plan.py 동반 필수
 from shared import assign_sheet as _AS  # 주간분장 컬럼·파싱 SSOT — 배포 시 shared/assign_sheet.py 동반 필수
 from shared import approval as _AP  # 승인 체인·권한 (R4 2차) — 배포 시 shared/approval.py 동반 필수
+from shared import completion as _CP  # 완료 5요소 게이트 (vNext P1) — 배포 시 shared/completion.py 동반 필수
 from shared import meeting_link as _ML  # 회의 액션 선행·차단 조회 (WS1) — 배포 시 shared/meeting_link.py 동반 필수
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
@@ -3741,15 +3742,23 @@ def _record_done_task(assign, approver):
         return False
     k = _akey(assign.get("date"), assign.get("task"), assign.get("assignee"))
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    # 완료 근거 3종은 시트(S·T·U)의 복사본이다 — _sync_assign_status가 매번 재계산하므로
+    # 여기서 비어 있어도 다음 동기에서 채워진다. 값을 지어내지 않는다.
+    done = {kk: vv for kk, vv in (
+        ("done_at", (assign.get("done_at") or "").strip()),
+        ("done_by", (assign.get("done_by") or "").strip()),
+        ("deliverable", (assign.get("deliverable") or assign.get("result") or "").strip()),
+    ) if vv}
     hit = next((t for t in (tp.get("tasks") or []) if t.get("akey") == k), None)
     if hit:
-        hit.update({"status": "Done", "progress": 100, "approved_by": approver, "approved_at": now})
+        hit.update({"status": "Done", "progress": 100, "approved_by": approver,
+                    "approved_at": now, **done})
     else:
         tp.setdefault("tasks", []).append({
             "division": emp_team(assign.get("assignee")) or "", "task": assign.get("task") or "",
             "owner": assign.get("assignee") or "", "start": (assign.get("date") or "")[:10],
             "end": (assign.get("deadline") or "").strip(), "status": "Done", "progress": 100,
-            "akey": k, "approved_by": approver, "approved_at": now})
+            "akey": k, "approved_by": approver, "approved_at": now, **done})
     save_project(tp)
     return True
 
@@ -3857,21 +3866,38 @@ def _sync_assign_status(p):
         return False
     sheet = {}
     for a in _assign_read():
-        sheet[_akey(a.get("date"), a.get("task"), a.get("assignee"))] = a.get("status") or "미착수"
+        sheet[_akey(a.get("date"), a.get("task"), a.get("assignee"))] = a
     changed = False
     removed = []
     for t in keyed:
-        st = sheet.get(t["akey"])
-        if not st:
+        a = sheet.get(t["akey"])
+        if not a:
             continue
+        st = a.get("status") or "미착수"
         if st in _ST.ASSIGN_DROPPED_STATES:
             removed.append(t["akey"])
             continue
         new_st = _ASSIGN_ST_MAP.get(st, "Not Started")
         if t.get("status") != new_st:
             t["status"] = new_st
-            t["progress"] = _ASSIGN_PROG_MAP.get(st, 0)
             changed = True
+        # 진행률은 상태와 별개로 움직인다 — 사람이 P열에 60%를 적어도 상태는 '진행중' 그대로다.
+        # 종전 코드는 (a) 상태가 바뀔 때만 갱신해서 진행률만 오른 경우를 통째로 놓쳤고,
+        # (b) 갱신할 때는 실입력을 상태 파생 고정값(진행중=50)으로 덮어썼다.
+        # effective_progress는 P열이 비면 그 고정 사다리를 그대로 반환하므로 행동은 보존된다.
+        new_p = _ST.effective_progress(a)
+        if t.get("progress") != new_p:
+            t["progress"] = new_p
+            changed = True
+        # 완료 근거는 시트에서 매번 재계산한다 — 프로젝트 JSON에 시트로 복원 불가능한
+        # 값을 만들지 않는 것이 로컬↔맥미니 divergence를 '데이터 손실'이 아니라
+        # '일시적 불일치'로 묶어두는 유일한 조건이다.
+        for key, val in (("done_at", a.get("done_at")), ("done_by", a.get("done_by")),
+                         ("deliverable", a.get("deliverable") or a.get("result"))):
+            v = (val or "").strip()
+            if v and t.get(key) != v:
+                t[key] = v
+                changed = True
     if removed:
         p["tasks"] = [t for t in (p.get("tasks") or []) if t.get("akey") not in removed]
         changed = True
@@ -5853,10 +5879,11 @@ class H(BaseHTTPRequestHandler):
                 return self._send(400, {"ok": False, "error": "row·status 확인"})
             # 행 재조회 — 수동 행 삭제 등으로 어긋났으면 거부
             try:
-                cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:K{row}", retries=2, timeout=20)
+                # A:W — 완료 5요소(S~W)까지 함께 읽는다. 인덱스 0~10은 종전과 동일하다.
+                cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:W{row}", retries=2, timeout=20)
             except Exception:
                 cur = []
-            r = (list(cur[0]) + [""] * 11)[:11] if cur else [""] * 11
+            r = (list(cur[0]) + [""] * _AS.COLS)[:_AS.COLS] if cur else [""] * _AS.COLS
             assignee = (r[3] or "").strip()
             task = (r[4] or "").strip()
             if not task or task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
@@ -5886,6 +5913,28 @@ class H(BaseHTTPRequestHandler):
             if not g_ok:
                 return self._send(400, {"ok": False, "code": "transition",
                                         "error": "상태 전이 불가: " + g_why})
+            # 완료 5요소 게이트 (vNext P1) — S:W를 H열보다 **먼저** 쓴다.
+            # 반대 순서면 S:W 실패 시 '완료인데 근거 공란'인 유령 행이 남는데,
+            # 사람은 이미 완료됐다고 믿으므로 아무도 되돌리지 않는다.
+            # grace에서 실제로 막는 것은 없다(전부 자동 충전). strict가 막는 것도 산출물 하나.
+            c_miss, c_fill, c_final = [], {}, {}
+            if new_st in _ST.ASSIGN_DONE_STATES:
+                cur_a = _AS.parse_row(r, row, _ST)
+                _cproj = _find_project_for_assign({"project": (r[1] or "").strip(),
+                                                   "pid": (r[10] or "").strip()}) or {}
+                _cwho = _AP.next_step("완료", assignee, _cproj, load_emp())
+                c_fill = _CP.autofill(cur_a, actor=uid, report_to=(_cwho[1] or _cwho[0] or ""))
+                c_ok, c_miss = _CP.check(dict(cur_a, **c_fill))
+                if not c_ok:
+                    return self._send(400, {"ok": False, "code": "completion", "missing": c_miss,
+                                            "error": "완료 근거가 필요합니다: " + "·".join(c_miss)})
+                # set_completion은 S:W 범위를 통째로 덮는다 — 부분 값만 넘기면 사람이 미리
+                # 적어둔 칸이 빈칸으로 지워진다. 반드시 시트 원본 + 자동충전을 병합해 넘긴다.
+                c_final = {k: (c_fill.get(k) or cur_a.get(k) or "")
+                           for k in ("done_at", "done_by", "deliverable", "report_to", "reported_at")}
+                if c_fill and not _AS.set_completion(_asgws, DAILY_SHEET, row, **c_final):
+                    return self._send(500, {"ok": False, "error":
+                                            "완료 정보 기록 실패 — 상태는 바꾸지 않았습니다. 다시 시도해주세요"})
             try:
                 ok = _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!H{row}", [[new_st]], timeout=20)
             except Exception as e:
@@ -5894,13 +5943,20 @@ class H(BaseHTTPRequestHandler):
                 return self._send(500, {"ok": False, "error": "시트 업데이트 실패"})
             _log_st("dashboard", uid, new_st, from_status=from_st, row=row,
                     date=(r[0] or "").strip(), project=(r[1] or "").strip(), pid=(r[10] or "").strip(),
-                    task=task, assignee=assignee, reason=reason, note=_ST.transition_note(g_why),
+                    task=task, assignee=assignee, reason=reason,
+                    note=" ".join(x for x in (_ST.transition_note(g_why),
+                                              _CP.completion_note(c_miss)) if x),
                     approved_by=uid if new_st in _ST.ASSIGN_TERMINAL_STATES + ("승인",) else "")  # G5 — 상태 전이 이력
             recorded = False
             notified = 0
             assign = {"date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
                       "assignee": assignee, "task": task, "deadline": (r[5] or "").strip(),
-                      "pid": (r[10] or "").strip()}  # G1 — ID Relation 우선 매칭용
+                      "pid": (r[10] or "").strip(),  # G1 — ID Relation 우선 매칭용
+                      # 완료 근거 — 방금 쓴 c_fill이 시트 값(r)보다 우선(같은 요청에서 갱신됨)
+                      "result": (r[6] or "").strip(),
+                      "done_at": c_fill.get("done_at") or (r[18] or "").strip(),
+                      "done_by": c_fill.get("done_by") or (r[19] or "").strip(),
+                      "deliverable": c_fill.get("deliverable") or (r[20] or "").strip()}
             if new_st == "승인":
                 recorded = _record_done_task(assign, uid)
             elif new_st == "삭제":
@@ -5912,6 +5968,11 @@ class H(BaseHTTPRequestHandler):
             elif new_st == "완료" and b.get("notify"):
                 notified = _notify_approvers(assignee, f"✅ {assignee} 완료 보고\n▸ [{assign['project'] or '기타'}] {task}\n\n"
                                                        f"아리사 OS 내 업무 '완료 승인 대기'에서 승인해주세요.")
+                # 보고 완료(W)는 사람에게 묻지 않는다 — 방금 알림을 쏜 이 시각이 곧 사실이다.
+                # 실패해도 상태는 이미 완료다(부가 기록이므로 응답을 바꾸지 않는다).
+                if notified:
+                    _AS.set_completion(_asgws, DAILY_SHEET, row, **dict(
+                        c_final, reported_at=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")))
             return self._send(200, {"ok": True, "status": new_st, "portfolio_recorded": recorded,
                                     "notified": notified})
         if path in ("/api/assign-review", "/api/pm-clear"):
