@@ -380,10 +380,91 @@ def apply_status(d: dict, specs: list[str], kind: str) -> list[str]:
     return logs
 
 
+# 맥미니 dashboard-server가 직접 쓰는 키 — 로컬은 이 값들을 모른다(divergence의 근원).
+# scp 통짜 덮어쓰기가 이걸 지워서 회의 문서함 링크가 실제로 유실됐다(2026-08-02 실측:
+# 로컬·맥미니 md5 불일치, docs/pendingBrief가 맥미니에만 존재). 배포 전 원격을 읽어 병합한다.
+SERVER_OWNED_KEYS = ("docs", "pendingBrief", "archived")
+
+
+def _fetch_remote_json(name: str):
+    """원격 프로젝트 JSON. 반환: (상태, dict|None) — 상태 ∈ ok|absent|error.
+
+    'absent'(신규 프로젝트)와 'error'(네트워크·파싱 실패)를 구분하는 것이 요점이다.
+    error인데 그냥 scp하면 지금까지의 통짜 덮어쓰기와 똑같아진다 — error면 배포를 멈춘다.
+    """
+    remote_path = REMOTE_DIR.rstrip("/") + "/" + name
+    # 주의: shlex.quote를 쓰면 안 된다 — '~'가 작은따옴표에 갇혀 원격 홈 확장이 안 되고,
+    # 기존 파일도 전부 absent로 오판해 결국 통짜 덮어쓰기로 돌아간다.
+    if remote_path.startswith("~/"):
+        remote_path = "$HOME/" + remote_path[2:]
+    p = '"' + remote_path.replace('"', '\\"') + '"'
+    probe = "test -f {p} && cat {p} || echo __ABSENT__".format(p=p)
+    try:
+        r = subprocess.run(["ssh", "-o", "ConnectTimeout=15", REMOTE_HOST, probe],
+                           capture_output=True, timeout=60)
+    except Exception as e:  # noqa: BLE001
+        print(f"✖ 원격 확인 실패: {e}", file=sys.stderr)
+        return ("error", None)
+    out = r.stdout.decode("utf-8", errors="replace").strip()
+    if r.returncode != 0:
+        print(f"✖ 원격 확인 실패: {r.stderr.decode(errors='replace').strip()[:120]}", file=sys.stderr)
+        return ("error", None)
+    if out == "__ABSENT__":
+        return ("absent", None)
+    try:
+        return ("ok", json.loads(out))
+    except ValueError as e:
+        print(f"✖ 원격 JSON 파싱 실패: {e}", file=sys.stderr)
+        return ("error", None)
+
+
+def _merge_for_deploy(local: dict, remote: dict) -> dict:
+    """배포 페이로드 = 로컬(등록 결과) + 서버 소유 키(원격) + tasks/issues 원격 우선 합집합.
+
+    tasks를 원격 우선으로 두는 이유: 원격 tasks에는 회의 액션 append·시트 동기
+    진행률·완료 근거가 실려 있다. 로컬이 아는 것은 등록 시점의 계획뿐이다 —
+    "프로젝트 JSON에 시트에서 복원 불가능한 값을 로컬이 덮지 않는다"의 배포판.
+    """
+    out = dict(local)
+    for k in SERVER_OWNED_KEYS:
+        if k in remote:
+            out[k] = remote[k]
+    r_tasks = list(remote.get("tasks") or [])
+    seen = {t.get("akey") for t in r_tasks if t.get("akey")}
+    for t in (local.get("tasks") or []):
+        if not t.get("akey") or t.get("akey") not in seen:
+            r_tasks.append(t)
+    out["tasks"] = r_tasks
+
+    def _norm_issue(it):
+        return re.sub(r"\s+", "", str((it or {}).get("issue") or ""))
+    r_issues = list(remote.get("issues") or [])
+    seen_i = {_norm_issue(it) for it in r_issues}
+    for it in (local.get("issues") or []):
+        if _norm_issue(it) not in seen_i:
+            r_issues.append(it)
+    out["issues"] = r_issues
+    return out
+
+
 def deploy(path: Path) -> bool:
+    # 1) 원격 병합 — 신규(absent)면 그대로, 실패(error)면 덮어쓰기 대신 중단
+    state, remote = _fetch_remote_json(path.name)
+    if state == "error":
+        print("✖ 배포 중단 — 원격 상태를 모르는 채 덮어쓰지 않는다. "
+              "네트워크 복구 후 재실행하거나 --no-deploy로 로컬만 저장.", file=sys.stderr)
+        return False
+    send_path = path
+    if state == "ok" and remote:
+        merged = _merge_for_deploy(json.loads(path.read_text(encoding="utf-8")), remote)
+        send_path = path.parent / (path.name + ".deploy-tmp")
+        send_path.write_text(json.dumps(merged, ensure_ascii=False, indent=1), encoding="utf-8")
+        kept = [k for k in SERVER_OWNED_KEYS if k in remote]
+        if kept:
+            print(f"  원격 병합: {'/'.join(kept)} 보존 · tasks {len(merged.get('tasks') or [])}건")
     try:
         subprocess.run(
-            ["scp", "-o", "ConnectTimeout=15", str(path), f"{REMOTE_HOST}:{REMOTE_DIR}"],
+            ["scp", "-o", "ConnectTimeout=15", str(send_path), f"{REMOTE_HOST}:{REMOTE_DIR}{path.name}"],
             check=True, capture_output=True, timeout=90,
         )
     except subprocess.CalledProcessError as e:
@@ -392,6 +473,12 @@ def deploy(path: Path) -> bool:
     except Exception as e:  # noqa: BLE001
         print(f"✖ 배포 실패: {e}", file=sys.stderr)
         return False
+    finally:
+        if send_path is not path:
+            try:
+                send_path.unlink()
+            except OSError:
+                pass
 
     check = (
         'python3 -c "import json,sys;'
