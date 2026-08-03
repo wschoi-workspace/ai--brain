@@ -1801,6 +1801,23 @@ async def _feed_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE, text: 
         if await _handle_closing(update, text, name):
             await update.message.reply_text("이어서 오늘 본인 업무를 알려주세요 🙌")
             return WAITING_TASKS
+
+    # 보고 도중 던진 '질문'은 업무 내용이 아니다 (2026-08-03 실사용 관찰).
+    # /report 직후 "봉은사 프로젝트 어떻게 돼가?"가 업무 나열로 먹혀 빈 결과가 나왔다.
+    # 대화가 열려 있으면 이후 모든 텍스트를 상태 핸들러가 가져가기 때문 —
+    # ConversationHandler의 정상 동작이지만 사용자에겐 "물었는데 안 듣는" 것이 된다.
+    # 조건을 좁게 잡는다: **물음표로 끝나고** 조회 인텐트로 확신 높게 잡힐 때만.
+    # 보고문은 물음표로 끝나지 않는다 — 이 한 줄이 오판을 막는 안전핀이다.
+    if text.rstrip().endswith("?"):
+        _it = _IR.route(text)
+        if _it.name in (_IR.I_MY_WORK, _IR.I_PROJECT, _IR.I_BRIEF) and _it.confidence >= 0.85:
+            emp = employee_by_tid(update.effective_user.id)
+            nm = emp["name"] if emp else (update.effective_user.full_name or "")
+            logger.info(f"[router] 보고 중 질문 분기 — {nm}: {_it.name} conf={_it.confidence:.2f}")
+            if await _run_read_tool(update, _tools_for(update.effective_user.id, nm), _it):
+                await update.message.reply_text("이어서 오늘 하신 일을 말씀해주세요 🙌")
+                return WAITING_TASKS
+
     context.user_data.setdefault("raw_log", []).append(f"[업무 나열] {text}")
     await update.message.reply_text("정리하고 있어요... ⏳")
 
@@ -1809,6 +1826,14 @@ async def _feed_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE, text: 
         await update.message.reply_text(
             "죄송해요, 정리가 잘 안 됐어요 😅\n다시 한번 업무를 나열해주세요!"
         )
+        return WAITING_TASKS
+    # 빈 목록을 그대로 렌더하면 "이런 느낌이네요:" 뒤에 아무것도 없는 화면이 나간다
+    # (2026-08-03 실사용에서 재현). 업무가 안 뽑혔으면 되묻는다.
+    if not result["tasks"]:
+        await update.message.reply_text(
+            "음, 업무로 정리할 내용을 못 찾았어요 🤔\n"
+            "오늘 하신 일을 조금 더 구체적으로 알려주시겠어요?\n"
+            "(질문을 하신 거라면 /cancel 로 보고를 닫고 물어봐주세요)")
         return WAITING_TASKS
 
     context.user_data["all_tasks"] = result["tasks"]
