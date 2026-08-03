@@ -79,7 +79,6 @@ from shared import status as _ST  # noqa: E402  (상태 어휘 SSOT)
 from shared import intent_router as _IR  # noqa: E402  (ARISA Assistant 인텐트 라우터, 2026-08-03)
 from shared.assistant_tools import AssistantTools, ToolError  # noqa: E402  (툴 카탈로그 v1 실행부)
 from shared import assign_sheet as _AS  # noqa: E402  (주간분장 파싱 SSOT)
-from shared import closing as _closing  # noqa: E402  (매장 마감보고 SSOT — basket-ops-bot과 공유)
 try:
     from shared.status_log import log_status_change as _log_st  # noqa: E402
 except Exception:  # 로깅 실패가 보고 흐름을 막지 않는다
@@ -541,31 +540,6 @@ _REPORT_INTENT_RE = re.compile(
 )
 
 
-async def _handle_closing(update: Update, text: str, submitter: str) -> bool:
-    """매장 마감보고면 '매장마감' 탭에 매장 기록으로 저장하고 True.
-
-    정책(2026-07-29): 마감보고는 매장 담당자가 일일업무보고와 **별도로** 내는 문서다.
-    어느 봇으로 보내든 같은 탭에 모이도록 basket-ops-bot과 shared.closing을 공유한다.
-    (과거엔 제출자의 일일보고 '업무보고' 칸에 병합돼 매출이 매출 칸에 안 잡혔다)
-    """
-    if not _closing.is_closing_report(text):
-        return False
-    d = await asyncio.to_thread(call_gpt, _closing.PROMPT, text) or {}
-    d["_raw"] = text
-    row = _closing.build_row(d, submitter)
-    ok = await asyncio.to_thread(_closing.append_row, row)
-    store = row[0] or "매장 미상"
-    msg = (f"🏪 매장 마감보고로 저장했습니다 — {store} {row[1]}"
-           + ("" if ok else "\n(⚠️ 시트 저장 지연 — 자동 재시도 예정, 다시 보내실 필요 없어요)")
-           + "\n\nℹ️ 마감보고는 매장 기록입니다. 본인 일일업무보고는 /report 로 따로 제출해주세요.")
-    if not row[0]:
-        msg += "\n❓ 어느 매장인지 적혀 있지 않았습니다 — 매장명을 알려주시면 채워 넣겠습니다."
-    await update.message.reply_text(msg)
-    await asyncio.to_thread(send_to_manager, "\n".join(_closing.push_lines(d, submitter)))
-    logger.info(f"closing report saved via daily-report-bot: {store} by {submitter} (ok={ok})")
-    return True
-
-
 # ── ARISA Assistant 진입점 (2026-08-03) ────────────────────────────────
 # 구 receive_inquiry는 의도를 알아보고도 "/report 를 먼저 누르고 다시 입력해주세요"로 되돌렸다.
 # inquiries/inbox.jsonl에 남은 미처리 2건이 전부 그 경로였다(김가은 보고 전문 반려·정예은 'report').
@@ -691,13 +665,6 @@ async def assistant_entry(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
     emp = employee_by_tid(uid)
     name = emp["name"] if emp else (update.effective_user.full_name or str(uid))
-
-    # 매장 마감보고는 플로우 밖으로 와도 매장 기록으로 받는다(별도 문서라 /report 안내 대상 아님).
-    # ⚠️ 반드시 라우터보다 **먼저**다 — 마감보고는 '매출·마감·정리' 어휘가 많아 인텐트 라우터가
-    #    report_submit으로 잡는다. 그러면 개인 일일보고에 병합돼 매출이 매출 칸에 안 잡히는
-    #    구 버그(2026-07-29 정책 결정)가 그대로 되살아난다.
-    if await _handle_closing(update, text, name):
-        return ConversationHandler.END
 
     it = _IR.route_with_llm(text, call_gpt_text)
     logger.info(f"[router] {name}: {it.name} conf={it.confidence:.2f} src={it.source} — {it.reason}")
@@ -1794,13 +1761,6 @@ async def _feed_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE, text: 
     if not text:
         await update.message.reply_text("내용이 비어 있어요. 오늘 하신 일을 알려주세요!")
         return WAITING_TASKS
-    # 마감보고를 업무 나열 자리에 붙여넣은 경우 — 매장 기록으로 빼고 본인 업무보고를 계속 받는다
-    if _closing.is_closing_report(text):
-        emp = employee_by_tid(update.effective_user.id)
-        name = emp["name"] if emp else (update.effective_user.full_name or "")
-        if await _handle_closing(update, text, name):
-            await update.message.reply_text("이어서 오늘 본인 업무를 알려주세요 🙌")
-            return WAITING_TASKS
     context.user_data.setdefault("raw_log", []).append(f"[업무 나열] {text}")
     await update.message.reply_text("정리하고 있어요... ⏳")
 

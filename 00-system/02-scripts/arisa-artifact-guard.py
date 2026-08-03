@@ -107,16 +107,7 @@ def main():
 
     bf = os.path.join(BRIEF, f"daily-brief-{today.isoformat()}.html")
     if not os.path.exists(bf):
-        # 배치 로그로 원인 구분: 성공 라인이 있으면 '생성 후 삭제'(배포 되돌림 의심),
-        # 없으면 '배치 미실행'. /tmp는 재부팅에 비워지니 로그 부재는 미실행 쪽으로 본다.
-        ran = False
-        for lp in ("/tmp/pr-daily-brief.log", "/tmp/pr-daily-brief-late.log"):
-            try:
-                ran = ran or f"daily-brief-{today.isoformat()}" in open(lp, encoding="utf-8", errors="ignore").read()
-            except Exception:
-                pass
-        cause = "배치는 성공 기록 있음 → 생성 후 삭제 의심(배포 되돌림?)" if ran else "배치 실행 기록 없음 → launchd 미실행/실패 의심"
-        issues.append(f"오늘자 브리프 없음 — daily-brief-{today.isoformat()}.html ({cause})")
+        issues.append(f"오늘자 브리프 없음 — daily-brief-{today.isoformat()}.html")
     else:
         newest = max((f for f in os.listdir(BRIEF)
                       if f.startswith("daily-brief-") and f.endswith(".html")

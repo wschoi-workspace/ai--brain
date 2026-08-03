@@ -20,7 +20,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from shared import gws as _gws  # noqa: E402
-from shared import stores as _stores  # noqa: E402  (매장 명부 — store_id→매장명)
 from openai import OpenAI
 
 WORKSPACE = Path(__file__).resolve().parents[2]
@@ -82,7 +81,6 @@ def collect(rows, days=7):
         if sales:
             sales_by_day[ymd] = sales_by_day.get(ymd, 0) + sales
         reports.append({"date": ymd, "wd": WK[d.weekday()], "author": r[2].strip(),
-                        "store": _stores.display(r[0].strip()),
                         "sales": sales, "expense": expense, "time": r[14].strip(), "secs": secs})
     return reports, sales_by_day, empty, start, today
 
@@ -103,8 +101,7 @@ def llm_extract(reports):
         return {"headline":"", "decision_queue":[], "themes":[], "pipeline":[], "data_quality":[]}
     lines = []
     for r in reports:
-        lines.append(f"[{r['date']} {r['wd']} {r.get('store','')} {r['author']} {r['time']}] "
-                     f"매출={r['sales']} 지출={r.get('expense',0)}")
+        lines.append(f"[{r['date']} {r['wd']} {r['author']} {r['time']}] 매출={r['sales']} 지출={r.get('expense',0)}")
         for k, lab in SECTIONS:
             if r["secs"].get(k):
                 lines.append(f"  {lab}: {r['secs'][k]}")

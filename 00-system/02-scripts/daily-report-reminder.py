@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """일일 업무보고 미완료자 자동 리마인더 — 매일 20:00 / 22:00.
 
-정책(2026-07-01 대표 지시, 2026-07-29 재확인):
+정책(2026-07-01, 대표 지시):
   - '완료' 기준 = 데일리 업무보고(인사이트 시트 메타/핵심업무). 매출보고(바스켓)는 제외.
     → 매장스텝(운영팀)이 매출만 올린 경우도 '미완료'로 보고 업무보고를 요청한다.
-    → 매장 마감보고도 완료로 치지 않는다 — 담당자가 일일업무보고와 **별도로** 내는 문서다.
   - 대상 = arisa-employees.json by_telegram_id (대표·퇴사자 제외, 명부가 단일 출처).
   - 미완료자에게 daily-report-bot으로 개별 DM.
 런타임: .venv311 (gws subprocess + stdlib). 사용: python daily-report-reminder.py [--dry]
@@ -100,6 +99,7 @@ def main():
     for r in core_rows:
         if len(r) >= 2 and str(r[0]).startswith(today):
             reported.add(norm(r[1]))
+
     todo = [n for n in TARGETS if n not in reported]
     done = [n for n in TARGETS if n in reported]
     print(f"[{now:%Y-%m-%d %H:%M}] 업무보고 {len(done)}/{len(TARGETS)} 완료 · 미완료 {len(todo)}: {', '.join(todo) or '없음'}")
