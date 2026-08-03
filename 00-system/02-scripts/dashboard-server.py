@@ -2737,6 +2737,17 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     });
     return h;
   }
+  function mwPgSel(a){
+    // vNext P1 — 진행률 빠른 입력(P열). 값을 안 고르면 상태 파생값(자동)으로 표시만 한다.
+    var cur=(a.progress_pct!=null?a.progress_pct:0);
+    var manual=(a.progress!==''&&a.progress!=null&&a.progress!==undefined);
+    var s='<select class="il-sel il-pg" title="진행률 — 상태와 별개로 기록됩니다" data-row="'+a.row
+      +'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'">';
+    s+='<option value="">'+cur+'%'+(manual?'':'·자동')+'</option>';
+    // 100은 넣지 않는다 — 100%는 ✓완료 버튼의 몫(완료 5요소 수집 경로를 우회하지 않게)
+    [10,20,30,40,50,60,70,80,90].forEach(function(p){ s+='<option value="'+p+'">'+p+'%</option>'; });
+    return s+'</select>';
+  }
   function mwInlineSel(a){
     // 리더·대표 인라인 편집(B2 — filament 상태·담당자 칩) — 변경 즉시 시트 반영
     var st=a.status||'미착수';
@@ -2754,6 +2765,19 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
             task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),status:el.value})})
         .then(function(r){return r.json();}).then(function(d){
           if(!d.ok) alert(d.error||'상태 변경 실패');
+          renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    });
+    scope.querySelectorAll('.il-pg').forEach(function(el){
+      el.onchange=function(){
+        var v=el.value; if(!v) return;
+        el.disabled=true;
+        fetch('/api/assign-progress',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
+            task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),progress:+v})})
+        .then(function(r){return r.json();}).then(function(d){
+          if(!d.ok) alert(d.error||'진행률 기록 실패');
           renderMyWork();
         }).catch(function(){ alert('서버 오류'); renderMyWork(); });
       };
@@ -2992,13 +3016,17 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       else if(st==='승인대기'){ act='<span class="st-wait">⏳ PM 클리어 대기</span>'; }
       else{
         if(st==='미착수') act+=mwStBtn(a,'진행중','▶ 진행');
+        act+=mwPgSel(a);  // vNext P1 — 진행률 빠른 입력(열린 분장에서만)
         act+=mwStBtn(a,'완료','✓ 완료');
         act+=mwStBtn(a,'완료','📣 완료·보고',true);
       }
       act+=mwSunBtn(a)+mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 수정·삭제 + 오늘 선언(갭C)
     }
     if(withAssignee && a.row && canDel){ act+=mwInlineSel(a)+mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a); }  // B2 — 인라인 상태·담당자
-    return '<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+mwOvBadge(a)+mwSrcChip(a)+act+'</div><div class="m">'+who+dl+'</div>'+mwDepsChip(a)+'</div>';
+    // 진행률 메타 — 실입력(P열)이 있을 때만 %를 보여준다(자동 사다리값 노이즈 방지)
+    var pg=(a.progress!==''&&a.progress!=null&&a.progress!==undefined&&a.progress_pct!=null)
+      ?(' · <b>'+a.progress_pct+'%</b>'+(a.eta?(' · 예상 '+esc(a.eta)):'')):'';
+    return '<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+mwOvBadge(a)+mwSrcChip(a)+act+'</div><div class="m">'+who+dl+pg+'</div>'+mwDepsChip(a)+'</div>';
   }
   function mwDepsChip(a){
     // WS1 — 회의에서 나온 선후관계·차단 요인. 표시만 한다(진행·완료를 막지 않는다).
@@ -5866,6 +5894,34 @@ class H(BaseHTTPRequestHandler):
                         "akey": _akey((r[0] or "").strip(), new_task, final_assignee)})
                     save_project(tp)
             return self._send(200, {"ok": True})
+        if path == "/api/assign-progress":
+            # 진행률·완료예상일(P:R) 기록 — 상태(H)는 건드리지 않는다 (vNext P1).
+            # 진행률은 상태와 독립 축이다: 60%를 적어도 상태는 '진행중' 그대로.
+            if not (_asgws and DAILY_SHEET):
+                return self._send(500, {"ok": False, "error": "시트 미설정"})
+            try:
+                row = int(b.get("row") or 0)
+            except (TypeError, ValueError):
+                row = 0
+            pct = _ST.norm_progress(b.get("progress"))
+            eta = (b.get("eta") or "").strip()[:10]
+            if row < 2 or (pct is None and not eta):
+                return self._send(400, {"ok": False, "error": "row·progress 확인"})
+            cur = _AS.verify_row(_asgws, DAILY_SHEET, row, b.get("assignee") or "", _ST,
+                                 expect_task=b.get("task"))
+            if not cur:
+                return self._send(409, {"ok": False, "error": "행 내용이 달라졌습니다 — 새로고침 후 다시 시도"})
+            if not (cur["assignee"] == uid or _can_approve(uid, cur["assignee"])):
+                return self._send(403, {"ok": False, "error": "본인 분장만 입력할 수 있습니다"})
+            if cur["status"] in _ST.ASSIGN_CLOSED_STATES:
+                return self._send(400, {"ok": False, "error": "닫힌 분장에는 진행률을 기록하지 않습니다"})
+            if not _AS.set_progress(_asgws, DAILY_SHEET, row, pct, eta=eta, status_mod=_ST):
+                return self._send(500, {"ok": False, "error": "시트 기록 실패"})
+            _log_st("dashboard", uid, cur["status"], from_status=cur["status"], row=row,
+                    date=cur.get("date") or "", project=cur.get("project") or "",
+                    pid=cur.get("pid") or "", task=cur.get("task") or "",
+                    assignee=cur.get("assignee") or "", note="진행률 입력", progress=pct)
+            return self._send(200, {"ok": True, "progress": pct, "eta": eta})
         if path == "/api/assign-status":
             # 분장 상태 변경 — 완료(본인 체크)·진행중(진행 표시/반려 복귀)·승인(리더·대표)
             if not (_asgws and DAILY_SHEET):
