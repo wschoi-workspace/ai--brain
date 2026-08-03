@@ -76,9 +76,12 @@ from shared import report_score as _report_score  # noqa: E402  (채점 SSOT —
 from shared.naming import clean_project_name as _nm_clean  # noqa: E402  (P2 네이밍 규칙)
 from shared import provenance as _PV  # noqa: E402  (갭B 업무 출처 — 배포 시 shared/provenance.py 동반)
 from shared import status as _ST  # noqa: E402  (상태 어휘 SSOT)
+from shared import intent_router as _IR  # noqa: E402  (ARISA Assistant 인텐트 라우터, 2026-08-03)
+from shared.assistant_tools import AssistantTools, ToolError  # noqa: E402  (툴 카탈로그 v1 실행부)
 from shared import assign_sheet as _AS  # noqa: E402  (주간분장 파싱 SSOT)
 from shared import completion as _CP  # noqa: E402  (완료 5요소 게이트 — vNext P1)
 from shared import approval as _APV  # noqa: E402  (보고 대상 자동 산출 — vNext P1)
+from shared import closing as _closing  # noqa: E402  (매장 마감보고 SSOT — basket-ops-bot과 공유)
 try:
     from shared.status_log import log_status_change as _log_st  # noqa: E402
 except Exception:  # 로깅 실패가 보고 흐름을 막지 않는다
@@ -547,51 +550,219 @@ _REPORT_INTENT_RE = re.compile(
 )
 
 
-async def receive_inquiry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def _handle_closing(update: Update, text: str, submitter: str) -> bool:
+    """매장 마감보고면 '매장마감' 탭에 매장 기록으로 저장하고 True.
+
+    정책(2026-07-29): 마감보고는 매장 담당자가 일일업무보고와 **별도로** 내는 문서다.
+    어느 봇으로 보내든 같은 탭에 모이도록 basket-ops-bot과 shared.closing을 공유한다.
+    (과거엔 제출자의 일일보고 '업무보고' 칸에 병합돼 매출이 매출 칸에 안 잡혔다)
+    """
+    if not _closing.is_closing_report(text):
+        return False
+    d = await asyncio.to_thread(call_gpt, _closing.PROMPT, text) or {}
+    d["_raw"] = text
+    row = _closing.build_row(d, submitter)
+    ok = await asyncio.to_thread(_closing.append_row, row)
+    store = row[0] or "매장 미상"
+    msg = (f"🏪 매장 마감보고로 저장했습니다 — {store} {row[1]}"
+           + ("" if ok else "\n(⚠️ 시트 저장 지연 — 자동 재시도 예정, 다시 보내실 필요 없어요)")
+           + "\n\nℹ️ 마감보고는 매장 기록입니다. 본인 일일업무보고는 /report 로 따로 제출해주세요.")
+    if not row[0]:
+        msg += "\n❓ 어느 매장인지 적혀 있지 않았습니다 — 매장명을 알려주시면 채워 넣겠습니다."
+    await update.message.reply_text(msg)
+    await asyncio.to_thread(send_to_manager, "\n".join(_closing.push_lines(d, submitter)))
+    logger.info(f"closing report saved via daily-report-bot: {store} by {submitter} (ok={ok})")
+    return True
+
+
+# ── ARISA Assistant 진입점 (2026-08-03) ────────────────────────────────
+# 구 receive_inquiry는 의도를 알아보고도 "/report 를 먼저 누르고 다시 입력해주세요"로 되돌렸다.
+# inquiries/inbox.jsonl에 남은 미처리 2건이 전부 그 경로였다(김가은 보고 전문 반려·정예은 'report').
+# 원칙: **알아봤으면 실행하거나 확인을 묻는다. 재입력을 요구하지 않는다.**
+_ASSIST_BASE = os.environ.get("ARISA_API_BASE") or "http://127.0.0.1:8780"
+
+
+def _tools_for(uid, name: str) -> AssistantTools:
+    return AssistantTools(uid, name=name, base_url=_ASSIST_BASE)
+
+
+def _fmt_my_work(d: dict) -> str:
+    # 서버가 이미 숨김 상태(_ASSIGN_HIDDEN_STATES)를 걸러 마감순으로 정렬해 준다 — 다시 거르지 않는다.
+    rows = d.get("assignments") or []
+    open_rows = [a for a in rows if not _ST.is_assign_done(a.get("status") or "")]
+    lines = [f"📋 {d.get('user','')}님 미완 업무 {len(open_rows)}건"]
+    tp = d.get("today_summary")
+    if isinstance(tp, str) and tp.strip():
+        lines.append(f"\n오늘 하기로 한 일: {tp.strip()}")
+    today = datetime.now().strftime("%Y-%m-%d")
+    for a in open_rows[:12]:
+        dl = (a.get("deadline") or "").strip()
+        st = (a.get("status") or "").strip()
+        pj = (a.get("project") or "").strip()
+        late = "🔴 " if dl and dl < today else ""
+        lines.append(f"· {late}{a.get('task','')}" + (f"  [{st}]" if st else "")
+                     + (f"  ~{dl}" if dl else "") + (f"  ({pj})" if pj else ""))
+    if len(open_rows) > 12:
+        lines.append(f"… 외 {len(open_rows)-12}건")
+    if not open_rows:
+        lines.append("\n미완 업무가 없습니다 👍")
+    if d.get("pm_queue"):
+        lines.append(f"\n✅ 내가 승인해야 할 건 {len(d['pm_queue'])}건")
+    if d.get("pm_decisions"):
+        lines.append(f"🧭 내가 정해야 할 결정 {len(d['pm_decisions'])}건")
+    return "\n".join(lines)
+
+
+def _fmt_projects(d: dict) -> str:
+    ps = [p for p in (d.get("projects") or []) if not p.get("archived")]
+    lines = [f"🗂 볼 수 있는 프로젝트 {len(ps)}개"]
+    for p in ps[:15]:
+        r = p.get("rollup") or {}          # shared.status.task_rollup → total/done/percent
+        pct = r.get("percent")
+        lines.append(f"· {p.get('name','')}"
+                     + (f" — {pct}% ({r.get('done',0)}/{r.get('total',0)})" if r.get("total") else "")
+                     + (f" / PM {p['pm']}" if p.get("pm") else ""))
+    if len(ps) > 15:
+        lines.append(f"… 외 {len(ps)-15}개")
+    return "\n".join(lines)
+
+
+def _fmt_brief(d: dict) -> str:
+    b = d.get("brief") or {}
+    head = f"📨 {d.get('date','')} 브리프"
+    body = b.get("headline") or b.get("summary") or ""
+    if not body:
+        body = json.dumps(b, ensure_ascii=False)[:1200]
+    return f"{head}\n\n{body}"
+
+
+def _fmt_meeting_summary(r: dict) -> str:
+    """5블록 미팅록(dashboard MEETING_SUMMARY_PROMPT 스키마) → 텔레그램 텍스트."""
+    if not r:
+        return "요약 결과를 받지 못했습니다."
+    md = r.get("metadata") or {}
+    out = [f"📝 {r.get('title_guess') or md.get('meeting_name') or '회의 요약'}"
+           + (f"  [{md.get('type_label')}]" if md.get("type_label") else "")]
+    if md.get("date"):
+        out.append(f"일시: {md['date']}")
+    para = (r.get("block_2_summary") or {}).get("paragraph")
+    if para:
+        out.append(f"\n{para}")
+    dec = r.get("block_4_decisions") or []
+    if dec:
+        out.append("\n✅ 결정")
+        out += [f"· {d.get('decision','')}" for d in dec[:8]]
+    ours = ((r.get("block_5_todos") or {}).get("ours")) or []
+    if ours:
+        out.append("\n📌 우리 할 일")
+        out += [f"· {t.get('task','')}"
+                + (f" — {t['assignee']}" if t.get("assignee") else "")
+                + (f" (~{t['due']})" if t.get("due") else "") for t in ours[:12]]
+    if r.get("open_items"):
+        out.append(f"\n❓ 미해결 {len(r['open_items'])}건")
+    if r.get("quality_note"):
+        out.append(f"\n⚠️ {r['quality_note']}")
+    out.append("\n— 저장은 안 됐습니다. 등록하려면 /meeting 을 이용해주세요.")
+    return "\n".join(out)[:3800]
+
+
+async def _run_read_tool(update, tools: AssistantTools, it) -> bool:
+    """읽기 인텐트 실행. 처리했으면 True."""
+    try:
+        if it.name == _IR.I_MY_WORK:
+            await update.message.reply_text(_fmt_my_work(await asyncio.to_thread(tools.my_work)))
+        elif it.name == _IR.I_PROJECT:
+            await update.message.reply_text(_fmt_projects(await asyncio.to_thread(tools.project_list)))
+        elif it.name == _IR.I_BRIEF:
+            await update.message.reply_text(_fmt_brief(await asyncio.to_thread(tools.daily_brief)))
+        elif it.name == _IR.I_MEETING_SUM:
+            await update.message.reply_text("📝 회의 내용으로 보입니다. 정리 중이에요… (30~60초)")
+            r = await asyncio.to_thread(tools.meeting_summarize, it.slots.get("text", ""))
+            await update.message.reply_text(_fmt_meeting_summary(r.get("result") or {}))
+        else:
+            return False
+        return True
+    except ToolError as e:
+        await update.message.reply_text(f"⚠️ {e.user_message}")
+        return True
+
+
+async def assistant_entry(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """대화 밖 자유 텍스트의 단일 진입점. 인텐트에 따라 Role로 분기한다."""
     if not update.message or not update.message.text:
-        return
+        return ConversationHandler.END
     text = update.message.text.strip()
     if not text:
-        return
+        return ConversationHandler.END
     uid = update.effective_user.id
     if is_offboarded(uid=uid):
         await update.message.reply_text(_OFFBOARDED_MSG)
-        return
+        return ConversationHandler.END
     emp = employee_by_tid(uid)
     name = emp["name"] if emp else (update.effective_user.full_name or str(uid))
 
-    # 업무보고 의도 감지: 키워드 2개 이상 or 3줄 이상이면 보고로 보내려 한 것으로 판단
-    intent_hits = len(_REPORT_INTENT_RE.findall(text))
-    line_count = len([l for l in text.splitlines() if l.strip()])
-    looks_like_report = intent_hits >= 2 or line_count >= 3
+    # 매장 마감보고는 플로우 밖으로 와도 매장 기록으로 받는다(별도 문서라 /report 안내 대상 아님).
+    # ⚠️ 반드시 라우터보다 **먼저**다 — 마감보고는 '매출·마감·정리' 어휘가 많아 인텐트 라우터가
+    #    report_submit으로 잡는다. 그러면 개인 일일보고에 병합돼 매출이 매출 칸에 안 잡히는
+    #    구 버그(2026-07-29 정책 결정)가 그대로 되살아난다.
+    if await _handle_closing(update, text, name):
+        return ConversationHandler.END
 
+    it = _IR.route_with_llm(text, call_gpt_text)
+    logger.info(f"[router] {name}: {it.name} conf={it.confidence:.2f} src={it.source} — {it.reason}")
+
+    # 1) 업무보고 — 확신이 높으면 **그 텍스트 그대로** 보고 플로우에 넣는다.
+    #    구 동작처럼 "다시 입력해주세요"라고 하지 않는다. 사용자의 글을 버리지 않는다.
+    if it.name == _IR.I_REPORT and not it.needs_confirm:
+        if it.source == "command":          # 'report'·'/report' 만 보낸 경우 = 시작 신호
+            return await start_report(update, context)
+        context.user_data.clear()
+        context.user_data["chat_history"] = []
+        context.user_data["raw_log"] = []
+        context.user_data["name"] = name
+        context.user_data["team"] = (emp or {}).get("team") or (emp or {}).get("company", "")
+        context.user_data["role"] = (emp or {}).get("role", "")
+        context.user_data["date"] = datetime.now().strftime("%Y-%m-%d")
+        await update.message.reply_text(f"{name}님, 업무보고로 접수했습니다. 정리해볼게요 📝")
+        return await _feed_tasks(update, context, text)   # 보낸 텍스트가 곧 보고 내용
+
+    # 2) 읽기 인텐트 — 바로 답한다
+    tools = _tools_for(uid, name)
+    if it.name in (_IR.I_MY_WORK, _IR.I_PROJECT, _IR.I_BRIEF, _IR.I_MEETING_SUM) and not it.needs_confirm:
+        if await _run_read_tool(update, tools, it):
+            return ConversationHandler.END
+
+    # 3) 확신이 낮음 — 되묻는다. 원문은 보관해서 /report 시 그대로 쓴다.
+    if it.needs_confirm and it.name != _IR.I_UNKNOWN:
+        context.chat_data["pending_text"] = text
+        await update.message.reply_text(
+            f"{_IR.confirm_question(it)}\n\n"
+            "· 맞으면 /report 를 눌러주세요 — 방금 보내주신 내용이 그대로 들어갑니다.\n"
+            "· 아니면 무엇을 원하시는지 한 줄로 알려주세요.")
+        return ConversationHandler.END
+
+    # 4) 그 외 — 기존 문의/건의 접수 유지
     try:
         _INQUIRY_LOG.parent.mkdir(parents=True, exist_ok=True)
         with _INQUIRY_LOG.open("a", encoding="utf-8") as f:
             f.write(json.dumps({"ts": datetime.now().isoformat(timespec="seconds"),
                                 "name": name, "tg_id": uid, "text": text,
-                                "looks_like_report": looks_like_report},
-                               ensure_ascii=False) + "\n")
+                                "intent": it.name, "confidence": it.confidence,
+                                "reason": it.reason}, ensure_ascii=False) + "\n")
     except Exception as e:
         logger.error(f"inquiry log error: {e}")
+    sent = await asyncio.to_thread(send_to_manager, f"💬 문의/건의 접수 — {name}\n\n{text}")
+    if not sent:
+        logger.error(f"inquiry forward failed: {name}")
+    await update.message.reply_text(
+        "💬 접수했습니다 — 확인 후 회신드리겠습니다.\n"
+        "· 일일보고를 하시려면 /report\n"
+        "· 아리사 OS 접속: https://arisa-os.com (가이드: https://arisa-os.com/guide-os)")
+    return ConversationHandler.END
 
-    if looks_like_report:
-        await update.message.reply_text(
-            f"⚠️ {name}님, 이 메시지는 업무보고로 저장되지 않았습니다.\n\n"
-            "보고를 등록하려면 👉 /report 를 먼저 누른 후,\n"
-            "봇의 질문에 따라 답변해주세요.\n\n"
-            "지금 보내주신 내용은 /report 시작 후 다시 입력해주시면 됩니다!")
-        logger.info(f"report-intent detected from {name} (hits={intent_hits}, lines={line_count}) — guided to /report")
-        await asyncio.to_thread(send_to_manager,
-            f"⚠️ 보고 의도 감지 — {name}\n(플로우 밖 텍스트 {intent_hits}키워드/{line_count}줄, /report 안내 발송)\n\n{text[:300]}")
-    else:
-        sent = await asyncio.to_thread(send_to_manager, f"💬 문의/건의 접수 — {name}\n\n{text}")
-        if not sent:
-            logger.error(f"inquiry forward failed: {name}")
-        await update.message.reply_text(
-            "💬 접수했습니다 — 확인 후 회신드리겠습니다.\n"
-            "· 일일보고를 하시려면 /report\n"
-            "· 아리사 OS 접속: https://arisa-os.com (가이드: https://arisa-os.com/guide-os)")
+
+# 구 이름 호환 — 다른 곳에서 참조 중일 수 있어 남긴다
+receive_inquiry = assistant_entry
 
 
 def send_to_manager(message: str) -> bool:
@@ -1791,6 +1962,8 @@ async def start_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     context.user_data.clear()
     context.user_data["chat_history"] = []
     context.user_data["raw_log"] = []  # fidelity: 직원 원문 입력 보존
+    # 라우터가 확신이 낮아 되물었을 때 보관해둔 원문 — 사용자가 같은 글을 두 번 쓰게 하지 않는다
+    pending = (context.chat_data or {}).pop("pending_text", "")
 
     # 텔레그램 ID로 직원 자동 인식 (학습된 경우 → 이름 입력 생략)
     emp = employee_by_tid(update.effective_user.id)
@@ -1800,6 +1973,11 @@ async def start_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         context.user_data["team"] = team
         context.user_data["role"] = emp.get("role", "")
         context.user_data["date"] = datetime.now().strftime("%Y-%m-%d")
+        if pending:
+            context.user_data["raw_log"].append(pending)
+            await update.message.reply_text(
+                f"{emp['name']}님, 아까 보내주신 내용으로 시작할게요 📝")
+            return await _feed_tasks(update, context, pending)
         await update.message.reply_text(
             f"{emp['name']}님, 안녕하세요! ({team} · {emp.get('role','')})\n\n"
             "오늘 하신 일을 생각나는 대로 쭉 말씀해주세요. 순서 상관없어요 😊"
@@ -1866,7 +2044,26 @@ async def receive_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
 
 async def receive_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    text = update.message.text.strip()
+    return await _feed_tasks(update, context, update.message.text.strip())
+
+
+async def _feed_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str) -> int:
+    """업무 나열 처리 본문. 텍스트를 인자로 받아 '방금 온 메시지'가 아닌 것도 넣을 수 있게 한다.
+
+    ARISA Assistant(2026-08-03)가 자유 입력 보고를 그대로 이 단계에 흘리기 위해 분리했다.
+    구조는 그대로 — receive_tasks는 이 함수의 얇은 래퍼다.
+    """
+    text = (text or "").strip()
+    if not text:
+        await update.message.reply_text("내용이 비어 있어요. 오늘 하신 일을 알려주세요!")
+        return WAITING_TASKS
+    # 마감보고를 업무 나열 자리에 붙여넣은 경우 — 매장 기록으로 빼고 본인 업무보고를 계속 받는다
+    if _closing.is_closing_report(text):
+        emp = employee_by_tid(update.effective_user.id)
+        name = emp["name"] if emp else (update.effective_user.full_name or "")
+        if await _handle_closing(update, text, name):
+            await update.message.reply_text("이어서 오늘 본인 업무를 알려주세요 🙌")
+            return WAITING_TASKS
     context.user_data.setdefault("raw_log", []).append(f"[업무 나열] {text}")
     await update.message.reply_text("정리하고 있어요... ⏳")
 
@@ -2733,7 +2930,12 @@ def main() -> None:
     file_handler = MessageHandler(filters.PHOTO | filters.Document.ALL, receive_file)
 
     conv = ConversationHandler(
-        entry_points=[CommandHandler("report", start_report)],
+        # ARISA Assistant(2026-08-03): 자유 텍스트도 진입점이다. 인텐트가 '보고'면 그 텍스트가
+        # 곧 보고 내용이 되고, 아니면 assistant_entry가 END를 돌려 대화에 들어가지 않는다.
+        # ⚠️ 이 핸들러는 모든 텍스트에 매칭되므로 **conv를 mtg_conv·assign_conv보다 뒤에 등록**해야
+        #    한다(아래 app.add_handler 순서). 앞에 두면 회의·분장 진행 중 입력을 가로챈다.
+        entry_points=[CommandHandler("report", start_report),
+                      MessageHandler(filters.TEXT & ~filters.COMMAND, assistant_entry)],
         states={
             WAITING_INFO: [file_handler, MessageHandler(filters.TEXT & ~filters.COMMAND, receive_info)],
             WAITING_TASKS: [file_handler, MessageHandler(filters.TEXT & ~filters.COMMAND, receive_tasks)],
@@ -2755,12 +2957,15 @@ def main() -> None:
     )
 
     app.add_handler(CommandHandler("start", cmd_start))
-    app.add_handler(conv)
+    # ⚠️ conv는 여기서 등록하지 않는다 — 자유 텍스트 진입점을 갖게 되면서
+    #    mtg_conv·assign_conv보다 뒤로 밀어야 한다. 아래 assign_conv 다음에 등록.
 
     # 보고 → 분장 상태 환류 (2026-07-26 버튼 → vNext P1 대화 승격)
     # ▶진행중·✓완료 클릭이 단일 턴 되묻기로 이어진다. 상태 안에도 asy: 콜백을 두어
     # 답변 대기 중 다른 카드를 누르면 그 카드로 갈아탄다(이전 질문은 폐기).
-    # ⚠️ 등록 순서 계약: receive_inquiry 폴백(모든 텍스트를 삼킴)보다 반드시 앞.
+    # ⚠️ 등록 순서 계약: 자유 텍스트를 삼키는 report_conv(=conv) 진입점보다 반드시 앞.
+    #    2026-08-03 ARISA Assistant로 구 receive_inquiry 폴백이 assistant_entry(conv 진입점)로
+    #    흡수되면서 그 자리가 맨 뒤(app.add_handler(conv))로 옮겨졌다 — 계약은 그대로 성립한다.
     _sync_cb = CallbackQueryHandler(on_status_sync_click, pattern=r"^asy:")
     sync_conv = ConversationHandler(
         entry_points=[_sync_cb],
@@ -2823,10 +3028,13 @@ def main() -> None:
     app.add_handler(assign_conv)
     logger.info("/assign handler registered (weekly assignment)")
 
-    # 문의·건의 접수 폴백 (2026-07-22, 아리사 OS 전직원 오픈) — 반드시 모든 ConversationHandler 뒤에 등록.
-    # 같은 group(0)에서 앞선 대화 핸들러가 매칭되지 않을 때만 실행 → 보고/회의/분장 플로우와 충돌 없음.
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, receive_inquiry))
-    logger.info("inquiry fallback registered")
+    # 보고 대화 = 마지막 등록 (2026-08-03 ARISA Assistant).
+    # 진입점에 자유 텍스트 핸들러가 들어가면서 '모든 텍스트'에 매칭된다. 앞에 두면
+    # 회의(/meeting)·분장(/assign) 진행 중 입력까지 새 보고 시작으로 가로챈다.
+    # 맨 뒤에 두면 앞선 대화가 활성일 때 그쪽이 먼저 처리하고, 아무 대화도 없을 때만 여기로 온다.
+    # → 이 자리가 곧 구 '문의·건의 폴백'의 자리다(assistant_entry가 그 역할까지 흡수).
+    app.add_handler(conv)
+    logger.info("report conv + assistant entry registered (last — intent router)")
 
     app.add_error_handler(error_handler)  # 핸들러 예외 안전망 (보고 유실 방지)
 

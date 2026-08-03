@@ -145,7 +145,10 @@ def fetch_day(target: str | list[str]) -> dict:
     core = _gws_values_get(DAILY_SHEET, "핵심업무!A2:O5000")  # N=project·O=pid (G1b 귀속)
     meta = _gws_values_get(DAILY_SHEET, "메타!A2:O5000")  # N=Report Score, O=score_detail(type 포함)
     basket = _gws_values_get(BASKET_SHEET, "일일보고!A2:O5000")
-    by = defaultdict(lambda: {"team": "", "raw": "", "core": [], "meta": {}, "basket": []})
+    # 매장 단위 마감보고(매장·날짜·담당자·제출자·방문객·일매출·음료·디저트·특이·원문·시각) —
+    # 개인 일일보고와 분리 기록되므로 별도 수집. 읽기 실패는 참고정보라 빈 리스트로 무시.
+    closing = _gws_values_get(BASKET_SHEET, "매장마감!A2:K5000") or []
+    by = defaultdict(lambda: {"team": "", "raw": "", "core": [], "meta": {}, "basket": [], "closing": []})
 
     for r in core:
         r = r + [""] * (15 - len(r))
@@ -175,6 +178,20 @@ def fetch_day(target: str | list[str]) -> dict:
             by[nm]["rtype"] = (json.loads(r[14]).get("type") or "").strip() if (r[14] or "").strip() else ""
         except Exception:
             by[nm]["rtype"] = ""
+
+    for r in closing:
+        r = r + [""] * (11 - len(r))
+        if normalize_date(r[1]) not in targets:
+            continue
+        nm = normalize_name(r[2]) or normalize_name(r[3])  # 담당자 귀속, 없으면 제출자
+        if not nm:
+            continue
+        if not BY_NAME.get(nm):
+            by[nm]["team"] = "운영팀"
+        parts = [f"{label} {r[idx].strip()}" for idx, label in
+                 ((5, "일매출"), (4, "방문객"), (6, "음료"), (7, "디저트"), (8, "특이")) if r[idx].strip()]
+        if parts:
+            by[nm]["closing"].append(((r[0] or "").strip() or "매장?", " · ".join(parts)))
 
     for r in basket:
         r = r + [""] * (15 - len(r))
@@ -219,6 +236,8 @@ def _emp_block(name: str, d: dict) -> str:
     for label, v in d["basket"]:
         tag = "[결재]" if label in BASKET_DECISION else ""
         lines.append(f"  basket {tag}{label}: {v[:200]}")
+    for store, v in d.get("closing", []):
+        lines.append(f"  매장마감[{store}]: {v[:300]}")
     return "\n".join(lines)
 
 

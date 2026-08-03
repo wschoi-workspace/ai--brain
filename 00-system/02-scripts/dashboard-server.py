@@ -34,6 +34,11 @@ for _envp in (_WS / ".env",):
 HR_PORTAL_URL = (os.environ.get("HR_PORTAL_URL") or "https://rent-hr-portal.fly.dev").rstrip("/")
 ARISA_SSO_SECRET = (os.environ.get("ARISA_SSO_SECRET") or "").strip()
 
+# ARISA Assistant 서비스 토큰 (툴 카탈로그 v1 §1-A, 2026-08-03)
+# 봇이 직원 PIN 없이 직원을 대행해 API를 호출하기 위한 유일한 경로.
+# 시크릿이 없으면 기능 자체가 꺼진다(폴백 없음) = 기본 차단. 롤백은 .env 한 줄 삭제.
+ASSISTANT_SECRET = (os.environ.get("ARISA_ASSISTANT_SECRET") or "").strip()
+
 # 이관 가능: 경로는 스크립트 기준(상대) + 환경변수로 덮어쓰기 가능
 BASE = Path(os.environ.get("DASHBOARD_BASE") or (Path(__file__).resolve().parent.parent / "01-templates"))
 HTML = BASE / "포트폴리오_대시보드.html"
@@ -3267,6 +3272,76 @@ def lead_teams_of(uid):
         return sorted(set(tl.keys()))
     return sorted([team for team, leader in tl.items() if leader == uid])
 
+
+# ── ARISA Assistant 서비스 인증 (툴 카탈로그 v1 §1-A, 2026-08-03) ──────────
+# 문제: 모든 쓰기 API가 body의 평문 PIN을 요구한다(auth()). 봇이 직원을 대행하려면
+#       직원 PIN을 보관해야 하는데, PIN 하나가 HR 포털 SSO까지 여는 지금 구조에서는 금지다.
+# 해법: 봇 전용 시크릿 헤더 + 대행 대상. 단 **대행 신원을 봇이 이름으로 주장하게 두지 않는다** —
+#       텔레그램 user_id(텔레그램 서버가 붙여주는 값, LLM이 만들 수 없다)를 받아
+#       arisa-employees.json:by_telegram_id 로 서버가 이름을 도출한다.
+#       이름 문자열을 받으면 LLM이 뱉은 "최원석"이 그대로 대표 권한이 된다.
+# 권한: 도출된 이름으로 기존 세션 dict를 그대로 만든다 → is_admin·lead_teams·can_view·
+#       GET 스푸핑 게이트가 전부 원래대로 적용된다. 대행이라고 권한이 늘지 않는다.
+_SVC_HDR = "X-Arisa-Service"        # 시크릿
+_SVC_TG_HDR = "X-Arisa-On-Behalf-Tg"  # 대행 대상 텔레그램 user_id
+
+# 서비스 토큰으로 허용할 쓰기 경로 화이트리스트.
+# 여기 없는 쓰기는 서비스 토큰이 있어도 기존 PIN 관문으로 떨어진다(= 401). 기본 차단.
+# 카탈로그 §6 영구 제외(project/delete·merge·archive, assign-bulk-delete, login, set-pin,
+# project/save, doc-apply, proposal-apply)는 의도적으로 넣지 않는다.
+_SVC_WRITE_PATHS = {
+    "/api/today-plan",      # W1 오늘 할 일 선언
+    "/api/assign-self",     # W2 본인 업무 등록
+    "/api/brief-comment",   # W3 브리프 코멘트
+    "/api/assign-status",   # W4 상태 변경(전이 게이트 통과 필요)
+    "/api/assign-edit",     # W5 업무 수정
+    "/api/decision-clear",  # W6 결정 처리
+    "/api/assign",          # W7 타인 분장 생성
+}
+
+# 서비스 토큰으로 허용할 POST 전체 = 쓰기 화이트리스트 + 조직 상태를 바꾸지 않는 AI 보조 1종.
+# meeting-summary는 전사→요약만 하고 아무것도 저장하지 않아 Phase 1에 안전한 유일한 생성 툴.
+# W8(/api/meeting-actions, 일괄 분장 생성)은 의도적으로 제외 — 카탈로그 개방 순서 3.
+_SVC_POST_OK = _SVC_WRITE_PATHS | {"/api/simulator/meeting-summary"}
+
+_SVC_AUDIT = DATA / "assistant-audit.jsonl"
+
+
+def _svc_audit(name, path, ok, detail=""):
+    """Assistant 대행 호출 감사 로그. 실패해도 요청을 막지 않는다."""
+    try:
+        rec = {"ts": datetime.datetime.now().isoformat(timespec="seconds"),
+               "actor": "assistant", "on_behalf_of": name, "path": path,
+               "ok": bool(ok), "detail": detail}
+        with open(_SVC_AUDIT, "a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
+def svc_session(secret, tg_id, path):
+    """서비스 헤더 → 세션 dict(쿠키 세션과 같은 모양) 또는 None.
+
+    통과 조건 4개가 전부 맞아야 한다:
+      1) ASSISTANT_SECRET이 .env에 설정돼 있다 (없으면 기능 자체가 꺼짐)
+      2) 헤더 시크릿이 상수시간 비교로 일치한다
+      3) /api/ 경로다 (HTML 화면은 서비스 토큰으로 열지 않는다)
+      4) 텔레그램 ID가 명부에 있고, 그 이름이 users.json 계정으로도 존재한다
+    """
+    if not ASSISTANT_SECRET or not secret:
+        return None
+    if not secrets.compare_digest(str(secret), ASSISTANT_SECRET):
+        return None
+    if not path.startswith("/api/"):
+        return None
+    tg = str(tg_id or "").strip()
+    if not tg:
+        return None
+    name = (load_emp().get("by_telegram_id", {}) or {}).get(tg)
+    if not name or not load_users().get(name):
+        return None
+    return {"name": name, "admin": is_admin(name), "lead_teams": lead_teams_of(name), "svc": True}
+
 # ── PIN 정책 (plan: partitioned-beaming-turing, 2026-07-27) ──────────
 # HR 포털 SSO를 켜면서 PIN 하나의 가치가 올라갔다(ARISA 로그인 → HR 본인 데이터 접근).
 # 최소 8자 + 숫자전용 거부 + 시도 제한. 기존 PIN은 변경 시점부터 새 정책이 적용된다.
@@ -4563,6 +4638,10 @@ class H(BaseHTTPRequestHandler):
         sess = self._web_sess()
         if sess:
             return sess
+        # ARISA Assistant 대행 (§1-A) — 쿠키가 없을 때만. 쿠키 세션을 덮어쓰지 않는다.
+        svc = svc_session(self.headers.get(_SVC_HDR), self.headers.get(_SVC_TG_HDR), path)
+        if svc:
+            return svc
         if path.startswith("/api/"):
             self._send(401, {"ok": False, "error": "로그인이 필요합니다. 아리사 OS에서 다시 로그인해주세요.", "reason": "session_required"})
         else:
@@ -5357,6 +5436,58 @@ class H(BaseHTTPRequestHandler):
             ds = (q.get("date") or [""])[0]
             if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", ds): return self._send(400, {"ok": False, "error": "date 형식"})
             return self._send(200, {"ok": True, "comments": _load_comments(ds)})
+        if path == "/api/brief":
+            # 브리프 읽기 API (툴 카탈로그 v1 R12, 2026-08-03)
+            # 지금까지 브리프는 HTML 페이지(/brief·/team-brief·/my-brief)로만 나갔다.
+            # 봇이 본문을 읽으려면 파일을 직접 열 수밖에 없는데, 그 경로엔 권한 검사가 전혀 없다.
+            # → 같은 파일을 JSON으로 내주되 **HTML 페이지와 동일한 역할 게이트**를 그대로 적용한다.
+            #   (게이트를 여기서 새로 쓰면 진실이 둘로 갈라진다 — 위 4638·4642·4650과 짝을 맞춘다)
+            scope = (q.get("scope") or ["exec"])[0]
+            ds = (q.get("date") or [""])[0]
+            if ds and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", ds):
+                return self._send(400, {"ok": False, "error": "date 형식은 YYYY-MM-DD"})
+            if scope == "exec":
+                if not sess.get("admin"):
+                    return self._send(403, {"ok": False, "error": "대표 브리프는 대표만 볼 수 있습니다."})
+                pat, sub = "daily-brief-2*.json", ""
+                # 팀 브리프(daily-brief-{날짜}-{팀}.json)가 같은 glob에 걸린다 → 날짜로 끝나는 것만
+                name_re = re.compile(r"daily-brief-(\d{4}-\d{2}-\d{2})\.json")
+                pick = (lambda d: BRIEF_DIR / f"daily-brief-{d}.json")
+            elif scope == "team":
+                team = (q.get("team") or [""])[0]
+                if not team:
+                    return self._send(400, {"ok": False, "error": "team 파라미터가 필요합니다."})
+                if not (sess.get("admin") or team in (sess.get("lead_teams") or [])):
+                    return self._send(403, {"ok": False, "error": "해당 팀 리더만 볼 수 있습니다."})
+                pat, sub = f"daily-brief-2*-{team}.json", ""
+                name_re = re.compile(rf"daily-brief-(\d{{4}}-\d{{2}}-\d{{2}})-{re.escape(team)}\.json")
+                pick = (lambda d: BRIEF_DIR / f"daily-brief-{d}-{team}.json")
+            elif scope == "person":
+                nm = (q.get("name") or [""])[0] or (sess.get("name") or "")
+                # ?name= 은 위 신원 강제(4653)를 이미 통과했다. 기본값은 본인.
+                if not (sess.get("admin") or nm == sess.get("name")
+                        or emp_team(nm) in (sess.get("lead_teams") or [])):
+                    return self._send(403, {"ok": False, "error": "본인 브리프만 볼 수 있습니다."})
+                pat, sub = f"my-brief-2*-{nm}.json", "person"
+                name_re = re.compile(rf"my-brief-(\d{{4}}-\d{{2}}-\d{{2}})-{re.escape(nm)}\.json")
+                pick = (lambda d: BRIEF_DIR / "person" / f"my-brief-{d}-{nm}.json")
+            else:
+                return self._send(400, {"ok": False, "error": "scope는 exec|team|person"})
+            bdir = BRIEF_DIR / sub if sub else BRIEF_DIR
+            dates = sorted({m.group(1) for f in bdir.glob(pat)
+                            if (m := name_re.fullmatch(f.name))})
+            if not dates:
+                return self._send(404, {"ok": False, "error": "브리프가 없습니다.", "dates": []})
+            sel = ds or dates[-1]
+            f = pick(sel)
+            if not f.exists():
+                return self._send(404, {"ok": False, "error": f"{sel} 브리프가 없습니다.", "dates": dates})
+            try:
+                doc = json.loads(f.read_text(encoding="utf-8"))
+            except Exception as e:
+                return self._send(500, {"ok": False, "error": f"브리프 읽기 실패: {e}"})
+            return self._send(200, {"ok": True, "scope": scope, "date": sel,
+                                    "dates": dates[-14:], "brief": doc})
         return self._send(404, {"ok": False, "error": "not found"})
 
     def do_POST(self):
@@ -5366,6 +5497,13 @@ class H(BaseHTTPRequestHandler):
         sess = self._gate(path)
         if sess is None:
             return
+        # Assistant 대행은 화이트리스트 POST에서만 유효 (§2 함정 차단).
+        # /api/meeting-actions·/api/simulator/submit-doc·/api/set-pin 등은 PIN 관문보다 위에 있어
+        # 쿠키 세션만으로 통과한다 — 여기서 막지 않으면 서비스 토큰에 그대로 열린다.
+        if sess.get("svc") and path not in _SVC_POST_OK:
+            _svc_audit(sess.get("name") or "?", path, False, "Assistant 미허용 POST")
+            return self._send(403, {"ok": False, "error": "Assistant가 실행할 수 없는 작업입니다. 아리사 OS 화면에서 진행해주세요.",
+                                    "reason": "svc_not_allowed"})
         if path.startswith("/r4"):
             if not sess.get("admin"):
                 return self._send(403, {"ok": False, "error": "대표 전용입니다."})
@@ -5585,8 +5723,18 @@ class H(BaseHTTPRequestHandler):
                 return self._send(500, {"ok": False, "error": "AI 드래프트 생성에 실패했습니다."})
             return self._send(200, {"ok": True, "fields": result})
         # 이하 쓰기: user+pin 검증
-        uid = b.get("user", ""); pin = b.get("pin", "")
-        if not auth(uid, pin): return self._send(401, {"ok": False, "error": "인증 실패"})
+        # 예외 — ARISA Assistant 대행(§1-A): 화이트리스트 경로에 한해 PIN 대신 서비스 세션을 쓴다.
+        # uid는 봇이 보낸 body가 아니라 _gate가 텔레그램 ID에서 도출한 이름이다(권한 상승 차단).
+        # 화이트리스트 밖은 이 분기를 타지 않고 아래 PIN 검증으로 떨어진다 = 기본 차단.
+        if sess.get("svc") and path in _SVC_WRITE_PATHS:
+            uid = sess["name"]
+            _svc_audit(uid, path, True)
+        else:
+            uid = b.get("user", ""); pin = b.get("pin", "")
+            if not auth(uid, pin):
+                if sess.get("svc"):
+                    _svc_audit(sess.get("name") or "?", path, False, "화이트리스트 밖 경로")
+                return self._send(401, {"ok": False, "error": "인증 실패"})
         if path == "/api/assign-parse":
             # 자유 텍스트 → AI to-do 항목화 (담당자 미지정 — 리더가 이후 지정)
             if not (is_admin(uid) or is_leader(uid)):
