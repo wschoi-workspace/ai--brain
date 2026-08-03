@@ -25,11 +25,11 @@ _lock = threading.Lock()
 def log_status_change(source: str, by: str, to_status: str, from_status: str = "",
                       row=None, date: str = "", project: str = "", pid: str = "",
                       task: str = "", assignee: str = "", note: str = "",
-                      reason: str = "", approved_by: str = "") -> bool:
+                      reason: str = "", approved_by: str = "", progress=None) -> bool:
     """상태 전이 1건 append. 실패해도 예외를 올리지 않는다(운영 경로 보호).
 
     source: dashboard | dashboard-bulk-delete | project-delete | project-merge
-            | daily-brief-auto | weekly-auto
+            | daily-brief-auto | weekly-auto | report-sync | report-followup
     by: 변경 주체 (계정명 또는 'auto')
     note: 전이 근거 한 줄 (예: 자동 완료의 보고 근거 문장) — G7 이력 뷰 표시용
     reason: 종료 사유 — 터미널 상태(패스·취소·미실행종료 등) 전이 시 필수 (R4 개편 1차)
@@ -53,6 +53,11 @@ def log_status_change(source: str, by: str, to_status: str, from_status: str = "
         entry["reason"] = reason.strip()[:200]
     if (approved_by or "").strip():
         entry["approved_by"] = approved_by.strip()
+    if progress is not None:   # vNext P1 — follow-up이 수집한 진행률(0~100), 있을 때만
+        try:
+            entry["progress"] = max(0, min(100, int(progress)))
+        except (TypeError, ValueError):
+            pass
     try:
         _LOG_DIR.mkdir(parents=True, exist_ok=True)
         with _lock, _LOG_PATH.open("a", encoding="utf-8") as f:
