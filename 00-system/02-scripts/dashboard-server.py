@@ -3719,6 +3719,43 @@ def _render_5block_md(doc, r, L):
         L += ["## 다음 마일스톤", str(r["closing"]), ""]
     return "\n".join(L)
 
+def _submit_project_doc(pid, who, dtype, result, *, title="", transcript="",
+                        fields=None, md_override=None, src="simulator"):
+    """시뮬레이터·R4 결과 → 프로젝트 문서함 제출의 공통 본체 (vNext P2 WS1).
+
+    /api/simulator/submit-doc 핸들러 본문을 함수로 추출한 것 — 동작 불변.
+    검증(프로젝트 존재·권한·형식)은 호출측 책임. 저장 → docs[] append →
+    브리프 갱신안 백그라운드 → 분장 등록 후보 반환.
+    md_override: R4의 export.md처럼 이미 렌더된 md가 있으면 재렌더하지 않는다
+    (build_markdown을 8780에서 재구현하지 않기 위한 자리).
+    반환: {"ts","title","candidates"} 또는 None(프로젝트 소실 — 호출측 404).
+    """
+    now = datetime.datetime.now()
+    ts = now.strftime("%Y%m%d-%H%M%S")
+    fields = fields if isinstance(fields, dict) else {}
+    title = ((title or "").strip() or str(result.get("title_guess") or "").strip()
+             or str(fields.get("title") or "").strip()
+             or f"{'회의록' if dtype == 'meeting' else '기획안'} {now.strftime('%Y-%m-%d')}")[:100]
+    doc = {"ts": ts, "type": dtype, "title": title, "by": who,
+           "submitted_at": now.isoformat(timespec="seconds"), "pid": _safe(pid),
+           "result": result,
+           "source": ({"transcript": (transcript or "")[:60000]}
+                      if dtype == "meeting" else {"fields": fields})}
+    md = md_override or _render_submitted_md(doc)
+    ddir = DOC_DIR / _safe(pid)
+    ddir.mkdir(parents=True, exist_ok=True)
+    (ddir / f"{ts}.json").write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    (ddir / f"{ts}.md").write_text(md, encoding="utf-8")
+    def _add_doc(pp):
+        pp.setdefault("docs", []).append({"ts": ts, "title": title, "by": who,
+                                          "chars": len(md), "type": dtype, "src": src})
+    if _mutate_project(pid, _add_doc) is None:
+        return None
+    threading.Thread(target=_bg_propose, args=(pid, ts, title, who, md), daemon=True).start()
+    cands = _meeting_todo_candidates(result) if dtype == "meeting" else []
+    return {"ts": ts, "title": title, "candidates": cands}
+
+
 def _bg_propose(pid, doc_ts, doc_title, who, text):
     """제출 문서 기반 브리프 갱신안 생성(백그라운드 스레드) → p['pendingBrief'] 승인 대기열.
     LLM 실패해도 문서는 이미 저장돼 있음 — error로 기록만."""
@@ -5614,33 +5651,88 @@ class H(BaseHTTPRequestHandler):
                 return self._send(404, {"ok": False, "error": "프로젝트 없음"})
             if not can_view(who, p):
                 return self._send(403, {"ok": False, "error": "이 프로젝트에 제출 권한이 없습니다."})
-            now = datetime.datetime.now()
-            ts = now.strftime("%Y%m%d-%H%M%S")
-            fields = b.get("fields") if isinstance(b.get("fields"), dict) else {}
-            title = ((b.get("title") or "").strip() or str(result.get("title_guess") or "").strip()
-                     or str(fields.get("title") or "").strip()
-                     or f"{'회의록' if dtype == 'meeting' else '기획안'} {now.strftime('%Y-%m-%d')}")[:100]
-            doc = {"ts": ts, "type": dtype, "title": title, "by": who,
-                   "submitted_at": now.isoformat(timespec="seconds"), "pid": _safe(pid),
-                   "result": result,
-                   "source": ({"transcript": (b.get("transcript") or "")[:60000]}
-                              if dtype == "meeting" else {"fields": fields})}
-            md = _render_submitted_md(doc)
-            ddir = DOC_DIR / _safe(pid)
-            ddir.mkdir(parents=True, exist_ok=True)
-            (ddir / f"{ts}.json").write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
-            (ddir / f"{ts}.md").write_text(md, encoding="utf-8")
-            def _add_doc(pp):
-                pp.setdefault("docs", []).append({"ts": ts, "title": title, "by": who,
-                                                  "chars": len(md), "type": dtype, "src": "simulator"})
-            if _mutate_project(pid, _add_doc) is None:
+            # 본체는 _submit_project_doc (vNext P2 WS1 — r4-import와 공유, 동작 불변)
+            out = _submit_project_doc(pid, who, dtype, result,
+                                      title=b.get("title") or "",
+                                      transcript=b.get("transcript") or "",
+                                      fields=b.get("fields"))
+            if out is None:
                 return self._send(404, {"ok": False, "error": "프로젝트 없음"})
-            threading.Thread(target=_bg_propose, args=(pid, ts, title, who, md), daemon=True).start()
-            # 갭A — 회의 제출이면 5블록 to-do(우리 측)를 분장 등록 후보로 함께 돌려준다.
-            # 여기서 끊기던 것이 정확히 '회의 → 실행' 갭이었다(등록은 /api/meeting-actions).
-            cands = _meeting_todo_candidates(result) if dtype == "meeting" else []
-            return self._send(200, {"ok": True, "doc": {"ts": ts, "title": title},
-                                    "pid": pid, "candidates": cands,
+            return self._send(200, {"ok": True, "doc": {"ts": out["ts"], "title": out["title"]},
+                                    "pid": pid, "candidates": out["candidates"],
+                                    "note": "브리프 갱신안을 생성해 PM 승인 대기열에 올립니다."})
+        if path == "/api/meeting/r4-import":
+            # vNext P2 WS3 — R4(8781) 세션 → 프로젝트 문서함 제출.
+            # 서버측 루프백이므로 /r4 admin 게이트와 무관 — 직원도 자기 프로젝트에 제출 가능.
+            # 세션 전체를 문서 JSON에 복사 저장한다(참조 아님) — 8781 세션이 지워져도 문서함 자립.
+            who = sess.get("name") or ""
+            if not who:
+                return self._send(401, {"ok": False, "error": "로그인이 필요합니다. 아리사 OS에서 다시 로그인해주세요."})
+            sid = (b.get("sid") or "").strip()
+            pid = (b.get("pid") or "").strip()
+            if not re.fullmatch(r"[0-9]{8}-[0-9]{4,6}-[0-9a-f]{4}", sid):
+                return self._send(400, {"ok": False, "error": "세션 ID 형식 오류"})
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_view(who, p):
+                return self._send(403, {"ok": False, "error": "이 프로젝트에 제출 권한이 없습니다."})
+            # 멱등 ① — 같은 세션을 같은 프로젝트에 두 번 제출하면 기존 문서를 돌려준다.
+            # arisa2의 delta 중복(같은 회의록 2회 파싱)이 정확히 이 가드의 부재였다.
+            ddir = DOC_DIR / _safe(pid)
+            for _e in reversed(p.get("docs") or []):
+                if _e.get("type") != "meeting":
+                    continue
+                try:
+                    _d = json.loads((ddir / f"{_e['ts']}.json").read_text(encoding="utf-8"))
+                except Exception:
+                    continue
+                if (_d.get("result") or {}).get("r4SessionId") == sid and not b.get("force"):
+                    return self._send(200, {"ok": True, "duplicate": True, "pid": pid,
+                                            "doc": {"ts": _e["ts"], "title": _e.get("title") or ""},
+                                            "candidates": _meeting_todo_candidates(_d.get("result") or {}),
+                                            "note": "이미 제출된 세션입니다 — 기존 문서를 반환합니다."})
+            # 루프백으로 8781 세션 조회 (브라우저 미경유)
+            try:
+                with urlopen(f"{R4_UPSTREAM}/api/meeting/{sid}", timeout=15) as _r:
+                    r4 = (json.loads(_r.read().decode("utf-8")) or {}).get("session") or {}
+            except Exception as e:
+                return self._send(502, {"ok": False, "error": f"R4 세션 조회 실패: {str(e)[:60]}"})
+            if r4.get("status") != "FINALIZED":
+                return self._send(400, {"ok": False, "code": "not_finalized",
+                                        "error": f"세션이 아직 확정 전입니다(현재 {r4.get('status')}). 분석을 마친 뒤 제출하세요."})
+            meta = r4.get("meta") or {}
+            result = dict(r4.get("analysis") or {})
+            result.update({"schema_version": "r4", "r4SessionId": sid,
+                           "readiness": r4.get("readiness") or {},
+                           "executiveSummary": r4.get("executiveSummary") or {},
+                           "routing": r4.get("routing") or {},
+                           "classification": (r4.get("classification") or {}).get("classification") or {},
+                           "meta": meta})
+            # md는 R4의 build_markdown 결과를 그대로 쓴다 — 재구현하지 않는다
+            md_override = None
+            try:
+                with urlopen(f"{R4_UPSTREAM}/api/meeting/{sid}/export.md", timeout=15) as _r:
+                    md_override = _r.read().decode("utf-8")
+            except Exception:
+                pass   # 실패 시 _render_submitted_md 폴백(문서함은 여전히 자립)
+            out = _submit_project_doc(pid, who, "meeting", result,
+                                      title=(b.get("title") or meta.get("title") or ""),
+                                      transcript=r4.get("transcript") or "",
+                                      md_override=md_override, src="r4")
+            if out is None:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            # 세션에 pid 역기록 — 어느 프로젝트로 제출됐는지 8781 쪽에서도 보이게 (실패 무해)
+            try:
+                _req = Request(
+                    f"{R4_UPSTREAM}/api/meeting/{sid}/link-project",
+                    data=json.dumps({"pid": pid, "source": "import"}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"}, method="POST")
+                urlopen(_req, timeout=10).read()
+            except Exception:
+                pass
+            return self._send(200, {"ok": True, "doc": {"ts": out["ts"], "title": out["title"]},
+                                    "pid": pid, "candidates": out["candidates"],
                                     "note": "브리프 갱신안을 생성해 PM 승인 대기열에 올립니다."})
         if path == "/api/meeting-actions":
             # 갭A — 회의(프로젝트 문서 pid|ts)의 to-do를 주간분장으로 등록. 쿠키 세션 인증.
