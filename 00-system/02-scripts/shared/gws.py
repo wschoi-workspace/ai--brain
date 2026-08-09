@@ -112,3 +112,158 @@ def values_update(sheet_id: str, rng: str, values: list[list],
         "--json", json.dumps({"values": values}),
     ]
     return _run_with_retry(cmd, f"sheet update({rng})", timeout=timeout)[0]
+
+
+# ── 드라이브 읽기 (2026-08-09, 사내 규정 질의응답) ──────────────────────
+# 이 래퍼는 지금까지 시트만 다뤘다. 사내 규정 원본이 드라이브 .docx로 있어서 읽기가 필요해졌다.
+#
+# ⚠️ **폴더 화이트리스트를 인자로 강제한다.** 드라이브에는 `렌트_로그인/법인카드 정보`,
+#    정산 시트, 인사기록 마스터가 함께 있다. "드라이브 전체 검색"을 가능하게 만들면
+#    LLM이 그쪽으로 질의를 확장하는 순간 사고가 난다. folder_id 없이는 검색이 안 되게 둔다.
+#
+# ⚠️ .docx는 Drive `export`가 지원되지 않는다(Google Docs 네이티브만 가능).
+#    다운로드 후 직접 파싱해야 한다 — 아래 docx_to_text 참조.
+
+
+def drive_search(folder_id: str, name_contains: str = "", full_text: str = "",
+                 limit: int = 20, timeout: int = 40) -> list[dict]:
+    """지정 폴더 **안에서만** 파일 검색. folder_id가 없으면 아무것도 하지 않는다.
+
+    반환: [{id, name, mimeType, modifiedTime}, ...]
+    """
+    if not folder_id:
+        logger.error("drive_search: folder_id 필수 — 전체 드라이브 검색은 허용하지 않는다")
+        return []
+    clauses = [f'"{folder_id}" in parents', "trashed=false"]
+    if name_contains:
+        clauses.append(f"name contains '{_q(name_contains)}'")
+    if full_text:
+        clauses.append(f"fullText contains '{_q(full_text)}'")
+    params = json.dumps({
+        "q": " and ".join(clauses),
+        "pageSize": max(1, min(int(limit), 100)),
+        "fields": "files(id,name,mimeType,modifiedTime)",
+        "orderBy": "name",
+    })
+    try:
+        r = subprocess.run(["gws", "drive", "files", "list", "--params", params,
+                            "--format", "json"],
+                           capture_output=True, text=True, timeout=timeout)
+        if r.returncode != 0:
+            logger.error(f"drive_search fail ({_classify(r.stderr)}): {r.stderr[:200]}")
+            return []
+        return json.loads(_json_head(r.stdout)).get("files", [])
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"drive_search error: {e}")
+        return []
+
+
+def drive_download(file_id: str, dst_path, timeout: int = 90) -> bool:
+    """드라이브 파일을 그대로 내려받는다(.docx 등 바이너리).
+
+    실측으로 확인한 제약 2개 (2026-08-09):
+    1. gws는 `--output`이 **현재 작업 디렉터리 밖**을 가리키면 거부한다
+       (`resolves to ... which is outside the current directory`) → 목적지 폴더를 cwd로 잡는다
+    2. `drive files download`는 `error[api]: Internal error encountered.`로 실패한다.
+       **`files get` + `alt=media`가 동작하는 경로**다 (45KB .docx 정상 수신 확인)
+    """
+    if not file_id:
+        return False
+    import os as _os
+    dst = _os.path.abspath(str(dst_path))
+    parent = _os.path.dirname(dst) or "."
+    _os.makedirs(parent, exist_ok=True)
+    cmd = ["gws", "drive", "files", "get",
+           "--params", json.dumps({"fileId": file_id, "alt": "media"}),
+           "--output", _os.path.basename(dst)]
+    label = f"drive download({file_id[:12]})"
+    for attempt in range(2):
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True,
+                               timeout=timeout, cwd=parent)
+            if r.returncode == 0 and _os.path.exists(dst) and _os.path.getsize(dst) > 0:
+                return True
+            logger.error(f"{label} fail (try {attempt+1}/2): {r.stderr[:200]}")
+            if _classify(r.stderr) == "auth":
+                return False
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"{label} error (try {attempt+1}/2): {e}")
+        if attempt == 0:
+            time.sleep(2)
+    return False
+
+
+def _q(s: str) -> str:
+    """Drive q 문자열 이스케이프 — 작은따옴표·백슬래시가 쿼리를 깨거나 조건을 탈출시킨다."""
+    return str(s).replace("\\", "\\\\").replace("'", "\\'")
+
+
+def _json_head(out: str) -> str:
+    """gws가 stdout 앞에 붙이는 'Using keyring backend: file' 같은 잡음을 걷어낸다."""
+    i = out.find("{")
+    return out[i:] if i >= 0 else "{}"
+
+
+def docx_to_text(path) -> str:
+    """.docx → 평문. python-docx 없이 zip+XML만으로 뽑는다(의존성 0).
+
+    ⚠️ **표는 행 단위로 묶어야 한다.** 사내 규정은 핵심 수치를 표로 적는다:
+
+        휴가 종류        | 사전 신청 시한
+        연차 (1일 이하)  | 전일 18:00 이전
+        연차 (2~5일)     | 3일 전
+
+    셀을 그냥 순서대로 뽑으면 한 줄에 하나씩 나열되어 **어느 값이 어느 항목의 것인지
+    사라진다.** 그 상태로 LLM에 넘기면 "연차 1일 이하는 3일 전"처럼 짝을 잘못 맺는다.
+    규정 답변에서 가장 위험한 오류가 여기서 난다. 그래서 행을 ' | '로 묶어 한 줄로 만든다.
+    """
+    import re as _re
+    import zipfile
+    from xml.etree import ElementTree as ET
+
+    W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+    try:
+        with zipfile.ZipFile(str(path)) as z:
+            xml = z.read("word/document.xml")
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"docx_to_text: {path} 열기 실패 — {e}")
+        return ""
+    try:
+        root = ET.fromstring(xml)
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"docx_to_text: XML 파싱 실패 — {e}")
+        return ""
+
+    def para_text(p) -> str:
+        # w:t 조각을 이어붙인다. 한 문장이 서식 때문에 여러 run으로 쪼개져 있다.
+        return "".join(t.text or "" for t in p.iter(f"{W}t")).strip()
+
+    def walk(node, lines: list[str]) -> None:
+        """본문을 문서 순서대로 훑되, 표를 만나면 행 단위로 접는다."""
+        for child in node:
+            tag = child.tag
+            if tag == f"{W}p":
+                s = para_text(child)
+                if s:
+                    lines.append(s)
+            elif tag == f"{W}tbl":
+                for tr in child.findall(f"{W}tr"):
+                    cells = []
+                    for tc in tr.findall(f"{W}tc"):
+                        # 셀 안에도 표가 중첩될 수 있다 — 재귀로 처리하고 한 셀로 합친다
+                        sub: list[str] = []
+                        walk(tc, sub)
+                        cells.append(" ".join(sub).strip())
+                    row = " | ".join(c for c in cells)
+                    if row.strip(" |"):
+                        lines.append(row)
+            else:
+                # sdt(콘텐츠 컨트롤) 등 컨테이너 안에 본문이 들어있는 경우
+                if len(child):
+                    walk(child, lines)
+
+    body = root.find(f"{W}body")
+    lines: list[str] = []
+    walk(body if body is not None else root, lines)
+    text = "\n".join(lines)
+    return _re.sub(r"\n{3,}", "\n\n", text).strip()
