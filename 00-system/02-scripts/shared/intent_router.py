@@ -64,9 +64,13 @@ CONFIRM_BELOW = 0.75
 #
 # 경계 = "대화 상태를 쓰는가":
 #   아리사   — 분장→보고→완료 환류. 여러 턴을 주고받는 흐름이라 상태가 필요하다
-#   지원봇   — 물으면 답하고 끝. ConversationHandler를 아예 만들지 않는다
+#   알군(R)  — 물으면 답하고 끝. ConversationHandler를 아예 만들지 않는다
 BOT_ARISA = "arisa"      # 분장·보고
 BOT_SUPPORT = "support"  # 조회·질의
+
+# 사용자에게 보이는 이름. 텔레그램 표시 이름과 일치시킨다 —
+# 안내문의 이름과 텔레그램 표시 이름이 다르면 직원이 어느 창을 열지 못 찾는다.
+BOT_LABEL = {BOT_ARISA: "아리사", BOT_SUPPORT: "알군"}
 
 INTENT_BOT = {
     I_REPORT: BOT_ARISA,
@@ -103,11 +107,12 @@ def handoff_message(intent_name: str, target_bot: str, target_username: str) -> 
         I_REPORT: "업무보고",
         I_MY_WORK: "내 할 일",
     }.get(intent_name, "그 요청")
-    label = "아리사" if target_bot == BOT_ARISA else "지원봇"
-    # 받침 유무로 조사를 고른다 — "업무보고은"처럼 어색하면 봇이 대충 만든 티가 난다
+    label = BOT_LABEL.get(target_bot, "다른 봇")
+    # 받침 유무로 조사를 고른다 — "업무보고은"처럼 어색하면 봇이 대충 만든 티가 난다.
+    # 봇 이름 뒤에는 조사를 붙이지 않는다("R가"/"R이" 같은 알파벳 조사 문제를 아예 피한다).
     last = what[-1]
     josa = "은" if (ord(last) - 0xAC00) % 28 else "는"
-    return (f"{what}{josa} {label}가 담당합니다 👉 https://t.me/{target_username}\n\n"
+    return (f"{what}{josa} {label} 담당입니다 👉 https://t.me/{target_username}\n\n"
             "보내주신 내용을 그대로 복사해 붙여넣으시면 됩니다.")
 
 

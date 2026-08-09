@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""아리사 지원봇 — 조회·질의 전담 (2026-08-09).
+"""알군(R) — 조회·질의 전담 봇 (2026-08-09).
 
 ## 왜 분리했나
 
@@ -10,7 +10,7 @@
 
 경계는 곧 상태의 유무다:
   아리사   — 분장 → 보고 → 완료 환류. 여러 턴을 주고받는 흐름 (상태 필요)
-  지원봇   — 물으면 답하고 끝                                (상태 불필요)
+  알군(R)  — 물으면 답하고 끝                                (상태 불필요)
 
 ## 이 파일의 계약
 
@@ -181,7 +181,7 @@ async def _run(update: Update, it) -> bool:
 
 
 HELP = (
-    "안녕하세요, 회사 정보를 찾아드리는 곳입니다.\n\n"
+    "안녕하세요, 알군입니다. 회사에 대해 궁금한 걸 물어보세요.\n\n"
     "그냥 물어보세요.\n"
     "· \"연차는 며칠 전에 신청해?\" → 사내 규정 원문에서 찾아 답변\n"
     "· \"봉은사 어떻게 돼가?\" → 프로젝트 현황\n"
@@ -299,7 +299,7 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
     app.add_error_handler(on_error)
 
-    logger.info("ARISA Support Bot started (stateless — no ConversationHandler)")
+    logger.info("알군(R) support bot started — stateless, no ConversationHandler")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
