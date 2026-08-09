@@ -71,6 +71,7 @@ from shared.logging import TokenRedactingFilter  # noqa: E402
 from shared import gws as _gws  # noqa: E402
 from shared import report_queue as _rq  # noqa: E402
 from shared.employee import load_employees as _load_emp  # noqa: E402
+from shared.employee import resolve_name as _EMP_RESOLVE  # noqa: E402  (존칭·성 생략 흡수)
 from shared.decision import save_decision_log as _save_decision_log  # noqa: E402
 from shared import report_score as _report_score  # noqa: E402  (채점 SSOT — 2026-07-20)
 from shared.naming import clean_project_name as _nm_clean  # noqa: E402  (P2 네이밍 규칙)
@@ -2751,6 +2752,48 @@ def save_assignment_to_sheet(team: str, task: str, assignee: str,
     )
 
 
+def _fix_assignee_team(parsed: dict) -> tuple[bool, str]:
+    """파싱 결과의 담당자·팀을 명부 기준으로 교정. 반환 (진행 가능, 안내문).
+
+    2026-08-09 실측으로 드러난 두 구멍을 여기서 막는다.
+
+    ① **담당자가 빈 채로 등록됐다.** 구 코드는 정확 매칭뿐이라 "@지혜님"→"지혜"를
+       못 찾고 그대로 저장했다. 담당자가 비면 그 업무는 아무도 안 보는 행이 된다.
+       → `resolve_name`으로 존칭·성 생략을 흡수하고, **애매하면 저장하지 않고 되묻는다.**
+          엉뚱한 사람에게 업무가 붙는 것이 못 찾는 것보다 나쁘다.
+
+    ② **팀이 오염됐다.** LLM이 "봉은사 BM 리서치…"에서 team="BM"을 만들어냈는데,
+       구 코드는 team이 비었을 때만 명부를 봐서 그대로 저장됐다. 시트에 없는 팀이
+       들어가면 팀별 집계에서 통째로 샌다.
+       → 담당자가 확정되면 **명부의 팀이 이긴다.** 목록 밖 팀은 저장을 막는다.
+    """
+    note = ""
+    assignee = (parsed.get("assignee") or "").strip()
+    if assignee:
+        hit, cands = _EMP_RESOLVE(assignee, load_employees().get("by_name", {}).keys())
+        if hit:
+            if hit != assignee:
+                note += f"\n※ 담당자 '{assignee}' → '{hit}' 로 해석했습니다."
+            parsed["assignee"] = hit
+            emp_team = (match_employee(hit) or {}).get("team") or ""
+            if emp_team and emp_team != parsed.get("team"):
+                if parsed.get("team"):
+                    note += f"\n※ 팀 '{parsed['team']}' → 명부 기준 '{emp_team}' 로 정정했습니다."
+                parsed["team"] = emp_team
+        elif cands:
+            return False, (f"'{assignee}' 로 누구를 말씀하시는지 모르겠습니다.\n"
+                           f"후보: {', '.join(cands)}\n\n정확한 이름으로 다시 보내주세요.")
+        else:
+            return False, (f"'{assignee}' 를 명부에서 찾지 못했습니다.\n"
+                           "이름을 확인해 다시 보내주시거나, 담당자 없이 팀에 배정하려면 이름을 빼주세요.")
+
+    team = parsed.get("team") or ""
+    if team and team not in _ASSIGN_TEAMS:
+        return False, (f"'{team}' 은 등록된 팀이 아닙니다.\n"
+                       f"가능한 팀: {' · '.join(_ASSIGN_TEAMS)}\n\n팀을 명시해서 다시 보내주세요.")
+    return True, note
+
+
 async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """업무분장 간편 추가 — 대표 전용."""
     uid = update.effective_user.id
@@ -2775,28 +2818,26 @@ async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             # P2 — 프로젝트명 네이밍 규칙 자동 정리 (괄호·특수문자 → 공백)
             pj_raw = parsed.get("project") or ""
             parsed["project"] = _nm_clean(pj_raw)
+            # 담당자·팀 교정 — 대화형 모드와 **같은 함수**를 쓴다.
+            # 로직이 두 벌이면 한쪽만 고쳐져 조용히 새는 곳이 생긴다.
+            ok, _warn = _fix_assignee_team(parsed)
+            if not ok:
+                await update.message.reply_text(_warn)
+                return ConversationHandler.END
             team = parsed.get("team", "")
             assignee = parsed.get("assignee", "")
             deadline = parsed.get("deadline", "")
             priority = parsed.get("priority", "일반")
-            # 담당자 명부 매칭
-            if assignee:
-                emp = match_employee(assignee)
-                if emp:
-                    assignee = emp["name"]
-                    if not team:
-                        team = emp.get("team", "")
-            context.user_data["assign"]["parsed"]["team"] = team
-            context.user_data["assign"]["parsed"]["assignee"] = assignee
             _pj_note = " (규칙 자동정리)" if parsed.get("project") != pj_raw and pj_raw else ""
             await update.message.reply_text(
                 f"✅ 파싱 결과:\n"
                 f"  프로젝트: {(parsed.get('project') or '—') + _pj_note}\n"
-                f"  팀: {team}\n"
+                f"  팀: {team or '—'}\n"
                 f"  업무: {parsed['task']}\n"
                 f"  담당: {assignee or '팀'}\n"
                 f"  마감: {deadline or '미정'}\n"
-                f"  우선순위: {priority}\n\n"
+                f"  우선순위: {priority}"
+                + _warn + "\n\n"
                 f"맞으면 '확인', 수정하려면 내용을 다시 입력하세요."
             )
             return ASSIGN_CONFIRM
@@ -2851,12 +2892,10 @@ async def assign_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         parsed = {"team": team, "task": text, "assignee": "", "deadline": "", "priority": "일반"}
 
     parsed["team"] = parsed.get("team") or team
-    # 담당자 명부 매칭
-    assignee = parsed.get("assignee", "")
-    if assignee:
-        emp = match_employee(assignee)
-        if emp:
-            parsed["assignee"] = emp["name"]
+    ok, note = _fix_assignee_team(parsed)
+    if not ok:
+        await update.message.reply_text(note)
+        return ConversationHandler.END
 
     context.user_data["assign"]["parsed"] = parsed
     await update.message.reply_text(
@@ -2887,11 +2926,10 @@ async def assign_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
         if parsed and parsed.get("task"):
             parsed["team"] = parsed.get("team") or team
-            assignee = parsed.get("assignee", "")
-            if assignee:
-                emp = match_employee(assignee)
-                if emp:
-                    parsed["assignee"] = emp["name"]
+            ok, note = _fix_assignee_team(parsed)
+            if not ok:
+                await update.message.reply_text(note)
+                return ConversationHandler.END
             context.user_data["assign"]["parsed"] = parsed
             await update.message.reply_text(
                 f"수정 파싱:\n"
