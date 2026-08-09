@@ -78,6 +78,7 @@ from shared import provenance as _PV  # noqa: E402  (갭B 업무 출처 — 배�
 from shared import status as _ST  # noqa: E402  (상태 어휘 SSOT)
 from shared import intent_router as _IR  # noqa: E402  (ARISA Assistant 인텐트 라우터, 2026-08-03)
 from shared.assistant_tools import AssistantTools, ToolError  # noqa: E402  (툴 카탈로그 v1 실행부)
+from shared import policy_docs as _policy  # noqa: E402  (사내 규정 QA — 원문 인용 기반)
 from shared import assign_sheet as _AS  # noqa: E402  (주간분장 파싱 SSOT)
 from shared import completion as _CP  # noqa: E402  (완료 5요소 게이트 — vNext P1)
 from shared import approval as _APV  # noqa: E402  (보고 대상 자동 산출 — vNext P1)
@@ -679,12 +680,61 @@ async def _run_read_tool(update, tools: AssistantTools, it) -> bool:
             await update.message.reply_text("📝 회의 내용으로 보입니다. 정리 중이에요… (30~60초)")
             r = await asyncio.to_thread(tools.meeting_summarize, it.slots.get("text", ""))
             await update.message.reply_text(_fmt_meeting_summary(r.get("result") or {}))
+        elif it.name == _IR.I_POLICY:
+            # 사내 규정 — 대시보드 API를 타지 않는다. 규정은 전 직원 공개라 사람별
+            # 권한 필터가 없고, 원본이 Drive .docx다. 대신 **원문 인용 검증**이 걸려 있다.
+            await update.message.reply_text("📕 사내 규정에서 찾아볼게요…")
+            q = it.slots.get("question") or (update.message.text or "")
+            await update.message.reply_text(await asyncio.to_thread(_policy.ask, q))
+        elif it.name == _IR.I_LEAVE_BALANCE:
+            # 내 연차 잔여는 HR 포털 데이터다. 봇용 조회 경로가 아직 없다(Step 3).
+            # 규정 문서로 답하면 "규정에서 못 찾음"이라는 엉뚱한 답이 나가므로 솔직히 안내한다.
+            await update.message.reply_text(_policy.LEAVE_BALANCE_NOTICE)
         else:
             return False
         return True
     except ToolError as e:
         await update.message.reply_text(f"⚠️ {e.user_message}")
         return True
+
+
+async def cmd_ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/ask [질문] — 사내 규정 질의. 인자 없이 누르면 사용법을 보여준다.
+
+    자유 텍스트로도 같은 답이 나오지만(라우터가 잡는다), 커맨드 메뉴에 있어야
+    직원이 "물어봐도 되는구나"를 안다. 발견성이 기능만큼 중요하다.
+    """
+    if is_offboarded(uid=update.effective_user.id):
+        await update.message.reply_text(_OFFBOARDED_MSG)
+        return
+    q = " ".join(context.args or []).strip()
+    if not q:
+        await update.message.reply_text(
+            "📕 사내 규정에 대해 물어보세요.\n\n"
+            "예)\n"
+            "· 연차는 며칠 전에 신청해야 하나요?\n"
+            "· 야근수당은 어떻게 계산되나요?\n"
+            "· 수습기간은 얼마인가요?\n"
+            "· 경조휴가는 며칠 나오나요?\n\n"
+            "`/ask` 없이 그냥 질문하셔도 됩니다.")
+        return
+    await update.message.reply_text("📕 사내 규정에서 찾아볼게요…")
+    await update.message.reply_text(await asyncio.to_thread(_policy.ask, q))
+
+
+async def cmd_todo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/todo — 내 미완 업무·마감. 자유 텍스트 '내 할 일'과 같은 경로."""
+    if is_offboarded(uid=update.effective_user.id):
+        await update.message.reply_text(_OFFBOARDED_MSG)
+        return
+    uid = update.effective_user.id
+    emp = employee_by_tid(uid)
+    name = emp["name"] if emp else (update.effective_user.full_name or str(uid))
+    try:
+        await update.message.reply_text(
+            _fmt_my_work(await asyncio.to_thread(_tools_for(uid, name).my_work)))
+    except ToolError as e:
+        await update.message.reply_text(f"⚠️ {e.user_message}")
 
 
 async def assistant_entry(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -728,7 +778,8 @@ async def assistant_entry(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # 2) 읽기 인텐트 — 바로 답한다
     tools = _tools_for(uid, name)
-    if it.name in (_IR.I_MY_WORK, _IR.I_PROJECT, _IR.I_BRIEF, _IR.I_MEETING_SUM) and not it.needs_confirm:
+    if it.name in (_IR.I_MY_WORK, _IR.I_PROJECT, _IR.I_BRIEF, _IR.I_MEETING_SUM,
+                   _IR.I_POLICY, _IR.I_LEAVE_BALANCE) and not it.needs_confirm:
         if await _run_read_tool(update, tools, it):
             return ConversationHandler.END
 
@@ -2982,6 +3033,8 @@ def main() -> None:
     )
 
     app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("ask", cmd_ask))
+    app.add_handler(CommandHandler("todo", cmd_todo))
     # ⚠️ conv는 여기서 등록하지 않는다 — 자유 텍스트 진입점을 갖게 되면서
     #    mtg_conv·assign_conv보다 뒤로 밀어야 한다. 아래 assign_conv 다음에 등록.
 

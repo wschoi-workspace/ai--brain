@@ -32,6 +32,7 @@ ROLE_PROJECT = "project"        # 프로젝트 조회
 ROLE_MEETING = "meeting"        # 회의록·회의 요약
 ROLE_BRIEF = "brief"            # 브리프
 ROLE_MEMO = "memo"              # 개인 메모(Second Brain)
+ROLE_POLICY = "policy"          # 사내 규정·사규 (원문 인용 기반)
 ROLE_CONVERSATION = "conversation"  # 일반 대화
 
 # ── Intent ────────────────────────────────────────────────
@@ -42,13 +43,16 @@ I_MEETING_DOC = "meeting_doc"
 I_MEETING_SUM = "meeting_summarize"
 I_BRIEF = "brief"
 I_MEMO = "memo"
+I_POLICY = "policy_question"
+I_LEAVE_BALANCE = "leave_balance"
 I_CHAT = "chat"
 I_UNKNOWN = "unknown"
 
 INTENT_ROLE = {
     I_REPORT: ROLE_REPORT, I_MY_WORK: ROLE_TASK, I_PROJECT: ROLE_PROJECT,
     I_MEETING_DOC: ROLE_MEETING, I_MEETING_SUM: ROLE_MEETING, I_BRIEF: ROLE_BRIEF,
-    I_MEMO: ROLE_MEMO, I_CHAT: ROLE_CONVERSATION, I_UNKNOWN: ROLE_CONVERSATION,
+    I_MEMO: ROLE_MEMO, I_POLICY: ROLE_POLICY, I_LEAVE_BALANCE: ROLE_POLICY,
+    I_CHAT: ROLE_CONVERSATION, I_UNKNOWN: ROLE_CONVERSATION,
 }
 
 # 확신 임계값 — 이 아래는 실행하지 않고 확인을 묻는다(거절하지 않는다).
@@ -85,8 +89,11 @@ _COMMANDS = {
 }
 
 # 업무보고 어휘 — 기존 daily-report-bot의 _REPORT_INTENT_RE를 계승(현장 검증된 사전)
+# 2026-08-09: 야근·출장·외근·납품·촬영·답사 추가. "오늘 야근했습니다"가 어휘 0으로
+# unknown에 빠지던 구멍. 규정 인텐트는 **질문 신호를 함께 요구**하므로 겹치지 않는다.
 _REPORT_WORDS = re.compile(
-    r"업무|보고|진행|완료|발송|처리|수정|확인|준비|미팅|회의|매출|발주|정리|견적|세미나|팝업|오픈|마감")
+    r"업무|보고|진행|완료|발송|처리|수정|확인|준비|미팅|회의|매출|발주|정리|견적|세미나|팝업|오픈|마감"
+    r"|야근|출장|외근|납품|촬영|답사|입고|시공|계약|제안")
 # 보고서 형태의 구조 신호 — 소제목 줄. 콜론이 있든(오늘: …) 단독 줄이든(목표\n…) 잡는다.
 # 2026-07-29 김가은 반려 건이 정확히 후자였다: "목표 / 진행 과정 / 결과물 / 사용 도구"가
 # 콜론 없이 각각 한 줄로 서 있었고, 콜론을 요구하는 규칙은 이걸 서식으로 보지 못한다.
@@ -96,6 +103,13 @@ _REPORT_SHAPE = re.compile(
 
 # 조사를 흡수한다 — 2026-08-03 실사용에서 "내가할일 알려줘"가 규칙을 빠져나가 LLM 2차로 넘어갔다.
 # (`(내|나)\s*할일`은 '내'와 '할일' 사이의 '가'를 못 넘는다). 규칙이 잡으면 공짜에 즉시다.
+# 보고 서술 어미 — 질문이 아니라 "한 일을 말하는" 문장의 끝맺음.
+# 어휘가 하나뿐인 짧은 보고("오늘 야근했습니다")를 건지는 보조 신호다.
+_REPORT_ENDING_RE = re.compile(
+    r"(했|였|왔|갔|봤|줬|냈|었)(습니다|어요|음|다)\s*[.!]?\s*$"
+    r"|(완료|종료|마무리|끝)\s*[.!]?\s*$"
+    r"|(합니다|했네요|했음|중입니다|예정입니다)\s*[.!]?\s*$", re.M)
+
 _MY_WORK_RE = re.compile(
     r"(내|나)(가|는|의|한테|에게)?\s*(할\s*일|업무|일감|태스크|일정)"
     r"|오늘\s*(뭐|무엇|할)|남은\s*(일|업무)|뭐\s*하[지면]|미완|밀린\s*(일|업무)")
@@ -103,6 +117,26 @@ _PROJECT_RE = re.compile(r"프로젝트|어떻게\s*(돼|되|가)|진행\s*상�
 _MEETING_RE = re.compile(r"회의록|회의\s*(내용|정리|요약)|미팅\s*(내용|정리)|녹취|전사")
 _BRIEF_RE = re.compile(r"브리프|브리핑|어제\s*(보고|요약)|오늘\s*아침")
 _MEMO_RE = re.compile(r"^\s*(메모|기록|노트|저장|적어)\s*[:：]?\s*")
+
+# ── 사내 규정 (2026-08-09) ────────────────────────────────
+# 규정 어휘만으로는 부족하다. "오늘 야근했습니다"는 보고이지 질문이 아니다.
+# 그래서 **주제어 + 질문 신호**를 모두 요구한다.
+_POLICY_TOPIC_RE = re.compile(
+    r"규정|사규|취업규칙|규칙|방침|수당|야근|초과근무|연장근로|고정OT"
+    r"|연차|휴가|반차|병가|경조|육아|출산|휴직"
+    r"|퇴직금|퇴직급여|급여|임금|월급|상여|정산"
+    r"|수습|채용|근로계약|징계|해고|정년|복무|겸업|재택|유연근무"
+    r"|개인정보|괴롭힘|성희롱|시프트|대타")
+_POLICY_ASK_RE = re.compile(
+    r"\?|？|되나|되나요|인가요|입니까|하나요|가능한|가능해|가능하|얼마|며칠|몇\s*(일|시간|퍼센트|%)"
+    r"|어떻게|어떤|무엇|뭐[야지]|알려줘|알려주|규정상|기준|어디|언제|누가|왜")
+
+# "내 연차 며칠 남았어?"는 규정이 아니라 **내 데이터**다. 규정 문서로는 답이 안 나온다.
+# 이걸 규정으로 보내면 "규정에서 못 찾았습니다"라는 엉뚱한 답이 나간다 → 따로 가른다.
+_LEAVE_BALANCE_RE = re.compile(
+    r"(연차|휴가|월차|반차).{0,10}(남았|남은|잔여|얼마나\s*(있|남)|몇\s*개|몇\s*일\s*(남|있))"
+    r"|(잔여|남은)\s*(연차|휴가)"
+    r"|내\s*연차|연차\s*현황|휴가\s*현황")
 
 # 회의 전사 특유의 신호 — 화자 표기·타임스탬프가 반복되면 요약 대상이다
 _TRANSCRIPT_HINT = re.compile(r"^\s*(\[?\d{1,2}:\d{2}\]?|[가-힣]{2,4}\s*[:：])", re.M)
@@ -156,6 +190,17 @@ def route(text: str, *, has_attachment: bool = False, in_session: bool = False) 
 
     q = raw.endswith("?") or "?" in raw
 
+    # 4.5) 내 연차 잔여 — 규정이 아니라 **내 데이터**다.
+    #      규정 문서로 보내면 "규정에서 못 찾았습니다"라는 엉뚱한 답이 나가므로 먼저 가른다.
+    if _LEAVE_BALANCE_RE.search(raw):
+        return Intent(I_LEAVE_BALANCE, 0.9 if q else 0.8, reason="연차 잔여 조회 어휘")
+
+    # 4.6) 사내 규정 — 주제어 + 질문 신호를 **둘 다** 요구한다.
+    #      "오늘 야근했습니다"는 보고이지 질문이 아니다. 어휘만 보면 그걸 규정으로 잡는다.
+    if _POLICY_TOPIC_RE.search(raw) and _POLICY_ASK_RE.search(raw):
+        return Intent(I_POLICY, 0.88 if q else 0.78, slots={"question": raw},
+                      reason="규정 주제어 + 질문형" + ("" if q else " (물음표 없음)"))
+
     # 5) 조회 인텐트 — 질문형이면 확신을 올린다
     for rx, name in ((_MY_WORK_RE, I_MY_WORK), (_MEETING_RE, I_MEETING_DOC),
                      (_BRIEF_RE, I_BRIEF), (_PROJECT_RE, I_PROJECT)):
@@ -163,6 +208,11 @@ def route(text: str, *, has_attachment: bool = False, in_session: bool = False) 
             return Intent(name, 0.85 if q else 0.7, reason=f"{name} 어휘 매치" + (" + 질문형" if q else ""))
 
     # 6) 짧은 보고형 — 어휘는 있는데 구조가 약하다. 확인을 묻는 구간.
+    #    어휘가 1개뿐이어도 **서술 어미**로 끝나면 보고로 본다("오늘 야근했습니다").
+    #    질문이 아니라 사실 진술이라는 신호다. 확신은 낮게 줘서 확인을 거친다.
+    if words >= 1 and not q and _REPORT_ENDING_RE.search(raw):
+        return Intent(I_REPORT, 0.6, slots={"text": raw},
+                      reason=f"보고 어휘 {words}개 + 서술 어미 — 확인 필요")
     if words >= 2:
         return Intent(I_REPORT, 0.55, slots={"text": raw},
                       reason=f"보고 어휘 {words}개지만 구조 약함 — 확인 필요")
@@ -182,6 +232,8 @@ CLASSIFY_PROMPT = """너는 회사 업무 어시스턴트의 의도 분류기다
 - meeting_summarize: 회의 전사·긴 원문을 정리해달라는 것
 - brief: 일일 브리프를 달라는 것
 - memo: 개인적으로 남겨두려는 생각·아이디어
+- policy_question: 사내 규정·사규를 묻는 것 (연차 신청 절차, 야근수당 계산, 수습기간, 징계 등)
+- leave_balance: **본인의** 연차 잔여 일수를 묻는 것 (규정이 아니라 내 데이터)
 - chat: 위 어디에도 안 맞는 일반 질문·대화
 
 JSON만 출력한다: {"intent": "...", "confidence": 0.0~1.0, "reason": "한 문장"}
@@ -229,4 +281,6 @@ def confirm_question(it: Intent) -> str:
         I_MEETING_SUM: "이 내용을 회의록으로 정리할까요?",
         I_BRIEF: "브리프를 가져올까요?",
         I_MEMO: "메모로 저장할까요?",
+        I_POLICY: "사내 규정에서 찾아볼까요?",
+        I_LEAVE_BALANCE: "연차 잔여 일수를 확인해 드릴까요?",
     }.get(it.name, "무엇을 도와드릴까요? (업무보고 · 내 할 일 · 프로젝트 · 회의록 · 브리프)")
