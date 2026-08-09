@@ -58,6 +58,58 @@ INTENT_ROLE = {
 # 확신 임계값 — 이 아래는 실행하지 않고 확인을 묻는다(거절하지 않는다).
 CONFIRM_BELOW = 0.75
 
+# ── 봇 분할 (2026-08-09) ──────────────────────────────────
+# 인텐트를 어느 봇이 담당하는가. **여기가 단일 출처다.**
+# 각 봇이 자기 목록을 따로 들고 있으면 새 인텐트가 늘 때 한쪽만 고쳐져 조용히 새는 곳이 생긴다.
+#
+# 경계 = "대화 상태를 쓰는가":
+#   아리사   — 분장→보고→완료 환류. 여러 턴을 주고받는 흐름이라 상태가 필요하다
+#   지원봇   — 물으면 답하고 끝. ConversationHandler를 아예 만들지 않는다
+BOT_ARISA = "arisa"      # 분장·보고
+BOT_SUPPORT = "support"  # 조회·질의
+
+INTENT_BOT = {
+    I_REPORT: BOT_ARISA,
+    I_MY_WORK: BOT_ARISA,        # 분장의 소비 측 — "내 할 일 → 그중 하나 보고"가 한 창에서 이어져야
+    I_MEMO: BOT_ARISA,           # 개인 메모는 별도 봇(@wonseok_brain_bot) 소관이나 접수는 여기서
+    I_PROJECT: BOT_SUPPORT,
+    I_MEETING_DOC: BOT_SUPPORT,
+    I_MEETING_SUM: BOT_SUPPORT,
+    I_BRIEF: BOT_SUPPORT,
+    I_POLICY: BOT_SUPPORT,
+    I_LEAVE_BALANCE: BOT_SUPPORT,
+    # I_CHAT·I_UNKNOWN은 담당을 두지 않는다 — 받은 쪽이 그대로 처리한다(핑퐁 방지)
+}
+
+
+def owner_of(intent_name: str) -> str | None:
+    """이 인텐트를 담당하는 봇. 담당이 없으면 None(받은 쪽이 처리)."""
+    return INTENT_BOT.get(intent_name)
+
+
+def handoff_message(intent_name: str, target_bot: str, target_username: str) -> str:
+    """다른 봇 소관일 때 안내문. **막지 않고 링크 한 번으로 건너가게 한다.**
+
+    창구를 나눈 순간 "어떤 봇을 써야 하지?"가 다시 생긴다. 잘못 들어온 사람을
+    돌려세우는 게 아니라 문을 열어주는 것이 이 함수의 목적이다.
+    """
+    what = {
+        I_POLICY: "사내 규정",
+        I_LEAVE_BALANCE: "연차",
+        I_PROJECT: "프로젝트 현황",
+        I_MEETING_DOC: "회의록",
+        I_MEETING_SUM: "회의 정리",
+        I_BRIEF: "브리프",
+        I_REPORT: "업무보고",
+        I_MY_WORK: "내 할 일",
+    }.get(intent_name, "그 요청")
+    label = "아리사" if target_bot == BOT_ARISA else "지원봇"
+    # 받침 유무로 조사를 고른다 — "업무보고은"처럼 어색하면 봇이 대충 만든 티가 난다
+    last = what[-1]
+    josa = "은" if (ord(last) - 0xAC00) % 28 else "는"
+    return (f"{what}{josa} {label}가 담당합니다 👉 https://t.me/{target_username}\n\n"
+            "보내주신 내용을 그대로 복사해 붙여넣으시면 됩니다.")
+
 
 @dataclass
 class Intent:
