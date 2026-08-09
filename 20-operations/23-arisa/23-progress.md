@@ -1303,3 +1303,27 @@ R4(8781)가 유일하게 프로젝트와 연결이 없던 갭을 완전히 이�
 **남은 것**: PR #2 GitHub 머지(운영 무영향, 기록 정합) · WS7 브리프 delta 연동
 (phase·nextMilestone) · WS8 엔진 A 대체(비동기 R4 오케스트레이션, ?engine= 병행)
 · WS9 회차 비교 diff
+
+---
+
+### 레거시 서비스 3종 정리 (2026-08-09)
+"봇을 늘리지 말자"가 Assistant 작업의 출발점이었는데 정작 폐기 기록된 것들이 살아 있었다. 실측 후 정리.
+
+**정리 대상 — 셋 다 실사용 흔적 0**
+| 서비스 | 정체 | 근거 |
+|---|---|---|
+| `com.arisa.telegram-bot` (692) | 회의록봇 `arisa-project-memory/scripts/telegram_bot.py` | 로그 3,263줄이 **전부 getUpdates 폴링**, 실제 메시지 처리 0건 |
+| `com.arisa.zero-server` (694) | ARISA ZERO uvicorn `*:8100` | 워크스페이스 어디서도 8100 미참조. **0.0.0.0 바인딩**이라 노출 상태였음 |
+| `com.arisa.watcher` (695) | meeting_logs 폴더 감시 | 감시 대상 폴더·산출물 디렉터리 **둘 다 부재** |
+
+**방식(가역)**: plist를 `~/legacy-disabled-20260809/`에 백업 → `launchctl bootout` → `.plist.disabled`로 개명. 셋 다 `KeepAlive=True`였어서 kill만으론 되살아난다.
+
+**검증**: PID 692·694·695 종료 · launchd 등록 해제 · 8100 해제 · 생존 서비스 6종(daily-report-bot·second-brain·basket-ops-bot·dashboard·r4meeting·cloudflared) 정상 · arisa-os.com 200 · **관리자 알림 실발송 성공**(토큰 유효 확인만으로 끝내지 않고 실제 sendMessage로 도달 확인).
+
+**🔴 남은 보안 사안 — @brocallmebot 토큰**
+- 같은 토큰이 `.env` 2곳(`TELEGRAM_BOT_TOKEN`·`DAILY_REPORT_MANAGER_BOT_TOKEN`)에 중복
+- `/tmp/arisa-telegram-bot.log`에 **평문 3,268줄**(580K). 레거시 봇엔 `TokenRedactingFilter`가 없었다 — 현행 봇 3종은 0줄로 정상
+- 이 토큰은 git 히스토리에도 노출돼 있다(기존 미해결). **로그 삭제로는 안 끝나고 BotFather 로테이션이 실제 해법**
+- 폴링은 멈췄으므로 지금은 발신 전용 — 노출면은 줄었다
+
+**부수 확인**: 업무보고봇의 `/meeting`이 `Meeting Engine not available`로 비활성. 회의록 기능은 R4(8781)·대시보드 시뮬레이터 경로로 이미 이관돼 있어 레거시 봇 종료의 기능 공백은 없다.
