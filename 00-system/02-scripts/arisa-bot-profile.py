@@ -44,7 +44,7 @@ API = f"https://api.telegram.org/bot{TOKEN}"
 NAME = "아리사"
 
 # 짧은 설명 — 프로필 카드와 검색 결과에 뜬다 (120자 제한)
-SHORT_DESC = "프로젝트 렌트 업무 어시스턴트. 업무보고·내 할 일·프로젝트 현황을 도와드립니다."
+SHORT_DESC = "프로젝트 렌트 업무 어시스턴트. 업무보고·내 할 일·프로젝트 현황·사내 규정을 도와드립니다."
 
 # 긴 설명 — 대화를 처음 열었을 때 빈 화면에 뜬다 (512자 제한)
 # 여기가 사실상 유일한 사용법 안내다. "무엇을 물어도 되는지"를 예시로 보여준다.
@@ -56,7 +56,8 @@ DESCRIPTION = (
     "· 오늘 한 일을 쭉 적어주시면 → 업무보고로 정리해 드려요\n"
     "· \"내 할 일 알려줘\" → 남은 업무와 마감\n"
     "· \"봉은사 어떻게 돼가?\" → 프로젝트 현황\n"
-    "· 회의 녹취를 붙여넣으면 → 회의록으로 정리\n\n"
+    "· 회의 녹취를 붙여넣으면 → 회의록으로 정리\n"
+    "· \"연차는 며칠 전에 신청해?\" → 사내 규정에서 원문 찾아 답변\n\n"
     "명령어를 외우지 않으셔도 됩니다."
 )
 
@@ -65,9 +66,11 @@ DESCRIPTION = (
 #    아예 없는 것보다 나쁘다. 봇의 핸들러는 `~filters.COMMAND`로 필터링되므로,
 #    CommandHandler가 등록되지 않은 커맨드는 조용히 무시된다(오류 메시지조차 없다).
 # ⚠️ /meeting 제외 — 현재 "Meeting Engine not available"로 비활성.
-# TODO: /todo·/ask는 daily-report-bot.py에 CommandHandler를 붙인 뒤 여기 추가.
+# 2026-08-09: /ask·/todo 핸들러 등록 완료(daily-report-bot.py cmd_ask·cmd_todo) → 메뉴 추가.
 COMMANDS = [
     {"command": "report", "description": "업무보고 시작"},
+    {"command": "todo", "description": "내 할 일·마감 보기"},
+    {"command": "ask", "description": "사내 규정 물어보기"},
     {"command": "cancel", "description": "진행 중인 대화 취소"},
 ]
 
