@@ -29,20 +29,17 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8780/arisa2/api/health
 echo ""
 
 echo ""
-echo "=== Phase 2: users.json symlink (대시보드 → arisa2 = SSOT) ==="
-# arisa2 data/users.json(11명, list 스키마)이 SSOT — dashboard-server는 list 스키마도 읽음.
+echo "=== Phase 2: users.json — 실파일이 SSOT (vNext W0-1, 2026-08-03) ==="
+# 과거: arisa2/data/users.json으로 심링크를 만들었다. arisa2 폐기 결정(vNext)에 따라
+# 2026-08-03 심링크를 실파일로 역전했다 — 이 블록이 심링크를 되살리면 폐기가 막히고,
+# 실파일을 .bak으로 밀어내는 순간 전 직원 로그인이 죽는다. 심링크 발견 시 경고만 한다.
 DASHBOARD_USERS="$WS/00-system/01-templates/_data/users.json"
-ARISA2_USERS="$ARISA2/data/users.json"
-if [ -f "$ARISA2_USERS" ] && [ ! -L "$ARISA2_USERS" ]; then
-  if [ -L "$DASHBOARD_USERS" ]; then
-    echo "  symlink already exists: $(readlink "$DASHBOARD_USERS")"
-  else
-    [ -f "$DASHBOARD_USERS" ] && mv "$DASHBOARD_USERS" "$DASHBOARD_USERS.bak-$(date +%Y%m%d-%H%M%S)"
-    ln -s "$ARISA2_USERS" "$DASHBOARD_USERS"
-    echo "  created symlink: $DASHBOARD_USERS -> $ARISA2_USERS"
-  fi
+if [ -L "$DASHBOARD_USERS" ]; then
+  echo "  ⚠️ users.json이 아직 심링크다 — vNext W0-1 역전 절차(cp -L → mv)를 먼저 실행할 것"
+elif [ -f "$DASHBOARD_USERS" ]; then
+  echo "  OK: 실파일 ($(wc -c < "$DASHBOARD_USERS" | tr -d ' ')B)"
 else
-  echo "  SKIP: arisa2 users.json(실파일) 없음 — 단일화 건너뜀"
+  echo "  ⚠️ users.json 없음 — 백업(~/plist-backups/users.json.bak-*)에서 복원할 것"
 fi
 
 echo ""

@@ -71,6 +71,7 @@ from shared.logging import TokenRedactingFilter  # noqa: E402
 from shared import gws as _gws  # noqa: E402
 from shared import report_queue as _rq  # noqa: E402
 from shared.employee import load_employees as _load_emp  # noqa: E402
+from shared.employee import resolve_name as _EMP_RESOLVE  # noqa: E402  (존칭·성 생략 흡수)
 from shared.decision import save_decision_log as _save_decision_log  # noqa: E402
 from shared import report_score as _report_score  # noqa: E402  (채점 SSOT — 2026-07-20)
 from shared.naming import clean_project_name as _nm_clean  # noqa: E402  (P2 네이밍 규칙)
@@ -78,7 +79,10 @@ from shared import provenance as _PV  # noqa: E402  (갭B 업무 출처 — 배�
 from shared import status as _ST  # noqa: E402  (상태 어휘 SSOT)
 from shared import intent_router as _IR  # noqa: E402  (ARISA Assistant 인텐트 라우터, 2026-08-03)
 from shared.assistant_tools import AssistantTools, ToolError  # noqa: E402  (툴 카탈로그 v1 실행부)
+from shared import policy_docs as _policy  # noqa: E402  (사내 규정 QA — 원문 인용 기반)
 from shared import assign_sheet as _AS  # noqa: E402  (주간분장 파싱 SSOT)
+from shared import completion as _CP  # noqa: E402  (완료 5요소 게이트 — vNext P1)
+from shared import approval as _APV  # noqa: E402  (보고 대상 자동 산출 — vNext P1)
 from shared import closing as _closing  # noqa: E402  (매장 마감보고 SSOT — basket-ops-bot과 공유)
 try:
     from shared.status_log import log_status_change as _log_st  # noqa: E402
@@ -262,6 +266,13 @@ def register_telegram_id(uid, name: str) -> None:
     ASSIGN_CONTENT,
     ASSIGN_CONFIRM,
 ) = range(200, 203)
+
+# 분장 환류 구조화 수집 상태 (vNext P1) — 기존 range(8)/(100,103)/(200,203)과 비충돌
+(
+    SYNC_PROGRESS,   # ▶진행중 클릭 → "몇 %/어디까지/남은 건/언제까지" 단일 턴
+    SYNC_DONE,       # ✓완료 클릭 → 산출물이 어디에도 없을 때만 1문항
+) = range(300, 302)
+SYNC_CTX_TTL = 24 * 3600   # persistent conv가 pickle로 부활한 과거 세션의 유령 쓰기 방지
 
 # 회의 프로젝트 경로
 _MEETING_PROJECTS_DIR = Path(__file__).resolve().parents[2] / "20-operations" / "23-arisa" / "meeting-projects"
@@ -670,12 +681,61 @@ async def _run_read_tool(update, tools: AssistantTools, it) -> bool:
             await update.message.reply_text("📝 회의 내용으로 보입니다. 정리 중이에요… (30~60초)")
             r = await asyncio.to_thread(tools.meeting_summarize, it.slots.get("text", ""))
             await update.message.reply_text(_fmt_meeting_summary(r.get("result") or {}))
+        elif it.name == _IR.I_POLICY:
+            # 사내 규정 — 대시보드 API를 타지 않는다. 규정은 전 직원 공개라 사람별
+            # 권한 필터가 없고, 원본이 Drive .docx다. 대신 **원문 인용 검증**이 걸려 있다.
+            await update.message.reply_text("📕 사내 규정에서 찾아볼게요…")
+            q = it.slots.get("question") or (update.message.text or "")
+            await update.message.reply_text(await asyncio.to_thread(_policy.ask, q))
+        elif it.name == _IR.I_LEAVE_BALANCE:
+            # 내 연차 잔여는 HR 포털 데이터다. 봇용 조회 경로가 아직 없다(Step 3).
+            # 규정 문서로 답하면 "규정에서 못 찾음"이라는 엉뚱한 답이 나가므로 솔직히 안내한다.
+            await update.message.reply_text(_policy.LEAVE_BALANCE_NOTICE)
         else:
             return False
         return True
     except ToolError as e:
         await update.message.reply_text(f"⚠️ {e.user_message}")
         return True
+
+
+async def cmd_ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/ask [질문] — 사내 규정 질의. 인자 없이 누르면 사용법을 보여준다.
+
+    자유 텍스트로도 같은 답이 나오지만(라우터가 잡는다), 커맨드 메뉴에 있어야
+    직원이 "물어봐도 되는구나"를 안다. 발견성이 기능만큼 중요하다.
+    """
+    if is_offboarded(uid=update.effective_user.id):
+        await update.message.reply_text(_OFFBOARDED_MSG)
+        return
+    q = " ".join(context.args or []).strip()
+    if not q:
+        await update.message.reply_text(
+            "📕 사내 규정에 대해 물어보세요.\n\n"
+            "예)\n"
+            "· 연차는 며칠 전에 신청해야 하나요?\n"
+            "· 야근수당은 어떻게 계산되나요?\n"
+            "· 수습기간은 얼마인가요?\n"
+            "· 경조휴가는 며칠 나오나요?\n\n"
+            "`/ask` 없이 그냥 질문하셔도 됩니다.")
+        return
+    await update.message.reply_text("📕 사내 규정에서 찾아볼게요…")
+    await update.message.reply_text(await asyncio.to_thread(_policy.ask, q))
+
+
+async def cmd_todo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/todo — 내 미완 업무·마감. 자유 텍스트 '내 할 일'과 같은 경로."""
+    if is_offboarded(uid=update.effective_user.id):
+        await update.message.reply_text(_OFFBOARDED_MSG)
+        return
+    uid = update.effective_user.id
+    emp = employee_by_tid(uid)
+    name = emp["name"] if emp else (update.effective_user.full_name or str(uid))
+    try:
+        await update.message.reply_text(
+            _fmt_my_work(await asyncio.to_thread(_tools_for(uid, name).my_work)))
+    except ToolError as e:
+        await update.message.reply_text(f"⚠️ {e.user_message}")
 
 
 async def assistant_entry(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -719,7 +779,8 @@ async def assistant_entry(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # 2) 읽기 인텐트 — 바로 답한다
     tools = _tools_for(uid, name)
-    if it.name in (_IR.I_MY_WORK, _IR.I_PROJECT, _IR.I_BRIEF, _IR.I_MEETING_SUM) and not it.needs_confirm:
+    if it.name in (_IR.I_MY_WORK, _IR.I_PROJECT, _IR.I_BRIEF, _IR.I_MEETING_SUM,
+                   _IR.I_POLICY, _IR.I_LEAVE_BALANCE) and not it.needs_confirm:
         if await _run_read_tool(update, tools, it):
             return ConversationHandler.END
 
@@ -1018,9 +1079,28 @@ _SCORE_LABELS = {"context": "맥락", "objective": "목표 명확성", "evidence
                  "priority": "우선순위", "risk": "리스크", "decision": "결정 요청", "support": "지원 요청"}
 
 
-def _rule_based_gaps(report: dict) -> list[str]:
-    """규칙 기반 부실 슬롯 탐지 (LLM이 놓치는 확실한 더미/동어반복/모호표현 안전망)."""
+def _rule_based_gaps(report: dict, assigns=()) -> list[str]:
+    """규칙 기반 부실 슬롯 탐지 (LLM이 놓치는 확실한 더미/동어반복/모호표현 안전망).
+
+    assigns(열린 분장)를 넘기면 '마감 지남 + 오늘 보고 무언급' 질문 1개가 추가된다
+    (vNext P1 — 대표 요구 6축 중 유일하게 비어 있던 '지연' 확인).
+    """
     gaps = []
+
+    # 지연 무언급 — 마감이 지난 열린 분장인데 오늘 보고 어디에도 안 보이면 딱 1문항.
+    # 질문 폭탄 금지 원칙에 따라 가장 오래 지연된 1건만 묻는다.
+    overdue = sorted((a for a in (assigns or [])
+                      if _ST.is_overdue(a.get("deadline"), a.get("status"))),
+                     key=lambda a: -(a.get("days_overdue") or 0))
+    if overdue:
+        body = _norm(json.dumps(report, ensure_ascii=False, default=str))
+        for a in overdue:
+            t = (a.get("task") or "").strip()
+            key = _norm(t)[:14]   # 표현이 조금 달라도 앞부분이 겹치면 언급으로 본다
+            if t and key and key not in body:
+                gaps.append(f"마감({a.get('deadline')})이 지난 '{t[:40]}'는 오늘 어떻게 됐나요? "
+                            "(진행/막힘/일정 변경 중 하나로)")
+                break
     for ct in report.get("core_tasks", []):
         task = ct.get("task", "")
         proc, out = ct.get("process", ""), ct.get("output", "")
@@ -1133,12 +1213,12 @@ def _rule_based_score(report: dict) -> dict:
             "weights_version": _report_score.WEIGHTS_VERSION}
 
 
-def completion_evaluate(report: dict) -> tuple[dict | None, list[str]]:
+def completion_evaluate(report: dict, assigns=()) -> tuple[dict | None, list[str]]:
     """Engine B 확장(Reporting OS v1.1): 루브릭 채점 + 부족 항목 질문 큐(최대 3개).
 
     규칙 기반 안전망(_rule_based_gaps)은 유지 — LLM 실패에도 최소한의 질문은 나간다.
     """
-    rule_qs = _rule_based_gaps(report)
+    rule_qs = _rule_based_gaps(report, assigns=assigns)
 
     score = rubric_evaluate(report)
     llm_qs = []
@@ -1446,6 +1526,17 @@ def _match_report_to_assigns(report: dict, assigns: list) -> list:
     rep = _reported_tasks(report)
     if not (rep and assigns):
         return []
+    # 1차 결정적 필터 (vNext P1) — 보고 core_tasks의 pid와 분장 K열 pid가 둘 다 있는데
+    # 겹치지 않으면 후보에서 뺀다. 종전엔 열린 분장 전체를 프롬프트에 던져 [:3000]에서
+    # 조용히 잘렸다(분장이 늘수록 뒤쪽이 매칭 불가). 한쪽이라도 pid가 비면 남긴다 —
+    # 후보를 놓치는 것이 잘못 매칭하는 것보다 낫다는 프롬프트 원칙의 반대 방향 적용:
+    # 필터는 확실한 배제만 한다.
+    rep_pids = {(t.get("pid") or "").strip() for t in (report.get("core_tasks") or [])} - {""}
+    if rep_pids:
+        narrowed = [a for a in assigns
+                    if not (a.get("pid") or "").strip() or (a.get("pid") or "").strip() in rep_pids]
+        if narrowed:
+            assigns = narrowed
     rep_txt = "\n".join(f"{i}. {t} [{s or '상태 미기재'}]" + (f" | 산출물: {o}" if o else "")
                         for i, (t, s, o) in enumerate(rep, 1))[:3000]
     asg_txt = "\n".join(
@@ -1514,24 +1605,200 @@ async def _ask_status_sync(update: Update, report: dict, context=None) -> None:
         await update.message.reply_text(body, reply_markup=kb)
 
 
-async def on_status_sync_click(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """확인 카드 버튼 처리 — 본인 분장인지 시트에서 재확인한 뒤에만 갱신한다."""
+def _completion_report_to(name: str) -> str:
+    """완료 보고 대상 자동값 — approval.next_step이 이미 정확히 이걸 계산한다.
+
+    프로젝트 dict 없이 호출하면(PM 미상) 파트리더→대표 순으로 폴백된다.
+    사람에게 '누구에게 보고했나'를 묻지 않기 위한 함수다.
+    """
+    try:
+        role, who = _APV.next_step("완료", name, {}, _load_emp())
+        return who or role or ""
+    except Exception:
+        return ""
+
+
+_SYNC_PCT_RE = re.compile(r"(\d{1,3})\s*%")
+_SYNC_DATE_RE = re.compile(r"(\d{4})[-./](\d{1,2})[-./](\d{1,2})|(\d{1,2})\s*[/.]\s*(\d{1,2})(?:일|까지)?")
+
+
+def _parse_sync_progress(text: str, today=None):
+    """follow-up 한 줄 답변 → (진행률 or None, ETA ISO or "").
+
+    ETA 연도 보정: '8/8'처럼 연도가 없으면 올해로, 이미 지난 날짜면 내년으로 —
+    완료 예상일은 미래를 가리키는 값이다.
+    """
+    pct = None
+    m = _SYNC_PCT_RE.search(text or "")
+    if m:
+        pct = max(0, min(100, int(m.group(1))))
+    eta = ""
+    d = _SYNC_DATE_RE.search(text or "")
+    if d:
+        try:
+            base = today or datetime.now().date()
+            if d.group(1):
+                cand = datetime(int(d.group(1)), int(d.group(2)), int(d.group(3))).date()
+            else:
+                cand = datetime(base.year, int(d.group(4)), int(d.group(5))).date()
+                if cand < base:
+                    cand = datetime(base.year + 1, int(d.group(4)), int(d.group(5))).date()
+            eta = cand.isoformat()
+        except ValueError:
+            eta = ""
+    return (pct, eta)
+
+
+def _sync_ctx_alive(context) -> dict:
+    """sync_ctx가 있고 24h 이내인가. persistent conv가 pickle로 부활한 과거 세션이
+    남이 이미 처리한 행에 쓰는 사고를 막는 1차 방어(2차는 verify_row)."""
+    ctx = (context.user_data or {}).get("sync_ctx") or {}
+    if not ctx:
+        return {}
+    try:
+        if datetime.now().timestamp() - float(ctx.get("ts") or 0) > SYNC_CTX_TTL:
+            context.user_data.pop("sync_ctx", None)
+            return {}
+    except (TypeError, ValueError):
+        return {}
+    return ctx
+
+
+_SYNC_PASS = ("패스", "pass", "스킵", "skip", "몰라", "없음", "없어요")
+
+
+async def receive_sync_progress(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """▶진행중 클릭 후 한 줄 답변 → P:R(진행률·ETA·시각) 기록. 단일 턴 — 무조건 END."""
+    END = ConversationHandler.END
+    ctx = _sync_ctx_alive(context)
+    text = (update.message.text or "").strip()
+    if not ctx or ctx.get("kind") != "p":
+        return END   # 유령 세션 — 조용히 종료(문의 폴백은 다음 메시지부터 정상 동작)
+    context.user_data.pop("sync_ctx", None)
+    if text.lower() in _SYNC_PASS or len(text) <= 2:
+        await update.message.reply_text("알겠어요. 나중에 아리사 OS '내 업무'에서 적어도 돼요.")
+        return END
+    pct, eta = _parse_sync_progress(text)
+    # verify_row #2 — 버튼 클릭과 답변 사이에 시간이 흘렀다(행 밀림·재시작 대비)
+    cur = await asyncio.to_thread(
+        lambda: _AS.verify_row(_gws, SHEET_ID, ctx["row"], ctx["name"], _ST,
+                               expect_sig=ctx.get("sig")))
+    if not cur:
+        await update.message.reply_text(
+            "⚠️ 그 사이 업무 목록이 바뀌어 기록하지 못했어요. 아리사 OS에서 직접 입력해주세요.")
+        return END
+    wrote = False
+    if pct is not None or eta:
+        wrote = await asyncio.to_thread(
+            lambda: _AS.set_progress(_gws, SHEET_ID, ctx["row"], pct, eta=eta, status_mod=_ST))
+    _log_st("report-followup", ctx["name"], cur.get("status") or "진행중",
+            from_status=cur.get("status") or "", row=ctx["row"],
+            date=cur.get("date") or "", project=cur.get("project") or "",
+            pid=cur.get("pid") or "", task=cur.get("task") or "", assignee=ctx["name"],
+            note=text[:200], progress=pct)
+    parts = []
+    if pct is not None:
+        parts.append(f"{pct}%")
+    if eta:
+        parts.append(f"완료 예상 {eta}")
+    if wrote and parts:
+        await update.message.reply_text(f"✍️ 기록했어요 — {' · '.join(parts)}")
+    elif parts:
+        await update.message.reply_text("⚠️ 시트 기록에 실패했지만 내용은 이력에 남겼어요.")
+    else:
+        await update.message.reply_text(
+            "내용은 이력에 남겼어요. 다음엔 %와 날짜를 함께 적어주시면 진행률로 잡혀요. "
+            "예) 60%, 8/8까지")
+    return END
+
+
+async def receive_sync_done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """✓완료 클릭 후 산출물 답변 → U열 기록. d_strict면 이때 비로소 완료 처리까지."""
+    END = ConversationHandler.END
+    ctx = _sync_ctx_alive(context)
+    text = (update.message.text or "").strip()
+    if not ctx or ctx.get("kind") not in ("d_opt", "d_strict"):
+        return END
+    context.user_data.pop("sync_ctx", None)
+    if text.lower() in _SYNC_PASS or len(text) <= 1:
+        if ctx["kind"] == "d_strict":
+            await update.message.reply_text(
+                "산출물 없이는 완료로 남길 수 없어요(운영 기준). 준비되면 다시 ✓완료를 눌러주세요.")
+        else:
+            await update.message.reply_text("알겠어요. 나중에 아리사 OS에서 추가해도 돼요.")
+        return END
+    cur = await asyncio.to_thread(
+        lambda: _AS.verify_row(_gws, SHEET_ID, ctx["row"], ctx["name"], _ST,
+                               expect_sig=ctx.get("sig")))
+    if not cur:
+        await update.message.reply_text(
+            "⚠️ 그 사이 업무 목록이 바뀌어 기록하지 못했어요. 아리사 OS에서 직접 입력해주세요.")
+        return END
+    c_final = dict(ctx.get("cfinal") or {})
+    c_final["deliverable"] = text[:300]
+    okc = await asyncio.to_thread(
+        lambda: _AS.set_completion(_gws, SHEET_ID, ctx["row"], **c_final))
+    if not okc:
+        await update.message.reply_text("⚠️ 기록에 실패했어요. 잠시 후 다시 시도해주세요.")
+        return END
+    if ctx["kind"] == "d_strict":
+        # 근거가 채워졌으니 이제 완료 전이 — S:W가 먼저라는 순서는 여기서도 지켜졌다
+        ok, g_why = await asyncio.to_thread(
+            lambda: _AS.set_status_guarded(_gws, SHEET_ID, ctx["row"], "완료",
+                                           from_status=cur.get("status") or "",
+                                           source="report-followup", status_mod=_ST))
+        if not ok:
+            await update.message.reply_text(
+                "📦 산출물은 기록했지만 상태 변경에 실패했어요. "
+                f"{'(' + g_why + ')' if g_why else ''} 아리사 OS에서 완료 처리해주세요.")
+            return END
+        _log_st("report-followup", ctx["name"], "완료", from_status=cur.get("status") or "",
+                row=ctx["row"], date=cur.get("date") or "", project=cur.get("project") or "",
+                pid=cur.get("pid") or "", task=cur.get("task") or "", assignee=ctx["name"],
+                note=("산출물 수집 후 완료 " + _ST.transition_note(g_why)).strip())
+        await update.message.reply_text("✅ 산출물과 함께 완료로 기록했어요. (팀장 승인 대기로 넘어가요)")
+        return END
+    _log_st("report-followup", ctx["name"], cur.get("status") or "완료",
+            from_status=cur.get("status") or "", row=ctx["row"],
+            date=cur.get("date") or "", project=cur.get("project") or "",
+            pid=cur.get("pid") or "", task=cur.get("task") or "", assignee=ctx["name"],
+            note=("산출물 추가: " + text)[:200])
+    await update.message.reply_text(f"📦 산출물을 기록했어요: {text[:60]}")
+    return END
+
+
+async def cancel_sync(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    context.user_data.pop("sync_ctx", None)
+    await update.message.reply_text("네, 이 확인은 넘어갈게요.")
+    return ConversationHandler.END
+
+
+async def on_status_sync_click(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """확인 카드 버튼 처리 — 본인 분장인지 시트에서 재확인한 뒤에만 갱신한다.
+
+    vNext P1: sync_conv의 진입점이 됐다. 반환값이 곧 대화 상태다 —
+      ▶진행중 → H 갱신 후 "몇 %/어디까지/남은 건/언제까지" 단일 턴 질문 (SYNC_PROGRESS)
+      ✓완료   → 완료 5요소 자동충전(S:W를 H보다 먼저 씀). 산출물이 어디에도 없으면
+                grace=선택 1문항 / strict=필수 1문항 (SYNC_DONE)
+    """
+    END = ConversationHandler.END
     q = update.callback_query
     await q.answer()
     try:
         _, row_s, code, sig = (q.data or "").split(":")
         row = int(row_s)
     except (ValueError, AttributeError):
-        return
+        return END
     # 텔레그램 ID가 명부에 없을 수 있으므로(미학습 계정) 방금 보고한 이름을 폴백으로 쓴다
     emp = employee_by_tid(q.from_user.id)
     name = (emp or {}).get("name") or (context.user_data or {}).get("name") or ""
     if not name or is_offboarded(uid=q.from_user.id, name=name):
         await q.edit_message_text("⚠️ 계정을 확인할 수 없어 상태를 바꾸지 못했어요.")
-        return
+        return END
+    context.user_data.pop("sync_ctx", None)   # 카드를 갈아탄 경우 이전 질문 폐기
     if code == "x":
         await q.edit_message_text(f"{q.message.text}\n\n— 연결하지 않았습니다.")
-        return
+        return END
     new_st = "진행중" if code == "p" else "완료"
     # 행이 밀렸거나 남의 업무면 갱신하지 않는다 (시트 재확인 — 오처리 방지의 핵심)
     cur = await asyncio.to_thread(
@@ -1540,10 +1807,39 @@ async def on_status_sync_click(update: Update, context: ContextTypes.DEFAULT_TYP
         await q.edit_message_text(
             f"{q.message.text}\n\n⚠️ 그 사이 업무 목록이 바뀌어 갱신하지 못했어요. "
             "아리사 OS '내 업무'에서 직접 바꿔주세요.")
-        return
+        return END
     if cur["status"] == new_st:
         await q.edit_message_text(f"{q.message.text}\n\n✅ 이미 {new_st} 상태예요.")
-        return
+        return END
+
+    out_txt = ((context.user_data or {}).get("sync_out") or {}).get(str(row), "")
+    c_final, c_miss = {}, []
+    if new_st == "완료":
+        # 완료 5요소 — 4개는 시스템이 아는 사실로 자동충전, 사람에겐 산출물만(없을 때만) 묻는다
+        fill = _CP.autofill(cur, actor=name, report_output=out_txt,
+                            report_to=_completion_report_to(name))
+        ok_c, c_miss = _CP.check(dict(cur, **fill))
+        c_final = {k: (fill.get(k) or cur.get(k) or "")
+                   for k in ("done_at", "done_by", "deliverable", "report_to", "reported_at")}
+        if not ok_c:
+            # strict — 산출물 없이는 완료 처리 자체를 보류하고 먼저 묻는다
+            context.user_data["sync_ctx"] = {
+                "kind": "d_strict", "row": row, "sig": sig, "name": name,
+                "task": cur.get("task") or "", "cfinal": c_final,
+                "ts": datetime.now().timestamp()}
+            await q.edit_message_text(
+                f"{q.message.text}\n\n📦 완료로 남기려면 산출물이 필요해요.\n"
+                "최종 산출물(파일 링크나 결과 한 줄)을 답장으로 알려주세요. (취소는 /cancel)")
+            return SYNC_DONE
+        # S:W를 H보다 먼저 — 실패 시 상태를 바꾸지 않아야 '완료인데 근거 공란' 유령 행이 안 남는다
+        okc = await asyncio.to_thread(
+            lambda: _AS.set_completion(_gws, SHEET_ID, row, **c_final))
+        if not okc:
+            await q.edit_message_text(
+                f"{q.message.text}\n\n⚠️ 완료 정보 기록에 실패해 상태를 바꾸지 않았어요. "
+                "잠시 후 다시 시도해주세요.")
+            return END
+
     # WS2 — 전이 게이트. report-sync는 verify_row로 본인·업무를 재확인한 뒤이므로 사람 취급이지만,
     # 승인대기·검토중처럼 이미 검토 단계로 넘어간 행을 다시 완료로 되돌리는 것은 막는다.
     ok, g_why = await asyncio.to_thread(
@@ -1560,25 +1856,44 @@ async def on_status_sync_click(update: Update, context: ContextTypes.DEFAULT_TYP
         logger.info(f"status-sync blocked: {name} row={row} {g_why}")
         await q.edit_message_text(
             f"{q.message.text}\n\n🧾 지금은 '{cur['status']}' 상태라 그대로 두었어요.{hint}")
-        return
+        return END
     if not ok:
         await q.edit_message_text(f"{q.message.text}\n\n⚠️ 시트 갱신에 실패했어요. 잠시 후 다시 시도해주세요.")
-        return
+        return END
     # 결과물 칸 되살리기 — 완료일 때만, 보고에 적힌 산출물이 있고 칸이 비어 있을 때만 (2026-07-26)
-    out_txt = ""
-    if new_st == "완료" and not (cur.get("result") or "").strip():
-        out_txt = ((context.user_data or {}).get("sync_out") or {}).get(str(row), "")
-        if out_txt:
-            await asyncio.to_thread(_AS.set_result, _gws, SHEET_ID, row, out_txt)
+    if new_st == "완료" and out_txt and not (cur.get("result") or "").strip():
+        await asyncio.to_thread(_AS.set_result, _gws, SHEET_ID, row, out_txt)
     _log_st("report-sync", name, new_st, from_status=cur["status"], row=row,
             date=cur.get("date") or "", project=cur.get("project") or "",
             pid=cur.get("pid") or "", task=cur.get("task") or "", assignee=name,
-            note=" ".join(x for x in (_ST.transition_note(g_why), "일일보고 직후 본인 확인") if x))
+            note=" ".join(x for x in (_ST.transition_note(g_why),
+                                      _CP.completion_note(c_miss),
+                                      "일일보고 직후 본인 확인") if x))
     logger.info(f"status-sync applied: {name} row={row} {cur['status']}→{new_st}")
     tail = " (팀장 승인 대기로 넘어가요)" if new_st == "완료" else ""
-    if out_txt:
+    if new_st == "완료" and out_txt:
         tail += f"\n📦 결과물도 함께 기록했어요: {out_txt[:60]}"
     await q.edit_message_text(f"{q.message.text}\n\n✅ {new_st}(으)로 변경했어요.{tail}")
+
+    ctx_base = {"row": row, "sig": sig, "name": name, "task": cur.get("task") or "",
+                "cfinal": c_final, "ts": datetime.now().timestamp()}
+    if new_st == "진행중":
+        # 대표 요구 4문항을 한 메시지로 — 이 봇의 원칙이 '질문 폭탄 금지'다(4턴 금지)
+        context.user_data["sync_ctx"] = dict(ctx_base, kind="p")
+        await q.message.reply_text(
+            f"▸ {cur.get('task') or ''}\n"
+            "한 줄로 알려주세요: 지금 몇 % / 어디까지 됐는지 / 남은 건 / 언제까지\n"
+            "예) 60% 3층 평면 확정, 설비 협의 남음, 8/8까지\n"
+            "(모르면 '패스')")
+        return SYNC_PROGRESS
+    if new_st == "완료" and c_miss:
+        # grace — 완료 처리는 이미 끝났고, 산출물만 선택적으로 한 번 묻는다
+        context.user_data["sync_ctx"] = dict(ctx_base, kind="d_opt")
+        await q.message.reply_text(
+            "📦 산출물 링크(드라이브 URL)나 결과 한 줄을 남겨두면 나중에 찾기 쉬워요. "
+            "(없으면 '패스')")
+        return SYNC_DONE
+    return END
 
 
 async def finalize_and_send(
@@ -2004,7 +2319,13 @@ async def receive_question(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     # Engine B 확장(Reporting OS v1.1): 루브릭으로 비춰보고, 부족 항목을 질문으로 마저 채운다
     await update.message.reply_text("오늘 보고를 정리하고 있어요... ⏳")
-    _, questions = await asyncio.to_thread(completion_evaluate, report)
+
+    def _eval_with_assigns():
+        # 열린 분장을 함께 넘겨 '지연 무언급' 규칙이 동작하게 한다 (실패 시 [] — 흐름 불변)
+        return completion_evaluate(
+            report, assigns=_open_assigns_for((report.get("name") or "").strip()))
+
+    _, questions = await asyncio.to_thread(_eval_with_assigns)
 
     if not questions:
         # 충분 → 바로 마무리 (피로 최소화)
@@ -2431,6 +2752,48 @@ def save_assignment_to_sheet(team: str, task: str, assignee: str,
     )
 
 
+def _fix_assignee_team(parsed: dict) -> tuple[bool, str]:
+    """파싱 결과의 담당자·팀을 명부 기준으로 교정. 반환 (진행 가능, 안내문).
+
+    2026-08-09 실측으로 드러난 두 구멍을 여기서 막는다.
+
+    ① **담당자가 빈 채로 등록됐다.** 구 코드는 정확 매칭뿐이라 "@지혜님"→"지혜"를
+       못 찾고 그대로 저장했다. 담당자가 비면 그 업무는 아무도 안 보는 행이 된다.
+       → `resolve_name`으로 존칭·성 생략을 흡수하고, **애매하면 저장하지 않고 되묻는다.**
+          엉뚱한 사람에게 업무가 붙는 것이 못 찾는 것보다 나쁘다.
+
+    ② **팀이 오염됐다.** LLM이 "봉은사 BM 리서치…"에서 team="BM"을 만들어냈는데,
+       구 코드는 team이 비었을 때만 명부를 봐서 그대로 저장됐다. 시트에 없는 팀이
+       들어가면 팀별 집계에서 통째로 샌다.
+       → 담당자가 확정되면 **명부의 팀이 이긴다.** 목록 밖 팀은 저장을 막는다.
+    """
+    note = ""
+    assignee = (parsed.get("assignee") or "").strip()
+    if assignee:
+        hit, cands = _EMP_RESOLVE(assignee, load_employees().get("by_name", {}).keys())
+        if hit:
+            if hit != assignee:
+                note += f"\n※ 담당자 '{assignee}' → '{hit}' 로 해석했습니다."
+            parsed["assignee"] = hit
+            emp_team = (match_employee(hit) or {}).get("team") or ""
+            if emp_team and emp_team != parsed.get("team"):
+                if parsed.get("team"):
+                    note += f"\n※ 팀 '{parsed['team']}' → 명부 기준 '{emp_team}' 로 정정했습니다."
+                parsed["team"] = emp_team
+        elif cands:
+            return False, (f"'{assignee}' 로 누구를 말씀하시는지 모르겠습니다.\n"
+                           f"후보: {', '.join(cands)}\n\n정확한 이름으로 다시 보내주세요.")
+        else:
+            return False, (f"'{assignee}' 를 명부에서 찾지 못했습니다.\n"
+                           "이름을 확인해 다시 보내주시거나, 담당자 없이 팀에 배정하려면 이름을 빼주세요.")
+
+    team = parsed.get("team") or ""
+    if team and team not in _ASSIGN_TEAMS:
+        return False, (f"'{team}' 은 등록된 팀이 아닙니다.\n"
+                       f"가능한 팀: {' · '.join(_ASSIGN_TEAMS)}\n\n팀을 명시해서 다시 보내주세요.")
+    return True, note
+
+
 async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """업무분장 간편 추가 — 대표 전용."""
     uid = update.effective_user.id
@@ -2455,28 +2818,26 @@ async def cmd_assign(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             # P2 — 프로젝트명 네이밍 규칙 자동 정리 (괄호·특수문자 → 공백)
             pj_raw = parsed.get("project") or ""
             parsed["project"] = _nm_clean(pj_raw)
+            # 담당자·팀 교정 — 대화형 모드와 **같은 함수**를 쓴다.
+            # 로직이 두 벌이면 한쪽만 고쳐져 조용히 새는 곳이 생긴다.
+            ok, _warn = _fix_assignee_team(parsed)
+            if not ok:
+                await update.message.reply_text(_warn)
+                return ConversationHandler.END
             team = parsed.get("team", "")
             assignee = parsed.get("assignee", "")
             deadline = parsed.get("deadline", "")
             priority = parsed.get("priority", "일반")
-            # 담당자 명부 매칭
-            if assignee:
-                emp = match_employee(assignee)
-                if emp:
-                    assignee = emp["name"]
-                    if not team:
-                        team = emp.get("team", "")
-            context.user_data["assign"]["parsed"]["team"] = team
-            context.user_data["assign"]["parsed"]["assignee"] = assignee
             _pj_note = " (규칙 자동정리)" if parsed.get("project") != pj_raw and pj_raw else ""
             await update.message.reply_text(
                 f"✅ 파싱 결과:\n"
                 f"  프로젝트: {(parsed.get('project') or '—') + _pj_note}\n"
-                f"  팀: {team}\n"
+                f"  팀: {team or '—'}\n"
                 f"  업무: {parsed['task']}\n"
                 f"  담당: {assignee or '팀'}\n"
                 f"  마감: {deadline or '미정'}\n"
-                f"  우선순위: {priority}\n\n"
+                f"  우선순위: {priority}"
+                + _warn + "\n\n"
                 f"맞으면 '확인', 수정하려면 내용을 다시 입력하세요."
             )
             return ASSIGN_CONFIRM
@@ -2531,12 +2892,10 @@ async def assign_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         parsed = {"team": team, "task": text, "assignee": "", "deadline": "", "priority": "일반"}
 
     parsed["team"] = parsed.get("team") or team
-    # 담당자 명부 매칭
-    assignee = parsed.get("assignee", "")
-    if assignee:
-        emp = match_employee(assignee)
-        if emp:
-            parsed["assignee"] = emp["name"]
+    ok, note = _fix_assignee_team(parsed)
+    if not ok:
+        await update.message.reply_text(note)
+        return ConversationHandler.END
 
     context.user_data["assign"]["parsed"] = parsed
     await update.message.reply_text(
@@ -2567,11 +2926,10 @@ async def assign_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
         if parsed and parsed.get("task"):
             parsed["team"] = parsed.get("team") or team
-            assignee = parsed.get("assignee", "")
-            if assignee:
-                emp = match_employee(assignee)
-                if emp:
-                    parsed["assignee"] = emp["name"]
+            ok, note = _fix_assignee_team(parsed)
+            if not ok:
+                await update.message.reply_text(note)
+                return ConversationHandler.END
             context.user_data["assign"]["parsed"] = parsed
             await update.message.reply_text(
                 f"수정 파싱:\n"
@@ -2713,11 +3071,35 @@ def main() -> None:
     )
 
     app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("ask", cmd_ask))
+    app.add_handler(CommandHandler("todo", cmd_todo))
     # ⚠️ conv는 여기서 등록하지 않는다 — 자유 텍스트 진입점을 갖게 되면서
     #    mtg_conv·assign_conv보다 뒤로 밀어야 한다. 아래 assign_conv 다음에 등록.
 
-    # 보고 → 분장 상태 환류 버튼 (2026-07-26) — 대화 핸들러와 무관한 콜백이라 어디서든 동작
-    app.add_handler(CallbackQueryHandler(on_status_sync_click, pattern=r"^asy:"))
+    # 보고 → 분장 상태 환류 (2026-07-26 버튼 → vNext P1 대화 승격)
+    # ▶진행중·✓완료 클릭이 단일 턴 되묻기로 이어진다. 상태 안에도 asy: 콜백을 두어
+    # 답변 대기 중 다른 카드를 누르면 그 카드로 갈아탄다(이전 질문은 폐기).
+    # ⚠️ 등록 순서 계약: 자유 텍스트를 삼키는 report_conv(=conv) 진입점보다 반드시 앞.
+    #    2026-08-03 ARISA Assistant로 구 receive_inquiry 폴백이 assistant_entry(conv 진입점)로
+    #    흡수되면서 그 자리가 맨 뒤(app.add_handler(conv))로 옮겨졌다 — 계약은 그대로 성립한다.
+    _sync_cb = CallbackQueryHandler(on_status_sync_click, pattern=r"^asy:")
+    sync_conv = ConversationHandler(
+        entry_points=[_sync_cb],
+        states={
+            SYNC_PROGRESS: [_sync_cb,
+                            MessageHandler(filters.TEXT & ~filters.COMMAND, receive_sync_progress)],
+            SYNC_DONE: [_sync_cb,
+                        MessageHandler(filters.TEXT & ~filters.COMMAND, receive_sync_done)],
+        },
+        fallbacks=[
+            CommandHandler("cancel", cancel_sync),
+            # report_conv와 같은 함정 방지 — 답변 대기 중에도 /report = 새 보고 시작
+            CommandHandler("report", start_report),
+        ],
+        name="sync_conv",
+        persistent=True,   # 부활 유령 쓰기는 sync_ctx TTL(24h) + verify_row #2가 막는다
+    )
+    app.add_handler(sync_conv)
 
     # /meeting — 회의록 6종 리포트 (ARISA 1.0 통합)
     if _MEETING_AVAILABLE:

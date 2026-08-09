@@ -39,6 +39,59 @@ ANTHROPIC_MODEL = os.environ.get("R4_MODEL", "claude-sonnet-4-6")
 
 _lock = threading.Lock()
 
+# ── 프로젝트 연결 (vNext P2 WS2) ─────────────────────────────────────────
+# shared/project_match는 re만 쓰는 순수 stdlib — 이 파일의 '표준 라이브러리만' 원칙 무해.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+try:
+    from shared import project_match as _PM
+except Exception:
+    _PM = None   # 매칭 제안만 꺼진다 — 회의 분석은 계속
+
+# 프로젝트 디렉토리는 **읽기 전용**이다. 8781이 여기 쓰는 순간 로컬↔맥미니
+# divergence의 네 번째 쓰기 주체가 된다 — 절대 쓰지 않는다.
+_PROJ_DIR = Path(os.environ.get("R4_PROJECTS_DIR")
+                 or (_WS / "00-system" / "01-templates" / "_data" / "projects"))
+_proj_cache = {"ts": 0.0, "items": []}
+
+
+def projects_lite():
+    """[{id,name,aliases}] — 60초 캐시. 실패 시 직전 캐시(없으면 []) — 분석 흐름 보호."""
+    now = time.time()
+    if now - _proj_cache["ts"] < 60 and _proj_cache["items"]:
+        return _proj_cache["items"]
+    items = []
+    try:
+        for p in sorted(_PROJ_DIR.glob("*.json")):
+            if ".bak" in p.name:
+                continue
+            try:
+                d = json.loads(p.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if isinstance(d, dict) and d.get("id"):
+                items.append({"id": d["id"], "name": d.get("name") or d["id"],
+                              "aliases": d.get("aliases") or []})
+    except Exception:
+        return _proj_cache["items"]
+    _proj_cache["ts"] = now
+    _proj_cache["items"] = items
+    return items
+
+
+def project_suggestions(guess, limit=3):
+    """자유 텍스트 프로젝트 추정 → 후보 [{pid,name}]. 자동 바인딩은 하지 않는다 —
+    match_project는 토큰 교집합이라 오결합 위험이 있다. 제안만 하고 사람이 확정한다."""
+    guess = (guess or "").strip()
+    if not (guess and _PM):
+        return []
+    out = []
+    for p in projects_lite():
+        if _PM.match_project_p(guess, p):
+            out.append({"pid": p["id"], "name": p["name"]})
+            if len(out) >= limit:
+                break
+    return out
+
 
 # ── LLM 호출 ──────────────────────────────────────────────────────────────
 
@@ -276,6 +329,7 @@ PROMPT_EXTRACT_MINUTES = PROMPT_COMMON_RULES + _EXTRACT_SHARED + """
 - D_topics는 논의된 주제를 모두 나열한다 (보통 3~8개).
 - evidence는 {"quote": "전사 원문 발췌", "speaker": "화자"} 형식. 화자 불명이면 "".
 - 발언 충돌: 참석자들이 같은 사안(일정·예산·범위 등)을 서로 다르게 알고 있으면 반드시 G_open_issues에 "충돌: ..." 형태로 기록한다.
+- 변경(F_changes) 규칙: 요구사항이 이 회의에서 새로 생긴 경우 before는 "없음"으로 두고 반드시 F_changes에도 남긴다 — 추가도 변경이다. scope는 enum 중 가장 가까운 하나를 고른다.
 
 출력 JSON:
 {
@@ -284,7 +338,7 @@ PROMPT_EXTRACT_MINUTES = PROMPT_COMMON_RULES + _EXTRACT_SHARED + """
     "B_summary": {"core_results": ["핵심 결과 1~3개"], "key_decisions": ["핵심 결정"], "key_changes": ["중요 변경"], "biggest_risk": "가장 큰 리스크(없으면 빈문자열)", "next_steps": ["다음 단계"]},
     "C_status": {"before": "회의 전 상황", "after": "현재 상황", "delta": "회의로 달라진 점"},
     "D_topics": [{"topic": "주제", "background": "논의 배경", "discussion": "주요 논의", "conclusion": "결론", "rationale": "결정 근거", "execution_impact": "실행 영향", "open_points": "미해결 사항", "evidence": [{"quote": "", "speaker": ""}]}],
-    "F_changes": [{"what": "무엇이", "before": "기존", "after": "변경", "impact": ["영향 1"], "evidence": [{"quote": "", "speaker": ""}]}],
+    "F_changes": [{"scope": "REQUIREMENT|SCHEDULE|BUDGET|SCOPE|OWNER|DELIVERABLE|STRATEGY", "what": "무엇이", "before": "기존", "after": "변경", "why": "변경 이유 1문장(회의에서 언급된 근거, 없으면 빈문자열)", "impact": ["영향 1"], "evidence": [{"quote": "", "speaker": ""}]}],
     "G_open_issues": [{"issue": "사안", "needed_decision": "필요한 결정", "decider": "누가 결정", "deadline": ""}],
     "H_risks": [{"risk": "리스크", "severity": "HIGH|MEDIUM|LOW", "response": "대응 방안(논의됐다면)"}],
     "L_next_schedule": [{"item": "항목", "when": "시점"}]
@@ -364,6 +418,12 @@ PROMPT_FINALIZE = PROMPT_COMMON_RULES + """
 infoStatus에서 CONFIRMED인 항목(currentValue 포함)은 이미 확보된 정보다 — 분석 JSON 본문에 없어도 반드시 평가에 반영하라 (예: budget이 CONFIRMED면 budget_confirmed는 NOT_READY가 아니다).
 overall(%)은 NOT_REQUIRED를 제외한 영역의 READY=100/PARTIAL=50/NOT_READY=0 평균.
 
+routing 판정 규칙 (vNext P2 — 역할별 라우팅):
+- ceo: 예산·계약·대외 커밋·인력 배치처럼 대표만 결정할 수 있는 항목. refs에 근거가 되는 decisions/actions id를 단다.
+- lead: 부서 내 자원배분·일정 조정·품질 판단 등 파트 리더가 처리할 항목.
+- member: 담당자와 완료 기준이 이미 명확해 바로 분장 가능한 실행 업무.
+- 각 배열 최대 5개. 해당 없으면 빈 배열 — 억지로 채우지 마라.
+
 출력 JSON:
 {
   "readiness": {
@@ -380,6 +440,11 @@ overall(%)은 NOT_REQUIRED를 제외한 영역의 READY=100/PARTIAL=50/NOT_READY
     "biggestRisk": "가장 큰 리스크",
     "nextMilestone": "다음 마일스톤",
     "criticalGaps": ["실행을 막는 미확인 정보"]
+  },
+  "routing": {
+    "ceo": [{"item": "항목", "why": "대표만 결정 가능한 이유", "refs": ["D1"]}],
+    "lead": [{"item": "항목", "division": "SPACE_DESIGN", "refs": ["A5"]}],
+    "member": [{"item": "항목", "suggestedOwner": "", "refs": ["A7"]}]
   }
 }"""
 
@@ -401,7 +466,8 @@ def new_session(transcript, meta):
     sess = {
         "id": sid, "createdAt": _now(), "updatedAt": _now(), "status": "DRAFT",
         "meta": {k: (meta.get(k) or "") for k in
-                 ("title", "date", "participants", "project", "author", "client")},
+                 ("title", "date", "participants", "project", "author", "client",
+                  "pid", "pidSource")},   # pid = 포트폴리오 연결 (vNext P2, 구세션은 .get으로 안전)
         "transcript": transcript,
         "classification": None, "typeConfirmed": False,
         "analysis": None, "infoStatus": [], "questions": [],
@@ -506,6 +572,11 @@ def run_classify(sess):
         sess["meta"]["date"] = mg.get("dateGuess") or ""
     if not sess["meta"]["project"]:
         sess["meta"]["project"] = mg.get("projectGuess") or ""
+    # vNext P2 — 포트폴리오 후보 제안(자동 바인딩 아님, 사람이 link-project로 확정)
+    try:
+        sess["classification"]["projectMatch"] = project_suggestions(sess["meta"].get("project"))
+    except Exception:
+        pass
     sess["status"] = "TYPE_CONFIRM"
     sess["error"] = None
     save_session(sess)
@@ -745,6 +816,10 @@ def run_finalize(sess):
     rd["areas"] = areas
     sess["readiness"] = rd
     sess["executiveSummary"] = result.get("executiveSummary") or {}
+    # vNext P2 — 역할별 라우팅(arisa2 MEETING_PROMPT 8·9·10번 복원). 프롬프트가 지시만
+    # 하고 출력 자리가 없어 버려지던 정보에 자리를 만든 것이다. 구세션은 키 부재 = 빈 dict.
+    rt = result.get("routing") or {}
+    sess["routing"] = {k: (rt.get(k) or [])[:5] for k in ("ceo", "lead", "member")}
     sess["status"] = "FINALIZED"
     sess["error"] = None
     save_session(sess)
@@ -1231,6 +1306,16 @@ h3.sec{font-size:14px;font-weight:600;margin:18px 0 8px;color:var(--fg)}
       <button class="btn2 btn-sm" onclick="show('scr-home');loadList()">목록으로</button>
     </div>
   </div>
+  <!-- vNext P2 WS4 — 프로젝트 제출. 대시보드 프록시(/r4) 경유일 때만 보인다:
+       제출 API는 8780 세션 쿠키가 필요하므로 8781 직접 접속에선 숨긴다. -->
+  <div id="submit-proj" style="display:none;margin-bottom:14px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:13px;font-weight:600">📁 프로젝트로 제출</span>
+      <select id="sp-pid" style="background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--fg);padding:7px 9px;font-family:inherit;font-size:12px;min-width:220px"></select>
+      <button class="btn btn-sm" id="sp-go" onclick="submitToProject()">제출 → 문서함·분장 후보</button>
+      <span id="sp-msg" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+  </div>
   <div class="tabs" id="res-tabs"></div>
   <div id="res-body"></div>
 </section>
@@ -1447,11 +1532,44 @@ function autoFinalize(){
 
 // ── 결과 7탭 ──
 var curTab='exec';
+// ── vNext P2 WS4: 프로젝트 제출 (대시보드 프록시 경유에서만) ──
+function renderSubmitProj(){
+  var box=document.getElementById('submit-proj');
+  if(API!=='/r4'){box.style.display='none';return;}   // 8781 직접 접속 — 세션 없음
+  box.style.display='';
+  var sel=document.getElementById('sp-pid');
+  var pre=(S.meta&&S.meta.pid)||'';
+  var sug=((S.classification||{}).projectMatch)||[];
+  if(!pre&&sug.length) pre=sug[0].pid;                 // 제안 프리셀렉트 — 확정은 사람의 제출 클릭
+  api('GET','/api/projects-lite').then(function(d){
+    var ps=(d&&d.projects)||[];
+    sel.innerHTML='<option value="">프로젝트 선택…</option>'+ps.map(function(p){
+      return '<option value="'+esc(p.id)+'"'+(p.id===pre?' selected':'')+'>'+esc(p.name)+'</option>';}).join('');
+  });
+  document.getElementById('sp-msg').textContent=(S.meta&&S.meta.pid)?('연결됨: '+S.meta.pid):(sug.length?('제안: '+sug.map(function(x){return x.name;}).join(' · ')):'');
+}
+window.submitToProject=function(){
+  var pid=document.getElementById('sp-pid').value;
+  if(!pid){alert('프로젝트를 선택하세요');return;}
+  var btn=document.getElementById('sp-go');btn.disabled=true;btn.textContent='제출 중…';
+  // ⚠️ API 프리픽스 없이 루트로 — 8780의 r4-import(세션 쿠키 인증)를 직접 부른다
+  fetch('/api/meeting/r4-import',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sid:S.id,pid:pid})})
+  .then(function(r){return r.json();}).then(function(d){
+    btn.disabled=false;btn.textContent='제출 → 문서함·분장 후보';
+    if(!d.ok){document.getElementById('sp-msg').textContent='✗ '+(d.error||'제출 실패');return;}
+    S.meta.pid=pid;
+    document.getElementById('sp-msg').textContent=(d.duplicate?'이미 제출된 세션 — 기존 문서 유지. ':'✓ 제출 완료. ')
+      +'분장 후보 '+((d.candidates||[]).length)+'건 — 아리사 OS 프로젝트 탭에서 등록하세요.';
+  }).catch(function(){btn.disabled=false;btn.textContent='제출 → 문서함·분장 후보';
+    document.getElementById('sp-msg').textContent='✗ 네트워크 오류';});
+};
 function renderResult(){
   showErr(S.error);
   document.getElementById('res-title').textContent=S.meta.title||'회의 결과';
   var cls=(S.classification||{}).classification||{};
   document.getElementById('res-sub').textContent=(TYPES[cls.primaryType]||'')+' · '+(S.meta.date||'')+(S.meta.project?' · '+S.meta.project:'')+' · 세션 '+S.id;
+  renderSubmitProj();
   document.getElementById('btn-requestion').style.display=(S.questions&&S.questions.length)?'':'none';
   var tabs=[['exec','Executive Summary'],['minutes','회의록'],['actions','실행 업무'],['outputs','산출물'],['support','Support Map'],['review','AI Review'],['raw','원문']];
   document.getElementById('res-tabs').innerHTML=tabs.map(function(t){return '<button class="tab'+(t[0]===curTab?' on':'')+'" onclick="setTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');
@@ -1481,6 +1599,15 @@ function renderTab(){
     var rareas=rd.areas||[];
     if(rareas.length){h+='<div class="rgrid">'+rareas.map(function(ar){return '<div class="rcell '+ar.status+'"><div class="rn">'+(AREA_KO[ar.area]||ar.area)+' · '+ar.status+'</div><div class="rr">'+esc(ar.rationale||'')+'</div></div>';}).join('')+'</div>';}
     h+='</div><div class="panel">'+kv('핵심 결과',es.keyResults)+kv('결정사항',es.keyDecisions)+kv('중요 변경',es.keyChanges)+kv('대표 의사결정 필요',es.ceoDecisionsNeeded)+kv('가장 큰 리스크',es.biggestRisk)+kv('실행을 막는 미확인 정보',es.criticalGaps)+'</div>';
+    // vNext P2 — 역할별 라우팅 (구세션은 routing 부재 → 섹션 자체가 안 보인다)
+    var rt=S.routing||{};
+    if((rt.ceo||[]).length||(rt.lead||[]).length||(rt.member||[]).length){
+      h+='<div class="panel"><h2>역할별 라우팅</h2>';
+      h+=kv('👑 대표 결정',(rt.ceo||[]).map(function(x){return x.item+(x.why?' — '+x.why:'');}));
+      h+=kv('🧭 리더 처리',(rt.lead||[]).map(function(x){return x.item+(x.division?' ('+(DIV_KO[x.division]||x.division)+')':'');}));
+      h+=kv('✋ 실무 분장 가능',(rt.member||[]).map(function(x){return x.item+(x.suggestedOwner?' → '+x.suggestedOwner:'');}));
+      h+='</div>';
+    }
   }
   else if(curTab==='minutes'){
     var B=mins.B_summary||{},C=mins.C_status||{};
@@ -1599,6 +1726,9 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True, "service": "r4-meeting-simulator"})
         if path == "/api/meetings":
             return self._send(200, {"ok": True, "sessions": list_sessions()})
+        if path == "/api/projects-lite":
+            # 포트폴리오 드롭다운용 (vNext P2) — 읽기 전용 60초 캐시
+            return self._send(200, {"ok": True, "projects": projects_lite()})
         m = re.fullmatch(r"/api/meeting/([^/]+)", path)
         if m:
             sess = self._sess_or_404(m.group(1))
@@ -1705,6 +1835,17 @@ class H(BaseHTTPRequestHandler):
             sess["status"] = "USER_REVIEW"
             save_session(sess)
             return self._send(200, {"ok": True, "session": sess})
+        if action == "link-project":
+            # vNext P2 — 세션 ↔ 포트폴리오 pid 연결. 빈 pid = 연결 해제.
+            # 자동 바인딩 금지 원칙: 이 엔드포인트는 사람(또는 8780의 확정 흐름)만 부른다.
+            pid = (b.get("pid") or "").strip()
+            known = {p["id"] for p in projects_lite()}
+            if pid and known and pid not in known:
+                return self._send(400, {"ok": False, "error": "알 수 없는 프로젝트 ID"})
+            sess["meta"]["pid"] = pid
+            sess["meta"]["pidSource"] = ((b.get("source") or "").strip() or "human") if pid else ""
+            save_session(sess)
+            return self._send(200, {"ok": True, "meta": sess["meta"]})
         if action == "finalize":
             sess = run_finalize(sess)
             return self._send(200, {"ok": True, "session": sess})

@@ -286,6 +286,68 @@ def _quote_in(corpus: str, quote: str) -> bool:
     return q in _norm_quote(corpus)
 
 
+def default_llm(system: str, user: str) -> str:
+    """규정 답변용 기본 LLM — Anthropic 우선, OpenAI 폴백.
+
+    호출측(봇)이 LLM을 직접 조립하지 않도록 여기 둔다. 봇 파일은 다른 세션과 자주
+    충돌하므로 변경 면적을 줄이는 편이 안전하다.
+
+    ⚠️ 모델 주의 (2026-08-09 실측)
+    - `claude-sonnet-4-20250514`는 **더 이상 존재하지 않는다**(404). dashboard-server.py:267이
+      아직 이 이름을 쓰고 있어 Anthropic 경로가 매번 실패하고 OpenAI로 폴백 중이다
+    - `claude-sonnet-5`는 `temperature` 파라미터를 **거부**한다(400 deprecated)
+    규정 답변은 인용 정확도가 생명이라 gpt-4o-mini 같은 소형 모델은 쓰지 않는다.
+    """
+    import urllib.request
+
+    ak = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
+    if ak:
+        body = json.dumps({
+            "model": os.environ.get("ARISA_POLICY_MODEL", "claude-sonnet-5"),
+            "max_tokens": 2000, "system": system,
+            "messages": [{"role": "user", "content": user}],
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            "https://api.anthropic.com/v1/messages", data=body,
+            headers={"content-type": "application/json", "x-api-key": ak,
+                     "anthropic-version": "2023-06-01"})
+        try:
+            with urllib.request.urlopen(req, timeout=90) as r:
+                d = json.loads(r.read().decode("utf-8"))
+            return "".join(b.get("text", "") for b in d.get("content", []))
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"policy LLM(anthropic) 실패 → OpenAI 폴백: {e}")
+
+    ok = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    if not ok:
+        raise RuntimeError("LLM 키가 없습니다")
+    body = json.dumps({
+        "model": "gpt-4o", "temperature": 0.2,
+        "response_format": {"type": "json_object"},
+        "messages": [{"role": "system", "content": system},
+                     {"role": "user", "content": user}],
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        "https://api.openai.com/v1/chat/completions", data=body,
+        headers={"content-type": "application/json", "authorization": f"Bearer {ok}"})
+    with urllib.request.urlopen(req, timeout=90) as r:
+        d = json.loads(r.read().decode("utf-8"))
+    return d["choices"][0]["message"]["content"]
+
+
+def ask(question: str) -> str:
+    """질문 → 텔레그램 메시지 한 방에. 봇이 부르는 유일한 진입점."""
+    return format_reply(answer(question, default_llm))
+
+
+LEAVE_BALANCE_NOTICE = (
+    "🗓 연차 잔여 일수는 아직 아리사가 직접 조회하지 못합니다.\n"
+    "HR 포털에서 확인해 주세요 → https://rent-hr-portal.fly.dev\n\n"
+    "연차 **규정**(신청 시한·승인 권한 등)은 제가 답해 드릴 수 있어요.\n"
+    "예) \"연차는 며칠 전에 신청해야 하나요?\""
+)
+
+
 def format_reply(res: dict) -> str:
     """답변 dict → 텔레그램 메시지."""
     if not res.get("found"):

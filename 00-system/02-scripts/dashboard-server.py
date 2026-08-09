@@ -45,6 +45,9 @@ HTML = BASE / "포트폴리오_대시보드.html"
 DATA = Path(os.environ.get("DASHBOARD_DATA") or (BASE / "_data"))
 PROJ_DIR = DATA / "projects"
 DOC_DIR = DATA / "project-docs"   # 프로젝트 자료(회의록) 원문 — JSON에는 메타만
+CTX_DIR = DATA / "project-context"  # 기계용 누적 상태 (vNext P2 WS6) — projects/*.json에 넣지 않는다:
+                                    # 그쪽은 git tracked라 회의 1건마다 로컬↔맥미니 충돌 diff가 생긴다.
+                                    # project-docs가 untracked라 한 번도 충돌 안 난 패턴의 복제.
 HOST = os.environ.get("DASHBOARD_HOST", "127.0.0.1")
 PORT = int(os.environ.get("DASHBOARD_PORT", "8780"))  # 운영 포트 — cloudflared·plist와 일치
 # ARISA 주간 대시보드 서빙 — /weekly. 성장지표는 대표 토큰(?key=WEEKLY_KEY)일 때만 노출.
@@ -85,6 +88,9 @@ from shared import provenance as _PV  # 업무 출처·회의 참조 (갭A) — 
 from shared import today_plan as _TP  # 오늘 하기로 한 일 (갭C) — 배포 시 shared/today_plan.py 동반 필수
 from shared import assign_sheet as _AS  # 주간분장 컬럼·파싱 SSOT — 배포 시 shared/assign_sheet.py 동반 필수
 from shared import approval as _AP  # 승인 체인·권한 (R4 2차) — 배포 시 shared/approval.py 동반 필수
+from shared import completion as _CP  # 완료 5요소 게이트 (vNext P1) — 배포 시 shared/completion.py 동반 필수
+from shared import meeting_delta as _MD  # R4 결과 → delta 결정론 투영 (vNext P2 WS6)
+from shared import project_context as _PC  # delta → 기계용 누적 상태 (vNext P2 WS6)
 from shared import meeting_link as _ML  # 회의 액션 선행·차단 조회 (WS1) — 배포 시 shared/meeting_link.py 동반 필수
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
@@ -2741,6 +2747,17 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     });
     return h;
   }
+  function mwPgSel(a){
+    // vNext P1 — 진행률 빠른 입력(P열). 값을 안 고르면 상태 파생값(자동)으로 표시만 한다.
+    var cur=(a.progress_pct!=null?a.progress_pct:0);
+    var manual=(a.progress!==''&&a.progress!=null&&a.progress!==undefined);
+    var s='<select class="il-sel il-pg" title="진행률 — 상태와 별개로 기록됩니다" data-row="'+a.row
+      +'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'">';
+    s+='<option value="">'+cur+'%'+(manual?'':'·자동')+'</option>';
+    // 100은 넣지 않는다 — 100%는 ✓완료 버튼의 몫(완료 5요소 수집 경로를 우회하지 않게)
+    [10,20,30,40,50,60,70,80,90].forEach(function(p){ s+='<option value="'+p+'">'+p+'%</option>'; });
+    return s+'</select>';
+  }
   function mwInlineSel(a){
     // 리더·대표 인라인 편집(B2 — filament 상태·담당자 칩) — 변경 즉시 시트 반영
     var st=a.status||'미착수';
@@ -2758,6 +2775,19 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
             task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),status:el.value})})
         .then(function(r){return r.json();}).then(function(d){
           if(!d.ok) alert(d.error||'상태 변경 실패');
+          renderMyWork();
+        }).catch(function(){ alert('서버 오류'); renderMyWork(); });
+      };
+    });
+    scope.querySelectorAll('.il-pg').forEach(function(el){
+      el.onchange=function(){
+        var v=el.value; if(!v) return;
+        el.disabled=true;
+        fetch('/api/assign-progress',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user:SESS.name,pin:SESS.pin,row:+el.getAttribute('data-row'),
+            task:el.getAttribute('data-task'),assignee:el.getAttribute('data-assignee'),progress:+v})})
+        .then(function(r){return r.json();}).then(function(d){
+          if(!d.ok) alert(d.error||'진행률 기록 실패');
           renderMyWork();
         }).catch(function(){ alert('서버 오류'); renderMyWork(); });
       };
@@ -2996,13 +3026,17 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       else if(st==='승인대기'){ act='<span class="st-wait">⏳ PM 클리어 대기</span>'; }
       else{
         if(st==='미착수') act+=mwStBtn(a,'진행중','▶ 진행');
+        act+=mwPgSel(a);  // vNext P1 — 진행률 빠른 입력(열린 분장에서만)
         act+=mwStBtn(a,'완료','✓ 완료');
         act+=mwStBtn(a,'완료','📣 완료·보고',true);
       }
       act+=mwSunBtn(a)+mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a);  // 본인 분장은 수정·삭제 + 오늘 선언(갭C)
     }
     if(withAssignee && a.row && canDel){ act+=mwInlineSel(a)+mwEditBtn(a)+mwStBtn(a,'삭제','🗑')+mwChk(a); }  // B2 — 인라인 상태·담당자
-    return '<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+mwOvBadge(a)+mwSrcChip(a)+act+'</div><div class="m">'+who+dl+'</div>'+mwDepsChip(a)+'</div>';
+    // 진행률 메타 — 실입력(P열)이 있을 때만 %를 보여준다(자동 사다리값 노이즈 방지)
+    var pg=(a.progress!==''&&a.progress!=null&&a.progress!==undefined&&a.progress_pct!=null)
+      ?(' · <b>'+a.progress_pct+'%</b>'+(a.eta?(' · 예상 '+esc(a.eta)):'')):'';
+    return '<div class="mw-card pg-item"><div class="t">'+badge+' '+esc(a.task)+urg+mwOvBadge(a)+mwSrcChip(a)+act+'</div><div class="m">'+who+dl+pg+'</div>'+mwDepsChip(a)+'</div>';
   }
   function mwDepsChip(a){
     // WS1 — 회의에서 나온 선후관계·차단 요인. 표시만 한다(진행·완료를 막지 않는다).
@@ -3690,6 +3724,74 @@ def _render_5block_md(doc, r, L):
         L += ["## 다음 마일스톤", str(r["closing"]), ""]
     return "\n".join(L)
 
+def _apply_meeting_context(pid, ts, result, transcript):
+    """R4 제출 → delta 투영 → context 적용 (백그라운드, vNext P2 WS6).
+
+    실패해도 제출은 이미 끝나 있다 — 문서함이 SSOT이고 context는 파생이므로,
+    delta/{ts}.json이 남아 있는 한 언제든 재적용할 수 있다.
+    사람용 brief는 여전히 pendingBrief(PM 승인)를 거친다 — 여긴 기계용 무승인 층.
+    """
+    try:
+        now = datetime.datetime.now().isoformat(timespec="seconds")
+        delta = _MD.project_delta(result, pid, ts, created_at=now)
+        delta["transcriptHash"] = _MD.transcript_hash(transcript)
+        cdir = CTX_DIR / _safe(pid)
+        (cdir / "delta").mkdir(parents=True, exist_ok=True)
+        (cdir / "history").mkdir(parents=True, exist_ok=True)
+        ctxp = cdir / "context.json"
+        ctx = (json.loads(ctxp.read_text(encoding="utf-8")) if ctxp.exists()
+               else _PC.new_context(pid))
+        new_ctx, log = _PC.apply_delta(ctx, delta, now=now)
+        if log and log[0].startswith("skip"):
+            return   # 멱등 ② — 같은 ref/전사 재적용 차단
+        (cdir / "delta" / f"{ts}.json").write_text(
+            json.dumps(delta, ensure_ascii=False, indent=1), encoding="utf-8")
+        (cdir / "history" / f"{ts}.json").write_text(
+            json.dumps(ctx, ensure_ascii=False, indent=1), encoding="utf-8")  # 적용 직전 스냅샷
+        tmp = ctxp.with_suffix(".tmp")
+        tmp.write_text(json.dumps(new_ctx, ensure_ascii=False, indent=1), encoding="utf-8")
+        os.replace(tmp, ctxp)
+    except Exception as e:
+        sys.stderr.write(f"[context] {pid}/{ts} 적용 실패(무해 — delta로 재적용 가능): {e}\n")
+
+
+def _submit_project_doc(pid, who, dtype, result, *, title="", transcript="",
+                        fields=None, md_override=None, src="simulator"):
+    """시뮬레이터·R4 결과 → 프로젝트 문서함 제출의 공통 본체 (vNext P2 WS1).
+
+    /api/simulator/submit-doc 핸들러 본문을 함수로 추출한 것 — 동작 불변.
+    검증(프로젝트 존재·권한·형식)은 호출측 책임. 저장 → docs[] append →
+    브리프 갱신안 백그라운드 → 분장 등록 후보 반환.
+    md_override: R4의 export.md처럼 이미 렌더된 md가 있으면 재렌더하지 않는다
+    (build_markdown을 8780에서 재구현하지 않기 위한 자리).
+    반환: {"ts","title","candidates"} 또는 None(프로젝트 소실 — 호출측 404).
+    """
+    now = datetime.datetime.now()
+    ts = now.strftime("%Y%m%d-%H%M%S")
+    fields = fields if isinstance(fields, dict) else {}
+    title = ((title or "").strip() or str(result.get("title_guess") or "").strip()
+             or str(fields.get("title") or "").strip()
+             or f"{'회의록' if dtype == 'meeting' else '기획안'} {now.strftime('%Y-%m-%d')}")[:100]
+    doc = {"ts": ts, "type": dtype, "title": title, "by": who,
+           "submitted_at": now.isoformat(timespec="seconds"), "pid": _safe(pid),
+           "result": result,
+           "source": ({"transcript": (transcript or "")[:60000]}
+                      if dtype == "meeting" else {"fields": fields})}
+    md = md_override or _render_submitted_md(doc)
+    ddir = DOC_DIR / _safe(pid)
+    ddir.mkdir(parents=True, exist_ok=True)
+    (ddir / f"{ts}.json").write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    (ddir / f"{ts}.md").write_text(md, encoding="utf-8")
+    def _add_doc(pp):
+        pp.setdefault("docs", []).append({"ts": ts, "title": title, "by": who,
+                                          "chars": len(md), "type": dtype, "src": src})
+    if _mutate_project(pid, _add_doc) is None:
+        return None
+    threading.Thread(target=_bg_propose, args=(pid, ts, title, who, md), daemon=True).start()
+    cands = _meeting_todo_candidates(result) if dtype == "meeting" else []
+    return {"ts": ts, "title": title, "candidates": cands}
+
+
 def _bg_propose(pid, doc_ts, doc_title, who, text):
     """제출 문서 기반 브리프 갱신안 생성(백그라운드 스레드) → p['pendingBrief'] 승인 대기열.
     LLM 실패해도 문서는 이미 저장돼 있음 — error로 기록만."""
@@ -3816,15 +3918,23 @@ def _record_done_task(assign, approver):
         return False
     k = _akey(assign.get("date"), assign.get("task"), assign.get("assignee"))
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    # 완료 근거 3종은 시트(S·T·U)의 복사본이다 — _sync_assign_status가 매번 재계산하므로
+    # 여기서 비어 있어도 다음 동기에서 채워진다. 값을 지어내지 않는다.
+    done = {kk: vv for kk, vv in (
+        ("done_at", (assign.get("done_at") or "").strip()),
+        ("done_by", (assign.get("done_by") or "").strip()),
+        ("deliverable", (assign.get("deliverable") or assign.get("result") or "").strip()),
+    ) if vv}
     hit = next((t for t in (tp.get("tasks") or []) if t.get("akey") == k), None)
     if hit:
-        hit.update({"status": "Done", "progress": 100, "approved_by": approver, "approved_at": now})
+        hit.update({"status": "Done", "progress": 100, "approved_by": approver,
+                    "approved_at": now, **done})
     else:
         tp.setdefault("tasks", []).append({
             "division": emp_team(assign.get("assignee")) or "", "task": assign.get("task") or "",
             "owner": assign.get("assignee") or "", "start": (assign.get("date") or "")[:10],
             "end": (assign.get("deadline") or "").strip(), "status": "Done", "progress": 100,
-            "akey": k, "approved_by": approver, "approved_at": now})
+            "akey": k, "approved_by": approver, "approved_at": now, **done})
     save_project(tp)
     return True
 
@@ -3932,21 +4042,38 @@ def _sync_assign_status(p):
         return False
     sheet = {}
     for a in _assign_read():
-        sheet[_akey(a.get("date"), a.get("task"), a.get("assignee"))] = a.get("status") or "미착수"
+        sheet[_akey(a.get("date"), a.get("task"), a.get("assignee"))] = a
     changed = False
     removed = []
     for t in keyed:
-        st = sheet.get(t["akey"])
-        if not st:
+        a = sheet.get(t["akey"])
+        if not a:
             continue
+        st = a.get("status") or "미착수"
         if st in _ST.ASSIGN_DROPPED_STATES:
             removed.append(t["akey"])
             continue
         new_st = _ASSIGN_ST_MAP.get(st, "Not Started")
         if t.get("status") != new_st:
             t["status"] = new_st
-            t["progress"] = _ASSIGN_PROG_MAP.get(st, 0)
             changed = True
+        # 진행률은 상태와 별개로 움직인다 — 사람이 P열에 60%를 적어도 상태는 '진행중' 그대로다.
+        # 종전 코드는 (a) 상태가 바뀔 때만 갱신해서 진행률만 오른 경우를 통째로 놓쳤고,
+        # (b) 갱신할 때는 실입력을 상태 파생 고정값(진행중=50)으로 덮어썼다.
+        # effective_progress는 P열이 비면 그 고정 사다리를 그대로 반환하므로 행동은 보존된다.
+        new_p = _ST.effective_progress(a)
+        if t.get("progress") != new_p:
+            t["progress"] = new_p
+            changed = True
+        # 완료 근거는 시트에서 매번 재계산한다 — 프로젝트 JSON에 시트로 복원 불가능한
+        # 값을 만들지 않는 것이 로컬↔맥미니 divergence를 '데이터 손실'이 아니라
+        # '일시적 불일치'로 묶어두는 유일한 조건이다.
+        for key, val in (("done_at", a.get("done_at")), ("done_by", a.get("done_by")),
+                         ("deliverable", a.get("deliverable") or a.get("result"))):
+            v = (val or "").strip()
+            if v and t.get(key) != v:
+                t[key] = v
+                changed = True
     if removed:
         p["tasks"] = [t for t in (p.get("tasks") or []) if t.get("akey") not in removed]
         changed = True
@@ -5327,6 +5454,24 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True, "title": meta.get("title") or ts,
                                     "by": meta.get("by") or "", "ts": ts,
                                     "text": f.read_text(encoding="utf-8")})
+        if path == "/api/project/context":
+            # vNext P2 WS6 — 기계용 누적 상태 조회. 프로젝트 열람 권한자.
+            uid = (q.get("user") or [""])[0] or (sess.get("name") or "")
+            pid = (q.get("id") or [""])[0]
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_view(uid, p):
+                return self._send(403, {"ok": False, "error": "열람 권한 없음"})
+            ctxp = CTX_DIR / _safe(pid) / "context.json"
+            if not ctxp.exists():
+                return self._send(200, {"ok": True, "context": None,
+                                        "note": "아직 적용된 회의 delta가 없습니다"})
+            try:
+                return self._send(200, {"ok": True,
+                                        "context": json.loads(ctxp.read_text(encoding="utf-8"))})
+            except Exception as e:
+                return self._send(500, {"ok": False, "error": str(e)[:80]})
         if path == "/api/meeting-actions":
             # 갭A — 이 회의에서 나온 액션의 실행 현황(목록 + 실행률). 프로젝트 열람 권한자.
             uid = (q.get("user") or [""])[0] or (sess.get("name") or "")
@@ -5560,33 +5705,92 @@ class H(BaseHTTPRequestHandler):
                 return self._send(404, {"ok": False, "error": "프로젝트 없음"})
             if not can_view(who, p):
                 return self._send(403, {"ok": False, "error": "이 프로젝트에 제출 권한이 없습니다."})
-            now = datetime.datetime.now()
-            ts = now.strftime("%Y%m%d-%H%M%S")
-            fields = b.get("fields") if isinstance(b.get("fields"), dict) else {}
-            title = ((b.get("title") or "").strip() or str(result.get("title_guess") or "").strip()
-                     or str(fields.get("title") or "").strip()
-                     or f"{'회의록' if dtype == 'meeting' else '기획안'} {now.strftime('%Y-%m-%d')}")[:100]
-            doc = {"ts": ts, "type": dtype, "title": title, "by": who,
-                   "submitted_at": now.isoformat(timespec="seconds"), "pid": _safe(pid),
-                   "result": result,
-                   "source": ({"transcript": (b.get("transcript") or "")[:60000]}
-                              if dtype == "meeting" else {"fields": fields})}
-            md = _render_submitted_md(doc)
-            ddir = DOC_DIR / _safe(pid)
-            ddir.mkdir(parents=True, exist_ok=True)
-            (ddir / f"{ts}.json").write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
-            (ddir / f"{ts}.md").write_text(md, encoding="utf-8")
-            def _add_doc(pp):
-                pp.setdefault("docs", []).append({"ts": ts, "title": title, "by": who,
-                                                  "chars": len(md), "type": dtype, "src": "simulator"})
-            if _mutate_project(pid, _add_doc) is None:
+            # 본체는 _submit_project_doc (vNext P2 WS1 — r4-import와 공유, 동작 불변)
+            out = _submit_project_doc(pid, who, dtype, result,
+                                      title=b.get("title") or "",
+                                      transcript=b.get("transcript") or "",
+                                      fields=b.get("fields"))
+            if out is None:
                 return self._send(404, {"ok": False, "error": "프로젝트 없음"})
-            threading.Thread(target=_bg_propose, args=(pid, ts, title, who, md), daemon=True).start()
-            # 갭A — 회의 제출이면 5블록 to-do(우리 측)를 분장 등록 후보로 함께 돌려준다.
-            # 여기서 끊기던 것이 정확히 '회의 → 실행' 갭이었다(등록은 /api/meeting-actions).
-            cands = _meeting_todo_candidates(result) if dtype == "meeting" else []
-            return self._send(200, {"ok": True, "doc": {"ts": ts, "title": title},
-                                    "pid": pid, "candidates": cands,
+            return self._send(200, {"ok": True, "doc": {"ts": out["ts"], "title": out["title"]},
+                                    "pid": pid, "candidates": out["candidates"],
+                                    "note": "브리프 갱신안을 생성해 PM 승인 대기열에 올립니다."})
+        if path == "/api/meeting/r4-import":
+            # vNext P2 WS3 — R4(8781) 세션 → 프로젝트 문서함 제출.
+            # 서버측 루프백이므로 /r4 admin 게이트와 무관 — 직원도 자기 프로젝트에 제출 가능.
+            # 세션 전체를 문서 JSON에 복사 저장한다(참조 아님) — 8781 세션이 지워져도 문서함 자립.
+            who = sess.get("name") or ""
+            if not who:
+                return self._send(401, {"ok": False, "error": "로그인이 필요합니다. 아리사 OS에서 다시 로그인해주세요."})
+            sid = (b.get("sid") or "").strip()
+            pid = (b.get("pid") or "").strip()
+            if not re.fullmatch(r"[0-9]{8}-[0-9]{4,6}-[0-9a-f]{4}", sid):
+                return self._send(400, {"ok": False, "error": "세션 ID 형식 오류"})
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_view(who, p):
+                return self._send(403, {"ok": False, "error": "이 프로젝트에 제출 권한이 없습니다."})
+            # 멱등 ① — 같은 세션을 같은 프로젝트에 두 번 제출하면 기존 문서를 돌려준다.
+            # arisa2의 delta 중복(같은 회의록 2회 파싱)이 정확히 이 가드의 부재였다.
+            ddir = DOC_DIR / _safe(pid)
+            for _e in reversed(p.get("docs") or []):
+                if _e.get("type") != "meeting":
+                    continue
+                try:
+                    _d = json.loads((ddir / f"{_e['ts']}.json").read_text(encoding="utf-8"))
+                except Exception:
+                    continue
+                if (_d.get("result") or {}).get("r4SessionId") == sid and not b.get("force"):
+                    return self._send(200, {"ok": True, "duplicate": True, "pid": pid,
+                                            "doc": {"ts": _e["ts"], "title": _e.get("title") or ""},
+                                            "candidates": _meeting_todo_candidates(_d.get("result") or {}),
+                                            "note": "이미 제출된 세션입니다 — 기존 문서를 반환합니다."})
+            # 루프백으로 8781 세션 조회 (브라우저 미경유)
+            try:
+                with urlopen(f"{R4_UPSTREAM}/api/meeting/{sid}", timeout=15) as _r:
+                    r4 = (json.loads(_r.read().decode("utf-8")) or {}).get("session") or {}
+            except Exception as e:
+                return self._send(502, {"ok": False, "error": f"R4 세션 조회 실패: {str(e)[:60]}"})
+            if r4.get("status") != "FINALIZED":
+                return self._send(400, {"ok": False, "code": "not_finalized",
+                                        "error": f"세션이 아직 확정 전입니다(현재 {r4.get('status')}). 분석을 마친 뒤 제출하세요."})
+            meta = r4.get("meta") or {}
+            result = dict(r4.get("analysis") or {})
+            result.update({"schema_version": "r4", "r4SessionId": sid,
+                           "readiness": r4.get("readiness") or {},
+                           "executiveSummary": r4.get("executiveSummary") or {},
+                           "routing": r4.get("routing") or {},
+                           "classification": (r4.get("classification") or {}).get("classification") or {},
+                           "meta": meta})
+            # md는 R4의 build_markdown 결과를 그대로 쓴다 — 재구현하지 않는다
+            md_override = None
+            try:
+                with urlopen(f"{R4_UPSTREAM}/api/meeting/{sid}/export.md", timeout=15) as _r:
+                    md_override = _r.read().decode("utf-8")
+            except Exception:
+                pass   # 실패 시 _render_submitted_md 폴백(문서함은 여전히 자립)
+            out = _submit_project_doc(pid, who, "meeting", result,
+                                      title=(b.get("title") or meta.get("title") or ""),
+                                      transcript=r4.get("transcript") or "",
+                                      md_override=md_override, src="r4")
+            if out is None:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            # WS6 — 회의가 프로젝트 상태(context)를 갱신한다. 백그라운드·실패 무해.
+            threading.Thread(target=_apply_meeting_context,
+                             args=(pid, out["ts"], result, r4.get("transcript") or ""),
+                             daemon=True).start()
+            # 세션에 pid 역기록 — 어느 프로젝트로 제출됐는지 8781 쪽에서도 보이게 (실패 무해)
+            try:
+                _req = Request(
+                    f"{R4_UPSTREAM}/api/meeting/{sid}/link-project",
+                    data=json.dumps({"pid": pid, "source": "import"}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"}, method="POST")
+                urlopen(_req, timeout=10).read()
+            except Exception:
+                pass
+            return self._send(200, {"ok": True, "doc": {"ts": out["ts"], "title": out["title"]},
+                                    "pid": pid, "candidates": out["candidates"],
                                     "note": "브리프 갱신안을 생성해 PM 승인 대기열에 올립니다."})
         if path == "/api/meeting-actions":
             # 갭A — 회의(프로젝트 문서 pid|ts)의 to-do를 주간분장으로 등록. 쿠키 세션 인증.
@@ -5988,6 +6192,34 @@ class H(BaseHTTPRequestHandler):
                         "akey": _akey((r[0] or "").strip(), new_task, final_assignee)})
                     save_project(tp)
             return self._send(200, {"ok": True})
+        if path == "/api/assign-progress":
+            # 진행률·완료예상일(P:R) 기록 — 상태(H)는 건드리지 않는다 (vNext P1).
+            # 진행률은 상태와 독립 축이다: 60%를 적어도 상태는 '진행중' 그대로.
+            if not (_asgws and DAILY_SHEET):
+                return self._send(500, {"ok": False, "error": "시트 미설정"})
+            try:
+                row = int(b.get("row") or 0)
+            except (TypeError, ValueError):
+                row = 0
+            pct = _ST.norm_progress(b.get("progress"))
+            eta = (b.get("eta") or "").strip()[:10]
+            if row < 2 or (pct is None and not eta):
+                return self._send(400, {"ok": False, "error": "row·progress 확인"})
+            cur = _AS.verify_row(_asgws, DAILY_SHEET, row, b.get("assignee") or "", _ST,
+                                 expect_task=b.get("task"))
+            if not cur:
+                return self._send(409, {"ok": False, "error": "행 내용이 달라졌습니다 — 새로고침 후 다시 시도"})
+            if not (cur["assignee"] == uid or _can_approve(uid, cur["assignee"])):
+                return self._send(403, {"ok": False, "error": "본인 분장만 입력할 수 있습니다"})
+            if cur["status"] in _ST.ASSIGN_CLOSED_STATES:
+                return self._send(400, {"ok": False, "error": "닫힌 분장에는 진행률을 기록하지 않습니다"})
+            if not _AS.set_progress(_asgws, DAILY_SHEET, row, pct, eta=eta, status_mod=_ST):
+                return self._send(500, {"ok": False, "error": "시트 기록 실패"})
+            _log_st("dashboard", uid, cur["status"], from_status=cur["status"], row=row,
+                    date=cur.get("date") or "", project=cur.get("project") or "",
+                    pid=cur.get("pid") or "", task=cur.get("task") or "",
+                    assignee=cur.get("assignee") or "", note="진행률 입력", progress=pct)
+            return self._send(200, {"ok": True, "progress": pct, "eta": eta})
         if path == "/api/assign-status":
             # 분장 상태 변경 — 완료(본인 체크)·진행중(진행 표시/반려 복귀)·승인(리더·대표)
             if not (_asgws and DAILY_SHEET):
@@ -6001,10 +6233,11 @@ class H(BaseHTTPRequestHandler):
                 return self._send(400, {"ok": False, "error": "row·status 확인"})
             # 행 재조회 — 수동 행 삭제 등으로 어긋났으면 거부
             try:
-                cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:K{row}", retries=2, timeout=20)
+                # A:W — 완료 5요소(S~W)까지 함께 읽는다. 인덱스 0~10은 종전과 동일하다.
+                cur = _asgws.values_get(DAILY_SHEET, f"{ASSIGN_TAB}!A{row}:W{row}", retries=2, timeout=20)
             except Exception:
                 cur = []
-            r = (list(cur[0]) + [""] * 11)[:11] if cur else [""] * 11
+            r = (list(cur[0]) + [""] * _AS.COLS)[:_AS.COLS] if cur else [""] * _AS.COLS
             assignee = (r[3] or "").strip()
             task = (r[4] or "").strip()
             if not task or task != (b.get("task") or "").strip() or assignee != (b.get("assignee") or "").strip():
@@ -6034,6 +6267,28 @@ class H(BaseHTTPRequestHandler):
             if not g_ok:
                 return self._send(400, {"ok": False, "code": "transition",
                                         "error": "상태 전이 불가: " + g_why})
+            # 완료 5요소 게이트 (vNext P1) — S:W를 H열보다 **먼저** 쓴다.
+            # 반대 순서면 S:W 실패 시 '완료인데 근거 공란'인 유령 행이 남는데,
+            # 사람은 이미 완료됐다고 믿으므로 아무도 되돌리지 않는다.
+            # grace에서 실제로 막는 것은 없다(전부 자동 충전). strict가 막는 것도 산출물 하나.
+            c_miss, c_fill, c_final = [], {}, {}
+            if new_st in _ST.ASSIGN_DONE_STATES:
+                cur_a = _AS.parse_row(r, row, _ST)
+                _cproj = _find_project_for_assign({"project": (r[1] or "").strip(),
+                                                   "pid": (r[10] or "").strip()}) or {}
+                _cwho = _AP.next_step("완료", assignee, _cproj, load_emp())
+                c_fill = _CP.autofill(cur_a, actor=uid, report_to=(_cwho[1] or _cwho[0] or ""))
+                c_ok, c_miss = _CP.check(dict(cur_a, **c_fill))
+                if not c_ok:
+                    return self._send(400, {"ok": False, "code": "completion", "missing": c_miss,
+                                            "error": "완료 근거가 필요합니다: " + "·".join(c_miss)})
+                # set_completion은 S:W 범위를 통째로 덮는다 — 부분 값만 넘기면 사람이 미리
+                # 적어둔 칸이 빈칸으로 지워진다. 반드시 시트 원본 + 자동충전을 병합해 넘긴다.
+                c_final = {k: (c_fill.get(k) or cur_a.get(k) or "")
+                           for k in ("done_at", "done_by", "deliverable", "report_to", "reported_at")}
+                if c_fill and not _AS.set_completion(_asgws, DAILY_SHEET, row, **c_final):
+                    return self._send(500, {"ok": False, "error":
+                                            "완료 정보 기록 실패 — 상태는 바꾸지 않았습니다. 다시 시도해주세요"})
             try:
                 ok = _asgws.values_update(DAILY_SHEET, f"{ASSIGN_TAB}!H{row}", [[new_st]], timeout=20)
             except Exception as e:
@@ -6042,13 +6297,20 @@ class H(BaseHTTPRequestHandler):
                 return self._send(500, {"ok": False, "error": "시트 업데이트 실패"})
             _log_st("dashboard", uid, new_st, from_status=from_st, row=row,
                     date=(r[0] or "").strip(), project=(r[1] or "").strip(), pid=(r[10] or "").strip(),
-                    task=task, assignee=assignee, reason=reason, note=_ST.transition_note(g_why),
+                    task=task, assignee=assignee, reason=reason,
+                    note=" ".join(x for x in (_ST.transition_note(g_why),
+                                              _CP.completion_note(c_miss)) if x),
                     approved_by=uid if new_st in _ST.ASSIGN_TERMINAL_STATES + ("승인",) else "")  # G5 — 상태 전이 이력
             recorded = False
             notified = 0
             assign = {"date": (r[0] or "").strip(), "project": (r[1] or "").strip(),
                       "assignee": assignee, "task": task, "deadline": (r[5] or "").strip(),
-                      "pid": (r[10] or "").strip()}  # G1 — ID Relation 우선 매칭용
+                      "pid": (r[10] or "").strip(),  # G1 — ID Relation 우선 매칭용
+                      # 완료 근거 — 방금 쓴 c_fill이 시트 값(r)보다 우선(같은 요청에서 갱신됨)
+                      "result": (r[6] or "").strip(),
+                      "done_at": c_fill.get("done_at") or (r[18] or "").strip(),
+                      "done_by": c_fill.get("done_by") or (r[19] or "").strip(),
+                      "deliverable": c_fill.get("deliverable") or (r[20] or "").strip()}
             if new_st == "승인":
                 recorded = _record_done_task(assign, uid)
             elif new_st == "삭제":
@@ -6060,6 +6322,11 @@ class H(BaseHTTPRequestHandler):
             elif new_st == "완료" and b.get("notify"):
                 notified = _notify_approvers(assignee, f"✅ {assignee} 완료 보고\n▸ [{assign['project'] or '기타'}] {task}\n\n"
                                                        f"아리사 OS 내 업무 '완료 승인 대기'에서 승인해주세요.")
+                # 보고 완료(W)는 사람에게 묻지 않는다 — 방금 알림을 쏜 이 시각이 곧 사실이다.
+                # 실패해도 상태는 이미 완료다(부가 기록이므로 응답을 바꾸지 않는다).
+                if notified:
+                    _AS.set_completion(_asgws, DAILY_SHEET, row, **dict(
+                        c_final, reported_at=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")))
             return self._send(200, {"ok": True, "status": new_st, "portfolio_recorded": recorded,
                                     "notified": notified})
         if path in ("/api/assign-review", "/api/pm-clear"):

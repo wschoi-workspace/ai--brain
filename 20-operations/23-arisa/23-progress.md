@@ -1275,6 +1275,37 @@ W29 결번·브리프 17일 공백을 추적한 결과, **배치는 정상 작�
 
 **남은 것**: 실사용자 왕복 재확인(수정 반영본) · Phase 2는 `[router]` 로그 오분류율 관측 후(특히 확인질문 구간 0.55~0.75) · 폐기 봇 2개(`com.arisa.telegram-bot`·`com.arisa.zero-server`) 정리
 
+---
+
+## vNext P2 — Meeting OS 배선 완료 (2026-08-03 ~ 08-09, `c280321`→`727c057`)
+
+플랜 `~/.claude/plans/piped-hugging-piglet.md`의 Phase 2. 회의 엔진 중 가장 정교한
+R4(8781)가 유일하게 프로젝트와 연결이 없던 갭을 완전히 이었다.
+
+**개통된 파이프**: R4 분석 → [프로젝트로 제출 버튼] → 8780 r4-import(세션 인증·멱등)
+→ 문서함 저장 → 브리프 갱신안(PM 승인 대기) + 분장 등록 후보 + **Context Delta 자동 적용**
+
+- WS1 `_submit_project_doc()` 공통 본체 추출 (submit-doc과 r4-import 공유, 동작 불변)
+- WS2 8781: meta.pid/pidSource · projects-lite(읽기 전용 60초 캐시 — 쓰기 절대 금지)
+  · link-project · classify 후 projectMatch 제안(자동 바인딩 금지, 확정은 사람)
+- WS3 `POST /api/meeting/r4-import`: 루프백 조회 → FINALIZED 확인 → 세션 복사 저장
+  (8781 세션 삭제돼도 문서함 자립) → 같은 sid 재제출은 기존 문서 반환(duplicate)
+- WS5 프롬프트: F_changes에 scope(7종)·why + "추가도 변경이다" / finalize에
+  routing{ceo·lead·member} — arisa2 MEETING_PROMPT 8·9·10번(버려지던 정보) 복원
+- WS4 제출 버튼(프록시 감지 노출) + Exec 탭 라우팅 표시
+- WS6 `shared/meeting_delta.py`(결정론 투영·LLM 0) + `shared/project_context.py`
+  (since/changedBy/revert_ref · ref+전사지문 2중 멱등) + `_data/project-context/{pid}/`
+  + `GET /api/project/context`
+
+**검증**: 테스트 163종(신규 21) · 실세션(아랑재) E2E — delta 투영 정상, 같은 전사
+재적용 지문 차단 실증. 맥미니 727c057 배포·재기동 완료.
+
+**남은 것**: PR #2 GitHub 머지(운영 무영향, 기록 정합) · WS7 브리프 delta 연동
+(phase·nextMilestone) · WS8 엔진 A 대체(비동기 R4 오케스트레이션, ?engine= 병행)
+· WS9 회차 비교 diff
+
+---
+
 ### 레거시 서비스 3종 정리 (2026-08-09)
 "봇을 늘리지 말자"가 Assistant 작업의 출발점이었는데 정작 폐기 기록된 것들이 살아 있었다. 실측 후 정리.
 
