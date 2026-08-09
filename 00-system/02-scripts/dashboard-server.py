@@ -45,6 +45,9 @@ HTML = BASE / "포트폴리오_대시보드.html"
 DATA = Path(os.environ.get("DASHBOARD_DATA") or (BASE / "_data"))
 PROJ_DIR = DATA / "projects"
 DOC_DIR = DATA / "project-docs"   # 프로젝트 자료(회의록) 원문 — JSON에는 메타만
+CTX_DIR = DATA / "project-context"  # 기계용 누적 상태 (vNext P2 WS6) — projects/*.json에 넣지 않는다:
+                                    # 그쪽은 git tracked라 회의 1건마다 로컬↔맥미니 충돌 diff가 생긴다.
+                                    # project-docs가 untracked라 한 번도 충돌 안 난 패턴의 복제.
 HOST = os.environ.get("DASHBOARD_HOST", "127.0.0.1")
 PORT = int(os.environ.get("DASHBOARD_PORT", "8780"))  # 운영 포트 — cloudflared·plist와 일치
 # ARISA 주간 대시보드 서빙 — /weekly. 성장지표는 대표 토큰(?key=WEEKLY_KEY)일 때만 노출.
@@ -86,6 +89,8 @@ from shared import today_plan as _TP  # 오늘 하기로 한 일 (갭C) — 배�
 from shared import assign_sheet as _AS  # 주간분장 컬럼·파싱 SSOT — 배포 시 shared/assign_sheet.py 동반 필수
 from shared import approval as _AP  # 승인 체인·권한 (R4 2차) — 배포 시 shared/approval.py 동반 필수
 from shared import completion as _CP  # 완료 5요소 게이트 (vNext P1) — 배포 시 shared/completion.py 동반 필수
+from shared import meeting_delta as _MD  # R4 결과 → delta 결정론 투영 (vNext P2 WS6)
+from shared import project_context as _PC  # delta → 기계용 누적 상태 (vNext P2 WS6)
 from shared import meeting_link as _ML  # 회의 액션 선행·차단 조회 (WS1) — 배포 시 shared/meeting_link.py 동반 필수
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
@@ -3719,6 +3724,37 @@ def _render_5block_md(doc, r, L):
         L += ["## 다음 마일스톤", str(r["closing"]), ""]
     return "\n".join(L)
 
+def _apply_meeting_context(pid, ts, result, transcript):
+    """R4 제출 → delta 투영 → context 적용 (백그라운드, vNext P2 WS6).
+
+    실패해도 제출은 이미 끝나 있다 — 문서함이 SSOT이고 context는 파생이므로,
+    delta/{ts}.json이 남아 있는 한 언제든 재적용할 수 있다.
+    사람용 brief는 여전히 pendingBrief(PM 승인)를 거친다 — 여긴 기계용 무승인 층.
+    """
+    try:
+        now = datetime.datetime.now().isoformat(timespec="seconds")
+        delta = _MD.project_delta(result, pid, ts, created_at=now)
+        delta["transcriptHash"] = _MD.transcript_hash(transcript)
+        cdir = CTX_DIR / _safe(pid)
+        (cdir / "delta").mkdir(parents=True, exist_ok=True)
+        (cdir / "history").mkdir(parents=True, exist_ok=True)
+        ctxp = cdir / "context.json"
+        ctx = (json.loads(ctxp.read_text(encoding="utf-8")) if ctxp.exists()
+               else _PC.new_context(pid))
+        new_ctx, log = _PC.apply_delta(ctx, delta, now=now)
+        if log and log[0].startswith("skip"):
+            return   # 멱등 ② — 같은 ref/전사 재적용 차단
+        (cdir / "delta" / f"{ts}.json").write_text(
+            json.dumps(delta, ensure_ascii=False, indent=1), encoding="utf-8")
+        (cdir / "history" / f"{ts}.json").write_text(
+            json.dumps(ctx, ensure_ascii=False, indent=1), encoding="utf-8")  # 적용 직전 스냅샷
+        tmp = ctxp.with_suffix(".tmp")
+        tmp.write_text(json.dumps(new_ctx, ensure_ascii=False, indent=1), encoding="utf-8")
+        os.replace(tmp, ctxp)
+    except Exception as e:
+        sys.stderr.write(f"[context] {pid}/{ts} 적용 실패(무해 — delta로 재적용 가능): {e}\n")
+
+
 def _submit_project_doc(pid, who, dtype, result, *, title="", transcript="",
                         fields=None, md_override=None, src="simulator"):
     """시뮬레이터·R4 결과 → 프로젝트 문서함 제출의 공통 본체 (vNext P2 WS1).
@@ -5418,6 +5454,24 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True, "title": meta.get("title") or ts,
                                     "by": meta.get("by") or "", "ts": ts,
                                     "text": f.read_text(encoding="utf-8")})
+        if path == "/api/project/context":
+            # vNext P2 WS6 — 기계용 누적 상태 조회. 프로젝트 열람 권한자.
+            uid = (q.get("user") or [""])[0] or (sess.get("name") or "")
+            pid = (q.get("id") or [""])[0]
+            p = get_project(pid)
+            if not p:
+                return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            if not can_view(uid, p):
+                return self._send(403, {"ok": False, "error": "열람 권한 없음"})
+            ctxp = CTX_DIR / _safe(pid) / "context.json"
+            if not ctxp.exists():
+                return self._send(200, {"ok": True, "context": None,
+                                        "note": "아직 적용된 회의 delta가 없습니다"})
+            try:
+                return self._send(200, {"ok": True,
+                                        "context": json.loads(ctxp.read_text(encoding="utf-8"))})
+            except Exception as e:
+                return self._send(500, {"ok": False, "error": str(e)[:80]})
         if path == "/api/meeting-actions":
             # 갭A — 이 회의에서 나온 액션의 실행 현황(목록 + 실행률). 프로젝트 열람 권한자.
             uid = (q.get("user") or [""])[0] or (sess.get("name") or "")
@@ -5722,6 +5776,10 @@ class H(BaseHTTPRequestHandler):
                                       md_override=md_override, src="r4")
             if out is None:
                 return self._send(404, {"ok": False, "error": "프로젝트 없음"})
+            # WS6 — 회의가 프로젝트 상태(context)를 갱신한다. 백그라운드·실패 무해.
+            threading.Thread(target=_apply_meeting_context,
+                             args=(pid, out["ts"], result, r4.get("transcript") or ""),
+                             daemon=True).start()
             # 세션에 pid 역기록 — 어느 프로젝트로 제출됐는지 8781 쪽에서도 보이게 (실패 무해)
             try:
                 _req = Request(

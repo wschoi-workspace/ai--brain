@@ -1306,6 +1306,16 @@ h3.sec{font-size:14px;font-weight:600;margin:18px 0 8px;color:var(--fg)}
       <button class="btn2 btn-sm" onclick="show('scr-home');loadList()">목록으로</button>
     </div>
   </div>
+  <!-- vNext P2 WS4 — 프로젝트 제출. 대시보드 프록시(/r4) 경유일 때만 보인다:
+       제출 API는 8780 세션 쿠키가 필요하므로 8781 직접 접속에선 숨긴다. -->
+  <div id="submit-proj" style="display:none;margin-bottom:14px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:13px;font-weight:600">📁 프로젝트로 제출</span>
+      <select id="sp-pid" style="background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--fg);padding:7px 9px;font-family:inherit;font-size:12px;min-width:220px"></select>
+      <button class="btn btn-sm" id="sp-go" onclick="submitToProject()">제출 → 문서함·분장 후보</button>
+      <span id="sp-msg" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+  </div>
   <div class="tabs" id="res-tabs"></div>
   <div id="res-body"></div>
 </section>
@@ -1522,11 +1532,44 @@ function autoFinalize(){
 
 // ── 결과 7탭 ──
 var curTab='exec';
+// ── vNext P2 WS4: 프로젝트 제출 (대시보드 프록시 경유에서만) ──
+function renderSubmitProj(){
+  var box=document.getElementById('submit-proj');
+  if(API!=='/r4'){box.style.display='none';return;}   // 8781 직접 접속 — 세션 없음
+  box.style.display='';
+  var sel=document.getElementById('sp-pid');
+  var pre=(S.meta&&S.meta.pid)||'';
+  var sug=((S.classification||{}).projectMatch)||[];
+  if(!pre&&sug.length) pre=sug[0].pid;                 // 제안 프리셀렉트 — 확정은 사람의 제출 클릭
+  api('GET','/api/projects-lite').then(function(d){
+    var ps=(d&&d.projects)||[];
+    sel.innerHTML='<option value="">프로젝트 선택…</option>'+ps.map(function(p){
+      return '<option value="'+esc(p.id)+'"'+(p.id===pre?' selected':'')+'>'+esc(p.name)+'</option>';}).join('');
+  });
+  document.getElementById('sp-msg').textContent=(S.meta&&S.meta.pid)?('연결됨: '+S.meta.pid):(sug.length?('제안: '+sug.map(function(x){return x.name;}).join(' · ')):'');
+}
+window.submitToProject=function(){
+  var pid=document.getElementById('sp-pid').value;
+  if(!pid){alert('프로젝트를 선택하세요');return;}
+  var btn=document.getElementById('sp-go');btn.disabled=true;btn.textContent='제출 중…';
+  // ⚠️ API 프리픽스 없이 루트로 — 8780의 r4-import(세션 쿠키 인증)를 직접 부른다
+  fetch('/api/meeting/r4-import',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sid:S.id,pid:pid})})
+  .then(function(r){return r.json();}).then(function(d){
+    btn.disabled=false;btn.textContent='제출 → 문서함·분장 후보';
+    if(!d.ok){document.getElementById('sp-msg').textContent='✗ '+(d.error||'제출 실패');return;}
+    S.meta.pid=pid;
+    document.getElementById('sp-msg').textContent=(d.duplicate?'이미 제출된 세션 — 기존 문서 유지. ':'✓ 제출 완료. ')
+      +'분장 후보 '+((d.candidates||[]).length)+'건 — 아리사 OS 프로젝트 탭에서 등록하세요.';
+  }).catch(function(){btn.disabled=false;btn.textContent='제출 → 문서함·분장 후보';
+    document.getElementById('sp-msg').textContent='✗ 네트워크 오류';});
+};
 function renderResult(){
   showErr(S.error);
   document.getElementById('res-title').textContent=S.meta.title||'회의 결과';
   var cls=(S.classification||{}).classification||{};
   document.getElementById('res-sub').textContent=(TYPES[cls.primaryType]||'')+' · '+(S.meta.date||'')+(S.meta.project?' · '+S.meta.project:'')+' · 세션 '+S.id;
+  renderSubmitProj();
   document.getElementById('btn-requestion').style.display=(S.questions&&S.questions.length)?'':'none';
   var tabs=[['exec','Executive Summary'],['minutes','회의록'],['actions','실행 업무'],['outputs','산출물'],['support','Support Map'],['review','AI Review'],['raw','원문']];
   document.getElementById('res-tabs').innerHTML=tabs.map(function(t){return '<button class="tab'+(t[0]===curTab?' on':'')+'" onclick="setTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');
@@ -1556,6 +1599,15 @@ function renderTab(){
     var rareas=rd.areas||[];
     if(rareas.length){h+='<div class="rgrid">'+rareas.map(function(ar){return '<div class="rcell '+ar.status+'"><div class="rn">'+(AREA_KO[ar.area]||ar.area)+' · '+ar.status+'</div><div class="rr">'+esc(ar.rationale||'')+'</div></div>';}).join('')+'</div>';}
     h+='</div><div class="panel">'+kv('핵심 결과',es.keyResults)+kv('결정사항',es.keyDecisions)+kv('중요 변경',es.keyChanges)+kv('대표 의사결정 필요',es.ceoDecisionsNeeded)+kv('가장 큰 리스크',es.biggestRisk)+kv('실행을 막는 미확인 정보',es.criticalGaps)+'</div>';
+    // vNext P2 — 역할별 라우팅 (구세션은 routing 부재 → 섹션 자체가 안 보인다)
+    var rt=S.routing||{};
+    if((rt.ceo||[]).length||(rt.lead||[]).length||(rt.member||[]).length){
+      h+='<div class="panel"><h2>역할별 라우팅</h2>';
+      h+=kv('👑 대표 결정',(rt.ceo||[]).map(function(x){return x.item+(x.why?' — '+x.why:'');}));
+      h+=kv('🧭 리더 처리',(rt.lead||[]).map(function(x){return x.item+(x.division?' ('+(DIV_KO[x.division]||x.division)+')':'');}));
+      h+=kv('✋ 실무 분장 가능',(rt.member||[]).map(function(x){return x.item+(x.suggestedOwner?' → '+x.suggestedOwner:'');}));
+      h+='</div>';
+    }
   }
   else if(curTab==='minutes'){
     var B=mins.B_summary||{},C=mins.C_status||{};
