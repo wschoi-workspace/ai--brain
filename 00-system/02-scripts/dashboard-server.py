@@ -1873,8 +1873,16 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .mw-card .t{font-size:14px;font-weight:500}
 .mw-card .m{font-size:12px;color:var(--muted);margin-top:4px}
 .mw-badge{font-size:11px;border-radius:5px;padding:1px 7px;margin-left:8px}
-.st-act{cursor:pointer;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:2px 9px;margin-left:6px;color:var(--muted);white-space:nowrap}
+/* 액션 버튼 시인성 (2026-08-09 대표 지시 — "진행률·완료보고 버튼이 있어야 한다")
+   기존 11px·muted는 있어도 눈에 안 띄어 없는 것처럼 보였다. 타겟을 키우고 주요 액션에 색을 준다. */
+.st-act{display:inline-flex;align-items:center;cursor:pointer;font-size:12px;border:1px solid var(--line);
+  border-radius:7px;padding:4px 11px;margin:2px 0 2px 6px;color:var(--fg-2);white-space:nowrap;line-height:1.5}
 .st-act:hover{border-color:var(--accent);color:var(--accent)}
+/* ✓ 완료 = 초록 윤곽 · 📣 완료·보고 = 채움(가장 강한 액션) */
+.st-act[data-st="완료"]:not([data-notify]){border-color:rgba(0,184,148,.55);color:#00b894}
+.st-act[data-st="완료"]:not([data-notify]):hover{background:rgba(0,184,148,.14);border-color:#00b894}
+.st-act[data-notify="1"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.st-act[data-notify="1"]:hover{filter:brightness(1.12);color:#fff}
 .st-wait{font-size:11px;border-radius:5px;padding:1px 7px;margin-left:8px;background:rgba(244,196,48,.14);color:#f4c430}
 .st-chk{accent-color:var(--red);width:14px;height:14px;cursor:pointer;margin-left:8px;vertical-align:middle}
 #mw-bulkbar{display:none;position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--bg-2);
@@ -1898,8 +1906,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .pf-bar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
 .pf-chip{cursor:pointer;font-size:12px;border:1px solid var(--line);border-radius:16px;padding:5px 12px;color:var(--muted);background:var(--bg-2)}
 .pf-chip.on{border-color:var(--accent);color:var(--accent);background:rgba(108,92,231,.12)}
-.il-sel{background:var(--bg-3);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:2px 6px;font-size:11px;font-family:inherit;margin-left:6px;cursor:pointer;max-width:110px}
+.il-sel{background:var(--bg-3);border:1px solid var(--line);color:var(--fg-2);border-radius:7px;padding:4px 8px;font-size:12px;font-family:inherit;margin-left:6px;cursor:pointer;max-width:120px}
 .il-sel:hover{border-color:var(--accent);color:var(--accent)}
+.il-pg{border-color:rgba(108,92,231,.45);color:var(--accent);max-width:150px}
 #arisa2-status{font-size:11px;color:var(--muted);margin-left:6px}
 #arisa2-status.ok{color:#00b894}
 #arisa2-status.err{color:var(--red)}
@@ -2753,7 +2762,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     var manual=(a.progress!==''&&a.progress!=null&&a.progress!==undefined);
     var s='<select class="il-sel il-pg" title="진행률 — 상태와 별개로 기록됩니다" data-row="'+a.row
       +'" data-task="'+esc(a.task)+'" data-assignee="'+esc(a.assignee||'')+'">';
-    s+='<option value="">'+cur+'%'+(manual?'':'·자동')+'</option>';
+    s+='<option value="">진행률 '+cur+'%'+(manual?'':' · 자동')+'</option>';
     // 100은 넣지 않는다 — 100%는 ✓완료 버튼의 몫(완료 5요소 수집 경로를 우회하지 않게)
     [10,20,30,40,50,60,70,80,90].forEach(function(p){ s+='<option value="'+p+'">'+p+'%</option>'; });
     return s+'</select>';
@@ -4372,6 +4381,130 @@ fetch('/api/brief-comments?user='+encodeURIComponent(sess.name)+'&date='+DS)
 })();</script>"""
 
 
+# /my-brief 하단 주입 — 내 열린 분장의 진행률·완료 처리 (2026-08-09 대표 지시).
+# 브리프 카드는 '어제 보고'라 시트 행과 매핑되지 않는다. 그래서 보고 문장에 버튼을 달지 않고
+# /api/my-work의 분장(row 보유)을 별도 블록으로 붙인다 — 내 업무 탭과 같은 쓰기 API를 쓴다.
+# 본인 세션일 때만 렌더한다(대표가 남의 my-brief를 열람할 때 대리 완료가 되지 않게).
+MYBRIEF_TASKS_JS = """<script>(function(){
+var NAME='__NAME__', sess=null;
+['brief_sess','pm_sess','team_brief_sess'].some(function(k){
+  try{var s=JSON.parse(localStorage.getItem(k)||'null'); if(s&&s.name&&s.pin){sess=s;return true;}}catch(e){}
+  return false;});
+if(!sess || sess.name!==NAME) return;
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+var ST=document.createElement('style');
+ST.textContent='.mbt-block{margin-top:18px}'
++'.mbt-item{background:var(--bg-3);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px}'
++'.mbt-t{font-size:14px;font-weight:500;line-height:1.5}'
++'.mbt-m{font-size:12px;color:var(--muted);margin-top:3px}'
++'.mbt-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center}'
++'.mbt-b{cursor:pointer;font-size:12px;border:1px solid var(--line);border-radius:7px;padding:5px 11px;'
++'color:var(--fg);background:transparent;font-family:inherit;line-height:1.4}'
++'.mbt-b:hover{border-color:var(--accent);color:var(--accent)}'
++'.mbt-b.go{border-color:rgba(108,92,231,.45);color:var(--accent)}'
++'.mbt-b.done{border-color:rgba(0,184,148,.55);color:#00b894}'
++'.mbt-b.done:hover{background:rgba(0,184,148,.14);border-color:#00b894}'
++'.mbt-b.rep{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}'
++'.mbt-b.rep:hover{filter:brightness(1.12);color:#fff}'
++'.mbt-pg{background:var(--bg-3);border:1px solid rgba(108,92,231,.45);color:var(--accent);border-radius:7px;'
++'padding:5px 8px;font-size:12px;font-family:inherit;cursor:pointer}'
++'.mbt-ov{font-size:11px;border-radius:5px;padding:1px 7px;margin-left:6px;background:rgba(225,112,85,.16);color:var(--red)}'
++'.mbt-wait{font-size:11px;border-radius:5px;padding:1px 7px;margin-left:6px;background:rgba(244,196,48,.14);color:#f4c430}'
++'.mbt-msg{font-size:12px;color:var(--muted);padding:4px 0}';
+document.head.appendChild(ST);
+var box=document.createElement('div');
+box.className='tb-block mbt-block';
+var wrap=document.querySelector('#content .wrap');
+if(!wrap) return;
+wrap.appendChild(box);
+function post(url, payload, done){
+  payload.user=sess.name; payload.pin=sess.pin;
+  fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();}).then(done)
+    .catch(function(){ alert('서버 오류'); load(); });
+}
+function row(a){
+  var open = (a.status!=='완료' && a.status!=='승인대기');
+  var ov = (a.days_overdue>0) ? '<span class="mbt-ov">지연 '+a.days_overdue+'일</span>' : '';
+  var meta=[]; if(a.pname||a.project) meta.push(esc(a.pname||a.project));
+  if(a.deadline) meta.push('마감 '+esc(a.deadline));
+  meta.push(esc(a.status||'미착수'));
+  if(a.progress!==''&&a.progress!=null&&a.progress_pct!=null) meta.push('<b>'+a.progress_pct+'%</b>');
+  var acts='';
+  if(open){
+    if((a.status||'미착수')==='미착수') acts+='<button class="mbt-b go" data-act="start">▶ 진행</button>';
+    var cur=(a.progress_pct!=null?a.progress_pct:0);
+    var manual=(a.progress!==''&&a.progress!=null&&a.progress!==undefined);
+    acts+='<select class="mbt-pg"><option value="">진행률 '+cur+'%'+(manual?'':' · 자동')+'</option>';
+    [10,20,30,40,50,60,70,80,90].forEach(function(p){ acts+='<option value="'+p+'">'+p+'%</option>'; });
+    acts+='</select>';
+    acts+='<button class="mbt-b done" data-act="done">✓ 완료</button>';
+    acts+='<button class="mbt-b rep" data-act="report">📣 완료·보고</button>';
+  } else {
+    acts='<span class="mbt-wait">⏳ '+(a.status==='승인대기'?'PM 클리어 대기':'승인 대기')+'</span>';
+  }
+  var d=document.createElement('div'); d.className='mbt-item';
+  d.innerHTML='<div class="mbt-t">'+esc(a.task)+ov+'</div><div class="mbt-m">'+meta.join(' · ')+'</div>'
+    +'<div class="mbt-acts">'+acts+'</div>';
+  var base={row:+a.row, task:a.task, assignee:a.assignee||''};
+  d.querySelectorAll('.mbt-b').forEach(function(b){
+    b.onclick=function(){
+      var act=b.getAttribute('data-act');
+      if(act==='report' && !confirm('완료 처리하고 리더·대표에게 완료 보고 알림(텔레그램)을 보낼까요?')) return;
+      var p=Object.assign({},base);
+      p.status = (act==='start') ? '진행중' : '완료';
+      if(act==='report') p.notify=true;
+      b.textContent='…'; b.disabled=true;
+      post('/api/assign-status', p, function(res){
+        if(!res.ok) alert(res.error||'상태 변경 실패');
+        else if(act==='report') alert(res.notified?('✅ 완료 처리 + 보고 알림 '+res.notified+'명 발송')
+                                                  :'완료 처리됨 — 알림 발송 실패(승인 대기에는 정상 반영)');
+        load();
+      });
+    };
+  });
+  var sel=d.querySelector('.mbt-pg');
+  if(sel) sel.onchange=function(){
+    var v=sel.value; if(!v) return; sel.disabled=true;
+    var p=Object.assign({},base); p.progress=+v;
+    post('/api/assign-progress', p, function(res){
+      if(!res.ok) alert(res.error||'진행률 기록 실패');
+      load();
+    });
+  };
+  return d;
+}
+function load(){
+  box.innerHTML='<div class="tb-head">✅ 내 열린 분장<span class="cnt">불러오는 중…</span></div>';
+  fetch('/api/my-work?user='+encodeURIComponent(NAME))
+    .then(function(r){return r.json();}).then(function(d){
+      var A=(d && d.assignments) || [];
+      var open=A.filter(function(a){ return a.row && a.status!=='완료' && a.status!=='승인대기'; });
+      var wait=A.filter(function(a){ return a.row && (a.status==='완료' || a.status==='승인대기'); });
+      box.innerHTML='<div class="tb-head">✅ 내 열린 분장<span class="cnt">'+open.length+'건'
+        +(wait.length?(' · 승인 대기 '+wait.length+'건'):'')+'</span></div>';
+      if(!open.length && !wait.length){
+        box.innerHTML+='<div class="mbt-msg">배정된 분장이 없습니다.</div>'; return;
+      }
+      open.forEach(function(a){ box.appendChild(row(a)); });
+      wait.forEach(function(a){ box.appendChild(row(a)); });
+    })
+    .catch(function(){ box.innerHTML='<div class="tb-head">✅ 내 열린 분장</div>'
+      +'<div class="mbt-msg">불러오기 실패 — 내 업무 탭에서 처리해주세요.</div>'; });
+}
+load();
+})();</script>"""
+
+
+def _inject_mybrief_tasks(page, name):
+    """/my-brief 페이지 하단에 '내 열린 분장' 액션 패널을 붙인다. 실패해도 페이지는 그대로."""
+    try:
+        js = MYBRIEF_TASKS_JS.replace("__NAME__", (name or "").replace("\\", "\\\\").replace("'", "\\'"))
+        return page.replace("</body>", js + "</body>", 1)
+    except Exception:
+        return page
+
+
 # ── 계정별 브리프 뷰 (/my-brief 직원 · /lead-brief 겸임리더) — 브리프 JSON 서버렌더 ──
 _DBA = None
 
@@ -4909,6 +5042,7 @@ class H(BaseHTTPRequestHandler):
                                         f"{name} · {team or '팀 미배정'}", body,
                                         f"s.name==={json.dumps(name, ensure_ascii=False)}||s.admin",
                                         "본인 전용 화면입니다")
+                page = _inject_mybrief_tasks(page, name)
                 return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
             sel = (q.get("date") or [""])[0]
             if sel not in dates:
@@ -4925,6 +5059,7 @@ class H(BaseHTTPRequestHandler):
                                     f"{name} · {team}", body,
                                     f"s.name==={json.dumps(name, ensure_ascii=False)}||s.admin",
                                     "본인 전용 화면입니다")
+            page = _inject_mybrief_tasks(page, name)
             return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/lead-brief":
             # 겸임 리더용 — 담당팀들을 한 페이지로 병합 (팀 headline+핵심칩+개인카드 전체).
