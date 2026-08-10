@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISA 직원 화면 실측 — 2026-08-09</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#222; --card:#252525; --line:#333;
+  --fg:#EDEDED; --fg-2:#BDBDBD; --muted:#8A8A8A;
+  --accent:#6C5CE7; --ok:#3DBE8B; --warn:#E8B84B; --bad:#E06C6C;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard',-apple-system,sans-serif;
+  line-height:1.65;padding:48px 24px 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto}
+.kicker{color:var(--accent);font-size:13px;font-weight:700;letter-spacing:.08em;margin-bottom:10px}
+h1{font-size:34px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
+.lede{color:var(--fg-2);font-size:16px;max-width:760px}
+.meta{color:var(--muted);font-size:13px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+h2{font-size:21px;font-weight:700;margin:52px 0 16px;padding-left:12px;border-left:3px solid var(--accent)}
+h3{font-size:15px;font-weight:700;margin:24px 0 10px;color:var(--fg)}
+p{color:var(--fg-2);margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 4px}
+th,td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+td.c,th.c{text-align:center}
+.y{color:var(--ok);font-weight:700}
+.n{color:var(--muted)}
+.tabbar{display:flex;flex-wrap:wrap;gap:8px;padding:14px;background:var(--bg-2);
+  border:1px solid var(--line);border-radius:10px;margin-bottom:16px}
+.tb{border:1px solid var(--line);border-radius:8px;padding:8px 16px;font-size:13.5px;color:var(--fg-2);background:transparent}
+.tb.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.tb.off{opacity:.28;text-decoration:line-through}
+.tb.ext{border-style:dashed}
+.who{margin-left:auto;color:var(--muted);font-size:12.5px;align-self:center}
+.sec{border-left:2px solid var(--line);padding-left:16px;margin:16px 0}
+.sec h4{font-size:14px;font-weight:700;margin-bottom:6px}
+.sec .body{color:var(--fg-2);font-size:13.5px}
+.chip{display:inline-block;background:#2E2E2E;border:1px solid var(--line);border-radius:6px;
+  padding:2px 9px;font-size:12px;color:var(--fg-2);margin:2px 4px 2px 0}
+.chip.a{background:rgba(108,92,231,.16);border-color:var(--accent);color:#B6ACFF}
+.chip.w{background:rgba(232,184,75,.14);border-color:#6b5520;color:var(--warn)}
+.chip.g{background:rgba(61,190,139,.14);border-color:#245c44;color:var(--ok)}
+ul{margin:6px 0 12px 20px;color:var(--fg-2);font-size:14px}
+li{margin-bottom:5px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.note{background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.35);border-radius:10px;
+  padding:16px 18px;font-size:14px;color:var(--fg-2)}
+.note b{color:var(--fg)}
+code{background:#2C2C2C;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:#C9C2FF}
+.tblwrap{overflow-x:auto}
+footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">ARISA OPERATING OS · 화면 실측</div>
+  <h1>직원(member)이 로그인하면 보는 화면</h1>
+  <p class="lede">arisa-os.com에 직원 계정으로 실제 로그인해 렌더된 화면을 그대로 기록했습니다. 코드 추정이 아니라 브라우저 렌더 결과이며, 콘솔 에러 0건·탭 노출 권한까지 확인했습니다.</p>
+  <div class="meta">실측 2026-08-09 · 계정 양지혜(member, 기획운영) · https://arisa-os.com · 서버 SSOT 맥미니 dashboard-server.py (08-09 10:43판)</div>
+
+  <h2>1. 탭 구성 — 직원에게 열리는 것</h2>
+  <div class="tabbar">
+    <span class="tb on">내 업무</span>
+    <span class="tb">프로젝트</span>
+    <span class="tb">문서 시뮬레이터</span>
+    <span class="tb">오늘 Brief</span>
+    <span class="tb off">이번 주</span>
+    <span class="tb ext">HR 포털 ↗</span>
+    <span class="who">양지혜 (member) · 가이드 · PIN변경 · 로그아웃</span>
+  </div>
+  <p>기본 진입 탭은 <b>내 업무</b>입니다. 취소선 항목은 DOM에 존재하지만 <code>display:none</code>으로 직원에게는 렌더되지 않습니다.</p>
+
+  <div class="tblwrap">
+  <table>
+    <tr><th>요소</th><th class="c">직원(member)</th><th class="c">리더(leader)</th><th class="c">대표(admin)</th><th>비고</th></tr>
+    <tr><td>내 업무</td><td class="c y">O</td><td class="c y">O (‘팀 홈’으로 표기)</td><td class="c y">O</td><td>리더·대표는 렌더 내용 자체가 다름</td></tr>
+    <tr><td>프로젝트</td><td class="c y">O</td><td class="c y">O</td><td class="c y">O</td><td>직원은 본인이 멤버인 카드만</td></tr>
+    <tr><td>문서 시뮬레이터</td><td class="c y">O</td><td class="c y">O</td><td class="c y">O</td><td>직원은 <code>?pro=1</code> 없이 로드</td></tr>
+    <tr><td>오늘 Brief</td><td class="c y">O</td><td class="c y">O (팀)</td><td class="c y">O (전사)</td><td>직원은 <code>/my-brief</code> — 본인 카드만</td></tr>
+    <tr><td>이번 주</td><td class="c n">숨김</td><td class="c y">O</td><td class="c y">O</td><td>실측 <code>visible=false</code></td></tr>
+    <tr><td>팀 스코프 드롭다운</td><td class="c n">숨김</td><td class="c y">겸임 시만</td><td class="c y">O</td><td>실측 <code>visible=false</code></td></tr>
+    <tr><td>HR 포털 ↗</td><td class="c y">O</td><td class="c y">O</td><td class="c y">O</td><td>전 직원 노출, 포털이 개인별 권한 강제</td></tr>
+    <tr><td>회의분석 Pro</td><td class="c n">숨김</td><td class="c n">숨김</td><td class="c y">O</td><td>시뮬레이터 내부 탭, 실측 <code>display=none</code></td></tr>
+  </table></div>
+
+  <h2>2. 내 업무 — 직원이 매일 보는 기본 화면</h2>
+  <p>대표 화면의 Decision·Risk·승인 블록은 직원에게 아예 렌더되지 않습니다. 직원 화면은 “내가 오늘 뭘 하는가”만 남습니다. 실제 양지혜 계정 렌더 순서 그대로입니다.</p>
+
+  <div class="card">
+    <div class="sec">
+      <h4>⚡ 오늘 포커스 <span class="chip a">보고 기반 자동 생성</span></h4>
+      <div class="body">“여수엑스포 광고용 그래픽 시안 작업을 마무리해야 합니다.” — 07:30 배치가 어제 보고에서 뽑아 개인별로 1문장 생성</div>
+    </div>
+    <div class="sec">
+      <h4>☀️ 오늘 하기로 한 일</h4>
+      <div class="body">“아직 정하지 않았습니다 — 아래 분장에서 ☀️를 눌러 오늘 할 것을 골라보세요” (today_plan 선언 전 상태)</div>
+    </div>
+    <div class="sec">
+      <h4>⚠️ 입력 누락 <span class="chip w">2건</span></h4>
+      <div class="body">‘압인기 제작 발주 여부 확인’ 2건이 프로젝트 미연결 — ✏️로 채우도록 요구</div>
+    </div>
+    <div class="sec">
+      <h4>✅ 오늘 할 일 · 내 분장</h4>
+      <div class="body">
+        📁 기타 2건 · 압인기 제작 발주 여부 확인 <span class="chip w">지연 18일</span> (진행중 50%, 미착수 0%, 마감 07-22)<br>
+        행마다 진행률 슬라이더(10~90%) + <span class="chip">✓ 완료</span> <span class="chip">📣 완료·보고</span> <span class="chip">☀️</span> <span class="chip">✏️</span> <span class="chip">🗑</span><br>
+        ▸ 완료·승인 대기 1건 — ‘썸띵한상회 키비주얼 추가 피드백 요청’ <span class="chip w">⏳ 승인 대기</span> <span class="chip">↩ 되돌리기</span>
+      </div>
+    </div>
+    <div class="sec">
+      <h4>🆕 제안 <span class="chip a">어제 보고에서 도출</span></h4>
+      <div class="body">
+        “리진 호끼린 팝업 메뉴판, POP 추가 제작” — [리진(답십리 OF)] 보고에서 언급 → <span class="chip">+ 분장 등록</span><br>
+        “여수엑스포 광고용 그래픽 시안 작업” — [여수 섬 박람회(섬진흥원)] 보고에서 언급 → <span class="chip">+ 분장 등록</span>
+      </div>
+    </div>
+    <div class="sec">
+      <h4>내 프로젝트 일정</h4>
+      <div class="body">
+        현대차 X-Discovery Engine MVP <span class="chip">D-day 2026-10-31</span><br>
+        [S0] 인터뷰 102건 데이터 인수·정합성 점검 · Not Started · 기획팀 · 08-10~08-16<br>
+        [S1] Say-Do Gap 교차검증 설계 · 08-24~09-13 &nbsp;/&nbsp; [S2] Layer3 경험 구조화 · 09-14~10-04 &nbsp;/&nbsp; [S2] Use Case 1 프로토타입 · 09-28~10-11
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>직원 화면에 없는 것</b> — 🎯 오늘의 핵심 할 일, ⚖️ Decision, 🤝 Intervention, ⚠️ Risk, 📌 진행 상황 신호등, ✅ 완료 승인 대기, 🧾 결재 확인, 담당 미지정 배정 큐. 전부 <code>ex</code>(exec-attn) 블록이라 <code>SESS.admin</code>일 때만 fetch·렌더됩니다. 🧭 PM 클리어는 그 직원이 PM인 프로젝트가 있을 때만 뜹니다.
+  </div>
+
+  <h2>3. 나머지 탭 실측</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>프로젝트</h3>
+      <p>본인이 멤버로 들어간 카드만 노출. 양지혜 기준 <b>진행 3개</b> — 롱블랙 5주년 카페 팝업(D-99), CJ온스타일 × KBO 올스타전(D-48), 현대차 X-Discovery MVP(D-130).</p>
+      <p>카드/타임라인/칸반 3뷰, 📥 기획 템플릿, 📦 아카이브, 카드 클릭 시 프로젝트 마스터 시트(브리프 입력 폼)까지 열립니다.</p>
+    </div>
+    <div class="card">
+      <h3>오늘 Brief</h3>
+      <p><code>/my-brief?name=…</code> — 본인 카드 + 팀 헤드라인만. 동료 카드는 비공개. 아래 4절에서 상세히 다룹니다.</p>
+      <p>최근 영업일 7개 날짜 탭(07/30~08/07). 보고가 없는 날은 “이 날짜에 제출한 보고가 없습니다 — 저녁 20:00·22:00 리마인드에 맞춰 보고하면 다음날 아침 브리프에 반영됩니다.”</p>
+    </div>
+    <div class="card">
+      <h3>문서 시뮬레이터</h3>
+      <p>3개 탭 사용: <b>일일보고</b>(ReportScore AI 리뷰 + Bad/Good 가이드 8항목), <b>기획안 1P-Brief</b>, <b>회의분석</b>. <b>회의분석 Pro</b>는 대표 전용으로 숨김.</p>
+      <p>회의분석 결과에서 “✅ 이 회의의 할 일을 분장으로 등록” 가능 — 권한이 없으면 담당 미지정으로 들어가 리더가 지정.</p>
+    </div>
+    <div class="card">
+      <h3>HR 포털 ↗</h3>
+      <p>새 창으로 <code>/sso/hr</code> → rent-hr-portal. 탭 자체는 전 직원 노출이고, 포털이 staff/manager/admin 권한을 자체 강제합니다.</p>
+      <p>‘🧾 입퇴사 온보딩’ 링크는 대표 화면(mywork 상단 퀵링크)에만 있습니다.</p>
+    </div>
+  </div>
+
+  <h2>4. 오늘 Brief 탭 — 직원 뷰 상세</h2>
+  <p>실측 계정: <b>김준호</b>(운영팀). 08-07 보고가 있어 카드가 실제로 채워진 상태입니다. 화면 주소는 <code>/my-brief?name=김준호</code>이고, 날짜 탭은 <code>&amp;date=2026-08-06</code>처럼 링크로 이동합니다.</p>
+
+  <div class="card">
+    <div class="sec">
+      <h4>① 헤더</h4>
+      <div class="body">내 오늘 브리프 · <b>김준호 · 운영팀</b> — 팀은 arisa-employees.json 기준으로 표기</div>
+    </div>
+    <div class="sec">
+      <h4>② 최근 영업일 날짜 탭</h4>
+      <div class="body">
+        <span class="chip">목 07/30</span><span class="chip">금 07/31</span><span class="chip">월 08/03</span><span class="chip">화 08/04</span><span class="chip">수 08/05</span><span class="chip">목 08/06</span><span class="chip a">금 08/07</span><br>
+        영업일만 노출 — 오늘(08-09)이 일요일이라 마지막 탭이 08-07(금)입니다. 08-08·08-09 배치 산출물은 서버에 생성돼 있지만 화면에는 뜨지 않습니다.
+      </div>
+    </div>
+    <div class="sec">
+      <h4>③ 팀 헤드라인 <span class="chip">운영팀 · 2026-08-07</span></h4>
+      <div class="body">“유플러스 오피스넷 2.5Gbps 고정IP 1회선과 유동IP 1회선 신청 완료, 호끼린 팝업 정산 서류 회신 대기 중이다.”</div>
+    </div>
+    <div class="sec">
+      <h4>④ 이번주 핵심 칩</h4>
+      <div class="body">
+        <span class="chip">이번주 · 호끼린 팝업 정산 리스트 작성 중 — 김준호</span>
+        <span class="chip">이번주 · 유플러스 오피스넷 고정IP·유동IP 신청 완료 — 김준호</span>
+      </div>
+    </div>
+    <div class="sec">
+      <h4>⑤ 내 카드 <span class="chip g">🟢 일반 · 45점</span></h4>
+      <div class="body">
+        ReportScore 채점 배지가 카드 머리에 붙습니다. 본문은 보고 항목을 번호로 나열하고 각 항목에 상세를 답니다.<br><br>
+        <b>①</b> 유플러스 오피스넷 2.5Gbps 고정IP 1회선, 유동IP 1회선 3년 약정 신청 완료<br>
+        <span class="n">└ 기존 소호 인터넷 해지 후 신규 가입. 신청 완료, 기사 방문 상담 예정</span><br>
+        <b>②</b> 호끼린 정산 리스트 확인 후 지출결의서 작성 중. 필요 서류 은정님께 회신 대기중<br>
+        <span class="n">└ 사업자등록증·견적서·통장사본·세금계산서 발행 필요</span><br>
+        <span class="chip w">⚠ 은정님께 회신 대기중</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>직원 뷰의 경계</b> — 렌더된 카드는 <b>1개(본인)</b>뿐이고 동료 카드는 DOM에도 없습니다. 대표·리더 뷰에 있는 <b>💬 코멘트 UI도 직원 화면에는 없습니다</b>(실측 <code>hasComment=false</code>). 직원이 보는 건 “팀이 어제 어땠는지 한 줄 + 내 보고 카드”까지입니다.
+  </div>
+
+  <div class="tblwrap">
+  <table>
+    <tr><th>역할</th><th>Brief 탭이 여는 주소</th><th>보이는 범위</th></tr>
+    <tr><td>직원</td><td><code>/my-brief?name=…</code></td><td>팀 헤드라인 + 본인 카드</td></tr>
+    <tr><td>리더</td><td><code>/lead-brief?teams=…</code> (겸임 시 팀 선택)</td><td>담당팀 전원 카드</td></tr>
+    <tr><td>대표</td><td><code>/brief</code> · 스코프 선택 시 <code>/team-brief?team=…</code></td><td>전사 또는 선택 팀</td></tr>
+  </table></div>
+
+  <h2>5. 검증 기록</h2>
+  <ul>
+    <li>로그인 → 셸 렌더까지 정상, <b>콘솔 에러 0건</b></li>
+    <li><code>.tab[data-t="weekly"]</code> visible=false / <code>#scope-sel</code> visible=false — 직원 권한 경계 정상</li>
+    <li>시뮬레이터 ‘회의분석 Pro’ <code>display=none</code> — Pro 누수 없음</li>
+    <li>프로젝트 탭에 본인 미참여 프로젝트 미노출 확인(3개만)</li>
+    <li>오늘 Brief: 렌더 카드 1개(본인만), 코멘트 UI 없음, 날짜 탭은 <code>&amp;date=</code> 링크로 과거 조회 동작</li>
+    <li>맥미니 SSOT(08-09 10:43판)와 로컬 사본(08-03판)이 다름 — 판단은 맥미니 파일 기준으로 했습니다</li>
+  </ul>
+
+  <h3>확인이 필요한 관찰 2건</h3>
+  <ul>
+    <li><b>팀 표기가 두 소스로 갈립니다.</b> 로그인 계정(users.json)은 김준호·양지혜 모두 <code>기획운영</code>인데, 브리프 화면은 김준호를 <b>운영팀</b>, 양지혜를 <b>기획팀</b>으로 표기합니다(arisa-employees.json 기준). 리더 라우팅과 브리프 집계가 서로 다른 팀 축을 쓰고 있다는 뜻이라, 의도한 분리인지 확인이 필요합니다.</li>
+    <li><b>08-07 전사 보고자가 김준호 1명뿐입니다.</b> <code>active_people</code> 기준 08-06은 2명(배성원·김준호), 08-07은 1명(김준호), 08-09은 3명(양지혜·김준호·양은정). 그날 기획팀·공간팀·사업기획 브리프의 카드가 0건입니다. 20:00·22:00 리마인드가 도는데도 금요일 보고가 1건이면, 화면 문제가 아니라 제출률 문제로 보입니다.</li>
+    <li><b>주말 배치 산출물은 화면에서 열리지 않습니다.</b> 08-08·08-09 브리프가 서버에 생성돼 있지만(08-09에는 양지혜·양은정 카드 포함), 날짜 탭은 영업일만 노출하고 <code>?date=2026-08-09</code>로 직접 요청해도 08-07 화면으로 폴백합니다. 월요일 브리프가 금~일을 합산하므로 내용이 사라지는 건 아니고, 주말 동안 최신 보고가 화면에 안 보이는 상태입니다.</li>
+  </ul>
+
+  <footer>ARISA Operating OS · 직원 화면 실측 리포트 · 2026-08-09 · by Project Rent</footer>
+</div>
+</body>
+</html>
