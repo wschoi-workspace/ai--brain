@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>진행 인력 통합 상한 | PROJECT RENT</title>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+em{font-style:normal;color:var(--accent-light)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;color:var(--fg-2)}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.nav{position:fixed;top:50%;left:26px;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:10;font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color 150ms var(--ease-out)}
+.nav a:hover,.nav a.active{color:var(--accent)}
+.sec{padding:90px 120px 110px;max-width:1440px;margin:0 auto}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:26px;border-bottom:1px solid var(--line-2);margin-bottom:44px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:38px;font-weight:300;letter-spacing:-0.025em;line-height:1.15;margin-top:8px}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin-bottom:38px}
+h3.sub{font-size:19px;font-weight:400;color:var(--fg);margin:46px 0 14px;letter-spacing:-0.02em}
+h3.sub:first-of-type{margin-top:0}
+p.note{font-size:13px;color:var(--fg-2);margin:10px 0;max-width:940px}
+#cover{padding-top:140px;min-height:84vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:34px}
+.cover-title{font-size:62px;font-weight:200;letter-spacing:-0.04em;line-height:1.05;margin-bottom:24px}
+.cover-sub{font-size:19px;color:var(--fg-2);line-height:1.6;max-width:940px;margin-bottom:46px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:30px;max-width:1020px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:11px 12px;font-weight:400;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+tbody tr.total td{border-top:1px solid var(--line);color:var(--fg);font-weight:500;background:rgba(108,92,231,.05)}
+tbody tr.sub-row td{color:var(--fg-3);font-size:12px}
+tbody tr.sub-row td:first-child{color:var(--fg-3);padding-left:28px}
+tbody tr.grp td{background:var(--bg-2);color:var(--accent-light);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--red)} .pos{color:var(--green)} .warn{color:var(--amber)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:3px 9px;font-size:10px;letter-spacing:.08em;white-space:nowrap}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.ev{display:inline-block;font-size:10px;letter-spacing:.06em;color:var(--accent-light);background:var(--accent-subtle);border:1px solid rgba(108,92,231,.18);padding:1px 6px;margin-left:4px;white-space:nowrap;vertical-align:1px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi.hero{border-color:var(--accent)} .kpi.bad{border-color:rgba(225,112,85,.4)}
+.kpi.good{border-color:rgba(143,163,126,.4)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:32px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi.bad .kpi-value{color:var(--red)}
+.kpi.good .kpi-value{color:var(--green)}
+.kpi .kpi-unit{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px;line-height:1.5}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:22px 26px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.75}
+.callout p+p{margin-top:10px}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.track{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:26px 0}
+.track .t{background:var(--bg-3);border:1px solid var(--line-2);padding:26px 28px}
+.track .t.s{border-left:3px solid var(--red)}
+.track .t.d{border-left:3px solid var(--amber)}
+.track .t.x{border-left:3px solid var(--green)}
+.track .t .n{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.track .t h4{font-size:19px;margin-bottom:6px}
+.track .t .tag{font-size:12px;color:var(--fg-3);margin-bottom:14px}
+.track .t dl{display:grid;grid-template-columns:64px 1fr;gap:7px 14px;font-size:13px}
+.track .t dt{font-size:10px;letter-spacing:.14em;color:var(--fg-3);text-transform:uppercase;padding-top:3px}
+.track .t dd{color:var(--fg-2);line-height:1.6}
+.foot{padding:60px 120px 80px;border-top:1px solid var(--line-2);text-align:center;color:var(--fg-3);font-size:11px;letter-spacing:.2em;max-width:1440px;margin:0 auto}
+@media (max-width:1100px){
+  .sec{padding:70px 40px 80px}.nav{display:none}
+  .cover-title{font-size:38px}.sec-head h2{font-size:28px}
+  .kpi-grid,.kpi-grid-3,.cover-meta{grid-template-columns:repeat(2,1fr)}
+  .track{grid-template-columns:1fr}
+  .foot{padding:50px 40px 60px}
+}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+<nav class="nav">
+  <a href="#cover">00 결론</a>
+  <a href="#s1">01 원장 오류</a>
+  <a href="#s2">02 풀 셋</a>
+  <a href="#s3">03 진입비용</a>
+  <a href="#s4">04 단위 정정</a>
+  <a href="#s5">05 처방</a>
+  <a href="#s6">06 판정·잔여</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">Shared Resource · Instructor Capacity</div>
+  <h1 class="cover-title">사람이 모자란 게 아니라<br>전담자를 둘 수 없습니다</h1>
+  <p class="cover-sub">
+    RL-05·06·07이 각각 "진행 인력이 병목"이라 선언하고 끝냈고, 마스터는 사유만 적은 채 회차를 깎았고,
+    교차정합은 <code>상한 미확인</code>으로 남겼습니다. 계산해 보니 <em>총량은 업계 표준 범위 안</em>입니다 —
+    기준안 내부 소요 <strong>2.1 FTE</strong>, 사찰당 평균 2.27명의 <strong>0.92배</strong>.
+    문제는 그 2.1 FTE를 <strong>8명이 나눠 맡아야 한다</strong>는 데 있습니다.
+  </p>
+  <dl class="cover-meta">
+    <div><dt>대상</dt><dd>RL-05 · 06 · 07 · 09 진행 프로그램 14종</dd></div>
+    <div><dt>기준 소요</dt><dd>2,107회/년 · 3.0 FTE · 관여 11명</dd></div>
+    <div><dt>판정</dt><dd>총량 ✅ · 분산 🔴</dd></div>
+    <div><dt>처방</dt><dd>회차가 아니라 분야를 접는다</dd></div>
+  </dl>
+</section>
+
+<!-- 01 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">Ledger First</div><h2>합산하기 전에 원장이 틀려 있었습니다</h2></div>
+    <div class="no">01</div>
+  </div>
+  <p class="sec-desc">
+    교차정합 검증<span class="badge badge-info">00C</span>은 진행 인력 청구량을 <strong>연 2,402회 · 주 46회</strong>로 집계하고
+    "이 인력으로 불가능하다"고 판정했습니다. 그 2,402회에 오류가 넷 있습니다.
+  </p>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr><th style="width:34px"></th><th>오류</th><th>내용</th><th class="num">영향</th></tr></thead>
+    <tbody>
+      <tr><td>①</td><td><strong>이중계상</strong></td>
+        <td><code>RL-06 유인 810</code>과 <code>RL-09 몽크챗 250</code>을 각각 더했습니다.
+            <code>model-stay-v1.0</code>의 명상 라인은 RL-06과 <strong>같은 상품</strong>입니다</td>
+        <td class="num neg">−250회</td></tr>
+      <tr><td>②</td><td><strong>누락</strong></td>
+        <td>RL-07을 T2 12회만 계상했습니다. T0 출강 45 · T1 내방 18 · T3 세션 16도 사람이 진행합니다</td>
+        <td class="num warn">+79회 <span style="font-size:11px">(계상의 7.6배)</span></td></tr>
+      <tr><td>③</td><td><strong>구값</strong></td>
+        <td>RL-05를 마스터 v0.2의 600회로 잡았습니다. <code>model-edu-v1.0</code> 기준안은 706회입니다</td>
+        <td class="num warn">+106회</td></tr>
+      <tr><td>④</td><td><strong>과대계상</strong></td>
+        <td>RL-09 예불 728회를 신규 부담으로 넣었습니다. <strong>봉은사는 지금도 예불을 합니다</strong> —
+            투숙객은 기존 예불에 참여하므로 증분은 안내·영어해설(회당 0.25h)뿐입니다</td>
+        <td class="num neg">−228회 · 시간은 −93%</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="kpi-grid">
+    <div class="kpi bad">
+      <div class="kpi-label">교차정합 집계</div>
+      <div class="kpi-value">2,402<span class="kpi-unit">회</span></div>
+      <div class="kpi-sub">주 46회 · 이중계상·예불 과대</div>
+    </div>
+    <div class="kpi bad">
+      <div class="kpi-label">RL-05 검토 집계</div>
+      <div class="kpi-value">1,528<span class="kpi-unit">회</span></div>
+      <div class="kpi-sub">RL-07을 12회로 · RL-09 미포함</div>
+    </div>
+    <div class="kpi hero">
+      <div class="kpi-label">정리 후 (기준안)</div>
+      <div class="kpi-value">2,107<span class="kpi-unit">회</span></div>
+      <div class="kpi-sub">주 42.1회</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">보수 · 낙관</div>
+      <div class="kpi-value">1,254<span class="kpi-unit"> / 2,896</span></div>
+      <div class="kpi-sub">주 25.1회 / 주 57.9회</div>
+    </div>
+  </div>
+  <div class="callout">
+    <p><strong>같은 자원을 세 문서가 세 값으로 세고 있었습니다</strong> — 2,402 / 1,528 / (마스터는 아예 라벨만).
+      셋 다 «진행 인력이 병목»이라는 결론은 같았는데 집계가 달랐다는 것은, 그 결론이 <em>계산이 아니라 직관에서 나왔다</em>는 뜻입니다.</p>
+    <p>본 검산이 RL-05 검토<span class="badge badge-info">9차</span>와 <strong>겹치는 부분을 밝힙니다</strong> —
+      «분야가 갈려 총량 FTE로 환산되지 않는다», «상근이 성립하지 않는 파트타임을 여럿 유지해야 한다»,
+      «지도자 양성이 공급을 재생산한다», «1년차는 전량 외부 조달», «보유 인력 총량 미확인»은
+      RL-05 검토가 먼저 짚은 것입니다. 본 검산이 더한 것은 <strong>조달 난이도별 풀 3분할 · 원장 오류 4건 정정 ·
+      업계 표준과의 단위 일치 · 회차↔인원 비탄력성 · 단일 장애점 · 분야 접기 우선순위</strong>입니다.</p>
+  </div>
+
+  <h3 class="sub">정리 후 청구 원장</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>라인</th><th>프로그램</th><th>풀</th><th>분야</th>
+      <th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th>
+      <th class="num">회당</th><th class="num">기준 매출</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="9">RL-06 명상 — 점심 선·선잠은 무인이라 진행 인력 0</td></tr>
+      <tr><td>RL-06</td><td>드롭인 명상 클래스</td><td>D</td><td>명상</td>
+        <td class="num">300</td><td class="num">500</td><td class="num">700</td><td class="num">1.00h</td><td class="num">2.25억</td></tr>
+      <tr><td>RL-06</td><td>1일 선 리트리트</td><td>D</td><td>명상</td>
+        <td class="num">40</td><td class="num">60</td><td class="num">80</td><td class="num">6.00h</td><td class="num">0.97억</td></tr>
+      <tr><td>RL-06</td><td>스님과의 대화</td><td>S</td><td>몽크챗</td>
+        <td class="num">150</td><td class="num">250</td><td class="num">350</td><td class="num">0.75h</td><td class="num">1.05억</td></tr>
+      <tr class="grp"><td colspan="9">RL-05 교육·체험</td></tr>
+      <tr><td>RL-05</td><td>다도·차담·필사</td><td>D</td><td>다도</td>
+        <td class="num">120</td><td class="num">250</td><td class="num">340</td><td class="num">2.50h</td><td class="num">1.82억</td></tr>
+      <tr><td>RL-05</td><td>공방·메이커</td><td>X</td><td>공방</td>
+        <td class="num">80</td><td class="num">150</td><td class="num">220</td><td class="num">2.50h</td><td class="num">0.86억</td></tr>
+      <tr><td>RL-05</td><td>청소년·어린이</td><td>X</td><td>어린이</td>
+        <td class="num">60</td><td class="num">100</td><td class="num">140</td><td class="num">2.00h</td><td class="num">0.39억</td></tr>
+      <tr><td>RL-05</td><td>원데이 사찰음식</td><td>X</td><td>사찰음식</td>
+        <td class="num">60</td><td class="num">120</td><td class="num">180</td><td class="num">3.00h</td><td class="num">1.25억</td></tr>
+      <tr><td>RL-05</td><td>불교 아카데미</td><td>S</td><td>불교학</td>
+        <td class="num">24</td><td class="num">36</td><td class="num">48</td><td class="num">2.00h</td><td class="num">0.27억</td></tr>
+      <tr><td>RL-05</td><td>지도자 양성 과정</td><td>S</td><td>불교학</td>
+        <td class="num">15</td><td class="num">30</td><td class="num">30</td><td class="num">3.00h</td><td class="num">0.48억</td></tr>
+      <tr><td>RL-05</td><td>사찰음식 전문가 과정</td><td>X</td><td>사찰음식</td>
+        <td class="num">10</td><td class="num">20</td><td class="num">30</td><td class="num">3.00h</td><td class="num">0.38억</td></tr>
+      <tr class="grp"><td colspan="9">RL-07 기업 B2B</td></tr>
+      <tr><td>RL-07</td><td>T0 출강형 특강</td><td>D</td><td>명상</td>
+        <td class="num">16</td><td class="num">45</td><td class="num">100</td><td class="num">4.00h</td><td class="num">0.54억</td></tr>
+      <tr><td>RL-07</td><td>T1 내방 매스형</td><td>D</td><td>명상</td>
+        <td class="num">6</td><td class="num">18</td><td class="num">24</td><td class="num">3.00h</td><td class="num">0.76억</td></tr>
+      <tr><td>RL-07</td><td>T2 프리미엄 리트리트</td><td>S</td><td>몽크챗</td>
+        <td class="num">4</td><td class="num">12</td><td class="num">18</td><td class="num">8.00h</td><td class="num">0.48억</td></tr>
+      <tr><td>RL-07</td><td>T3 연간계약 세션</td><td>D</td><td>명상</td>
+        <td class="num">4</td><td class="num">16</td><td class="num">36</td><td class="num">3.00h</td><td class="num">1.00억</td></tr>
+      <tr class="grp"><td colspan="9">RL-09 숙박 — 증분만</td></tr>
+      <tr><td>RL-09</td><td>예불 안내·영어해설</td><td>S</td><td>예불·의례</td>
+        <td class="num">365</td><td class="num">500</td><td class="num">600</td><td class="num">0.25h</td><td class="num">—</td></tr>
+      <tr class="total"><td colspan="4">합계</td>
+        <td class="num">1,254</td><td class="num">2,107</td><td class="num">2,896</td>
+        <td class="num">주 42.1회</td><td class="num">12.50억</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">
+    전제는 RL-05 모델을 그대로 계승했습니다 — <strong>회당 준비·정리 60% 가산 · 연간 1인 가동 1,800시간</strong>.
+    RL-01 해설·도슨트는 별도 풀(해설사)이라 범위 밖입니다.
+  </p>
+</section>
+
+<!-- 02 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">Three Pools</div><h2>풀은 하나가 아니라 셋입니다</h2></div>
+    <div class="no">02</div>
+  </div>
+  <p class="sec-desc">
+    지금까지의 논의는 진행 인력을 한 덩어리로 다뤘습니다. 그런데 <strong>조달 난이도가 전혀 다릅니다</strong> —
+    하나는 살 수 없고, 하나는 시간이 걸리고, 하나는 돈이면 됩니다.
+    상한을 하나로 놓는 순간 이 차이가 사라집니다.
+  </p>
+
+  <div class="track">
+    <div class="t s">
+      <div class="n">Pool S</div>
+      <h4>스님</h4>
+      <div class="tag">살 수 없다</div>
+      <dl>
+        <dt>분야</dt><dd>몽크챗 · 불교학 · 예불</dd>
+        <dt>근거</dt><dd>몽크챗은 스님이 있어야 상품이 성립<span class="ev">E-0639 B</span> · T2는 "공간이 아니라 진행 주체를 판다"<span class="ev">E-0659 B</span></dd>
+        <dt>기준</dt><dd>913h · <strong>0.5 FTE</strong> · 관여 4명</dd>
+        <dt>조달</dt><dd>봉은사 상주 인력에서 배정하는 수밖에 없고 <strong>그 수가 미확인</strong></dd>
+      </dl>
+    </div>
+    <div class="t d">
+      <div class="n">Pool D</div>
+      <h4>지도법사</h4>
+      <div class="tag">시간이 걸린다</div>
+      <dl>
+        <dt>분야</dt><dd>명상 · 다도</dd>
+        <dt>근거</dt><dd>종단 선명상 지도자 100여 명 / 전국 50여 곳<span class="ev">E-0884 B</span> = 사찰당 약 2명</dd>
+        <dt>기준</dt><dd>2,827h · <strong>1.6 FTE</strong> · 관여 4명</dd>
+        <dt>조달</dt><dd>종단 배정 요청이 1순위 · 동시에 지도자 양성 과정이 공급을 자가 재생산<span class="ev">E-0644 A</span><span class="ev">E-0481 A</span></dd>
+      </dl>
+    </div>
+    <div class="t x">
+      <div class="n">Pool X</div>
+      <h4>외부 강사</h4>
+      <div class="tag">돈이면 된다</div>
+      <dl>
+        <dt>분야</dt><dd>사찰음식 · 공방 · 어린이</dd>
+        <dt>근거</dt><dd>조계종 사찰음식 3기관 분업<span class="ev">E-0435 A</span> · 선재센터<span class="ev">E-0431 B</span> · 게스트 초빙<span class="ev">E-0605 B</span></dd>
+        <dt>기준</dt><dd>1,592h · <strong>0.9 FTE</strong> · 관여 3명</dd>
+        <dt>조달</dt><dd>즉시 가능 · 상시 고용 없이 회차 계약. 봉은 사찰음식문화연구소는 이미 있다<span class="ev">E-0511 C</span></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>이 구분만으로 문제의 3분의 1이 사라집니다.</strong>
+      X풀 1,592시간(전체의 30%)은 상시 고용 대상이 아니라 <em>변동비</em>입니다.
+      마스터가 "진행자 공급 상한"을 이유로 깎은 RL-05가 바로 이 풀에 크게 걸쳐 있습니다 —
+      RL-05 낙관 988회 중 <strong>570회(58%)가 외부 조달 가능</strong>합니다.</p>
+  </div>
+</section>
+
+<!-- 03 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">Fixed, Not Variable</div><h2>인력은 변동비가 아니라 진입비용입니다</h2></div>
+    <div class="no">03</div>
+  </div>
+  <p class="sec-desc">
+    회차를 2.31배로 늘려도 필요 인원은 <strong>1.12배</strong>밖에 늘지 않습니다.
+    분야 하나를 여는 순간 최소 1명이 붙고, 그 1명은 회차를 깎아도 줄지 않기 때문입니다.
+  </p>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>시나리오</th><th class="num">진행 회차</th><th class="num">총량 FTE</th><th class="num">분야 인원</th>
+      <th class="num">회차 배수</th><th class="num">인원 배수</th><th class="num">1인당 회차</th></tr></thead>
+    <tbody>
+      <tr><td>보수</td><td class="num">1,254회</td><td class="num">1.6명</td><td class="num">8명</td>
+        <td class="num">1.00배</td><td class="num">1.00배</td><td class="num">157회</td></tr>
+      <tr><td>기준</td><td class="num">2,107회</td><td class="num">3.0명</td><td class="num">9명</td>
+        <td class="num">1.68배</td><td class="num">1.12배</td><td class="num">234회</td></tr>
+      <tr><td>낙관</td><td class="num">2,896회</td><td class="num">4.3명</td><td class="num">9명</td>
+        <td class="num warn">2.31배</td><td class="num pos">1.12배</td><td class="num">322회</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="sub">총량 FTE와 실제 인원이 3배 벌어지는 이유 — 분야는 겸임되지 않습니다</h3>
+  <p class="note">
+    한 사람이 사찰음식·불교학·다도·공방·어린이를 다 하지 못합니다(RL-05 검토가 지목한 제약).
+    분야별로 올림하면 <strong>총량 3.0 FTE에 실제 9명</strong>이 필요합니다 — 분할 손실 6.0명.
+  </p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>풀</th><th>분야</th><th class="num">보수 FTE</th><th class="num">기준 FTE</th><th class="num">낙관 FTE</th>
+      <th class="num">인원</th><th class="num">기준 귀속매출</th><th>상태</th></tr></thead>
+    <tbody>
+      <tr><td>D</td><td>명상</td><td class="num">0.56</td><td class="num">1.02</td><td class="num">1.56</td>
+        <td class="num">2명</td><td class="num">5.52억</td><td><span class="badge badge-no">단일 장애점 — 백업 필요</span></td></tr>
+      <tr><td>D</td><td>다도</td><td class="num">0.27</td><td class="num">0.56</td><td class="num">0.76</td>
+        <td class="num">1명</td><td class="num">1.82억</td><td><span class="badge badge-warn">단일 담당</span></td></tr>
+      <tr><td>S</td><td>몽크챗</td><td class="num">0.13</td><td class="num">0.25</td><td class="num">0.36</td>
+        <td class="num">1명</td><td class="num">1.53억</td><td><span class="badge badge-no">단일 장애점 — 백업 필요</span></td></tr>
+      <tr><td>S</td><td>불교학</td><td class="num">0.08</td><td class="num">0.14</td><td class="num">0.17</td>
+        <td class="num">1명</td><td class="num">0.75억</td><td><span class="badge badge-warn">단일 담당</span></td></tr>
+      <tr><td>S</td><td>예불·의례</td><td class="num">0.08</td><td class="num">0.11</td><td class="num">0.13</td>
+        <td class="num">1명</td><td class="num">—</td><td><span class="badge badge-warn">단일 담당 · 의무</span></td></tr>
+      <tr><td>X</td><td>사찰음식</td><td class="num">0.19</td><td class="num">0.37</td><td class="num">0.56</td>
+        <td class="num">1명</td><td class="num">1.63억</td><td><span class="badge badge-info">외부 조달</span></td></tr>
+      <tr><td>X</td><td>공방</td><td class="num">0.18</td><td class="num">0.33</td><td class="num">0.49</td>
+        <td class="num">1명</td><td class="num">0.86억</td><td><span class="badge badge-info">외부 조달</span></td></tr>
+      <tr><td>X</td><td>어린이</td><td class="num">0.11</td><td class="num">0.18</td><td class="num">0.25</td>
+        <td class="num">1명</td><td class="num">0.39억</td><td><span class="badge badge-info">외부 조달</span></td></tr>
+      <tr class="total"><td colspan="2">합계 (기준안)</td><td class="num">1.6</td><td class="num">3.0</td><td class="num">4.3</td>
+        <td class="num">9명</td><td class="num">12.50억</td><td>백업 반영 시 <strong>11명</strong></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">
+    백업은 매출 기여가 큰 두 분야(명상·몽크챗)에만 1명씩 얹었습니다 —
+    지도법사 1년 미만 퇴직률이 60%인 업계에서<span class="ev">E-0880 A</span> 분야당 1명 편성은 그 확률에 상품을 거는 일입니다.
+  </p>
+</section>
+
+<!-- 04 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">Unit Correction</div><h2>단위를 맞추면 결론이 뒤집힙니다</h2></div>
+    <div class="no">04</div>
+  </div>
+  <p class="sec-desc">
+    여기까지 오면 "관여 11명 = 업계 표준 2.27명의 4.8배"라는 결론이 나옵니다.
+    <strong>그 비교가 틀렸습니다.</strong> E-0880의 2.27명은 <em>상근 FTE</em>이고, 위 11명은 <em>겸임을 포함한 관여 인원</em>입니다.
+    같은 단위로 놓아야 합니다.
+  </p>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>시나리오</th><th class="num">내부 소요 (S+D)</th><th class="num">vs 표준 2.27명</th>
+      <th class="num">관여 인원</th><th class="num">1인 평균 배정</th><th>판정</th></tr></thead>
+    <tbody>
+      <tr><td>보수</td><td class="num">1.1 FTE</td><td class="num pos">0.49배</td><td class="num">7명</td>
+        <td class="num neg">0.16 FTE</td><td><span class="badge badge-yes">총량 여유</span></td></tr>
+      <tr><td>기준</td><td class="num">2.1 FTE</td><td class="num pos">0.92배</td><td class="num">8명</td>
+        <td class="num neg">0.26 FTE</td><td><span class="badge badge-yes">총량 여유</span></td></tr>
+      <tr><td>낙관</td><td class="num">3.0 FTE</td><td class="num warn">1.31배</td><td class="num">8명</td>
+        <td class="num">0.37 FTE</td><td><span class="badge badge-warn">총량 초과 시작</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout callout-danger">
+    <p><strong>기준안 내부 소요 2.1 FTE는 업계 표준 2.27명과 사실상 같습니다.</strong>
+      즉 교차정합의 "주 46회는 이 인력으로 불가능하다"는 판정은 <em>총량 기준으로는 성립하지 않습니다</em>.</p>
+    <p>진짜 문제는 다른 데 있습니다 — <strong>그 2.1 FTE를 8명이 나눠 맡아야 하고, 1인 평균 배정이 0.26 FTE입니다.</strong>
+      아무도 이 일로 전업이 되지 못합니다. 그리고 회차를 깎으면(보수안) 1인 평균은 <strong>0.21 FTE로 오히려 나빠집니다</strong> —
+      분야는 그대로인데 일감만 줄기 때문입니다.</p>
+    <p>이것이 <strong>E-0880이 20년째 못 푼 문제의 구조</strong>입니다. 사찰당 2.27명이 '적다'가 아니라
+      잘게 쪼개져 있어 전문성이 쌓이지 않고, 그래서 1년 미만 퇴직률이 60%가 됩니다.
+      <em>봉은사가 이 사업을 열면 같은 구조를 8칸으로 복제하게 됩니다.</em></p>
+  </div>
+
+  <h3 class="sub">희소 자원은 제값을 받고 있는가</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>풀</th><th class="num">소요 시간</th><th class="num">귀속 매출</th><th class="num">시간당 매출</th>
+      <th class="num">FTE</th><th class="num">관여 인원</th></tr></thead>
+    <tbody>
+      <tr><td>S 스님</td><td class="num">913h</td><td class="num">2.28억</td><td class="num">249,781원</td>
+        <td class="num">0.5</td><td class="num">4명</td></tr>
+      <tr class="sub-row"><td>ㄴ 예불(매출 0·의무) 제외</td><td class="num">713h</td><td class="num">2.28억</td>
+        <td class="num pos">319,865원</td><td class="num">0.4</td><td class="num">3명</td></tr>
+      <tr><td>D 지도법사</td><td class="num">2,827h</td><td class="num">7.34억</td><td class="num">259,550원</td>
+        <td class="num">1.6</td><td class="num">4명</td></tr>
+      <tr><td>X 외부강사</td><td class="num">1,592h</td><td class="num">2.89억</td><td class="num">181,281원</td>
+        <td class="num">0.9</td><td class="num">3명</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">
+    스님 시간은 예불을 빼면 <strong>시간당 매출이 가장 높습니다(32.0만원)</strong> — 가장 조달이 어려운 자원이 가장 비싸게 팔리고 있습니다.
+    단가 문제가 아닙니다. 문제는 그 <strong>0.4 FTE가 3개 분야로 갈려 3명(백업 포함 4명)이 관여</strong>해야 한다는 점입니다.
+  </p>
+</section>
+
+<!-- 05 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">Prescription</div><h2>회차가 아니라 분야를 접어야 합니다</h2></div>
+    <div class="no">05</div>
+  </div>
+  <p class="sec-desc">
+    마스터 v0.2는 RL-05 낙관을 900→800회로 깎으며 사유를 «진행자 공급 상한»이라 적었습니다.
+    <strong>회차를 깎아도 필요 인원은 줄지 않습니다.</strong> 인력을 줄이는 유일한 수단은 분야를 접는 것입니다.
+  </p>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr><th class="num">순위</th><th>풀</th><th>분야</th><th class="num">인원</th>
+      <th class="num">귀속 매출</th><th class="num">인당 매출</th><th class="num">누적 매출</th><th class="num">누적 인원</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>D</td><td>명상</td><td class="num">3명</td>
+        <td class="num">5.52억</td><td class="num pos">1.84억</td><td class="num">5.52억</td><td class="num">3명</td></tr>
+      <tr><td class="num">2</td><td>D</td><td>다도</td><td class="num">1명</td>
+        <td class="num">1.82억</td><td class="num pos">1.82억</td><td class="num">7.34억</td><td class="num">4명</td></tr>
+      <tr><td class="num">3</td><td>X</td><td>사찰음식</td><td class="num">1명</td>
+        <td class="num">1.63억</td><td class="num pos">1.63억</td><td class="num">8.97억</td><td class="num">5명</td></tr>
+      <tr><td class="num">4</td><td>X</td><td>공방</td><td class="num">1명</td>
+        <td class="num">0.86억</td><td class="num">0.86억</td><td class="num">9.83억</td><td class="num">6명</td></tr>
+      <tr><td class="num">5</td><td>S</td><td>몽크챗</td><td class="num">2명</td>
+        <td class="num">1.53억</td><td class="num warn">0.77억</td><td class="num">11.36억</td><td class="num">8명</td></tr>
+      <tr><td class="num">6</td><td>S</td><td>불교학</td><td class="num">1명</td>
+        <td class="num">0.75억</td><td class="num warn">0.75억</td><td class="num">12.11억</td><td class="num">9명</td></tr>
+      <tr><td class="num">7</td><td>X</td><td>어린이</td><td class="num">1명</td>
+        <td class="num">0.39억</td><td class="num neg">0.39억</td><td class="num">12.50억</td><td class="num">10명</td></tr>
+      <tr><td class="num">8</td><td>S</td><td>예불·의례</td><td class="num">1명</td>
+        <td class="num">—</td><td class="num">—</td><td class="num">12.50억</td><td class="num">11명</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="kpi-grid-3 kpi-grid">
+    <div class="kpi good">
+      <div class="kpi-label">상위 3개 분야</div>
+      <div class="kpi-value">72<span class="kpi-unit">%</span></div>
+      <div class="kpi-sub">명상·다도·사찰음식 — 5명으로 8.97억</div>
+    </div>
+    <div class="kpi bad">
+      <div class="kpi-label">하위 3개 분야</div>
+      <div class="kpi-value">9<span class="kpi-unit">%</span></div>
+      <div class="kpi-sub">3명으로 1.14억</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">RL-05 외부 조달 비중</div>
+      <div class="kpi-value">58<span class="kpi-unit">%</span></div>
+      <div class="kpi-sub">낙관 988회 중 570회 — 깎을 이유가 없던 라인</div>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>예불·의례는 접을 수 없습니다.</strong> 귀속 매출이 0이지만 템플스테이 운영 표준 의무이고<span class="ev">E-0874 A</span>
+      사찰의 본업입니다. 이 칸은 «접기» 대상이 아니라 <em>고정 원가</em>로 인정하고 시작해야 합니다.</p>
+    <p>반대로 <strong>지도자 양성 과정은 매출이 작다고 접으면 안 됩니다</strong>(불교학 0.75억).
+      이 과정은 RL-05의 매출 항목인 동시에 <em>D풀의 공급원</em>입니다 — 졸업생이 다시 진행자가 되는 재생산 구조<span class="ev">E-0644 A</span>이고,
+      왓포가 강사:학생 1:6으로 공급을 자가 재생산하는 것과 같은 장치입니다<span class="ev">E-0481 A</span>.
+      <strong>인력 문제의 유일한 내생적 해법이 매출 하위권에 앉아 있습니다.</strong></p>
+  </div>
+
+  <h3 class="sub">조달 순서 — 있는 것부터 씁니다</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>순서</th><th>풀</th><th>경로</th><th>소요</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>X 외부강사</strong></td>
+        <td>종단 기관에서 가져온다 — 사찰음식 3기관 분업<span class="ev">E-0435 A</span> · 선재센터<span class="ev">E-0431 B</span> ·
+            게스트 초빙으로 상시 고용 없이<span class="ev">E-0605 B</span>. 봉은 사찰음식문화연구소는 이미 있다<span class="ev">E-0511 C</span></td>
+        <td><span class="badge badge-yes">즉시</span></td></tr>
+      <tr><td>2</td><td><strong>D 지도법사</strong></td>
+        <td>종단 선명상 지도자 100여 명에서 배정 요청<span class="ev">E-0884 B</span>이 1순위.
+            병행해 지도자 양성 과정으로 자가 공급 착수<span class="ev">E-0644 A</span></td>
+        <td><span class="badge badge-warn">중기 · 양성 1기 필요</span></td></tr>
+      <tr><td>3</td><td><strong>S 스님</strong></td>
+        <td>살 수 없다. 봉은사 상주 인력 배정뿐이고 <strong>그 수가 미확인</strong> —
+            종무 자료로 즉시 확인 가능한 1순위 항목</td>
+        <td><span class="badge badge-no">확인 선행</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 06 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">Verdict</div><h2>판정과 남은 것</h2></div>
+    <div class="no">06</div>
+  </div>
+
+  <h3 class="sub">판정</h3>
+  <div class="callout">
+    <p><strong>«진행자 공급 상한»이라는 개념 자체가 잘못 쓰였습니다.</strong>
+      상한은 회차에 걸리지 않습니다. 기준안 2,107회는 내부 2.1 FTE로 소화 가능하고, 이는 업계 표준(2.27명)의 0.92배입니다.
+      실제로 걸리는 것은 <em>분야 수</em>와 <em>대체 인력</em>입니다.</p>
+    <p>따라서 마스터 v0.2가 RL-05 낙관을 900→800회로 깎은 것은 <strong>처방이 증상과 맞지 않습니다</strong> —
+      RL-05는 낙관 988회 중 570회(58%)가 외부 강사로 돌아가는 라인이고,
+      회차를 100회 깎아도 필요 인원은 한 명도 줄지 않습니다.
+      <strong>이 조정은 되돌리고, 대신 분야 편성을 결정 항목으로 올릴 것을 권고합니다.</strong></p>
+  </div>
+
+  <h3 class="sub">교차정합 검증에 넘길 값 <span style="font-size:12px;color:var(--fg-3)">— model-reconcile-v1.0 「자원 5」</span></h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>항목</th><th>현재</th><th>대체값</th></tr></thead>
+    <tbody>
+      <tr><td><code>MONK_CLAIM_YR</code> 합계</td><td>2,402회 (주 46)</td>
+        <td><strong>2,107회 (주 42.1)</strong> — 이중계상 250 제거 · RL-07 91회로 정정 · RL-05 706회 · 예불 증분화</td></tr>
+      <tr><td><code>MONK_SESSIONS_YR_CAP</code></td><td><code>None</code></td>
+        <td><strong>단일 상한은 정의 불가</strong>. 풀별로 나눠야 함 —
+            S 0.5 FTE / D 1.6 FTE / X 0.9 FTE (기준안). X는 변동비이므로 상한 대상이 아님</td></tr>
+      <tr><td>판정 문구</td><td>"주 46회는 이 인력으로 불가능하다"</td>
+        <td><strong>"총량 2.1 FTE는 표준 범위. 8개 분야로 갈려 1인 평균 0.26 FTE — 전담자를 둘 수 없는 것이 위험"</strong></td></tr>
+      <tr><td>RL-05 라인 매출</td><td>3.2억 (RL-03B 5축 축2)</td>
+        <td>⚠️ <code>model-edu-v1.0</code>이 나온 뒤이므로 그쪽 값으로 갱신 필요 — 본 검산은 상품별 실매출을 사용</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="sub">리서치 잔여</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>항목</th><th>지금 상태</th><th>필요</th><th>난이도</th></tr></thead>
+    <tbody>
+      <tr><td><strong>봉은사 상주 스님 · 지도 가능 인원</strong></td>
+        <td>요소 775건 어디에도 없음. 신도 수 추정치<span class="ev">E-0339 C</span>조차 "종무 자료로 실측해야 한다"고 단서가 붙어 있음</td>
+        <td>종무 자료 1건 — <strong>이 검산 전체가 이 숫자 하나를 대신하고 있다</strong></td>
+        <td><span class="badge badge-yes">하 · 내부</span></td></tr>
+      <tr><td>종단 선명상 지도자 배정 가능성</td><td>전국 100여 명 규모만 확인<span class="ev">E-0884 B</span></td>
+        <td>봉은사 배정 가능 인원 · 배정 조건 — 불교문화사업단<span class="ev">E-0872 A</span> 협의</td>
+        <td><span class="badge badge-warn">중</span></td></tr>
+      <tr><td>FTE 1,800h · 준비율 60% 전제</td><td>RL-05 모델에서 계승 · 출처 없는 실무 가정</td>
+        <td>사찰 프로그램 진행자의 실제 가동 구조 — 겸임 비율이 높으면 이 전제가 통째로 흔들린다</td>
+        <td><span class="badge badge-warn">중</span></td></tr>
+      <tr><td>분야 경계</td><td>8개로 나눈 것은 본 검산의 판단</td>
+        <td>다도와 명상을 한 사람이 할 수 있는가 등 — 경계가 하나 합쳐질 때마다 1명이 준다</td>
+        <td><span class="badge badge-yes">하 · 실무 판단</span></td></tr>
+      <tr><td>RL-01 해설·도슨트 풀</td><td>본 검산 범위 밖(별도 풀)</td>
+        <td>해설사는 스님·지도법사가 아니지만 <strong>사람이고 비용이다</strong> — 별도 원장 필요</td>
+        <td><span class="badge badge-yes">하</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout callout-warn">
+    <p><strong>이 검산의 한계를 분명히 합니다.</strong> 봉은사 보유 인력이 미확인이므로 <em>상한을 센 것이 아니라 필요량을 역산</em>했습니다.
+      판정의 근거는 전부 외부 대조군(업계 평균 2.27명 · 종단 지도자 100여 명)이고, 둘 다 봉은사 수치가 아닙니다.
+      <strong>종무 자료 한 건이면 이 검산의 절반은 실측으로 바뀝니다.</strong></p>
+  </div>
+</section>
+
+<div class="foot">
+  PROJECT RENT &nbsp;·&nbsp; 봉은문화센터 활용전략 수립 용역 &nbsp;·&nbsp; 진행 인력 통합 상한 &nbsp;·&nbsp; 2026-08-17 &nbsp;·&nbsp; 내부 검토용<br>
+  <span style="letter-spacing:.1em;text-transform:none;font-size:10px;color:var(--fg-3)">모델 <code>_data/model-monk-capacity-v1.0.py</code> &nbsp;|&nbsp; 입력 <code>model-edu / medi / b2b / stay -v1.0</code> &nbsp;|&nbsp; 연계 <code>00C-교차정합검증</code></span>
+</div>
+
+<script>
+const secs=[...document.querySelectorAll('section.sec')];
+const links=[...document.querySelectorAll('.nav a')];
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+  links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+e.target.id));}})},
+  {rootMargin:'-40% 0px -55% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

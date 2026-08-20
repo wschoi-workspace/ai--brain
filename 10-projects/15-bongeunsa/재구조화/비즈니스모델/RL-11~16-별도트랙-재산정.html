@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>별도 트랙 재산정 | PROJECT RENT</title>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+em{font-style:normal;color:var(--accent-light)}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.nav{position:fixed;top:50%;left:26px;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:10;font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color 150ms var(--ease-out)}
+.nav a:hover,.nav a.active{color:var(--accent)}
+.sec{padding:90px 120px 110px;max-width:1440px;margin:0 auto}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:26px;border-bottom:1px solid var(--line-2);margin-bottom:44px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:38px;font-weight:300;letter-spacing:-0.025em;line-height:1.15;margin-top:8px}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin-bottom:38px}
+h3.sub{font-size:19px;font-weight:400;color:var(--fg);margin:46px 0 14px;letter-spacing:-0.02em}
+h3.sub:first-of-type{margin-top:0}
+p.note{font-size:13px;color:var(--fg-2);margin:10px 0;max-width:920px}
+#cover{padding-top:140px;min-height:84vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:34px}
+.cover-title{font-size:64px;font-weight:200;letter-spacing:-0.04em;line-height:1.05;margin-bottom:24px}
+.cover-sub{font-size:19px;color:var(--fg-2);line-height:1.6;max-width:920px;margin-bottom:46px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:30px;max-width:1020px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:11px 12px;font-weight:400;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+tbody tr.total td{border-top:1px solid var(--line);color:var(--fg);font-weight:500;background:rgba(108,92,231,.05)}
+tbody tr.sub-row td{color:var(--fg-3);font-size:12px}
+tbody tr.sub-row td:first-child{color:var(--fg-3);padding-left:28px}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--red)} .pos{color:var(--green)} .warn{color:var(--amber)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:3px 9px;font-size:10px;letter-spacing:.08em;white-space:nowrap}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi.hero{border-color:var(--accent)} .kpi.bad{border-color:rgba(225,112,85,.4)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:32px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi.bad .kpi-value{color:var(--red)}
+.kpi .kpi-unit{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px;line-height:1.5}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:22px 26px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.75}
+.callout p+p{margin-top:10px}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.layer{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:26px 0}
+.layer .ly{background:var(--bg-3);border:1px solid var(--line-2);padding:22px}
+.layer .ly.core{border-color:var(--accent)}
+.layer .ly.danger{border-color:rgba(225,112,85,.4)}
+.layer .ly .n{font-size:10px;letter-spacing:.2em;color:var(--accent);margin-bottom:8px}
+.layer .ly.danger .n{color:var(--red)}
+.layer .ly h4{font-size:16px;margin-bottom:8px}
+.layer .ly p{font-size:12.5px;color:var(--fg-2);line-height:1.65;margin-bottom:10px}
+.layer .ly .v{font-size:21px;font-weight:200;color:var(--fg);letter-spacing:-0.02em}
+.layer .ly .s{font-size:11px;color:var(--fg-3);margin-top:4px}
+/* 램프 차트 */
+.ramp{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:26px 0;align-items:end;height:210px}
+.ramp .c{display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.ramp .st{width:100%;border-radius:1px}
+.ramp .s1{background:var(--accent)} .ramp .s2{background:var(--green)} .ramp .s3{background:var(--amber)}
+.ramp .lab{font-size:11px;color:var(--fg-3);text-align:center;margin-top:9px;letter-spacing:.06em}
+.ramp .val{font-size:13px;color:var(--fg);text-align:center;margin-bottom:7px;font-variant-numeric:tabular-nums}
+.lg{display:flex;gap:20px;font-size:11.5px;color:var(--fg-3);margin-bottom:6px}
+.lg i{display:inline-block;width:11px;height:11px;margin-right:6px;vertical-align:-1px}
+.foot{padding:60px 120px 80px;border-top:1px solid var(--line-2);text-align:center;color:var(--fg-3);font-size:11px;letter-spacing:.2em;max-width:1440px;margin:0 auto}
+@media (max-width:1100px){
+  .sec{padding:70px 40px 80px}.nav{display:none}
+  .cover-title{font-size:40px}.sec-head h2{font-size:28px}
+  .kpi-grid,.kpi-grid-3,.cover-meta,.layer{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+<nav class="nav">
+  <a href="#cover">00 결론</a>
+  <a href="#s1">01 장묘</a>
+  <a href="#s2">02 온라인</a>
+  <a href="#s3">03 시즌·야간</a>
+  <a href="#s4">04 C안</a>
+  <a href="#s5">05 재산정</a>
+  <a href="#s6">06 판정·잔여</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">RL-11 ~ RL-16 · Separate Track Restatement</div>
+  <h1 class="cover-title">40억 중<br>8.9억이 남습니다</h1>
+  <p class="cover-sub">
+    마스터는 이 여섯 라인을 40.0억으로 잡고 <strong>"C등급 가정이라 본선에서 뺀다"</strong>고 했습니다.
+    하나씩 뜯어보니 <em>빼야 하는 이유가 라인마다 달랐고</em>,
+    <strong>등급이 문제인 라인은 하나도 없었습니다.</strong>
+  </p>
+  <dl class="cover-meta">
+    <div><dt>마스터 v0.2</dt><dd>40.0억 · 6개 라인 24건</dd></div>
+    <div><dt>재산정 1년차</dt><dd><strong>8.88억</strong> (22%)</dd></div>
+    <div><dt>5년차</dt><dd>20.4억 (51%)</dd></div>
+    <div><dt>작성</dt><dd>2026.08.17 · 내부 문서</dd></div>
+  </dl>
+
+  <div class="kpi-grid" style="margin-top:52px">
+    <div class="kpi bad"><div class="kpi-label">RL-11 장묘</div><div class="kpi-value">85<span class="kpi-unit">%</span></div><div class="kpi-sub">20억 중 17억이<br><strong>계약 범위 밖</strong></div></div>
+    <div class="kpi bad"><div class="kpi-label">RL-12 온라인</div><div class="kpi-value">0<span class="kpi-unit">억</span></div><div class="kpi-sub">RL-04에 이미 계상<br><strong>중복 소멸</strong></div></div>
+    <div class="kpi hero"><div class="kpi-label">RL-13 시즌·야간</div><div class="kpi-value">Tier<span class="kpi-unit">1</span></div><div class="kpi-sub">별도 트랙 24건 중<br><strong>유일하게 해석 불요</strong></div></div>
+    <div class="kpi"><div class="kpi-label">RL-14~16 C안</div><div class="kpi-value">3<span class="kpi-unit">년차</span></div><div class="kpi-sub">1년차 실현율 0%<br>등급이 아니라 <strong>시점</strong> 문제</div></div>
+  </div>
+
+  <div class="callout callout-success" style="margin-top:34px">
+    <p><strong>마스터가 이 트랙을 본선에서 뺀 판단은 옳았습니다.</strong> 다만 이유가 달랐습니다.</p>
+    <p>장묘는 근거 등급이 아니라 <strong>계약 범위</strong>의 문제입니다 —
+    이 용역의 대상은 건물 8,868㎡이지 경내지 66,230㎡가 아닙니다.
+    온라인은 <strong>이미 리테일에서 센 매출</strong>이고,
+    C안 세 라인은 <strong>1년차에 팔 수 없을 뿐 3년차에는 팔립니다</strong>.
+    그리고 시즌·야간은 오히려 <strong>과소평가</strong>돼 있었습니다 — 24건 중 유일한 Tier1입니다.</p>
+  </div>
+</section>
+
+<!-- 01 장묘 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">RL-11 · Funerary</div>
+    <h2>수요가 가장 확실한데 지을 자리가 없습니다</h2></div>
+    <div class="no">01</div>
+  </div>
+  <p class="sec-desc">
+    별도 트랙 40억의 절반이 이 라인입니다. 그리고 <strong>수요 근거는 전 라인 중 가장 강합니다</strong> —
+    화장률 95.1%, 자연장 선호 45.4%로 1위인데 국공립 수목장림은 전국 5곳뿐입니다
+    <span style="color:var(--fg-3)">(E-0445 A)</span>. 구조적 초과수요가 실측으로 확인된 유일한 시장입니다.
+  </p>
+
+  <div class="kpi-grid">
+    <div class="kpi hero"><div class="kpi-label">화장률</div><div class="kpi-value">95.1<span class="kpi-unit">%</span></div><div class="kpi-sub">2024.12 · 전년 +1.6%p</div></div>
+    <div class="kpi hero"><div class="kpi-label">자연장 선호</div><div class="kpi-value">45.4<span class="kpi-unit">%</span></div><div class="kpi-sub">장묘 선호 <strong>1위</strong><br>봉안당 39.8%가 2위</div></div>
+    <div class="kpi"><div class="kpi-label">국공립 수목장림</div><div class="kpi-value">5<span class="kpi-unit">곳</span></div><div class="kpi-sub">전국 · <strong>공급 부족 명확</strong></div></div>
+    <div class="kpi"><div class="kpi-label">단가 격차</div><div class="kpi-value">67<span class="kpi-unit">배</span></div><div class="kpi-sub">국공립 75~150만<br>사설 1,000만~1억</div></div>
+  </div>
+
+  <h3 class="sub">그런데 이 계약에서는 지을 수 없습니다</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>제약</th><th>내용</th><th>결과</th></tr></thead>
+    <tbody>
+      <tr><td>면적 배분</td><td>통합 배치안 '봉은 1,200'에 <strong>봉안 공간 0㎡</strong> <span style="color:var(--fg-3)">E-0532 A</span></td>
+        <td>배정 자체가 없음</td></tr>
+      <tr><td><strong>계약 대상</strong></td><td>본 용역 대상은 <strong>봉은문화회관 8,868㎡</strong> — 경내지 66,230.3㎡와 별개 <span style="color:var(--fg-3)">E-0501 A</span></td>
+        <td><strong>봉안당·수목장은 '건물 리모델링'이 아니라 '경내지 개발'</strong></td></tr>
+      <tr><td>도시공원 규제</td><td>도시공원 지정에 따른 건축 규제 44년 <span style="color:var(--fg-3)">E-0550 B</span></td>
+        <td>신축 경로 자체가 불투명</td></tr>
+      <tr><td>시설 기준</td><td>종교단체 안치 한도와 시설 기준이 함께 걸림 <span style="color:var(--fg-3)">E-0685 A</span></td>
+        <td>검토된 바 없음</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>봉안당 12억 · 프리미엄 봉안 5억 · 수목장 3억 = 20억이 전부 시설형입니다.</strong>
+    셋 다 새로 짓거나 부지를 써야 하고, 그건 이 용역의 산출물이 아닙니다.
+    <strong>C등급이라 뺀 것이 아니라 애초에 다른 사업</strong>입니다.</p>
+  </div>
+
+  <h3 class="sub">단, 시설 없이 되는 것이 섞여 있었습니다</h3>
+  <p class="note">
+    E-0689가 명시합니다 — <strong>"라이프엔딩 컨시어지는 장묘 시설 없이도 시작할 수 있는 서비스 진입점"</strong>.
+    영대공양(E-0688)도 1회 분양이 아니라 정기 의례를 파는 것이라 기존 사찰 공간에서 성립합니다.
+  </p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>상품</th><th>과금 구조</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>성립 조건</th></tr></thead>
+    <tbody>
+      <tr><td>영대공양 추모 <span style="color:var(--fg-3)">E-0688</span></td>
+        <td>연 40/100/200건 × 200~500만원</td>
+        <td class="num">0.80억</td><td class="num">3.00억</td><td class="num">10.00억</td>
+        <td>위패 봉안 공간 + 정기 의례 — <strong>기존 전각 활용</strong></td></tr>
+      <tr><td>라이프엔딩 컨시어지 <span style="color:var(--fg-3)">E-0689</span></td>
+        <td>연 20/50/100건 × 150~300만원</td>
+        <td class="num">0.30억</td><td class="num">1.00억</td><td class="num">3.00억</td>
+        <td>생전정리·상담·의례 설계 — <strong>시설 불요</strong></td></tr>
+      <tr class="total"><td>서비스형 소계</td><td>—</td>
+        <td class="num">1.10억</td><td class="num">4.00억</td><td class="num">13.00억</td>
+        <td>마스터 20억의 <strong>20%</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>영대공양 3.0억은 순증분이 아닐 수 있습니다.</strong>
+    봉은사가 이미 위패 봉안과 천도재를 하고 있다면 이 금액의 상당 부분은
+    <strong>기존 사업의 재분류</strong>입니다 — RL-10 멤버십의 신도 후원 4.9억이 겪은 것과 같은 문제입니다.
+    <strong>기존 실적과 대조하기 전에는 매출로 올릴 수 없습니다.</strong></p>
+  </div>
+
+  <div class="callout">
+    <p><strong>권고 — 봉안당은 별도 사업으로 제언합니다.</strong>
+    수요 근거가 전 라인 중 가장 강한데 이 계약에서 다룰 수 없다는 것이,
+    그 기회가 없다는 뜻은 아닙니다. 일본 도시형 사원 분석은 <strong>임대+납골당이 BM의 80%</strong>를
+    차지한다고 봤고 <span style="color:var(--fg-3)">(E-0415 C · 출처 미표기, 재검증 필요)</span>,
+    종합 리서치의 결론안B도 납골당을 <strong>'장기 안정' 기둥</strong>으로 배치했습니다
+    <span style="color:var(--fg-3)">(E-0499 C)</span>.</p>
+    <p>이 검토의 산출은 <strong>"편입 불가"가 아니라 "경내지 마스터플랜에서 다뤄야 할 항목"</strong>입니다.
+    중창불사 3단계 마스터플랜(E-0550)과 묶어 발주처에 제언하는 것이 맞습니다.</p>
+  </div>
+</section>
+
+<!-- 02 온라인 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">RL-12 · Online</div>
+    <h2>이미 센 매출입니다</h2></div>
+    <div class="no">02</div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>출처</th><th class="num">온라인 매출</th><th>위치</th></tr></thead>
+    <tbody>
+      <tr><td>마스터 v0.2 · RL-12 별도 트랙</td><td class="num">1.5억</td><td>독립 라인</td></tr>
+      <tr><td><strong>RL-04 5차 독립리포트</strong></td><td class="num">3.0억</td><td>19.0억 = 오프 15.0 + <strong>온라인 3.0</strong> + 박람회 1.0</td></tr>
+      <tr><td>RL-03B 5축 · 축4</td><td class="num">4.0억</td><td>10.6억 = 오프 6.6 + <strong>온라인 4.0</strong></td></tr>
+      <tr class="total"><td>→ 판정</td><td class="num">0억</td><td><strong>RL-12 소멸</strong> — 온라인은 리테일의 채널이지 독립 라인이 아님</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <p><strong>마스터 자신이 이미 같은 처리를 한 전례가 있습니다.</strong>
+    RL-17(자체 상품개발·직영)에 대해 <strong>"원가 라인 — 매출은 RL-04에 귀속"</strong>이라고
+    명시하며 이중계상을 막았습니다. RL-12도 같은 성격입니다.</p>
+    <p>다만 채널 자체가 아직 없다는 사실은 남습니다 —
+    bongeunsa.org에 영어·중문·일문 링크가 <strong>0건</strong>이고 결제는 현금 3만원입니다
+    <span style="color:var(--fg-3)">(E-1004 A)</span>.
+    <strong>RL-04의 온라인 3.0억은 채널 구축을 전제한 값</strong>이고, 그 구축 비용은 아직 CAPEX에 없습니다.</p>
+  </div>
+</section>
+
+<!-- 03 시즌 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">RL-13 · Seasonal &amp; Night</div>
+    <h2>별도 트랙에서 유일하게 지금 되는 것</h2></div>
+    <div class="no">03</div>
+  </div>
+  <p class="sec-desc">
+    시즌 연등 야간 개방(E-0670)은 <strong>별도 트랙 24건 중 유일한 Tier1</strong>입니다.
+    유권해석도 조리 게이트도 필요 없고, 봉은사가 이미 매년 하고 있는 일입니다.
+    마스터가 이 라인을 "국내 단가 근거 0"으로 묶어 뺀 것은 <strong>과소평가</strong>였습니다.
+  </p>
+
+  <div class="kpi-grid">
+    <div class="kpi hero"><div class="kpi-label">비수기 공백</div><div class="kpi-value">113<span class="kpi-unit">건</span></div><div class="kpi-sub">12월 언급 — 3월 920건의 <strong>12%</strong><br>E-1033 A</div></div>
+    <div class="kpi"><div class="kpi-label">강남 야간 프로그램</div><div class="kpi-value">0<span class="kpi-unit">개</span></div><div class="kpi-sub">E-1020 B</div></div>
+    <div class="kpi"><div class="kpi-label">고다이지 야간</div><div class="kpi-value">800<span class="kpi-unit">엔</span></div><div class="kpi-sub">연 3회 시즌 · 프로젝션 3분<br>E-0460 C</div></div>
+    <div class="kpi"><div class="kpi-label">국가유산 미디어아트</div><div class="kpi-value">17<span class="kpi-unit">만명</span></div><div class="kpi-sub">회당 · 2024년 7개 지역 118만<br>RL-01이 공모 경로로 지정</div></div>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>설계 원칙 — 야간 개방 자체는 무료로 둡니다.</strong>
+    ① 봉은사는 무료 개방 사찰이고 ② 체스터 대성당은 4파운드를 받고 방문객 30~40%를 잃었으며
+    <span style="color:var(--fg-3)">(E-0473)</span> ③ RL-01 v1.2가 이미 <strong>"상설은 무료"</strong> 원칙을 세웠습니다.</p>
+    <p>그러면 수익원은 셋만 남습니다 — <strong>마켓 부스료 · 야간 전용 유료 프로그램 · 기업 협찬</strong>.
+    입장료를 받지 않는 대신 <strong>모인 사람에게 파는 구조</strong>입니다.</p>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>수익원</th><th>산식</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th></tr></thead>
+    <tbody>
+      <tr><td>야간 개방일</td><td>시즌 1/2/2회 × 20/30/40일</td>
+        <td class="num">20일</td><td class="num">60일</td><td class="num">80일</td></tr>
+      <tr><td>마켓 부스료</td><td>개방일 × 25/45/70부스 × 8~13만원</td>
+        <td class="num">0.40억</td><td class="num">2.70억</td><td class="num">7.28억</td></tr>
+      <tr><td>야간 전용 유료 프로그램</td><td>개방일 × 40/90/160명 × 1.5~2.8만원<br><span style="color:var(--fg-3)">연등 만들기·야간 다도·사경</span></td>
+        <td class="num">0.12억</td><td class="num">1.08억</td><td class="num">3.58억</td></tr>
+      <tr><td>기업 협찬</td><td>시즌 단위</td>
+        <td class="num">0</td><td class="num">0.50억</td><td class="num">1.50억</td></tr>
+      <tr class="total"><td>RL-13 소계</td><td>—</td>
+        <td class="num">0.52억</td><td class="num">4.28억</td><td class="num">12.36억</td></tr>
+      <tr><td>마스터 v0.2</td><td>—</td><td colspan="3" class="num">6.40억</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <p><strong>야간 방문객이 F&amp;B·리테일에서 쓰는 돈은 여기에 넣지 않았습니다.</strong>
+    RL-02·03·04에 귀속되는 매출이라 중복이 됩니다.
+    즉 <strong>4.28억은 시즌 이벤트가 직접 버는 것만</strong>이고,
+    실제 기여는 다른 라인의 비수기 매출을 끌어올리는 데 있습니다 —
+    9~2월 언급 점유율이 19.4%인데 12월은 113건까지 떨어집니다 <span style="color:var(--fg-3)">(E-1033 A)</span>.</p>
+    <p>거꾸로 말하면 <strong>이 라인은 비수기 대책으로 평가해야 합니다.</strong>
+    RL-01 전시가 "수익 라인이 아니라 집객 라인"으로 재분류된 것과 같은 성격입니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>나이트마켓(E-0671)은 Tier2입니다.</strong>
+    "상업 매대의 성격에 따라 적합성 판단이 갈린다"고 명시돼 있습니다.
+    부스료 2.70억이 이 라인의 최대 항목인데, <strong>그 부스에 무엇을 놓느냐가 법적 판정을 가릅니다.</strong>
+    RL-04의 품목 게이트 3단계(5차 리포트)를 그대로 적용해야 합니다.</p>
+  </div>
+</section>
+
+<!-- 04 C안 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">RL-14~16 · Track C</div>
+    <h2>등급이 아니라 시점의 문제입니다</h2></div>
+    <div class="no">04</div>
+  </div>
+  <p class="sec-desc">
+    세 라인의 고객은 <strong>사람이 아니라 사찰</strong>입니다. 그래서 방문객 수요조사로는 측정이 안 되고,
+    브리지 검증에서 G10 상품화 26건 중 연결된 것이 <strong>1건</strong>뿐이었습니다
+    <span style="color:var(--fg-3)">(E-1059 A · 미연결률 85%)</span>.
+  </p>
+
+  <div class="callout callout-success">
+    <p><strong>그런데 5차 리테일 리포트가 이미 답을 냈습니다.</strong>
+    <em>"확산은 봉은사가 하지 않는다. 검증만 하면 종단이 한다."</em></p>
+    <p>확산 채널은 이미 종단이 갖고 있습니다 — 총무원 문화상품 공모전(2026.6.1~10.23) ·
+    서울국제불교박람회 연 25만명(2027년 2배 확대) · 한국불교문화사업단 본디나 ·
+    전국 사찰 불교용품점 · 마하몰 온라인 큐레이션.
+    <strong>없는 것은 365일 실판매 데이터 하나</strong>이고, 그게 봉은사 매장이 만드는 것입니다.</p>
+  </div>
+
+  <h3 class="sub">그래서 연차별로 나눕니다</h3>
+  <div class="lg">
+    <span><i style="background:var(--accent)"></i>장묘 서비스형</span>
+    <span><i style="background:var(--green)"></i>시즌·야간</span>
+    <span><i style="background:var(--amber)"></i>C안 (도매·IP·용역)</span>
+  </div>
+  <div class="ramp">
+    <div class="c"><div class="val">5.2억</div>
+      <div class="st s3" style="height:0%"></div>
+      <div class="st s2" style="height:14.7%"></div>
+      <div class="st s1" style="height:10.8%"></div>
+      <div class="lab">1년차</div></div>
+    <div class="c"><div class="val">9.2억</div>
+      <div class="st s3" style="height:14.8%"></div>
+      <div class="st s2" style="height:16.8%"></div>
+      <div class="st s1" style="height:13.7%"></div>
+      <div class="lab">2년차</div></div>
+    <div class="c"><div class="val">14.5억</div>
+      <div class="st s3" style="height:35.6%"></div>
+      <div class="st s2" style="height:18.9%"></div>
+      <div class="st s1" style="height:16.7%"></div>
+      <div class="lab">3년차</div></div>
+    <div class="c"><div class="val">18.6억</div>
+      <div class="st s3" style="height:50.4%"></div>
+      <div class="st s2" style="height:21.0%"></div>
+      <div class="st s1" style="height:19.6%"></div>
+      <div class="lab">4년차</div></div>
+    <div class="c"><div class="val">20.4억</div>
+      <div class="st s3" style="height:59.3%"></div>
+      <div class="st s2" style="height:21.0%"></div>
+      <div class="st s1" style="height:19.6%"></div>
+      <div class="lab">5년차</div></div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>연차</th><th class="num">1년차</th><th class="num">2년차</th><th class="num">3년차</th><th class="num">4년차</th><th class="num">5년차</th><th>단계</th></tr></thead>
+    <tbody>
+      <tr><td>C안 실현율</td><td class="num">0%</td><td class="num">25%</td><td class="num">60%</td><td class="num">85%</td><td class="num">100%</td>
+        <td>5차 리포트 3단계 로드맵을 시간축으로 전개</td></tr>
+      <tr><td>C안 매출</td><td class="num">0.0억</td><td class="num">3.0억</td><td class="num">7.3억</td><td class="num">10.3억</td><td class="num">12.1억</td>
+        <td>만개 12.1억 = 도매 6.0 + IP 2.1 + 용역 4.0</td></tr>
+      <tr class="sub-row"><td>Phase 1 (개관~1년)</td><td colspan="6">강남에서 판다 — 실판매 데이터 축적. <strong>이 단계에 C안 매출은 0</strong></td></tr>
+      <tr class="sub-row"><td>Phase 2 (2년차)</td><td colspan="6">박람회 «제2관» 연동 · 공모전 수상작 입점</td></tr>
+      <tr class="sub-row"><td>Phase 3 (3년차~)</td><td colspan="6">도매·라이선스·턴키 — 검증된 것만 종단 채널에 태움</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">단 하나, 지금 착수 가능한 것이 있습니다</h3>
+  <div class="layer">
+    <div class="ly core"><div class="n">E-0888 · RL-16</div><h4>사찰운영자 아카데미</h4>
+      <p>전국 사찰 주지·실무자 대상으로 외부환경 분석 → 비전 수립 → 운영 마케팅 →
+      사찰운영계획서 작성까지 표준 커리큘럼으로 교육하고 수료 인증을 발급.</p>
+      <div class="v">0.60억</div><div class="s">연 2기 × 25명 × 120만원 (기준안)</div></div>
+    <div class="ly"><div class="n">E-0885 · 벤치마크</div><h4>본원사파 말사강좌</h4>
+      <p>일본 정토진종 본원사파가 운영하는 사원 지원 강좌. <strong>누계 295개 사원 수료</strong>,
+      최다 연도 84개사·164명, 표준 커리큘럼 4회.</p>
+      <div class="v">295<span style="font-size:13px">개 사원</span></div><div class="s">C안 6개 라인 중 유일한 실적 벤치마크</div></div>
+    <div class="ly"><div class="n">왜 지금 되는가</div><h4>파는 것이 상품이 아님</h4>
+      <p>도매·IP·턴키는 <strong>검증된 상품</strong>이 있어야 팔리지만, 아카데미는
+      <strong>봉은사가 이 프로젝트를 하며 배운 것</strong>을 팝니다. 재고도 제조도 필요 없습니다.</p>
+      <div class="v">CAPEX 0</div><div class="s">RL-05 강의실 120㎡ 공유</div></div>
+  </div>
+</section>
+
+<!-- 05 재산정 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">Restatement</div>
+    <h2>40억이 8.9억이 됩니다</h2></div>
+    <div class="no">05</div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>라인</th><th class="num">마스터 v0.2</th><th class="num">재산정 1년차</th><th class="num">차이</th><th>사유</th></tr></thead>
+    <tbody>
+      <tr><td>RL-11 장묘</td><td class="num">20.0억</td><td class="num">4.00억</td><td class="num neg">−16.00</td>
+        <td>시설형 20억 중 <strong>17억이 계약 범위 밖</strong> · 서비스형만 편입</td></tr>
+      <tr><td>RL-12 온라인</td><td class="num">1.5억</td><td class="num">0.00억</td><td class="num neg">−1.50</td>
+        <td>RL-04에 이미 계상 — <strong>중복</strong></td></tr>
+      <tr><td>RL-13 시즌·야간</td><td class="num">6.4억</td><td class="num">4.28억</td><td class="num neg">−2.12</td>
+        <td>무료 개방 원칙 · 부스료+프로그램+협찬만 계상</td></tr>
+      <tr><td>RL-14~16 C안</td><td class="num">12.1억</td><td class="num">0.60억</td><td class="num neg">−11.50</td>
+        <td>1년차 실현율 0% · <strong>사찰운영자 아카데미만 착수 가능</strong></td></tr>
+      <tr class="total"><td>합계</td><td class="num">40.0억</td><td class="num">8.88억</td><td class="num neg">−31.12</td>
+        <td><strong>22%만 남는다</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <p><strong>1년차 8.88억은 정상 가동 기준입니다.</strong>
+    램프업을 반영하면 실제 1년차는 <strong>5.2억</strong>이고, 5년차에 <strong>20.4억</strong>에 도달합니다.
+    마스터가 1년차부터 40억으로 잡은 값의 <strong>51%</strong>입니다.</p>
+    <p>즉 이 트랙은 <strong>없는 것이 아니라 늦게 오는 것</strong>입니다.
+    마스터가 "본선 합계에 넣지 않는다"고 한 판단은 유지하되,
+    <strong>5개년 P&amp;L에서는 2년차부터 계상</strong>해야 합니다.</p>
+  </div>
+
+  <h3 class="sub">본선 합계에 넣을 것과 뺄 것</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">1년차</th><th>처리</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>RL-13 시즌·야간</td><td class="num">4.28억</td><td><span class="badge badge-yes">본선 편입 권고</span></td>
+        <td><strong>Tier1</strong> · 봉은사가 이미 하고 있음 · CAPEX 최소</td></tr>
+      <tr><td>RL-16 사찰운영자 아카데미</td><td class="num">0.60억</td><td><span class="badge badge-yes">본선 편입 권고</span></td>
+        <td>CAPEX 0 · RL-05 강의실 공유 · 벤치마크 295개사</td></tr>
+      <tr><td>RL-11 장묘 서비스형</td><td class="num">4.00억</td><td><span class="badge badge-warn">조건부</span></td>
+        <td><strong>기존 위패·천도재 실적과 대조 후</strong> 순증분만</td></tr>
+      <tr><td>RL-11 장묘 시설형</td><td class="num">—</td><td><span class="badge badge-no">별도 사업 제언</span></td>
+        <td>경내지 마스터플랜 · 중창불사 3단계와 연계</td></tr>
+      <tr><td>RL-12 온라인</td><td class="num">—</td><td><span class="badge badge-no">라인 폐지</span></td>
+        <td>RL-04의 채널로 흡수 (RL-17 선례와 동일)</td></tr>
+      <tr><td>RL-14~15 · RL-16 잔여</td><td class="num">—</td><td><span class="badge badge-info">2년차부터</span></td>
+        <td>실판매 데이터 축적이 선행 조건</td></tr>
+      <tr class="total"><td>본선 편입 소계</td><td class="num">4.88~8.88억</td>
+        <td colspan="2">장묘 서비스형 인정 여부에 따라</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- 06 판정 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">Verdict</div>
+    <h2>판정과 남은 것</h2></div>
+    <div class="no">06</div>
+  </div>
+
+  <h3 class="sub">판정</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>질문</th><th>답</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>별도 트랙 40억은 실재하는가</td><td><span class="badge badge-warn">22%</span></td>
+        <td>1년차 8.88억 · 5년차 20.4억(51%)</td></tr>
+      <tr><td>왜 이렇게 줄어드는가</td><td><strong>등급이 아니라 성격</strong></td>
+        <td>계약 범위(장묘) · 중복(온라인) · 시점(C안) — 근거 등급이 문제인 라인은 0건</td></tr>
+      <tr><td>가장 큰 오해는</td><td><strong>장묘 20억</strong></td>
+        <td>수요는 전 라인 중 가장 강한데 <strong>지을 자리가 이 계약에 없음</strong></td></tr>
+      <tr><td>지금 당장 되는 것은</td><td><strong>시즌·야간 4.28억</strong></td>
+        <td>24건 중 유일한 Tier1 · 봉은사가 이미 매년 하는 일</td></tr>
+      <tr><td>C안은 버려야 하는가</td><td><span class="badge badge-no">아니오 · 순서 문제</span></td>
+        <td>5차 리포트 3단계 로드맵 — 실판매 데이터가 선행 조건</td></tr>
+      <tr><td>마스터의 '본선 제외' 판단은</td><td><span class="badge badge-yes">유지</span></td>
+        <td>단 <strong>5개년 P&amp;L에서는 2년차부터 계상</strong>해야 함</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">권고</h3>
+  <div class="callout callout-success">
+    <p><strong>① RL-13 시즌·야간을 본선으로 올립니다.</strong>
+    Tier1이고, 봉은사가 이미 하고 있고, CAPEX가 거의 없습니다.
+    별도 트랙에 묶여 있을 이유가 없습니다. 다만 <strong>비수기 대책</strong>으로 평가해야지
+    4.28억이라는 직접 매출로만 보면 이 라인의 값어치를 놓칩니다.</p>
+  </div>
+  <div class="callout">
+    <p><strong>② RL-12를 라인 목록에서 폐지합니다.</strong>
+    마스터가 RL-17에 대해 이미 <strong>"매출은 RL-04에 귀속"</strong>이라고 한 처리를 그대로 적용합니다.
+    대신 <strong>온라인 채널 구축 비용을 RL-04의 CAPEX에 신설</strong>해야 합니다 — 현재 어디에도 없습니다.</p>
+  </div>
+  <div class="callout callout-warn">
+    <p><strong>③ 봉안당을 별도 사업으로 발주처에 제언합니다.</strong>
+    화장률 95.1%·자연장 선호 1위·국공립 수목장림 5곳이라는 수요 근거는
+    <strong>이 프로젝트 전체에서 가장 강한 시장 신호</strong>입니다.
+    그것을 "C등급이라 뺐다"로 남기면 근거를 버리는 셈입니다.
+    경내지 마스터플랜·중창불사 3단계와 묶어 <strong>별도 검토 대상으로 명시</strong>하는 것이 맞습니다.</p>
+  </div>
+  <div class="callout">
+    <p><strong>④ 사찰운영자 아카데미를 C안의 선발대로 씁니다.</strong>
+    도매·IP·턴키는 검증된 상품이 있어야 팔리지만, 아카데미는
+    <strong>봉은사가 이 프로젝트를 하며 배운 것 자체가 상품</strong>입니다.
+    1년차부터 팔 수 있고, 수강한 사찰이 그대로 <strong>2~3년차 도매·라이선스의 고객 명단</strong>이 됩니다.
+    RL-07의 T0 출강형이 "매출원이 아니라 리드 제너레이션"으로 재정의된 것과 같은 구조입니다.</p>
+  </div>
+
+  <h3 class="sub">리서치 잔여</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>#</th><th>항목</th><th>확정되는 것</th><th>난이도</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>기존 위패·천도재 실적</strong></td>
+        <td>영대공양 3.0억이 순증분인지 재분류인지</td><td>하 · 내부 회계</td></tr>
+      <tr><td>2</td><td>경내지 봉안 가능 여부</td><td>별도 사업의 성립 자체 — 도시공원 규제·시설기준 미검토</td><td>상 · 인허가</td></tr>
+      <tr><td>3</td><td>종교단체 안치 한도</td><td>봉안당 매출 천장 — 한도가 곧 상한</td><td>하 · 법령</td></tr>
+      <tr><td>4</td><td>시즌 야간 부스 수요</td><td>2.70억 — 45부스가 채워지는지 미확인</td><td>중 · 유사 야시장</td></tr>
+      <tr><td>5</td><td>야간 운영 인건비·보안</td><td>4.28억의 순이익 — OPEX를 산출하지 않음</td><td>중</td></tr>
+      <tr><td>6</td><td>사찰운영자 아카데미 수요</td><td>0.60억 — 국내 사찰이 유료 교육을 살지 미확인</td><td>중 · R-12와 통합</td></tr>
+      <tr><td>7</td><td>온라인 채널 구축비</td><td>RL-04 온라인 3.0억의 전제 — CAPEX 미산출</td><td>하 · 견적</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">이 검토가 아직 답하지 못하는 것</h3>
+  <p class="note">
+    ① <strong>RL-13의 OPEX가 없습니다.</strong> 야간 운영은 조명·보안·인건비가 주간과 다른데
+    매출만 산출했습니다. 4.28억은 총매출이지 이익이 아닙니다.<br>
+    ② <strong>C안 실현율 곡선이 가정입니다.</strong> 0/25/60/85/100%는 5차 리포트의 3단계 로드맵을
+    연차로 옮긴 것이지 실측이 아닙니다.<br>
+    ③ <strong>장묘 서비스형 단가에 국내 벤치마크가 없습니다.</strong> 영대공양 200~500만원은
+    일본 사례(30만~100만엔)에서 유추했고 <span style="color:var(--fg-3)">(E-0466 C · 재검증 필요)</span>,
+    국내 사찰 위패 봉안 시세를 확인하지 못했습니다.<br>
+    ④ <strong>RL-14~16의 24건 중 개별 검토는 하나도 없습니다.</strong> 이 문서는 만개값 12.1억을
+    연차로 나눴을 뿐이고, 그 12.1억 자체가 마스터의 C등급 가정입니다.
+    <strong>R-12(전국 사찰 수요조사)가 여전히 선행 조건</strong>입니다.
+  </p>
+</section>
+
+<div class="foot">PROJECT RENT · RL-11~16 별도 트랙 재산정 v1.0 · 내부 문서 · 대외 배포 금지</div>
+
+<script>
+const secs=[...document.querySelectorAll('.sec')],links=[...document.querySelectorAll('.nav a')];
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+  const i=secs.indexOf(e.target);links.forEach(l=>l.classList.remove('active'));
+  if(links[i])links[i].classList.add('active');}})},{rootMargin:'-45% 0px -45% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

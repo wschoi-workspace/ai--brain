@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>교차 정합 검증 | PROJECT RENT</title>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+em{font-style:normal;color:var(--accent-light)}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.nav{position:fixed;top:50%;left:26px;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:10;font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color 150ms var(--ease-out)}
+.nav a:hover,.nav a.active{color:var(--accent)}
+.sec{padding:90px 120px 110px;max-width:1440px;margin:0 auto}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:26px;border-bottom:1px solid var(--line-2);margin-bottom:44px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:38px;font-weight:300;letter-spacing:-0.025em;line-height:1.15;margin-top:8px}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin-bottom:38px}
+h3.sub{font-size:19px;font-weight:400;color:var(--fg);margin:46px 0 14px;letter-spacing:-0.02em}
+h3.sub:first-of-type{margin-top:0}
+p.note{font-size:13px;color:var(--fg-2);margin:10px 0;max-width:920px}
+#cover{padding-top:140px;min-height:84vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:34px}
+.cover-title{font-size:64px;font-weight:200;letter-spacing:-0.04em;line-height:1.05;margin-bottom:24px}
+.cover-sub{font-size:19px;color:var(--fg-2);line-height:1.6;max-width:920px;margin-bottom:46px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:30px;max-width:1020px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:11px 12px;font-weight:400;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+tbody tr.total td{border-top:1px solid var(--line);color:var(--fg);font-weight:500;background:rgba(108,92,231,.05)}
+tbody tr.sub-row td{color:var(--fg-3);font-size:12px}
+tbody tr.sub-row td:first-child{color:var(--fg-3);padding-left:28px}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--red)} .pos{color:var(--green)} .warn{color:var(--amber)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:3px 9px;font-size:10px;letter-spacing:.08em;white-space:nowrap}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi.hero{border-color:var(--accent)} .kpi.bad{border-color:rgba(225,112,85,.4)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:32px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi.bad .kpi-value{color:var(--red)}
+.kpi .kpi-unit{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px;line-height:1.5}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:22px 26px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.75}
+.callout p+p{margin-top:10px}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.layer{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:26px 0}
+.layer .ly{background:var(--bg-3);border:1px solid var(--line-2);padding:22px}
+.layer .ly.core{border-color:var(--accent)}
+.layer .ly.danger{border-color:rgba(225,112,85,.4)}
+.layer .ly .n{font-size:10px;letter-spacing:.2em;color:var(--accent);margin-bottom:8px}
+.layer .ly.danger .n{color:var(--red)}
+.layer .ly h4{font-size:16px;margin-bottom:8px}
+.layer .ly p{font-size:12.5px;color:var(--fg-2);line-height:1.65;margin-bottom:10px}
+.layer .ly .v{font-size:21px;font-weight:200;color:var(--fg);letter-spacing:-0.02em}
+.layer .ly .s{font-size:11px;color:var(--fg-3);margin-top:4px}
+/* 자원 게이지 */
+.gauge{margin:14px 0 22px}
+.gauge .gh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.gauge .gt{font-size:14px;color:var(--fg)}
+.gauge .gv{font-size:12px;color:var(--fg-3);font-variant-numeric:tabular-nums}
+.gauge .bar{height:26px;background:var(--bg-3);border:1px solid var(--line-2);position:relative;overflow:hidden}
+.gauge .seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding-left:8px;font-size:10.5px;color:var(--bg);white-space:nowrap;overflow:hidden}
+.gauge .cap{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg);z-index:3}
+.gauge .cap::after{content:attr(data-l);position:absolute;top:-16px;left:4px;font-size:9.5px;color:var(--fg);letter-spacing:.1em;white-space:nowrap}
+.gauge .gn{font-size:11.5px;color:var(--fg-3);margin-top:7px;line-height:1.5}
+.foot{padding:60px 120px 80px;border-top:1px solid var(--line-2);text-align:center;color:var(--fg-3);font-size:11px;letter-spacing:.2em;max-width:1440px;margin:0 auto}
+@media (max-width:1100px){
+  .sec{padding:70px 40px 80px}.nav{display:none}
+  .cover-title{font-size:40px}.sec-head h2{font-size:28px}
+  .kpi-grid,.kpi-grid-3,.cover-meta,.layer{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+<nav class="nav">
+  <a href="#cover">00 결론</a>
+  <a href="#s1">01 무엇이 늘었나</a>
+  <a href="#s2">02 자원 원장</a>
+  <a href="#s3">03 면적·대관</a>
+  <a href="#s4">04 이중계상</a>
+  <a href="#s5">05 CAPEX</a>
+  <a href="#s6">06 판정·권고</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">Cross-Line Reconciliation · 라인별 검토 8건의 합산 가능성</div>
+  <h1 class="cover-title">더하면 106억이<br>나옵니다</h1>
+  <p class="cover-sub">
+    라인별 검토가 하루 만에 여덟 건 끝났습니다. 각각은 근거를 갖췄는데
+    <em>그대로 더하면 마스터 66.7억의 1.59배</em>가 됩니다.
+    <strong>매출은 라인마다 늘었지만 면적·날짜·사람·돈은 늘지 않았기 때문</strong>입니다.
+  </p>
+  <dl class="cover-meta">
+    <div><dt>대상</dt><dd>RL-01·03·06·07·08·09·10 검토 8건</dd></div>
+    <div><dt>단순 합산</dt><dd>106.3억 <span style="color:var(--fg-3)">(v0.2의 1.59배)</span></dd></div>
+    <div><dt>조정 후</dt><dd><strong>98~102억</strong></dd></div>
+    <div><dt>작성</dt><dd>2026.08.17 · 내부 문서</dd></div>
+  </dl>
+
+  <div class="kpi-grid" style="margin-top:52px">
+    <div class="kpi hero"><div class="kpi-label">이중계상 조정</div><div class="kpi-value">−3.9<span class="kpi-unit">~8.2억</span></div><div class="kpi-sub">고객·상품 중복 4건<br>+ 대관 연쇄 2건</div></div>
+    <div class="kpi bad"><div class="kpi-label">CAPEX 합계</div><div class="kpi-value">83.6<span class="kpi-unit">억+</span></div><div class="kpi-sub">리모델 예산 45~70억<br><strong>상한의 119%</strong> · 2개 라인 미산출</div></div>
+    <div class="kpi"><div class="kpi-label">선방 슬롯</div><div class="kpi-value">40.8<span class="kpi-unit">/42</span></div><div class="kpi-sub">주당 · <strong>97% 포화</strong><br>4개 라인이 같은 방을 씀</div></div>
+    <div class="kpi bad"><div class="kpi-label">진행 인력</div><div class="kpi-value">46<span class="kpi-unit">회/주</span></div><div class="kpi-sub">사찰당 평균 운영인력 2.27명<br><strong>상한 미확인</strong></div></div>
+  </div>
+
+  <div class="callout callout-danger" style="margin-top:34px">
+    <p><strong>가장 큰 발견은 매출이 아니라 CAPEX입니다.</strong>
+    산출된 것만 더해도 <strong>83.6억</strong>인데 건물 전체 리모델 예상은 45~70억입니다
+    <span style="color:var(--fg-3)">(E-0530)</span>.
+    여기에 대관·멤버십 CAPEX가 미산출이고, <strong>공용부 2,568㎡·MEP·설계비는 아예 계산 밖</strong>입니다.</p>
+    <p>즉 이 사업의 병목은 "무엇을 팔 것인가"가 아니라 <strong>"무엇을 지을 돈이 있는가"</strong>로
+    이미 넘어와 있습니다. 5개년 P&amp;L을 짜려면 매출 정합보다 <strong>재원 배분</strong>이 먼저입니다.</p>
+  </div>
+</section>
+
+<!-- 01 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">What Grew</div>
+    <h2>단가가 오른 게 아니라 상품이 늘었습니다</h2></div>
+    <div class="no">01</div>
+  </div>
+  <p class="sec-desc">
+    라인별 검토는 마스터가 한 줄로 잡아둔 것을 상품 단위로 분해했습니다.
+    그 과정에서 마스터에 없던 상품이 생겼고, 그만큼 매출이 늘었습니다.
+    <strong>RL-07과 RL-10은 스스로 "범위가 넓어진 것이지 값이 오른 것이 아니다"라고 명시</strong>하고 있습니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>라인</th><th class="num">마스터 v0.2</th><th class="num">개별 검토</th><th class="num">차이</th><th>늘어난 이유 / 줄어든 이유</th></tr></thead>
+    <tbody>
+      <tr><td>RL-01 전시</td><td class="num">6.0억</td><td class="num">10.3억</td><td class="num pos">+4.3</td>
+        <td>입장료 중심 → <strong>해설·도슨트·심화 프로그램</strong> 추가 (수요가 가리킨 지점)</td></tr>
+      <tr><td>RL-02 전통다원</td><td class="num">7.9억</td><td class="num">4.6억</td><td class="num neg">−3.3</td>
+        <td>5축 재편성에서 좌석·면적이 축소 (131㎡)</td></tr>
+      <tr><td>RL-03 사찰음식</td><td class="num">23.5억</td><td class="num">28.8억</td><td class="num pos">+5.3</td>
+        <td>다이닝 25.9 + <strong>곡차 체험 2.9</strong> — 곡차를 '술'이 아닌 '체험'으로 재정의</td></tr>
+      <tr><td>RL-04 리테일</td><td class="num">4.9억</td><td class="num">10.6억</td><td class="num pos">+5.7</td>
+        <td>매장을 25평으로 줄이자 <strong>온라인 비중이 40→60%</strong>로 오름</td></tr>
+      <tr><td>RL-05 교육·체험</td><td class="num">4.4억</td><td class="num">3.2억</td><td class="num neg">−1.2</td>
+        <td>9건 중 사찰음식 아카데미 1건만 검토됨 — <span class="warn">나머지 8건 미검토</span></td></tr>
+      <tr><td>RL-06 명상</td><td class="num">3.4억</td><td class="num">7.6억</td><td class="num pos">+4.2</td>
+        <td><strong>점심 선·선잠 데이유즈</strong> 신설 (116개 목록에 과금구조 0건이던 라인)</td></tr>
+      <tr><td>RL-07 기업 B2B</td><td class="num">2.0억</td><td class="num">2.8억</td><td class="num pos">+0.8</td>
+        <td>단일 밴드 → <strong>4계층</strong>(출강·내방매스·프리미엄·연간계약)</td></tr>
+      <tr><td>RL-08 대관</td><td class="num">3.0억</td><td class="num">3.0억</td><td class="num">±0</td>
+        <td>공식 요금표 실측으로 <strong>가정이 그대로 검증됨</strong> — 유일하게 안 변한 라인</td></tr>
+      <tr><td>RL-09 숙박</td><td class="num">3.9억</td><td class="num">18.5억</td><td class="num pos">+14.6</td>
+        <td><strong>면적 800→2,645㎡ (발주 지정)</strong> · 20실 → 61실</td></tr>
+      <tr><td>RL-10 멤버십</td><td class="num">7.7억</td><td class="num">16.9억</td><td class="num pos">+9.2</td>
+        <td>법인·임원만 → <strong>웰니스 월정액·온라인 구독·신도 후원</strong> 추가</td></tr>
+      <tr class="total"><td>코어 합계</td><td class="num">66.7억</td><td class="num">106.3억</td><td class="num pos">+39.6</td>
+        <td><strong>1.59배</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <p><strong>증가분 39.6억의 절반이 두 라인에서 나옵니다</strong> — 숙박 +14.6억과 멤버십 +9.2억.
+    숙박은 <strong>발주처가 면적을 3.3배로 키운 결과</strong>라 근거가 명확하고,
+    멤버십은 <strong>상품 종류를 늘린 결과</strong>라 검증이 필요합니다.</p>
+    <p>주의할 것은 이 표가 <strong>서로 다른 시점의 최선</strong>을 모아놓은 것이라는 점입니다.
+    RL-06은 검토가 두 번(통합본 9.2억 / 단독본 7.64억) 이뤄졌고, 이 표는 <strong>단독본을 채택</strong>했습니다 —
+    단독본이 점심 회차권 단가를 5,000~9,000원에서 3,000~5,000원으로 정정했고
+    <span style="color:var(--fg-3)">(삼성동 점심값 15,000원 기준 · E-1018)</span>, 그 근거가 더 강하기 때문입니다.</p>
+  </div>
+</section>
+
+<!-- 02 자원 원장 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">Shared Resource Ledger</div>
+    <h2>매출은 늘었는데 자원은 그대로입니다</h2></div>
+    <div class="no">02</div>
+  </div>
+  <p class="sec-desc">
+    각 라인은 자기 매출을 자기 근거로 계산했습니다. 문제는 <strong>여러 라인이 같은 것을 쓴다</strong>는 데 있습니다 —
+    같은 방, 같은 날짜, 같은 직장인, 같은 스님, 같은 기업 예산. 여섯 개 자원을 원장으로 만들어 청구량을 대조했습니다.
+  </p>
+
+  <div class="gauge">
+    <div class="gh"><div class="gt">자원 1 · 면적 <span style="color:var(--fg-3)">— 가용 8,868㎡ (E-0501)</span></div>
+      <div class="gv">시나리오 α 8,854㎡ · 99.8%</div></div>
+    <div class="bar">
+      <div class="seg" style="left:0;width:16.3%;background:var(--accent)">전시 1,450</div>
+      <div class="seg" style="left:16.3%;width:7.8%;background:var(--green)">F&amp;B 691</div>
+      <div class="seg" style="left:24.1%;width:16.9%;background:var(--blue)">대관 1,500</div>
+      <div class="seg" style="left:41.0%;width:29.8%;background:var(--accent-light)">숙박+명상 2,645</div>
+      <div class="seg" style="left:70.8%;width:29.0%;background:#555">로비·부대 2,568</div>
+      <div class="cap" style="left:100%" data-l="8,868㎡"></div>
+    </div>
+    <div class="gn">여유 14㎡ — <strong>우연히 딱 맞습니다.</strong> 단 이것은 리테일 800㎡·교육 500㎡가
+      5축 691㎡에 흡수된다는 전제(α)이며, 그 전제는 아직 확인되지 않았습니다. §03 참조</div>
+  </div>
+
+  <div class="gauge">
+    <div class="gh"><div class="gt">자원 2 · 대공간 판매일 <span style="color:var(--fg-3)">— 상한 152일 (SETEC 실측 41.7%)</span></div>
+      <div class="gv">134일 · 88%</div></div>
+    <div class="bar">
+      <div class="seg" style="left:0;width:65.8%;background:var(--blue)">RL-08 대관 100일</div>
+      <div class="seg" style="left:65.8%;width:22.4%;background:var(--amber)">RL-07 B2B 34일</div>
+      <div class="cap" style="left:100%" data-l="152일"></div>
+    </div>
+    <div class="gn">여유 18일. RL-07이 이미 자체 검산해 낙관안을 140→120일로 깎아둔 상태입니다.
+      <strong>다만 대관 면적이 없어지면 이 자원 자체가 사라집니다.</strong></div>
+  </div>
+
+  <div class="gauge">
+    <div class="gh"><div class="gt">자원 3 · 도보권 직장인 <span style="color:var(--fg-3)">— 모수 112,349명 (E-1021 A)</span></div>
+      <div class="gv">4,758명 · 4.24%</div></div>
+    <div class="bar">
+      <div class="seg" style="left:0;width:59.0%;background:var(--accent)">점심 선 2,809명</div>
+      <div class="seg" style="left:59.0%;width:31.5%;background:var(--accent-light)">드롭인 1,500명</div>
+      <div class="seg" style="left:90.5%;width:9.4%;background:var(--red)">월정액 449</div>
+      <div class="cap" style="left:100%" data-l="합계 4,758명"></div>
+    </div>
+    <div class="gn">모수 대비 4.24%는 무리한 값이 아닙니다. 문제는 <strong>구독(RL-10 웰니스 월정액)이
+      단품 이용자(RL-06)의 부분집합일 가능성</strong>입니다 — 무제한 회원이 회차권을 또 사지는 않습니다. §04 참조</div>
+  </div>
+
+  <div class="gauge">
+    <div class="gh"><div class="gt">자원 4 · 선방·소공간 시간 <span style="color:var(--fg-3)">— 주 42슬롯 (7일 × 6슬롯)</span></div>
+      <div class="gv">40.8슬롯 · 97%</div></div>
+    <div class="bar">
+      <div class="seg" style="left:0;width:37.1%;background:var(--accent)">RL-06 유인 15.6</div>
+      <div class="seg" style="left:37.1%;width:11.9%;background:var(--accent-light)">점심선 5.0</div>
+      <div class="seg" style="left:49.0%;width:33.3%;background:var(--green)">RL-09 예불 14.0</div>
+      <div class="seg" style="left:82.3%;width:14.3%;background:var(--amber)">RL-10 전용 6.0</div>
+      <div class="cap" style="left:100%" data-l="42슬롯"></div>
+    </div>
+    <div class="gn"><strong>여유 1.2슬롯 — 사실상 포화입니다.</strong>
+      RL-07 T2 임원 리트리트(0.2슬롯)까지 넣으면 남는 게 없습니다.
+      네 라인이 같은 방을 쓰는데 <strong>어느 리포트도 다른 라인의 사용량을 모르고 계산했습니다.</strong></div>
+  </div>
+
+  <div class="gauge">
+    <div class="gh"><div class="gt">자원 5 · 진행 인력 <span style="color:var(--fg-3)">— 상한 미확인</span></div>
+      <div class="gv">2,402회/년 = 주 46회</div></div>
+    <div class="bar">
+      <div class="seg" style="left:0;width:33.7%;background:var(--accent)">RL-06 유인 810</div>
+      <div class="seg" style="left:33.7%;width:25.0%;background:var(--blue)">RL-05 교육 600</div>
+      <div class="seg" style="left:58.7%;width:40.8%;background:var(--green)">RL-09 몽크챗·예불 980</div>
+      <div class="seg" style="left:99.5%;width:0.5%;background:var(--amber)"></div>
+    </div>
+    <div class="gn"><span class="badge badge-no">상한선 없음</span>
+      RL-07이 <strong>"진행 가능한 스님 수가 곧 판매 상한인데 이 수치는 확인된 바 없다"</strong>고 명시했습니다.
+      템플스테이 사찰당 평균 운영 인력은 <strong>2.27명</strong>이고 재직 1년 미만 퇴직률이 60~66%입니다
+      <span style="color:var(--fg-3)">(E-0880 A)</span>. 주 46회는 이 인력으로 불가능합니다.</div>
+  </div>
+
+  <h3 class="sub">자원 6 · 법인·임원 고객 — 강남 GBD의 같은 예산</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>청구 라인</th><th class="num">규모</th><th>상품</th><th>중복 성격</th></tr></thead>
+    <tbody>
+      <tr><td>RL-10 법인 멤버십</td><td class="num">14사</td><td>연 700만 = 1.0억</td>
+        <td>임직원 개별 방문 <strong>시설 이용권</strong></td></tr>
+      <tr><td>RL-07 T3 연간계약</td><td class="num">4사</td><td>연 2,500만 = 1.0억</td>
+        <td>단체 세션 <strong>프로그램 계약</strong></td></tr>
+      <tr class="sub-row"><td colspan="4">→ 성격은 다르지만 <strong>HR·복리후생이라는 같은 예산 항목</strong>에서 나옵니다.
+        RL-07이 스스로 "한 기업이 둘 다 사는 경우는 드물다"고 경고했습니다.</td></tr>
+      <tr><td>RL-10 임원 기수제</td><td class="num">40명</td><td>1인 650만 = 2.6억</td><td>6개월 과정 · 기수제</td></tr>
+      <tr><td>RL-07 T2 임원 리트리트</td><td class="num">연 192인</td><td>16명 × 12회 = 0.48억</td><td>단발 리트리트</td></tr>
+      <tr class="sub-row"><td colspan="4">→ <strong>RL-07의 중복 경고에 이 항목은 빠져 있습니다.</strong>
+        같은 강남 임원층을 두 라인이 각자 계산했습니다.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- 03 면적 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">The Decisive Variable</div>
+    <h2>미확인 변수 하나가 대관의 존폐를 가릅니다</h2></div>
+    <div class="no">03</div>
+  </div>
+  <p class="sec-desc">
+    RL-03B는 5축(다이닝·아카데미·곡차·편집샵·전통다원)을 <strong>691㎡</strong>에 담았습니다.
+    그런데 마스터의 면적 배분에는 리테일 800㎡와 교육 500㎡가 <strong>따로</strong> 잡혀 있습니다.
+    5축의 편집샵(83㎡)과 아카데미(130㎡)가 그 배분을 <em>대체하는 것인지 일부인지</em>가 정해지지 않았습니다.
+  </p>
+
+  <div class="layer">
+    <div class="ly core"><div class="n">시나리오 α — 흡수 O</div><h4>5축이 대체한다</h4>
+      <p>편집샵 83㎡가 리테일 800㎡를, 아카데미 130㎡가 교육 500㎡를 대신한다고 보는 경우.
+      코어 6,286㎡ + 로비 2,568㎡.</p>
+      <div class="v">8,854㎡</div><div class="s">가용 8,868㎡ · <strong style="color:var(--green)">여유 14㎡</strong> — 대관 유지 가능</div></div>
+    <div class="ly danger"><div class="n">시나리오 β — 흡수 X</div><h4>리테일·교육이 따로 필요하다</h4>
+      <p>5축은 사찰음식 계열만 담은 것이고, 일반 리테일·교육 서비스는 별도 공간이 있어야 한다고 보는 경우.</p>
+      <div class="v">10,685㎡</div><div class="s">가용 8,868㎡ · <strong style="color:var(--red)">초과 1,817㎡</strong> — 대관 포기 불가피</div></div>
+    <div class="ly"><div class="n">차이</div><h4>1,300㎡</h4>
+      <p>리테일 800 + 교육 500. 이 숫자 하나가 대관 3.0억과 B2B 1.26억, 합계 <strong>4.26억</strong>의 존폐를 결정합니다.</p>
+      <div class="v">4.26억</div><div class="s">+ 대공간 판매일 152일이라는 자원 자체</div></div>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>RL-06+09 리포트가 "대관을 접어야 한다"고 권고한 것은 β를 전제한 계산이었습니다.</strong>
+    당시 리테일 800㎡·교육 500㎡를 그대로 두고 더했기 때문에 1,817㎡가 초과로 나왔습니다.
+    α가 맞다면 <strong>대관을 접을 필요가 없습니다.</strong></p>
+    <p>이 판단은 RL-03B 저자와 공간 총괄이 함께 확정해야 하는 사항입니다.
+    지금 상태로는 <strong>같은 프로젝트 안에서 대관이 있기도 하고 없기도 합니다.</strong></p>
+  </div>
+
+  <h3 class="sub">대관을 접는 게 유리한가 — 접는다면 연쇄가 있습니다</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>관점</th><th>대관 유지 (α)</th><th>대관 포기 (β)</th><th>판단</th></tr></thead>
+    <tbody>
+      <tr><td>면적 생산성</td><td>㎡당 18.4만원</td><td>같은 면적 숙박·명상 ㎡당 104.7만원</td>
+        <td><strong>포기가 5.7배 유리</strong></td></tr>
+      <tr><td>1일 공헌이익</td><td>대관 105만원</td><td>B2B 내방 269만원 (2.55배)</td>
+        <td>대관은 대공간의 최저 수익 용도</td></tr>
+      <tr><td>근거 등급</td><td><span class="badge badge-yes">A · 공식 요금표</span></td>
+        <td><span class="badge badge-no">C · 가동률 전부 가정</span></td>
+        <td><strong>확실한 3.0억 ↔ 불확실한 15.7억</strong></td></tr>
+      <tr><td>연쇄 손실</td><td>—</td><td>RL-07 T1 0.76억 + T3 세션 0.50억 동반 소멸</td>
+        <td>B2B 내방형은 대관홀이 있어야 성립</td></tr>
+      <tr><td>절충</td><td colspan="2">선방 450㎡ + 다경실 350㎡를 주말·비수기 대관으로 돌리는 <strong>삼중 가동</strong></td>
+        <td>0.5~1.0억 잔존 (모델 미반영)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- 04 이중계상 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">Double Counting</div>
+    <h2>같은 돈을 두 번 센 곳</h2></div>
+    <div class="no">04</div>
+  </div>
+  <p class="sec-desc">
+    조정은 보수적으로 잡았습니다 — <strong>각 리포트가 스스로 경고한 것</strong>과
+    자원 원장에서 명백히 겹치는 것만 반영했습니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>#</th><th>조정 대상</th><th class="num">금액</th><th>근거</th><th>누가 지적했나</th></tr></thead>
+    <tbody>
+      <tr><td>①</td><td>RL-06 명상</td><td class="num neg">−1.00억</td>
+        <td>웰니스 월정액 449명이 회차권을 대체 — 무제한 회원은 점심 선(연 18회)·드롭인을 따로 사지 않음.
+          449명 × (4,000원×18회 + 25,000원×6회)</td>
+        <td><strong>RL-10 자체 경고</strong><br><span style="color:var(--fg-3)">"각각 계산했다 · 실제로는 서로를 깎는다"</span></td></tr>
+      <tr><td>②</td><td>RL-10 멤버십</td><td class="num neg">−0.29억</td>
+        <td>법인 멤버십 14사 중 4사가 RL-07 T3와 동일 고객. 1.0억 × 4/14</td>
+        <td><strong>RL-07 자체 경고</strong></td></tr>
+      <tr><td>③</td><td>RL-07 기업 B2B</td><td class="num neg">−0.17억</td>
+        <td>T2 임원 리트리트 참가자의 35%가 RL-10 기수제 회원과 동일인</td>
+        <td><span class="badge badge-warn">본 검토 신규</span></td></tr>
+      <tr><td>④</td><td>RL-10 멤버십</td><td class="num neg">−2.45억</td>
+        <td>신도 후원 4.9억의 절반은 <strong>기존 보시를 등급화한 것</strong>이지 없던 돈이 아님</td>
+        <td><strong>RL-10 자체 경고</strong><br><span style="color:var(--fg-3)">"재구조화분일 가능성"</span></td></tr>
+      <tr class="total"><td colspan="2">공통 소계</td><td class="num neg">−3.90억</td><td colspan="2">두 시나리오 모두 발생</td></tr>
+      <tr><td>⑤</td><td>RL-08 대관</td><td class="num neg">−3.00억</td>
+        <td>β에서만 — 면적 초과로 전용면적 0</td><td>본 검토</td></tr>
+      <tr><td>⑥</td><td>RL-07 기업 B2B</td><td class="num neg">−1.26억</td>
+        <td>β에서만 — 대관홀 소멸 시 T1 전량 + T3 대공간 세션분 상실</td><td>본 검토</td></tr>
+      <tr class="total"><td colspan="2">β 합계</td><td class="num neg">−8.16억</td><td colspan="2">대관 포기 시</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">조정 후 — 마스터 v0.3 후보</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>라인</th><th class="num">개별 검토</th><th class="num">α 결과</th><th class="num">β 결과</th></tr></thead>
+    <tbody>
+      <tr><td>RL-01 전시</td><td class="num">10.3억</td><td class="num">10.30억</td><td class="num">10.30억</td></tr>
+      <tr><td>RL-02 전통다원</td><td class="num">4.6억</td><td class="num">4.60억</td><td class="num">4.60억</td></tr>
+      <tr><td>RL-03 사찰음식</td><td class="num">28.8억</td><td class="num">28.80억</td><td class="num">28.80억</td></tr>
+      <tr><td>RL-04 리테일</td><td class="num">10.6억</td><td class="num">10.60억</td><td class="num">10.60억</td></tr>
+      <tr><td>RL-05 교육·체험</td><td class="num">3.2억</td><td class="num">3.20억</td><td class="num">3.20억</td></tr>
+      <tr><td>RL-06 명상</td><td class="num">7.6억</td><td class="num neg">6.64억</td><td class="num neg">6.64억</td></tr>
+      <tr><td>RL-07 기업 B2B</td><td class="num">2.8억</td><td class="num neg">2.61억</td><td class="num neg">1.35억</td></tr>
+      <tr><td>RL-08 대관</td><td class="num">3.0억</td><td class="num">3.00억</td><td class="num neg">0.00억</td></tr>
+      <tr><td>RL-09 숙박</td><td class="num">18.5억</td><td class="num">18.50억</td><td class="num">18.50억</td></tr>
+      <tr><td>RL-10 멤버십</td><td class="num">16.9억</td><td class="num neg">14.16억</td><td class="num neg">14.16억</td></tr>
+      <tr class="total"><td>합계</td><td class="num">106.3억</td><td class="num">102.42억</td><td class="num">98.16억</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="kpi-grid-3 kpi-grid">
+    <div class="kpi"><div class="kpi-label">마스터 v0.2</div><div class="kpi-value">66.7<span class="kpi-unit">억</span></div><div class="kpi-sub">기준선 30억의 2.22배</div></div>
+    <div class="kpi hero"><div class="kpi-label">v0.3 후보 α</div><div class="kpi-value">102.4<span class="kpi-unit">억</span></div><div class="kpi-sub">1.54배 · 기준선의 3.41배</div></div>
+    <div class="kpi hero"><div class="kpi-label">v0.3 후보 β</div><div class="kpi-value">98.2<span class="kpi-unit">억</span></div><div class="kpi-sub">1.47배 · 기준선의 3.27배</div></div>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>조정을 다 해도 여전히 1.5배입니다.</strong>
+    이것이 이 검토의 두 번째 발견입니다 — <strong>차이의 대부분은 이중계상이 아니라 범위 확대</strong>입니다.
+    조정으로 깎인 것은 39.6억 중 3.9~8.2억(10~21%)뿐이고, 나머지 31~36억은
+    <strong>마스터에 없던 상품이 실제로 새로 생긴 것</strong>입니다.</p>
+    <p>그런데 여기서 <strong>92억 모델(E-0526)이 다시 떠오릅니다.</strong>
+    마스터 v0.2는 그 92억을 "라인별로 분해되지 않는 낙관치"라고 비판하며 66.7억으로 낮췄는데,
+    라인별로 분해하고 나니 <strong>다시 100억 근처로 올라왔습니다.</strong>
+    92억 모델이 옳았다는 뜻은 아닙니다 — <strong>구성이 완전히 다릅니다.</strong>
+    92억의 주요 항목은 사찰음식 25.2 + 전시 21.0 + 전통다원 10.5 + 외국인체험 9.0이었고,
+    지금은 사찰음식 28.8 + 숙박 18.5 + 멤버십 14.2 + 리테일 10.6 + 전시 10.3입니다.
+    <strong>전시가 21억에서 10.3억으로 반토막 나고, 그 자리를 숙박과 멤버십이 채웠습니다.</strong></p>
+  </div>
+</section>
+
+<!-- 05 CAPEX -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">The Real Bottleneck</div>
+    <h2>매출 정합보다 재원이 먼저입니다</h2></div>
+    <div class="no">05</div>
+  </div>
+  <p class="sec-desc">
+    라인별 검토가 매출을 정교하게 만드는 동안 <strong>비용은 각자 따로 쌓였습니다</strong>.
+    합쳐 보면 매출 정합보다 심각한 문제가 여기 있습니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>라인</th><th class="num">CAPEX</th><th>내역</th></tr></thead>
+    <tbody>
+      <tr><td>RL-09 숙박+명상</td><td class="num">52.3억</td><td>800평 · 객실 ㎡당 140~280만원 · 집기 15%</td></tr>
+      <tr><td>RL-01 전시</td><td class="num">16.7억</td><td>v1.2 권고안 (1,450㎡)</td></tr>
+      <tr><td>RL-02~05 F&amp;B 5축</td><td class="num">14.6억</td><td>4축 동시 개관 기준</td></tr>
+      <tr><td>RL-06 명상</td><td class="num">0억</td><td>구조C 기생형 — 지을 것이 없음</td></tr>
+      <tr><td>RL-07 기업 B2B</td><td class="num">0억</td><td>전용 공간 없음</td></tr>
+      <tr><td>RL-08 대관</td><td class="num warn">미산출</td><td>02-대관BM에 CAPEX 항목 자체가 없음</td></tr>
+      <tr><td>RL-10 멤버십</td><td class="num warn">미산출</td><td>라운지·전용시설 개보수분 미분리</td></tr>
+      <tr class="total"><td>산출된 것만</td><td class="num">83.6억</td><td>—</td></tr>
+      <tr><td>건물 전체 리모델 예상</td><td class="num">45~70억</td><td>E-0530</td></tr>
+      <tr class="total"><td>예산 상한 대비</td><td class="num neg">119%</td><td><strong>초과</strong> (하한 대비 186%)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>그리고 이 83.6억에는 빠진 것이 많습니다.</strong></p>
+    <p>① 대관·멤버십 CAPEX 미산출 ② <strong>공용부 2,568㎡(전체의 29%)</strong>의 로비·동선·화장실·수직동선
+    ③ MEP(기계·전기·소방) ④ 설계비·감리비 ⑤ 인허가·용도변경 비용.
+    이것들을 넣으면 <strong>100억을 훌쩍 넘습니다.</strong></p>
+    <p>마스터 v0.2가 "비용이 없습니다 — CAPEX·OPEX가 통째로 비어 있어 이 문서의 숫자는 전부 매출입니다"라고
+    적어둔 그 공백이, 라인별 검토 8건을 거친 지금도 <strong>절반만 메워졌습니다.</strong></p>
+  </div>
+
+  <div class="callout">
+    <p><strong>다만 방향은 이미 나와 있습니다 — 단계 개관입니다.</strong>
+    RL-09가 Phase 1(CAPEX 45%로 매출 52%)을 제시했고, RL-03B는 "편집샵·아카데미는 다이닝보다 나중에"라고 했으며,
+    RL-01은 미디어아트 제작비 3.8억을 국가유산청 공모로 대체하는 경로를 찾았습니다.
+    <strong>세 리포트가 각자 같은 결론에 도달했습니다</strong> — 한 번에 다 짓지 않는다.</p>
+    <p>이것을 하나의 개관 시퀀스로 묶는 것이 다음 작업입니다.
+    지금은 <strong>세 개의 부분 최적해가 서로를 모르는 상태</strong>입니다.</p>
+  </div>
+</section>
+
+<!-- 06 판정 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">Verdict</div>
+    <h2>판정과 권고</h2></div>
+    <div class="no">06</div>
+  </div>
+
+  <h3 class="sub">판정</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>질문</th><th>답</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>라인별 검토를 그대로 더해도 되는가</td><td><span class="badge badge-no">안 됨</span></td>
+        <td>106.3억 = v0.2의 1.59배 · 자원 4종이 포화 또는 초과</td></tr>
+      <tr><td>차이는 이중계상 때문인가</td><td><span class="badge badge-warn">아니다 · 10~21%만</span></td>
+        <td>39.6억 중 3.9~8.2억만 중복 · 나머지는 <strong>실제 범위 확대</strong></td></tr>
+      <tr><td>조정 후 값은</td><td><strong>98~102억</strong></td>
+        <td>α(대관 유지) 102.4억 / β(대관 포기) 98.2억</td></tr>
+      <tr><td>가장 시급한 미확정 변수는</td><td><strong>리테일·교육 1,300㎡</strong></td>
+        <td>5축 흡수 여부가 대관 3.0억 + B2B 1.26억의 존폐를 결정</td></tr>
+      <tr><td>진짜 병목은</td><td><strong>CAPEX</strong></td>
+        <td>산출분만 83.6억 = 리모델 예산 상한의 119% · 공용부·MEP·설계비 전액 미반영</td></tr>
+      <tr><td>물리적으로 가장 위험한 것은</td><td><strong>진행 인력</strong></td>
+        <td>주 46회 요구 · 사찰당 평균 2.27명 · 재직1년미만 퇴직 60~66%</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">권고 — 순서가 있습니다</h3>
+  <div class="callout callout-success">
+    <p><strong>① 면적 배분을 먼저 확정합니다.</strong>
+    리테일 800㎡·교육 500㎡가 5축에 흡수되는지를 RL-03B 저자와 공간 총괄이 결정해야
+    대관의 존폐가 정해지고, 그래야 v0.3 숫자가 하나로 수렴합니다.
+    <strong>이것 없이는 같은 프로젝트 안에서 대관이 있기도 하고 없기도 합니다.</strong></p>
+  </div>
+  <div class="callout">
+    <p><strong>② 자원 원장을 SSOT로 승격합니다.</strong>
+    면적·대공간 판매일·도보권 모수·선방 슬롯·진행 인력·법인 고객 6종을 하나의 표로 관리하고,
+    <strong>새 라인 검토는 이 원장에 청구서를 내는 방식</strong>으로 바꿉니다.
+    지금은 각 리포트가 다른 리포트의 사용량을 모른 채 계산하고 있습니다.</p>
+  </div>
+  <div class="callout">
+    <p><strong>③ 진행 인력 상한을 종무에 확인합니다.</strong>
+    RL-07이 "1순위 미확인"으로 지목한 항목이고, 이 값이 낮으면
+    RL-05·RL-06·RL-07·RL-09가 <strong>동시에</strong> 깎입니다.
+    매출 영향으로 보면 도보권 모수나 갱신율보다 파급이 큽니다.</p>
+  </div>
+  <div class="callout callout-warn">
+    <p><strong>④ CAPEX를 라인별로 통일 양식에 담습니다.</strong>
+    지금 3개 라인만 산출했고 양식도 제각각입니다(하드+집기 vs 총액).
+    공용부·MEP·설계비를 포함한 <strong>전체 CAPEX가 나와야 5개년 P&amp;L이 시작</strong>됩니다 —
+    계약서 제3조가 요구하는 산출물이 여전히 미작성입니다.</p>
+  </div>
+  <div class="callout">
+    <p><strong>⑤ RL-06 SSOT를 단독본으로 지정합니다.</strong>
+    통합본(9.2억)과 단독본(7.64억)이 병존합니다.
+    단독본이 점심 회차권 단가를 정정했고 구조 3안 비교까지 했으므로 근거가 강합니다.
+    <strong>RL-06+09 리포트의 명상 소계를 7.64억으로 갱신</strong>하면 두 문서가 정합합니다.</p>
+  </div>
+
+  <h3 class="sub">아직 정합이 안 된 것</h3>
+  <p class="note">
+    ① <strong>RL-05 교육 8건이 미검토입니다.</strong> 5축 아카데미 1건만 다뤄졌고 나머지 8건은
+    마스터 값(4.4억)조차 근거가 없습니다. 진행 인력 원장에서 연 600회를 청구하고 있어
+    <strong>인력 상한 계산의 최대 변수</strong>이기도 합니다.<br>
+    ② <strong>RL-11~16 별도 트랙 40억은 손도 대지 않았습니다.</strong>
+    장묘 20억은 "모델 편입 여부부터 판단"이 미결이고, C안 4개 라인은 수요 근거가 0입니다.<br>
+    ③ <strong>세금이 전 라인에 없습니다.</strong> RL-07은 "100% 과세 전제", RL-10은 "이용 트랙 과세"라고
+    성격만 밝혔을 뿐, 세후 숫자를 낸 라인은 하나도 없습니다.<br>
+    ④ <strong>OPEX 양식이 통일되지 않았습니다.</strong> 인건비를 라인별로 각자 잡고 있어
+    합산 시 중복 가능성이 큽니다 — RL-07이 이미 "대관·멤버십과 영업 겸임"을 권고하며
+    같은 사람을 세 라인이 쓰는 구조를 지적했습니다.<br>
+    ⑤ <strong>5개년 전개는 RL-10만 갖고 있습니다.</strong> 나머지 9개 라인은 1년차 단년도입니다.
+    램프업 곡선 없이는 v0.3을 5개년으로 확장할 수 없습니다.
+  </p>
+</section>
+
+<div class="foot">PROJECT RENT · 교차 정합 검증 v1.0 · 내부 문서 · 대외 배포 금지</div>
+
+<script>
+const secs=[...document.querySelectorAll('.sec')],links=[...document.querySelectorAll('.nav a')];
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+  const i=secs.indexOf(e.target);links.forEach(l=>l.classList.remove('active'));
+  if(links[i])links[i].classList.add('active');}})},{rootMargin:'-45% 0px -45% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

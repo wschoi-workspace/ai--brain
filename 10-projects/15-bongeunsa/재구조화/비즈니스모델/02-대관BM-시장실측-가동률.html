@@ -1,0 +1,267 @@
+<meta charset="utf-8">
+<title>02 · 대관 BM 시장 실측 — 단가·가동률 파라미터</title>
+<style>
+:root{--bg:#1A1A1A;--bg-2:#111;--bg-3:#222;--fg:#F5F0EB;--fg-2:#C9C2BA;--fg-3:#7A7570;
+--accent:#6C5CE7;--accent-l:#A29BFE;--warm:#E9DCC8;--rust:#B86C4A;--green:#8FA37E;--line:#333;--line-2:#2A2A2A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard','SUIT',-apple-system,'Apple SD Gothic Neo',sans-serif;
+font-size:15px;line-height:1.75;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 32px 100px}
+header{padding:66px 0 28px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--fg-3);margin-bottom:16px}
+h1{font-size:33px;line-height:1.28;font-weight:800;letter-spacing:-0.03em}
+h1 em{font-style:normal;color:var(--accent-l)}
+.sub{margin-top:14px;font-size:15.5px;color:var(--fg-2);max-width:820px;line-height:1.68}
+.meta{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:11.5px;color:var(--fg-3);border:1px solid var(--line);padding:5px 10px}
+.chip.ok{color:var(--green);border-color:rgba(143,163,126,.4)}
+section{padding-top:56px}
+.snum{font-size:11px;letter-spacing:.2em;color:var(--accent-l);font-weight:600;margin-bottom:10px}
+h2{font-size:25px;line-height:1.3;font-weight:800;letter-spacing:-0.025em}
+.lede{font-size:15.5px;color:var(--fg-2);margin:12px 0 22px;max-width:830px;line-height:1.7}
+h3{font-size:17.5px;font-weight:700;margin:30px 0 10px;letter-spacing:-0.02em;padding-left:12px;border-left:3px solid var(--accent)}
+p{margin:11px 0;color:var(--fg-2)}
+p strong,li strong,td strong{color:var(--fg)}
+ul,ol{margin:11px 0 11px 20px;color:var(--fg-2)}li{margin:6px 0}
+code{background:var(--bg-3);border:1px solid var(--line-2);padding:1px 6px;font-size:12.5px;color:var(--warm);font-family:'SF Mono',Menlo,monospace}
+.scroll{overflow-x:auto;max-width:100%}
+.tbl{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px}
+.scroll .tbl{min-width:660px}
+.tbl th{background:var(--bg-2);color:var(--fg-3);font-size:11px;letter-spacing:.13em;text-transform:uppercase;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-weight:600;vertical-align:bottom}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top;line-height:1.6}
+.tbl tr:hover td{background:#1E1E1E}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.hl{background:rgba(108,92,231,.09)}
+.param{background:var(--bg-2);border:1px solid var(--accent);padding:0;margin:18px 0}
+.param .h{background:rgba(108,92,231,.14);padding:11px 18px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-l);font-weight:700}
+.param table{width:100%;border-collapse:collapse;font-size:13.5px}
+.param td{padding:10px 18px;border-bottom:1px solid var(--line-2);color:var(--fg-2)}
+.param td:first-child{width:34%;color:var(--fg-3)}
+.param td:last-child{font-variant-numeric:tabular-nums}
+.param tr:last-child td{border-bottom:none}
+.card{background:var(--bg-3);border:1px solid var(--line-2);padding:18px 20px;margin:16px 0}
+.card .k{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-3);margin-bottom:8px;font-weight:600}
+.warn{border-left:3px solid var(--rust);background:#1F1715;padding:15px 19px;margin:16px 0}
+.warn .k{color:var(--rust);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:7px}
+.good{border-left:3px solid var(--green);background:#161A15;padding:15px 19px;margin:16px 0}
+.good .k{color:var(--green);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:7px}
+.key{border-left:3px solid var(--accent);background:#17151F;padding:15px 19px;margin:16px 0}
+.key .k{color:var(--accent-l);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:7px}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-2);border:1px solid var(--line-2);margin:18px 0}
+.stat div{background:var(--bg-2);padding:18px 16px;min-width:0;overflow-wrap:anywhere}
+.stat .v{font-size:26px;font-weight:800;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;line-height:1.15}
+.stat .l{font-size:12px;color:var(--fg-3);margin-top:7px;line-height:1.5}
+.src{font-size:11.5px;color:var(--fg-3);margin-top:9px;line-height:1.6;border-top:1px solid var(--line-2);padding-top:8px}
+footer{margin-top:70px;padding-top:20px;border-top:1px solid var(--line);color:var(--fg-3);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+@media (max-width:840px){.wrap{padding:0 18px 66px}h1{font-size:26px}.stat{grid-template-columns:1fr}.param td:first-child{width:42%}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">02 · Rental BM — Market Benchmark</div>
+  <h1>대관 BM 시장 실측 — <em>단가와 가동률</em> 파라미터</h1>
+  <p class="sub">
+    <code>01-리서치설계-브리프.md</code>의 <strong>R-10 「대관 가동일」</strong>에 답하는 문서다.
+    추정 대신 <strong>공식 요금표와 공개 전시일정 실측</strong>으로 파라미터를 확정하고,
+    현재 모델의 RL-08 가정이 타당한지 검증한다.
+  </p>
+  <div class="meta">
+    <span class="chip ok">R-10 대관 가동일 — 조사 완료</span>
+    <span class="chip">1차 자료 — 코엑스·SETEC 공식 요금표(2026)</span>
+    <span class="chip">실측 — SETEC 공개 전시일정 32건</span>
+    <span class="chip">RL-08 / 코어 매출 4%</span>
+  </div>
+</header>
+
+<section>
+  <div class="snum">01</div>
+  <h2>결론 — 모델에 넣을 값과 검증 결과</h2>
+  <div class="stat">
+    <div><div class="v" style="color:var(--accent-l)">41.7%</div><div class="l">가동률 실측 벤치마크<br>SETEC 3개 전시실 평균</div></div>
+    <div><div class="v" style="color:var(--warm)">11.32억</div><div class="l">1층 전체(6,157.91㎡) 대관 시<br>연 매출 상한</div></div>
+    <div><div class="v" style="color:var(--green)">정합 ✅</div><div class="l">모델 RL-08 가정(코어 4%≈2.67억)<br>= 1,452㎡ 배정과 일치</div></div>
+  </div>
+
+  <div class="param">
+    <div class="h">모델 투입 파라미터 (RL-08)</div>
+    <table>
+      <tr><td>㎡·일 단가 (보수 기준)</td><td><strong>1,150원</strong> — SETEC 기본요율, VAT 별도</td></tr>
+      <tr><td>계절 요율</td><td>성수기 <strong>120%</strong>(3·4·5·10·11월) / 비수기 <strong>80%</strong>(7·12월) / 그 외 100%</td></tr>
+      <tr><td>└ 연간 가중평균</td><td><strong>1.0499</strong> (일수 가중)</td></tr>
+      <tr><td>가동률</td><td><strong>41.7%</strong> — 실측 벤치마크 (하한 성격, §03 참조)</td></tr>
+      <tr><td>산식</td><td><code>면적 × 1,150 × 365 × 0.417 × 1.0499</code></td></tr>
+      <tr><td>㎡당 연 매출 환산</td><td><strong>183,900원</strong> (평당 약 60.8만원)</td></tr>
+      <tr><td>단가 상한 (적용 금지)</td><td>코엑스급 3,202~3,905원/㎡·일 — <strong>조건 미충족으로 적용 불가</strong>(§04)</td></tr>
+    </table>
+  </div>
+
+  <div class="good">
+    <div class="k">현재 모델 가정 검증 — 타당하다</div>
+    <p style="margin:0">
+      모델은 RL-08을 코어 매출 66.7억의 <strong>약 4%(≈2.67억)</strong>로 잡고 있다.
+      위 파라미터로 역산하면 그 매출에 필요한 대관 면적은 <strong>1,452㎡(439평) = 1층의 24%</strong>다.
+      1층 일부만 대관에 배정하고 나머지를 무료 개방·상설전시로 두는 설계와 <strong>정합적</strong>이다.
+      즉 <strong>모델의 대관 비중 가정은 실측과 어긋나지 않는다.</strong>
+    </p>
+  </div>
+  <div class="warn">
+    <div class="k">단, 기존 앵커의 한 값은 갱신 필요</div>
+    <p style="margin:0">
+      <code>_data/price-anchors.py</code>에 <strong>"SETEC 100% 가동 25.8억"</strong>이 판정 근거로 적혀 있다.
+      100% 가동은 존재하지 않는 가정이므로, <strong>실측 가동률 기반 11.32억</strong>으로 갱신하는 것이 정확하다.
+      결론("대관 단독으로 30억 불가 · 보조 축으로만")은 <strong>바뀌지 않고 오히려 강해진다</strong> —
+      25.8억은 기준선의 86%지만 11.32억은 <strong>38%</strong>다.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="snum">02</div>
+  <h2>면적 시나리오 — 배정 면적별 연 매출</h2>
+  <p class="lede">단가 1,150원·가동률 41.7%·요율 가중 1.0499 고정. 모델에서 대관 배정 면적을 조정할 때 바로 참조.</p>
+  <div class="scroll">
+  <table class="tbl">
+    <tr><th style="width:22%">대관 배정 면적</th><th style="width:16%">평</th><th style="width:20%">연 매출</th><th style="width:18%">1층 대비</th><th style="width:24%">비고</th></tr>
+    <tr><td class="num">500㎡</td><td class="num">151평</td><td class="num">0.92억</td><td class="num">8%</td><td>소규모 전용 구획</td></tr>
+    <tr><td class="num">1,000㎡</td><td class="num">303평</td><td class="num">1.84억</td><td class="num">16%</td><td>—</td></tr>
+    <tr class="hl"><td class="num"><strong>1,452㎡</strong></td><td class="num">439평</td><td class="num"><strong>2.67억</strong></td><td class="num">24%</td><td><strong>현재 모델 RL-08 가정과 일치</strong></td></tr>
+    <tr><td class="num">2,000㎡</td><td class="num">605평</td><td class="num">3.68억</td><td class="num">32%</td><td>—</td></tr>
+    <tr><td class="num">3,000㎡</td><td class="num">908평</td><td class="num">5.51억</td><td class="num">49%</td><td>SETEC 3실 합의 38% 규모</td></tr>
+    <tr><td class="num">6,157.91㎡</td><td class="num">1,863평</td><td class="num">11.32억</td><td class="num">100%</td><td class="num" style="text-align:left;color:var(--rust)">1층 전체 대관장화 — <strong>권장하지 않음</strong></td></tr>
+  </table>
+  </div>
+  <div class="key">
+    <div class="k">면적을 늘려도 답이 안 나온다 — 그리고 늘리면 안 된다</div>
+    <p style="margin:0">
+      1층 전체를 대관장으로 돌려도 <strong>11.32억</strong>으로 기준선 30억의 38%다.
+      더 중요한 것은 <strong>넓게 써도 평당 단가가 오르지 않는다</strong>는 점(§04)이다 —
+      면적을 늘리면 매출은 비례해 늘지만 <strong>무료 개방의 집객력을 잃는다.</strong>
+      대관은 <strong>유휴 시간대·유휴 구획을 메우는 축</strong>으로 두고 배정 면적을 1층의 20~25%선에서 잡는 것이 합리적이다.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="snum">03</div>
+  <h2>가동률 41.7% — 실측 근거</h2>
+  <p class="lede">
+    R-10의 질문은 "대관 가동일을 몇 일로 잡을 것인가"였다.
+    <strong>SETEC 공개 전시일정을 직접 수집해</strong> 전시실별 점유일을 셌다(원본: <code>setec-schedule-20260817.json</code>).
+  </p>
+  <div class="scroll">
+  <table class="tbl">
+    <tr><th style="width:24%">항목</th><th style="width:26%">실측</th><th style="width:50%">비고</th></tr>
+    <tr><td>관측 구간</td><td class="num">2026-08-20 ~ 12-29 (132일)</td><td>공개 일정 전수 수집, 32건</td></tr>
+    <tr><td>제1전시실 (3,130㎡)</td><td class="num">56일 · <strong>42.4%</strong></td><td rowspan="3">중복 제거 기준(같은 날 같은 홀은 1일)</td></tr>
+    <tr><td>제2전시실 (1,684㎡)</td><td class="num">54일 · <strong>40.9%</strong></td></tr>
+    <tr><td>제3전시실 (3,134㎡)</td><td class="num">55일 · <strong>41.7%</strong></td></tr>
+    <tr class="hl"><td><strong>평균 / 면적가중</strong></td><td class="num"><strong>41.7% / 41.8%</strong></td><td>3실 점유 165일 / 이론상 396일</td></tr>
+    <tr><td>평균 개최일수</td><td class="num">2.6일</td><td>최소 1일 · 최대 4일</td></tr>
+    <tr><td>전시실 사용 패턴</td><td class="num">1실 14 · 2실 6 · 3실 12건</td><td>전관 사용 38% — 대형 행사 비중 높음</td></tr>
+  </table>
+  </div>
+  <div class="warn">
+    <div class="k">이 값은 하한이다 — 상향 여지 세 가지</div>
+    <p style="margin:0">
+      ① 관측 구간에 <strong>성수기 3~5월이 빠져 있다</strong>(요율 120% 구간). 연간 전수로 보강하면 가동률·매출이 오를 수 있다.<br>
+      ② <strong>설치·철거일이 제외</strong>된 개최일 기준이다. 실제 점유는 더 길고, 대관 사업자는 그 기간도 과금한다.<br>
+      ③ SETEC은 <strong>공공 요율</strong>이라 민간보다 가격이 낮다 — 가동률은 그만큼 높게 나올 수 있다.<br>
+      → 따라서 11.32억은 보수값이다. 다만 기준선과의 격차가 2.7배라 <strong>상향 여지를 감안해도 판정은 불변</strong>이다.
+    </p>
+  </div>
+  <div class="card">
+    <div class="k">코엑스는 왜 산출하지 않았나</div>
+    <p style="margin:0">
+      코엑스 공식 일정 페이지가 <strong>"코엑스에서 개최되는 모든 행사들이 노출되는 것은 아니며, 주최자 요청 여부에 따라 일부는 노출되지 않는다"</strong>고 명시한다.
+      전수 집계가 불가능하므로 세면 <strong>과소추정</strong>이 된다. 수치를 만들지 않았다.
+      봉은사 벤치마크로는 규모·성격이 다른 코엑스보다 <strong>SETEC이 적합</strong>하다(면적·공공성·중형 행사 중심).
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="snum">04</div>
+  <h2>단가 상한 — 왜 코엑스급을 쓸 수 없나</h2>
+  <p class="lede">
+    강남 전시공간 평당·일 단가는 <strong>13.8배</strong> 벌어진다. 그런데 그 격차를 만드는 것은 <strong>규모가 아니라 조건</strong>이다.
+  </p>
+  <div class="scroll">
+  <table class="tbl">
+    <tr><th style="width:32%">사례</th><th style="width:15%">규모</th><th style="width:18%">평당·일</th><th style="width:35%">성격</th></tr>
+    <tr><td>SETEC 제1전시실</td><td class="num">947평</td><td class="num" style="color:var(--green)"><strong>3,801원</strong></td><td>공공 · 학여울 · 전시 전용</td></tr>
+    <tr><td>강남대로 갤러리형</td><td class="num">100평</td><td class="num">9,000원</td><td>민간</td></tr>
+    <tr class="hl"><td><strong>COEX Hall B2</strong></td><td class="num"><strong>1,103평</strong></td><td class="num"><strong>10,589원</strong></td><td>브랜드 · 삼성동 · 인프라</td></tr>
+    <tr><td>COEX Hall A</td><td class="num">3,136평</td><td class="num">11,652원</td><td>동일</td></tr>
+    <tr class="hl"><td><strong>강남역 소규모 갤러리</strong></td><td class="num"><strong>24.2평</strong></td><td class="num"><strong>12,397원</strong></td><td>민간 소형</td></tr>
+    <tr><td>청담동 복합문화 38평+정원</td><td class="num">38평</td><td class="num" style="color:var(--rust)"><strong>52,632원</strong></td><td>1층·정원·발렛·<strong>음식물 반입</strong>·창고</td></tr>
+  </table>
+  </div>
+  <div class="key">
+    <div class="k">COEX 3,136평과 소규모 갤러리 24평의 평당 단가가 거의 같다</div>
+    <p style="margin:0">
+      규모 <strong>130배</strong> 차이인데 11,652원 대 12,397원이다. <strong>규모는 단가를 결정하지 않는다.</strong>
+      결정 요인은 <strong>공공/민간 · 입지 · 조건</strong>이고, 최고가 사례가 명시한 조건은
+      <strong>1층 · 정원 · 발렛 · 음식물 반입 · 창고</strong>다.
+    </p>
+  </div>
+  <div class="warn">
+    <div class="k">봉은문화회관은 그 조건을 못 갖춘다 — R-03과 직결</div>
+    <p style="margin:0">
+      <strong>조리·음식물 반입이 원천 불가</strong>(문화집회시설 용도, 위반 시 과태료)이고,
+      전통사찰보존구역이라 <strong>상업 브랜드 영업이 제약</strong>되며 설비는 20년 이상 경과했다.
+      브랜드 행사 시장의 기본 조건(케이터링·주류·영업 허용)을 못 갖추므로
+      <strong>평당 3만~10만원 구간은 선택지가 아니다.</strong><br><br>
+      → 이는 브리프의 <strong>R-03 「조리 가능성 확정」</strong>이 F&amp;B 라인(RL-02·03, 코어 47%)뿐 아니라
+      <strong>대관 단가의 상한까지 결정</strong>한다는 뜻이다. 유권해석으로 조리·음식물 반입이 열리면
+      대관 단가 가정도 <strong>상향 재산정 대상</strong>이 된다.
+    </p>
+  </div>
+  <div class="card">
+    <div class="k">병목은 가동률이 아니라 단가다</div>
+    <p style="margin:0">
+      1층 전체로 기준선 30억에 닿으려면 현 파라미터 대비 <strong>2.7배</strong>가 필요하다.
+      그런데 코엑스/SETEC 단가 차가 <strong>2.8배</strong>다 — <strong>코엑스 단가를 받으면 정확히 기준선에 닿는다.</strong>
+      가동률 42%는 SETEC 실측 41.7%로 <strong>달성 가능한 수준</strong>임이 확인됐으므로,
+      대관 BM의 제약은 <strong>공간을 못 채우는 것이 아니라 비싸게 못 파는 것</strong>이다.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="snum">05</div>
+  <h2>다른 조사 항목에 주는 값</h2>
+  <div class="scroll">
+  <table class="tbl">
+    <tr><th style="width:20%">브리프 항목</th><th style="width:80%">이 문서가 제공하는 것</th></tr>
+    <tr><td><strong>R-10</strong> 대관 가동일</td><td class="num" style="text-align:left;color:var(--green)"><strong>조사 완료</strong> — 가동률 41.7%, 단가 1,150원, 요율 가중 1.0499, ㎡당 연 183,900원</td></tr>
+    <tr><td><strong>R-03</strong> 조리 가능성</td><td>조리 불가가 F&amp;B뿐 아니라 <strong>대관 단가 상한까지 결정</strong>한다는 연결을 확인. 유권해석 결과가 열리면 대관 단가도 상향 재산정 대상 — <strong>R-03의 값어치가 브리프 산정보다 크다</strong></td></tr>
+    <tr><td><strong>R-06</strong> 전시 유료화 단가</td><td>참조 앵커 확보 — 마이아트뮤지엄(삼성동) 성인 <strong>20,000원</strong>, 1,000평+ 규모로 14회 전시 누적 120만명(<strong>회당 약 8.6만명</strong>)</td></tr>
+    <tr><td><strong>R-02</strong> 방문객 6.1배 격차</td><td class="num" style="text-align:left;color:var(--rust)"><strong>크롤링으로는 해결 불가</strong> 판정 — 후기 작성률을 모르므로 절대수 환산은 추정이 아니라 창작이 된다. 게이트 집계·교통 데이터 등 다른 경로 필요</td></tr>
+    <tr><td>전 라인 공통</td><td><strong>계절 가중치 근거</strong> — RXR 후기 4,330건 게시일 분포에서 3~5월 <strong>57.6%</strong>, 8~12월 5개월 합 19.8%(8.2배 격차). <strong>연 매출을 12등분하는 평준화 가정은 이 건물에서 성립하지 않는다</strong></td></tr>
+  </table>
+  </div>
+</section>
+
+<section>
+  <div class="snum">06</div>
+  <h2>남은 공백</h2>
+  <ul>
+    <li><strong>SETEC 연간 전수</strong> — 현 관측은 8~12월 132일로 성수기 3~5월 미포함. 과거 일정 조회로 연간 가동률 확정 시 11.32억이 상향될 수 있음</li>
+    <li><strong>설치·철거 과금 관행</strong> — 코엑스는 과금하나 우리 정책은 미정. 가동일 정의(개최일 vs 점유일)에 따라 매출이 달라짐</li>
+    <li><strong>플랫폼엘 대관료</strong> — 비공개, 심의 후 개별 견적 (02-6929-4464 / space@platform-L.org). 민간 중형 구간 앵커 보강용</li>
+    <li><strong>코엑스 실가동률</strong> — 공식 일정이 전수 노출이 아니어서 산출 불가. 필요 시 연간 전시 개최 건수 공표자료로 우회</li>
+    <li><strong>우리 대관의 원가</strong> — 운영 인력·보안·청소·공조가 직영이면 우리 원가. 공간 임대는 <strong>부가세 과세</strong> 사업(면세 아님)이라 순이익 산정에 반영 필요</li>
+  </ul>
+  <p class="src">
+    출처 — 코엑스 2026년 임대비용 공식 요금표 <code>business.coex.co.kr/exhibition-hall/rental-cost/rent/</code> ·
+    SETEC 임대요율 및 전시일정 <code>setec.or.kr</code> · GBD 오피스 임대료 2026 2Q 시장 리포트 ·
+    민간·갤러리 구간은 공개 매물 기반 시장 추정 범위(강남 실거래가 아님, 일부 인사동 공개요율 보조 참조).
+    관련 요소 — <code>E-1079</code>(단가) <code>E-1080</code>(역산) <code>E-1082</code>(조건이 단가를 정함) <code>E-1083</code>(가동률 실측).
+  </p>
+</section>
+
+<footer>
+  <span>02 · 대관 BM 시장 실측 — R-10 답변 · 2026-08-17</span>
+  <span>by Project Rent</span>
+</footer>
+</div>

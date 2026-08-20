@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>T1 상세 기획 — 봉은문화회관</title><style>:root{
+  --bg:#1A1A1A; --panel:#212121; --panel2:#282828; --line:#333;
+  --txt:#EDEDED; --dim:#9A9A9A; --dim2:#6E6E6E;
+  --pri:#6C5CE7; --pri-l:#9B8CFF; --pri-soft:rgba(108,92,231,.14);
+  --ok:#3DBE8B; --warn:#E5A54B; --bad:#E56B6B;
+  --ok-soft:rgba(61,190,139,.14); --warn-soft:rgba(229,165,75,.14); --bad-soft:rgba(229,107,107,.13);
+  --off-bg:#2A2222; --off-tx:#7A5C5C; --grid:#2E2E2E; --axis:#555;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:Pretendard, "Pretendard Variable", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+line-height:1.65;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px 100px}
+header{padding:72px 0 40px;border-bottom:1px solid var(--line)}
+.kicker{color:var(--pri-l);font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+h1{font-size:40px;font-weight:800;letter-spacing:-.025em;margin:14px 0 14px;line-height:1.22;text-wrap:balance}
+.lead{color:var(--dim);font-size:17px;max-width:70ch}
+.meta{display:flex;gap:26px;flex-wrap:wrap;margin-top:26px;color:var(--dim2);font-size:13px;
+font-variant-numeric:tabular-nums}
+section{margin-top:64px}
+h2{font-size:12.5px;font-weight:700;color:var(--pri-l);letter-spacing:.14em;text-transform:uppercase;
+padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:26px}
+h3{font-size:22px;font-weight:700;margin:34px 0 12px;letter-spacing:-.015em;text-wrap:balance}
+p.body{color:var(--dim);margin-bottom:14px;max-width:72ch}
+p.body b{color:var(--txt)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px}
+.box h4{font-size:16px;margin-bottom:12px;font-weight:700}
+.box.drop{border-color:color-mix(in srgb,var(--bad) 34%,var(--line))}
+.box.keep{border-color:color-mix(in srgb,var(--ok) 34%,var(--line))}
+.box ul{list-style:none;display:flex;flex-direction:column;gap:2px}
+.box li{padding:6px 0 6px 18px;position:relative;color:var(--dim);font-size:14.5px}
+.box li:before{content:"";position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;
+background:var(--dim2)}
+.box.keep li:before{background:var(--ok)}
+.box.drop li:before{background:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:8px 0 30px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.stat b{display:block;font-size:32px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat span{color:var(--dim2);font-size:12.5px}
+.coord{width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:860px}
+th{text-align:left;padding:11px 9px;border-bottom:1px solid var(--line);color:var(--dim2);
+font-size:11.5px;font-weight:700;letter-spacing:.05em;white-space:nowrap}
+td{padding:13px 9px;border-bottom:1px solid color-mix(in srgb,var(--line) 62%,transparent);
+vertical-align:top}
+td.rk{color:var(--dim2);font-size:12px;width:26px;font-variant-numeric:tabular-nums}
+td.uid{color:var(--pri-l);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;width:44px}
+td.nm{min-width:290px}
+td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--dim)}
+td.num.strong{color:var(--txt);font-weight:700}
+td.dim{color:var(--dim2)}
+.sub{color:var(--dim2);font-size:12.5px;margin-top:5px;line-height:1.5;max-width:44ch}
+.ws{color:var(--pri-l)}
+.pill{font-size:11.5px;padding:3px 9px;border-radius:20px;white-space:nowrap;font-weight:600}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.info{background:var(--pri-soft);color:var(--pri-l)}
+ul.find{list-style:none;display:flex;flex-direction:column;gap:9px}
+ul.find li{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--dim2);
+border-radius:8px;padding:14px 18px;font-size:14.5px;color:var(--dim)}
+ul.find li.high{border-left-color:var(--bad)}
+ul.find li.mid{border-left-color:var(--warn)}
+.tag{display:inline-block;background:var(--panel2);color:var(--dim);font-size:11.5px;
+padding:2px 8px;border-radius:5px;margin-right:10px;font-weight:600}
+.comps{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.comp{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px}
+.comp.hi{border-color:var(--pri);background:linear-gradient(180deg,var(--pri-soft),transparent 60%)}
+.comp h4{font-size:17px;font-weight:700;margin-bottom:8px}
+.why{color:var(--dim2);font-size:13px;margin-bottom:16px;line-height:1.55}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.metrics div b{display:block;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.metrics div span{color:var(--dim2);font-size:11px}
+.over{color:var(--bad);font-size:10.5px}
+.flags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.f{font-size:11.5px;padding:3px 9px;border-radius:5px;background:var(--panel2);color:var(--dim)}
+.f.ok{color:var(--ok)}.f.warn{color:var(--warn)}.f.bad{color:var(--bad)}.f.dim{color:var(--dim2)}
+.miss{color:var(--dim2);font-size:12px}
+.stress{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:14px}
+.stress h4{font-size:16px;margin-bottom:6px}
+.trg{color:var(--dim2);font-size:13px;margin-bottom:14px}
+.lbl{font-size:11.5px;color:var(--dim2);margin:10px 0 6px;letter-spacing:.06em;font-weight:700}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;padding:3px 9px;border-radius:5px}
+.chip.on{background:var(--ok-soft);color:var(--ok)}
+.chip.off{background:var(--off-bg);color:var(--off-tx);text-decoration:line-through}
+.note{margin-top:14px;padding-top:13px;border-top:1px solid var(--line);color:var(--pri-l);font-size:13.5px}
+.atoms{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.atom{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;
+border-top:3px solid var(--dim2)}
+.atom.o-own{border-top-color:var(--pri)}
+.atom.o-order{border-top-color:var(--ok)}
+.atom.o-tradition{border-top-color:var(--warn)}
+.atom.o-external{border-top-color:var(--dim2)}
+.ah{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.aid{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--pri-l)}
+.orig{font-size:11px;color:var(--dim2);background:var(--panel2);padding:2px 7px;border-radius:4px}
+.dm{font-size:11px;color:var(--dim2);margin-left:auto;font-variant-numeric:tabular-nums}
+.atom h5{font-size:14.5px;font-weight:700;margin-bottom:9px;line-height:1.4}
+.atom ul{list-style:none}
+.atom li{color:var(--dim);font-size:12.5px;padding:2.5px 0 2.5px 11px;position:relative;line-height:1.5}
+.atom li:before{content:"·";position:absolute;left:2px;color:var(--dim2)}
+.hook{margin-top:9px;color:var(--pri-l);font-size:12.5px;line-height:1.5}
+.gap{margin-top:8px;color:var(--warn);font-size:12px;line-height:1.5}
+footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:var(--dim2);font-size:12.5px}
+footer code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--dim)}
+a{color:var(--pri-l)}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px;border-radius:4px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.tracks{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.track{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;
+display:flex;flex-direction:column;gap:12px}
+.track.t1{border-color:var(--ok);background:linear-gradient(180deg,var(--ok-soft),transparent 62%)}
+.track .th{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.track h4{font-size:16.5px;font-weight:700}
+.track .gate{font-size:11.5px;color:var(--dim2);background:var(--panel2);padding:2px 8px;border-radius:5px}
+.track .qty{font-size:12.5px;color:var(--dim2);font-variant-numeric:tabular-nums}
+.track p{color:var(--dim);font-size:13px;line-height:1.55}
+.track ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.track li{font-size:13.5px;color:var(--txt);padding-left:16px;position:relative;line-height:1.45}
+.track li:before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;
+background:var(--dim2)}
+.track.t1 li:before{background:var(--ok)}
+.track li code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--dim2);
+margin-right:5px}
+.floor{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:14px}
+.floor .fh{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.floor h4{font-size:17px;font-weight:700}
+.floor .fq{font-size:12.5px;color:var(--dim2);font-variant-numeric:tabular-nums}
+.floor .traits{color:var(--dim2);font-size:12.5px;margin-bottom:16px;line-height:1.5}
+.bar{display:flex;gap:4px;height:78px;margin-bottom:12px}
+.blk{border-radius:7px;padding:9px 10px;overflow:hidden;min-width:0;
+background:var(--pri-soft);border:1px solid color-mix(in srgb,var(--pri) 34%,transparent)}
+.blk.free{background:transparent;border:1px dashed var(--line)}
+.blk b{display:block;font-size:11.5px;font-weight:700;color:var(--pri-l);white-space:nowrap}
+.blk span{font-size:11px;color:var(--dim2);display:block;line-height:1.35;margin-top:2px}
+.blk.free b{color:var(--dim2)}
+.floor ol{list-style:none;display:flex;flex-direction:column;gap:8px}
+.floor ol li{display:flex;gap:10px;align-items:baseline;font-size:13.5px;color:var(--dim);
+padding-top:8px;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.floor ol li b{color:var(--txt);font-weight:600}
+.floor ol li .a{margin-left:auto;color:var(--dim2);font-size:12.5px;font-variant-numeric:tabular-nums;
+white-space:nowrap}
+.overlay-note{background:var(--panel2);border-radius:10px;padding:16px 18px;color:var(--dim);font-size:13.5px}
+.drops{display:flex;flex-direction:column;gap:9px}
+.drop-row{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 18px;
+display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.drop-row .di{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--dim2)}
+.drop-row .dn{font-weight:600;font-size:14px}
+.drop-row .dr{color:var(--dim);font-size:13px;flex:1 1 320px}
+.drop-row .ds{margin-left:auto;font-size:12px;color:var(--dim2);font-variant-numeric:tabular-nums}
+details.appendix{border:1px solid var(--line);border-radius:12px;background:var(--panel);
+padding:0 22px;margin-bottom:14px}
+details.appendix>summary{cursor:pointer;padding:18px 0;font-weight:700;font-size:15.5px;list-style:none}
+details.appendix>summary::-webkit-details-marker{display:none}
+details.appendix>summary:before{content:"▸ ";color:var(--pri-l)}
+details.appendix[open]>summary:before{content:"▾ "}
+details.appendix>div{padding-bottom:24px}
+@media(max-width:900px){.tracks{grid-template-columns:1fr}.bar{height:auto;flex-direction:column}
+.blk{min-height:46px}}
+@media(max-width:900px){
+.two,.comps{grid-template-columns:1fr}
+.stats{grid-template-columns:repeat(2,1fr)}
+.atoms{grid-template-columns:1fr}
+.metrics{grid-template-columns:repeat(2,1fr)}
+h1{font-size:29px}
+header{padding-top:52px}
+}
+
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:8px 0 34px}
+.sm{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.sm b{display:block;font-size:30px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.sm span{color:var(--dim2);font-size:12.5px}
+.seq{display:flex;flex-direction:column;gap:12px}
+.seq-row{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:18px 20px;
+display:grid;grid-template-columns:170px 1fr;gap:18px;align-items:start}
+.seq-row .ph{font-weight:700;font-size:14.5px}
+.seq-row .un{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.seq-row .why{color:var(--dim);font-size:13.5px;line-height:1.55}
+.uchip{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;padding:2px 8px;
+border-radius:5px;background:var(--pri-soft);color:var(--pri-l);font-weight:600}
+.brief{border:1px solid var(--line);border-radius:14px;background:var(--panel);
+padding:0 0 26px;margin-bottom:22px;overflow:hidden}
+.brief > .bh{padding:26px 28px 22px;border-bottom:1px solid var(--line);
+background:linear-gradient(180deg,var(--pri-soft),transparent)}
+.brief .rank{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--pri-l);
+letter-spacing:.08em}
+.brief h3{font-size:25px;font-weight:800;letter-spacing:-.02em;margin:8px 0 4px}
+.brief .st{color:var(--pri-l);font-size:14.5px;font-weight:600;margin-bottom:12px}
+.brief .ol{color:var(--txt);font-size:16px;line-height:1.6;max-width:66ch}
+.brief .facets{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.facet{font-size:11.5px;padding:3px 10px;border-radius:20px;background:var(--panel2);color:var(--dim);
+font-weight:600}
+.facet.ok{background:var(--ok-soft);color:var(--ok)}
+.facet.area{background:var(--pri-soft);color:var(--pri-l)}
+.bsec{padding:22px 28px 0}
+.bsec > h4{font-size:11.5px;font-weight:700;color:var(--dim2);letter-spacing:.13em;
+text-transform:uppercase;margin-bottom:11px}
+.bsec p{color:var(--dim);font-size:14.5px;line-height:1.62;max-width:74ch}
+.bsec p b{color:var(--txt)}
+.bsec ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.bsec ul li{color:var(--dim);font-size:14px;padding-left:16px;position:relative;line-height:1.55}
+.bsec ul li:before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;
+background:var(--dim2)}
+.bsec ol.flow{list-style:none;counter-reset:f;display:flex;flex-direction:column;gap:9px}
+.bsec ol.flow li{counter-increment:f;position:relative;padding-left:32px;color:var(--dim);
+font-size:14.5px;line-height:1.58}
+.bsec ol.flow li:before{content:counter(f);position:absolute;left:0;top:1px;width:21px;height:21px;
+border-radius:50%;background:var(--pri-soft);color:var(--pri-l);font-size:11.5px;font-weight:700;
+display:flex;align-items:center;justify-content:center}
+.ptable{overflow-x:auto}
+.ptable table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:720px}
+.ptable th{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);color:var(--dim2);
+font-size:11px;font-weight:700;letter-spacing:.05em;white-space:nowrap}
+.ptable td{padding:11px 10px;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent);
+vertical-align:top;color:var(--dim)}
+.ptable td.pn{color:var(--txt);font-weight:600;white-space:nowrap}
+.ptable td.pd{min-width:210px}
+.lab{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:6px;
+font-weight:700;letter-spacing:.03em;vertical-align:1px}
+.lab.s{background:var(--ok-soft);color:var(--ok)}
+.lab.a{background:var(--warn-soft);color:var(--warn)}
+.lab.o{background:var(--bad-soft);color:var(--bad)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.mini{background:var(--panel2);border-radius:10px;padding:16px 18px}
+.mini h5{font-size:12.5px;font-weight:700;color:var(--dim2);letter-spacing:.08em;text-transform:uppercase;
+margin-bottom:9px}
+.mini p,.mini li{font-size:13.5px;color:var(--dim);line-height:1.55}
+.mini ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.mini ul li{padding-left:14px;position:relative}
+.mini ul li:before{content:"";position:absolute;left:0;top:8px;width:4px;height:4px;border-radius:50%;
+background:var(--dim2)}
+.warnbox{background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 9px 9px 0;
+padding:14px 18px;color:var(--dim);font-size:14px;line-height:1.6}
+.guardbox{background:var(--panel2);border-left:3px solid var(--pri);border-radius:0 9px 9px 0;
+padding:14px 18px;color:var(--dim);font-size:14px;line-height:1.6}
+.gapbox{background:var(--bad-soft);border-left:3px solid var(--bad);border-radius:0 9px 9px 0;
+padding:14px 18px}
+.gapbox ul li{color:var(--dim);font-size:13.5px}
+.voice{border-left:2px solid var(--pri);padding-left:16px;margin:4px 0 0;color:var(--pri-l);
+font-size:14px;font-style:italic;line-height:1.6}
+.srcline{padding:18px 28px 0;color:var(--dim2);font-size:11.5px;line-height:1.6;
+font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+@media(max-width:900px){
+.summary{grid-template-columns:repeat(2,1fr)}
+.seq-row{grid-template-columns:1fr}
+.grid2{grid-template-columns:1fr}
+.brief h3{font-size:21px}
+.brief>.bh,.bsec,.srcline{padding-left:20px;padding-right:20px}
+}
+</style></head><body><div class="wrap">
+<header>
+<div class="kicker">봉은문화회관 활용전략 · T1 상세 기획</div>
+<h1>조건 없이 지금 착수하는 아홉 가지</h1>
+<p class="lead">콘텐츠 구성 엔진이 T1으로 분류한 9개 유닛 — 전통사찰법상 확실하고 재료가 이미 있어, 유권해석도 신규 조달도 기다리지 않는 것들이다. 각 유닛을 프로그램·공간·운영·법적 선·확인 항목까지 풀었다. <b>가격과 정원은 리서치에 근거가 있는 값만 옮겼고</b>, 조립한 값과 미확정 값은 그대로 표시했다.</p>
+<div class="meta"><span>유닛 9 · 프로그램 28종</span><span>점유 면적 4,900㎡ · 면적 미점유 2종</span><span>2026-07-30</span></div>
+</header>
+
+<section>
+<h2>한눈에</h2>
+<div class="summary">
+<div class="sm"><b>9</b><span>유닛 — 조건 없이 착수</span></div>
+<div class="sm"><b>28</b><span>프로그램 항목</span></div>
+<div class="sm"><b>4,900</b><span>㎡ 점유 (1층 4,200 · 2층 850)</span></div>
+<div class="sm"><b>2</b><span>면적 없이 얹히는 유닛</span></div>
+</div>
+<p class="body">값 표기는 세 가지다. <span class="lab s">근거 있음</span> 리서치 원문에 값이 있다 · <span class="lab a">조립</span> 원문 값을 조합해 판단이 들어갔다 · <span class="lab o">미확정</span> 값이 없어 확인 후 채운다. 봉은사 가용 예산이 미확인이라 공사비·조성비는 산정하지 않았다.</p>
+</section>
+
+<section>
+<h2>어떤 순서로 여는가</h2>
+<p class="body">리드타임과 설비 의존도로 갈랐다. 첫 묶음은 대형 공사에 기대지 않고 <b>네 개가 한 세트로 함께 움직인다</b> — 로비를 열고, 외국인 프로그램을 상시화하고, 워크인을 붙이고, 해설을 얹는다.</p>
+<div class="seq"><div class="seq-row">
+<div class="ph">먼저 열리는 것</div>
+<div><div class="un"><span class="uchip">u17</span><span class="uchip">u10</span><span class="uchip">u04</span><span class="uchip">u11</span></div>
+<div class="why">재료가 이미 있고 대형 공사에 의존하지 않는다. 로비 개방 + 외국인 상시 + 워크인 + 해설이 하나의 세트로 움직인다</div></div></div><div class="seq-row">
+<div class="ph">설비 교체와 함께</div>
+<div><div class="un"><span class="uchip">u06</span><span class="uchip">u08</span></div>
+<div class="why">다원은 급배수, 명상은 차음·바닥이 필요하다. 냉난방이 사용불능이라 어차피 설비 공사와 묶인다</div></div></div><div class="seq-row">
+<div class="ph">전시 조성</div>
+<div><div class="un"><span class="uchip">u02</span><span class="uchip">u01</span></div>
+<div class="why">면적이 크고 조성 기간이 길다. u01은 유물 목록 확인과 병행</div></div></div><div class="seq-row">
+<div class="ph">상시 얹기</div>
+<div><div class="un"><span class="uchip">u16</span></div>
+<div class="why">행사 캘린더 확보 후 연중 계획으로 편성. 별도 조성 없음</div></div></div></div>
+</section>
+
+<section>
+<h2>유닛끼리 어떻게 물려 있는가</h2>
+<ul class="find"><li class="mid">u11 해설은 u01·u02·u10의 값을 동시에 올린다 — 가장 먼저 착수해도 되고, 가장 적게 든다</li><li class="mid">u16 캘린더는 u01의 약점(리필 없음)을 메운다 — 두 유닛을 따로 판단하면 안 된다</li><li class="mid">u04 워크인과 u10 외국인 프로그램은 콘텐츠가 겹친다(지화연꽃) — 하나의 운영 체계로 묶어야 중복 투입을 피한다</li><li class="mid">u06 다원과 u08 명상은 다선(茶禪)으로 연결된다</li><li class="mid">u17 로비는 나머지 8개의 진입 지점이다 — 여기가 닫히면 워크인 구조가 성립하지 않는다</li></ul>
+</section>
+
+<section>
+<h2>아홉 개 상세</h2>
+<div class="brief" id="u10">
+<div class="bh">
+<div class="rank">T1 · 01 / 09 · u10</div>
+<h3>외국인 상시 프로그램</h3>
+<div class="st">매월 하던 것을 매일 하는 것으로</div>
+<p class="ol">이미 영어로 돌아가고 있는 템플라이프를 상시·워크인 가능한 구조로 옮겨 앉힌다.</p>
+<div class="facets"><span class="facet ok">green · 법적 확실</span><span class="facet area">1층 · 400㎡</span><span class="facet">D1 할 것 없음</span><span class="facet">D4 이해할 수 없음</span><span class="facet">D5 동선이 짧음</span></div>
+</div>
+
+<div class="bsec"><h4>왜 조건 없이 되는가</h4><p>새로 만드는 것이 없다. 콘텐츠·사무국·예약 체계·영어 진행이 전부 이미 있고, 없는 것은 공간뿐이다. 법적으로는 포교 목적이라 시행령 제7조 안이고, 템플스테이는 한국불교문화사업단 사업이라 관광사업 등록도 불요다.</p></div>
+
+<div class="bsec"><h4>쓰는 재료</h4>
+<ul><li>현행 템플라이프 당일형 — 사찰순례 · 지화연꽃 만들기 · 참선 · 다선</li><li>현행 체류형 1박2일 — 저녁예불 · 새벽예불 · 사찰음식</li><li>외국인 전담 사전예약 운영 체계 (사무국 02-3218-4826)</li><li>매월 특정 주말 영어 진행 실적</li></ul></div>
+<div class="bsec"><h4>지금 시장에서의 위치</h4><ul><li>봉은사 일평균 외국인 200~300명 · TripAdvisor 서울 1,371개 중 13위 (리뷰 약 1,350건)</li><li>2025년 조계사 숙박형 중단 → 서울 선택지가 봉은사·화계사 2곳</li><li>전국 참여 사찰 141개 중 영어 프로그램 제공은 28개(약 20%)</li><li>봉은사 영어 가이드 투어는 주 1회 목요일 14:00~16:00 · 1만원이 전부</li><li>템플스테이 외국인 참가 동기 1위 = 한국 전통문화 관심 31%, 2위 불교문화 29%</li></ul></div>
+
+
+<div class="bsec"><h4>경험이 어떻게 흐르는가</h4>
+<ol class="flow"><li>코엑스에서 도보로 들어와 1층 진입부에서 바로 만난다 — 예약 없이 오늘 할 수 있는 것이 보인다</li><li>30분 슬롯을 고르거나, 90분 프로그램에 붙거나, 반일 템플라이프를 예약한다</li><li>끝나고 손에 만든 것이 남는다 — 지화연꽃·사경</li><li>경내로 나가 판전과 대웅전을 해설(u11)과 함께 본다</li></ol></div>
+
+<div class="bsec"><h4>프로그램 구성</h4><div class="ptable"><table><thead><tr><th>프로그램</th><th>내용</th><th>정원</th><th>가격</th><th>언어</th><th>주기</th></tr></thead><tbody><tr>
+<td class="pn">워크인 30분</td>
+<td class="pd">지화연꽃 또는 사경 — 예약 없이</td>
+<td>회당 10~15인 <span class="lab a">조립</span></td>
+<td>3,000~20,000원 범위 내 <span class="lab s">근거 있음</span> (아이데이션 워크인 체험 단가)</td>
+<td>영/한</td>
+<td>운영시간 내 상시</td></tr><tr>
+<td class="pn">템플라이프 라이트 90분</td>
+<td class="pd">사찰순례 + 참선 + 다선 — 현행 당일형의 축약</td>
+<td>회당 20~30인 <span class="lab a">조립</span> (템플스테이 1회 규모 추정치 기준)</td>
+<td><span class="lab o">미확정</span> 현행 9~12만원대 당일형과 외국인 15,000원(행복두배 할인가) 사이의 가격 정책을 정리해야 한다</td>
+<td>영어 주 진행</td>
+<td>1일 2~3회 <span class="lab a">조립</span></td></tr><tr>
+<td class="pn">반일 템플라이프</td>
+<td class="pd">현행 당일형 그대로</td>
+<td><span class="lab o">미확정</span> </td>
+<td>9~12만원대 <span class="lab s">근거 있음</span> (현행)</td>
+<td>영어</td>
+<td>현행 월 주말 → 주 단위로 <span class="lab a">조립</span></td></tr><tr>
+<td class="pn">영어 가이드 투어</td>
+<td class="pd">경내 + 판전 해설. u11 해설 체계와 한 몸</td>
+<td><span class="lab o">미확정</span> </td>
+<td>10,000원 <span class="lab s">근거 있음</span> (현행)</td>
+<td>영어</td>
+<td>주 1회 → 1일 1~2회 <span class="lab a">조립</span></td></tr></tbody></table></div></div>
+
+<div class="bsec"><div class="grid2">
+<div class="mini"><h5>공간</h5>
+<p><b>1층</b> · 400㎡
+</p>
+<p style="margin-top:7px">15M 도로 접면 · 차량 드롭오프 · 캐노피 · 고객/물류 동선 분리</p>
+<h5 style="margin-top:14px">필요한 손질</h5>
+<ul><li>예약 없이 붙을 수 있는 오픈 카운터</li><li>30분 슬롯용 좌식·입식 혼합 워크스테이션</li><li>다국어 사이니지(u11과 공유)</li><li>물품 보관·신발 정리</li></ul></div>
+<div class="mini"><h5>운영</h5>
+<ul><li>인력 — 영어 진행 인력 — 현 사무국 체계 확장. 필요 인원은 참가자 실적 확인 후 산정</li><li>언어 — 영어 상시 + 한국어</li>
+<li>파트너 — 한국불교문화사업단(템플스테이 네트워크) 연계 유지</li></ul>
+<h5 style="margin-top:14px">지표</h5>
+<ul><li>외국인 체류시간 — 현재 30분~1시간이 기준선</li><li>주간 영어 슬롯 수 — 현재 가이드투어 주 1회</li><li>워크인 대 예약 비율</li><li>코엑스 방문 후 유입 비율</li></ul></div>
+</div></div>
+
+<div class="bsec"><h4>운영 리스크</h4><div class="warnbox">상시화하면 영어 진행 인력이 병목이 된다. 현행이 &#x27;월 특정 주말&#x27;인 이유가 인력 제약인지 수요 제약인지 먼저 확인해야 한다</div></div>
+
+
+<div class="bsec"><h4>법적 근거와 지켜야 할 선</h4>
+<p><b>근거</b> — 포교 목적 활동. 템플스테이는 한국불교문화사업단 사업으로 관광사업 등록 불요</p>
+<div class="guardbox" style="margin-top:10px">숙박을 포함한 패키지로 넓히면 관광객이용시설업·관광편의시설업 등록 검토가 붙는다. 유상 체험은 수익사업이라 개시 20일 내 사업자등록·2개월 내 개시신고·구분회계가 필요하다</div></div>
+
+<div class="bsec"><h4>지금 없는 것</h4><div class="gapbox">
+<ul><li>🔴 연간 참가자 수·외국인 비율 — 규모 산정의 유일한 공백</li><li>🔴 현행 &#x27;월 특정 주말&#x27; 제약의 원인(인력 vs 수요)</li><li>가격 정책 정리 — 9~12만원대와 15,000원이 병존한다</li><li>연중 행사 캘린더(u16과 공유)</li></ul></div></div>
+
+<div class="bsec"><h4>선례에서 가져올 것</h4>
+<ul><li>고야산 슈쿠보협회(1958~) — 개별 사찰이 아니라 협회가 예약을 받는 구조</li><li>츠키지 혼간지 &#x27;오픈 템플&#x27; — 참배객이 아닌 사람도 들어와 있어도 되는 설계</li><li>왓포 타이전통마사지 스쿨 — 사찰이 기술·자격을 가르쳐 관광객을 학습자로 바꾼 사례</li></ul></div>
+
+<div class="srcline">perspective/own-assets-research.md C-1~C-4 · foreigner-temple-experience-pain-points.md L28 L35 L46 L149 · 38-gangnam-samseong-foreign-visitor-traffic-research.md L104-132 · 종교공간-비즈니스모델-상세팩트시트.md L155-160</div>
+</div><div class="brief" id="u16">
+<div class="bh">
+<div class="rank">T1 · 02 / 09 · u16</div>
+<h3>사찰 캘린더 연동 시즌 프로그램</h3>
+<div class="st">리필 구조를 새로 만들지 않는다</div>
+<p class="ol">이미 사람이 몰리는 사찰 행사에 문화회관을 실내 거점으로 붙인다.</p>
+<div class="facets"><span class="facet ok">green · 법적 확실</span><span class="facet area">면적 미점유</span><span class="facet">D5 동선이 짧음</span><span class="facet">D6 삼성동에 문화 목적지가 없음</span></div>
+</div>
+
+<div class="bsec"><h4>왜 조건 없이 되는가</h4><p>재방문 동기를 기획전 교체로 만들면 매회 비용이 든다. 봉은사는 그 리듬을 이미 갖고 있다 — 행사가 곧 리필이다. 종교 고유목적 활동이라 법적 검토도 가볍다.</p></div>
+
+<div class="bsec"><h4>쓰는 재료</h4>
+<ul><li>부처님오신날(양력 5월) 3~5만명/일 — 봉은사 단독 집계</li><li>연등회(5월 약 2주) 일 2~3만명</li><li>국화축제(10~11월) 일 1.5~2만명</li><li>제야 타종·신년기도 2~3만명</li><li>초하루법회 3,000~5,000명 · 일요법회 500~2,000명 (전부 법왕루에서 봉행)</li><li>봄(벚꽃 + 부처님오신날)이 연중 최고 피크, 주말이 평일의 1.5~2배</li></ul></div>
+
+
+
+<div class="bsec"><h4>경험이 어떻게 흐르는가</h4>
+<ol class="flow"><li>행사에 온 사람이 야외에서 실내로 자연스럽게 들어온다 — 비·더위·추위를 피하는 곳이 곧 프로그램 입구</li><li>그 시기에만 있는 것을 만든다 — 연등, 국화, 신년 사경</li><li>행사가 끝나도 남는 것: 만든 물건과 다음 행사 날짜</li></ol></div>
+
+<div class="bsec"><h4>프로그램 구성</h4><div class="ptable"><table><thead><tr><th>프로그램</th><th>내용</th><th>정원</th><th>가격</th><th>언어</th><th>주기</th></tr></thead><tbody><tr>
+<td class="pn">연등 시즌 (4~5월)</td>
+<td class="pd">연등 만들기 대량 워크인 + 부처님오신날·연등회 연계</td>
+<td>행사일 3~5만명 유입 중 일부 <span class="lab o">미확정</span></td>
+<td>워크인 단가 준용</td>
+<td>영/한</td>
+<td>약 6주</td></tr><tr>
+<td class="pn">국화 시즌 (10~11월)</td>
+<td class="pd">국화축제 연계 실내 전시·다원 특별 메뉴</td>
+<td>일 1.5~2만명 유입 중 일부 <span class="lab o">미확정</span></td>
+<td>전시·다원 단가 준용</td>
+<td>영/한</td>
+<td>약 4주</td></tr><tr>
+<td class="pn">신년 (12월 말~1월)</td>
+<td class="pd">제야 타종·신년기도 연계 사경·서원</td>
+<td>2~3만명 유입 중 일부 <span class="lab o">미확정</span></td>
+<td>워크인 단가 준용</td>
+<td>한/영</td>
+<td>약 2주</td></tr><tr>
+<td class="pn">법회일 상시 연계</td>
+<td class="pd">초하루·일요법회 참석자를 위한 실내 대기·다과·전시 개방</td>
+<td>회당 500~5,000명 <span class="lab s">근거 있음</span></td>
+<td>무상 또는 실비</td>
+<td>한국어</td>
+<td>매월·매주</td></tr></tbody></table></div></div>
+
+<div class="bsec"><div class="grid2">
+<div class="mini"><h5>공간</h5>
+<p><b>면적 미점유</b>
+</p>
+<p style="margin-top:7px">전시·체험·로비 공간을 시기별로 점유한다. 전용 실을 두지 않는다</p>
+<h5 style="margin-top:14px">필요한 손질</h5>
+<ul><li>시즌 교체가 쉬운 가변 가구·행잉 시스템</li><li>대량 인원 동시 유입 대비 동선 분리</li></ul></div>
+<div class="mini"><h5>운영</h5>
+<ul><li>인력 — 행사 기간 집중 투입. 상시 인력 증원 없이 시즌 운영이 가능한 것이 이 유닛의 장점</li><li>언어 — 한국어 주 · 영어 병행</li>
+<li>파트너 — 봉은사 종무·행사 조직과 일정 공유</li></ul>
+<h5 style="margin-top:14px">지표</h5>
+<ul><li>행사일 실내 유입 인원</li><li>행사 전후 재방문</li><li>시즌 프로그램 참가 수</li><li>행사 없는 시기 대비 편차</li></ul></div>
+</div></div>
+
+<div class="bsec"><h4>운영 리스크</h4><div class="warnbox">피크 인원이 실내로 들어오면 안전·동선 관리가 커진다. 부처님오신날급(일 3~5만) 대응은 별도 계획이 필요하다</div></div>
+
+
+<div class="bsec"><h4>법적 근거와 지켜야 할 선</h4>
+<p><b>근거</b> — 종교 고유목적 활동. 무상·실비 제공은 부가세 면세 요건에 부합</p>
+<div class="guardbox" style="margin-top:10px">유상 판매·체험이 상시화되면 그 부분은 수익사업으로 갈린다. 시즌 한정 유상 프로그램은 &#x27;일시적 공급&#x27;으로 볼 여지가 있으나 반복되면 과세 대상이다</div></div>
+
+<div class="bsec"><h4>지금 없는 것</h4><div class="gapbox">
+<ul><li>🔴 실제 연중 행사 캘린더 — 백중·산사음악회 등 미확보</li><li>행사별 실내 수용 가능 인원</li><li>행사 조직과의 운영 주체 경계</li></ul></div></div>
+
+<div class="bsec"><h4>선례에서 가져올 것</h4>
+<ul><li>오쿠노인 나이트 세메터리 투어(고야산) — 시간대를 바꿔 같은 장소를 다른 콘텐츠로 만든 사례</li><li>즈이간지 × NAKED — 기간 한정 연출로 재방문을 만든 사례</li></ul></div>
+
+<div class="srcline">bongeunsa-traffic-research.md L35-39 L52-55 · perspective/own-assets-research.md C-4</div>
+</div><div class="brief" id="u02">
+<div class="bh">
+<div class="rank">T1 · 03 / 09 · u02</div>
+<h3>판전·추사 몰입관</h3>
+<div class="st">죽기 사흘 전의 두 글자</div>
+<p class="ol">봉은사가 가진 가장 밀도 높은 서사를 6~8m 통층 공간에 세운다.</p>
+<div class="facets"><span class="facet ok">green · 법적 확실</span><span class="facet area">1층 (1–2층 통층) · 1,150㎡</span><span class="facet">D4 이해할 수 없음</span><span class="facet">D5 동선이 짧음</span><span class="facet">D7 현대적 깊이가 비어 있음</span></div>
+</div>
+
+<div class="bsec"><h4>왜 조건 없이 되는가</h4><p>실물이 확인돼 있고(현판·경판·판전) 법적으로는 문화집회시설 본래 용도다. 화이트스페이스(&#x27;현대적 깊이&#x27;) 4분면에 들어가는 유일한 전시형 유닛이며, 통층 천고라는 물리 조건도 이미 있다.</p></div>
+
+<div class="bsec"><h4>쓰는 재료</h4>
+<ul><li>추사 김정희 판전 현판 — 세로 77 × 가로 181cm, &#x27;板殿&#x27; 양각, 별세 사흘 전 집필, 1992.12.31 지정</li><li>추사 만년 — 1852년 북청 유배 해제 후 과천 과지초당과 봉은사를 왕래</li><li>판전 — 1856년(철종 7) 건립·1878년 중수, 단층 맞배집 210.7㎡, 서울시 유형문화유산 제425호, 경내 최고(最古) 건축물</li><li>화엄경 경판 3,438점 — 1856년 남호 영기 주도, 왕실 내탕금 + 중신 시주, 화엄경 80권</li></ul></div>
+<div class="bsec"><h4>걸려 있는 서사축</h4><ul><li>N2 죽기 사흘 전의 두 글자 — 71세 노인이 마지막으로 쓴 글씨</li><li>N3 왕실과 중신이 함께 새긴 3,438점</li><li>N5 도심 한복판에 남은 가장 오래된 것 — 210.7㎡ 목조와 8,868㎡ 콘크리트, 49층 GBC가 한 화면에</li></ul></div>
+
+
+<div class="bsec"><h4>경험이 어떻게 흐르는가</h4>
+<ol class="flow"><li>① 한 점으로 시작한다 — 현판 두 글자를 실물 크기 이상으로. 붓의 마지막 획, 누른 자리, 떨림</li><li>② 왜 이 글씨가 마지막인지를 안다 — 유배 해제, 과지초당과 봉은사의 왕래, 사흘 뒤</li><li>③ 3,438점의 스케일을 몸으로 만난다 — 경판 한 장의 실측과 3,438이라는 수를 공간으로 번역</li><li>④ 밖으로 나간다 — 210.7㎡ 판전 실물로 이어지는 동선. 화면에서 본 것을 실제로 본다</li></ol></div>
+
+<div class="bsec"><h4>프로그램 구성</h4><div class="ptable"><table><thead><tr><th>프로그램</th><th>내용</th><th>정원</th><th>가격</th><th>언어</th><th>주기</th></tr></thead><tbody><tr>
+<td class="pn">상설 몰입 전시</td>
+<td class="pd">현판 → 만년의 서사 → 경판 3,438점 → 판전 실물 동선</td>
+<td><span class="lab o">미확정</span> </td>
+<td>15,000원 수준 <span class="lab s">근거 있음</span> (통합제언 입장료 산식 / 아르떼뮤지엄 17,000원)</td>
+<td>영/한 해설(u11)</td>
+<td>상시</td></tr><tr>
+<td class="pn">판전 연계 관람</td>
+<td class="pd">전시 관람객의 판전 실물 관람 — 공개 범위 확인 후 확정</td>
+<td><span class="lab o">미확정</span> </td>
+<td>전시 입장료 포함 <span class="lab a">조립</span></td>
+<td>영/한</td>
+<td><span class="lab o">미확정</span> </td></tr></tbody></table></div></div>
+
+<div class="bsec"><div class="grid2">
+<div class="mini"><h5>공간</h5>
+<p><b>1층 (1–2층 통층)</b> · 1,150㎡
+</p>
+<p style="margin-top:7px">1~2층 통층 6~8m 천고 — 대형 설치·몰입형 연출의 물리 조건. 무주 대공간이라 레이아웃 자유도가 높다</p>
+<h5 style="margin-top:14px">필요한 손질</h5>
+<ul><li>암전 가능한 차광</li><li>통층 높이를 쓰는 영상·설치 구조</li><li>판전 방향으로 나가는 출구 동선</li><li>문화재 도상 사용 시 보존 기준 준수</li></ul></div>
+<div class="mini"><h5>운영</h5>
+<ul><li>인력 — 전시 운영 + 해설(u11 공유)</li><li>언어 — 영/한 필수</li>
+<li>파트너 — 미디어 제작사 — 매회 외부 조달</li></ul>
+<h5 style="margin-top:14px">지표</h5>
+<ul><li>관람 체류시간</li><li>판전 실물 연계 관람 전환율</li><li>외국인 비율</li><li>재방문(캘린더 연계 시)</li></ul></div>
+</div></div>
+
+<div class="bsec"><h4>운영 리스크</h4><div class="warnbox">⚠️ 미디어아트를 봉은사 실물에 붙이지 않으면 어디서나 되는 전시가 된다. &#x27;영원한 자연&#x27;을 &#x27;영원한 불법&#x27;으로 치환하는 발상은 콘텐츠가 아니라 포장이다. 실물(현판·경판·판전)과의 결합이 이 유닛의 존재 이유다</div></div>
+
+
+<div class="bsec"><h4>법적 근거와 지켜야 할 선</h4>
+<p><b>근거</b> — 문화집회시설 본래 용도 + 포교·교육 목적. 역사공원 교양시설(문화예술회관·미술관)에 해당</p>
+<div class="guardbox" style="margin-top:10px">내부 인테리어 수준이면 현상변경 허가 대상이 아닐 가능성이 높으나, 외관 변경·구조 변경이 붙으면 국가유산청 허가가 필요하다. 지정문화유산 도상의 촬영·복제는 별도 협의 사항</div></div>
+
+<div class="bsec"><h4>지금 없는 것</h4><div class="gapbox">
+<ul><li>🔴 문화재 촬영·디지털화 권한</li><li>🔴 판전 일반 공개 범위·관람 동선</li><li>현판 지정번호 1차 출처 미확인</li><li>경판 종수(15종?) 미검증</li><li>역사 연수 표기 통일 — 1,200년 vs 과업지시서 원문 1,000년</li></ul></div></div>
+
+<div class="bsec"><h4>선례에서 가져올 것</h4>
+<ul><li>teamLab × 도지(東寺) &#x27;디지털화된 세계유산&#x27; — 실물 건축을 화면이 아니라 대상으로 다룬 구조</li><li>Shinshoji Zen Museum &amp; Gardens(히로시마) — 사찰이 직접 세운 뮤지엄</li><li>고다이지 프로젝션 매핑 / 즈이간지 × NAKED — 기간 한정 연출</li><li>문화역서울284 — 원형 보존 + 현대 콘텐츠</li></ul></div>
+
+<div class="srcline">perspective/own-assets-research.md A-1~A-3 · perspective/phase0-report.html FINDINGS 1·2 · rfp-analysis-bongeunsa.md L619-620 · 법적-행정적-검토-전통사찰법-문화재법.md L114-130</div>
+</div><div class="brief" id="u08">
+<div class="bh">
+<div class="rank">T1 · 04 / 09 · u08</div>
+<h3>명상·참선 상시 클래스</h3>
+<div class="st">앉아 있는 법</div>
+<p class="ol">1,000년 사찰에서 앉는다는 것 — 무료 공공 명상과 겹치지 않는 층을 잡는다.</p>
+<div class="facets"><span class="facet ok">green · 법적 확실</span><span class="facet area">2층 · 400㎡</span><span class="facet">D1 할 것 없음</span><span class="facet">D7 현대적 깊이가 비어 있음</span></div>
+</div>
+
+<div class="bsec"><h4>왜 조건 없이 되는가</h4><p>봉은사가 참선·다선을 이미 운영하고, 시행령 제7조 &#x27;신도의 수행·교육·포교&#x27;가 가장 안전한 근거 조항이다. 현대성과 종교적 깊이를 동시에 가진 유일한 소재이며, 정기·구독 구조가 성립하는 유일한 형식이다.</p></div>
+
+<div class="bsec"><h4>쓰는 재료</h4>
+<ul><li>봉은사 참선·다선 프로그램 운영 실적</li><li>장소의 정통성 — 일반 명상센터와 1,000년 사찰의 차이</li><li>글로벌 마음챙김 앱 시장 5.4억$(2024) → 15.3억$(2033), CAGR 12.2%</li><li>일본 마인드풀니스 시장 450억엔(2020) → 2,500억엔(2023)</li><li>명상앱 &#x27;마보&#x27; 이용자 25~34세가 30.3%로 최다</li></ul></div>
+
+
+
+<div class="bsec"><h4>경험이 어떻게 흐르는가</h4>
+<ol class="flow"><li>점심에 30분, 퇴근길에 60분 — 삼성동에서 걸어와 앉는다</li><li>왜 앉는지를 먼저 듣는다 — 기법 전달로 끝내지 않는다</li><li>주말에는 반일. 다선(茶禪)으로 이어져 다원(u06)과 연결된다</li></ol></div>
+
+<div class="bsec"><h4>프로그램 구성</h4><div class="ptable"><table><thead><tr><th>프로그램</th><th>내용</th><th>정원</th><th>가격</th><th>언어</th><th>주기</th></tr></thead><tbody><tr>
+<td class="pn">점심 참선 30분</td>
+<td class="pd">11:30~13:30 사이 슬롯</td>
+<td>회당 15~25인 <span class="lab a">조립</span></td>
+<td><span class="lab o">미확정</span> 단회 결제로 시작 (구독형은 유권해석 대상)</td>
+<td>한/영</td>
+<td>평일 1일 1~2회 <span class="lab a">조립</span></td></tr><tr>
+<td class="pn">퇴근 후 60분</td>
+<td class="pd">18~20시. 참선 + 다선</td>
+<td>회당 15~25인 <span class="lab a">조립</span></td>
+<td>월 10~20만원 수준 참고 <span class="lab s">근거 있음</span> (통합제언 일상 명상 클래스)</td>
+<td>한/영</td>
+<td>주 2~3회 <span class="lab a">조립</span></td></tr><tr>
+<td class="pn">주말 반일 수행</td>
+<td class="pd">참선 + 사찰음식 또는 다선</td>
+<td><span class="lab o">미확정</span> </td>
+<td><span class="lab o">미확정</span> 프리미엄 리트리트 30~80만원은 숙박형 기준이라 당일형에 그대로 쓸 수 없다</td>
+<td>한/영</td>
+<td>주말 <span class="lab a">조립</span></td></tr><tr>
+<td class="pn">외국인 영어 명상</td>
+<td class="pd">u10 프로그램과 공유</td>
+<td><span class="lab o">미확정</span> </td>
+<td>u10 준용</td>
+<td>영어</td>
+<td>u10 연동</td></tr></tbody></table></div></div>
+
+<div class="bsec"><div class="grid2">
+<div class="mini"><h5>공간</h5>
+<p><b>2층</b> · 400㎡
+</p>
+<p style="margin-top:7px">동선에서 비켜난 정적 구역. 2층 소실 밀집부를 벽체 철거로 통합</p>
+<h5 style="margin-top:14px">필요한 손질</h5>
+<ul><li>차음</li><li>좌식 수행 바닥</li><li>신발·소지품 정리</li><li>자연광 조절</li></ul></div>
+<div class="mini"><h5>운영</h5>
+<ul><li>인력 — 지도 인력 — 봉은사 스님 또는 내부 지도자. 규모는 확인 후 산정</li><li>언어 — 한국어 + 영어</li>
+<li>파트너 — 없음 — 직영이 정통성의 근거다</li></ul>
+<h5 style="margin-top:14px">지표</h5>
+<ul><li>재참여율(정기성)</li><li>점심·퇴근 시간대 점유</li><li>강남힐링센터와의 이용자 중복</li><li>1회성 대 반복 비율</li></ul></div>
+</div></div>
+
+<div class="bsec"><h4>운영 리스크</h4><div class="warnbox">⚠️ 강남구가 2020년부터 강남힐링센터 3개점(코엑스·개포·신사)에서 싱잉볼·걷기·호흡 명상을 무료로 운영한다. 같은 &#x27;웰니스 명상&#x27;으로 들어가면 무료와 경쟁한다. 차별점은 기법이 아니라 맥락과 장소다</div></div>
+<div class="bsec"><h4>진정성 방어</h4><div class="guardbox"><ul><li>McMindfulness 4단계(탈맥락화 → 도구화 → 개인화 → 신뢰붕괴)의 출발점이 이 유닛이다</li><li>방어 원칙: 맥락 동반(왜 앉는가를 반드시 함께) · 기업 생산성 프레이밍과 분리(u09를 T1에 넣지 않은 이유) · 총량 분리 · 참여</li><li>담론 분석상 &#x27;웰니스화&#x27;는 불교계가 가장 환영하는 방향이자 비판이 가장 늦게 오는 방향이다 — 그래서 방심하기 쉽다</li></ul></div></div>
+
+<div class="bsec"><h4>법적 근거와 지켜야 할 선</h4>
+<p><b>근거</b> — 시행령 제7조 &#x27;신도의 수행, 교육, 포교, 복지 등을 위한 편의시설&#x27;</p>
+<div class="guardbox" style="margin-top:10px">🟡 유료 정기·구독형이 &#x27;편의시설&#x27;에 해당하는지는 유권해석 대상(G6)이다. T1 단계에서는 단회 결제 또는 무상·실비로 시작하고, 구독 전환은 유권해석 이후로 둔다</div></div>
+
+<div class="bsec"><h4>지금 없는 것</h4><div class="gapbox">
+<ul><li>지도 인력 규모</li><li>구독형 가능 여부 유권해석(G6)</li><li>무료 공공 프로그램과의 포지션 정리</li></ul></div></div>
+
+<div class="bsec"><h4>선례에서 가져올 것</h4>
+<ul><li>마인드풀코리아 / SIY — 프로그램 설계 방법론</li><li>마보홈(서대문) — 오프라인 명상 공간의 규모감</li><li>강남힐링센터 — 경쟁자이자 수요의 증거</li></ul></div>
+
+<div class="srcline">봉은문화회관-공간활용-통합제언-보고서.md L271-323 · 38-samseongdong-mz-buddhism-research.md L29-33 L64-66 · perspective/atoms-raw/04-context-buddhism.final.md at-0286 at-0288</div>
+</div><div class="brief" id="u17">
+<div class="bh">
+<div class="rank">T1 · 05 / 09 · u17</div>
+<h3>개방형 로비·라운지</h3>
+<div class="st">그냥 있어도 되는 곳</div>
+<p class="ol">직접 수익 0. 트래픽과 정당성을 만든다.</p>
+<div class="facets"><span class="facet ok">green · 법적 확실</span><span class="facet area">1층 · 750㎡</span><span class="facet">D5 동선이 짧음</span><span class="facet">D6 삼성동에 문화 목적지가 없음</span></div>
+</div>
+
+<div class="bsec"><h4>왜 조건 없이 되는가</h4><p>공간이 이미 있고(로비·동선), 법적으로 아무것도 걸리지 않으며, 상업화 비판에 대한 방어막이 된다. 별마당 도서관이 증명한 구조 — 문화 앵커가 주변의 값을 올린다.</p></div>
+
+<div class="bsec"><h4>쓰는 재료</h4>
+<ul><li>1층 진입부 — 15M 도로 접면, 차량 드롭오프, 캐노피</li><li>로비·동선 면적 (통합제언 배분안에서 2,358㎡)</li><li>삼성동에 봉은사를 제외하면 문화 목적지가 전무</li><li>GBC(2031)에 과학관·1,800석 공연장이 들어와도 전통문화 체험은 어떤 계획에도 없다</li></ul></div>
+
+
+
+<div class="bsec"><h4>경험이 어떻게 흐르는가</h4>
+<ol class="flow"><li>표를 사지 않아도 들어올 수 있다 — 점심에 앉아 있어도 되고, 비를 피해도 된다</li><li>여기서 오늘 무엇을 할 수 있는지가 보인다 — 워크인 슬롯, 해설 시간, 시즌 프로그램</li><li>경내로 나가는 문이 열려 있다</li></ol></div>
+
+<div class="bsec"><h4>프로그램 구성</h4><div class="ptable"><table><thead><tr><th>프로그램</th><th>내용</th><th>정원</th><th>가격</th><th>언어</th><th>주기</th></tr></thead><tbody><tr>
+<td class="pn">상시 개방</td>
+<td class="pd">무료. 예약·구매 없이 체류 가능</td>
+<td><span class="lab o">미확정</span> </td>
+<td>무료 <span class="lab s">근거 있음</span> (별마당 도서관·송은·새문안교회 1층 모델)</td>
+<td>영/한 사이니지</td>
+<td>운영시간 전체</td></tr><tr>
+<td class="pn">법회일 대기·다과</td>
+<td class="pd">u16 연동. 신도 편의</td>
+<td>회당 500~5,000명 <span class="lab s">근거 있음</span></td>
+<td>무상 또는 실비</td>
+<td>한국어</td>
+<td>매주·매월</td></tr></tbody></table></div></div>
+
+<div class="bsec"><div class="grid2">
+<div class="mini"><h5>공간</h5>
+<p><b>1층</b> · 750㎡
+</p>
+<p style="margin-top:7px">진입부. 드롭오프·캐노피로 날씨와 무관한 진입</p>
+<h5 style="margin-top:14px">필요한 손질</h5>
+<ul><li>앉을 자리 — 구매를 전제하지 않는</li><li>오늘의 프로그램 안내(디지털 사이니지)</li><li>경내 연결 동선</li><li>화장실·수유·물품보관 등 기본 편의</li></ul></div>
+<div class="mini"><h5>운영</h5>
+<ul><li>인력 — 안내 1~2인 (assembled)</li><li>언어 — 영/한</li>
+<li>파트너 — 없음</li></ul>
+<h5 style="margin-top:14px">지표</h5>
+<ul><li>일 체류 인원</li><li>평일 점심·퇴근 시간대 점유</li><li>지역주민 이용 비율</li><li>타 유닛 전환율</li></ul></div>
+</div></div>
+
+<div class="bsec"><h4>운영 리스크</h4><div class="warnbox">무료 개방은 관리 비용이 발생한다. 별마당 도서관도 도서 구입·인건비 누적 7억, 도난·훼손 보전 연 5억을 쓴다. &#x27;수익 0&#x27;이 &#x27;비용 0&#x27;은 아니다</div></div>
+
+
+<div class="bsec"><h4>법적 근거와 지켜야 할 선</h4>
+<p><b>근거</b> — 종교시설의 공공 개방. 수익사업이 아니므로 해당 면적은 재산세 면제 유지 가능</p>
+<div class="guardbox" style="margin-top:10px">면적을 수익사업과 어떻게 안분하는지가 재산세 판정에 걸린다. 사전에 강남구 세무과 확인이 필요하다</div></div>
+
+<div class="bsec"><h4>지금 없는 것</h4><div class="gapbox">
+<ul><li>재산세 안분 기준 사전 확인(G9)</li><li>운영시간 정책 — 봉은사 07:00~23:45와 맞출 것인가</li></ul></div></div>
+
+<div class="bsec"><h4>선례에서 가져올 것</h4>
+<ul><li>코엑스 별마당 도서관 — 무료 개방으로 10개월 1,700만명, 인근 매장 매출 2배 이상. 봉은사 바로 맞은편의 실증</li><li>츠키지 혼간지 &#x27;오픈 템플&#x27; — 참배 목적이 없는 사람을 배제하지 않는 설계</li><li>송은 — 강남에서 전시 전부 무료로 운영하는 재단 모델</li><li>새문안교회 1층 시민 개방 — 종교시설 공공성 확보</li></ul></div>
+
+<div class="srcline">종교공간-비즈니스모델-상세팩트시트.md L524-541 · 38-samseong-dong-gap-analysis.md L22-24 L99 · perspective/atoms-raw/05-reference.final.md at-0216 at-0226</div>
+</div><div class="brief" id="u11">
+<div class="bh">
+<div class="rank">T1 · 06 / 09 · u11</div>
+<h3>다국어 해설 체계</h3>
+<div class="st">가장 적은 투자로 나머지 전부의 값을 올린다</div>
+<p class="ol">지금 주 1회 두 시간뿐인 해설을, 전 공간에 얹히는 레이어로 만든다.</p>
+<div class="facets"><span class="facet ok">green · 법적 확실</span><span class="facet area">면적 미점유</span><span class="facet">D4 이해할 수 없음</span></div>
+</div>
+
+<div class="bsec"><h4>왜 조건 없이 되는가</h4><p>재료(판전·현판·경판·보물·불화·역사)가 이미 확보돼 있고 면적을 쓰지 않는다. 외국인이 가장 크게 지적한 결핍이 &#x27;이해할 수 없음&#x27;이며, 이걸 메우면 전시·체험 유닛의 값이 함께 올라간다.</p></div>
+
+<div class="bsec"><h4>쓰는 재료</h4>
+<ul><li>해설 재료 — 판전, 추사 현판, 경판 3,438점, 보물 2점, 불화 10점+, 794년 창건 서사</li><li>현행 영어 가이드 투어 — 주 1회 목요일 14:00~16:00, 1만원, 예약 불요</li><li>봉은사 TripAdvisor 리뷰 약 1,350건</li></ul></div>
+
+<div class="bsec"><p class="voice">&quot;I wish there was more explanation about what I was seeing&quot;</p><p class="voice">&quot;The tea time could have been deeper if not for the language barrier&quot;</p></div>
+
+<div class="bsec"><h4>경험이 어떻게 흐르는가</h4>
+<ol class="flow"><li>들어오면 무엇을 보고 있는지 알 수 있다 — 사이니지가 설명이 아니라 서사로 안내한다</li><li>혼자 볼 사람은 오디오가이드, 사람과 볼 사람은 도슨트 시간에 붙는다</li><li>경내로 나가서도 이어진다 — 문화회관 안에서 시작한 해설이 판전 앞에서 끝난다</li></ol></div>
+
+<div class="bsec"><h4>프로그램 구성</h4><div class="ptable"><table><thead><tr><th>프로그램</th><th>내용</th><th>정원</th><th>가격</th><th>언어</th><th>주기</th></tr></thead><tbody><tr>
+<td class="pn">오디오가이드</td>
+<td class="pd">영·중·일 우선. 서사축(N1~N5) 기준으로 구성</td>
+<td>제한 없음</td>
+<td><span class="lab o">미확정</span> 무료 포함 또는 별도</td>
+<td>영·중·일·한</td>
+<td>상시</td></tr><tr>
+<td class="pn">도슨트 투어</td>
+<td class="pd">실내 전시 + 경내 판전 연결</td>
+<td>회당 15~25인 <span class="lab a">조립</span></td>
+<td>10,000원 <span class="lab s">근거 있음</span> (현행 가이드투어)</td>
+<td>영어 주 · 한국어</td>
+<td>1일 1~2회 <span class="lab a">조립</span></td></tr><tr>
+<td class="pn">사이니지·라벨</td>
+<td class="pd">전 공간 다국어 표기</td>
+<td>—</td>
+<td>—</td>
+<td>영·중·일·한</td>
+<td>상시</td></tr></tbody></table></div></div>
+
+<div class="bsec"><div class="grid2">
+<div class="mini"><h5>공간</h5>
+<p><b>면적 미점유</b>
+</p>
+<p style="margin-top:7px">전 공간에 얹힌다. 전용 실을 두지 않는다</p>
+<h5 style="margin-top:14px">필요한 손질</h5>
+<ul><li>사이니지 시스템</li><li>오디오가이드 대여·앱</li><li>도슨트 집합 지점(u17 로비)</li></ul></div>
+<div class="mini"><h5>운영</h5>
+<ul><li>인력 — 도슨트 — 영어 필수. 현 가이드투어 인력 확장</li><li>언어 — 영·중·일 우선 (방한객 구성: 중국 34.7%, 일본 17.3%, 대만 11.5%, 미국 7.6%)</li>
+<li>파트너 — 번역·감수 — 불교 용어의 다국어 표준화가 관건</li></ul>
+<h5 style="margin-top:14px">지표</h5>
+<ul><li>오디오가이드 이용률</li><li>도슨트 회차·참가</li><li>체류시간 변화</li><li>리뷰의 &#x27;설명 부족&#x27; 언급 감소</li></ul></div>
+</div></div>
+
+<div class="bsec"><h4>운영 리스크</h4><div class="warnbox">해설 원고를 새로 써야 한다. 유물 목록(u01의 공백)이 확정되기 전에도 서사축 기준으로는 쓸 수 있다</div></div>
+
+
+<div class="bsec"><h4>법적 근거와 지켜야 할 선</h4>
+<p><b>근거</b> — 포교·교육 목적. 관광 인프라</p>
+<div class="guardbox" style="margin-top:10px">지정문화유산 관련 서술은 사실 확인을 요한다 — 현판 지정번호·경판 종수·을축년 708명 등 1차 출처 미확인 항목을 해설에 그대로 쓰지 않는다</div></div>
+
+<div class="bsec"><h4>지금 없는 것</h4><div class="gapbox">
+<ul><li>해설 원고 전량</li><li>불교 용어 다국어 표준</li><li>1차 출처 미확인 항목 4건 확인</li></ul></div></div>
+
+<div class="bsec"><h4>선례에서 가져올 것</h4>
+<ul><li>일본 주요 사찰의 다국어 오디오가이드 보급 — 리서치가 &#x27;전수&#x27;로 기록</li><li>왓포 — 사찰이 직접 학습 콘텐츠를 제공하는 구조</li><li>SMCCU 두바이 모스크 투어 — 종교시설이 해설을 상품이 아니라 이해의 통로로 설계한 사례</li></ul></div>
+
+<div class="srcline">foreigner-temple-experience-pain-points.md L134-149 · bongeunsa-ideation-feasibility.md L28 L196 · 38-gangnam-samseong-foreign-visitor-traffic-research.md L21-30</div>
+</div><div class="brief" id="u01">
+<div class="bh">
+<div class="rank">T1 · 07 / 09 · u01</div>
+<h3>봉은사 상설전</h3>
+<div class="st">유물 목록이 확정되기 전에도 세울 수 있는 방식으로</div>
+<p class="ol">보물 2점과 불화 10점+, 794년 서사를 상설로 두되, 실물 의존도를 낮춘 구성으로 시작한다.</p>
+<div class="facets"><span class="facet ok">green · 법적 확실</span><span class="facet area">1층 · 1,500㎡</span><span class="facet">D4 이해할 수 없음</span><span class="facet">D6 삼성동에 문화 목적지가 없음</span></div>
+</div>
+
+<div class="bsec"><h4>왜 조건 없이 되는가</h4><p>법적으로 확실하고(문화집회시설 본래 용도 + 교양시설) 재료의 존재는 확인됐다. 다만 전체 목록이 미확보라, 실물 중심으로 설계하면 착수가 막힌다 — 서사 중심으로 열고 실물은 확인되는 대로 투입한다.</p></div>
+
+<div class="bsec"><h4>쓰는 재료</h4>
+<ul><li>보물 목조석가여래삼불좌상(제1819호) — 1651년 조각승 승일 외 9인, 석가 146.5 / 아미타 117 / 약사 115cm</li><li>보물 청동 은입사 향완(제321호)</li><li>서울시 유형문화유산 — 선불당, 목 사천왕상, 목 삼불상, 목 삼존불상, 목 십육나한상</li><li>불화 10점+ — 신중도, 괘불도, 비로자나불도, 칠성도, 삼세불도, 삼장보살도, 감로도, 영산회상도, 십육나한도</li><li>창건·중흥 서사 — 794년 연회국사 견성암, 문정왕후 승과 부활, 서산·사명·벽암, 정약용·김정희 교류, 1925 을축년 708명 구제, 1964 대학생불교연합회, 1972 동국역경원, 선정릉 능침사찰</li></ul></div>
+<div class="bsec"><h4>걸려 있는 서사축</h4><ul><li>N1 억압기에 승과를 되살린 절</li><li>N3 왕실과 중신이 함께 새긴 3,438점</li><li>N5 도심에 남은 가장 오래된 것</li></ul></div>
+
+
+<div class="bsec"><h4>경험이 어떻게 흐르는가</h4>
+<ol class="flow"><li>&#x27;억압기에 승과를 되살린 절&#x27;이라는 한 줄로 들어간다 — 연대표 나열이 아니라 하나의 사건에서 시작</li><li>그 시대의 인물들을 만난다 — 문정왕후, 보우, 서산·사명·벽암</li><li>물난리에 708명을 건진 절, 경전을 우리말로 옮긴 절(동국역경원)로 현대까지 이어진다</li><li>확인된 실물이 그 서사의 물증으로 들어간다</li></ol></div>
+
+<div class="bsec"><h4>프로그램 구성</h4><div class="ptable"><table><thead><tr><th>프로그램</th><th>내용</th><th>정원</th><th>가격</th><th>언어</th><th>주기</th></tr></thead><tbody><tr>
+<td class="pn">상설전 1기 — 서사 중심</td>
+<td class="pd">실물 의존도를 낮춘 구성. 문헌·도상·영상 + 확인된 실물</td>
+<td><span class="lab o">미확정</span> </td>
+<td>15,000원 수준 <span class="lab s">근거 있음</span> (통합제언 산식)</td>
+<td>영/한(u11)</td>
+<td>상시</td></tr><tr>
+<td class="pn">실물 편입 (2기 이후)</td>
+<td class="pd">소장 목록 확인 후 불화·조각 실물 또는 정밀 복제 투입</td>
+<td><span class="lab o">미확정</span> </td>
+<td>동일</td>
+<td>영/한</td>
+<td>확인 시점 이후</td></tr><tr>
+<td class="pn">시즌 부분 교체</td>
+<td class="pd">u16 연동 — 괘불(야외 대형 불화)·감로도 등 시기에 맞춰 교체</td>
+<td><span class="lab o">미확정</span> </td>
+<td>포함</td>
+<td>영/한</td>
+<td>연 2~4회 <span class="lab a">조립</span></td></tr></tbody></table></div></div>
+
+<div class="bsec"><div class="grid2">
+<div class="mini"><h5>공간</h5>
+<p><b>1층</b> · 1,500㎡
+ — 하한 적용 — 가용 면적 제약으로 상한 2,500㎡에서 축소</p>
+<p style="margin-top:7px">무주(無柱) 대공간 300~350평 — 레이아웃 자유도가 높다</p>
+<h5 style="margin-top:14px">필요한 손질</h5>
+<ul><li>문화유산 전시 환경(온습도·조도) — 실물 전시 시 필수</li><li>가변 벽체로 시즌 교체 대응</li><li>보안·소방</li></ul></div>
+<div class="mini"><h5>운영</h5>
+<ul><li>인력 — 전시 운영 + 해설(u11)</li><li>언어 — 영/한</li>
+<li>파트너 — 불교중앙박물관 — 성보박물관 34곳을 지원·통할·감독하는 조직</li></ul>
+<h5 style="margin-top:14px">지표</h5>
+<ul><li>체류시간</li><li>외국인 비율</li><li>시즌 교체 후 재방문</li><li>해설 이용률</li></ul></div>
+</div></div>
+
+<div class="bsec"><h4>운영 리스크</h4><div class="warnbox">⚠️ 불교중앙박물관도 상설전 없이 특별전만 운영한다. 종단 최상급 기관이 상설을 하지 않는 이유(유물 수급·보존 조건)를 먼저 확인해야 한다. 리필 구조가 없어 재방문 동기가 약하다 — u16과 반드시 묶는다</div></div>
+
+
+<div class="bsec"><h4>법적 근거와 지켜야 할 선</h4>
+<p><b>근거</b> — 문화집회시설 본래 용도(건축물대장 기재변경 수준) + 역사공원 교양시설</p>
+<div class="guardbox" style="margin-top:10px">지정문화유산 이동·전시는 현상변경·보존 기준 협의 대상이다. 실물 반입 전 국가유산청·서울시 확인이 필요하다</div></div>
+
+<div class="bsec"><h4>지금 없는 것</h4><div class="gapbox">
+<ul><li>🔴 소장 유물 전체 목록(비지정 포함) — 이게 없으면 실물 전시 기획을 확정할 수 없다</li><li>🔴 문화재 공개 범위·관람 동선</li><li>을축년 708명 구제 1차 출처(현재 위키백과 단일 출처)</li><li>개산대재 1225주년 기준 연도</li><li>역사 연수 표기 통일 — 1,200년 vs 1,000년</li></ul></div></div>
+
+<div class="bsec"><h4>선례에서 가져올 것</h4>
+<ul><li>불교중앙박물관(조계사, 2007) — 특별전 중심 운영의 이유를 확인할 상대</li><li>문화역서울284 — 원형 보존 + 현대 콘텐츠 + KCDF숍의 부대 판매 구조</li><li>그라운드시소 — 중규모 공간의 계절 교체 운영</li></ul></div>
+
+<div class="srcline">perspective/own-assets-research.md A-4~A-5 B-1~B-9 · 봉은문화회관-공간활용-통합제언-보고서.md L170 · 종교공간-비즈니스모델-상세팩트시트.md L212-221 L435-444</div>
+</div><div class="brief" id="u04">
+<div class="bh">
+<div class="rank">T1 · 08 / 09 · u04</div>
+<h3>워크인 손작업</h3>
+<div class="st">30분이면 하나 만들어 나간다</div>
+<p class="ol">예약 없이 붙어서 만들고, 만든 것을 가져간다.</p>
+<div class="facets"><span class="facet ok">green · 법적 확실</span><span class="facet area">2층 · 450㎡</span><span class="facet">D1 할 것 없음</span><span class="facet">D5 동선이 짧음</span><span class="facet">D2 살 것 없음(부분 — 결과물을 가져간다)</span></div>
+</div>
+
+<div class="bsec"><h4>왜 조건 없이 되는가</h4><p>지화연꽃은 템플라이프에서 이미 운영 중이라 콘텐츠와 지도 경험이 있다. 상시화·규모화만 남았다. 외국인 체류시간 문제에 가장 직접적으로 작용한다.</p></div>
+
+<div class="bsec"><h4>쓰는 재료</h4>
+<ul><li>지화연꽃 만들기 — 현행 템플라이프 프로그램</li><li>사경(경전 필사)</li><li>연등 만들기</li><li>108염주 꿰기</li><li>108배</li></ul></div>
+
+
+
+<div class="bsec"><h4>경험이 어떻게 흐르는가</h4>
+<ol class="flow"><li>지나가다 본다 — 오늘 지금 할 수 있는 것이 걸려 있다</li><li>30~60분 안에 끝난다 — 다음 일정이 있는 사람도 붙을 수 있다</li><li>손에 남는다. 산 것이 아니라 만든 것이다</li></ol></div>
+
+<div class="bsec"><h4>프로그램 구성</h4><div class="ptable"><table><thead><tr><th>프로그램</th><th>내용</th><th>정원</th><th>가격</th><th>언어</th><th>주기</th></tr></thead><tbody><tr>
+<td class="pn">지화연꽃 30분</td>
+<td class="pd">현행 템플라이프 콘텐츠의 워크인 버전</td>
+<td>회당 10~15인 <span class="lab a">조립</span></td>
+<td>3,000~20,000원 범위 내 <span class="lab s">근거 있음</span> (아이데이션)</td>
+<td>영/한</td>
+<td>상시</td></tr><tr>
+<td class="pn">사경 30~60분</td>
+<td class="pd">경전 필사. 한글·한문 선택</td>
+<td>회당 10~20인 <span class="lab a">조립</span></td>
+<td>동일 범위</td>
+<td>영/한</td>
+<td>상시</td></tr><tr>
+<td class="pn">108염주 45분</td>
+<td class="pd">꿰어 가져간다</td>
+<td>회당 10~15인 <span class="lab a">조립</span></td>
+<td>동일 범위</td>
+<td>영/한</td>
+<td>상시</td></tr><tr>
+<td class="pn">연등 (시즌)</td>
+<td class="pd">u16 연등 시즌 대량 운영</td>
+<td>시즌 집중</td>
+<td>동일 범위</td>
+<td>영/한</td>
+<td>4~5월</td></tr></tbody></table></div></div>
+
+<div class="bsec"><div class="grid2">
+<div class="mini"><h5>공간</h5>
+<p><b>2층</b> · 450㎡
+</p>
+<p style="margin-top:7px">2층 우측 소실(대기실) 밀집 구역 — 벽체 철거로 워크숍 실 통합</p>
+<h5 style="margin-top:14px">필요한 손질</h5>
+<ul><li>작업 테이블·급배수(사경 먹·풀)</li><li>재료 보관</li><li>건조·마감 공간</li><li>다국어 공정 안내</li></ul></div>
+<div class="mini"><h5>운영</h5>
+<ul><li>인력 — 지도 인력 — 현 템플라이프 지도 체계 활용</li><li>언어 — 영/한</li>
+<li>파트너 — 재료 수급 — 승소몰(조계종 공인 유통) 연계 검토</li></ul>
+<h5 style="margin-top:14px">지표</h5>
+<ul><li>일 참가 인원·회전</li><li>외국인 비율</li><li>체류시간 기여</li><li>재료 원가율</li></ul></div>
+</div></div>
+
+<div class="bsec"><h4>운영 리스크</h4><div class="warnbox">상시 운영은 재료 소모와 지도 인력이 계속 든다. 회전율과 단가가 맞물려야 한다</div></div>
+
+
+<div class="bsec"><h4>법적 근거와 지켜야 할 선</h4>
+<p><b>근거</b> — 시행령 제7조 &#x27;신도의 수행·교육·포교&#x27;. 무상·실비면 고유목적사업</p>
+<div class="guardbox" style="margin-top:10px">유상 상시 운영은 수익사업이다 — 사업자등록·구분회계 대상. 완성품 판매로 성격이 바뀌면 &#x27;상품 판매&#x27;로 갈려 도시공원법 형태 제약(뮤지엄숍)을 함께 본다</div></div>
+
+<div class="bsec"><h4>지금 없는 것</h4><div class="gapbox">
+<ul><li>현행 지화연꽃 운영 실적</li><li>재료 수급 경로·원가</li><li>상시 지도 인력</li></ul></div></div>
+
+<div class="bsec"><h4>선례에서 가져올 것</h4>
+<ul><li>한국사찰음식문화체험관(2016, 조계종) — 1일체험·월별강좌의 운영 방식</li><li>공항 전통문화체험관 — 연 약 50만명 규모의 워크인 체험 처리</li><li>서양·오세아니아 관광객 체험 참여율 24.2% — 워크인 수요의 근거</li></ul></div>
+
+<div class="srcline">bongeunsa-ideation-feasibility.md L27 L73 · perspective/own-assets-research.md C-1 · 38-gangnam-samseong-foreign-visitor-traffic-research.md L202-204</div>
+</div><div class="brief" id="u06">
+<div class="bh">
+<div class="rank">T1 · 09 / 09 · u06</div>
+<h3>전통다원</h3>
+<div class="st">시행령이 이름을 적어둔 유일한 F&amp;B</div>
+<p class="ol">전통차와 한과. 법이 명시적으로 허용한 자리에서, 300㎡ 미만으로 시작한다.</p>
+<div class="facets"><span class="facet ok">green · 법적 확실</span><span class="facet area">1층 · 250㎡</span><span class="facet">D3 먹을 것 없음</span><span class="facet">D5 동선이 짧음</span></div>
+</div>
+
+<div class="bsec"><h4>왜 조건 없이 되는가</h4><p>전통사찰법 시행령 제7조가 &#x27;전통다원의 운영&#x27;을 명시한다 — F&amp;B 중 유일하게 유권해석이 필요 없다. 300㎡ 미만이면 제2종 근린생활시설로 부대시설 운영이 가능해 용도변경도 피한다.</p></div>
+
+<div class="bsec"><h4>쓰는 재료</h4>
+<ul><li>봉은사 다선(茶禪) 프로그램 운영 경험</li><li>경인미술관 전통다원 — 전통차 15종 + 모둠떡 8가지, 한옥 대청마루·안방을 찻집으로</li><li>전시 동선 안에 다원을 두는 구조의 직접 선례</li></ul></div>
+
+
+
+<div class="bsec"><h4>경험이 어떻게 흐르는가</h4>
+<ol class="flow"><li>전시를 보고 나온 자리에서 앉는다 — 별도 목적지가 아니라 동선 안에 있다</li><li>차 한 종을 고르는 것이 곧 설명을 듣는 것이다</li><li>다선 프로그램으로 이어질 수 있다 — 마시는 것에서 앉는 것으로(u08)</li></ol></div>
+
+<div class="bsec"><h4>프로그램 구성</h4><div class="ptable"><table><thead><tr><th>프로그램</th><th>내용</th><th>정원</th><th>가격</th><th>언어</th><th>주기</th></tr></thead><tbody><tr>
+<td class="pn">전통다원</td>
+<td class="pd">전통차 + 한과·떡. 계절 메뉴</td>
+<td><span class="lab o">미확정</span> </td>
+<td>객단가 20,000원 수준 <span class="lab s">근거 있음</span> (통합제언 산식) / 참고 15,000~30,000원</td>
+<td>영/한</td>
+<td>상시</td></tr><tr>
+<td class="pn">다도 체험</td>
+<td class="pd">차 우리는 법. 30~60분</td>
+<td>회당 8~15인 <span class="lab a">조립</span></td>
+<td><span class="lab o">미확정</span> </td>
+<td>영/한</td>
+<td>1일 1~2회 <span class="lab a">조립</span></td></tr></tbody></table></div></div>
+
+<div class="bsec"><div class="grid2">
+<div class="mini"><h5>공간</h5>
+<p><b>1층</b> · 250㎡
+ — 300㎡ 미만 유지 — 넘으면 용도변경 신고 대상이 된다</p>
+<p style="margin-top:7px">진입부·전시 동선 접점</p>
+<h5 style="margin-top:14px">필요한 손질</h5>
+<ul><li>급배수·탕비 — 현 용도로는 조리가 불가하므로 범위 확인 필수</li><li>좌식·입식 혼합</li><li>차 보관</li></ul></div>
+<div class="mini"><h5>운영</h5>
+<ul><li>인력 — 다원 운영 인력 — 미정</li><li>언어 — 영/한</li>
+<li>파트너 — 차·한과 수급 — 사찰 브랜드(해인사통·승소몰) 연계 검토</li></ul>
+<h5 style="margin-top:14px">지표</h5>
+<ul><li>전시 관람 후 이용 전환율</li><li>객단가</li><li>체류시간 기여</li><li>외국인 비율</li></ul></div>
+</div></div>
+
+<div class="bsec"><h4>운영 리스크</h4><div class="warnbox">⚠️ 메뉴 경계 관리가 이 유닛의 핵심 리스크다. &#x27;현대적 카페(커피·디저트)&#x27;는 전통다원에 미해당으로 문서에 명시돼 있다. 커피를 넣는 순간 근거가 사라진다</div></div>
+
+
+<div class="bsec"><h4>법적 근거와 지켜야 할 선</h4>
+<p><b>근거</b> — 시행령 제7조 &#x27;전통한지, 전통문양 등 전통문화와 관련된 상품의 판매 및 전통다원의 운영&#x27; — F&amp;B를 명시적으로 허용하는 유일한 항목</p>
+<div class="guardbox" style="margin-top:10px">① 커피·디저트 중심의 현대적 카페는 미해당 ② 300㎡ 넘으면 용도변경 신고 ③ 식품위생법 휴게음식점 영업신고 필요(미신고 시 3년 이하 징역 또는 3,000만원 이하 벌금) ④ 현 건축물 용도는 음식조리 불가 — 조리 범위와 용도변경 필요성을 강남구청에 사전 확인</div></div>
+
+<div class="bsec"><h4>지금 없는 것</h4><div class="gapbox">
+<ul><li>조리 범위 확인 — 현 용도의 &#x27;음식조리 불가&#x27;가 다원 운영에 어디까지 걸리는지</li><li>식품위생법 영업신고 요건 대조</li><li>차·한과 수급 경로</li><li>다원 운영 인력</li></ul></div></div>
+
+<div class="bsec"><h4>선례에서 가져올 것</h4>
+<ul><li>경인미술관 전통다원 — 전시공간 안의 다원이라는 구조 자체</li><li>카페 나무(조계사) — 사찰 인근 다원 운영</li><li>산촌(인사동, 40년) — 사찰음식 + 전통공연 복합 경험</li></ul></div>
+
+<div class="srcline">봉은문화회관-공간활용-통합제언-보고서.md L115 L142-151 · 문화집회시설-용도변경-법규-및-상업활용-가이드.md L404-417 · 법적-행정적-검토-세법-사업구조.md L323-332</div>
+</div>
+</section>
+
+<section>
+<h2>아홉 개가 함께 막히는 지점</h2>
+<p class="body">개별 유닛의 공백이 아니라, 하나가 비면 여러 유닛이 동시에 멈추는 항목이다.</p>
+<ul class="find"><li class="high">🔴 소장 유물 전체 목록 — u01·u02·u11이 함께 막힌다</li><li class="high">🔴 템플스테이 연간 참가자·외국인 비율 — u10의 규모 산정</li><li class="high">🔴 연중 행사 캘린더 — u16 전체</li><li class="high">봉은사 가용 예산 미확인 — 설비·조성 범위를 정할 수 없다</li><li class="high">역사 연수 표기 1,200년 vs 1,000년 — 대외 문서 전체에 걸린다</li></ul>
+</section>
+
+<section>
+<h2>전 유닛에 걸리는 선</h2>
+<ul class="find"><li class="mid">유상 프로그램이 상시화되면 수익사업이다 — 개시 20일 내 사업자등록, 2개월 내 개시신고, 고유목적사업과 구분회계</li><li class="mid">수익사업 사용 면적은 재산세 과세로 전환된다 — 개방 면적과 유상 면적의 안분 기준을 사전에 확인(G9)</li><li class="mid">다원 메뉴에 커피·디저트가 들어가면 &#x27;전통다원&#x27; 근거가 사라진다</li><li class="mid">명상을 기업 생산성 프로그램으로 프레이밍하지 않는다 — McMindfulness 비판의 정확한 표적</li><li class="mid">1차 출처가 확인되지 않은 사실(현판 지정번호·경판 종수·을축년 708명)을 해설·전시 문안에 쓰지 않는다</li></ul>
+<p class="body" style="margin-top:22px;font-size:13.5px;color:var(--dim2)">T1 9개 유닛의 수익 추정 합계는 4,530M이다. 다만 이 값은 통합제언의 산식(객단가 × 인원 × 일수)을 그대로 옮긴 것이고, 신뢰도가 modeled·assumed에 머문다. 콘텐츠 구성 판단에서는 10개 축 중 하나로만 취급하며, 비교선 대비 판정은 이 단계에서 하지 않는다.</p>
+</section>
+
+<footer>
+봉은문화회관 활용전략 · T1 상세 기획 · 2026-07-30<br>
+데이터 <code>engine/data/t1-briefs.json</code> · 렌더 <code>python3 briefs.py</code> · 상위 문서 <code>engine/out/engine-report.html</code><br>
+by Project Rent
+</footer>
+</div></body></html>

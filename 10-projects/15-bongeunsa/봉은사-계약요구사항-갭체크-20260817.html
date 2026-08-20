@@ -1,0 +1,260 @@
+<meta charset="utf-8">
+<title>봉은사 최종보고서 — 계약 요구사항 갭 체크</title>
+<style>
+:root{--bg:#1A1A1A;--bg-2:#111;--bg-3:#222;--fg:#F5F0EB;--fg-2:#C9C2BA;--fg-3:#7A7570;
+--accent:#6C5CE7;--accent-l:#A29BFE;--warm:#E9DCC8;--rust:#B86C4A;--green:#8FA37E;--line:#333;--line-2:#2A2A2A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard','SUIT',-apple-system,'Apple SD Gothic Neo',sans-serif;
+font-size:15px;line-height:1.75;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 32px 110px}
+header{padding:76px 0 34px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--fg-3);margin-bottom:20px}
+h1{font-size:38px;line-height:1.24;font-weight:800;letter-spacing:-0.03em}
+h1 em{font-style:normal;color:var(--accent-l)}
+.sub{margin-top:16px;font-size:16px;color:var(--fg-2);max-width:820px;line-height:1.68}
+.meta{margin-top:24px;display:flex;flex-wrap:wrap;gap:9px}
+.chip{font-size:11.5px;color:var(--fg-3);border:1px solid var(--line);padding:5px 10px}
+section{padding-top:64px}
+.snum{font-size:11px;letter-spacing:.2em;color:var(--accent-l);font-weight:600;margin-bottom:11px}
+h2{font-size:27px;line-height:1.3;font-weight:800;letter-spacing:-0.025em}
+.lede{font-size:15.5px;color:var(--fg-2);margin:13px 0 26px;max-width:840px;line-height:1.7}
+h3{font-size:18px;font-weight:700;margin:36px 0 11px;letter-spacing:-0.02em;padding-left:12px;border-left:3px solid var(--accent)}
+h4{font-size:14.5px;font-weight:700;margin:24px 0 9px;color:var(--warm)}
+p{margin:11px 0;color:var(--fg-2)}
+p strong,li strong,td strong{color:var(--fg)}
+ul,ol{margin:11px 0 11px 20px;color:var(--fg-2)}li{margin:6px 0}
+code{background:var(--bg-3);border:1px solid var(--line-2);padding:1px 6px;font-size:12.5px;color:var(--warm);font-family:'SF Mono',Menlo,monospace}
+.scroll{overflow-x:auto;max-width:100%}
+.tbl{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.5px}
+.scroll .tbl{min-width:680px}
+.tbl th{background:var(--bg-2);color:var(--fg-3);font-size:11px;letter-spacing:.13em;text-transform:uppercase;text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);font-weight:600;vertical-align:bottom}
+.tbl td{padding:11px 13px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top;line-height:1.6}
+.tbl tr:hover td{background:#1E1E1E}
+.st{font-weight:700;white-space:nowrap;font-size:12.5px}
+.ok{color:var(--green)}.part{color:var(--warm)}.no{color:var(--rust)}
+.card{background:var(--bg-3);border:1px solid var(--line-2);padding:20px 22px;margin:18px 0}
+.card .k{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-3);margin-bottom:9px;font-weight:600}
+.warn{border-left:3px solid var(--rust);background:#1F1715;padding:16px 20px;margin:18px 0}
+.warn .k{color:var(--rust);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:7px}
+.good{border-left:3px solid var(--green);background:#161A15;padding:16px 20px;margin:18px 0}
+.good .k{color:var(--green);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:7px}
+.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line-2);border:1px solid var(--line-2);margin:22px 0}
+.stat div{background:var(--bg-2);padding:19px 17px;min-width:0;overflow-wrap:anywhere}
+.stat .v{font-size:29px;font-weight:800;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .l{font-size:12px;color:var(--fg-3);margin-top:7px;line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:18px 0}
+.funnel{border:1px solid var(--line-2);margin:18px 0}
+.funnel div{padding:13px 18px;border-bottom:1px solid var(--line-2);font-size:14px;color:var(--fg-2)}
+.funnel div:last-child{border-bottom:none}
+.funnel .top{background:#1F1715;color:var(--fg);font-weight:700}
+.q{border-left:2px solid var(--accent);padding:5px 0 5px 18px;margin:18px 0;color:var(--fg);font-size:15px}
+footer{margin-top:80px;padding-top:22px;border-top:1px solid var(--line);color:var(--fg-3);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+@media (max-width:820px){.wrap{padding:0 18px 70px}h1{font-size:29px}.grid2{grid-template-columns:1fr}.stat{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Contract Gap Check · 2026-08-17</div>
+  <h1>계약 요구사항 대비 <em>빠진 것</em> 체크</h1>
+  <p class="sub">
+    과업지시서 9챕터 · 중간인도물 3항 · 최종결과물 4항 · 납품물 3종 · 계약서 별도 2종을
+    검수 단위로 쪼갠 <b>45개 체크리스트</b> 기준으로 현재 최종보고서를 대조했다.
+    판정은 본문 실물 확인으로 했다 — 언급이 있어도 산출물이 없으면 미충족으로 본다.
+  </p>
+  <div class="meta">
+    <span class="chip">기준 — 과업지시서 + 계약서 + 추가합의서 제3조</span>
+    <span class="chip">대상 — master-strategy-report (아젠다 57 · 769요소)</span>
+    <span class="chip">납품 8/14 · 마감 8/16</span>
+  </div>
+</header>
+
+<section>
+  <div class="snum">01</div>
+  <h2>한 줄 결론</h2>
+  <div class="warn">
+    <div class="k">병목은 하나다</div>
+    <p style="margin:0;font-size:15.5px;color:var(--fg)">
+      <b>재무 모델이 없어서 계약 필수 산출물 4개가 동시에 미충족이다.</b>
+      나머지 갭들은 분량이나 난이도의 문제지만, 이것은 <b>계약서가 조문으로 요구한 산출물</b>이라 성격이 다르다.
+    </p>
+  </div>
+  <div class="stat">
+    <div><div class="v ok">28</div><div class="l">충족 — 진단·전략·대안·로드맵 계열</div></div>
+    <div><div class="v part">7</div><div class="l">부분 — 판단은 있으나 요구 형식(비교표·배치도)이 없음</div></div>
+    <div><div class="v no">6</div><div class="l">미충족 — 재무·경제성 계열 전부</div></div>
+    <div><div class="v" style="color:var(--fg-3)">4</div><div class="l">행정·납품 — 물리 제출로 확인 필요</div></div>
+  </div>
+  <p style="font-size:12px;color:var(--fg-3)">
+    ※ 45항목을 성격별로 묶은 집계다. 체크리스트 원본(중간 14 · 최종 22 · 납품 5 · 행정 4)의 항목 단위와 1:1은 아니며,
+    아래 표의 판정 근거가 실제 값이다.
+  </p>
+</section>
+
+<section>
+  <div class="snum">02</div>
+  <h2>재무 모델 하나에 무엇이 걸려 있나</h2>
+  <p class="lede">미충족 6건이 서로 다른 항목이 아니라 <b>같은 뿌리에서 나온 가지</b>라는 점이 중요하다.</p>
+  <div class="funnel">
+    <div class="top">뿌리 — 재무 모델 일체 미작성 <code>E-0575</code> (완성도 30%)<br>
+      <span style="font-weight:400;font-size:13px;color:var(--fg-2)">투자비·운영비 상세 / 단가×수량×가동률 수익 모델 / 5개년 손익 / 민감도 / 손익분기</span></div>
+    <div>→ <b>최종결과물 ③</b> 5개년 예상 수지분석 및 경제성 검토 <span class="st no">미충족</span></div>
+    <div>→ <b>계약서 제3조 1항</b> 1~2층 운영에 관한 5개년 사업계획서 <span class="st no">미충족</span></div>
+    <div>→ <b>계약서 제3조 2항</b> 5개년 경제성 검토 분석 보고서 (사업계획서와 별개 산출물) <span class="st no">미충족</span></div>
+    <div>→ <b>과업지시서 Ch.7</b> 사업타당성 6개 항목 — 초기 조성비·운영비 추정, 예상 수입·손익구조, 사업성·지속가능성·리스크, 대안별 경제성 비교, 5개년 수지분석 <span class="st no">전부 정량 요구 · 미충족</span></div>
+    <div>→ <b>Ch.5</b> 대안별 장단점 비교 중 <b>경제성 축</b> <span class="st part">부분</span></div>
+    <div>→ <b>Ch.8</b> 최적 대안 선정 기준의 <b>수익성 근거</b> <span class="st part">부분</span></div>
+  </div>
+  <div class="card">
+    <div class="k">보고서가 스스로 밝힌 상태 (S8 원문)</div>
+    <p style="margin:0">
+      "기존 92억 시뮬레이션의 핵심 변수('일 400명 관람', '80석 회전 1.5')는 실제 사례와 맞춰본 적 없는 가정치이고,
+      <b>투자비·운영비·수익 모델·5개년 손익·손익분기는 전부 미작성</b>입니다."<br>
+      "직영·위탁·하이브리드 세 가지 비교표는 아직 없고, <b>과업지시서 6장의 필수 요구사항</b>으로 남아 있습니다."
+    </p>
+  </div>
+  <p>정직하게 적혀 있다는 것은 신뢰의 근거지만, <b>검수 기준이 체크리스트</b>라는 점을 기억해야 한다.
+  추가합의서 제3조는 "과업지시서 항목별 체크리스트 기반으로만 검수"하도록 방어선을 만들어 뒀는데,
+  그 방어선은 <b>양날</b>이다 — 항목이 비면 "마음에 안 든다"가 아니라 <b>객관적 미이행</b>이 된다.</p>
+</section>
+
+<section>
+  <div class="snum">03</div>
+  <h2>항목별 판정</h2>
+  <div class="scroll">
+  <table class="tbl">
+    <tr><th style="width:9%">근거</th><th style="width:25%">요구</th><th style="width:9%">판정</th><th style="width:57%">현재 상태와 근거</th></tr>
+
+    <tr><td>Ch.1</td><td>과업 개요·범위·원칙</td><td class="st ok">충족</td><td>S1 1.1~1.2. 5대 원칙·대상 면적·9챕터 매핑까지 명시</td></tr>
+    <tr><td>Ch.2</td><td>현황 조사 6항목</td><td class="st ok">충족</td><td>S1 제약표·S4 입지/상권/방문객. RXR 실측 4,330건으로 방문객 근거 보강</td></tr>
+    <tr><td>Ch.2</td><td>└ <b>경쟁 분석</b>(강남 유사 문화공간 포지셔닝)</td><td class="st no">미충족</td><td><b>본문 0건.</b> 삼성동 갭 분석은 있으나 "경쟁 시설 대비 포지셔닝 비교"는 없음 <code>E-0572</code></td></tr>
+    <tr><td>Ch.3</td><td>국내외 유사사례</td><td class="st ok">충족</td><td>S5 BM 7유형 + 국내외 사례. 운영방식·수익구조 분석 포함</td></tr>
+    <tr><td>Ch.4</td><td>콘셉트·방향 6항목</td><td class="st ok">충족</td><td>S2·S3. <b>타깃 설정은 8/17 확정</b>(MZ+외국인 집중, 경계선 축 신설) <code>E-1077</code></td></tr>
+    <tr><td>Ch.4</td><td>└ 페르소나·Journey Map·포지셔닝 맵</td><td class="st part">부분</td><td>수요 4축 매트릭스·DC-1~5 클러스터가 기능적으로 대체. <b>요구 형식의 산출물은 없음</b> <code>E-0573</code></td></tr>
+    <tr><td>Ch.5</td><td>3개 이상 대안 + 장단점 비교</td><td class="st ok">충족</td><td>S8 A·B·C 3안 + S9 5시나리오 채점</td></tr>
+    <tr><td>Ch.5</td><td>└ 대안별 <b>기능구성</b>(층별 배치도)</td><td class="st part">부분</td><td>면적 배분·층 배치 서술은 있으나 <b>기능배치도·동선도 도면 없음</b> <code>E-0574</code>. 공간디자인 협업 전제</td></tr>
+    <tr><td>Ch.5</td><td>└ 전시 콘텐츠 기획안 · 전시물 확보 방안</td><td class="st part">부분</td><td>T1 상세기획(프로그램 28종)은 별도 문서에 존재. <b>최종보고서 본문 편입 여부 확인 필요</b></td></tr>
+    <tr><td>Ch.6</td><td>운영방식 <b>직영·위탁·협업 비교</b></td><td class="st no">미충족</td><td>직영 권고 근거는 충실하나 <b>3안 비교 매트릭스 부재</b> — 보고서가 "필수 요구사항으로 남아 있다"고 자인 <code>E-0571</code></td></tr>
+    <tr><td>Ch.6</td><td>수익모델·재원구조</td><td class="st part">부분</td><td>BM 유형·가격축은 있으나 재원조달 구조 없음</td></tr>
+    <tr><td>Ch.6</td><td>고객층·이용수요 예측</td><td class="st part">부분</td><td>수요원자 54·전환율 실측은 있으나 <b>수요 예측 모수가 비어 있음</b>(자체추산 10만 vs 조사 61만, 6.1배 격차)</td></tr>
+    <tr><td>Ch.6</td><td>홍보계획</td><td class="st ok">충족</td><td>S10 10.5·10.6 (8/11 편입). 4 Growth Engine·Experience Leveling·3기 전개</td></tr>
+    <tr><td>Ch.7</td><td><b>사업타당성 6항목 (전부 정량)</b></td><td class="st no">미충족</td><td><b>재무 모델 전량 미작성.</b> 이 챕터가 난이도 최고이자 최대 결손 <code>E-0575</code></td></tr>
+    <tr><td>Ch.7</td><td>└ 운영 리스크(인력·계절성·관광 변동)</td><td class="st no">미충족</td><td>법적 리스크만 상세. <b>인력 0건 · 계절성 1건</b>(공백 선언 문맥) <code>E-0572</code></td></tr>
+    <tr><td>Ch.8</td><td>최적안 선정 기준·우선 추진안·로드맵</td><td class="st ok">충족</td><td>S9 채점 규칙 + S10 10.2~10.4. <b>10.7 실행 총괄(8/17 신설)로 주체·판정 보강</b></td></tr>
+    <tr><td>Ch.9</td><td>보고서·발표자료</td><td class="st part">부분</td><td>본문 완성. <b>덱 2종은 재실측 부채</b>(10.3·10.7 변경분 미반영)</td></tr>
+
+    <tr><td>최종②</td><td>운영 모델 선정 + 단계별 로드맵</td><td class="st part">부분</td><td>로드맵 ✅ / <b>모델 "선정"의 근거인 비교표 ❌</b></td></tr>
+    <tr><td>최종③</td><td>5개년 수지분석 및 경제성 검토</td><td class="st no">미충족</td><td>계약서 제3조 2항과 중복 요구. <b>최대 리스크</b></td></tr>
+    <tr><td>계약3-1</td><td>1~2층 운영 5개년 사업계획서</td><td class="st no">미충족</td><td>과업지시서에 없고 <b>계약 본문에만</b> 있는 항목 — 놓치기 쉬운 자리</td></tr>
+    <tr><td>기대효과</td><td>임팩트 정량·정책 제언·시장규모</td><td class="st no">미충족</td><td>정성 서술만. 정책 제언 3~5건·시장규모 정량 없음 <code>E-0576</code> (완성도 25%)</td></tr>
+    <tr><td>납품</td><td>최종 5부+USB / 요약 5부+USB / 발표자료</td><td class="st" style="color:var(--fg-3)">확인 필요</td><td>물리 제출 항목. 요약보고서 = 써머리 덱으로 대응 가능</td></tr>
+    <tr><td>행정</td><td>인적사항·보안각서·보안책임자·자료보관</td><td class="st" style="color:var(--fg-3)">확인 필요</td><td>착수계획서에 포함 제출됐는지 확인 — <b>검수 대상</b></td></tr>
+  </table>
+  </div>
+</section>
+
+<section>
+  <div class="snum">04</div>
+  <h2>추가 리서치가 필요한 것 vs 로직 검토가 필요한 것</h2>
+  <p class="lede">둘을 섞으면 안 된다. 앞은 <b>없는 정보를 구하는 일</b>이고, 뒤는 <b>있는 정보로 어떻게 답할지 정하는 일</b>이다.</p>
+  <div class="grid2">
+    <div class="card">
+      <div class="k" style="color:var(--rust)">A. 추가 리서치 — 밖에서 가져와야 함</div>
+      <ul style="margin:0">
+        <li><b>경쟁 분석</b> — 강남권 유사 문화공간(전시·체험·웰니스) 포지셔닝 비교. 지금 0건이라 새로 함</li>
+        <li><b>운영 리스크</b> — 유사시설 인력 구조·계절 변동·관광 수요 탄력성</li>
+        <li><b>시장규모 정량</b> — 명상·웰니스·전통문화 체험 시장 (기대효과 챕터)</li>
+        <li><b>벤치마크 단가·가동률</b> — 재무모델 입력값. 국내외 유사시설 실적치 1:1 매핑</li>
+        <li><b>운영모델 3안 사례</b> — 종교시설 직영/위탁/협업 실제 사례와 손익 구조</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="k" style="color:var(--accent-l)">B. 로직 검토 — 우리가 정해야 함</div>
+      <ul style="margin:0">
+        <li>★ <b>입력값이 비어 있는 상태에서 5개년 수지분석을 어떤 구조로 낼 것인가</b> (§05)</li>
+        <li>구 시나리오 수익 레인지(20~30 / 46~65 / 70~92억)를 <b>새 A·B·C에 어떻게 연결할 것인가</b> — 1:1 대응 금지 상태</li>
+        <li>수리견적 3중 불일치(27~41.5 / 27~45 / 28~41억) 중 <b>어느 것을 분모로 확정할 것인가</b></li>
+        <li>운영모델 비교표의 <b>평가축을 무엇으로 할 것인가</b> (법적안전성·세제·통제력·역량·리스크)</li>
+        <li>전시 콘텐츠 기획안(T1 28종)을 <b>본문에 편입할지 별첨으로 낼지</b></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="snum">05</div>
+  <h2>핵심 논점 — 입력값 없이 5개년 수지분석을 어떻게 내는가</h2>
+  <p class="lede">
+    이것이 이번 검토의 본론이다. 재무 모델을 못 만든 이유는 게을러서가 아니라 <b>분모와 분자가 동시에 비어 있어서</b>다.
+  </p>
+  <div class="warn">
+    <div class="k">지금 비어 있는 입력값</div>
+    <p style="margin:0">
+      <b>분모</b> — 리모델링 예산(Q1 미확인) · 수리견적 3중 불일치 · 투자비 확정안 없음<br>
+      <b>분자</b> — 방문객 실측 없음(Q5, 무료입장이라 게이트 집계 부재 · 자체추산 10만 vs 조사 61만 6.1배 격차) ·
+      유권해석 미회신이라 <b>수익 천장 자체가 미정</b>(20~30 / 40~60 / 70~90억으로 3배 차이)
+    </p>
+  </div>
+
+  <h3>선택지 네 개</h3>
+  <div class="scroll">
+  <table class="tbl">
+    <tr><th style="width:6%">안</th><th style="width:22%">구조</th><th style="width:36%">내용</th><th style="width:36%">평가</th></tr>
+    <tr><td><b>①</b></td><td>단일 추정 모델</td><td>가정치를 정해 5개년 P&L 한 벌을 낸다</td>
+      <td class="no">권장하지 않음 — 92억 시뮬레이션이 이미 이 방식으로 실패했다("일 400명 관람" 같은 미검증 가정). 보고서가 그 가정을 스스로 기각한 상태라 자기모순</td></tr>
+    <tr><td><b>②</b></td><td>레인지 + 민감도</td><td>입력값을 구간으로 두고 상·중·하 3케이스</td>
+      <td class="part">가능하나 약함 — 구간 폭이 3배(20~90억)라 "모른다"를 숫자로 옮긴 것에 가까움</td></tr>
+    <tr><td><b>③</b></td><td>조건부 매트릭스</td><td>유권해석 3경우 × 예산 2경우 = 6케이스 P&L</td>
+      <td class="part">요구 형식은 충족. 다만 6벌을 다 채우려면 벤치마크 단가가 필요 — <b>추가 리서치 선행</b></td></tr>
+    <tr><td><b>④</b></td><td><b>역산 · 임계조건 모델</b></td><td>"얼마 버는가" 대신 <b>"연 30억을 넘으려면 무엇이 참이어야 하는가"</b>를 역산.
+      필요 방문객 수·객단가·가동률의 <b>임계값</b>을 내고, 그 값이 실현 가능한지 벤치마크로 판정</td>
+      <td class="ok">★ 권고 — 보고서 전체 논조(기준선·조건부·"목표치 대신 기준선")와 정합하고, <b>없는 입력값을 지어내지 않고도</b> 경제성 판단을 제공한다</td></tr>
+  </table>
+  </div>
+
+  <div class="good">
+    <div class="k">왜 ④가 이기는가</div>
+    <p style="margin:0">
+      계약이 요구한 것은 "정확한 예측"이 아니라 <b>경제성 검토</b>다. 그리고 이 프로젝트의 진짜 의사결정 질문은
+      "얼마 버나"가 아니라 <b>"웨딩홀 재임대(연 30억)보다 나은가"</b>다 — 보고서 스스로 이것을 판정 기준으로 세워 뒀다(S8 ⑪, 10.7).
+      ④는 그 질문에 직접 답하면서, 입력값이 채워지는 대로 <b>같은 틀에 값만 넣으면</b> ③으로 승격된다.
+    </p>
+  </div>
+  <p>④의 산출 형태 — <b>3안 × 임계표</b>: 각 안마다 ⓐBEP 방문객 수 ⓑ필요 객단가 ⓒ필요 가동률 ⓓ그 값의 실현 가능성 판정(벤치마크 대비 배수)
+  ⓔ임계값을 못 넘길 때의 대안 경로. 여기에 투자비를 3개 견적의 <b>보수값</b>으로 고정하면 회수기간까지 나온다.</p>
+
+  <div class="q">
+    다만 ④를 택해도 <b>벤치마크 단가·가동률 리서치는 반드시 필요하다.</b> 임계값이 "실현 가능한가"를 판정할 잣대가 그것이기 때문이다.
+    즉 <b>A(리서치)와 B(로직)는 순차가 아니라 한 묶음</b>이다.
+  </div>
+</section>
+
+<section>
+  <div class="snum">06</div>
+  <h2>지금 결정해야 할 것</h2>
+  <div class="scroll">
+  <table class="tbl">
+    <tr><th style="width:6%">#</th><th style="width:30%">결정</th><th style="width:64%">선택지</th></tr>
+    <tr><td>1</td><td><b>재무 모델 구조</b></td><td>① 단일추정 / ② 레인지 / ③ 조건부 6케이스 / <b>④ 역산·임계조건(권고)</b></td></tr>
+    <tr><td>2</td><td><b>투자비 분모 확정</b></td><td>수리견적 3건 중 <b>보수값(45억)</b> 고정 / 중앙값 / 3안 병기</td></tr>
+    <tr><td>3</td><td>구 수익 레인지 처리</td><td>새 A·B·C로 <b>재산출</b> / 구 시나리오임을 명시하고 참고값으로 격하 / 삭제</td></tr>
+    <tr><td>4</td><td>운영모델 비교표 평가축</td><td>법적 안전성 · 세제(준비금 50%) · 통제력 · 역량 보유 · 리스크 — 5축 제안</td></tr>
+    <tr><td>5</td><td>미충족 항목의 처리 방식</td><td>이번 납품에 <b>채운다</b> / 「후속 과업 제언」으로 분리하고 범위 밖임을 명시 / 혼합</td></tr>
+    <tr><td>6</td><td>납품 일정</td><td>계약 마감이 <b>이미 지났다</b>(8/16). 현 상태 기준 납품 시점·보완 일정 확인 필요</td></tr>
+  </table>
+  </div>
+  <div class="card">
+    <div class="k">⚠️ 5번이 실질적으로 가장 중요하다</div>
+    <p style="margin:0">
+      재무 모델은 <b>유권해석 회신 전에는 원리적으로 확정 불가</b>다(수익 천장이 3배 벌어짐).
+      그렇다면 선택은 "지금 억지로 채운다"가 아니라 <b>"어디까지가 이번 과업이고 어디부터가 회신 이후인가"를 계약 문서로 분리</b>하는 쪽일 수 있다.
+      10.4의 "답하지 못한 것" 6가지가 이미 그 분리선의 초안 역할을 하고 있다 — 이것을 <b>후속 과업 제안서</b>로 승격시키면
+      미이행이 아니라 <b>범위 재정의</b>가 된다.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <span>봉은사 계약 요구사항 갭 체크 · 2026-08-17</span>
+  <span>by Project Rent</span>
+</footer>
+</div>

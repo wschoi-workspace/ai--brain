@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>멤버십 BM 수익성 검토 | PROJECT RENT</title>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+em{font-style:normal;color:var(--accent-light)}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.nav{position:fixed;top:50%;left:26px;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:10;font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color 150ms var(--ease-out)}
+.nav a:hover,.nav a.active{color:var(--accent)}
+.sec{padding:90px 120px 110px;max-width:1440px;margin:0 auto}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:26px;border-bottom:1px solid var(--line-2);margin-bottom:44px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:38px;font-weight:300;letter-spacing:-0.025em;line-height:1.15;margin-top:8px}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin-bottom:38px}
+h3.sub{font-size:19px;font-weight:400;color:var(--fg);margin:46px 0 14px;letter-spacing:-0.02em}
+h3.sub:first-of-type{margin-top:0}
+p.note{font-size:13px;color:var(--fg-2);margin:10px 0;max-width:920px}
+#cover{padding-top:140px;min-height:84vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:34px}
+.cover-title{font-size:62px;font-weight:200;letter-spacing:-0.04em;line-height:1.05;margin-bottom:24px}
+.cover-sub{font-size:19px;color:var(--fg-2);line-height:1.6;max-width:920px;margin-bottom:46px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:30px;max-width:1020px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:11px 12px;font-weight:400;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+tbody tr.total td{border-top:1px solid var(--line);color:var(--fg);font-weight:500;background:rgba(108,92,231,.05)}
+tbody tr.sub-row td{color:var(--fg-3);font-size:12px}
+tbody tr.sub-row td:first-child{color:var(--fg-3);padding-left:28px}
+tbody tr.grp td{background:var(--bg-2);color:var(--accent-light);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--red)} .pos{color:var(--green)} .warn{color:var(--amber)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:3px 9px;font-size:10px;letter-spacing:.08em;white-space:nowrap}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi.hero{border-color:var(--accent)} .kpi.bad{border-color:rgba(225,112,85,.4)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:32px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi.bad .kpi-value{color:var(--red)}
+.kpi .kpi-unit{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px;line-height:1.5}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:22px 26px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.75}
+.callout p+p{margin-top:10px}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.track{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:26px 0}
+.track .t{background:var(--bg-3);border:1px solid var(--line-2);padding:26px 28px}
+.track .t.use{border-left:3px solid var(--accent)}
+.track .t.rel{border-left:3px solid var(--green)}
+.track .t .n{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.track .t h4{font-size:19px;margin-bottom:12px}
+.track .t dl{display:grid;grid-template-columns:76px 1fr;gap:7px 14px;font-size:13px}
+.track .t dt{font-size:10px;letter-spacing:.14em;color:var(--fg-3);text-transform:uppercase;padding-top:3px}
+.track .t dd{color:var(--fg-2);line-height:1.6}
+.foot{padding:60px 120px 80px;border-top:1px solid var(--line-2);text-align:center;color:var(--fg-3);font-size:11px;letter-spacing:.2em;max-width:1440px;margin:0 auto}
+@media (max-width:1100px){
+  .sec{padding:70px 40px 80px}.nav{display:none}
+  .cover-title{font-size:38px}.sec-head h2{font-size:28px}
+  .kpi-grid,.kpi-grid-3,.cover-meta,.track{grid-template-columns:repeat(2,1fr)}
+  .track{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+<nav class="nav">
+  <a href="#cover">00 결론</a>
+  <a href="#s1">01 두 트랙</a>
+  <a href="#s2">02 벤치마크</a>
+  <a href="#s3">03 5개년</a>
+  <a href="#s4">04 제약</a>
+  <a href="#s5">05 판정·잔여</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">RL-10 · Membership Business Model</div>
+  <h1 class="cover-title">갱신율이<br>이 라인의 전부입니다</h1>
+  <p class="cover-sub">
+    멤버십은 <em>한 번 팔고 끝나는 사업이 아니라 매년 다시 파는 사업</em>입니다.
+    그래서 이 검토의 산출물은 1년차 매출이 아니라 <strong>5개년 곡선</strong>이고,
+    곡선의 기울기를 정하는 갱신율은 <strong>국내에 벤치마크가 0건</strong>입니다.
+  </p>
+  <dl class="cover-meta">
+    <div><dt>대상</dt><dd>멤버십·구독 계열 12건</dd></div>
+    <div><dt>1년차</dt><dd>매출 16.9억 · 영업이익 9.3억</dd></div>
+    <div><dt>5년 누적</dt><dd>매출 125.7억 · 영업이익 73.0억</dd></div>
+    <div><dt>작성</dt><dd>2026.08.17 · 내부 문서</dd></div>
+  </dl>
+
+  <div class="kpi-grid" style="margin-top:52px">
+    <div class="kpi hero"><div class="kpi-label">1년차 매출</div><div class="kpi-value">16.9<span class="kpi-unit">억</span></div><div class="kpi-sub">이용 12.0 + 보시 4.9억</div></div>
+    <div class="kpi hero"><div class="kpi-label">5년 누적 영업이익</div><div class="kpi-value">73.0<span class="kpi-unit">억</span></div><div class="kpi-sub">갱신율 65% 가정</div></div>
+    <div class="kpi bad"><div class="kpi-label">갱신율 민감도</div><div class="kpi-value">±25<span class="kpi-unit">억</span></div><div class="kpi-sub">45%~85% 구간의 5년 누적 차</div></div>
+    <div class="kpi bad"><div class="kpi-label">국내 벤치마크</div><div class="kpi-value">0<span class="kpi-unit">건</span></div><div class="kpi-sub">종교시설 멤버십 사례 없음</div></div>
+  </div>
+
+  <div class="callout callout-success" style="max-width:1020px">
+    <p><strong>이 검토의 핵심 발견 — 멤버십은 하나가 아니라 둘입니다</strong><br>
+    봉은사에는 이미 <strong>보시(布施)</strong>라는 후원 체계가 있습니다.
+    여기에 유료 멤버십을 얹으면 <strong>보시와 이용료가 뒤섞여</strong>
+    과세 판정과 내부 정서 양쪽에서 문제가 생깁니다.
+    마스터 리포트의 4원칙 ③이 요구하는 것도 정확히 이것입니다 —
+    <strong>"보시와 이용료를 명확히 구분·공개"</strong><span style="color:var(--fg-3)">E-0243</span>.
+    그래서 이 설계는 <strong>이용 트랙(과세)</strong>과 <strong>관계 트랙(보시)</strong>을 처음부터 분리합니다.</p>
+  </div>
+
+  <div class="callout callout-danger" style="max-width:1020px">
+    <p><strong>봉은사는 지금 명상을 0원에 운영하고 있습니다</strong><span style="color:var(--fg-3)">E-1049</span><br>
+    타이치명상·선명상을 무료 공익으로 병행 중이라,
+    유료 멤버십은 <strong>과세 판정과 내부 정서 양쪽에 동시에</strong> 걸립니다.
+    강남구청은 2012년 <strong>"교인 외 일반 주민도 이용 가능한가"</strong>를 기준으로
+    10곳 이상에 5억여 원을 추징했습니다. 이 라인의 진짜 난이도는 가격이 아니라 여기에 있습니다.</p>
+  </div>
+</section>
+
+<!-- 01 두 트랙 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">Two Tracks</div>
+    <h2>보시와 이용료를 <em>처음부터 갈라놓습니다</em></h2></div>
+    <div class="no">01</div>
+  </div>
+
+  <div class="track">
+    <div class="t use">
+      <div class="n">Track A</div>
+      <h4>이용 트랙 — 서비스의 대가</h4>
+      <dl>
+        <dt>대상</dt><dd>일반 · 신도 여부 무관</dd>
+        <dt>성격</dt><dd>시설·프로그램 <strong>이용권</strong></dd>
+        <dt>세무</dt><dd><strong>수익사업 · 과세</strong></dd>
+        <dt>구성</dt><dd>문화 멤버십 · 웰니스 월정액 · 법인 · 임원 기수제 · 온라인 구독</dd>
+        <dt>1년차</dt><dd><strong>12.0억</strong></dd>
+        <dt>KPI</dt><dd>회원수 × 갱신율 × 객단가</dd>
+      </dl>
+    </div>
+    <div class="t rel">
+      <div class="n">Track B</div>
+      <h4>관계 트랙 — 기부와 예우</h4>
+      <dl>
+        <dt>대상</dt><dd>신도 · 후원자</dd>
+        <dt>성격</dt><dd>기부에 대한 <strong>예우·참여권</strong></dd>
+        <dt>세무</dt><dd>고유목적사업 영역</dd>
+        <dt>구성</dt><dd>신도·후원 회원 등급제<span style="color:var(--fg-3)">E-0678</span></dd>
+        <dt>1년차</dt><dd><strong>4.9억</strong></dd>
+        <dt>KPI</dt><dd>참여율 × 평균 후원액 · <em>수익이 아니라 관계의 깊이</em></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>주의 — 관계 트랙 4.9억은 신규 매출이 아닐 수 있습니다</strong><br>
+    봉은사는 이미 보시를 받고 있습니다. 후원 회원 등급제는 그것을
+    <strong>등급화·체계화하는 것</strong>이지 없던 돈을 만드는 것이 아닙니다.
+    따라서 이 4.9억은 <strong>증분이 아니라 재구조화분일 가능성</strong>이 크고,
+    사업계획서에 매출로 올릴 때는 기존 보시 실적과 대조해 <strong>순증분만</strong> 잡아야 합니다.
+    현재 신도 수조차 5~10만 추정치입니다<span style="color:var(--fg-3)">E-0339</span>.</p>
+  </div>
+
+  <h3 class="sub">1년차 매출 구성</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>라인</th><th>가격 설계</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>단가 근거</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="6">Track A · 이용 트랙 (과세)</td></tr>
+      <tr><td>문화 멤버십</td><td>연 12/18/25만원</td><td class="num">0.2억</td><td class="num">1.3억</td><td class="num">6.6억</td><td>리움 10~50만 · 국립현대 7~10만</td></tr>
+      <tr class="sub-row"><td>가입자 (CV 전환 0.12~0.5%)</td><td></td><td class="num">132명</td><td class="num">714명</td><td class="num">2,628명</td><td>미술관 멤버십 통상 전환율</td></tr>
+      <tr><td>웰니스 월정액</td><td>월 7/9.5/12만원</td><td class="num">1.9억</td><td class="num">5.1억</td><td class="num">10.5억</td><td>도보권 직장인 11.2만<span style="color:var(--fg-3)">E-1021</span></td></tr>
+      <tr class="sub-row"><td>가입자 (침투 0.2~0.65%)</td><td></td><td class="num">225명</td><td class="num">449명</td><td class="num">730명</td><td>현행 무료 프로그램의 유료 전환 저항 반영</td></tr>
+      <tr><td>법인 멤버십</td><td>연 500/700/1,000만</td><td class="num">0.3억</td><td class="num">1.0억</td><td class="num">2.5억</td><td><strong>KMA 정회원 490만</strong><span style="color:var(--fg-3)">E-1041</span></td></tr>
+      <tr><td>임원 기수제</td><td>1인 500/650/800만</td><td class="num">0.8억</td><td class="num">2.6억</td><td class="num">3.8억</td><td><strong>고려대 AMP 1,200만</strong><span style="color:var(--fg-3)">E-1047</span></td></tr>
+      <tr><td>온라인 구독</td><td>월 9,900~19,900원</td><td class="num">0.5억</td><td class="num">2.0억</td><td class="num">5.7억</td><td>구독 서비스 일반</td></tr>
+      <tr class="total"><td>이용 트랙 소계</td><td></td><td class="num">3.6억</td><td class="num">12.0억</td><td class="num">29.2억</td><td></td></tr>
+      <tr class="grp"><td colspan="6">Track B · 관계 트랙 (보시)</td></tr>
+      <tr><td>신도 후원 등급제</td><td>연 35/50/70만</td><td class="num">1.4억</td><td class="num">4.9억</td><td class="num">15.4억</td><td>신도 5~10만 × 참여 0.8~2.2%</td></tr>
+      <tr class="total"><td>합계</td><td></td><td class="num">5.0억</td><td class="num">16.9억</td><td class="num">44.6억</td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">
+    마스터 모델 v0.2의 RL-10은 2.1 / 7.7 / 16.4억이었습니다. 차이가 나는 것은
+    당시에는 <strong>법인·임원기수·개인 회비만</strong> 잡았고, 여기서는
+    <strong>웰니스 월정액·온라인 구독·신도 후원까지</strong> 포함했기 때문입니다. 범위가 넓어진 것이지 단가가 오른 것이 아닙니다.
+  </p>
+</section>
+
+<!-- 02 벤치마크 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">Benchmark</div>
+    <h2>멤버십은 <em>두 개의 다른 시장</em>입니다</h2></div>
+    <div class="no">02</div>
+  </div>
+  <p class="sec-desc">
+    B2C 문화 멤버십과 B2B 법인 멤버십은 가격대가 <strong>20배 이상</strong> 벌어져 있습니다.
+    같은 "멤버십"이라는 단어를 쓰지만 사는 사람도, 사는 이유도, 가격도 다릅니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>시장</th><th>사례</th><th class="num">연회비</th><th>구성</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="4">B2C 문화 멤버십 — 7만 ~ 50만원</td></tr>
+      <tr><td rowspan="3">리움미술관</td><td>리움 프렌즈</td><td class="num">10만원</td><td>본인 1인 · 무료입장 · 스토어 10% · 프리뷰</td></tr>
+      <tr><td>리움 패밀리</td><td class="num">30만원</td><td>본인+3인 · 스토어 20% · 초대권 5매 · 전용 프로그램</td></tr>
+      <tr><td>리움 패밀리 50</td><td class="num">50만원</td><td>(본인+3인)×2 = 8명</td></tr>
+      <tr><td rowspan="3">국립현대미술관</td><td>MMCA 친구</td><td class="num">무료</td><td>예매 서비스</td></tr>
+      <tr><td>MMCA 가족</td><td class="num">7만원</td><td>4개관 무료 · 라운지 연 100회 · 주차 3장</td></tr>
+      <tr><td>MMCA 가족+</td><td class="num">10만원</td><td>본인+동반1인 · 라운지 4인 · 주차 5장</td></tr>
+      <tr class="grp"><td colspan="4">B2B 법인 · 임원 — 490만 ~ 1,900만원</td></tr>
+      <tr><td rowspan="3">한국능률협회</td><td>정회원</td><td class="num">490만원</td><td rowspan="3"><strong>수영장도 사우나도 없이 이 가격</strong><br>시설이 아니라 대상이 가격을 정한다<span style="color:var(--fg-3)">E-1041</span></td></tr>
+      <tr><td>이사단</td><td class="num">1,000만원</td></tr>
+      <tr><td>회장단</td><td class="num">1,700만원</td></tr>
+      <tr><td>고려대 AMP</td><td>최고경영자과정</td><td class="num">1,200만원<br><span style="color:var(--fg-3)">실질 1,900만</span></td><td>6개월 · 정원 50~60명 · 연 2회<br><strong>기수제는 이탈 관리가 쉽고 동문 네트워크가 자동 형성</strong><span style="color:var(--fg-3)">E-1047</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>이 표가 정하는 두 가지</strong></p>
+    <p>① <strong>B2C 상한은 50만원입니다.</strong> 리움(삼성家 미술관)이 8인 기준 50만원이고,
+    100만원 이상 B2C 문화 멤버십은 국내에 존재하지 않습니다.
+    봉은사 문화 멤버십을 <strong>12~25만원</strong>으로 잡은 것은 리움 프렌즈~패밀리 사이입니다.</p>
+    <p>② <strong>B2B는 시설과 무관합니다.</strong> KMA는 아무 시설 없이 490~1,700만원을 받습니다.
+    파는 것이 공간이 아니라 <strong>소속과 관계</strong>이기 때문입니다.
+    봉은사가 법인 500~1,000만원을 받을 수 있느냐는 시설의 문제가 아니라
+    <strong>"봉은사 회원"이라는 소속이 값어치가 있느냐</strong>의 문제입니다.</p>
+  </div>
+
+  <h3 class="sub">타겟이 사는 것 — 시설이 아니라 관계와 소양</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>구분</th><th class="num">'부자의 요건' 응답</th><th class="num">회원권 보유율</th><th>봉은사에 주는 뜻</th></tr></thead>
+    <tbody>
+      <tr><td>영리치 (40대 이하)</td><td class="num">사회적 위상·인맥 <strong>55.7%</strong></td><td class="num">16.8%</td><td>임원 기수제·법인 트랙의 근거<span style="color:var(--fg-3)">E-1045</span></td></tr>
+      <tr><td>올드리치</td><td class="num">문화적 소양 <strong>54.3%</strong></td><td class="num">23.3%</td><td><strong>봉은사는 이 수요에 답할 수 있는 국내 거의 유일한 장소</strong><span style="color:var(--fg-3)">E-1046</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">
+    회원권 보유율이 17~23%에 그친다는 것은 <strong>기존 회원권 시장이 이들을 만족시키지 못하고 있다</strong>는 뜻이기도 합니다.
+    골프장·호텔 회원권은 시설을 팔지만, 이들이 원한다고 답한 것은 <strong>위상·인맥·소양</strong>입니다.
+    봉은사가 팔 수 있는 것이 정확히 후자입니다.
+  </p>
+</section>
+
+<!-- 03 5개년 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">Five-Year Curve</div>
+    <h2>1년차가 아니라 <em>5년차를 봐야</em> 합니다</h2></div>
+    <div class="no">03</div>
+  </div>
+  <p class="sec-desc">
+    멤버십은 매년 회원이 빠지고 새로 들어옵니다. 갱신율이 65%면 5년 뒤 회원 수는
+    <strong>신규 유입의 약 2.5배</strong>에서 평형을 이룹니다. 이 곡선이 계약서 제3조가 요구한
+    <strong>5개년 경제성 검토</strong>의 실체입니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>시나리오</th><th class="num">1년차</th><th class="num">2년차</th><th class="num">3년차</th><th class="num">4년차</th><th class="num">5년차</th><th class="num">5년 누적</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="7">매출</td></tr>
+      <tr><td>보수 (갱신 55%)</td><td class="num">5.0억</td><td class="num">6.5억</td><td class="num">7.4억</td><td class="num">7.9억</td><td class="num">8.2억</td><td class="num">34.9억</td></tr>
+      <tr class="total"><td>기준 (갱신 65%)</td><td class="num">16.9억</td><td class="num">22.6억</td><td class="num">26.5억</td><td class="num">29.0억</td><td class="num">30.7억</td><td class="num">125.7억</td></tr>
+      <tr><td>낙관 (갱신 72%)</td><td class="num">44.6억</td><td class="num">61.9억</td><td class="num">74.4억</td><td class="num">83.6억</td><td class="num">90.3억</td><td class="num">354.7억</td></tr>
+      <tr class="grp"><td colspan="7">영업이익</td></tr>
+      <tr><td>보수</td><td class="num">+1.9억</td><td class="num">+2.8억</td><td class="num">+3.3억</td><td class="num">+3.6억</td><td class="num">+3.7억</td><td class="num">+15.2억</td></tr>
+      <tr class="total"><td>기준</td><td class="num pos">+9.3억</td><td class="num pos">+13.0억</td><td class="num pos">+15.5억</td><td class="num pos">+17.1억</td><td class="num pos">+18.2억</td><td class="num pos">+73.0억</td></tr>
+      <tr><td>낙관</td><td class="num">+28.8억</td><td class="num">+41.0억</td><td class="num">+49.8억</td><td class="num">+56.2억</td><td class="num">+60.8억</td><td class="num">+236.5억</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">
+    기준안 5년차 회원 구성 — 문화 멤버십 <strong>1,803명</strong> · 웰니스 <strong>1,135명</strong> · 온라인 구독 <strong>2,778명</strong>.
+    신규 유입이 1년차와 같은 수준으로 유지된다는 전제이며, 5년차에도 아직 평형에 도달하지 않았습니다.
+  </p>
+
+  <h3 class="sub">★ 갱신율 민감도 — 이 라인의 유일한 변수</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num">갱신율</th><th class="num">5년 누적 매출</th><th class="num">5년 누적 영업이익</th><th class="num">5년차 문화회원</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr><td class="num">45%</td><td class="num">109.3억</td><td class="num">62.5억</td><td class="num">1,274명</td><td>절반 이상이 매년 이탈 — 신규 모집으로만 버팀</td></tr>
+      <tr><td class="num">55%</td><td class="num">116.8억</td><td class="num">67.3억</td><td class="num">1,507명</td><td>보수 가정</td></tr>
+      <tr class="total"><td class="num">65%</td><td class="num">125.7억</td><td class="num">73.0억</td><td class="num">1,803명</td><td><strong>기준 가정 — 구독 서비스 일반 수준</strong></td></tr>
+      <tr><td class="num">75%</td><td class="num">136.2억</td><td class="num">79.7억</td><td class="num">2,178명</td><td>관계형 멤버십이 성공한 경우</td></tr>
+      <tr><td class="num">85%</td><td class="num">148.5억</td><td class="num">87.6억</td><td class="num">2,648명</td><td>종교적 소속감이 작동한 경우</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>갱신율 40%p 차이가 5년 누적 영업이익 25억을 가릅니다</strong> —
+    그런데 이 값은 <strong>국내 종교시설 멤버십 사례가 0건</strong>이라 추정할 근거가 없습니다.
+    구독 서비스 일반 벤치마크(60~75%)를 빌려 쓴 것이고,
+    <strong>개관 2년차가 되어야 실제 값을 알 수 있습니다.</strong></p>
+    <p>다만 방향은 하나 있습니다 — 국립현대미술관이 <strong>재가입 20% 할인</strong>을 걸어둔다는 것은
+    <strong>이탈이 상당하다는 방증</strong>입니다. 갱신은 저절로 되지 않습니다.</p>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>기수제가 갱신율 문제를 우회합니다</strong><br>
+    고려대 AMP형 <strong>기수제는 '갱신'이 아니라 '수료'</strong>입니다 — 애초에 이탈 개념이 없고,
+    동문 네트워크가 자동으로 형성돼 다음 기수 모집이 쉬워집니다<span style="color:var(--fg-3)">E-1047</span>.
+    임원 트랙을 연회비형이 아니라 <strong>기수제로 설계</strong>해야 하는 이유입니다.
+    기준안에서 임원 기수제 2.6억은 <strong>갱신율과 무관한 매출</strong>입니다.</p>
+  </div>
+</section>
+
+<!-- 04 제약 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">Constraints</div>
+    <h2>가격보다 <em>구조가 어렵습니다</em></h2></div>
+    <div class="no">04</div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>제약</th><th>내용</th><th>설계 대응</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>보증금 금지</strong></td>
+        <td>디아드 청담은 <strong>보증금 10억</strong> 모델로 목표 500명 중 약 100명(달성률 20%)만 모집한 뒤 공매로 넘어갔고,
+        대법원(2013다85417)은 입회금 동시 반환 청구 시 <strong>수백억 규모 리스크</strong>를 인정했습니다<span style="color:var(--fg-3)">E-1048</span></td>
+        <td><span class="badge badge-no">보증금형 금지</span><br><strong>무보증금 연회비형으로 고정</strong></td>
+      </tr>
+      <tr>
+        <td><strong>과세 급소</strong></td>
+        <td>강남구청은 2012년 <strong>"교인 외 일반 주민도 이용 가능한가"</strong>를 기준으로
+        소망교회 등 10곳 이상에 <strong>5억여 원</strong>을 추징했습니다 (밀알복지재단 개별 3억 4,339만원)<span style="color:var(--fg-3)">E-1049</span></td>
+        <td><span class="badge badge-warn">이용 트랙 = 과세 전제</span><br>수익사업 개시신고·구분회계 선행</td>
+      </tr>
+      <tr>
+        <td><strong>현행 무료 운영</strong></td>
+        <td>봉은사는 지금 <strong>타이치명상·선명상을 0원</strong>에 사회·공익으로 운영 중입니다<span style="color:var(--fg-3)">E-1049</span></td>
+        <td><span class="badge badge-no">가장 어려운 제약</span><br><strong>무료 프로그램을 유지한 채</strong> 유료 층을 별도로 얹어야 함</td>
+      </tr>
+      <tr>
+        <td><strong>4원칙 ③ 투명성</strong></td>
+        <td>보시와 이용료를 명확히 구분·공개해 '강요된 거래' 인식을 차단<span style="color:var(--fg-3)">E-0243</span></td>
+        <td><span class="badge badge-yes">두 트랙 분리</span><br>회계·안내·명칭 전부 분리</td>
+      </tr>
+      <tr>
+        <td><strong>명칭 리스크</strong></td>
+        <td>'회원권'이라는 어휘 자체가 보증금·재산권 인식을 부릅니다</td>
+        <td><span class="badge badge-warn">'회원권' 표현 금지</span><br>연회비·프로그램 이용료로 표기</td>
+      </tr>
+      <tr>
+        <td><strong>내부 우선순위 미확인</strong></td>
+        <td>내부 설문 Q7이 수익성·전통성·위상·신도만족 4개 가치의 순위를 묻는데 <strong>응답이 0건</strong>입니다<span style="color:var(--fg-3)">E-0272·E-0274</span></td>
+        <td><span class="badge badge-no">선결</span><br>신도 만족이 1순위면 유료 멤버십 자체가 축소</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>가장 어려운 것은 "이미 무료로 주던 것을 유료로 바꾸는 일"입니다</strong><br>
+    새로 만드는 유료 서비스는 저항이 없지만,
+    <strong>지금 무료로 명상을 하던 사람이 내년에 월 9.5만원을 내야 한다면</strong> 그건 다른 문제입니다.
+    설계 원칙은 하나입니다 — <strong>기존 무료 프로그램은 그대로 두고,
+    유료는 그 위에 별도 층으로 얹습니다.</strong>
+    이것이 과세 기준("일반 주민도 이용 가능한가")과 내부 정서를 동시에 방어하는 유일한 구조입니다.</p>
+  </div>
+</section>
+
+<!-- 05 판정 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">Verdict</div><h2>판정과 남은 것</h2></div>
+    <div class="no">05</div>
+  </div>
+
+  <h3 class="sub">판정</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>질문</th><th>답</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>돈이 되는가</td><td><span class="badge badge-yes">된다 · 단 시간이 걸린다</span></td>
+        <td>1년차 9.3억 → 5년 누적 73.0억 · 원가가 낮아 영업이익률 55%</td></tr>
+      <tr><td>무엇이 승부를 가르는가</td><td><span class="badge badge-no">갱신율</span></td>
+        <td>45~85% 구간에서 5년 누적 영업이익 25억 차 · <strong>국내 벤치마크 0건</strong></td></tr>
+      <tr><td>가격은 얼마인가</td><td><span class="badge badge-info">B2C 12~25만 · B2B 500~1,000만</span></td>
+        <td>리움 10~50만 / KMA 490~1,700만 — 두 시장이 20배 벌어져 있음</td></tr>
+      <tr><td>가장 확실한 것은</td><td><span class="badge badge-yes">임원 기수제</span></td>
+        <td>AMP형은 갱신 개념이 없음 · 2.6억이 <strong>이탈과 무관한 매출</strong></td></tr>
+      <tr><td>가장 어려운 것은</td><td><span class="badge badge-no">무료 → 유료 전환</span></td>
+        <td>현행 명상 0원 운영 · 과세 기준 "일반 주민 이용 가능 여부"</td></tr>
+      <tr><td>언제 여는가</td><td><span class="badge badge-warn">다이닝·전시 이후</span></td>
+        <td>멤버십은 <strong>팔 것이 있어야 성립</strong> — 혜택으로 줄 프로그램이 먼저</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">권고</h3>
+  <div class="callout">
+    <p><strong>① 두 트랙을 회계·안내·명칭까지 완전히 분리합니다.</strong>
+    이용 트랙은 수익사업 개시신고와 구분회계 안에서, 관계 트랙은 고유목적사업 안에서 운영합니다.
+    같은 사람이 둘 다 가입할 수 있게 하되 <strong>영수증이 두 장 나가야</strong> 합니다.</p>
+    <p><strong>② 임원 기수제를 먼저 엽니다.</strong> 갱신율 리스크가 없고 단가가 높으며(1인 650만원)
+    정원이 20명이라 실패해도 손실이 작습니다. <strong>1기의 만족도가 곧 나머지 트랙의 검증 데이터</strong>가 됩니다.</p>
+    <p><strong>③ 기존 무료 프로그램은 절대 유료로 바꾸지 않습니다.</strong>
+    유료는 그 위에 얹는 별도 층(우선 예약·소수 정원·전용 시간대)으로만 설계합니다.
+    과세 기준과 내부 정서를 동시에 방어하는 유일한 방법입니다.</p>
+    <p><strong>④ '회원권'이라는 단어를 쓰지 않습니다.</strong> 보증금·재산권 인식을 부르고,
+    디아드 청담 사례에서 보듯 반환 청구 리스크로 이어집니다. 연회비·이용료로 표기합니다.</p>
+  </div>
+
+  <h3 class="sub">리서치 잔여</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num">#</th><th>항목</th><th>확정되는 것</th><th>난이도</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td><strong>갱신율</strong></td><td>5년 누적 영업이익 62.5~87.6억 — <strong>이 라인의 전부</strong></td><td>상 · <strong>조사로 못 채움</strong></td></tr>
+      <tr><td class="num">2</td><td>봉은사 신도 수 실측</td><td>관계 트랙 4.9억의 모수 — 현재 5~10만 추정<span style="color:var(--fg-3)">E-0339</span></td><td>하 · 종무 자료</td></tr>
+      <tr><td class="num">3</td><td><strong>기존 보시 실적</strong></td><td>관계 트랙이 <strong>증분인지 재구조화인지</strong></td><td>하 · 내부 회계</td></tr>
+      <tr><td class="num">4</td><td>내부 설문 Q7 회수</td><td>수익성 vs 신도만족 우선순위 — 이 라인의 존폐<span style="color:var(--fg-3)">E-0272</span></td><td>하 · 배포 완료·응답 0</td></tr>
+      <tr><td class="num">5</td><td>현행 무료 이용자 규모</td><td>유료 전환 저항의 크기 · 웰니스 5.1억의 전제</td><td>하 · 내부</td></tr>
+      <tr><td class="num">6</td><td>과세 판정 사전 확인</td><td>이용 트랙 12.0억의 세후 가치</td><td>중 · 세무 대리인</td></tr>
+      <tr><td class="num">7</td><td>강남권 웰니스 멤버십 회비·이탈률</td><td>월 9.5만원의 타당성 — <strong>공개 안 되는 영업정보</strong></td><td>상</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>이 검토가 아직 답하지 못하는 것</strong></p>
+    <p>① <strong>갱신율은 조사로 채울 수 없습니다.</strong> 국내 종교시설 사례가 0건이고, 웰니스 클럽 이탈률은 공개되지 않는 영업정보입니다. <strong>개관 2년차 실측만이 답</strong>이고, 그때까지는 45~85% 범위로 병기해야 합니다.</p>
+    <p>② <strong>카니발라이제이션이 계산에 없습니다.</strong> 웰니스 월정액(무제한)과 명상 회차권(RL-06)은 같은 고객이 둘 중 하나를 고르는 관계인데 각각 계산했습니다. 실제로는 서로를 깎습니다.</p>
+    <p>③ <strong>혜택 제공 원가가 추정치입니다.</strong> 무료입장·할인·라운지의 기회비용을 매출의 22~30%로 잡았지만 실측이 아닙니다.</p>
+    <p>④ <strong>관계 트랙이 순증분인지 모릅니다.</strong> 기존 보시 실적과 대조하지 않으면 4.9억이 허수가 될 수 있습니다.</p>
+  </div>
+</section>
+
+<div class="foot">PROJECT RENT · RL-10 멤버십 BM 수익성 검토 v1.1 · 내부 문서 · 대외 배포 금지</div>
+
+<script>
+const secs=document.querySelectorAll('.sec');
+const links=document.querySelectorAll('.nav a');
+const io=new IntersectionObserver((es)=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    const id=e.target.id;
+    links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id));
+  }});
+},{rootMargin:'-45% 0px -45% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

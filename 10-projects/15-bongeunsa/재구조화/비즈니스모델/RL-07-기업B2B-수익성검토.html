@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기업 B2B BM 수익성 검토 | PROJECT RENT</title>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+em{font-style:normal;color:var(--accent-light)}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.nav{position:fixed;top:50%;left:26px;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:10;font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color 150ms var(--ease-out)}
+.nav a:hover,.nav a.active{color:var(--accent)}
+.sec{padding:90px 120px 110px;max-width:1440px;margin:0 auto}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:26px;border-bottom:1px solid var(--line-2);margin-bottom:44px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:38px;font-weight:300;letter-spacing:-0.025em;line-height:1.15;margin-top:8px}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin-bottom:38px}
+h3.sub{font-size:19px;font-weight:400;color:var(--fg);margin:46px 0 14px;letter-spacing:-0.02em}
+h3.sub:first-of-type{margin-top:0}
+p.note{font-size:13px;color:var(--fg-2);margin:10px 0;max-width:920px}
+#cover{padding-top:140px;min-height:84vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:34px}
+.cover-title{font-size:62px;font-weight:200;letter-spacing:-0.04em;line-height:1.05;margin-bottom:24px}
+.cover-sub{font-size:19px;color:var(--fg-2);line-height:1.6;max-width:920px;margin-bottom:46px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:30px;max-width:1020px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:11px 12px;font-weight:400;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+tbody tr.total td{border-top:1px solid var(--line);color:var(--fg);font-weight:500;background:rgba(108,92,231,.05)}
+tbody tr.sub-row td{color:var(--fg-3);font-size:12px}
+tbody tr.sub-row td:first-child{color:var(--fg-3);padding-left:28px}
+tbody tr.grp td{background:var(--bg-2);color:var(--accent-light);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+tbody tr.dim td{color:var(--fg-3);font-size:12px;font-style:italic}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--red)} .pos{color:var(--green)} .warn{color:var(--amber)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:3px 9px;font-size:10px;letter-spacing:.08em;white-space:nowrap}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi.hero{border-color:var(--accent)} .kpi.bad{border-color:rgba(225,112,85,.4)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:32px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi.bad .kpi-value{color:var(--red)}
+.kpi .kpi-unit{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px;line-height:1.5}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:22px 26px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.75}
+.callout p+p{margin-top:10px}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.track{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:26px 0}
+.track-4{grid-template-columns:repeat(4,1fr)}
+.track .t{background:var(--bg-3);border:1px solid var(--line-2);padding:26px 28px}
+.track .t.t0{border-left:3px solid var(--green)}
+.track .t.t1{border-left:3px solid var(--accent)}
+.track .t.t2{border-left:3px solid var(--amber)}
+.track .t.t3{border-left:3px solid var(--blue)}
+.track .t .n{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.track .t h4{font-size:17px;margin-bottom:12px;line-height:1.35}
+.track .t dl{display:grid;grid-template-columns:64px minmax(0,1fr);gap:7px 12px;font-size:12.5px}
+.track .t dt{font-size:10px;letter-spacing:.14em;color:var(--fg-3);text-transform:uppercase;padding-top:3px}
+.track .t dd{color:var(--fg-2);line-height:1.6;min-width:0;overflow-wrap:anywhere}
+.bar-wrap{margin:26px 0}
+.bar-row{display:grid;grid-template-columns:120px 1fr 96px;gap:16px;align-items:center;margin-bottom:11px;font-size:12.5px}
+.bar-row .bl{color:var(--fg-3);font-size:11px;letter-spacing:.06em;text-align:right}
+.bar-track{position:relative;height:30px;background:var(--bg-2);border:1px solid var(--line-2);overflow:hidden}
+.bar-seg{position:absolute;top:0;height:100%;display:flex;align-items:center;padding-left:9px;font-size:11px;color:#0d0d0d;font-weight:500;white-space:nowrap;overflow:hidden}
+.bar-rent{background:rgba(111,138,163,.75)}
+.bar-b2b{background:rgba(108,92,231,.85);color:#F5F0EB}
+.bar-over{background:repeating-linear-gradient(45deg,rgba(225,112,85,.5),rgba(225,112,85,.5) 6px,rgba(225,112,85,.22) 6px,rgba(225,112,85,.22) 12px);color:#F5F0EB}
+.bar-free{background:transparent}
+.bar-cap{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg);z-index:2}
+.bar-val{color:var(--fg-2);font-variant-numeric:tabular-nums;font-size:12px}
+.legend{display:flex;gap:20px;font-size:11px;color:var(--fg-3);margin-top:16px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:7px}
+.legend i{width:13px;height:13px;display:inline-block}
+.foot{padding:60px 120px 80px;border-top:1px solid var(--line-2);text-align:center;color:var(--fg-3);font-size:11px;letter-spacing:.2em;max-width:1440px;margin:0 auto}
+@media (max-width:1100px){
+  .sec{padding:70px 40px 80px}.nav{display:none}
+  .cover-title{font-size:38px}.sec-head h2{font-size:28px}
+  .kpi-grid,.kpi-grid-3,.cover-meta,.track-4{grid-template-columns:repeat(2,1fr)}
+  .track{grid-template-columns:1fr}
+  .bar-row{grid-template-columns:78px 1fr 78px;gap:9px}
+}
+@media (max-width:560px){
+  .sec{padding:56px 22px 64px}
+  .kpi-grid,.kpi-grid-3,.cover-meta,.track-4{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+<nav class="nav">
+  <a href="#cover">00 결론</a>
+  <a href="#s1">01 단가 충돌</a>
+  <a href="#s2">02 매출 구성</a>
+  <a href="#s3">03 날짜 경쟁</a>
+  <a href="#s4">04 손익</a>
+  <a href="#s5">05 공사 기간</a>
+  <a href="#s6">06 제약·중복</a>
+  <a href="#s7">07 판정·잔여</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">RL-07 · Corporate B2B Business Model</div>
+  <h1 class="cover-title">배정 면적 0㎡가<br>이 라인의 정체입니다</h1>
+  <p class="cover-sub">
+    통합 배치안 '봉은 1,200'의 면적 배분에 <em>기업 B2B의 몫은 한 평도 없습니다</em><span style="color:var(--fg-3)">E-0532</span>.
+    공간이 없어서 <strong>공사 중에도 팔 수 있고</strong>, 공간이 없어서 <strong>남의 날짜를 빌려야</strong> 합니다.
+    이 하나의 사실이 이 라인의 최대 강점과 최대 제약을 동시에 설명합니다.
+  </p>
+  <dl class="cover-meta">
+    <div><dt>대상</dt><dd>B2B 계열 8건 · 수익 H 6건</dd></div>
+    <div><dt>1년차 매출</dt><dd>보수 0.42 · 기준 2.78 · 낙관 7.76억</dd></div>
+    <div><dt>영업이익</dt><dd>기준 +1.12억 (겸임 조직 기준)</dd></div>
+    <div><dt>작성</dt><dd>2026.08.17 · 내부 문서</dd></div>
+  </dl>
+
+  <div class="kpi-grid" style="margin-top:52px">
+    <div class="kpi hero"><div class="kpi-label">기준 매출</div><div class="kpi-value">2.78<span class="kpi-unit">억</span></div><div class="kpi-sub">마스터 v0.2 대비 +39%<br>단가가 아니라 상품 수가 늘어난 것</div></div>
+    <div class="kpi hero"><div class="kpi-label">1일 공헌이익 배수</div><div class="kpi-value">2.55<span class="kpi-unit">배</span></div><div class="kpi-sub">같은 대공간 하루 기준<br>대관(RL-08) 대비</div></div>
+    <div class="kpi bad"><div class="kpi-label">보수안 영업이익</div><div class="kpi-value">-0.47<span class="kpi-unit">억</span></div><div class="kpi-sub">전담 영업 3명 기준<br>단가가 아니라 조직 문제</div></div>
+    <div class="kpi bad"><div class="kpi-label">전용 공간</div><div class="kpi-value">0<span class="kpi-unit">㎡</span></div><div class="kpi-sub">대관홀·명상웰니스를 빌려 씀</div></div>
+  </div>
+
+  <div class="callout callout-success" style="max-width:1020px">
+    <p><strong>발견 ① — 이른바 '단가 3배 충돌'은 충돌이 아니었습니다</strong><br>
+    브리프는 E-1040(50~200만)과 E-0154·E-0581(100~500만)을 <strong>"같은 항목이 3배 차이"</strong>로 봤습니다.
+    실제로는 전자가 <strong>강사가 기업으로 가는 출강형 특강</strong>이고 후자는 <strong>기업이 봉은사로 오는 내방형 리트리트</strong>입니다.
+    다른 상품이라 단가가 다릅니다. 조사로 해소할 모순이 아니라 <strong>모델이 두 시장을 하나로 뭉갠 것</strong>이었고,
+    그래서 이 검토는 단일 단가를 버리고 <strong>4계층 상품 사다리</strong>로 다시 세웠습니다.</p>
+  </div>
+
+  <div class="callout callout-danger" style="max-width:1020px">
+    <p><strong>발견 ② — 마스터는 같은 날짜를 두 번 팔고 있었습니다</strong><br>
+    B2B 내방형은 대관홀을 씁니다. 그런데 대공간이 1년에 팔리는 날은
+    SETEC 실측 가동률 41.7% = <strong>연 152일</strong>이 상한입니다<span style="color:var(--fg-3)">02-대관BM</span>.
+    낙관안에서 대관 140일과 B2B 60일을 각각 계산해 더하면 <strong>200일 — 상한을 20일 초과</strong>합니다.
+    마스터는 '전시와 대관홀이 같은 대공간을 다툰다'는 것은 이미 지적했지만,
+    <strong>B2B는 배정 면적이 0㎡라 경쟁 목록에서 빠져 있었습니다.</strong></p>
+  </div>
+
+  <div class="callout callout-warn" style="max-width:1020px">
+    <p><strong>발견 ③ — 적자의 원인은 단가가 아니라 조직입니다</strong><br>
+    보수안 매출 0.42억에 전담 영업 2명(0.70억)을 붙이면 <strong>영업이익 -0.47억</strong>입니다.
+    전담 조직의 손익분기 매출은 <strong>1.77억</strong>이고, 이는 보수안의 4.2배입니다.
+    대관·멤버십과 영업을 겸임하면 손익분기가 <strong>0.89억</strong>으로 내려갑니다.
+    매출 2억대 라인에 전담 조직을 세우는 설계 자체가 이 라인을 적자로 만듭니다.</p>
+  </div>
+</section>
+
+<!-- 01 단가 충돌 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">Price Conflict Resolved</div>
+    <h2>세 배 차이는 <em>오류가 아니라 층위</em>였습니다</h2></div>
+    <div class="no">01</div>
+  </div>
+  <p class="sec-desc">
+    브리프 R-08은 이 라인의 최우선 과제를 <strong>"회당 150~300만원 — 문서 간 3배 충돌 해소"</strong>로 잡았습니다.
+    근거 원문을 대조한 결과, 두 값은 <strong>서로를 반박하지 않습니다</strong>. 파는 물건이 다릅니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>근거</th><th>등급</th><th class="num">단가</th><th>실제로 무엇을 말한 값인가</th></tr></thead>
+    <tbody>
+      <tr><td><strong>E-1040</strong></td><td><span class="badge badge-info">B · 시장 실측</span></td><td class="num">50~200만/회</td>
+        <td>기업 마음챙김 <strong>특강</strong>의 시장 단가. 요가·스트레칭 정기 클래스는 15~30만원.
+        <strong>마보가 이미 100여 개 기업·기관에 도입</strong> — 강사가 기업으로 가는 <strong>출강형</strong>이다</td></tr>
+      <tr><td><strong>E-0581</strong></td><td><span class="badge badge-warn">A · 자체 제언</span></td><td class="num">100~500만/회</td>
+        <td>명상·웰니스 센터 제언의 가격 설정. 차별화 요소로 <strong>①1,200년 사찰이라는 장소의 정통성 ②삼성역 도보권 ③GBD 기업 밀집</strong>을 든다 —
+        <strong>장소를 파는 내방형</strong>이다</td></tr>
+      <tr><td><strong>E-0154</strong></td><td><span class="badge badge-warn">A · 자체 제언</span></td><td class="num">고단가 잠재</td>
+        <td>B2B 마음챙김·기업 리트리트는 <strong>'교육·교화'의 확대 해석에 의존하는 중간 리스크 영역</strong>이며
+        강남 기업 밀집 입지 덕에 고단가 잠재력이 크다</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <p><strong>정리하면 이렇습니다.</strong>
+    E-1040은 <strong>시장에서 실제로 거래되는 가격</strong>이고, E-0581은 <strong>우리가 제안한 가격</strong>입니다.
+    전자는 출강형, 후자는 내방형이므로 <strong>둘 다 맞습니다.</strong>
+    마스터 v0.2가 이를 <strong>"회당 150/250/300만원"</strong> 단일 밴드로 통일한 것은
+    조사로 충돌을 해소한 것이 아니라 <strong>두 시장을 하나로 뭉갠 것</strong>이었습니다.</p>
+    <p>따라서 R-08의 조사 설계도 바뀝니다 — <strong>"단가가 얼마인가"가 아니라 "어느 층에 몇 건을 팔 것인가"</strong>가 물어야 할 질문입니다.</p>
+  </div>
+
+  <h3 class="sub">그래서 4계층으로 다시 세웁니다</h3>
+  <div class="track track-4">
+    <div class="t t0">
+      <div class="n">T0 · 출강형</div>
+      <h4>기업 특강</h4>
+      <dl>
+        <dt>단가</dt><dd><strong>50/120/200만</strong>원/회</dd>
+        <dt>공간</dt><dd><strong>불필요</strong></dd>
+        <dt>근거</dt><dd>E-1040 실측 밴드 그대로</dd>
+        <dt>서비스</dt><dd>E-0635</dd>
+        <dt>뜻</dt><dd><em>공사 중에도 팔린다</em></dd>
+      </dl>
+    </div>
+    <div class="t t1">
+      <div class="n">T1 · 내방 매스형</div>
+      <h4>기업 연수 · 표준</h4>
+      <dl>
+        <dt>단가</dt><dd>1인 <strong>5/7/10만</strong> × 정원 40/60/80<br><span style="color:var(--fg-3)">회당 200/420/800만</span></dd>
+        <dt>공간</dt><dd><strong>대공간</strong> (대관홀)</dd>
+        <dt>근거</dt><dd>E-1042 차명상 3~7만 + 정통성 프리미엄</dd>
+        <dt>서비스</dt><dd>E-0658</dd>
+        <dt>뜻</dt><dd><em>대관과 날짜를 다툰다</em></dd>
+      </dl>
+    </div>
+    <div class="t t2">
+      <div class="n">T2 · 프리미엄</div>
+      <h4>임원 리트리트</h4>
+      <dl>
+        <dt>단가</dt><dd>1인 <strong>15/25/40만</strong> × 정원 12/16/20<br><span style="color:var(--fg-3)">회당 180/400/800만</span></dd>
+        <dt>공간</dt><dd>소공간 (명상웰니스)</dd>
+        <dt>근거</dt><dd>E-0461 일본 셰어윙 1인 10만엔대</dd>
+        <dt>서비스</dt><dd>E-0636 · E-0659</dd>
+        <dt>뜻</dt><dd><em>스님이 공급 상한</em></dd>
+      </dl>
+    </div>
+    <div class="t t3">
+      <div class="n">T3 · 연간 계약</div>
+      <h4>웰니스 파트너십</h4>
+      <dl>
+        <dt>단가</dt><dd>연 <strong>1,500/2,500/4,000만</strong> × 1/4/6사</dd>
+        <dt>공간</dt><dd>혼합</dd>
+        <dt>근거</dt><dd>정기 세션 + 임원 세션 묶음</dd>
+        <dt>서비스</dt><dd>E-0637 · E-0660</dd>
+        <dt>뜻</dt><dd><em>RL-10과 지갑이 겹친다</em></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>T2 프리미엄의 상한을 누르는 것 — 점심 공양이 막혀 있습니다</strong><br>
+    일본 셰어윙은 좌선·사경·법문에 <strong>식사와 숙박을 묶어</strong> 1인 10만엔대를 받습니다<span style="color:var(--fg-3)">E-0461</span>.
+    봉은사는 건물 용도가 문화집회시설이라 <strong>조리가 원천 불가</strong>합니다<span style="color:var(--fg-3)">E-0041</span>.
+    반나절 이상 프로그램에서 점심을 외부 식당이나 완제품 반입으로 처리해야 하고,
+    이것이 <strong>사찰음식이라는 최대 차별점을 프리미엄 상품에서 뺀다</strong>는 뜻입니다.
+    1인 40만원(낙관)은 <strong>R-03 유권해석이 열려야 성립하는 값</strong>입니다.</p>
+  </div>
+</section>
+
+<!-- 02 매출 구성 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">Revenue Build-up</div>
+    <h2>연간 건수는 <em>마보에서 역산</em>했습니다</h2></div>
+    <div class="no">02</div>
+  </div>
+  <p class="sec-desc">
+    브리프는 <strong>"연간 수주 건수는 근거 0"</strong>이라고 적었습니다. 지금도 실측은 없습니다.
+    다만 하나뿐인 앵커가 있습니다 — <strong>마보가 100여 개 기업·기관에 도입</strong>했다는 사실입니다<span style="color:var(--fg-3)">E-1040</span>.
+    앱 기반 전국구 선도 사업자가 수년간 영업해 쌓은 누적치이므로,
+    신설 시설의 1년차를 그 <strong>8~25% 구간</strong>으로 잡았습니다. 이 비율 자체는 여전히 <strong>C등급 가정</strong>입니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>계층</th><th>가격 설계</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>단가 근거</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="6">공간 불필요 — 공사 중 판매 가능</td></tr>
+      <tr><td>T0 출강형 특강</td><td>회당 50/120/200만</td><td class="num">0.08억</td><td class="num">0.54억</td><td class="num">2.00억</td><td><strong>E-1040 실측</strong> 50~200만</td></tr>
+      <tr class="sub-row"><td>고객사 × 연회차</td><td></td><td class="num">8사 × 2회</td><td class="num">15사 × 3회</td><td class="num">25사 × 4회</td><td>마보 100개사의 8~25%</td></tr>
+      <tr class="grp"><td colspan="6">대공간 사용 — 대관과 날짜 경쟁</td></tr>
+      <tr><td>T1 내방 매스형</td><td>1인 5/7/10만 × 40/60/80명</td><td class="num">0.12억</td><td class="num">0.76억</td><td class="num">1.92억</td><td>E-1042 차명상 3~7만</td></tr>
+      <tr class="sub-row"><td>회당 총액 × 연 건수</td><td></td><td class="num">200만 × 6건</td><td class="num">420만 × 18건</td><td class="num">800만 × 24건</td><td>E-0581 밴드(100~500만) 정합</td></tr>
+      <tr class="grp"><td colspan="6">소공간 사용 — 스님 공급이 상한</td></tr>
+      <tr><td>T2 프리미엄 리트리트</td><td>1인 15/25/40만 × 12/16/20명</td><td class="num">0.07억</td><td class="num">0.48억</td><td class="num">1.44억</td><td>E-0461 셰어윙 1인 10만엔대</td></tr>
+      <tr class="sub-row"><td>회당 총액 × 연 건수</td><td></td><td class="num">180만 × 4건</td><td class="num">400만 × 12건</td><td class="num">800만 × 18건</td><td>E-1007 정원 16명 규격</td></tr>
+      <tr class="grp"><td colspan="6">반복 매출</td></tr>
+      <tr><td>T3 연간 계약</td><td>연 1,500/2,500/4,000만</td><td class="num">0.15억</td><td class="num">1.00억</td><td class="num">2.40억</td><td>정기 세션 + 임원 세션 묶음</td></tr>
+      <tr class="sub-row"><td>계약사</td><td></td><td class="num">1사</td><td class="num">4사</td><td class="num">6사</td><td><span class="warn">RL-10 법인 멤버십과 중복 주의</span></td></tr>
+      <tr class="total"><td>합계</td><td></td><td class="num">0.42억</td><td class="num">2.78억</td><td class="num">7.76억</td><td></td></tr>
+      <tr class="dim"><td>마스터 v0.2 RL-07</td><td>회당 150/250/300만 × 30/80/120건</td><td class="num">0.45억</td><td class="num">2.00억</td><td class="num">3.60억</td><td>단일 밴드</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p class="note">
+    기준안이 마스터보다 <strong>39% 큽니다.</strong> 단가를 올려서가 아니라
+    마스터가 <strong>회당 단가 모델 하나</strong>만 잡았고 여기서는 <strong>1인 단가 모델(T1·T2)과 연간 계약(T3)까지</strong> 포함했기 때문입니다.
+    범위가 넓어진 것이지 값이 오른 것이 아닙니다. RL-10 멤버십 검토에서와 같은 사유입니다.
+    낙관 7.76억이 마스터 3.60억의 2.2배가 된 것도 같은 이유이며,
+    <strong>그 낙관치는 아래 §03 대공간 검산에서 이미 두 차례 깎인 값</strong>입니다.
+  </p>
+</section>
+
+<!-- 03 날짜 경쟁 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">Hall Capacity Check</div>
+    <h2>같은 하루를 <em>두 번 팔고 있었습니다</em></h2></div>
+    <div class="no">03</div>
+  </div>
+  <p class="sec-desc">
+    이 라인은 전용 공간이 없습니다<span style="color:var(--fg-3)">E-0532</span>.
+    T1 내방 매스형(40~80명)은 대관홀을 빌려 쓰고, 그 대관홀은 RL-08이 이미 팔고 있습니다.
+    대공간이 1년에 팔 수 있는 날은 <strong>SETEC 전시실 실측 가동률 41.7% = 연 152일</strong>이 상한입니다
+    <span style="color:var(--fg-3)">02-대관BM · setec-schedule-20260817.json</span>.
+  </p>
+
+  <div class="bar-wrap">
+    <div class="bar-row">
+      <div class="bl">보수</div>
+      <div class="bar-track">
+        <div class="bar-seg bar-rent" style="left:0;width:30%">대관 60일</div>
+        <div class="bar-seg bar-b2b" style="left:30%;width:5%"></div>
+        <div class="bar-cap" style="left:76%"></div>
+      </div>
+      <div class="bar-val">70 / 152일</div>
+    </div>
+    <div class="bar-row">
+      <div class="bl">기준</div>
+      <div class="bar-track">
+        <div class="bar-seg bar-rent" style="left:0;width:50%">대관 100일</div>
+        <div class="bar-seg bar-b2b" style="left:50%;width:17%">B2B 34</div>
+        <div class="bar-cap" style="left:76%"></div>
+      </div>
+      <div class="bar-val">134 / 152일</div>
+    </div>
+    <div class="bar-row">
+      <div class="bl">낙관 · 원안</div>
+      <div class="bar-track">
+        <div class="bar-seg bar-rent" style="left:0;width:70%">대관 140일</div>
+        <div class="bar-seg bar-b2b" style="left:70%;width:20%">B2B 40</div>
+        <div class="bar-seg bar-over" style="left:90%;width:10%">+20</div>
+        <div class="bar-cap" style="left:90%"></div>
+      </div>
+      <div class="bar-val neg">200 / 180일</div>
+    </div>
+    <div class="bar-row">
+      <div class="bl">낙관 · 조정 후</div>
+      <div class="bar-track">
+        <div class="bar-seg bar-rent" style="left:0;width:60%">대관 120일</div>
+        <div class="bar-seg bar-b2b" style="left:60%;width:30%">B2B 60</div>
+        <div class="bar-cap" style="left:90%"></div>
+      </div>
+      <div class="bar-val pos">180 / 180일</div>
+    </div>
+    <div class="legend">
+      <span><i class="bar-rent"></i> RL-08 대관</span>
+      <span><i class="bar-b2b"></i> RL-07 B2B 내방(T1 + T3 세션)</span>
+      <span><i class="bar-over"></i> 상한 초과</span>
+      <span><i style="background:var(--fg);width:2px"></i> 판매가능일 상한</span>
+    </div>
+  </div>
+  <p class="note">
+    막대는 <strong>200일을 폭 100%로</strong> 놓은 공통 스케일이고, 세로선이 각 시나리오의 상한입니다.
+    보수·기준의 상한은 <strong>152일</strong>(SETEC 실측 41.7%)이고 낙관만 <strong>180일</strong>을 적용했습니다 —
+    02-대관BM이 <strong>"41.7%는 하한이며 상향 여지가 셋(성수기 3~5월 미포함·설치철거일 제외·공공요율)"</strong>이라고 명시했기 때문입니다.
+    낙관 원안의 빗금이 세로선을 넘은 20일 — <strong>팔 수 없는데 팔았다고 계산한 날</strong>입니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><td>대공간 판매가능일 (상한)</td><td class="num">152일</td><td class="num">152일</td><td class="num">180일</td><td>SETEC 실측 41.7%</td></tr>
+      <tr><td>RL-08 대관 — 마스터 원안</td><td class="num">60일</td><td class="num">100일</td><td class="num">140일</td><td>마스터 v0.2 가정</td></tr>
+      <tr><td>RL-07 B2B가 쓰는 날</td><td class="num">10일</td><td class="num">34일</td><td class="num">60일</td><td>T1 전량 + T3 세션 (T2는 소공간이라 제외)</td></tr>
+      <tr class="total"><td>합계 (조정 전)</td><td class="num">70일</td><td class="num">134일</td><td class="num neg">200일</td><td class="num"><span class="badge badge-no">낙관 20일 초과</span></td></tr>
+      <tr><td>RL-08 대관 — 조정 후</td><td class="num">60일</td><td class="num">100일</td><td class="num warn">120일</td><td>낙관만 140 → 120일</td></tr>
+      <tr class="total"><td>합계 (조정 후)</td><td class="num">70일</td><td class="num">134일</td><td class="num pos">180일</td><td class="num"><span class="badge badge-yes">전 시나리오 성립</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">★ 그래서 하루를 누구에게 팔 것인가</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>구분</th><th class="num">1일 매출</th><th class="num">원가율</th><th class="num">1일 공헌이익</th><th class="num">배수</th></tr></thead>
+    <tbody>
+      <tr><td>RL-08 대관 (1,452㎡)</td><td class="num">1,757,000원</td><td class="num">40%</td><td class="num">1,054,200원</td><td class="num">1.00</td></tr>
+      <tr class="total"><td>RL-07 B2B 내방 매스형</td><td class="num">4,200,000원</td><td class="num">36%</td><td class="num pos">2,688,000원</td><td class="num pos">2.55</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>같은 공간의 같은 하루인데 B2B가 2.55배 남습니다.</strong>
+    대관은 <strong>공간만</strong> 팔지만 B2B는 <strong>공간 + 프로그램 + 진행</strong>을 함께 팔기 때문입니다.
+    02-대관BM이 <strong>"대관 BM의 제약은 공간을 못 채우는 것이 아니라 비싸게 못 파는 것"</strong>이라고 결론지었는데,
+    <strong>B2B가 그 '비싸게 파는 방법'입니다.</strong></p>
+    <p>따라서 낙관안에서 대관 20일을 B2B에 내주는 조정은 <strong>손실이 아니라 개선</strong>입니다 —
+    대관 매출은 0.35억 줄지만 그 날짜에 B2B가 들어가면 공헌이익이 더 큽니다.
+    다만 <strong>RL-08의 낙관치는 그만큼 하향 조정되어야</strong> 하고, 이는 마스터 모델에 반영해야 할 사항입니다.</p>
+    <p style="color:var(--fg-3);font-size:12.5px">
+    ※ 대관 원가율 40%는 가정입니다. 02-대관BM §06이 <strong>"우리 대관의 원가 — 운영 인력·보안·청소·공조가 직영이면 우리 원가"</strong>를
+    미확정 공백으로 남겨두었습니다. 이 값이 낮아지면 배수는 줄어듭니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>단, B2B는 저절로 팔리지 않습니다.</strong>
+    대관은 요금표를 걸어두고 문의를 받는 사업이지만 B2B는 <strong>수주 영업</strong>입니다.
+    공헌이익이 2.55배라는 것은 <strong>팔았을 때의 이야기</strong>이고,
+    파는 데 드는 인건비가 §04에서 이 라인을 적자로 만듭니다.</p>
+  </div>
+</section>
+
+<!-- 04 손익 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">P&amp;L</div>
+    <h2>적자의 원인은 <em>단가가 아니라 조직</em>입니다</h2></div>
+    <div class="no">04</div>
+  </div>
+  <p class="sec-desc">
+    이 라인은 CAPEX가 없습니다 — 전용 공간이 없으니 지을 것도 없습니다.
+    변동원가율도 25~45%로 낮습니다. 그런데 <strong>수주 영업 인건비</strong>라는 고정비가 붙고,
+    매출 규모가 작아서 <strong>그 고정비를 넘기지 못하는 구간</strong>이 생깁니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><td>매출</td><td class="num">0.42억</td><td class="num">2.78억</td><td class="num">7.76억</td><td></td></tr>
+      <tr class="sub-row"><td>T0 출강형 원가율</td><td class="num">30%</td><td class="num">28%</td><td class="num">25%</td><td>강사료·이동 (공간·설비 원가 0)</td></tr>
+      <tr class="sub-row"><td>T1 내방 매스형 원가율</td><td class="num">40%</td><td class="num">36%</td><td class="num">32%</td><td>공간 기회비용 + 다과 + 진행</td></tr>
+      <tr class="sub-row"><td>T2 프리미엄 원가율</td><td class="num">45%</td><td class="num">42%</td><td class="num">38%</td><td>스님 진행 + 맞춤 설계</td></tr>
+      <tr class="sub-row"><td>T3 연간계약 원가율</td><td class="num">38%</td><td class="num">34%</td><td class="num">30%</td><td></td></tr>
+      <tr class="total"><td>매출총이익</td><td class="num">0.26억</td><td class="num">1.81억</td><td class="num">5.38억</td><td>가중 원가율 약 34~38%</td></tr>
+      <tr class="grp"><td colspan="5">[a] B2B 전담 영업조직 — 2/3/4명</td></tr>
+      <tr><td>영업 인건비</td><td class="num">0.70억</td><td class="num">1.05억</td><td class="num">1.40억</td><td>1인 3,500만원</td></tr>
+      <tr><td>마케팅</td><td class="num">0.03억</td><td class="num">0.17억</td><td class="num">0.39억</td><td>매출의 8/6/5%</td></tr>
+      <tr class="total"><td>영업이익</td><td class="num neg">-0.47억</td><td class="num pos">+0.59억</td><td class="num pos">+3.59억</td><td></td></tr>
+      <tr class="sub-row"><td>영업이익률</td><td class="num neg">-112%</td><td class="num">21%</td><td class="num">46%</td><td>손익분기 매출 <strong>1.77억</strong></td></tr>
+      <tr class="grp"><td colspan="5">[b] 대관·멤버십과 영업 겸임 — 1.0/1.5/2.0명 ← 권고</td></tr>
+      <tr><td>영업 인건비</td><td class="num">0.35억</td><td class="num">0.53억</td><td class="num">0.70억</td><td>대관 영업과 고객이 같다</td></tr>
+      <tr class="total"><td>영업이익</td><td class="num neg">-0.12억</td><td class="num pos">+1.12억</td><td class="num pos">+4.29억</td><td></td></tr>
+      <tr class="sub-row"><td>영업이익률</td><td class="num neg">-29%</td><td class="num pos">40%</td><td class="num pos">55%</td><td>손익분기 매출 <strong>0.89억</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="kpi-grid kpi-grid-3">
+    <div class="kpi bad"><div class="kpi-label">전담 조직 손익분기</div><div class="kpi-value">1.77<span class="kpi-unit">억</span></div><div class="kpi-sub">보수안 매출의 4.2배</div></div>
+    <div class="kpi hero"><div class="kpi-label">겸임 손익분기</div><div class="kpi-value">0.89<span class="kpi-unit">억</span></div><div class="kpi-sub">보수안 매출의 2.1배</div></div>
+    <div class="kpi hero"><div class="kpi-label">기준안 영업이익률</div><div class="kpi-value">40<span class="kpi-unit">%</span></div><div class="kpi-sub">겸임 기준 · CAPEX 0</div></div>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>매출 2억대 라인에 전담 영업 3명은 설계 오류입니다.</strong>
+    전담 조직을 두면 <strong>매출이 1.77억을 넘어야</strong> 비로소 0이 됩니다.
+    보수안(0.42억)은 물론이고, 마스터의 기준안(2.00억)에서도 영업이익이 0.2억대에 그칩니다.</p>
+    <p>반대로 <strong>겸임 구조에서는 0.89억만 넘으면 됩니다.</strong>
+    그리고 이 겸임에는 근거가 있습니다 — <strong>대관 영업과 B2B 영업은 고객이 같습니다.</strong>
+    강남 GBD 기업의 총무·HR 담당자에게 "홀을 빌려드립니다"와 "연수 프로그램을 드립니다"를
+    <strong>같은 사람이 같은 미팅에서</strong> 팔 수 있습니다.</p>
+  </div>
+</section>
+
+<!-- 05 공사 기간 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">Pre-Opening</div>
+    <h2>공사 중에도 파는 <em>유일한 라인</em>입니다</h2></div>
+    <div class="no">05</div>
+  </div>
+  <p class="sec-desc">
+    브리프 R-08은 <strong>"출강형은 공간이 필요 없어 공사 기간 중 유일한 매출축 — 순위 상향"</strong>이라고 적었습니다.
+    이 검토가 그 값을 실제로 계산했습니다. 결론부터 말하면 <strong>매출로서는 기대에 못 미치고, 다른 값어치가 있습니다.</strong>
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><td>공사 중 판매가능 매출 (T0만)</td><td class="num">0.08억</td><td class="num">0.54억</td><td class="num">2.00억</td><td>T1·T2·T3의 내방 요소는 전부 불가</td></tr>
+      <tr class="sub-row"><td>개관 후 매출 대비 비중</td><td class="num">19%</td><td class="num">19%</td><td class="num">26%</td><td></td></tr>
+      <tr class="total"><td>영업 1명 인건비 차감 후</td><td class="num neg">-0.29억</td><td class="num pos">+0.04억</td><td class="num pos">+1.15억</td><td>0.35억 차감</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>기준안에서도 영업 한 명 인건비를 겨우 넘습니다(+0.04억).</strong>
+    "공사 기간 중 유일한 매출축"이라는 표현은 맞지만,
+    <strong>그 축이 공사비를 대거나 조직을 유지하지는 못합니다.</strong>
+    보수안에서는 오히려 0.29억 손실입니다.</p>
+    <p>그러므로 T0의 값어치는 <strong>매출이 아니라 다른 데</strong> 있습니다 —
+    개관 시점에 <strong>고객사 명단과 레퍼런스와 담당자 관계가 이미 있는 상태</strong>로 문을 여는 것입니다.
+    개관 후 T1·T2·T3를 파는 영업의 <strong>리드 타임을 1년 앞당기는 투자</strong>로 봐야 합니다.</p>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>다만 출강에는 함정이 있습니다 — 봉은사가 파는 것을 스스로 버리는 상품입니다</strong><br>
+    기업 워크숍 대행 플랫폼의 출장비는 <strong>지방 최대 40만원, 서울·경기·인천은 0원</strong>입니다<span style="color:var(--fg-3)">E-1039</span>.
+    이를 <strong>"삼성동은 회당 40만원 원가 우위"</strong>로 읽으면 잘못입니다.
+    <strong>서울의 모든 경쟁 공급자에게도 0원</strong>이기 때문입니다. 출강형에서 봉은사의 입지 우위는 사라집니다.</p>
+    <p>더 중요한 문제가 있습니다. E-0581이 꼽은 봉은사의 차별화 요소 첫 번째는
+    <strong>"일반 명상센터가 아닌 1,200년 사찰이라는 장소의 정통성"</strong>입니다.
+    <strong>출강은 그 장소를 빼고 파는 상품입니다.</strong>
+    강사만 가면 봉은사는 여느 마음챙김 공급사와 구별되지 않고, 그때 가격은 E-1040의 시장가(50~200만)로 수렴합니다.</p>
+    <p><strong>설계 원칙 — T0는 매출원이 아니라 리드 제너레이션으로 둡니다.</strong>
+    출강 자체를 상품 라인으로 키우지 말고, <strong>"봉은사에서 하는 것"으로 유도하는 미끼</strong>로 씁니다.
+    출강 종료 시 내방형 초청을 세트로 붙이는 것이 이 상품의 유일한 설계입니다.</p>
+  </div>
+</section>
+
+<!-- 06 제약·중복 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">Constraints &amp; Overlap</div>
+    <h2>이 매출을 <em>다른 라인에서 이미 세지</em> 않았는가</h2></div>
+    <div class="no">06</div>
+  </div>
+
+  <h3 class="sub">중복 경고</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>겹치는 라인</th><th class="num">기준 매출</th><th>무엇이 겹치는가</th><th>처리</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>RL-10 법인 멤버십</strong><br><span style="color:var(--fg-3)">vs RL-07 T3</span></td>
+        <td class="num">1.00억<br><span style="color:var(--fg-3)">vs 1.00억</span></td>
+        <td>둘 다 <strong>강남 GBD 기업의 같은 HR·복리후생 예산</strong>에서 나옵니다.
+        RL-10은 700만원 × 14사, RL-07 T3는 2,500만원 × 4사입니다.
+        성격은 다릅니다 — RL-10은 <strong>임직원이 개별 방문하는 시설 이용권</strong>, T3는 <strong>단체 세션을 제공하는 프로그램 계약</strong>입니다.
+        그러나 <strong>한 기업이 둘 다 사는 경우는 드뭅니다.</strong></td>
+        <td><span class="badge badge-warn">합산 시 조정</span><br>두 라인 합계 18사가 현실적인지 검증 필요</td>
+      </tr>
+      <tr>
+        <td><strong>RL-05 교육·체험</strong><br><span style="color:var(--fg-3)">vs RL-07 T2</span></td>
+        <td class="num">4.40억<br><span style="color:var(--fg-3)">vs 0.48억</span></td>
+        <td><strong>정원 16명이 정확히 같습니다</strong> — 둘 다 E-1007 야간요가 규격을 썼습니다.
+        같은 진행자가 같은 방에서 진행합니다.
+        RL-05의 연 600회는 <strong>이미 진행자 공급 상한에 걸려 낙관을 900→800회로 깎은 값</strong>입니다.</td>
+        <td><span class="badge badge-no">상한 재계산</span><br>T2 12회를 더하면 진행자 상한을 다시 산정해야 함</td>
+      </tr>
+      <tr>
+        <td><strong>RL-08 대관</strong><br><span style="color:var(--fg-3)">vs RL-07 T1</span></td>
+        <td class="num">3.00억<br><span style="color:var(--fg-3)">vs 0.76억</span></td>
+        <td>같은 대공간의 <strong>같은 날짜</strong>입니다. §03에서 다뤘습니다.</td>
+        <td><span class="badge badge-warn">낙관 140→120일</span><br>RL-08 낙관치 하향 반영 필요</td>
+      </tr>
+      <tr>
+        <td><strong>RL-01 전시</strong><br><span style="color:var(--fg-3)">vs E-0619 기업 협찬 전시</span></td>
+        <td class="num">6.00억<br><span style="color:var(--fg-3)">미계상</span></td>
+        <td>E-0619(기업 협찬 전시)는 서비스 목록상 RL-07에 속하지만
+        <strong>회당 단가 × 건수 모델이 아니라 건별 스폰서십</strong>이고, 실체는 전시 예산의 외부화입니다.</td>
+        <td><span class="badge badge-info">본 검토 제외</span><br>RL-01에서 전시 원가 차감 항목으로 다루는 것이 맞음</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">제약</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>제약</th><th>내용</th><th>설계 대응</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>'교육·교화' 확대 해석</strong></td>
+        <td>B2B 마음챙김·기업 리트리트는 <strong>'교육·교화'의 확대 해석에 의존하는 중간 리스크 영역</strong>입니다<span style="color:var(--fg-3)">E-0154</span>.
+        조리 문제(R-03)와는 <strong>별개의 판단</strong>이며, 지금까지 유권해석 요청 항목에 포함되지 않았습니다.</td>
+        <td><span class="badge badge-warn">유권해석 항목 추가</span><br>전통다원·상품 범위와 함께 <strong>기업 대상 유료 프로그램의 범위</strong>를 물어야 함</td>
+      </tr>
+      <tr>
+        <td><strong>과세는 논쟁 여지 없음</strong></td>
+        <td>강남구청은 <strong>"교인 외 일반 주민도 이용 가능한가"</strong>를 기준으로 10곳 이상에 5억여 원을 추징했습니다<span style="color:var(--fg-3)">E-1049</span>.
+        B2B는 정의상 교인 외 대상입니다.</td>
+        <td><span class="badge badge-info">100% 과세 전제</span><br>수익사업 개시신고·구분회계 안에서 설계<br><em>멤버십과 달리 판정 자체는 다툴 것이 없어 오히려 단순</em></td>
+      </tr>
+      <tr>
+        <td><strong>조리 불가</strong></td>
+        <td>문화집회시설 용도로 <strong>음식 조리가 원천 불가</strong>합니다<span style="color:var(--fg-3)">E-0041</span>.
+        반나절 이상 연수의 점심 공양이 막히고, 사찰음식이라는 최대 차별점을 프리미엄 상품에서 뺍니다.</td>
+        <td><span class="badge badge-no">T2 낙관치의 전제</span><br>1인 40만원은 <strong>R-03이 열려야 성립</strong> · 그전까지는 25만원이 상한</td>
+      </tr>
+      <tr>
+        <td><strong>스님 공급 상한</strong></td>
+        <td>T2 프리미엄의 상품성은 <strong>"공간이 아니라 진행 주체를 판다"</strong>는 데 있습니다<span style="color:var(--fg-3)">E-0659</span>.
+        진행 가능한 스님 수가 곧 판매 상한이고, 이 수치는 <strong>확인된 바 없습니다</strong>.</td>
+        <td><span class="badge badge-no">미확인</span><br>종무 협조로 확인해야 할 1순위 · RL-05와 합산 상한</td>
+      </tr>
+      <tr>
+        <td><strong>출강의 브랜드 희석</strong></td>
+        <td>출장비 0원 구간은 <strong>모든 서울 공급자에게도 0원</strong>이고<span style="color:var(--fg-3)">E-1039</span>,
+        출강은 '장소의 정통성'을 빼고 파는 상품입니다.</td>
+        <td><span class="badge badge-warn">리드젠 한정</span><br>독립 매출 라인으로 키우지 않음 · 내방 유도 세트로만</td>
+      </tr>
+      <tr>
+        <td><strong>유료화 저항은 낮음</strong></td>
+        <td>'기업 같다'는 반발은 유료 공양간·판매대·연등 접수에서 나오고 <strong>해설·강좌·워크숍에는 나타나지 않습니다</strong><span style="color:var(--fg-3)">E-1036</span>.</td>
+        <td><span class="badge badge-yes">이 라인의 강점</span><br>RL-10 멤버십의 최대 난점(무료→유료 전환)이 <strong>여기엔 없음</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>정서 리스크가 가장 낮은 라인입니다.</strong>
+    멤버십(RL-10)은 <strong>지금 무료로 명상하던 사람에게 돈을 받는</strong> 문제였고,
+    다이닝(RL-03)은 조리 가능성 자체가 걸려 있습니다.
+    B2B는 <strong>원래 없던 고객에게 원래 없던 상품을 파는</strong> 것이라 기존 신도의 무엇도 빼앗지 않습니다.
+    E-1036이 말한 <strong>"배움이 유료화 저항이 가장 낮은 상품군"</strong>의 가장 순수한 형태입니다.</p>
+  </div>
+</section>
+
+<!-- 07 판정 -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div><div class="eyebrow">Verdict</div><h2>판정과 남은 것</h2></div>
+    <div class="no">07</div>
+  </div>
+
+  <h3 class="sub">판정</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>질문</th><th>답</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>돈이 되는가</td><td><span class="badge badge-yes">된다 · 단 작다</span></td>
+        <td>기준 매출 2.78억 · 영업이익 1.12억(겸임) · <strong>이익률 40%에 CAPEX 0</strong></td></tr>
+      <tr><td>단가 3배 충돌은</td><td><span class="badge badge-info">충돌이 아니었다</span></td>
+        <td>E-1040은 출강형, E-0581은 내방형 — <strong>다른 상품이라 조사로 해소할 모순이 없음</strong></td></tr>
+      <tr><td>무엇이 승부를 가르는가</td><td><span class="badge badge-no">수주 건수 · 영업 조직</span></td>
+        <td>단가는 시장가가 있고, <strong>연간 몇 건을 파느냐만 근거가 0</strong></td></tr>
+      <tr><td>가장 큰 오류는</td><td><span class="badge badge-no">대관과 날짜 중복</span></td>
+        <td>낙관안에서 대공간 <strong>200일 필요 vs 상한 180일</strong> — 같은 하루를 두 번 팜</td></tr>
+      <tr><td>공사 중 유일한 매출축인가</td><td><span class="badge badge-warn">맞다 · 다만 작다</span></td>
+        <td>T0 0.54억(기준) — <strong>영업 1명 인건비를 겨우 넘김</strong>. 값어치는 매출이 아니라 리드 확보</td></tr>
+      <tr><td>가장 확실한 것은</td><td><span class="badge badge-yes">정서 리스크가 없음</span></td>
+        <td>기존 신도의 무엇도 빼앗지 않음 · 배움은 유료화 저항 최저<span style="color:var(--fg-3)">E-1036</span></td></tr>
+      <tr><td>언제 여는가</td><td><span class="badge badge-yes">지금 · 공사 착공과 동시</span></td>
+        <td>T0는 공간이 없어도 팔린다 — <strong>전 라인 중 유일</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">권고</h3>
+  <div class="callout">
+    <p><strong>① 전담 영업조직을 두지 않습니다.</strong>
+    대관·멤버십 영업과 겸임시킵니다. 고객이 같고(강남 GBD 기업 총무·HR), 미팅이 같기 때문입니다.
+    전담 3명이면 손익분기가 1.77억이지만 겸임 1.5명이면 <strong>0.89억</strong>으로 내려갑니다.
+    매출 2억대 라인에 전담 조직을 세우는 순간 이 라인은 적자가 됩니다.</p>
+    <p><strong>② 마스터 모델에서 RL-07을 4계층으로 분해하고, RL-08 낙관 가동일을 140→120일로 내립니다.</strong>
+    단일 단가(150/250/300만)는 두 시장을 뭉갠 값이라 조사 설계도 잘못 끌고 갑니다.
+    그리고 대공간 날짜는 <strong>RL-01 전시 · RL-07 B2B · RL-08 대관 셋이 나눠 쓰는 하나의 예산</strong>으로 관리해야 합니다.</p>
+    <p><strong>③ T0 출강형을 착공과 동시에 시작하되, 매출 목표를 걸지 않습니다.</strong>
+    목표는 <strong>개관 시점의 고객사 명단</strong>입니다. 출강 종료 시 내방 초청을 세트로 붙이고,
+    출강 단독 상품으로는 키우지 않습니다 — 장소를 빼고 파는 순간 봉은사의 값이 시장가로 수렴합니다.</p>
+    <p><strong>④ 유권해석 요청서에 '기업 대상 유료 프로그램의 범위'를 추가합니다.</strong>
+    현재 요청 항목은 전통다원 범위·전통문화 상품 범위·신도 편의시설 범위 셋인데,
+    B2B는 <strong>'교육·교화'의 확대 해석에 의존하는 중간 리스크</strong>로만 표기돼 있고 확인 절차가 없습니다<span style="color:var(--fg-3)">E-0154</span>.
+    이 라인만 별도 회신을 기다릴 필요가 없도록 <strong>같은 요청서에 묶어 보냅니다.</strong></p>
+  </div>
+
+  <h3 class="sub">리서치 잔여</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num">#</th><th>항목</th><th>확정되는 것</th><th>난이도</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td><strong>연간 수주 건수</strong></td><td>매출 0.42~7.76억 — <strong>이 라인의 유일한 실질 변수</strong>. 현재는 마보 100개사의 8~25% 역산</td><td>중 · GBD 기업 HR 인터뷰 n≥15</td></tr>
+      <tr><td class="num">2</td><td><strong>진행 가능 스님 수</strong></td><td>T2 프리미엄의 상한 · RL-05 교육과 합산 상한 — <strong>확인된 바 없음</strong></td><td>하 · <strong>종무 협조로 즉시 가능</strong></td></tr>
+      <tr><td class="num">3</td><td>대관 원가율</td><td>§03의 공헌이익 2.55배 배수 — 02-대관BM §06이 공백으로 남긴 항목</td><td>하 · 운영 설계와 함께</td></tr>
+      <tr><td class="num">4</td><td>'교육·교화' 범위 유권해석</td><td>이 라인의 성립 여부 자체<span style="color:var(--fg-3)">E-0154</span></td><td>중 · 요청서에 추가</td></tr>
+      <tr><td class="num">5</td><td>RL-10 법인 멤버십과의 실제 중복률</td><td>합산 시 조정폭 — 두 라인 합계 18사가 현실적인가</td><td>중 · 동일 인터뷰에서 병행</td></tr>
+      <tr><td class="num">6</td><td>코엑스 MICE 연계 수요</td><td>T1 매스형 건수의 상향 여지 — 봉은사 방문 외국인 61.2%가 코엑스 병방문<span style="color:var(--fg-3)">E-1043</span></td><td>중 · 코엑스 행사 캘린더</td></tr>
+      <tr><td class="num">7</td><td>경쟁 공급자 단가 역산</td><td>T0·T1 단가의 실측 보강 — 마보 B2B 100개사 계약 구조</td><td>상 · <strong>비공개 영업정보</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>이 검토가 아직 답하지 못하는 것</strong></p>
+    <p>① <strong>연간 건수는 여전히 근거가 없습니다.</strong> 마보 100개사에서 역산했지만
+    <strong>"신설 시설이 그 8~25%를 딴다"</strong>는 비율 자체가 가정입니다. 실측이 아니라 앵커일 뿐입니다.</p>
+    <p>② <strong>스님 공급 상한을 모른 채 T2를 계산했습니다.</strong> 진행 주체가 상품인데 그 주체가 몇 명인지 모릅니다.
+    RL-05 교육·체험(연 600회)과 합치면 상한을 넘을 가능성이 있고, 그러면 두 라인 모두 하향해야 합니다.</p>
+    <p>③ <strong>계절성이 반영되지 않았습니다.</strong> 02-대관BM이 RXR 후기 4,330건 게시일 분포에서
+    <strong>3~5월 57.6% vs 8~12월 5개월 합 19.8%(8.2배 격차)</strong>를 확인했습니다.
+    기업 연수 수요의 계절 분포는 이와 다를 수 있지만(오히려 상·하반기 연수 시즌),
+    <strong>대공간 152일이 성수기에 몰려 있다면 대관과의 날짜 경쟁은 계산보다 심합니다.</strong></p>
+    <p>④ <strong>2년차 이후 곡선이 없습니다.</strong> T3 연간계약은 갱신 개념이 있고 T0 고객사는 재구매가 있습니다.
+    RL-10처럼 5개년으로 볼 수 있지만, <strong>1년차 건수조차 근거가 없는 상태에서 갱신율을 얹는 것은 가정 위에 가정</strong>이라 하지 않았습니다.</p>
+  </div>
+</section>
+
+<div class="foot">PROJECT RENT · RL-07 기업 B2B BM 수익성 검토 v1.0 · 내부 문서 · 대외 배포 금지</div>
+
+<script>
+const secs=document.querySelectorAll('.sec');
+const links=document.querySelectorAll('.nav a');
+const io=new IntersectionObserver((es)=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    const id=e.target.id;
+    links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id));
+  }});
+},{rootMargin:'-45% 0px -45% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

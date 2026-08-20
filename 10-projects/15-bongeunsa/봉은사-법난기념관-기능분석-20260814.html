@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>법난기념관 기능 프로그램 분석 — 공모지침서 × 중간설계 대조</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#1A1A1A; --card:#232323; --card2:#2B2B2B; --line:#3A3A3A;
+  --text:#E8E8E8; --muted:#9A9A9A; --accent:#6C5CE7;
+  --ok:#4CAF7D; --warn:#E5A54B; --risk:#E06060;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Pretendard',-apple-system,sans-serif;line-height:1.7;font-size:16px}
+.wrap{max-width:1020px;margin:0 auto;padding:56px 32px 80px}
+
+.eyebrow{color:var(--accent);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px}
+h1{font-size:32px;font-weight:800;line-height:1.3;letter-spacing:-.01em}
+h1 small{display:block;font-size:16.5px;font-weight:500;color:var(--muted);margin-top:10px;letter-spacing:0}
+.meta{margin-top:18px;color:var(--muted);font-size:13.5px;display:flex;gap:18px;flex-wrap:wrap}
+.meta b{color:var(--text);font-weight:600}
+
+.verdict{margin-top:36px;background:linear-gradient(135deg,rgba(108,92,231,.14),rgba(108,92,231,.04));border:1px solid rgba(108,92,231,.45);border-radius:14px;padding:28px 30px}
+.verdict .v-title{font-size:14px;font-weight:800;color:var(--accent);letter-spacing:.08em;margin-bottom:12px}
+.verdict p{font-size:15.5px;color:#CFCFCF}
+.verdict .v-key{font-size:19px;font-weight:700;line-height:1.55;margin-bottom:12px;color:var(--text)}
+
+section{margin-top:60px}
+.sec-label{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:12px}
+.sec-num{font-size:13px;font-weight:800;color:var(--accent);letter-spacing:.1em}
+h2{font-size:23px;font-weight:800;letter-spacing:-.01em}
+.sec-sub{color:var(--muted);font-size:14.5px;margin-bottom:24px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px 26px;margin-bottom:16px}
+.card h3{font-size:17px;font-weight:700;margin-bottom:10px}
+.card p{font-size:14.5px;color:#CFCFCF}
+.card p+p{margin-top:10px}
+.card ul{margin:10px 0 2px 2px;list-style:none}
+.card li{font-size:14.5px;color:#CFCFCF;padding-left:18px;position:relative;margin-bottom:9px}
+.card li::before{content:"";position:absolute;left:2px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+strong{color:var(--text);font-weight:700}
+
+.badge{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.06em;padding:3px 10px;border-radius:999px;vertical-align:middle}
+.b-up{background:rgba(224,96,96,.14);color:var(--risk);border:1px solid rgba(224,96,96,.4)}
+.b-down{background:rgba(111,138,163,.14);color:#7FA3C4;border:1px solid rgba(111,138,163,.4)}
+.b-keep{background:rgba(76,175,125,.15);color:var(--ok);border:1px solid rgba(76,175,125,.4)}
+.b-ws{background:rgba(108,92,231,.16);color:#A99EF2;border:1px solid rgba(108,92,231,.45)}
+
+.chip{font-size:12px;color:#B8B0EE;background:rgba(108,92,231,.1);border:1px solid rgba(108,92,231,.3);border-radius:8px;padding:2px 9px;white-space:nowrap}
+
+table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px}
+th{color:var(--muted);font-weight:600;text-align:left;padding:10px 11px;border-bottom:1px solid var(--line);font-size:12.5px}
+td{padding:10px 11px;border-bottom:1px solid #2E2E2E;color:#CFCFCF;vertical-align:top}
+td:first-child{color:var(--text);font-weight:700;white-space:nowrap}
+.t-wrap{overflow-x:auto}
+td.num{white-space:nowrap;font-variant-numeric:tabular-nums}
+
+.callout{border-left:3px solid var(--accent);background:rgba(108,92,231,.07);border-radius:0 10px 10px 0;padding:18px 22px;margin:18px 0}
+.callout.c-warn{border-left-color:var(--warn);background:rgba(229,165,75,.06)}
+.callout p{font-size:14.5px;color:#CFCFCF}
+.callout .c-head{font-weight:800;font-size:14px;margin-bottom:6px;color:var(--text)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:8px}
+.gcell{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:16px 16px}
+.gcell .g-t{font-size:13px;font-weight:800;margin-bottom:8px;color:var(--accent)}
+.gcell p{font-size:13px;color:#C4C4C4;line-height:1.65}
+
+/* whitespace list */
+.ws{counter-reset:ws;list-style:none;margin-top:8px}
+.ws li{position:relative;padding:16px 18px 16px 58px;background:var(--card2);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;font-size:14.5px;color:#CFCFCF}
+.ws li::before{counter-increment:ws;content:counter(ws);position:absolute;left:18px;top:16px;width:26px;height:26px;border-radius:50%;background:rgba(108,92,231,.18);border:1px solid rgba(108,92,231,.5);color:#A99EF2;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+
+footer{margin-top:80px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:var(--muted);font-size:12.5px}
+footer b{color:var(--accent)}
+@media (max-width:760px){ .grid2,.grid4{grid-template-columns:1fr} h1{font-size:25px} .wrap{padding:40px 20px 60px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="eyebrow">Bongeunsa Project · Facility Program Analysis</div>
+<h1>법난기념관 기능 프로그램 분석
+<small>공모지침서(2025.01) × 중간설계보고(2026.08) 대조 — 기념관에 무엇이 들어가고, 문화센터에 무엇이 남는가</small></h1>
+<div class="meta">
+  <span>작성 <b>2026-08-14</b></span>
+  <span>출처 <b>10·27 법난기념관 설계공모 지침서(조계종 유지재단) · 집행위원회 중간설계보고</b></span>
+  <span>원장 연동 <b>E-1061~E-1068</b></span>
+</div>
+
+<!-- ═══════ VERDICT ═══════ -->
+<div class="verdict">
+  <div class="v-title">핵심 판정</div>
+  <p class="v-key">기념관은 설계가 진행될수록 "배움·연구" 시설에서 <u>"모여서 보고 먹는" 이벤트형 시설</u>로 이동했다.<br>교육 −63% · 사무 −69% · 전시 −18% ↓ &nbsp;/&nbsp; 식당 +64% · 공연 · 공용 ↑</p>
+  <p>공모지침 원안(2025.1) 대비 중간설계(2026.8)의 면적 이동이 이 시설의 정체를 말해줍니다. 카페·기념품샵은 지침서의 <strong>"공용면적 5% 내 사용자 편의시설 제안 가능"</strong> 조항에서 나온 부가 기능이지 요구 프로그램의 본체가 아닙니다. 이 구조를 알면 문화센터가 설 자리— 기념관이 <strong>구조적으로 못 하는 6가지</strong> — 가 정확히 보입니다.</p>
+</div>
+
+<!-- ═══════ S1 성격 ═══════ -->
+<section>
+<div class="sec-label"><span class="sec-num">SECTION 1</span><h2>지침서가 정의한 시설의 성격</h2></div>
+<p class="sec-sub">기능 이해의 전제 — 공모지침서가 명문화한 4가지.</p>
+<div class="grid2">
+  <div class="card"><h3>① 기억·치유의 기념 시설</h3><p>10·27 법난의 진실을 알리고 상처를 치유하며 불교 전통문화를 계승하는 <strong>"복합문화 기념공간"</strong> — 전시·교육·공연 공간으로 기능 명시. <strong>전시 주제가 '법난의 기억'으로 고정</strong>돼 있다는 뜻이기도 하다.</p></div>
+  <div class="card"><h3>② 대중 개방 시설</h3><p>"관광객이 방문하여 다양한 문화체험을 할 수 있는 <strong>공공적 성격의 문화시설</strong>", "역사공원 내 시설로서 <strong>지역주민과 시민들이 자유롭게 이용</strong>" — 신도 시설이 아니라 시민 개방 시설로 규정.</p></div>
+  <div class="card"><h3>③ 부지·법규 조건</h3><p>현 주차장+보우당(철거, 연면적 2,068㎡) 부지 12,870㎡. 문화 및 집회시설. 제1종일반주거 + 절대보호구역·문화재보호구역·전통사찰보존구역 중첩. <strong>공사 중에도 봉은사 이용 유지</strong>(순차 공사) 요구.</p></div>
+  <div class="card"><h3>④ 수치 정합 확인</h3><p>지침서 예정공사비 1,465억 + 철거 2.79억 = <strong>1,467억</strong> — 중간설계 예산과 정확히 일치. 이후 중간설계 산출 2,040억(증액요청 1,991억)으로 상승. 지침 "지상 4층 이하" → 중간설계 <strong>지상 2층·지하 4층</strong> 확정.</p></div>
+</div>
+</section>
+
+<!-- ═══════ S2 프로그램 표 ═══════ -->
+<section>
+<div class="sec-label"><span class="sec-num">SECTION 2</span><h2>기능 프로그램 전체 — 지침서 안 → 중간설계 확정</h2></div>
+<p class="sec-sub">연면적 31,220㎡(±3%). 영역별 ±10% 조정 허용 조항 아래에서 실제로 움직인 방향에 주목.</p>
+
+<div class="t-wrap"><table>
+<thead><tr><th>기능</th><th>세부 실 구성 (지침서 요구)</th><th>지침서 안</th><th>중간설계</th><th>변화</th></tr></thead>
+<tbody>
+<tr><td>공연</td><td>프로시니엄 다목적 극장(뮤지컬·전통공연), <strong>최소 1,250석</strong> · 주무대·분장실·리허설룸 · 영상/음향/조명실·연습실 · <strong>전통악기 보관실(항온항습)</strong></td><td class="num">3,705㎡</td><td class="num"><strong>3,931㎡ · 1,300석</strong></td><td><span class="badge b-up">▲ 확대</span></td></tr>
+<tr><td>전시</td><td>상설전시실(대규모 동시관람·가변형) · 기획전시관 · 분류실 · 관람객 집합/안내/소규모 교육 공간 · 수장-분류-전시 동선</td><td class="num">2,990㎡</td><td class="num">2,465㎡</td><td><span class="badge b-down">▼ 18%</span></td></tr>
+<tr><td>수장</td><td>수장고 · 처리실(유물촬영·오염제거·평가·등록) · 5톤 탑차 하역 · 화물EL · 전용 항온항습 · 숙직/샤워</td><td class="num">685㎡</td><td class="num">414㎡</td><td><span class="badge b-down">▼ 40%</span></td></tr>
+<tr><td>식당·주방</td><td><strong>"행사 시 최대한 많은 인원이 사용 가능하도록 가변형·유동적 운영"</strong> — 행사 급식형 성격 명시</td><td class="num">659㎡</td><td class="num"><strong>1,084㎡ · 518석</strong></td><td><span class="badge b-up">▲ 64%</span></td></tr>
+<tr><td>문화체험</td><td><strong>불교문화체험실 · 다도체험실</strong> · 준비실 — 가변형, 교육 기자재 보관</td><td class="num">290㎡</td><td class="num">286㎡ <span class="chip">외부 진입 가능</span></td><td><span class="badge b-keep">유지</span></td></tr>
+<tr><td>교육</td><td>강의실·중회의실·교수실 — 외부 접근 용이 위치, 전시·공연 연계, 대규모 가변형</td><td class="num">480㎡</td><td class="num">179㎡</td><td><span class="badge b-down">▼ 63%</span></td></tr>
+<tr><td>사무연구</td><td>사무실·단장실·기관장실·자료실·회의실·전산실 — 상설 운영조직 전제</td><td class="num">646㎡</td><td class="num">202㎡</td><td><span class="badge b-down">▼ 69%</span></td></tr>
+<tr><td>공용</td><td>로비·홀 · <strong>수유실·아이돌봄 공간</strong> · 안내센터·물품보관소 · <strong>"공용면적 5% 내 편의시설 제안 가능"</strong> → SHOP &amp; CAFE의 근거 조항</td><td class="num">6,090㎡</td><td class="num">6,450㎡</td><td><span class="badge b-up">▲</span></td></tr>
+<tr><td>부속</td><td>지하주차장(법정 + 기존 주차 이상) · 하역 · 기계전기</td><td class="num">15,675㎡</td><td class="num">16,316㎡ · 269대</td><td><span class="badge b-up">▲</span></td></tr>
+</tbody>
+</table></div>
+
+<div class="callout"><div class="c-head">진화의 방향이 그 자체로 정보다</div>
+<p>배움·연구·보존 계열(교육·사무·수장·전시)은 전부 줄고, <strong>식(食)과 모임 계열(식당·공연·공용)만 커졌다.</strong> 기념관의 실제 운영상은 "1,300석 공연 + 단체 식사 + 기념 전시 관람"이라는 이벤트 사이클로 수렴하고 있다.</p></div>
+</section>
+
+<!-- ═══════ S3 성격 판정 ═══════ -->
+<section>
+<div class="sec-label"><span class="sec-num">SECTION 3</span><h2>기능별 성격 판정 — 4분류</h2></div>
+<p class="sec-sub">문화센터와의 관계를 가르는 축은 면적이 아니라 작동 방식이다.</p>
+<div class="grid4">
+  <div class="gcell"><div class="g-t">이벤트 동반형</div><p>공연장 1,300석 · 식당 518석("행사 시 최대 인원" — 상시 레스토랑 아님) · 기획전시. <strong>행사가 있어야 작동</strong>하는 기능들.</p></div>
+  <div class="gcell"><div class="g-t">상시 개방형</div><p>상설전시(법난 기억 서사 — 주제 고정) · 로비·공용 · 카페·기념품(공용 5% 부가). 무료·자유 이용 전제.</p></div>
+  <div class="gcell"><div class="g-t">프로그램형</div><p>불교문화체험실·다도체험실 290㎡(소규모) · 교육 강의실 179㎡(축소됨). 단발 프로그램 수용 수준.</p></div>
+  <div class="gcell"><div class="g-t">비공개 지원</div><p>수장 414㎡ · 사무 202㎡ · 주차 269대 · 기계전기. 방문객 동선과 엄격 분리 요구.</p></div>
+</div>
+</section>
+
+<!-- ═══════ S4 화이트스페이스 ═══════ -->
+<section>
+<div class="sec-label"><span class="sec-num">SECTION 4</span><h2>그래서 문화센터에 남는 자리</h2></div>
+<p class="sec-sub">"분업 구도 붕괴"(8/12 판정)를 지침서가 더 정밀하게 만든다 — 겹치는 것과 구조적으로 못 하는 것이 갈린다.</p>
+
+<div class="card">
+<h3>기념관이 가져간 것 <span class="badge b-up">중복 확정</span></h3>
+<p>대형 공연 · 법난 주제 상설전시 + 기획전시 · 행사형 대량 식사(518석) · 소규모 다도·불교문화 체험 · 기념품·카페(부가 규모). 문화센터가 같은 층위로 들어가면 정면 충돌한다.</p>
+</div>
+
+<div class="card">
+<h3>기념관이 구조적으로 못 하는 것 <span class="badge b-ws">문화센터의 자리 6</span></h3>
+<ol class="ws">
+<li><strong>상시 체류형 웰니스·명상</strong> — 지침서 요구 프로그램에 명상·수행 공간이 <strong>0㎡</strong>. 체험실 290㎡는 단발 프로그램용이다.</li>
+<li><strong>회차권형 일상 이용</strong> — 기념관은 관람 동선 시설. 점심 30~50분 반복 방문의 과금·운영 구조가 없다. (수요원자 최다 가격대 3천~1만원의 주인 없는 자리)</li>
+<li><strong>커뮤니티·멤버십·기수제</strong> — 사무 202㎡로 축소. 상시 관계를 운영할 조직·공간 전제가 없다.</li>
+<li><strong>기업 연수·B2B 프로그램</strong> — 강의실 179㎡뿐. 기업 단위 워크숍·리더십 프로그램 수용 불가.</li>
+<li><strong>주제의 자유도</strong> — 기념관 전시는 법난의 기억·치유로 주제가 고정(공모 목적 명시). 동시대 불교 라이프스타일·작가 전시·시즌 콘텐츠는 구조적으로 문화센터 몫이다.</li>
+<li><strong>고단가 상시 F&amp;B</strong> — 기념관 식당은 행사 가변형(대량 급식 층위). 전통다원·차담·사찰음식 코스 같은 <strong>소규모·고단가·상시</strong> 운영과 층위가 다르다. 단, 단체·행사 식사 수요는 기념관이 흡수하므로 문화센터 F&amp;B는 이 좁은 층위로 설계해야 정합.</li>
+</ol>
+</div>
+
+<div class="callout c-warn"><div class="c-head">정합성 메모 — 인용 시 중간설계 기준 사용</div>
+<p>① 지침서 "기존 주차 <strong>187대</strong>" vs 중간설계 "기존 부지 <strong>182대</strong>" 표기 차이 &nbsp;② 지침서 "지상 4층 이하" → 중간설계 <strong>지상 2층</strong> 확정 &nbsp;③ 면적은 영역별 ±10% 조정 조항 안에서 계속 움직이는 값 — 확정치는 실시설계(2027년 말)에서 다시 갱신 필요.</p></div>
+</section>
+
+<footer>
+  <span>법난기념관 기능 프로그램 분석 · 2026-08-14 · 공모지침서 p17~26 × 중간설계보고 p8~26 대조</span>
+  <span>by <b>Project Rent</b></span>
+</footer>
+
+</div>
+</body>
+</html>

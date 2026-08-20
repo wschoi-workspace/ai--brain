@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5개년 경제성 검토 | PROJECT RENT</title>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+em{font-style:normal;color:var(--accent-light)}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.nav{position:fixed;top:50%;left:26px;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:10;font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color 150ms var(--ease-out)}
+.nav a:hover,.nav a.active{color:var(--accent)}
+.sec{padding:90px 120px 110px;max-width:1440px;margin:0 auto}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:26px;border-bottom:1px solid var(--line-2);margin-bottom:44px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:38px;font-weight:300;letter-spacing:-0.025em;line-height:1.15;margin-top:8px}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin-bottom:38px}
+h3.sub{font-size:19px;font-weight:400;color:var(--fg);margin:46px 0 14px;letter-spacing:-0.02em}
+h3.sub:first-of-type{margin-top:0}
+p.note{font-size:13px;color:var(--fg-2);margin:10px 0;max-width:920px}
+#cover{padding-top:140px;min-height:84vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:34px}
+.cover-title{font-size:64px;font-weight:200;letter-spacing:-0.04em;line-height:1.05;margin-bottom:24px}
+.cover-sub{font-size:19px;color:var(--fg-2);line-height:1.6;max-width:920px;margin-bottom:46px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:30px;max-width:1020px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:11px 12px;font-weight:400;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+tbody tr.total td{border-top:1px solid var(--line);color:var(--fg);font-weight:500;background:rgba(108,92,231,.05)}
+tbody tr.sub-row td{color:var(--fg-3);font-size:12px}
+tbody tr.sub-row td:first-child{color:var(--fg-3);padding-left:28px}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--red)} .pos{color:var(--green)} .warn{color:var(--amber)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:3px 9px;font-size:10px;letter-spacing:.08em;white-space:nowrap}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi.hero{border-color:var(--accent)} .kpi.bad{border-color:rgba(225,112,85,.4)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:32px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi.bad .kpi-value{color:var(--red)}
+.kpi .kpi-unit{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px;line-height:1.5}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:22px 26px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.75}
+.callout p+p{margin-top:10px}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.layer{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:26px 0}
+.layer .ly{background:var(--bg-3);border:1px solid var(--line-2);padding:22px}
+.layer .ly.core{border-color:var(--accent)}
+.layer .ly.danger{border-color:rgba(225,112,85,.4)}
+.layer .ly .n{font-size:10px;letter-spacing:.2em;color:var(--accent);margin-bottom:8px}
+.layer .ly.danger .n{color:var(--red)}
+.layer .ly h4{font-size:16px;margin-bottom:8px}
+.layer .ly p{font-size:12.5px;color:var(--fg-2);line-height:1.65;margin-bottom:10px}
+.layer .ly .v{font-size:21px;font-weight:200;color:var(--fg);letter-spacing:-0.02em}
+.layer .ly .s{font-size:11px;color:var(--fg-3);margin-top:4px}
+/* 폭포 차트 */
+.wf{margin:26px 0}
+.wf .r{display:grid;grid-template-columns:190px 1fr 96px;gap:14px;align-items:center;margin-bottom:8px}
+.wf .lb{font-size:12.5px;color:var(--fg-2);text-align:right}
+.wf .tr{height:26px;position:relative;background:linear-gradient(to right,var(--line-2) 1px,transparent 1px) 0 0/8.33% 100%}
+.wf .bx{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;font-size:10.5px;color:var(--bg)}
+.wf .vv{font-size:12.5px;color:var(--fg);font-variant-numeric:tabular-nums;text-align:right}
+/* 현금흐름 */
+.cf{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin:26px 0;height:230px;align-items:center}
+.cf .c{height:100%;position:relative;display:flex;flex-direction:column;justify-content:center}
+.cf .zero{position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line);z-index:0}
+.cf .b{position:absolute;left:12%;right:12%;z-index:1}
+.cf .b.up{bottom:50%;background:var(--green)}
+.cf .b.dn{top:50%;background:var(--red)}
+.cf .lab{position:absolute;bottom:-2px;left:0;right:0;text-align:center;font-size:11px;color:var(--fg-3)}
+.cf .val{position:absolute;left:0;right:0;text-align:center;font-size:11.5px;color:var(--fg);font-variant-numeric:tabular-nums;z-index:2}
+.foot{padding:60px 120px 80px;border-top:1px solid var(--line-2);text-align:center;color:var(--fg-3);font-size:11px;letter-spacing:.2em;max-width:1440px;margin:0 auto}
+@media (max-width:1100px){
+  .sec{padding:70px 40px 80px}.nav{display:none}
+  .cover-title{font-size:40px}.sec-head h2{font-size:28px}
+  .kpi-grid,.kpi-grid-3,.cover-meta,.layer{grid-template-columns:repeat(2,1fr)}
+  .wf .r{grid-template-columns:120px 1fr 80px}
+}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+<nav class="nav">
+  <a href="#cover">00 결론</a>
+  <a href="#s1">01 세무 구조</a>
+  <a href="#s2">02 준비금</a>
+  <a href="#s3">03 5개년 P&L</a>
+  <a href="#s4">04 현금흐름</a>
+  <a href="#s5">05 민감도</a>
+  <a href="#s6">06 기준선 재비교</a>
+  <a href="#s7">07 판정·잔여</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">Tax &amp; Five-Year Feasibility · 계약서 제3조 산출물</div>
+  <h1 class="cover-title">매출 136억,<br>세후 32억입니다</h1>
+
+  <div class="callout callout-danger" style="margin:0 0 34px">
+    <p><strong>⚠ 2026-08-17 정정 — 이 문서의 CAPEX·현금흐름·회수기간은 과소 계상입니다.</strong>
+    총 CAPEX를 <strong>90.8억(라인별 조성비)</strong>으로 계산했으나,
+    <code style="color:var(--fg)">E-1089</code>가 확정한 <strong>건물 투자비 45~70억(A단)</strong>이 빠져 있었습니다.</p>
+    <p>정정값 — 총사업비 <strong>166.4억</strong>(기준안) · 총 CAPEX <strong>162.4억</strong> ·
+    개관 전 투입 <strong>137.4억</strong> · 5년차 세후이익 <strong>26.7억</strong> ·
+    5년 누적 현금흐름 <strong>+7.4억</strong> · 회수 <strong>5년차</strong>.
+    <strong>국비가 없으면 재임대 세후 27.1억에 미달합니다.</strong></p>
+    <p>아래 §01~§02(세무 구조·고유목적사업준비금)는 <strong>그대로 유효</strong>하며,
+    §03~§06의 5개년 손익·현금흐름·기준선 비교는
+    <strong><a href="00E-자금조달구조-추가제언.html" style="color:var(--accent-light)">00E 자금조달 제언 v2.0</a></strong>의
+    갱신값을 따릅니다.</p>
+  </div>
+
+  <p class="cover-sub">
+    지금까지 나온 모든 라인 검토는 ①1년차 ②세전 ③매출 중심이었습니다.
+    <em>부가세·감가상각·재산세·법인세를 다 빼고 5년으로 펴면</em>
+    <strong>임대 기준선을 1.07배로 겨우 넘습니다.</strong>
+    <span style="color:var(--red)">(정정 후 0.98배 — 미달)</span>
+  </p>
+  <dl class="cover-meta">
+    <div><dt>5년차 총매출</dt><dd>136.5억 <span style="color:var(--fg-3)">(VAT 포함)</span></dd></div>
+    <div><dt>5년차 세후이익</dt><dd><strong>32.1억</strong> <span style="color:var(--red)">→ 26.7억</span></dd></div>
+    <div><dt>총 CAPEX</dt><dd><s style="color:var(--fg-3)">90.8억 · 회수 3년차</s> <span style="color:var(--red)">→ 162.4억 · 5년차</span></dd></div>
+    <div><dt>작성</dt><dd>2026.08.17 · 정정 v1.1</dd></div>
+  </dl>
+
+  <div class="kpi-grid" style="margin-top:52px">
+    <div class="kpi hero"><div class="kpi-label">실효세율</div><div class="kpi-value">9.3<span class="kpi-unit">%</span></div><div class="kpi-sub">고유목적사업준비금 덕분<br>미적용 시 <strong>19.8%</strong></div></div>
+    <div class="kpi"><div class="kpi-label">연간 절세</div><div class="kpi-value">2.05<span class="kpi-unit">억</span></div><div class="kpi-sub">법인세법 §29 · 수익사업소득 50%</div></div>
+    <div class="kpi bad"><div class="kpi-label">부가가치세</div><div class="kpi-value">12.1<span class="kpi-unit">억</span></div><div class="kpi-sub">5년차 · <strong>매출의 8.8%</strong><br>전 라인 미반영이었음</div></div>
+    <div class="kpi bad"><div class="kpi-label">기준선 대비</div><div class="kpi-value">1.07<span class="kpi-unit">x</span></div><div class="kpi-sub">임대 세후 27억 vs 사업 32.1억<br><strong>차이 5.1억</strong></div></div>
+  </div>
+
+  <div class="callout callout-danger" style="margin-top:34px">
+    <p><strong>이것이 "재임대가 낫다"에 대한 진짜 답입니다.</strong>
+    마스터 v0.2는 세전 매출로 <strong>"기준안 66.7억 = 기준선의 2.22배"</strong>라고 했습니다.
+    세금과 비용을 다 넣으면 <strong>1.07배</strong>가 됩니다.</p>
+    <p>임대 30억은 봉은사가 <strong>아무것도 하지 않고</strong> 받는 돈이고,
+    사업 32억은 <strong>수십 명을 고용하고 90억을 투자하고 리스크를 지고</strong> 얻는 돈입니다.
+    숫자만으로는 이 사업을 정당화할 수 없습니다 —
+    <strong>정당화는 계약 목적문(전통문화 진흥·포교·공익)에서 나와야 합니다.</strong></p>
+  </div>
+</section>
+
+<!-- 01 세무 구조 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">Tax Structure</div>
+    <h2>무엇이 과세되는가</h2></div>
+    <div class="no">01</div>
+  </div>
+  <p class="sec-desc">
+    봉은사는 비영리내국법인이라 <strong>수익사업 소득에만</strong> 법인세 납부의무가 있습니다
+    <span style="color:var(--fg-3)">(E-0174 A)</span>.
+    문제는 이 프로젝트가 계획하는 것이 <strong>대부분 수익사업</strong>이라는 점입니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>세목</th><th class="num">5년차</th><th>근거</th><th>판정</th></tr></thead>
+    <tbody>
+      <tr><td><strong>부가가치세</strong></td><td class="num">12.1억</td>
+        <td>부가세법 §26①18 — 종교단체가 <strong>고유목적사업을 위해 '실비 또는 무상'</strong>으로
+          공급하는 것만 면세</td>
+        <td><span class="badge badge-no">F&amp;B·리테일·숙박·유료 프로그램 전부 과세</span></td></tr>
+      <tr><td>법인세</td><td class="num">3.2억</td>
+        <td>2억 이하 9% / 2~200억 19% <span style="color:var(--fg-3)">(2026년)</span></td>
+        <td>준비금 손금산입 후 과세표준에 적용</td></tr>
+      <tr><td>지방소득세</td><td class="num">0.3억</td><td>법인세액의 10%</td><td>—</td></tr>
+      <tr><td><strong>재산세</strong></td><td class="num">1.2억</td>
+        <td><strong>직영·위탁·별도법인·임대 4안 모두 과세로 전환</strong> <span style="color:var(--fg-3)">E-0173 A</span></td>
+        <td><span class="badge badge-warn">어떤 구조를 택해도 면제 상실</span></td></tr>
+      <tr><td>취득세 추징</td><td class="num warn">미산정</td>
+        <td>지방세특례제한법 §50 — 종교목적 면제분의 추징 가능성 <span style="color:var(--fg-3)">E-0175 A</span></td>
+        <td>과거 웨딩홀 임대 이력으로 <strong>이미 과세 전환됐을 수 있음</strong></td></tr>
+      <tr class="total"><td>세금 합계</td><td class="num">16.8억</td>
+        <td colspan="2">5년차 총매출 136.5억의 <strong>12.3%</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>부가세가 가장 큰 세목인데 지금까지 어느 라인도 언급하지 않았습니다.</strong>
+    이 검토는 <strong>모든 표시가가 부가세 포함</strong>이라고 가정했습니다 — B2C 가격 표기의 관행이고,
+    02-대관BM만 유일하게 <strong>"1,150원/㎡·일, VAT 별도"</strong>라고 명시했습니다.</p>
+    <p>다행히 이 가정이 틀려도 결과는 크게 안 바뀝니다 — 별도였다면 5년차 세후이익이
+    <strong>32.1억에서 31.7억</strong>으로 0.4억(1.2%) 움직입니다.
+    매출이 늘면 부가세도 같이 늘어 상쇄되기 때문입니다. <strong>다만 각 라인 리포트에 명시는 해야 합니다.</strong></p>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>재산세 1.2억은 가장 약한 숫자입니다.</strong>
+    공시가 300억 × 0.4%로 추정했는데 <strong>공시가를 확인하지 못했습니다.</strong>
+    과표가 두 배면 세후이익이 1.1억 줄어듭니다.</p>
+    <p>그리고 <strong>이 항목은 피할 방법이 없습니다.</strong> E-0173이 명시하듯 직영·위탁·별도법인·임대
+    어느 구조를 택해도 해당 부분은 과세로 전환됩니다. <strong>재임대를 택해도 마찬가지</strong>라는 뜻이라,
+    기준선 30억도 이 비용을 지게 됩니다.</p>
+  </div>
+</section>
+
+<!-- 02 준비금 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">The Only Lever</div>
+    <h2>절세 장치는 하나뿐입니다</h2></div>
+    <div class="no">02</div>
+  </div>
+  <p class="sec-desc">
+    법인세법 제29조 — 비영리내국법인은 수익사업 소득의 <strong>50%까지 고유목적사업준비금으로
+    손금산입</strong>할 수 있습니다. 이 하나가 실효세율을 절반으로 만듭니다.
+  </p>
+
+  <div class="layer">
+    <div class="ly core"><div class="n">준비금 적용</div><h4>실효세율 9.3%</h4>
+      <p>EBIT 35.6억 → 과세표준 17.8억 → 법인세 3.2억 + 지방소득세 0.3억</p>
+      <div class="v">3.5억</div><div class="s">세금 총액 (5년차)</div></div>
+    <div class="ly danger"><div class="n">미적용 시</div><h4>실효세율 19.8%</h4>
+      <p>EBIT 전액이 과세표준. 별도법인(C안)을 택하면 <strong>준비금 자체를 쓸 수 없습니다</strong>
+      <span style="color:var(--fg-3)">(E-0170 A)</span>.</p>
+      <div class="v">7.2억</div><div class="s">+3.7억</div></div>
+    <div class="ly"><div class="n">5년 누적</div><h4>절세 효과</h4>
+      <p>연 2.0~3.7억 × 5년. <strong>직영 구조를 택해야만 얻는 값</strong>입니다.</p>
+      <div class="v">약 15억</div><div class="s">CAPEX 90.8억의 17%</div></div>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>단 조건이 붙습니다 — 5년 안에 써야 합니다.</strong>
+    손금산입한 사업연도 종료일 이후 <strong>5년이 되는 날까지 고유목적사업에 사용</strong>해야 하고,
+    미사용분은 익금산입 + <strong>이자상당액까지 추가 납부</strong>합니다
+    <span style="color:var(--fg-3)">(E-0172 A)</span>.</p>
+    <p>즉 이 절세는 <strong>"세금을 안 내는 것"이 아니라 "포교·공익에 쓰겠다는 약속"</strong>입니다.
+    5년 안에 그만큼을 실제 고유목적사업에 지출하지 못하면 오히려 손해입니다.
+    <strong>연 3~4억을 무엇에 쓸 것인지가 함께 설계돼야 합니다.</strong></p>
+  </div>
+
+  <div class="callout">
+    <p><strong>구조 선택이 곧 세금입니다.</strong>
+    이미 나와 있는 4안 비교 <span style="color:var(--fg-3)">(E-0167·E-0168·E-0170)</span>를
+    이 검토의 숫자로 다시 읽으면 결론이 분명해집니다 —</p>
+    <p><strong>직영(A안)</strong>은 준비금 50%를 쓸 수 있고 임대 허가 절차도 불요합니다.
+    <strong>별도법인(C안)</strong>은 리스크를 분리하는 대신 <strong>이중과세 + 준비금 불가 + 부동산 이전 시 취득세·양도세</strong>가
+    붙습니다. 5년 누적 15억의 절세를 포기하는 셈입니다.
+    <strong>E-0183이 "직영이 법적 최안전"이라고 한 판단이 세무에서도 유지됩니다.</strong></p>
+  </div>
+</section>
+
+<!-- 03 5개년 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">Five-Year P&amp;L</div>
+    <h2>5개년 손익</h2></div>
+    <div class="no">03</div>
+  </div>
+  <p class="sec-desc">
+    라인별 이익률을 통일 양식으로 모으고 램프업 곡선을 적용했습니다.
+    멤버십은 RL-10의 갱신율 65% 곡선을, C안은 3단계 로드맵을 그대로 썼습니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">1년차</th><th class="num">2년차</th><th class="num">3년차</th><th class="num">4년차</th><th class="num">5년차</th></tr></thead>
+    <tbody>
+      <tr><td>총매출 <span style="color:var(--fg-3)">(VAT 포함)</span></td>
+        <td class="num">79.5억</td><td class="num">111.2억</td><td class="num">130.1억</td><td class="num">134.8억</td><td class="num">136.5억</td></tr>
+      <tr class="sub-row"><td>부가가치세</td>
+        <td class="num">−7.1</td><td class="num">−9.9</td><td class="num">−11.6</td><td class="num">−12.0</td><td class="num">−12.1</td></tr>
+      <tr><td>순매출 <span style="color:var(--fg-3)">(공급가액)</span></td>
+        <td class="num">72.4억</td><td class="num">101.3억</td><td class="num">118.5억</td><td class="num">122.8억</td><td class="num">124.4억</td></tr>
+      <tr><td>영업이익</td>
+        <td class="num">26.0억</td><td class="num">36.0억</td><td class="num">41.9억</td><td class="num">43.6억</td><td class="num">44.4억</td></tr>
+      <tr class="sub-row"><td>감가상각 (12년)</td>
+        <td class="num">−5.2</td><td class="num">−5.2</td><td class="num">−6.8</td><td class="num">−7.6</td><td class="num">−7.6</td></tr>
+      <tr class="sub-row"><td>재산세</td>
+        <td class="num">−1.2</td><td class="num">−1.2</td><td class="num">−1.2</td><td class="num">−1.2</td><td class="num">−1.2</td></tr>
+      <tr><td>세전이익 EBIT</td>
+        <td class="num">19.7억</td><td class="num">29.6억</td><td class="num">33.8억</td><td class="num">34.8억</td><td class="num">35.6억</td></tr>
+      <tr class="sub-row"><td>법인세 + 지방소득세</td>
+        <td class="num">−1.9</td><td class="num">−2.9</td><td class="num">−3.3</td><td class="num">−3.4</td><td class="num">−3.5</td></tr>
+      <tr class="total"><td>세후이익</td>
+        <td class="num">17.8억</td><td class="num">26.8억</td><td class="num">30.5억</td><td class="num">31.4억</td><td class="num">32.1억</td></tr>
+      <tr class="total"><td>세후이익 누적</td>
+        <td class="num">17.8억</td><td class="num">44.6억</td><td class="num">75.1억</td><td class="num">106.5억</td><td class="num">138.7억</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">1년차 — 매출에서 세후이익까지</h3>
+  <div class="wf">
+    <div class="r"><div class="lb">총매출 (VAT 포함)</div>
+      <div class="tr"><div class="bx" style="left:0;width:100%;background:var(--accent)">79.5억</div></div>
+      <div class="vv">79.5</div></div>
+    <div class="r"><div class="lb">− 부가가치세</div>
+      <div class="tr"><div class="bx" style="left:91.1%;width:8.9%;background:var(--red)"></div></div>
+      <div class="vv neg">−7.1</div></div>
+    <div class="r"><div class="lb">= 순매출</div>
+      <div class="tr"><div class="bx" style="left:0;width:91.1%;background:var(--accent-light)">72.4억</div></div>
+      <div class="vv">72.4</div></div>
+    <div class="r"><div class="lb">− 운영비 (OPEX)</div>
+      <div class="tr"><div class="bx" style="left:32.7%;width:58.4%;background:var(--red)"></div></div>
+      <div class="vv neg">−46.4</div></div>
+    <div class="r"><div class="lb">= 영업이익</div>
+      <div class="tr"><div class="bx" style="left:0;width:32.7%;background:var(--blue)">26.0억</div></div>
+      <div class="vv">26.0</div></div>
+    <div class="r"><div class="lb">− 감가상각 · 재산세</div>
+      <div class="tr"><div class="bx" style="left:24.8%;width:8.0%;background:var(--red)"></div></div>
+      <div class="vv neg">−6.4</div></div>
+    <div class="r"><div class="lb">= 세전이익</div>
+      <div class="tr"><div class="bx" style="left:0;width:24.8%;background:var(--amber)">19.7억</div></div>
+      <div class="vv">19.7</div></div>
+    <div class="r"><div class="lb">− 법인세 · 지방소득세</div>
+      <div class="tr"><div class="bx" style="left:22.4%;width:2.4%;background:var(--red)"></div></div>
+      <div class="vv neg">−1.9</div></div>
+    <div class="r"><div class="lb"><strong>= 세후이익</strong></div>
+      <div class="tr"><div class="bx" style="left:0;width:22.4%;background:var(--green)">17.8억</div></div>
+      <div class="vv"><strong>17.8</strong></div></div>
+  </div>
+  <p class="note" style="color:var(--fg-3)">
+    총매출 79.5억이 세후 17.8억이 됩니다 — <strong>22.4%만 남습니다.</strong>
+    가장 큰 항목은 운영비 46.4억(58.4%)이고, 세금은 9.0억(11.3%)입니다.
+  </p>
+
+  <div class="callout callout-warn">
+    <p><strong>라인별 이익률 중 4개가 추정입니다.</strong>
+    RL-08 대관(60%) · RL-09 숙박(22%) · RL-11 장묘(60%) · RL-13 시즌(45%)은
+    해당 리포트가 영업이익을 산출하지 않아 <strong>유사 라인에서 유추</strong>했습니다.
+    특히 <strong>RL-13은 리포트 자신이 "OPEX 미산출"을 명시</strong>했고,
+    RL-08은 02-대관BM이 <strong>"우리 대관의 원가는 미확정 공백"</strong>이라고 남겨둔 값입니다.</p>
+  </div>
+</section>
+
+<!-- 04 현금흐름 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">Cash Flow</div>
+    <h2>3년차에 회수됩니다</h2></div>
+    <div class="no">04</div>
+  </div>
+  <p class="sec-desc">
+    <span style="color:var(--red)">⚠ 정정 — 이 절의 수치는 A단 건물 투자비 누락분입니다.
+    실제는 CAPEX 162.4억 중 137.4억이 개관 전, 회수는 5년차(국비 없을 때)입니다. 00E v2.0 §05 참조.</span><br>
+    CAPEX 90.8억 중 <strong>61.8억이 개관 전</strong>에 들어갑니다.
+    숙박(RL-09)만 자체 Phase 분할이 있어 19.9억은 2년차 말, 9.1억은 3년차 말에 투입됩니다.
+  </p>
+
+  <div class="cf">
+    <div class="c"><div class="zero"></div>
+      <div class="val" style="top:52%">−61.8</div>
+      <div class="b dn" style="height:38.6%"></div><div class="lab">개관 전</div></div>
+    <div class="c"><div class="zero"></div>
+      <div class="val" style="top:52%">−38.8</div>
+      <div class="b dn" style="height:24.2%"></div><div class="lab">1년차</div></div>
+    <div class="c"><div class="zero"></div>
+      <div class="val" style="top:52%">−26.8</div>
+      <div class="b dn" style="height:16.7%"></div><div class="lab">2년차</div></div>
+    <div class="c"><div class="zero"></div>
+      <div class="val" style="bottom:52%">+1.4</div>
+      <div class="b up" style="height:0.9%"></div><div class="lab">3년차</div></div>
+    <div class="c"><div class="zero"></div>
+      <div class="val" style="bottom:52%">+40.4</div>
+      <div class="b up" style="height:25.2%"></div><div class="lab">4년차</div></div>
+    <div class="c"><div class="zero"></div>
+      <div class="val" style="bottom:52%">+80.1</div>
+      <div class="b up" style="height:50%"></div><div class="lab">5년차</div></div>
+  </div>
+  <p class="note" style="text-align:center;color:var(--fg-3)">누적 현금흐름 · 세후이익 + 감가상각(비현금) − CAPEX</p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">개관 전</th><th class="num">1년차</th><th class="num">2년차</th><th class="num">3년차</th><th class="num">4년차</th><th class="num">5년차</th></tr></thead>
+    <tbody>
+      <tr><td>CAPEX 투입</td><td class="num neg">−61.8</td><td class="num">—</td>
+        <td class="num neg">−19.9</td><td class="num neg">−9.1</td><td class="num">—</td><td class="num">—</td></tr>
+      <tr><td>연간 현금흐름</td><td class="num neg">−61.8</td><td class="num pos">+23.0</td>
+        <td class="num pos">+12.0</td><td class="num pos">+28.2</td><td class="num pos">+39.0</td><td class="num pos">+39.7</td></tr>
+      <tr class="total"><td>누적 현금흐름</td><td class="num neg">−61.8</td><td class="num neg">−38.8</td>
+        <td class="num neg">−26.8</td><td class="num pos">+1.4</td><td class="num pos">+40.4</td><td class="num pos">+80.1</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>개관 전 61.8억을 어디서 조달하는지가 이 표에 없습니다.</strong>
+    이 검토는 자기자본 100%를 암묵적으로 가정했습니다 —
+    <strong>차입이자도, 국고보조 조건도, 종단 출연도 반영하지 않았습니다.</strong></p>
+    <p>특히 RL-09 숙박 검토가 지적한 <strong>시설보조금 2억 이상 수령 시 7년 반납 의무 락인</strong>
+    <span style="color:var(--fg-3)">(E-0876 A)</span>이 여기 걸립니다.
+    61.8억을 국고로 대면 운영 자유도를 7년 저당 잡고,
+    자부담으로 대면 <strong>봉은사가 61.8억의 현금을 갖고 있어야 합니다.</strong>
+    이 질문에 답하기 전에는 이 표가 계획이 아니라 시뮬레이션입니다.</p>
+  </div>
+
+  <div class="callout">
+    <p><strong>2년차에 현금흐름이 꺾입니다.</strong>
+    매출은 79.5 → 111.2억으로 오르는데 연간 현금흐름은 23.0 → 12.0억으로 내려갑니다.
+    숙박 Phase 2 CAPEX 19.9억이 그때 들어가기 때문입니다.</p>
+    <p>이것은 <strong>RL-09 리포트의 단계 개관 권고를 따른 결과</strong>이고, 대안은 두 가지입니다 —
+    ① Phase 2를 3년차로 미뤄 2년차 현금흐름을 지키거나
+    ② 1년차 실적을 보고 Phase 2 규모를 조정하는 것. 후자가 리포트의 원래 의도입니다
+    <span style="color:var(--fg-3)">("Phase 1의 낮 이용자 데이터가 숙박 수요의 실측 근거가 된다")</span>.</p>
+  </div>
+</section>
+
+<!-- 05 민감도 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">Sensitivity</div>
+    <h2>무엇이 결과를 흔드는가</h2></div>
+    <div class="no">05</div>
+  </div>
+  <p class="sec-desc">
+    마스터 v0.2가 "민감도·손익분기가 없습니다"라고 남겨둔 공백입니다.
+    5년차 세후이익 32.1억을 기준으로 변수를 하나씩 흔들었습니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>변수</th><th class="num">5년차 세후이익</th><th class="num">변화</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr class="total"><td>기준안</td><td class="num">32.1억</td><td class="num">—</td><td>—</td></tr>
+      <tr><td><strong>전 라인 매출 −20%</strong></td><td class="num">24.2억</td><td class="num neg">−24.8%</td>
+        <td><strong>최대 변수</strong> — 매출이 이익률보다 크게 작용</td></tr>
+      <tr><td>고유목적사업준비금 미적용</td><td class="num">28.4억</td><td class="num neg">−11.6%</td>
+        <td>별도법인(C안) 선택 시 이 값이 됨</td></tr>
+      <tr><td>추정 이익률 4개 라인 −10%p</td><td class="num">29.6억</td><td class="num neg">−7.8%</td>
+        <td>RL-08·09·11·13 — 근거가 가장 약한 넷</td></tr>
+      <tr><td>재산세 과표 2배 (600억)</td><td class="num">31.0억</td><td class="num neg">−3.3%</td>
+        <td>공시가 미확인 — 확인이 쉬운 항목</td></tr>
+      <tr><td>표시가가 VAT 별도였다면</td><td class="num">31.7억</td><td class="num neg">−1.2%</td>
+        <td>매출과 부가세가 함께 움직여 상쇄</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <p><strong>세무 변수는 생각보다 작고, 매출 변수가 압도적입니다.</strong>
+    준비금·재산세·부가세를 다 합쳐도 매출 −20% 하나의 영향에 못 미칩니다.</p>
+    <p>즉 <strong>세무 설계로 이 사업의 성패가 갈리지는 않습니다.</strong>
+    다만 준비금 11.6%는 <strong>구조 선택 한 번으로 확정되는 값</strong>이라 공짜로 얻을 수 있는 유일한 이익이고,
+    그래서 <strong>직영 구조를 택해야 할 이유</strong>가 됩니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>매출 −20%는 낙관적인 하방 가정입니다.</strong>
+    각 라인의 보수 시나리오를 모두 적용하면 감소폭이 −20%보다 훨씬 큽니다 —
+    RL-09 숙박은 보수안이 기준안의 56%(10.4/18.5), RL-06 명상은 28%(2.11/7.64)입니다.
+    <strong>전 라인 보수안 조합에 대한 계산은 이 검토에 없습니다.</strong> 잔여 1번 항목입니다.</p>
+  </div>
+</section>
+
+<!-- 06 기준선 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">Baseline Revisited</div>
+    <h2>"재임대가 낫다"에 답하기</h2></div>
+    <div class="no">06</div>
+  </div>
+  <p class="sec-desc">
+    이 프로젝트의 모든 숫자는 <strong>웨딩홀 임대 연 30억</strong>과 비교돼 왔습니다
+    <span style="color:var(--fg-3)">(E-0057 · 2026-08-11 발주처 확인)</span>.
+    그런데 그 비교가 지금까지 <strong>세전 매출 대 세전 매출</strong>이었습니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th class="num">재임대</th><th class="num">사업 (5년차)</th><th>차이</th></tr></thead>
+    <tbody>
+      <tr><td>총매출</td><td class="num">30.0억</td><td class="num">136.5억</td><td>4.55배</td></tr>
+      <tr><td>부가가치세</td><td class="num">임대료 과세</td><td class="num neg">−12.1억</td><td>—</td></tr>
+      <tr><td>운영비</td><td class="num">거의 0</td><td class="num neg">−80.0억</td><td><strong>사업은 매출의 59%가 비용</strong></td></tr>
+      <tr><td>감가상각</td><td class="num">건물 유지분</td><td class="num neg">−7.6억</td><td>CAPEX 90.8억 ÷ 12년</td></tr>
+      <tr><td>재산세</td><td class="num neg">과세 전환</td><td class="num neg">−1.2억</td><td><strong>양쪽 다 부담</strong> <span style="color:var(--fg-3)">E-0173</span></td></tr>
+      <tr><td>법인세·지방소득세</td><td class="num neg">−2.9억</td><td class="num neg">−3.5억</td><td>준비금 50% 적용 후</td></tr>
+      <tr class="total"><td>세후</td><td class="num">약 27.1억</td><td class="num">32.1억</td><td><strong>+5.0억 · 1.07배</strong></td></tr>
+      <tr class="total"><td><strong>세후 (A단 정정 후)</strong></td><td class="num">약 27.1억</td><td class="num neg">26.7억</td>
+        <td class="neg"><strong>−0.4억 · 0.98배 — 재임대가 유리</strong></td></tr>
+      <tr class="sub-row"><td colspan="4">국비 43.4억 확보 시 30.0억(1.11배) · 국비 72.8억 확보 시 32.2억(1.19배) — 00E v2.0 §05</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="kpi-grid-3 kpi-grid">
+    <div class="kpi bad"><div class="kpi-label">1년차</div><div class="kpi-value">0.59<span class="kpi-unit">x</span></div><div class="kpi-sub">17.8억 — <strong>기준선 미달</strong></div></div>
+    <div class="kpi"><div class="kpi-label">3년차</div><div class="kpi-value">1.02<span class="kpi-unit">x</span></div><div class="kpi-sub">30.5억 — 겨우 넘음</div></div>
+    <div class="kpi hero"><div class="kpi-label">5년차</div><div class="kpi-value">1.07<span class="kpi-unit">x</span></div><div class="kpi-sub">32.1억 — +5.0억</div></div>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>숫자만 보면 이 사업은 재임대를 겨우 이깁니다.</strong>
+    5년간 90.8억을 투자하고 수십 명을 고용하고 유권해석·과세·인력 리스크를 전부 져서
+    <strong>연 5억을 더 버는 구조</strong>입니다. 그것도 3년차가 되어서야 기준선을 넘습니다.</p>
+    <p>그리고 이 비교에는 <strong>재임대의 기회비용이 빠져 있습니다</strong> —
+    임대를 택하면 CAPEX 90.8억이 필요 없고, 그 돈을 다른 데 쓸 수 있습니다.
+    <strong>순수 재무 논리로는 재임대가 유리하다는 결론도 가능합니다.</strong></p>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>그럼에도 이 사업을 해야 한다면 근거는 재무 밖에 있습니다.</strong></p>
+    <p>① <strong>계약 목적문</strong> — 이 용역은 수익 극대화가 아니라 전통문화 진흥·포교·공익을 위한 활용전략입니다.<br>
+    ② <strong>웨딩홀 임대료는 GBD 시세의 68.4%</strong>였습니다 <span style="color:var(--fg-3)">(E-1078 A)</span> —
+    30억은 헐값이 아니지만 시세권 하단이고, 임대차 갱신 때 오를 보장도 없습니다.<br>
+    ③ <strong>고유목적사업준비금은 연 3~4억을 포교·공익에 쓰게 만듭니다</strong> —
+    임대 수익 27억은 그런 강제가 없습니다.<br>
+    ④ <strong>브랜드·신도·외국인 접점</strong>은 이 표에 숫자로 들어가지 않습니다.
+    RL-01 전시가 "수익 라인이 아니라 집객 라인"으로 재분류된 것과 같은 성격의 가치입니다.</p>
+    <p><strong>이 검토의 역할은 그 판단을 대신하는 것이 아니라, 판단이 무엇을 사고 무엇을 파는지 정확히 보여주는 것입니다.</strong></p>
+  </div>
+</section>
+
+<!-- 07 판정 -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div><div class="eyebrow">Verdict</div>
+    <h2>판정과 남은 것</h2></div>
+    <div class="no">07</div>
+  </div>
+
+  <h3 class="sub">판정</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>질문</th><th>답</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>계약서 제3조 5개년 경제성 검토가 나왔는가</td><td><span class="badge badge-warn">초안</span></td>
+        <td>5개년 P&amp;L·현금흐름·민감도 산출 · 단 <strong>자금 조달 구조가 없음</strong></td></tr>
+      <tr><td>세금이 사업 성패를 가르는가</td><td><span class="badge badge-no">아니오</span></td>
+        <td>세무 변수 합계보다 매출 −20% 하나가 큼</td></tr>
+      <tr><td>어떤 구조를 택해야 하는가</td><td><strong>직영(A안)</strong></td>
+        <td>준비금 50%로 5년 15억 절세 · 별도법인은 이중과세+준비금 불가</td></tr>
+      <tr><td>기준선을 넘는가</td><td><span class="badge badge-warn">3년차부터 · 1.07배</span></td>
+        <td>세후 32.1억 vs 임대 세후 27.1억</td></tr>
+      <tr><td>투자는 회수되는가</td><td><span class="badge badge-yes">3년차</span></td>
+        <td>단 <strong>개관 전 61.8억의 출처가 미정</strong></td></tr>
+      <tr><td>가장 약한 숫자는</td><td><strong>추정 이익률 4개</strong></td>
+        <td>RL-08·09·11·13 — 해당 리포트가 영업이익을 산출하지 않음</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">권고</h3>
+  <div class="callout callout-success">
+    <p><strong>① 직영 구조를 확정하고 수익사업 개시신고·구분회계를 준비합니다.</strong>
+    E-0562가 이미 <strong>"문체부 유권해석 + 직영 세무설계"</strong>를 9.27 임계경로의 두 게이트로 지목했습니다.
+    준비금 50%는 <strong>구조를 정하는 순간 확정되는 유일한 이익</strong>이고, 5년 누적 약 15억입니다.</p>
+  </div>
+  <div class="callout">
+    <p><strong>② 고유목적사업준비금의 사용처를 함께 설계합니다.</strong>
+    5년 내 미사용 시 익금산입 + 이자상당액입니다. 연 3~4억을 어떤 포교·공익 사업에 쓸지가
+    <strong>절세의 조건</strong>이지 부수 효과가 아닙니다.</p>
+  </div>
+  <div class="callout callout-warn">
+    <p><strong>③ 자금 조달 구조를 다음 산출물로 올립니다.</strong>
+    개관 전 61.8억 — 자기자본·차입·국고보조·종단 출연의 배분이 없으면
+    이 5개년 표는 계획이 아니라 시뮬레이션입니다.
+    특히 <strong>국고 시설보조 2억+ 수령 시 7년 락인</strong>(E-0876)이 프리미엄 단가 전략과 충돌합니다.</p>
+  </div>
+  <div class="callout">
+    <p><strong>④ 라인 리포트 4건에 영업이익 산출을 요청합니다.</strong>
+    RL-08 대관 · RL-09 숙박(명상 제외 재계산) · RL-11 장묘 · RL-13 시즌.
+    이 넷이 5년차 세후이익의 <strong>±2.5억</strong>을 좌우합니다.</p>
+  </div>
+
+  <h3 class="sub">리서치 잔여</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>#</th><th>항목</th><th>확정되는 것</th><th>난이도</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>전 라인 보수안 조합</strong></td><td>진짜 하방 — 매출 −20%보다 훨씬 깊음</td><td>하 · 계산</td></tr>
+      <tr><td>2</td><td>자금 조달 구조</td><td>차입이자·국고 조건 — 현재 자기자본 100% 암묵 가정</td><td>상 · 발주처 결정</td></tr>
+      <tr><td>3</td><td>건물 공시가</td><td>재산세 1.2억 — 300억은 추정</td><td>하 · 공시가격 조회</td></tr>
+      <tr><td>4</td><td>취득세 추징 여부</td><td>미산정 항목 — 과거 웨딩홀 이력으로 이미 전환됐는지</td><td>중 · 세무 대리인</td></tr>
+      <tr><td>5</td><td>라인별 VAT 포함/별도</td><td>표시가 정의 — 각 리포트에 명시 없음</td><td>하</td></tr>
+      <tr><td>6</td><td>부가세 면세 범위 유권해석</td><td>어린이 교실·공익 프로그램이 '실비'인지</td><td>중 · 세무</td></tr>
+      <tr><td>7</td><td>준비금 사용처 설계</td><td>연 3~4억의 고유목적사업 지출 계획</td><td>중 · 내부</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">이 검토가 아직 답하지 못하는 것</h3>
+  <p class="note">
+    ① <strong>운전자본이 없습니다.</strong> 재고·매출채권·선수금(멤버십 연회비는 선수금입니다)의
+    현금 시점 차이를 반영하지 않았습니다.<br>
+    ② <strong>개관 전 비용이 CAPEX에만 있습니다.</strong> 인력 채용·교육·마케팅·시스템 구축 등
+    개관 준비비(pre-opening cost)가 통째로 빠져 있습니다. 통상 매출의 3~5% 규모입니다.<br>
+    ③ <strong>이익률을 5년간 고정했습니다.</strong> 규모의 경제와 인건비 상승이 상쇄된다고 암묵 가정했는데
+    검증하지 않았습니다.<br>
+    ④ <strong>감가상각 12년은 단일 가정입니다.</strong> 인테리어(5년)·설비(8년)·건축(20년)이
+    실제로는 다른 내용연수를 가집니다.<br>
+    ⑤ <strong>6년차 이후가 없습니다.</strong> 계약이 5개년을 요구했지만,
+    CAPEX 90.8억의 회수는 12년 감가상각 위에 서 있습니다.
+  </p>
+</section>
+
+<div class="foot">PROJECT RENT · 세금 + 5개년 경제성 검토 v1.0 · 내부 문서 · 대외 배포 금지</div>
+
+<script>
+const secs=[...document.querySelectorAll('.sec')],links=[...document.querySelectorAll('.nav a')];
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+  const i=secs.indexOf(e.target);links.forEach(l=>l.classList.remove('active'));
+  if(links[i])links[i].classList.add('active');}})},{rootMargin:'-45% 0px -45% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

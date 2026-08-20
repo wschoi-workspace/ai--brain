@@ -1,0 +1,2131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봉은문화센터 Master Strategy — 진단·전략 컨설팅 레포트</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#212121; --card:#242424; --card-2:#2A2A2A; --card-3:#303030;
+  --line:#333333; --line-2:#3D3D3D; --line-3:#4A4A4A;
+  --tx:#F5F5F5; --tx-2:#B8B8B8; --tx-3:#7A7A7A; --tx-4:#5C5C5C;
+  --pri:#6C5CE7; --pri-2:#8B7EF0; --pri-dim:rgba(108,92,231,.14);
+  --ok:#8FA37E; --warn:#D9A34B; --risk:#E06060; --neu:#7A9EB8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0D0D0D;font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;
+  color:var(--tx);-webkit-font-smoothing:antialiased;padding:40px 0}
+
+/* ── Slide frame ───────────────────────────────── */
+.slide{position:relative;width:1280px;min-height:720px;height:720px;margin:0 auto 30px;
+  background:var(--bg);display:flex;flex-direction:column;padding:0 64px 54px;overflow:hidden}
+
+/* Running header (MBB) */
+.rh{flex:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;
+  padding:22px 0 10px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.rh .doc{font-size:11px;letter-spacing:.13em;color:var(--tx-4);font-weight:600;text-transform:uppercase}
+.rh .sec{font-size:11px;letter-spacing:.13em;color:var(--pri-2);font-weight:700;text-transform:uppercase}
+.rh .sec b{background:var(--pri);color:#fff;padding:2px 8px;border-radius:3px;margin-right:8px;letter-spacing:.05em}
+.pn{position:absolute;right:64px;bottom:20px;font-size:11px;color:var(--tx-4);font-weight:600;letter-spacing:.06em}
+.fw{position:absolute;left:64px;bottom:20px;font-size:11px;color:var(--tx-4);letter-spacing:.04em}
+
+/* Action title */
+.at{flex:0 0 auto;margin-bottom:6px}
+.at h1{font-size:31px;font-weight:800;line-height:1.32;letter-spacing:-.021em}
+.at h1 em{font-style:normal;color:var(--pri-2)}
+.at h1 u{text-decoration:none;border-bottom:2px solid var(--pri);padding-bottom:1px}
+.at .dek{margin-top:11px;font-size:14.5px;color:var(--tx-2);line-height:1.62;font-weight:500;max-width:1050px}
+.body{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;padding:20px 0 4px}
+.body.top{justify-content:flex-start}
+
+/* ── Exhibit ───────────────────────────────────── */
+.exh{border:1px solid var(--line-2);border-radius:9px;background:var(--card);overflow:hidden}
+.exh-h{display:flex;align-items:baseline;gap:11px;padding:11px 17px;background:var(--card-2);
+  border-bottom:1px solid var(--line-2)}
+.exh-h .n{font-size:10px;font-weight:800;letter-spacing:.1em;color:#fff;background:var(--pri);
+  padding:3px 8px;border-radius:3px;white-space:nowrap}
+.exh-h .t{font-size:13.5px;font-weight:700;color:var(--tx);line-height:1.4}
+.exh-b{padding:16px 18px}
+.src{padding:9px 17px;border-top:1px solid var(--line);background:#1E1E1E;
+  font-size:10.5px;color:var(--tx-4);line-height:1.55;letter-spacing:-.002em}
+.src b{color:var(--tx-3);font-weight:700}
+
+/* ── Grids / cards ─────────────────────────────── */
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:15px 16px}
+.card.acc{border-left:3px solid var(--pri)}
+.card h3{font-size:15.5px;font-weight:700;margin-bottom:8px;line-height:1.36}
+.card p{font-size:12.8px;color:var(--tx-2);line-height:1.66}
+.card p+p{margin-top:7px}
+.lbl{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.11em;padding:3px 8px;
+  border-radius:3px;margin-bottom:9px;text-transform:uppercase}
+.lbl.p{background:var(--pri-dim);color:var(--pri-2)}
+.lbl.ok{background:rgba(143,163,126,.16);color:var(--ok)}
+.lbl.warn{background:rgba(217,163,75,.16);color:var(--warn)}
+.lbl.risk{background:rgba(224,96,96,.14);color:var(--risk)}
+.lbl.neu{background:rgba(122,158,184,.15);color:var(--neu)}
+.lbl.gray{background:#2E2E2E;color:var(--tx-3)}
+
+/* Stat */
+.stats{display:grid;gap:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 15px;text-align:left}
+.stat .v{font-size:29px;font-weight:800;letter-spacing:-.03em;line-height:1.06;color:var(--tx)}
+.stat .v em{font-style:normal;font-size:15px;font-weight:700;color:var(--tx-2);margin-left:2px}
+.stat .v.p{color:var(--pri-2)} .stat .v.ok{color:var(--ok)}
+.stat .v.risk{color:var(--risk)} .stat .v.warn{color:var(--warn)}
+.stat .k{margin-top:7px;font-size:11.5px;color:var(--tx-3);line-height:1.5;font-weight:600}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:12.4px}
+th{background:var(--card-2);color:var(--tx-3);font-weight:700;font-size:10.5px;letter-spacing:.07em;
+  text-transform:uppercase;padding:8px 9px;text-align:left;border-bottom:1px solid var(--line-2)}
+td{padding:8px 9px;border-bottom:1px solid #2B2B2B;color:var(--tx-2);line-height:1.5}
+tr:last-child td{border-bottom:none}
+td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--tx)}
+td.hd{color:var(--tx);font-weight:700}
+tr.hl td{background:rgba(108,92,231,.09)}
+tr.hl td.hd{color:var(--pri-2)}
+tr.dim td{color:var(--tx-4)}
+.pos{color:var(--ok);font-weight:700} .neg{color:var(--risk);font-weight:700}
+.chk{color:var(--ok);font-weight:800} .x{color:var(--tx-4)}
+
+/* Callout */
+.co{border-left:3px solid var(--pri);background:var(--pri-dim);border-radius:0 7px 7px 0;
+  padding:13px 16px;font-size:13px;line-height:1.66;color:var(--tx-2)}
+.co b,.co strong{color:var(--tx);font-weight:700}
+.co.w{border-left-color:var(--warn);background:rgba(217,163,75,.09)}
+.co.r{border-left-color:var(--risk);background:rgba(224,96,96,.08)}
+.co.o{border-left-color:var(--ok);background:rgba(143,163,126,.09)}
+mark{background:none;color:var(--pri-2);font-weight:700}
+mark.r{color:var(--risk)} mark.o{color:var(--ok)} mark.w{color:var(--warn)}
+
+/* Flow */
+.flow{display:flex;align-items:stretch;gap:0}
+.flow .n{flex:1;background:var(--card);border:1px solid var(--line);padding:12px 11px;position:relative}
+.flow .n:not(:last-child){margin-right:16px}
+.flow .n:not(:last-child)::after{content:'';position:absolute;right:-12px;top:50%;
+  transform:translateY(-50%);border-left:7px solid var(--line-3);
+  border-top:5px solid transparent;border-bottom:5px solid transparent}
+.flow .n .i{font-size:9.5px;font-weight:800;color:var(--pri-2);letter-spacing:.1em;margin-bottom:5px}
+.flow .n .t{font-size:12.5px;font-weight:700;line-height:1.35;margin-bottom:4px}
+.flow .n .d{font-size:10.8px;color:var(--tx-3);line-height:1.45}
+
+/* Back-up */
+.slide.bu{background:#161616}
+.slide.bu .rh .sec b{background:var(--tx-4)}
+.slide.bu .rh .sec{color:var(--tx-3)}
+.bu-tag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.13em;
+  background:#2E2E2E;color:var(--tx-3);padding:3px 9px;border-radius:3px;margin-bottom:10px}
+
+/* Cover */
+.cover{justify-content:center;padding:0 82px;background:
+  radial-gradient(900px 500px at 78% 18%,rgba(108,92,231,.13),transparent 62%),var(--bg)}
+.cover .kicker{font-size:12px;letter-spacing:.24em;color:var(--pri-2);font-weight:700;margin-bottom:24px}
+.cover h1{font-size:52px;font-weight:800;line-height:1.2;letter-spacing:-.028em;margin-bottom:20px}
+.cover h1 em{font-style:normal;color:var(--pri-2)}
+.cover .sub{font-size:17px;color:var(--tx-2);line-height:1.66;max-width:800px;font-weight:500}
+.cover .meta{margin-top:44px;padding-top:22px;border-top:1px solid var(--line-2);
+  display:flex;gap:52px;font-size:12.5px;color:var(--tx-3)}
+.cover .meta b{display:block;color:var(--tx);font-weight:700;margin-top:5px;font-size:13.5px}
+
+
+/* ── Density modifiers (fit to 720px frame) ────── */
+.slide.tight .rh{padding:17px 0 8px;margin-bottom:15px}
+.slide.tight .at h1{font-size:27px;line-height:1.28}
+.slide.tight .at .dek{font-size:13.2px;margin-top:8px;line-height:1.55}
+.slide.tight .body{padding:13px 0 2px}
+.slide.tight th{padding:6px 8px;font-size:10px}
+.slide.tight td{padding:5.5px 8px;font-size:11.8px;line-height:1.45}
+.slide.tight .card{padding:12px 13px}
+.slide.tight .card h3{font-size:14px;margin-bottom:6px}
+.slide.tight .card p{font-size:12.1px;line-height:1.56}
+.slide.tight .card p+p{margin-top:5px}
+.slide.tight .exh-b{padding:12px 15px}
+.slide.tight .exh-h{padding:9px 15px}
+.slide.tight .exh-h .t{font-size:12.8px}
+.slide.tight .co{padding:10px 13px;font-size:12.1px;line-height:1.56}
+.slide.tight .src{padding:7px 15px;font-size:10px;line-height:1.45}
+.slide.tight .stat{padding:11px 12px}
+.slide.tight .stat .v{font-size:25px}
+.slide.tight .stat .v em{font-size:13px}
+.slide.tight .stat .k{font-size:10.9px;margin-top:5px;line-height:1.42}
+.slide.tight .g2{gap:12px} .slide.tight .g3{gap:11px} .slide.tight .g4{gap:10px}
+.slide.tight .flow .n{padding:10px 9px}
+.slide.tight .flow .n .t{font-size:12px} .slide.tight .flow .n .d{font-size:10.4px;line-height:1.4}
+.slide.tight .lbl{margin-bottom:7px;font-size:9px}
+
+.slide.tighter .rh{padding:15px 0 7px;margin-bottom:12px}
+.slide.tighter .at h1{font-size:24.5px;line-height:1.26}
+.slide.tighter .at .dek{font-size:12.4px;margin-top:6px;line-height:1.5}
+.slide.tighter .body{padding:10px 0 2px}
+.slide.tighter th{padding:4.5px 7px;font-size:9.3px;letter-spacing:.04em}
+.slide.tighter td{padding:4px 7px;font-size:11px;line-height:1.34}
+.slide.tighter .card{padding:10px 12px}
+.slide.tighter .card h3{font-size:13.2px;margin-bottom:5px}
+.slide.tighter .card p{font-size:11.4px;line-height:1.5}
+.slide.tighter .exh-b{padding:10px 13px}
+.slide.tighter .exh-h{padding:7px 13px}
+.slide.tighter .exh-h .t{font-size:12px}
+.slide.tighter .exh-h .n{font-size:9.2px;padding:2px 7px}
+.slide.tighter .co{padding:8px 11px;font-size:11.4px;line-height:1.5}
+.slide.tighter .src{padding:6px 13px;font-size:9.4px;line-height:1.4}
+.slide.tighter .stat{padding:9px 11px}
+.slide.tighter .stat .v{font-size:22px}
+.slide.tighter .stat .v em{font-size:12px}
+.slide.tighter .stat .k{font-size:10.2px;margin-top:4px;line-height:1.38}
+.slide.tighter .g2{gap:10px} .slide.tighter .g3{gap:9px} .slide.tighter .g4{gap:8px} .slide.tighter .g5{gap:7px}
+.slide.tighter .flow .n{padding:8px 8px}
+.slide.tighter .flow .n .t{font-size:11.4px} .slide.tighter .flow .n .d{font-size:9.8px;line-height:1.36}
+.slide.tighter .flow .n .i{font-size:8.8px;margin-bottom:3px}
+.slide.tighter .lbl{margin-bottom:6px;font-size:8.7px;padding:2px 7px}
+.slide.tighter .bu-tag{margin-bottom:7px}
+
+@media print{
+  body{background:#fff;padding:0}
+  .slide{margin:0;page-break-after:always;break-after:page}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ ① COVER ═══════════ -->
+<div class="slide cover">
+  <div class="kicker">DIAGNOSTIC &amp; STRATEGY REPORT · 2026.08</div>
+  <h1>봉은문화센터 Master Strategy<br><em>재임대를 넘을 수 있는가</em></h1>
+  <div class="sub">봉은문화회관 1~2층 8,868㎡ 활용 방안 — 15개 조건 케이스에 대한 경제성 판정과<br>사업 성립을 위한 네 가지 임계조건</div>
+  <div class="meta">
+    <div>CLIENT<b>대한불교조계종 봉은사</b></div>
+    <div>과업기간<b>2026.05.18 — 08.16</b></div>
+    <div>재무모델<b>v1.1 · 게이트 5 × 시나리오 3</b></div>
+    <div>작성<b>by Project Rent</b></div>
+  </div>
+  <div class="pn">01</div>
+</div>
+
+<!-- ═══════════ ② EXECUTIVE SUMMARY ═══════════ -->
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>SUM</b>Executive Summary</span></div>
+  <div class="at">
+    <h1>직영은 <u>네 조건이 동시에 참일 때에만</u> 재임대를 넘는다 — <em>15개 케이스 중 2개</em></h1>
+    <div class="dek">판정 기준은 웨딩홀 재임대 연 30억의 세후 27.1억이다. 조건 하나라도 빠지면 "차라리 재임대"가 우월하다.</div>
+  </div>
+  <div class="body">
+    <div class="stats g3" style="margin-bottom:14px">
+      <div class="stat"><div class="v p">27.1<em>억</em></div><div class="k">넘어야 할 선 — 재임대 연 30억의 세후 환산액</div></div>
+      <div class="stat"><div class="v risk">2<em> / 15</em></div><div class="k">기준선을 넘는 케이스 — 둘 다 '넓은 게이트 × 낙관'</div></div>
+      <div class="stat"><div class="v">4<em>개 조건</em></div><div class="k">동시 충족 필요 — 하나라도 빠지면 성립하지 않는다</div></div>
+    </div>
+    <div class="g2" style="gap:16px">
+      <div>
+        <div class="lbl p">SO WHAT — 진단 3</div>
+        <div class="card" style="padding:13px 15px">
+          <p style="margin-bottom:8px"><b style="color:var(--tx)">① 매출의 82%가 두 개의 문 뒤에 있다.</b> 즉시 가능한 Tier1만으로는 정상가동 매출 12.5억, 유권해석·조리가 모두 열려야 70.5억이 된다.</p>
+          <p style="margin-bottom:8px"><b style="color:var(--tx)">② 문제는 적자가 아니라 기회비용이다.</b> 손익분기는 기준 매출의 73~89%로 낮다. 그러나 재임대 27.1억을 이기려면 기준의 약 2배가 필요하다.</p>
+          <p><b style="color:var(--tx)">③ 총액으로 이겨도 증분으로는 회수가 안 된다.</b> 보수비 57.5억은 재임대를 택해도 드는 돈이다. 국비가 없으면 증분이익이 음수가 된다.</p>
+        </div>
+      </div>
+      <div>
+        <div class="lbl ok">NOW WHAT — 네 조건 (전부 발주처 결정사항)</div>
+        <div class="g2" style="gap:9px">
+          <div class="card" style="padding:11px 13px;border-left:3px solid var(--risk)">
+            <div style="font-size:9.5px;font-weight:800;color:var(--risk);letter-spacing:.1em;margin-bottom:5px">CONDITION 01</div>
+            <h3 style="font-size:13.5px;margin-bottom:5px">유권해석 확대</h3>
+            <p style="font-size:11.5px">조리 해소 포함. 미해소 시 낙관에서도 0.78배. <mark class="r">9.27이 임계경로</mark></p>
+          </div>
+          <div class="card" style="padding:11px 13px;border-left:3px solid var(--warn)">
+            <div style="font-size:9.5px;font-weight:800;color:var(--warn);letter-spacing:.1em;margin-bottom:5px">CONDITION 02</div>
+            <h3 style="font-size:13.5px;margin-bottom:5px">저효율 투자 선별</h3>
+            <p style="font-size:11.5px">숙박 CAPEX 52.3억 2단계 강등 → 회수 12→9년·5→3년</p>
+          </div>
+          <div class="card" style="padding:11px 13px;border-left:3px solid var(--neu)">
+            <div style="font-size:9.5px;font-weight:800;color:var(--neu);letter-spacing:.1em;margin-bottom:5px">CONDITION 03</div>
+            <h3 style="font-size:13.5px;margin-bottom:5px">낙관 드라이버 실행</h3>
+            <p style="font-size:11.5px">필요배수 0.89x — 낙관 자체가 임계 목표. 주체는 CDM 조직</p>
+          </div>
+          <div class="card" style="padding:11px 13px;border-left:3px solid var(--ok)">
+            <div style="font-size:9.5px;font-weight:800;color:var(--ok);letter-spacing:.1em;margin-bottom:5px">CONDITION 04</div>
+            <h3 style="font-size:13.5px;margin-bottom:5px">국비 확보</h3>
+            <p style="font-size:11.5px">43.4억 확보 시 26.8→30.0억. 수익성 개선이 아니라 <mark>성립 조건</mark></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="co" style="margin-top:14px">
+      <b>권고경로 G2L(넓게·선별)</b> — 기준 케이스 매출 70.5억·세후 5.9억·총투자 104.0억·회수 9년.
+      낙관 드라이버가 실행되면 매출 151.1억·세후 32.1억·<b>회수 3년·기준선의 1.19배</b>로 재임대를 넘는다.
+      <b>이 1.19배와 0.22배 사이의 거리가 곧 이 보고서가 말하는 실행 리스크의 크기다.</b>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">02</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>SUM</b>Executive Summary</span></div>
+  <div class="at">
+    <h1>그러므로 지금의 의사결정은 "짓느냐"가 아니라 <em>"9.27까지 네 조건을 확정할 수 있는가"</em>다</h1>
+    <div class="dek">네 조건은 모두 발주처·종단이 통제하는 변수이고, 그중 셋은 회신 전에 착수할 수 있다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 1</span><span class="t">네 조건의 성립 여부에 따른 판정 — 조건은 곱셈이지 덧셈이 아니다</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:20%">조건 조합</th><th style="width:11%">게이트</th><th style="width:9%">시나리오</th>
+            <th style="width:10%" class="n">매출</th><th style="width:10%" class="n">세후이익</th><th style="width:11%" class="n">vs 기준선</th>
+            <th style="width:9%" class="n">회수</th><th>판정</th></tr></thead>
+          <tbody>
+            <tr class="dim"><td class="hd">①만 — 조리 열림, 나머지 미충족</td><td>G2</td><td>보수</td><td class="n">21.6</td><td class="n neg">−17.3</td><td class="n">−0.64x</td><td class="n">15+</td><td class="x">✗ 재임대 우위</td></tr>
+            <tr><td class="hd">①+② — 선별까지</td><td>G2L</td><td>보수</td><td class="n">20.5</td><td class="n neg">−13.1</td><td class="n">−0.48x</td><td class="n">15+</td><td class="x">✗ 재임대 우위</td></tr>
+            <tr><td class="hd">①+② + 기준 실행</td><td>G2L</td><td>기준</td><td class="n">70.5</td><td class="n pos">+5.9</td><td class="n">0.22x</td><td class="n">9년</td><td class="x">✗ 재임대 우위</td></tr>
+            <tr class="hl"><td class="hd">①+②+③ — 낙관 실행</td><td>G2L</td><td>낙관</td><td class="n">151.1</td><td class="n pos">+32.1</td><td class="n">1.19x</td><td class="n">3년</td><td class="chk">✓ 총액 기준 초과</td></tr>
+            <tr class="hl"><td class="hd">①+②+③+④ — 국비까지</td><td>G2L</td><td>낙관</td><td class="n">151.1</td><td class="n pos">+32.1</td><td class="n">1.19x</td><td class="n">3년</td><td class="chk">✓ 증분 회수 8.8년 성립</td></tr>
+          </tbody>
+        </table>
+        <div class="co r" style="margin-top:12px;font-size:12.3px">
+          마지막 두 행의 손익은 같지만 <b>의미가 다르다.</b> 조건 ④(국비)가 없으면 총액으로는 기준선을 넘어도
+          <b>증분 기준 회수가 성립하지 않는다</b> — 재임대를 택해도 어차피 나갈 보수비를 빼고 보면, 국비 없는 증분이익은 음수다.
+          <b>네 조건은 순차 개선이 아니라 동시 성립 요건이다.</b>
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 봉은문화센터 재무모델 v1.1(<code>finance/model.py</code>) 재실행 산출 · 정상가동(개관 5년차) 기준 · 단위 억원 ·
+        판정선 = 재임대 연 30.0억의 세후 27.1억 · 증분 회수는 투자가이드 v2.1(국비 72.8·융자 30·임대 표준보수 기준 8.8년)</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">03</div>
+</div>
+
+<!-- ═══════════ ③ CONTEXT / OBJECTIVE ═══════════ -->
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>01</b>Context · Situation</span></div>
+  <div class="at">
+    <h1>8,868㎡가 3년째 비어 있고, <em>재임대하면 연 30억이 확정된다</em></h1>
+    <div class="dek">이 사업의 기준점은 "얼마를 벌 수 있는가"가 아니라 "이미 확정된 30억을 포기할 만한가"다.</div>
+  </div>
+  <div class="body">
+    <div class="stats g4" style="margin-bottom:16px">
+      <div class="stat"><div class="v">8,868<em>㎡</em></div><div class="k">1층 6,157.91 + 2층 2,710.24 · 무주 대공간 통층 6~8m</div></div>
+      <div class="stat"><div class="v warn">3<em>년</em></div><div class="k">공실 지속 · 기회비용 하루 약 820만원</div></div>
+      <div class="stat"><div class="v p">30<em>억/년</em></div><div class="k">재임대 baseline · 월 2.5억 (2026-08-11 발주처 확인)</div></div>
+      <div class="stat"><div class="v risk">68.4<em>%</em></div><div class="k">GBD 시세 대비 임대료 수준 — 인상 여지가 남아 있다</div></div>
+    </div>
+    <div class="g2">
+      <div class="card acc">
+        <div class="lbl p">기준선의 성격</div>
+        <h3>무비용·무위험에 가까운 돈이다</h3>
+        <p>임대는 관리 부담이 최소이고 실패 위험이 없다. 그래서 이 기준선은 유난히 높다 —
+          직영은 <mark>30억을 버는 게임이 아니라, 30억을 포기하고 그 이상을 만들어야 하는 게임</mark>이다.</p>
+        <p>여기에 고정 부담이 얹힌다. 감가상각 7.5~8.7억 + 공통 운영비 5.3~8.9억 + 재산세 1.2억 =
+          <b style="color:var(--tx)">매출과 무관하게 연 14~19억</b>이 먼저 나간다.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--warn)">
+        <div class="lbl warn">반론의 강도</div>
+        <h3>30억은 시세 대비 낮은 편이다</h3>
+        <p>2026년 2분기 GBD 오피스 명목임대료는 3.3㎡당 136,200원/월인 반면,
+          웨딩홀 기준선은 3.3㎡당 93,194원/월로 <b style="color:var(--tx)">시세의 68.4%</b>다.
+          헐값은 아니지만 시세권 하단이며, <mark class="r">임대료를 올릴 여지가 있다</mark>는 뜻이다.</p>
+        <p>즉 "차라리 재임대" 반론은 30억이 아니라 그 이상을 근거로 제기될 수 있다.
+          이 보고서가 판정을 세후 27.1억으로 엄격히 잡은 이유다.</p>
+      </div>
+    </div>
+    <div class="co w" style="margin-top:14px">
+      <b>정정 이력</b> — 종전 자체 집계는 월 3.5억·연 42억이었으나 2026-08-11 발주처 확인으로 <b>월 2.5억·연 30억</b>으로 정정됐고,
+      파생 수치 200여 건을 일괄 재산정했다. 이 보고서의 모든 판정은 정정 후 값 기준이다.
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">04</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>01</b>Context · Complication</span></div>
+  <div class="at">
+    <h1>공실 해소가 목적이면 답은 <em>이미 재임대다</em> — 질문 자체를 바꿔야 한다</h1>
+    <div class="dek">지난 3년간 답이 나오지 않은 이유는 정보가 부족해서가 아니라, 세우고 있던 질문이 답을 재임대로 몰고 갔기 때문이다.</div>
+  </div>
+  <div class="body">
+    <div class="g3" style="margin-bottom:15px">
+      <div class="card" style="border-top:3px solid var(--risk)">
+        <div class="lbl risk">잘못된 질문 ①</div>
+        <h3>이 건물을 어떻게 채울 것인가</h3>
+        <p>공실 해소만이 목적이면 결론은 언제나 재임대다. 가장 빠르고, 가장 확실하고, 가장 위험이 낮다.
+          <b style="color:var(--tx)">이미 3년간 답이 나오지 않은 질문</b>이다.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--risk)">
+        <div class="lbl risk">잘못된 질문 ②</div>
+        <h3>얼마를 벌 수 있는가</h3>
+        <p>수익만이 기준이면 전통사찰법 제6조가 상위에서 차단한다. 프랜차이즈 카페·일반 음식점·일반 소매·일반 숙박은 전부 불가다.
+          <b style="color:var(--tx)">법이 허용하지 않는 답은 답이 아니다.</b></p>
+      </div>
+      <div class="card acc" style="border-top:3px solid var(--pri)">
+        <div class="lbl p">우리의 질문</div>
+        <h3>직영이 재임대를 넘는가 — 넘는다면 무엇이 참이어야 하는가</h3>
+        <p>판정 가능한 질문으로 바꾼다. 답은 하나의 숫자가 아니라 <mark>조건의 목록</mark>이 되고,
+          그 조건들이 곧 발주처의 의사결정 항목이 된다.</p>
+      </div>
+    </div>
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 2</span><span class="t">동시에 닫히고 있는 것 — 의사결정 창(window)의 세 가지 제약</span></div>
+      <div class="exh-b">
+        <div class="g3">
+          <div>
+            <div class="lbl gray">법적 제약</div>
+            <p style="font-size:12.6px;color:var(--tx-2);line-height:1.62">전통사찰법 제6조가 건축법 위에서 일반 상업을 차단한다.
+              허용 범위는 전통문화·수행 관련으로 한정되며, 그 경계는 <b style="color:var(--tx)">유권해석 5건이 미제출</b>이라 아직 미확정이다.</p>
+          </div>
+          <div>
+            <div class="lbl risk">시간 제약</div>
+            <p style="font-size:12.6px;color:var(--tx-2);line-height:1.62"><b style="color:var(--tx)">9월 27일 총무원장 임기 만료</b>가 임계경로다.
+              직영사찰 구조상 총무원 사전 동의가 구조적 필수이므로, 결재 주체가 바뀌면 승인 절차가 처음으로 되돌아간다.</p>
+          </div>
+          <div>
+            <div class="lbl warn">비용 제약</div>
+            <p style="font-size:12.6px;color:var(--tx-2);line-height:1.62">결정을 미루는 동안 공실 기회비용이 <b style="color:var(--tx)">하루 약 820만원</b>씩 쌓인다.
+              3년 누적으로는 약 90억 — 총투자 200억의 45%에 해당하는 크기다.</p>
+          </div>
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 계약서 제2조 및 과업지시서(대상면적) · 전통사찰법 제6조·동법 시행령 제7조 · 발주처 확인(2026-08-11, 임대 기준선) ·
+        GBD 임대료: 상업용부동산 시장보고서 2026년 2분기(3.3㎡당 136,200원/월, 공실률 1.7%) · 기회비용은 연 30억÷365일 환산</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">05</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>01</b>Context · Question &amp; Answer</span></div>
+  <div class="at">
+    <h1>답해야 할 질문은 하나이고, 그 답은 <em>예측이 아니라 조건</em>이다</h1>
+    <div class="dek">유권해석 회신 전에는 무엇을 팔 수 있는지 자체가 미정이므로, 하나의 예측 숫자는 반드시 틀린다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 3</span><span class="t">SCQA — 이 보고서가 답하는 질문의 구조</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:9%"></th><th style="width:20%">요소</th><th>내용</th></tr></thead>
+          <tbody>
+            <tr><td class="hd" style="color:var(--tx-3)">S</td><td class="hd">Situation<br><span style="font-weight:400;color:var(--tx-4);font-size:11px">배경</span></td>
+              <td>봉은문화회관 1~2층 8,868㎡가 3년째 공실이다. 웨딩홀로 재임대하면 연 30억(세후 27.1억)이 확정 수입으로 들어온다.</td></tr>
+            <tr><td class="hd" style="color:var(--tx-3)">C</td><td class="hd">Complication<br><span style="font-weight:400;color:var(--tx-4);font-size:11px">문제</span></td>
+              <td>그 30억은 GBD 시세의 68.4%로 <b style="color:var(--tx)">인상 여지까지 있다</b>. 동시에 유권해석 5건이 미제출이라 직영 시 무엇을 팔 수 있는지가 미정이고, 수익 천장이 조건에 따라 <b style="color:var(--tx)">12.5억~151.1억으로 12배 벌어진다</b>. 9.27이 결재 임계경로다.</td></tr>
+            <tr class="hl"><td class="hd" style="color:var(--pri-2)">Q</td><td class="hd">Question<br><span style="font-weight:400;color:var(--tx-4);font-size:11px">핵심 질문</span></td>
+              <td><b style="color:var(--tx);font-size:13.5px">직영 운영이 재임대(세후 27.1억)를 넘는가? 넘는다면 무엇이 참이어야 하는가?</b></td></tr>
+            <tr class="hl"><td class="hd" style="color:var(--pri-2)">A</td><td class="hd">Answer<br><span style="font-weight:400;color:var(--tx-4);font-size:11px">답</span></td>
+              <td><b style="color:var(--tx);font-size:13.5px">네 조건이 동시에 참일 때만 넘는다.</b> 15개 조건 케이스 중 기준선을 넘는 것은 2개이며, 둘 다 '넓은 게이트 × 낙관 시나리오'다. 권고경로는 G2L(넓게·선별).</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 판정 그리드(게이트 5 × 시나리오 3) · 매출 범위는 정상가동 기준 G0 보수 2.7억 ~ G2 낙관 158.6억,
+        본문의 12배는 권고경로 계열(G0 기준 12.5억 ~ G2L 낙관 151.1억) 기준</div>
+    </div>
+    <div class="co" style="margin-top:14px">
+      <b>왜 조건부인가</b> — 계약이 요구한 것은 "정확한 예측"이 아니라 <b>경제성 검토</b>다.
+      입력값(투자비 분모·방문객 모수·수익 천장)이 동시에 비어 있는 상태에서 단일 추정 모델을 내면
+      구 92억 시뮬레이션의 실패("일 400명 관람" 같은 미검증 가정)를 반복하게 된다.
+      <b>조건부 매트릭스는 없는 입력값을 지어내지 않고도 판정을 제공하며, 값이 채워지는 대로 같은 틀에서 갱신된다.</b>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">06</div>
+</div>
+
+<!-- ═══════════ ④ APPROACH / METHODOLOGY ═══════════ -->
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>02</b>Approach · Methodology</span></div>
+  <div class="at">
+    <h1>예측 대신 조건으로 답한다 — <em>게이트 5 × 시나리오 3</em>의 조건부 매트릭스</h1>
+    <div class="dek">유권해석 회신 폭이 수익 천장을 결정하므로, 회신 경우의 수를 축으로 삼고 그 위에 실행 강도를 교차시킨다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 4</span><span class="t">분석 프레임 — 게이트(허용 범위) × 시나리오(실행 강도)</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:13%">게이트</th><th style="width:20%">열리는 범위</th><th style="width:37%">포함 수익 라인</th><th style="width:12%">해석 근거</th><th>성격</th></tr></thead>
+          <tbody>
+            <tr><td class="hd">G0 좁게</td><td>Tier1만 · 조리 불가</td><td>전시 · 리테일</td><td>E-0165</td><td>유권해석 불요 — 즉시 착수 가능한 최소 집합</td></tr>
+            <tr><td class="hd">G1 중간</td><td>Tier2 열림 · 조리 불가</td><td>+ 명상 · 교육 · 기업 · 대관 · 멤버십 · 숙박</td><td>E-0164</td><td>비교용</td></tr>
+            <tr><td class="hd">G1L 중간·선별</td><td>G1에서 숙박 제외</td><td>저효율 CAPEX를 걸러낸 포트폴리오</td><td>E-0164</td><td>조리 미해소 시의 차선</td></tr>
+            <tr><td class="hd">G2 넓게</td><td>Tier2 + 조리 해소</td><td>+ 전통다원 · 사찰음식 다이닝</td><td>E-0163</td><td>비교용 (숙박 포함)</td></tr>
+            <tr class="hl"><td class="hd">G2L 넓게·선별</td><td>G2에서 숙박 제외</td><td>전시·다원·다이닝·리테일·교육·명상·B2B·대관·멤버십 (9개 라인)</td><td>E-0163</td><td><b style="color:var(--pri-2)">권고 경로</b></td></tr>
+          </tbody>
+        </table>
+        <div class="g3" style="margin-top:13px">
+          <div class="card" style="padding:11px 13px"><div class="lbl gray">보수</div><p style="font-size:11.8px">낮은 가동률·좌석·회전. 벤치마크 하한대</p></div>
+          <div class="card" style="padding:11px 13px"><div class="lbl gray">기준</div><p style="font-size:11.8px">중간값. <b style="color:var(--tx)">'안전한 중간'이 아니다</b> — 뒤의 민감도 참조</p></div>
+          <div class="card" style="padding:11px 13px"><div class="lbl gray">낙관</div><p style="font-size:11.8px">벤치마크 상한 안에서의 최대 실행. 공상이 아니라 임계 목표</p></div>
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 <code>inputs.json</code> gates 정의 · Tier 구분은 3-Tier 상업화 모델(확실/유권해석/불가) ·
+        E-0163~0165는 프로젝트 근거원장(evidence ledger) 코드 · 라인 코드 RL-01~10의 상세 드라이버는 [Back-up B04]</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">07</div>
+</div>
+
+<div class="slide tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>02</b>Approach · Methodology</span></div>
+  <div class="at">
+    <h1>세 가지 규칙으로 <em>구 92억 모델의 실패</em>를 구조적으로 차단했다</h1>
+    <div class="dek">앞선 시뮬레이션은 데이터가 부족해서가 아니라, 검증되지 않은 가정 위에 숫자를 쌓아서 스스로 기각됐다.</div>
+  </div>
+  <div class="body">
+    <div class="g3" style="margin-bottom:15px">
+      <div class="card acc">
+        <div class="lbl p">규칙 ①</div>
+        <h3>방문객 절대수를 추정하지 않는다</h3>
+        <p>구 모델은 '일 400명 관람'·'80석 회전 1.5' 같은 미검증 가정을 썼다.
+          봉은사는 무료입장이라 게이트 집계가 없고, 방문객 모수 추정이 <mark class="r">10만 ~ 61만으로 6.1배</mark> 벌어져 있다.</p>
+        <p>수요는 <b style="color:var(--tx)">정원 × 회차 × 가동률의 상향식(bottom-up)</b>으로만 계산한다.</p>
+      </div>
+      <div class="card acc">
+        <div class="lbl p">규칙 ②</div>
+        <h3>확정 불가는 게이트로 분리한다</h3>
+        <p>유권해석 회신 폭에 따라 팔 수 있는 품목 자체가 달라진다. 하나의 예측치로 뭉개는 대신
+          <b style="color:var(--tx)">회신 경우의 수를 축으로 세워</b> 각 경우의 손익을 따로 낸다.</p>
+        <p>회신이 오면 해당 열만 남기고 나머지를 버리면 된다 — 모델을 다시 만들 필요가 없다.</p>
+      </div>
+      <div class="card acc">
+        <div class="lbl p">규칙 ③</div>
+        <h3>모든 수치는 스크립트로 재현한다</h3>
+        <p><code style="color:var(--pri-2)">finance/model.py</code> 재실행으로 전량 재생성된다.
+          <b style="color:var(--tx)">손계산 0건</b>이며, 대기 중인 벤치마크 12슬롯의 값이 들어오면 같은 구조에서 수치만 갱신된다.</p>
+        <p>구버전 드라이버 재현 검증(19.7 / 66.7 / 139.3억)을 모델 실행 시 자동 assert한다.</p>
+      </div>
+    </div>
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 5</span><span class="t">근거 등급 체계 — 무엇을 매출에 넣고 무엇을 비워뒀는가</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:8%">등급</th><th style="width:26%">의미</th><th style="width:34%">해당 항목(예)</th><th>재무 처리</th></tr></thead>
+          <tbody>
+            <tr><td class="hd" style="color:var(--ok)">A</td><td>실측 · 공식 통계 원자료</td><td>도보권 모수 112,349명 · 구매전환 15~28% · 대관 단가</td><td class="pos">매출에 계상</td></tr>
+            <tr><td class="hd" style="color:var(--neu)">B</td><td>앵커 — 유사 사례 실적에서 인용</td><td>다이닝 코스 단가 · 객실 단가 · B2B 회당 단가</td><td class="pos">매출에 계상</td></tr>
+            <tr><td class="hd" style="color:var(--warn)">C</td><td>가정 — 범위와 사유를 병기</td><td>전시 유료전환율 · 해설 이용률 · 대관 가동일</td><td>계상하되 <b style="color:var(--tx)">민감도 대상</b></td></tr>
+            <tr class="dim"><td class="hd">—</td><td>근거 0건</td><td>전국 사찰 도매 · IP 로열티 · 온라인 구독 · 봉안 시설형</td><td><b style="color:var(--tx-3)">매출 0으로 비워둠</b> (정성 서술만)</td></tr>
+          </tbody>
+        </table>
+        <div class="co o" style="margin-top:12px;font-size:12.3px">
+          8개 Revenue Engine 중 <b>셋(R5 STAY · R6 MEMORIAL · R8 IP유통)은 매출 0으로 뒀다.</b>
+          이 항목들을 모두 넣으면 매출은 커지지만, 근거 없는 숫자를 섞는 순간 <b>나머지 숫자 전체의 신뢰가 무너진다.</b> 비워두는 것도 판단이다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 <code>inputs.json</code> status_labels 및 라인별 grade · 근거등급은 각 수익라인 검토서(RL-01~16) 산출값 이관 ·
+        대기 벤치마크 12슬롯(B-01~B-12) 목록은 [Back-up B02]</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">08</div>
+</div>
+
+<!-- ═══════════ ⑤ FINDINGS ═══════════ -->
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>03</b>Findings · 현황 진단</span></div>
+  <div class="at">
+    <h1>[F1] 기회 셋이 <em>동시에</em> 열렸다 — 인식 · 세대 · 입지</h1>
+    <div class="dek">셋 중 하나만 있어도 기회지만, 셋이 겹치는 시기는 흔치 않다. 그리고 셋 다 우리가 만든 조건이 아니라 이미 와 있는 조건이다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 6</span><span class="t">동시에 열리는 세 가지 조건</span></div>
+      <div class="exh-b">
+        <div class="g3">
+          <div class="card" style="border-top:3px solid var(--ok)">
+            <div class="lbl ok">인식</div>
+            <h3>불교는 이미 호감 자산을 갖고 있다</h3>
+            <p>종교 호감도 <b style="color:var(--tx)">54.4점</b>(100점 척도)으로 종교 카테고리 1위 — 개신교 34.7점, 천주교 52.7점.</p>
+            <p>자체 크롤링에서도 <b style="color:var(--tx)">부정 언급 3.5%</b>에 그쳤고 진정성 지수 61.7로 3군 중 1위였다.
+              <mark>불교의 약점은 비호감이 아니라 아직 닿지 않은 거리다.</mark></p>
+          </div>
+          <div class="card" style="border-top:3px solid var(--ok)">
+            <div class="lbl ok">세대</div>
+            <h3>MZ는 종교가 아니라 수행을 찾는다</h3>
+            <p>불교박람회 방문객의 2030세대 비중이 <b style="color:var(--tx)">약 80%</b>. 명상·템플스테이·이른바 '힙불교'는
+              종교 귀속이 아니라 <b style="color:var(--tx)">경험 소비</b>로 접근된다.</p>
+            <p><mark>개종을 설득할 필요가 없는 시장</mark>이라는 점이 사업 설계를 근본적으로 바꾼다.</p>
+          </div>
+          <div class="card" style="border-top:3px solid var(--ok)">
+            <div class="lbl ok">입지</div>
+            <h3>강남의 유동인구는 2배가 된다</h3>
+            <p>삼성동 현재 유동인구 31.6만 명 → GBC·영동대로 복합개발이 완료되는 2031년 <b style="color:var(--tx)">50~70만 명</b>으로 추정된다.</p>
+            <p>봉은사는 그 한복판에 있고, <mark>이 변화는 이미 확정된 개발 일정</mark>이다. 문화센터 개관(2028 가정)과 시점이 맞물린다.</p>
+          </div>
+        </div>
+        <div class="co" style="margin-top:13px;font-size:12.5px">
+          셋의 공통점은 <b>우리가 만들 필요가 없다는 것</b>이다. 받기만 하면 된다.
+          문제는 <b>받을 그릇이 지금 비어 있다는 것</b>이며, 이 사업은 그 그릇을 만드는 일이다.
+        </div>
+      </div>
+      <div class="src">
+        <b>출처</b> 호감도 54.4·개신교 34.7·천주교 52.7 = 한국리서치 종교인식조사(2025, 100점 척도 — %가 아닌 점수) ·
+        부정 3.5%·진정성 61.7 = 자체 네이버 블로그 크롤링 2,809건(불교 1,084/기독교 786/명상웰니스 939, 2026-06) ·
+        2030 비중 80% = 불교박람회 방문객 조사 · 유동인구 31.6만 및 2031년 추정 = 삼성동 개발계획 리서치(GBC·영동대로 복합개발)
+        <br><b>⚠ 주의</b> 호감도 54.4는 <b>설문조사</b> 값이고 부정 3.5%는 <b>자체 크롤링</b> 값이다 — 서로 다른 조사이므로 하나의 데이터셋으로 묶어 인용하지 않는다.
+      </div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">09</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>03</b>Findings · 현황 진단</span></div>
+  <div class="at">
+    <h1>[F2] 수요는 종교가 아니라 <em>문화를 사러 온다</em> — 이 한 쌍이 포지셔닝·마케팅·국비를 동시에 결정한다</h1>
+    <div class="dek">봉은사를 「종교시설」로 쓰면 2.0%의 시장을 겨냥하는 문서가 되고, 「문화·웰니스 체험 거점」으로 써야 46.6%에 닿는다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 7</span><span class="t">봉은사 방문 외국인의 목적 구조 — 두 개의 별개 지표</span></div>
+      <div class="exh-b">
+        <div class="stats g4" style="margin-bottom:13px">
+          <div class="stat"><div class="v risk">2.0<em>%</em></div><div class="k">봉은사 방문 외국인의 <b style="color:var(--tx-2)">종교·순례 활동 경험률</b></div></div>
+          <div class="stat"><div class="v ok">46.6<em>%</em></div><div class="k">목적지 선택 시 <b style="color:var(--tx-2)">역사·전통 체험 고려율</b> — 전체 평균 20.6%의 2.26배</div></div>
+          <div class="stat"><div class="v p">97.5<em>%</em></div><div class="k">개별여행 비중 — 단체 패키지가 아니다</div></div>
+          <div class="stat"><div class="v">12.9<em>배</em></div><div class="k">유럽인의 봉은사 선택 점유율 / 일본인 대비 (다방문 성향 보정 후)</div></div>
+        </div>
+        <div class="g3">
+          <div class="card" style="padding:12px 14px">
+            <div class="lbl p">포지셔닝</div>
+            <p style="font-size:12.3px">문을 여는 열쇠는 포교가 아니라 문화다. 사업 정의문에 '종교시설'이 들어가는 순간
+              <b style="color:var(--tx)">2.0%짜리 시장을 겨냥한 문서</b>가 된다.</p>
+          </div>
+          <div class="card" style="padding:12px 14px">
+            <div class="lbl p">마케팅</div>
+            <p style="font-size:12.3px">97.5%가 개별여행이므로 여행사 단체 송객이 아니라
+              <b style="color:var(--tx)">OTA·후기·컨시어지</b> 기반으로 설계해야 한다. 영어 결제·상시 예약·당일 참여가 전제 조건이다.</p>
+          </div>
+          <div class="card" style="padding:12px 14px">
+            <div class="lbl p">국비</div>
+            <p style="font-size:12.3px">문체부가 국고 지원에서 제외하는 것은 <b style="color:var(--tx)">순수 종교활동·포교</b>다.
+              이 실측이 "이 사업은 포교가 아니다"의 증명이 된다 — <mark>포지셔닝이 곧 재원 조건</mark>이다.</p>
+          </div>
+        </div>
+      </div>
+      <div class="src">
+        <b>출처</b> 한국관광공사 외래관광객조사 기반 봉은사 방문자 분석(2025) · n = 봉은사 방문 외국인 표본 ·
+        유럽인 방문률 원값 21.0% vs 일본 0.6%(약 35배)이나, 유럽인의 다방문 성향을 통제한 <b>선택 점유율 기준 12.9배</b>로 보정(R-A2) — 본문은 보정값 사용
+        <br><b>⚠ 주의</b> 2.0%(활동 경험률)와 46.6%(목적지 선택 고려율)는 <b>설문 문항과 분모가 다른 별개 지표</b>다.
+        두 값을 나눈 '23배'는 성립하지 않으므로 사용하지 않는다. 동일 문항 내 배수인 <b>46.6% vs 전체 20.6% = 2.26배</b>만 비교치로 쓴다.
+      </div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">10</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>03</b>Findings · 현황 진단</span></div>
+  <div class="at">
+    <h1>[F3] 법이 상업을 차단하지만, <em>그 제약이 복제 불가능한 해자를 만든다</em></h1>
+    <div class="dek">제약을 없애려 하지 않고 제약 안에서 유일해지는 것 — 이것이 이 계획의 기본 자세다.</div>
+  </div>
+  <div class="body">
+    <div class="g2" style="margin-bottom:14px">
+      <div class="card" style="border-left:3px solid var(--risk)">
+        <div class="lbl risk">제약</div>
+        <h3>일반 상업은 전부 막혀 있다</h3>
+        <p>전통사찰법 제6조가 건축법 위에서 차단한다. <b style="color:var(--tx)">프랜차이즈 카페 · 일반 음식점 · 일반 소매 · 일반 숙박 · 피트니스는 Tier3(불가)</b>이며,
+          허용 영역은 전통문화·수행 관련으로 한정된다.</p>
+        <p style="margin-top:8px;color:var(--tx-3);font-size:12px">⚠ 이 때문에 일반적 의미의 'Wellness'(요가·필라테스·피트니스)를 내세우면
+          <b style="color:var(--tx-2)">법적으로 할 수 없는 것을 파는 문서</b>가 된다. 본 계획의 Wellness는 <b style="color:var(--tx-2)">명상·선·호흡·다도·사찰음식·공예</b>로 한정한다.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--ok)">
+        <div class="lbl ok">역설</div>
+        <h3>그 제약이 곧 해자(moat)다</h3>
+        <p><b style="color:var(--tx)">정통성 · 강남 입지 · 8,868㎡ 규모</b>를 동시에 가진 주체는 봉은사뿐이다.
+          동일 카드로 비교하면 발우공양은 정통성만, 강남 힐링센터는 입지만, 대형 미디어아트관은 규모만 갖는다.</p>
+        <p style="margin-top:8px">전통↔현대 · 종교↔웰니스 4분면에서 비어 있는 칸은
+          <mark>'현대적 형식 × 종교적 깊이'</mark> 하나이며, 그 칸을 채울 자격은 사실상 봉은사에만 있다.</p>
+      </div>
+    </div>
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 8</span><span class="t">3-Tier 상업화 모델 — 무엇이 열려 있고 무엇이 회신을 기다리는가</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:12%">Tier</th><th style="width:22%">법적 지위</th><th style="width:38%">해당 사업</th><th>이 보고서의 처리</th></tr></thead>
+          <tbody>
+            <tr><td class="hd" style="color:var(--ok)">Tier 1</td><td>유권해석 불요 — 즉시 가능</td><td>전시·뮤지엄(9건 중 8건) · 뮤지엄숍(전시 부대시설) · 전통다원(시행령 제7조 명문)</td><td class="pos">회신 없이 착수 가능 — G0에 포함</td></tr>
+            <tr><td class="hd" style="color:var(--warn)">Tier 2</td><td>유권해석 필요</td><td>명상·교육 클래스 · 기업 B2B · 대관 · 멤버십 · 템플스테이형 숙박</td><td>게이트 케이스로 분리 — G1/G2</td></tr>
+            <tr><td class="hd" style="color:var(--risk)">Tier 3</td><td>불가</td><td>프랜차이즈 카페 · 일반 음식점 · 일반 소매 · 일반 숙박업 · 피트니스</td><td class="x">계획에서 배제</td></tr>
+            <tr class="hl"><td class="hd">별도 게이트</td><td>식품위생법 — 조리 행위</td><td>사찰음식 다이닝 · 전통다원의 현장 조리</td><td><b style="color:var(--pri-2)">단일 실패점</b> — F6 및 [Back-up B06]</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="src"><b>출처</b> 전통사찰법 제6조 및 동법 시행령 제7조(전통다원의 운영 명문 규정) · 건축법·도시공원법 교차검토 ·
+        3-Tier 상업화 모델(법률·행정 검토 종합) · 경쟁 포지셔닝 비교는 삼성동 경쟁 포지셔닝·임대시장 분석(2026-08-17)</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">11</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>03</b>Findings · 현황 진단</span></div>
+  <div class="at">
+    <h1>[F4] 문제는 집객이 아니라 <em>전환</em>이다 — 사람은 이미 온다, 머무를 이유가 없을 뿐이다</h1>
+    <div class="dek">봉은사의 문제는 인지도도, 접근성도 아니다. 방문이 경험으로 전환되지 않는다는 것이다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 9</span><span class="t">방문자 여정 — 현재 3단계에서 종료, 목표는 8단계</span></div>
+      <div class="exh-b">
+        <div style="margin-bottom:15px">
+          <div class="lbl risk">지금 — 세 칸에서 끝난다</div>
+          <div class="flow" style="max-width:58%">
+            <div class="n"><div class="i">01</div><div class="t">Visit</div><div class="d">경내를 지나간다</div></div>
+            <div class="n"><div class="i">02</div><div class="t">See</div><div class="d">본다</div></div>
+            <div class="n"><div class="i">03</div><div class="t">Leave</div><div class="d">다음 목적지로</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="lbl ok">Destination — 여덟 칸을 만든다</div>
+          <div class="flow">
+            <div class="n"><div class="i">01</div><div class="t">Visit</div><div class="d">온다</div></div>
+            <div class="n"><div class="i">02</div><div class="t">Discover</div><div class="d">전시에서 발견</div></div>
+            <div class="n"><div class="i">03</div><div class="t">Experience</div><div class="d">명상·선을 해본다</div></div>
+            <div class="n"><div class="i">04</div><div class="t">Rest</div><div class="d">다원에서 쉰다</div></div>
+            <div class="n"><div class="i">05</div><div class="t">Eat</div><div class="d">사찰음식을 먹는다</div></div>
+            <div class="n"><div class="i">06</div><div class="t">Shop</div><div class="d">가지고 간다</div></div>
+            <div class="n" style="opacity:.5"><div class="i">07</div><div class="t">Stay</div><div class="d">2기 — 머문다</div></div>
+            <div class="n"><div class="i">08</div><div class="t">Share</div><div class="d">알린다</div></div>
+          </div>
+        </div>
+        <div class="co" style="margin-top:14px;font-size:12.5px">
+          여덟 칸이 늘어나는 만큼 체류시간이 늘고, 체류가 늘면 소비가 붙는다.
+          <b>이 계획의 모든 Zone은 이 여덟 칸 중 하나를 맡으며, 어느 칸도 맡지 않는 시설은 짓지 않는다.</b>
+          07 STAY만 점선(2기 유보)인 이유는 뒤의 권고 2에서 다룬다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> RXR 방문 실측 4,330건(네이버 블로그 2023~2026 3년치 12,518건에서 상권 주소 노이즈 등 5,464건 제외, 진성도 A+B 92%, 협찬 3.2%) ·
+        토픽 분석에서 산책·휴식 언급 803건 vs 기도·참배 217건(3.7배) — 이용자는 이미 봉은사를 종교시설이 아니라 도심 산책 공간으로 사용 중</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">12</div>
+</div>
+
+<div class="slide tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>03</b>Findings · 현황 진단</span></div>
+  <div class="at">
+    <h1>[F5] 먼저 인정할 것 — <em>체류시간도 방문객 모수도 실측이 없다</em></h1>
+    <div class="dek">숫자가 없다는 사실 자체가 이 프로젝트의 첫 번째 발견이며, 그래서 목표 지표를 바꾼다.</div>
+  </div>
+  <div class="body">
+    <div class="g2" style="margin-bottom:14px">
+      <div class="card" style="border-left:3px solid var(--risk)">
+        <div class="lbl risk">사실</div>
+        <h3>봉은사에는 체류시간을 세는 장치가 없다</h3>
+        <p>흔히 인용되는 "20~30분"은 관찰 인상이지 실측이 아니다. 근거를 찾을 수 없어 <b style="color:var(--tx)">본 계획에서는 수치로 쓰지 않는다.</b></p>
+        <p>무료입장이라 게이트 집계도 없고, 방문객 모수 추정은 <mark class="r">10만 ~ 61만으로 6.1배</mark>까지 벌어져 있다.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--ok)">
+        <div class="lbl ok">그래서 바꾸는 것</div>
+        <h3>방문객 수를 제1지표로 쓰지 않는다</h3>
+        <p>모수가 6.1배 흔들리는 위에 목표를 세우면 그 목표는 무의미하다. 제1지표를
+          <b style="color:var(--tx)">체류시간 · 경험률 · 소비전환율 · 재방문율</b>로 교체한다.</p>
+        <p>측정체계 가동을 <mark>개관 2년차 과제</mark>로 명시하고, 개관 후 첫 실측으로 기준선을 잡는 것을 1년차의 성과로 정의한다.</p>
+      </div>
+    </div>
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 10</span><span class="t">이 판단이 재무모델에 미치는 영향 — 모수 대신 공급으로 계산한다</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:22%">항목</th><th style="width:33%">일반적 접근 (구 92억 모델)</th><th style="width:33%">본 모델의 접근</th><th>영향</th></tr></thead>
+          <tbody>
+            <tr><td class="hd">수요 산출</td><td class="x">일 방문객 × 전환율 × 객단가</td><td>정원 × 회차 × 가동률 (상향식)</td><td>모수 불확실성 차단</td></tr>
+            <tr><td class="hd">전시 매출</td><td class="x">15,000원 × 400명 × 350일 = 21억</td><td>유료전환율·해설 이용률 드라이버로 분해</td><td>기준 7.6억으로 하향</td></tr>
+            <tr><td class="hd">면적과 매출</td><td class="x">면적 확대 = 매출 비례 증가</td><td><b style="color:var(--tx)">면적 비례 증액 금지</b> — 3,300㎡라고 매출이 2.3배 되지 않는다</td><td>전시 CAPEX만 증가 반영</td></tr>
+            <tr><td class="hd">목표 지표</td><td class="x">연간 방문객 수</td><td>체류시간 · 경험률 · 소비전환율 · 재방문율</td><td>측정 가능한 KPI로 전환</td></tr>
+          </tbody>
+        </table>
+        <div class="co o" style="margin-top:12px;font-size:12.3px">
+          <b>목표치를 세우기 전에 세는 장치부터 만든다.</b> 디지털 예약·CRM은 그 자체로는 팔리지 않지만
+          전시 가동률·프로그램 갱신율·리테일 판매 데이터를 동시에 결정하며, <b>회신과 무관하게 지금 착수할 수 있다</b>(권고 → S31).
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 <code>inputs.json</code> rules("방문객 절대수 추정 금지", 2026-08-17 결정) ·
+        모수 격차: 자체추산 약 10만 vs 외부조사 약 61만(E-1052/E-0310) · 구 92억 모델 가정 기각 이력은 계약 요구사항 갭체크(2026-08-17) 참조</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">13</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>03</b>Findings · 현황 진단</span></div>
+  <div class="at">
+    <h1>[F6] 권고경로 매출의 <em>82%가 두 개의 문 뒤에</em> 있다</h1>
+    <div class="dek">지금 당장 열 수 있는 것은 정상가동 기준 12.5억뿐이다. 게이트 통과가 매출 계획보다 먼저 와야 하는 이유가 이 비율에 있다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 11</span><span class="t">게이트 통과에 따른 매출 누적 — 기준 시나리오, 정상가동</span></div>
+      <div class="exh-b">
+        <table style="margin-bottom:13px">
+          <thead><tr><th style="width:26%">단계</th><th style="width:12%" class="n">정상가동 매출</th><th style="width:12%" class="n">누적 비중</th><th style="width:14%" class="n">증분</th><th>열리는 것</th></tr></thead>
+          <tbody>
+            <tr><td class="hd">G0 — 지금 가능 (Tier1)</td><td class="n">12.5억</td><td class="n">17.7%</td><td class="n">—</td><td>전시 · 리테일. 유권해석 회신 없이 착수 가능</td></tr>
+            <tr><td class="hd">G1L — 유권해석 통과</td><td class="n">39.0억</td><td class="n">55.3%</td><td class="n pos">+26.5억</td><td>+ 명상 · 교육 · 기업 B2B · 대관 · 멤버십</td></tr>
+            <tr class="hl"><td class="hd">G2L — 조리까지 해소</td><td class="n">70.5억</td><td class="n">100%</td><td class="n pos">+31.5억</td><td>+ 사찰음식 다이닝 · 전통다원 <b style="color:var(--pri-2)">(단일 최대 증분)</b></td></tr>
+          </tbody>
+        </table>
+        <div class="g3">
+          <div class="stat"><div class="v risk">82.3<em>%</em></div><div class="k">권고경로 매출 중 게이트 뒤에 있는 비중</div></div>
+          <div class="stat"><div class="v warn">44.7<em>%</em></div><div class="k">조리 게이트 하나에 걸린 비중 — 31.5억</div></div>
+          <div class="stat"><div class="v">5<em>건</em></div><div class="k">미제출 유권해석 — 전통다원·전통문화상품·신도편의시설 3문항 + 다원 전용 2문항</div></div>
+        </div>
+        <div class="co r" style="margin-top:13px;font-size:12.4px">
+          <b>리스크는 비대칭이다.</b> 식품위생법 미신고 영업의 벌칙은 <b>징역 3년 또는 벌금 3,000만원</b>으로
+          전통사찰법 벌칙(500만원)의 6배다. 즉 조리 항목은 <b>"일단 열고 나중에 정리"가 성립하지 않는다</b> —
+          조리 해소가 매출 계획보다 반드시 먼저 와야 한다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 판정 그리드 · 기준 시나리오 · 정상가동(개관 5년차) 기준 · 단위 억원 ·
+        비중은 G2L 기준 매출 70.5억을 100%로 한 값
+        <br><b>⚠ 주의</b> 발표본에 기재된 "T1 33.6억(27%)"은 <b>단일점 종합모델</b>(정상가동 123.6억)에서 산출된 값으로, 본 판정 그리드와 계산 방식이 달라 혼용할 수 없다.
+        본 장은 그리드 기준으로 재산출했다. 두 모델의 차이는 [Back-up B09] 참조.</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">14</div>
+</div>
+
+<!-- ═══════════ ⑥ ANALYSIS ═══════════ -->
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>04</b>Analysis · So What</span></div>
+  <div class="at">
+    <h1>"재임대를 넘는가"는 <em>네 개의 하위 질문</em>으로 분해된다</h1>
+    <div class="dek">이슈 트리를 MECE하게 세우면, 답해야 할 것과 답할 수 없는 것이 분리된다. 그리고 그 넷이 그대로 사업 성립 조건이 된다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 12</span><span class="t">이슈 트리 — 핵심 질문의 MECE 분해</span></div>
+      <div class="exh-b">
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="display:inline-block;background:var(--pri);color:#fff;padding:10px 26px;border-radius:7px;
+            font-size:15px;font-weight:800">직영이 재임대(세후 27.1억)를 넘는가?</div>
+          <div style="height:16px;border-left:1px solid var(--line-3);width:1px;margin:0 auto"></div>
+        </div>
+        <div class="g4">
+          <div class="card" style="border-top:3px solid var(--risk)">
+            <div class="lbl risk">Q1 · 무엇을 팔 수 있나</div>
+            <h3 style="font-size:14px">허용 범위가 얼마나 열리는가</h3>
+            <p style="font-size:11.8px">유권해석 5건 미제출. 회신 폭에 따라 매출 천장이 12.5 → 70.5억.
+              <b style="color:var(--tx)">→ 조건 01</b></p>
+          </div>
+          <div class="card" style="border-top:3px solid var(--warn)">
+            <div class="lbl warn">Q2 · 얼마를 투입하나</div>
+            <h3 style="font-size:14px">어떤 투자가 가치를 파괴하는가</h3>
+            <p style="font-size:11.8px">숙박 CAPEX 52.3억 대비 기준 매출 3.9억. 선별 시 회수 12→9년.
+              <b style="color:var(--tx)">→ 조건 02</b></p>
+          </div>
+          <div class="card" style="border-top:3px solid var(--neu)">
+            <div class="lbl neu">Q3 · 얼마나 잘 하나</div>
+            <h3 style="font-size:14px">기준과 낙관 사이를 메울 수 있나</h3>
+            <p style="font-size:11.8px">필요배수 0.89~2.02x. 기준(70.5억)과 낙관(151.1억)의 약 2배 격차.
+              <b style="color:var(--tx)">→ 조건 03</b></p>
+          </div>
+          <div class="card" style="border-top:3px solid var(--ok)">
+            <div class="lbl ok">Q4 · 누가 대는가</div>
+            <h3 style="font-size:14px">자기자본 외 재원이 있는가</h3>
+            <p style="font-size:11.8px">국비 0이면 증분이익 음수 → 회수 불성립. 43.4억이 성립선.
+              <b style="color:var(--tx)">→ 조건 04</b></p>
+          </div>
+        </div>
+        <div class="co" style="margin-top:14px;font-size:12.4px">
+          <b>이 넷은 MECE다</b> — 중복 없이(각각 범위·투입·실행·재원이라는 다른 축), 누락 없이(넷이 모두 참이면 판정이 결정된다).
+          그리고 <b>넷 모두 발주처·종단이 통제하는 변수</b>다. 시장이나 경기가 아니라 <b>의사결정</b>이 성패를 가른다는 뜻이며, 이것이 이 사업의 가장 중요한 성질이다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 역산 판정(<code>judge()</code>·<code>solve_scale()</code>) 결과를 이슈 트리로 재구성 ·
+        필요배수 = 정상가동 세후이익이 기준선 27.1억에 도달하는 매출 배수(이분법 해)</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">15</div>
+</div>
+
+<div class="slide tighter">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>04</b>Analysis · Key Exhibit</span></div>
+  <div class="at">
+    <h1>15개 케이스 중 재임대 세후 27.1억을 넘는 것은 <em>둘뿐이다</em></h1>
+    <div class="dek">유권해석 5케이스 × 시나리오 3. 넘는 둘은 모두 '넓은 게이트 × 낙관 시나리오'다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 13</span><span class="t">게이트 × 시나리오 판정 그리드 — 정상가동 기준 (단위 억원)</span></div>
+      <div class="exh-b" style="padding:12px 18px">
+        <table style="font-size:11.8px">
+          <thead><tr>
+            <th style="width:19%">게이트</th><th style="width:7%">케이스</th>
+            <th class="n" style="width:8%">매출</th><th class="n" style="width:9%">세후이익</th><th class="n" style="width:9%">영업현금흐름</th>
+            <th class="n" style="width:9%">vs 기준선</th><th class="n" style="width:9%">필요배수</th><th class="n" style="width:9%">총투자</th>
+            <th class="n" style="width:7%">회수</th><th style="width:7%">판정</th></tr></thead>
+          <tbody>
+            <tr><td class="hd" rowspan="3" style="vertical-align:middle">G0 좁게<br><span style="font-weight:400;color:var(--tx-4);font-size:10.5px">Tier1만·조리 불가</span></td>
+              <td>보수</td><td class="n">2.7</td><td class="n neg">−17.8</td><td class="n neg">−9.5</td><td class="n">−0.66x</td><td class="n x">도달불가</td><td class="n">98.7</td><td class="n">15+</td><td class="x">✗</td></tr>
+            <tr><td>기준</td><td class="n">12.5</td><td class="n neg">−12.9</td><td class="n neg">−5.8</td><td class="n">−0.48x</td><td class="n x">도달불가</td><td class="n">86.2</td><td class="n">15+</td><td class="x">✗</td></tr>
+            <tr><td>낙관</td><td class="n">39.6</td><td class="n neg">−4.5</td><td class="n">1.7</td><td class="n">−0.16x</td><td class="n">5.20x</td><td class="n">73.7</td><td class="n">15+</td><td class="x">✗</td></tr>
+            <tr><td class="hd" rowspan="3" style="vertical-align:middle;border-top:1px solid var(--line-2)">G1 중간<br><span style="font-weight:400;color:var(--tx-4);font-size:10.5px">Tier2 열림·조리 불가</span></td>
+              <td style="border-top:1px solid var(--line-2)">보수</td><td class="n" style="border-top:1px solid var(--line-2)">10.5</td><td class="n neg" style="border-top:1px solid var(--line-2)">−19.1</td><td class="n neg" style="border-top:1px solid var(--line-2)">−6.2</td><td class="n" style="border-top:1px solid var(--line-2)">−0.70x</td><td class="n x" style="border-top:1px solid var(--line-2)">도달불가</td><td class="n" style="border-top:1px solid var(--line-2)">154.2</td><td class="n" style="border-top:1px solid var(--line-2)">15+</td><td class="x" style="border-top:1px solid var(--line-2)">✗</td></tr>
+            <tr><td>기준</td><td class="n">43.0</td><td class="n neg">−4.7</td><td class="n">7.1</td><td class="n">−0.17x</td><td class="n">3.25x</td><td class="n">141.7</td><td class="n">15+</td><td class="x">✗</td></tr>
+            <tr><td>낙관</td><td class="n">109.1</td><td class="n pos">18.5</td><td class="n">29.3</td><td class="n">0.68x</td><td class="n">1.25x</td><td class="n">129.2</td><td class="n">6년</td><td class="x">✗</td></tr>
+            <tr><td class="hd" rowspan="3" style="vertical-align:middle;border-top:1px solid var(--line-2)">G1L 중간·선별<br><span style="font-weight:400;color:var(--tx-4);font-size:10.5px">숙박 2단계 강등</span></td>
+              <td style="border-top:1px solid var(--line-2)">보수</td><td class="n" style="border-top:1px solid var(--line-2)">9.4</td><td class="n neg" style="border-top:1px solid var(--line-2)">−14.9</td><td class="n neg" style="border-top:1px solid var(--line-2)">−6.5</td><td class="n" style="border-top:1px solid var(--line-2)">−0.55x</td><td class="n x" style="border-top:1px solid var(--line-2)">도달불가</td><td class="n" style="border-top:1px solid var(--line-2)">101.9</td><td class="n" style="border-top:1px solid var(--line-2)">15+</td><td class="x" style="border-top:1px solid var(--line-2)">✗</td></tr>
+            <tr><td>기준</td><td class="n">39.0</td><td class="n neg">−1.1</td><td class="n">6.3</td><td class="n">−0.04x</td><td class="n">3.13x</td><td class="n">89.4</td><td class="n">15+</td><td class="x">✗</td></tr>
+            <tr><td>낙관</td><td class="n">101.6</td><td class="n pos">21.1</td><td class="n">27.5</td><td class="n">0.78x</td><td class="n">1.19x</td><td class="n">76.9</td><td class="n">4년</td><td class="x">✗</td></tr>
+            <tr><td class="hd" rowspan="3" style="vertical-align:middle;border-top:1px solid var(--line-2)">G2 넓게<br><span style="font-weight:400;color:var(--tx-4);font-size:10.5px">Tier2 + 조리 해소</span></td>
+              <td style="border-top:1px solid var(--line-2)">보수</td><td class="n" style="border-top:1px solid var(--line-2)">21.6</td><td class="n neg" style="border-top:1px solid var(--line-2)">−17.3</td><td class="n neg" style="border-top:1px solid var(--line-2)">−3.2</td><td class="n" style="border-top:1px solid var(--line-2)">−0.64x</td><td class="n" style="border-top:1px solid var(--line-2)">7.87x</td><td class="n" style="border-top:1px solid var(--line-2)">168.8</td><td class="n" style="border-top:1px solid var(--line-2)">15+</td><td class="x" style="border-top:1px solid var(--line-2)">✗</td></tr>
+            <tr><td>기준</td><td class="n">74.4</td><td class="n pos">2.6</td><td class="n">15.6</td><td class="n">0.10x</td><td class="n">2.13x</td><td class="n">156.3</td><td class="n">12년</td><td class="x">✗</td></tr>
+            <tr class="hl"><td>낙관</td><td class="n">158.6</td><td class="n pos">29.6</td><td class="n">41.6</td><td class="n">1.09x</td><td class="n">0.95x</td><td class="n">143.8</td><td class="n">5년</td><td class="chk">✓</td></tr>
+            <tr><td class="hd" rowspan="3" style="vertical-align:middle;border-top:1px solid var(--pri)">G2L 넓게·선별<br><span style="font-weight:400;color:var(--pri-2);font-size:10.5px">권고 경로</span></td>
+              <td style="border-top:1px solid var(--pri)">보수</td><td class="n" style="border-top:1px solid var(--pri)">20.5</td><td class="n neg" style="border-top:1px solid var(--pri)">−13.1</td><td class="n neg" style="border-top:1px solid var(--pri)">−3.4</td><td class="n" style="border-top:1px solid var(--pri)">−0.48x</td><td class="n" style="border-top:1px solid var(--pri)">7.47x</td><td class="n" style="border-top:1px solid var(--pri)">116.5</td><td class="n" style="border-top:1px solid var(--pri)">15+</td><td class="x" style="border-top:1px solid var(--pri)">✗</td></tr>
+            <tr><td>기준</td><td class="n">70.5</td><td class="n pos">5.9</td><td class="n">14.5</td><td class="n">0.22x</td><td class="n">2.02x</td><td class="n">104.0</td><td class="n">9년</td><td class="x">✗</td></tr>
+            <tr class="hl"><td>낙관</td><td class="n">151.1</td><td class="n pos">32.1</td><td class="n">39.8</td><td class="n">1.19x</td><td class="n">0.89x</td><td class="n">91.5</td><td class="n">3년</td><td class="chk">✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="src"><b>출처</b> 봉은문화센터 재무모델 v1.1(<code>finance/model.py</code>) 재실행 산출 — 손계산 0건, 전량 스크립트 재현 ·
+        정상가동 = 개관 5년차(2032) · <b>판정선</b> = 재임대 연 30.0억의 세후 27.1억(임대도 수익사업 과세, 고유목적사업준비금 50% 반영) ·
+        영업현금흐름 = 세후이익 + 감가상각 · 필요배수 = 세후이익이 27.1억에 도달하는 매출 배수 · 회수 = 누적현금흐름이 0을 넘는 개관 후 연차(15년 지평)</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">16</div>
+</div>
+
+<div class="slide tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>04</b>Analysis · So What</span></div>
+  <div class="at">
+    <h1>그리드에서 읽을 것은 세 가지다 — <em>좁으면 적자, 선별하면 회수, 넘는 건 낙관뿐</em></h1>
+    <div class="dek">15칸을 다 볼 필요는 없다. 셋만 읽으면 의사결정에 필요한 것은 다 나온다.</div>
+  </div>
+  <div class="body">
+    <div class="g3" style="margin-bottom:15px">
+      <div class="card" style="border-top:3px solid var(--risk)">
+        <div class="lbl risk">읽는 법 ①</div>
+        <h3>유권해석이 좁으면 성립하지 않는다</h3>
+        <p><b style="color:var(--tx)">G0는 전 시나리오 적자</b>다 — 보수 −17.8억, 기준 −12.9억, 낙관에서도 −4.5억.
+          공간을 어떻게 재배분해도, 운영을 아무리 잘해도 바뀌지 않는다.</p>
+        <p><mark class="r">조리 항목이 경제성의 1차 결정 변수</mark>이며, 이것이 조건 01이 첫 번째인 이유다.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--warn)">
+        <div class="lbl warn">읽는 법 ②</div>
+        <h3>선별이 회수기간을 바꾼다</h3>
+        <p>숙박(CAPEX 52.3억 · 기준 매출 3.9억) 하나를 미루는 것만으로 회수가
+          <b style="color:var(--tx)">기준 12→9년, 낙관 5→3년</b>으로 당겨진다.</p>
+        <p>총투자도 156.3 → 104.0억으로 52.3억 줄어든다. <mark class="w">"전부 짓는 것"이 아니라 저CAPEX·고마진 중심</mark>이 답이다.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--neu)">
+        <div class="lbl neu">읽는 법 ③</div>
+        <h3>넘는 것은 넓은 게이트 × 낙관뿐</h3>
+        <p>필요배수 <b style="color:var(--tx)">0.89~0.95x</b> — 즉 낙관 드라이버 그 자체가 임계 조건이다. 낙관은 상방 시나리오가 아니라 <b style="color:var(--tx)">달성 목표선</b>이다.</p>
+        <p>반면 손익분기 배수는 0.28~0.73x로 낮다. <mark>망하는 사업이 아니라, 재임대를 못 이기는 사업</mark>이다.</p>
+      </div>
+    </div>
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 14</span><span class="t">핵심 통찰 — 이 사업의 문제는 적자가 아니라 기회비용이다</span></div>
+      <div class="exh-b">
+        <div class="g4">
+          <div class="stat"><div class="v ok">0.73<em>x</em></div><div class="k">G2L 기준의 손익분기 배수 — 기준 매출의 73%면 흑자</div></div>
+          <div class="stat"><div class="v risk">2.02<em>x</em></div><div class="k">같은 케이스에서 <b style="color:var(--tx-2)">재임대와 같아지는 데</b> 필요한 배수</div></div>
+          <div class="stat"><div class="v warn">14~19<em>억</em></div><div class="k">매출과 무관한 연간 고정 부담 — 감가 + 공통운영비 + 재산세</div></div>
+          <div class="stat"><div class="v p">≈2<em>배</em></div><div class="k">기준(70.5억)과 낙관(151.1억) 사이의 매출 격차 = 조직의 과제</div></div>
+        </div>
+        <div class="co r" style="margin-top:13px;font-size:12.4px">
+          <b>흑자와 "재임대보다 나음"은 전혀 다른 기준이다.</b> 손익분기는 기준 매출의 73%에서 넘지만,
+          재임대 27.1억과 같아지려면 기준의 약 2배(≈150억)가 필요하다.
+          그 사이에 <b>고정 부담 연 14~19억</b>이 놓여 있다 — 재임대 27억을 이기려면 이 부담 위에 다시 27억의 이익을 쌓아야 한다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 <code>solve_scale()</code> 산출 — BEP 배수(목표 세후 0) 및 필요배수(목표 세후 27.1억) ·
+        고정 부담 = 감가상각 7.5~8.7억(정액 12년) + 공통 운영비 5.3~8.9억(㎡당 6~10만원 × 8,868㎡, 가정값·B-01 대기) + 재산세 1.2억(건물 과표 300억 × 0.4%, 과표는 가정)</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">17</div>
+</div>
+
+<div class="slide tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>04</b>Analysis · So What</span></div>
+  <div class="at">
+    <h1>총액으로는 이겨도 <em>증분으로 보면 국비 없이는 회수가 성립하지 않는다</em></h1>
+    <div class="dek">보수비는 재임대를 택해도 드는 돈이다 — 그렇다면 이 사업의 순수 비용은 총투자 200억이 아니다.</div>
+  </div>
+  <div class="body">
+    <div class="stats g4" style="margin-bottom:14px">
+      <div class="stat"><div class="v">57.5<em>억</em></div><div class="k">보수예산 — 용도와 무관한 필수비<br>수변전·냉난방·EV·방수·소방·외피</div></div>
+      <div class="stat"><div class="v">115.9<em>억</em></div><div class="k">상업화예산 — 사업을 하기로 해서 드는 돈<br>숙박 52.3 + 기반설비 17.1 + 전시 24.7 …</div></div>
+      <div class="stat"><div class="v risk">6.1<em>억</em></div><div class="k">예비비 = 총투자의 3.1%<br>통상 하한 5~10% 미달</div></div>
+      <div class="stat"><div class="v p">200.0<em>억</em></div><div class="k">총투자 — 대표 지정 예산<br>예비비율 유지 시 209.5억</div></div>
+    </div>
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 15</span><span class="t">증분 관점 회수 분석 — 재임대 대비 순증 투자와 순증 이익</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:38%">재원·보수 시나리오</th><th class="n" style="width:14%">증분투자</th><th class="n" style="width:14%">증분이익</th><th class="n" style="width:12%">회수</th><th>판정</th></tr></thead>
+          <tbody>
+            <tr><td class="hd">국비 0 · 융자 30 · 임대 시 표준보수</td><td class="n">112.5억</td><td class="n neg">−0.9억</td><td class="n x">불가</td><td class="neg">회수 불성립</td></tr>
+            <tr><td class="hd">국비 43.4 · 융자 30 · 임대 시 최소보수</td><td class="n">99.6억</td><td class="n pos">+2.3억</td><td class="n">43.2년</td><td class="x">사실상 불가</td></tr>
+            <tr><td class="hd">국비 43.4 · 융자 30 · 임대 시 표준보수</td><td class="n">69.1억</td><td class="n pos">+2.3억</td><td class="n">30.0년</td><td class="x">사실상 불가</td></tr>
+            <tr><td class="hd">국비 72.8 · 융자 30 · 임대 시 최소보수</td><td class="n">70.2억</td><td class="n pos">+4.5억</td><td class="n">15.6년</td><td style="color:var(--warn);font-weight:700">장기</td></tr>
+            <tr class="hl"><td class="hd">국비 72.8 · 융자 30 · 임대 시 표준보수</td><td class="n">39.7억</td><td class="n pos">+4.5억</td><td class="n">8.8년</td><td class="chk">유일한 합리 구간</td></tr>
+          </tbody>
+        </table>
+        <div class="co r" style="margin-top:12px;font-size:12.4px">
+          <b>증분투자</b> = 총투자 200억 − 재임대 시에도 필요한 보수비 − 국비 − 융자 ·
+          <b>증분이익</b> = 사업 5년차 세후 − 재임대 세후 27.1억.<br>
+          국비가 0이면 증분이익이 <b>음수</b>가 되어 회수 자체가 성립하지 않는다.
+          <b>조건 04(국비)가 왜 '있으면 좋은 것'이 아니라 '성립 요건'인지가 여기서 드러난다.</b>
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 투자가이드 v2.1(<code>model-investment-guide-v1.0.py</code> · 2026-08-18 갱신, 전시 CAPEX 16.7→24.7억 반영) ·
+        자금조달 구조 검토(<code>model-financing-v1.0.py</code>) · 국비 43.4억 = 보수 인정 시나리오, 72.8억 = 적극 인정 시나리오(문체부 종교문화시설 국고 25~50%)
+        <br><b>⚠ 주의</b> "임대 시 표준보수/최소보수"는 <b>재임대를 택했을 때 실제로 지출해야 할 보수액</b>의 두 가정(57.5억 vs 27억)이다.
+        이 값은 <b>아직 임대차 시장에 확인하지 않았다</b> — 증분 판단을 가르는 변수이므로 Phase 0 과제로 지정했다(→ S30).</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">18</div>
+</div>
+
+<div class="slide tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>04</b>Analysis · So What</span></div>
+  <div class="at">
+    <h1>기준 케이스는 안전한 중간이 아니라 <em>살얼음판</em>이다</h1>
+    <div class="dek">이익률·운영비·매출 어느 하나가 흔들려도 적자로 넘어간다. '기준'이라는 이름이 주는 안정감이 가장 위험한 오해다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 16</span><span class="t">민감도 분석 — G2 · 기준 케이스, 정상가동 세후이익 2.6억 기준</span></div>
+      <div class="exh-b">
+        <table style="margin-bottom:13px">
+          <thead><tr><th style="width:44%">변수가 나빠지면</th><th class="n" style="width:16%">세후이익</th><th class="n" style="width:14%">변화</th><th>결과</th></tr></thead>
+          <tbody>
+            <tr><td class="hd">기준</td><td class="n pos">2.6억</td><td class="n">—</td><td class="x">—</td></tr>
+            <tr><td class="hd">매출 −20%</td><td class="n neg">−2.1억</td><td class="n neg">−4.7억</td><td class="neg">적자 전환 · 최대 변수</td></tr>
+            <tr><td class="hd">공통 운영비 +50%</td><td class="n neg">−0.8억</td><td class="n neg">−3.4억</td><td class="neg">적자 전환</td></tr>
+            <tr><td class="hd">전 라인 이익률 −5%p (보수 고정비 리스크)</td><td class="n neg">−0.7억</td><td class="n neg">−3.3억</td><td class="neg">적자 전환</td></tr>
+            <tr class="dim"><td class="hd">E등급 이익률 −10%p (대관·숙박)</td><td class="n">2.0억</td><td class="n">−0.6억</td><td>흑자 유지</td></tr>
+            <tr class="dim"><td class="hd">고유목적사업준비금 미적용</td><td class="n">2.4억</td><td class="n">−0.2억</td><td>흑자 유지</td></tr>
+          </tbody>
+        </table>
+        <div class="g2">
+          <div class="card" style="padding:12px 14px;border-left:3px solid var(--risk)">
+            <div class="lbl risk">이 표가 말하는 것</div>
+            <h3 style="font-size:14.5px">여유가 없다</h3>
+            <p style="font-size:12.3px">G2·기준의 세후이익은 <b style="color:var(--tx)">2.6억</b>이다.
+              위 세 변수 중 <b style="color:var(--tx)">하나만 나빠져도 적자</b>다.
+              <mark class="r">기준 케이스를 '보수적'이라고 불러서는 안 된다.</mark></p>
+          </div>
+          <div class="card" style="padding:12px 14px;border-left:3px solid var(--ok)">
+            <div class="lbl ok">반대 방향</div>
+            <h3 style="font-size:14.5px">준비금 효과는 이익에 비례해 커진다</h3>
+            <p style="font-size:12.3px">고유목적사업준비금 50% 손금산입의 절세 효과는 이익 규모에 비례한다 — 기준에서는 0.2억이지만
+              낙관에서는 연 수억 원, <b style="color:var(--tx)">5년 절세 약 15억</b>이다.
+              <mark class="o">구조를 정하는 순간 확정되는 유일한 이익</mark>이다.</p>
+          </div>
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 <code>sensitivity()</code> 산출 · 기준 케이스는 G2(넓게, 숙박 포함)·기준 시나리오 ·
+        고유목적사업준비금 = 법인세법 제29조, 수익사업 소득의 50% 손금산입(5년 내 미사용 시 익금산입 + 이자)
+        <br><b>⚠ 공통 운영비는 가정값</b>(㎡당 연 6~10만원)이며 벤치마크 슬롯 B-01 대기 중이다. 위 민감도에서 두 번째로 큰 변수인 만큼, 실적치 인입 우선순위가 가장 높다.</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">19</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>04</b>Analysis · So What</span></div>
+  <div class="at">
+    <h1>200억이라는 틀의 대가 — <em>예비비가 3.1%로 내려간다</em></h1>
+    <div class="dek">200억은 지켜야 할 상한이지 안전한 예산이 아니다. 그리고 바로 옆 경내에서 139% 증액이 실제로 일어나고 있다.</div>
+  </div>
+  <div class="body">
+    <div class="exh" style="margin-bottom:14px">
+      <div class="exh-h"><span class="n">EXHIBIT 17</span><span class="t">예산 프레임 두 관점 — 총투자 고정 vs 예비비율 유지</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:26%">관점</th><th class="n" style="width:13%">총투자</th><th class="n" style="width:12%">예비비</th><th class="n" style="width:12%">예비비율</th><th>판단</th></tr></thead>
+          <tbody>
+            <tr><td class="hd">A · 총투자 200억 고정</td><td class="n">200.0억</td><td class="n neg">6.1억</td><td class="n neg">3.1%</td><td>통상 하한(5~10%) 미달 — 법난기념관이 139%로 증액된 현장에서 위험</td></tr>
+            <tr class="hl"><td class="hd">B · 예비비율 7.4% 유지</td><td class="n">209.5억</td><td class="n pos">15.6억</td><td class="n pos">7.4%</td><td>구 200억안과 같은 안전 여유 — 총투자가 9.5억 늘어남</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="src"><b>출처</b> 투자가이드 v2.1 · 예비비는 이 모델에서 <b>잔여값</b>(총투자 200억 − 항목 소계)으로 계산된다 ·
+        필요 현금(국비 43.4·융자 30 기준): 개관 전 83.5억 · 안정선 108.1억 · 권장선 114.2억(관점 B에서는 권장선 123.7억)</div>
+    </div>
+    <div class="g2">
+      <div class="card" style="border-left:3px solid var(--warn)">
+        <div class="lbl warn">왜 이렇게 됐나</div>
+        <h3>예비비가 잔여값이기 때문이다</h3>
+        <p>전시를 3,300㎡ 앵커안으로 확정하며 전시 CAPEX가 <b style="color:var(--tx)">16.7 → 24.7억</b>으로 올랐다.
+          이 모델에서 예비비는 <b style="color:var(--tx)">총투자 200억 − 소계</b>로 계산되므로, 증액분이 그대로 예비비를 잠식해 14.9억(7.4%) → 6.1억(3.1%)이 됐다.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--risk)">
+        <div class="lbl risk">왜 위험한가</div>
+        <h3>바로 옆에서 139% 증액이 일어났다</h3>
+        <p>10·27 법난기념관은 예산 1,467억 대비 중간설계 산출 <b style="color:var(--tx)">2,040억(139%)</b>으로 늘어,
+          절감 49억 반영 후 1,991억 — <b style="color:var(--tx)">524억 증액</b>이 요청된 상태다.
+          <mark class="r">같은 경내·같은 시기에 실제로 일어난 일</mark>이며, 증액 사유(물가상승 346억 등)는 문화센터에도 동일하게 적용된다.</p>
+      </div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">20</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>04</b>Analysis · So What</span></div>
+  <div class="at">
+    <h1>진짜 상한은 수요가 아니라 <em>공급</em>이다 — 주 46회를 2.27명으로는 할 수 없다</h1>
+    <div class="dek">체험·명상 라인의 매출 계획은 진행 가능 인원을 확인하기 전까지 계획이 아니라 가설이다.</div>
+  </div>
+  <div class="body">
+    <div class="stats g4" style="margin-bottom:15px">
+      <div class="stat"><div class="v">2,402<em>회/년</em></div><div class="k">전 라인 합계 필요 진행 횟수 = <b style="color:var(--tx-2)">주 46회</b></div></div>
+      <div class="stat"><div class="v warn">2.27<em>명</em></div><div class="k">템플스테이 사찰당 평균 운영 인력 (2013년 기준)</div></div>
+      <div class="stat"><div class="v risk">60~66<em>%</em></div><div class="k">재직 1년 미만 퇴직률 — 지도법사 60% · 실무자 66%</div></div>
+      <div class="stat"><div class="v risk">?</div><div class="k">봉은사 진행 가능 인원 — <b style="color:var(--tx-2)">요소 원장 775건 어디에도 없다</b></div></div>
+    </div>
+    <div class="co r" style="margin-bottom:14px;font-size:13px">
+      주 46회를 2.27명으로는 할 수 없다. 그런데 <b>봉은사의 진행 가능 인원은 확인된 바가 없다.</b>
+      이 숫자를 모르는 채로 세운 매출 계획은 계획이 아니라 희망이다 —
+      <b>이 사업에서 공급이 곧 매출의 상한(ceiling)이 되는 구조</b>이기 때문이다.
+    </div>
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 18</span><span class="t">공급 병목의 해소 순서 — 매출 확정 이전에 선행되어야 할 두 가지</span></div>
+      <div class="exh-b">
+        <div class="g2">
+          <div class="card" style="padding:13px 15px">
+            <div class="lbl p">선행 ①</div>
+            <h3 style="font-size:14.5px">봉은사 상주 스님·지도 가능 인원 실사</h3>
+            <p style="font-size:12.3px">명상·선·다도·공예를 실제로 진행할 수 있는 인원이 몇 명인지 센다.
+              이 값이 나오기 전까지 체험·교육 라인의 연 회차 수는 <b style="color:var(--tx)">확정하지 않는다</b>.</p>
+          </div>
+          <div class="card" style="padding:13px 15px">
+            <div class="lbl p">선행 ②</div>
+            <h3 style="font-size:14.5px">외부 지도자 조달 경로 확보</h3>
+            <p style="font-size:12.3px">1년차는 <b style="color:var(--tx)">외부 조달을 전제</b>해야 한다.
+              동시에 1년 미만 퇴직률 60~66%라는 업계 구조를 감안해, 채용이 아니라 <b style="color:var(--tx)">유지</b>를 설계 대상으로 삼는다.</p>
+          </div>
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 필요 회차 2,402회/년 = 재무모델 v1.1 각 라인 연회차 드라이버 합산(RL-05 교육 600회 · RL-06 명상 등) ·
+        <b>2.27명 및 퇴직률 60~66%는 2013년 1~11월 템플스테이 운영 실태 자료</b>(지도법사 117 + 실무자 144 ÷ 108개 사; 퇴직 지도법사 50명 중 1년 미만 60%, 실무자 88명 중 66%) —
+        13년 경과한 값이나, 2022년 국회 세미나에서도 인력 안정화·전문화가 미해결 과제로 재확인되어 구조적 지표로 인용
+        <br><b>⚠ 봉은사 자체 인력은 미조사</b> — 본 보고서가 답하지 못한 것 중 하나이며, Phase 0 과제로 지정했다(→ S30·S35).</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">21</div>
+</div>
+
+<!-- ═══════════ ⑦ RECOMMENDATIONS ═══════════ -->
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>05</b>Recommendations · Now What</span></div>
+  <div class="at">
+    <h1>[권고 0] 포지셔닝을 <em>「서울 도심형 K-Buddhism 문화·웰니스 체험 거점」</em>으로 확정한다</h1>
+    <div class="dek">이 한 문장이 이후 모든 결정의 상위 기준이 된다 — 공간 배분도, 수익 라인도, 조직도, 국비 논리도.</div>
+  </div>
+  <div class="body">
+    <div class="co" style="margin-bottom:15px;font-size:15px;padding:17px 20px">
+      <b style="font-size:17px;color:var(--tx)">불교를 보고 · 경험하고 · 머물고 · 일상으로 가져가는 서울의 대표 문화관광 웰니스 플랫폼</b><br>
+      <span style="font-size:12.5px;color:var(--tx-3)">영문 병기 — Bongeunsa Buddhist Culture &amp; Wellness Destination · 국문 정본은 위 문장</span>
+    </div>
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 19</span><span class="t">포지셔닝 선택 근거 — 세 개의 제약이 동시에 허락하는 자리는 여기뿐이다</span></div>
+      <div class="exh-b">
+        <div class="g3">
+          <div class="card" style="border-top:3px solid var(--pri)">
+            <div class="lbl p">① 법이 허락하는 자리</div>
+            <h3 style="font-size:14.5px">전통사찰법 허용 범위 안에서 가장 넓다</h3>
+            <p style="font-size:12.3px">일반 상업은 전부 막혀 있고 전통문화·수행 관련만 열려 있다.
+              「문화·웰니스 체험」은 그 안에서 <b style="color:var(--tx)">가장 넓게 잡을 수 있는 정의</b>다.
+              단, Wellness의 범위는 명상·선·호흡·다도·사찰음식·공예로 <b style="color:var(--tx)">한정 명시</b>한다.</p>
+          </div>
+          <div class="card" style="border-top:3px solid var(--pri)">
+            <div class="lbl p">② 수요가 사러 오는 것</div>
+            <h3 style="font-size:14.5px">역사·전통 체험 고려율 46.6%</h3>
+            <p style="font-size:12.3px">봉은사 방문 외국인의 종교·순례 활동 경험률은 2.0%인 반면,
+              목적지 선택 시 역사·전통 체험 고려는 46.6%(전체 평균 20.6%의 2.26배)다.
+              <b style="color:var(--tx)">수요가 가리키는 방향</b>이 종교가 아니라 문화다.</p>
+          </div>
+          <div class="card" style="border-top:3px solid var(--pri)">
+            <div class="lbl p">③ 국비가 인정하는 성격</div>
+            <h3 style="font-size:14.5px">문체부가 제외하는 것은 포교다</h3>
+            <p style="font-size:12.3px">국고 지원에서 제외되는 것은 순수 종교활동·포교다.
+              사업을 「문화·웰니스 체험 거점」으로 재정의해야 인정 범위가 열린다 —
+              <mark>포지셔닝이 곧 재원 조건의 일부</mark>다.</p>
+          </div>
+        </div>
+        <div class="co o" style="margin-top:13px;font-size:12.4px">
+          문장을 이렇게 고른 이유는 취향이 아니라 <b>세 제약의 교집합이 여기 하나뿐</b>이기 때문이다.
+          그리고 이 문장은 A/B/C 대안 비교를 대체한다 — 세 제약을 동시에 통과하는 다른 정의가 없으므로, 선택지가 아니라 <b>도출된 결론</b>이다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 전통사찰법 제6조·시행령 제7조 · 한국관광공사 외래관광객조사 기반 봉은사 방문자 분석(2025) ·
+        문체부 종교문화시설 국고보조 지원 대상 기준 · 공간 재배분 Destination 확정안(2026-08-18)</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">22</div>
+</div>
+
+<div class="slide tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>05</b>Recommendations · Now What</span></div>
+  <div class="at">
+    <h1>[권고 1] 6개 Zone 중 <em>넷만 1기에 짓는다</em> — 나머지 둘은 버리지 않고 미룬다</h1>
+    <div class="dek">버릴 것을 적지 않은 계획은 계획이 아니다. 그리고 미루는 것과 버리는 것은 다르다 — 둘의 이유도 서로 다르다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 20</span><span class="t">6 Zone 구성과 1기 착수 판정</span></div>
+      <div class="exh-b">
+        <table style="margin-bottom:13px">
+          <thead><tr><th style="width:14%">Zone</th><th style="width:9%" class="n">면적</th><th style="width:26%">역할</th><th style="width:12%" class="n">기준 매출</th><th style="width:11%">게이트</th><th>1기 판정</th></tr></thead>
+          <tbody>
+            <tr><td class="hd">1 EXHIBITION</td><td class="n">3,300㎡</td><td>사람을 끌어오는 엔진 — 상설(무료) + 기획전 2트랙 + 미디어아트</td><td class="n">10.4억</td><td class="pos">Tier1</td><td class="pos">착수</td></tr>
+            <tr><td class="hd">2 EXPERIENCE</td><td class="n">1,000㎡</td><td>머무르게 하는 엔진 — 명상·선·호흡·다도·공예, 4단 레벨링</td><td class="n">7.8억</td><td style="color:var(--warn)">Tier2</td><td class="pos">착수</td></tr>
+            <tr><td class="hd">3 TASTE</td><td class="n">1,000㎡</td><td>가장 쉬운 입구 — 사찰음식 다이닝 + 전통다원</td><td class="n">31.4억</td><td style="color:var(--risk)">조리 게이트</td><td class="pos">착수</td></tr>
+            <tr><td class="hd">4 RETAIL</td><td class="n">800㎡</td><td>가지고 가는 엔진 — 뮤지엄숍, 전시 IP의 상품화</td><td class="n">4.9억</td><td class="pos">Tier1</td><td class="pos">착수</td></tr>
+            <tr class="dim"><td class="hd">5 STAY</td><td class="n">2기</td><td>가장 깊게 머무는 엔진 — 템플스테이 경로로만 성립</td><td class="n">(3.9억)</td><td>Tier2</td><td style="color:var(--warn);font-weight:700">유보 — 계산</td></tr>
+            <tr class="dim"><td class="hd">6 MEMORIAL</td><td class="n">옵션</td><td>종교적 프리미엄 — 49재·추모·봉안 연계, 독립 P&amp;L</td><td class="n">미산출</td><td>별도</td><td style="color:var(--warn);font-weight:700">유보 — 검증</td></tr>
+          </tbody>
+        </table>
+        <div class="g2">
+          <div class="card" style="padding:13px 15px;border-left:3px solid var(--warn)">
+            <div class="lbl warn">STAY · 계산이 말린다</div>
+            <h3 style="font-size:14.5px">돈이 안 되어서 미룬다</h3>
+            <p style="font-size:12.3px">CAPEX <b style="color:var(--tx)">52.3억</b>에 기준 매출 <b style="color:var(--tx)">3.9억</b> — 기준 케이스의 가치 파괴 라인이다.
+              제외만으로 회수가 기준 12→9년, 낙관 5→3년으로 당겨진다.
+              <mark class="w">방향이 틀린 게 아니라 순서가 틀렸다</mark> — 도심 템플스테이 가동률 실측(현재 0건) 확보 후 재계산한다.</p>
+          </div>
+          <div class="card" style="padding:13px 15px;border-left:3px solid var(--warn)">
+            <div class="lbl warn">MEMORIAL · 검증이 없다</div>
+            <h3 style="font-size:14.5px">확인이 안 되어서 미룬다</h3>
+            <p style="font-size:12.3px">수요는 명백하다 — 화장률 95.1%, 자연장 선호 45.4%, 국공립 수목장 전국 5곳뿐.
+              그러나 <b style="color:var(--tx)">면적 배분안에 봉안 공간이 없고 시설 기준도 미검토</b>이며 종단 수용성도 미확인이다.
+              검증 순서를 고정한다 — <b style="color:var(--tx)">①법적 가능 → ②종단 수용성 → ③시설 요건 → ④객단가 → ⑤수요.</b></p>
+          </div>
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 라인별 기준값(RL-01·08 = 10.4 / RL-05·06 = 7.8 / RL-02·03 = 31.4 / RL-04 = 4.9 / RL-09 = 3.9억) ·
+        숙박 CAPEX 52.3억은 Phase 분할(23.3 / 19.9 / 9.1) 합계 · 화장률 95.1%(2024-12, 전년 동월 93.5% 대비 +1.6%p)·자연장 선호 45.4%·국공립 수목장 5곳 = 사찰 장묘 시장 리서치 ·
+        장사법상 종교단체 신고제, 한도 5,000기</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">23</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>05</b>Recommendations · Now What</span></div>
+  <div class="at">
+    <h1>[권고 2] 숙박을 미루니 <em>전시가 2.3배</em>가 됐다 — 두 달 막힌 공간 딜레마가 여기서 풀린다</h1>
+    <div class="dek">프로젝트를 붙잡고 있던 질문은 "대관을 접느냐"였다. 답은 대관이 아니라 숙박에 있었다.</div>
+  </div>
+  <div class="body">
+    <div class="exh" style="margin-bottom:14px">
+      <div class="exh-h"><span class="n">EXHIBIT 21</span><span class="t">공간 배분 시나리오 비교 — 가용 8,868㎡ 대비</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:13%">시나리오</th><th style="width:47%">구성</th><th class="n" style="width:11%">합계</th><th class="n" style="width:11%">가용 대비</th><th>판정</th></tr></thead>
+          <tbody>
+            <tr class="dim"><td class="hd">구 α안</td><td>전시 1,450 / F&amp;B 691 / 대관 1,500 / 숙박+명상 2,645 / 로비 2,568</td><td class="n">8,854㎡</td><td class="n">+14</td><td style="color:var(--warn)">아슬아슬</td></tr>
+            <tr class="dim"><td class="hd">구 β안</td><td>위 + 리테일 800 + 교육 500 (별도 확보 시)</td><td class="n">10,685㎡</td><td class="n neg">−1,817</td><td class="neg">대관 포기 불가피</td></tr>
+            <tr class="hl"><td class="hd">Destination 안</td><td>전시 3,300 / F&amp;B 1,000 / 리테일 800 / 교육 500 / 명상 500 / 로비 2,568 <b style="color:var(--pri-2)">(숙박 0 · 대관 전용 0)</b></td><td class="n">8,668㎡</td><td class="n pos">+200</td><td class="chk">둘 다 해결</td></tr>
+          </tbody>
+        </table>
+        <div class="co" style="margin-top:12px;font-size:12.4px">
+          <b>대관을 접어서 전시를 키운 것이 아니다.</b> 숙박을 미뤄 생긴 여유로 전시를 키웠고, <b>커진 전시홀이 대관을 흡수했다.</b>
+          그래서 대관 매출이 사라지지 않는다 — 전용 1,500㎡를 0㎡로 회수하는 대신 기획전 트랙 2,000㎡를 회기 사이에 돌리며,
+          가동일은 60/100/140 → 40/70/100일로 줄지만 <b>매출은 3.0 → 2.8억으로 0.2억만 감소</b>한다. <b>1,500㎡를 연 0.2억에 사는 거래다.</b>
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 공간 재배분 Destination 확정안(2026-08-18) · 대관 매출은 재무모델 v1.1 RL-08(전시홀 회기 회전 2,000㎡ × 단가 × 가동일) 기준 ·
+        전용면적 0 처리 · 대상 면적 8,868.15㎡(1층 6,157.91 + 2층 2,710.24, 계약서 제2조)
+        <br><b>⚠ 유의</b> 명상을 자원원장 기준(선방 450 + 다경실 350 = 800㎡)으로 잡으면 8,968㎡로 100㎡ 초과하나, 로비에서 흡수 가능한 범위다.
+        위 배치는 <b>면적 총량만 맞춘 것</b>이며 층별 기능배치도·동선도는 현재 미보유다(→ S35).</div>
+    </div>
+    <div class="g3">
+      <div class="card" style="padding:12px 14px"><div class="lbl p">1층 · 6,157.91㎡</div><p style="font-size:12.2px"><b style="color:var(--tx)">집객</b> — 개방 로비(무료 체류) + 전시 앵커 3,300 + 리테일 800 + 다원·다이닝 1,000(조리 게이트 조건부)</p></div>
+      <div class="card" style="padding:12px 14px"><div class="lbl p">2층 · 2,710.24㎡</div><p style="font-size:12.2px"><b style="color:var(--tx)">수익</b> — 명상·클래스 스튜디오 500 + 교육 500 + 기업 프로그램 룸 + 멤버십 라운지</p></div>
+      <div class="card" style="padding:12px 14px"><div class="lbl gray">전 공간 원칙 3</div><p style="font-size:12.2px">① 1층 전체 대관장화 금지 ② 상업·수행 공간 분리(진정성 4원칙) ③ 차 없이 오는 곳 — 공사 기간 중 기존 주차 182대 상실</p></div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">24</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>05</b>Recommendations · 조건 01·02</span></div>
+  <div class="at">
+    <h1>[조건 1·2] 유권해석 5건을 <u>9.27 전에 한 공문으로</u>, 그리고 <em>저효율 CAPEX를 걸러낸다</em></h1>
+    <div class="dek">앞의 둘은 '무엇을 팔 수 있나'와 '무엇에 돈을 쓰나'에 대한 답이며, 둘 다 회신 전에 착수할 수 있다.</div>
+  </div>
+  <div class="body">
+    <div class="g2">
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT 22</span><span class="t">조건 01 — 유권해석 확대</span></div>
+        <div class="exh-b">
+          <div style="margin-bottom:11px"><span class="lbl risk">임계경로 · 9.27</span></div>
+          <p style="font-size:12.6px;color:var(--tx-2);line-height:1.68;margin-bottom:11px">
+            전통다원 · 전통문화상품 · 신도편의시설 <b style="color:var(--tx)">3문항</b> + 다원 전용 <b style="color:var(--tx)">2문항</b>을
+            <b style="color:var(--tx)">한 공문으로 묶어</b> 제출한다. 개별 제출은 회신 시점이 어긋나 게이트 판정을 지연시킨다.</p>
+          <table style="font-size:11.8px">
+            <thead><tr><th>회신 폭</th><th class="n">정상가동 매출</th><th class="n">vs 기준선</th></tr></thead>
+            <tbody>
+              <tr><td class="hd">좁게 (G0)</td><td class="n">12.5억</td><td class="n neg">−0.48x</td></tr>
+              <tr><td class="hd">중간 (G1L)</td><td class="n">39.0억</td><td class="n neg">−0.04x</td></tr>
+              <tr class="hl"><td class="hd">넓게 (G2L)</td><td class="n">70.5억</td><td class="n">0.22x → 낙관 1.19x</td></tr>
+            </tbody>
+          </table>
+          <div class="co r" style="margin-top:11px;font-size:12px">
+            <b>조리 미해소 시 낙관에서도 0.78배</b>에 그친다. 총무원장 임기 만료(9.27) 전에 총무원 사전 동의까지 확보해야 하며,
+            직영사찰 구조상 허가 없는 양도·임대는 <b>무효이자 벌금 대상</b>이다.
+          </div>
+        </div>
+        <div class="src"><b>출처</b> 재무모델 v1.1 게이트별 정상가동 판정 · 전통사찰법 시행령 제7조(전통다원 명문 허용) · 조계종 직영사찰 총무원 사전동의 규정</div>
+      </div>
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT 23</span><span class="t">조건 02 — 저효율 투자 선별</span></div>
+        <div class="exh-b">
+          <div style="margin-bottom:11px"><span class="lbl warn">회수기간 −3년</span></div>
+          <p style="font-size:12.6px;color:var(--tx-2);line-height:1.68;margin-bottom:11px">
+            "전부 짓는 것"이 아니라 <b style="color:var(--tx)">저CAPEX·고마진 중심</b>으로 포트폴리오를 재편한다.
+            숙박 하나를 2단계로 강등하는 것만으로 판정이 크게 개선된다.</p>
+          <table style="font-size:11.8px">
+            <thead><tr><th>지표</th><th class="n">G2 (전부)</th><th class="n">G2L (선별)</th></tr></thead>
+            <tbody>
+              <tr><td class="hd">총투자 · 기준</td><td class="n">156.3억</td><td class="n pos">104.0억</td></tr>
+              <tr><td class="hd">회수 · 기준</td><td class="n">12년</td><td class="n pos">9년</td></tr>
+              <tr><td class="hd">회수 · 낙관</td><td class="n">5년</td><td class="n pos">3년</td></tr>
+              <tr class="hl"><td class="hd">vs 기준선 · 낙관</td><td class="n">1.09x</td><td class="n pos">1.19x</td></tr>
+            </tbody>
+          </table>
+          <div class="co o" style="margin-top:11px;font-size:12px">
+            남기는 것은 <b>명상 · B2B · 멤버십 · 대관</b> — 전용면적이 0이거나 작고 이익률이 40~60%인 라인들이다.
+            빼는 것은 <b>숙박(CAPEX 52.3억 · 이익률 22%)</b> 하나다.
+          </div>
+        </div>
+        <div class="src"><b>출처</b> 재무모델 v1.1 게이트 G2 vs G2L 비교 · 라인별 이익률은 <code>inputs.json</code> margins(RL-06 53.6% · RL-08 60% · RL-10 55% vs RL-09 22%)</div>
+      </div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">25</div>
+</div>
+
+<div class="slide tighter">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>05</b>Recommendations · 조건 03</span></div>
+  <div class="at">
+    <h1>[조건 3] 기준과 낙관 사이 <em>2배를 메우는 주체는 CDM 조직</em>이다 — 조직은 부대사항이 아니라 재무 항목이다</h1>
+    <div class="dek">이 모델은 부동산 운영사업이 아니다. 임대는 계약서에 서명하면 끝나지만, 이 사업은 개관일에 시작된다.</div>
+  </div>
+  <div class="body">
+    <div class="exh" style="margin-bottom:13px">
+      <div class="exh-h"><span class="n">EXHIBIT 24</span><span class="t">조건 03의 인과 사슬 — 조직이 없으면 낙관이 없고, 낙관이 없으면 재임대를 넘지 못한다</span></div>
+      <div class="exh-b">
+        <div class="flow">
+          <div class="n"><div class="i">조건 03</div><div class="t">낙관 드라이버</div><div class="d">다이닝 회전 1.8 · 클래스 연 800회차 · 법인 45사 · 개인 회원 1,500명</div></div>
+          <div class="n"><div class="i">누가</div><div class="t">CDM 조직</div><div class="d">10기능 통합 · 3년 단위 · 전담 또는 장기 전문 운영 파트너</div></div>
+          <div class="n"><div class="i">없으면</div><div class="t">기준에 머문다</div><div class="d">매출 70.5억 · 세후 5.9억</div></div>
+          <div class="n" style="border-color:var(--risk)"><div class="i" style="color:var(--risk)">결과</div><div class="t">재임대 미달</div><div class="d">0.22x · 회수 9년</div></div>
+        </div>
+        <div class="co r" style="margin-top:13px;font-size:12.5px">
+          낙관 드라이버는 공상이 아니다 — <b>다이닝 회전 1.8 · 클래스 연 800회차 · 법인 45사 · 개인 회원 1,500명</b>은
+          각각 벤치마크 대비 실현 가능성 판정 대상이다. 그래서 조건 03은 "잘하면 좋다"가 아니라 <b>"해야 한다"</b>이다.
+          <b>투자비를 아끼려고 조직을 줄이면 그 순간 사업의 전제가 무너진다.</b>
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 낙관 시나리오 드라이버(<code>inputs.json</code> 라인별 낙관값) · 필요배수 0.89x(G2L 낙관) ·
+        기준 70.5억 대 낙관 151.1억 = 2.14배</div>
+    </div>
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 25</span><span class="t">Content &amp; Destination Management — 통합해야 할 10개 기능</span></div>
+      <div class="exh-b">
+        <div class="g5" style="margin-bottom:11px">
+          <div class="card" style="padding:9px 11px;text-align:center"><p style="font-size:11.5px;color:var(--tx);font-weight:700">Content Planning</p></div>
+          <div class="card" style="padding:9px 11px;text-align:center"><p style="font-size:11.5px;color:var(--tx);font-weight:700">Exhibition</p></div>
+          <div class="card" style="padding:9px 11px;text-align:center"><p style="font-size:11.5px;color:var(--tx);font-weight:700">Wellness Program</p></div>
+          <div class="card" style="padding:9px 11px;text-align:center"><p style="font-size:11.5px;color:var(--tx);font-weight:700">Tourism</p></div>
+          <div class="card" style="padding:9px 11px;text-align:center"><p style="font-size:11.5px;color:var(--tx);font-weight:700">Marketing</p></div>
+        </div>
+        <div class="g5">
+          <div class="card" style="padding:9px 11px;text-align:center"><p style="font-size:11.5px;color:var(--tx);font-weight:700">Community</p></div>
+          <div class="card" style="padding:9px 11px;text-align:center"><p style="font-size:11.5px;color:var(--tx);font-weight:700">B2B Sales</p></div>
+          <div class="card" style="padding:9px 11px;text-align:center"><p style="font-size:11.5px;color:var(--tx);font-weight:700">Retail MD</p></div>
+          <div class="card" style="padding:9px 11px;text-align:center"><p style="font-size:11.5px;color:var(--tx);font-weight:700">F&amp;B</p></div>
+          <div class="card" style="padding:9px 11px;text-align:center"><p style="font-size:11.5px;color:var(--tx);font-weight:700">IP &amp; Product</p></div>
+        </div>
+        <p style="font-size:12.3px;color:var(--tx-2);line-height:1.66;margin-top:12px">
+          <b style="color:var(--tx)">왜 통합인가</b> — 전시가 IP를 만들고 → Retail이 상품화하고 → Marketing이 알리고 → Community가 재방문을 만든다.
+          따로 두면 이 순환이 끊긴다. 특히 <b style="color:var(--tx)">예약·CRM</b>은 그 자체로는 팔리지 않지만
+          전시 가동률·프로그램 갱신율·리테일 판매 데이터를 동시에 결정한다.</p>
+      </div>
+      <div class="src"><b>출처</b> 실행 총괄 설계(최종보고서 10.7) · 3년 단위는 콘텐츠 로테이션 주기(연 최소 4회기)와 램프업 곡선을 근거로 산정 ·
+        공급 병목(주 46회 · 상주 인력 미확인)은 EXHIBIT 18 참조</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">26</div>
+</div>
+
+<div class="slide tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>05</b>Recommendations · 조건 04</span></div>
+  <div class="at">
+    <h1>[조건 4] 국비 43.4억이 <em>성립선을 가른다</em> — 수익성 개선이 아니라 사업 성립의 조건이다</h1>
+    <div class="dek">그리고 국비 자격을 결정하는 것은 재무 구조가 아니라 포지셔닝이다.</div>
+  </div>
+  <div class="body">
+    <div class="stats g4" style="margin-bottom:15px">
+      <div class="stat"><div class="v risk">26.8<em>억</em></div><div class="k">국비 0 · 5년차 세후 — 재임대 27.1억에 <b style="color:var(--tx-2)">근소 미달</b></div></div>
+      <div class="stat"><div class="v ok">30.0<em>억</em></div><div class="k">국비 43.4억 확보 시 — <b style="color:var(--tx-2)">기준선 초과(1.11배)</b></div></div>
+      <div class="stat"><div class="v ok">32.2<em>억</em></div><div class="k">국비 72.8억 확보 시 — 증분 회수 8.8년</div></div>
+      <div class="stat"><div class="v p">89.3<em>억</em></div><div class="k">적극 인정 시 국비 상한 — 대상액 178.5억 × 50%</div></div>
+    </div>
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 26</span><span class="t">재원 조합 세 갈래와 국비 확보의 급소</span></div>
+      <div class="exh-b">
+        <div class="g3" style="margin-bottom:13px">
+          <div class="card" style="padding:12px 14px">
+            <div class="lbl p">트랙 ①</div>
+            <h3 style="font-size:14px">문체부 종교문화시설 국고</h3>
+            <p style="font-size:12.1px">지원 비율 <b style="color:var(--tx)">25~50%</b>. 보수예산 57.5억도 대상에 넣는 것이 자연스럽다 —
+              노후설비 교체는 국민에게 개방되는 <b style="color:var(--tx)">문화시설의 기반 정비</b>이지 수익시설이 아니다.</p>
+          </div>
+          <div class="card" style="padding:12px 14px">
+            <div class="lbl p">트랙 ②</div>
+            <h3 style="font-size:14px">서울시 매칭</h3>
+            <p style="font-size:12.1px">국고 확보를 전제로 한 지자체 매칭 재원. 문체부 트랙과 <b style="color:var(--tx)">순차 연동</b>되므로
+              국고 신청 시점 설계가 곧 매칭 가능 여부를 결정한다.</p>
+          </div>
+          <div class="card" style="padding:12px 14px">
+            <div class="lbl p">트랙 ③</div>
+            <h3 style="font-size:14px">관광진흥개발기금 융자</h3>
+            <p style="font-size:12.1px">연 <b style="color:var(--tx)">1.85%</b>. <b style="color:var(--tx)">전문휴양업</b> 경로가 열려 있다.
+              모델에는 융자 30억을 전제로 반영했다.</p>
+          </div>
+        </div>
+        <div class="co r" style="font-size:12.4px">
+          <b>급소는 포지셔닝이다.</b> 문체부가 제외하는 것은 순수 종교활동·포교다.
+          <b>"이 사업은 포교가 아니다"를 증명해야 하며, 그 증명이 바로 EXHIBIT 7의 실측</b>이다 —
+          봉은사 방문 외국인의 종교·순례 활동 경험률 2.0%, 역사·전통 체험 고려율 46.6%.
+          <b>즉 조건 04는 조건 0(포지셔닝)에 종속되어 있다.</b>
+        </div>
+        <div class="co w" style="margin-top:11px;font-size:12.1px">
+          <b>배제한 경로 2건</b> — 템플스테이 보조금은 <b>7년 락인(lock-in)</b> 때문에 권하지 않는다.
+          그리고 봉은사로 531은 <b>관광특구 경계 밖</b>이라 관광공연장업 경로는 막혀 있다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 자금조달 구조 검토(<code>model-financing-v1.0.py</code>) 및 투자가이드 v2.1 · 5년차 세후 26.8 / 30.0 / 32.2억은 단일점 종합모델 기준(그리드와 계산 방식 상이 — [Back-up B09]) ·
+        국비 대상액 178.5억은 보수예산 + 문화시설 성격 CAPEX + 숙박까지 인정 시 · 문체부 종교문화시설 국고보조 지원 비율 25~50% · 관광진흥개발기금 융자 금리 연 1.85%</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">27</div>
+</div>
+
+<!-- ═══════════ ⑧ ROADMAP ═══════════ -->
+<div class="slide tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>06</b>Implementation Roadmap</span></div>
+  <div class="at">
+    <h1>일곱 단계 — 지금 서 있는 자리는 <em>PHASE 01</em>이고, 9월 27일이 임계경로다</h1>
+    <div class="dek">유권해석 5건이 미제출이다. 여기가 안 풀리면 다음 칸으로 갈 수 없다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 27</span><span class="t">7단계 실행 로드맵과 연차 매핑</span></div>
+      <div class="exh-b">
+        <div class="flow" style="margin-bottom:14px">
+          <div class="n" style="border-color:var(--pri);background:var(--pri-dim)"><div class="i" style="color:var(--pri-2)">PHASE 01 · 현재</div><div class="t">DEFINE</div><div class="d">법률·유권해석<br>사업범위 확정<br>공간 프로그램 확정</div></div>
+          <div class="n"><div class="i">PHASE 02</div><div class="t">VALIDATE</div><div class="d">BM별 수요·가격<br>운영·재무 검증<br>벤치마크 12슬롯</div></div>
+          <div class="n"><div class="i">PHASE 03</div><div class="t">DESIGN</div><div class="d">공간·서비스<br>브랜드·콘텐츠<br>운영체계 설계</div></div>
+          <div class="n"><div class="i">PHASE 04</div><div class="t">BUILD CONTENT</div><div class="d">개관 전 전시·상품<br>관광상품·프로그램 개발</div></div>
+          <div class="n"><div class="i">PHASE 05</div><div class="t">PRE-OPEN MKT</div><div class="d">MZ·외국인·미디어<br>B2B 파트너 확보<br>채널 선구축</div></div>
+          <div class="n"><div class="i">PHASE 06</div><div class="t">OPEN &amp; OPERATE</div><div class="d">개관·운영<br>콘텐츠 로테이션<br>체류·전환 첫 실측</div></div>
+          <div class="n"><div class="i">PHASE 07</div><div class="t">SCALE</div><div class="d">상품·IP·프로그램을<br>전국 사찰·해외로 확산</div></div>
+        </div>
+        <table style="font-size:12px">
+          <thead><tr><th style="width:13%">연차</th><th style="width:30%">핵심 과제</th><th style="width:26%">재무 상태 (G2L·기준)</th><th>판정 이벤트</th></tr></thead>
+          <tbody>
+            <tr><td class="hd">Y1 · 2027</td><td>게이트 통과와 채널 선점 · 공사</td><td>매출 1.4억 · 세후 −2.8억 (부분운영)</td><td>유권해석 회신 → 게이트 확정</td></tr>
+            <tr><td class="hd">Y2 · 2028</td><td>개관 · 점심 회차권 론칭</td><td>매출 42.8억 · 세후 −2.8억</td><td>개관 (가정)</td></tr>
+            <tr class="hl"><td class="hd">Y3 · 2029</td><td>F&amp;B 개시 · 흑자 전환</td><td>매출 59.1억 · 세후 <b class="pos">+2.3억</b></td><td><b style="color:var(--pri-2)">회계 흑자 전환</b></td></tr>
+            <tr><td class="hd">Y4 · 2030</td><td>관계 수익(멤버십·B2B) 본격화</td><td>매출 68.5억 · 세후 +5.0억</td><td>체류·전환 실측 2차</td></tr>
+            <tr><td class="hd">Y5 · 2031</td><td>기준선 대비 총결산</td><td>매출 69.7억 · 세후 +5.5억</td><td><b style="color:var(--tx)">재임대 27.1억과 최종 비교</b></td></tr>
+          </tbody>
+        </table>
+        <div class="co w" style="margin-top:12px;font-size:12.3px">
+          <b>회신이 늦으면 표 전체가 우측으로 밀리고, 구조는 불변이다.</b> 2028 개관은 가정이며(리모델링 12~18개월),
+          유권해석 회신이 지연되면 G1·G2 라인은 회신 익년부터 가동된다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 5개년 전개(<code>five_year("G2L", 기준)</code>) · 2027 부분운영(B2B 출강 50% · 외부 클래스 10%) · 2028 개관 가정 ·
+        램프업 std [0.6 / 0.85 / 1.0 / 1.0 / 1.0], 멤버십 memb [1.0 / 1.34 / 1.57 / 1.72 / 1.82] 적용 · 단위 억원</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">28</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>06</b>Implementation Roadmap</span></div>
+  <div class="at">
+    <h1>Phase 0 — <em>회신 전에 반드시 통과해야 할 다섯 개의 문</em></h1>
+    <div class="dek">Phase 0을 통과하지 못하면 이후 모든 단계가 의미를 잃는다. 다섯 모두 담당과 기한이 정해져야 한다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 28</span><span class="t">Phase 0 관문 5건 — 우선순위 · 담당 · 기한</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:5%">#</th><th style="width:22%">관문</th><th style="width:40%">내용</th><th style="width:16%">담당</th><th>기한</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td class="hd">1</td><td class="hd">유권해석 요청서 제출</td><td>전통다원·전통문화상품·신도편의시설 3문항 + 다원 전용 2문항. <b style="color:var(--tx)">한 공문으로 묶어</b> 보낸다 — 회신 폭이 곧 수익 천장이다</td><td>종무실 → 문체부</td><td class="neg">9.27 이전</td></tr>
+            <tr class="hl"><td class="hd">2</td><td class="hd">총무원 사전 동의</td><td>직영사찰 구조상 구조적 필수. 허가 없는 양도·임대는 <b style="color:var(--tx)">무효이자 벌금 대상</b></td><td>종무실 → 총무원</td><td class="neg">9.27 이전</td></tr>
+            <tr><td class="hd">3</td><td class="hd">직영 세무설계</td><td>수익사업 개시신고·구분회계. 4개 안 모두 재산세 과세 전환이므로 미리 설계한다. 준비금 50% 손금산입은 <b style="color:var(--tx)">구조를 정하는 순간 확정되는 유일한 이익</b>(5년 절세 약 15억)</td><td>재무 담당 + 세무 자문</td><td>회신 전 착수</td></tr>
+            <tr><td class="hd">4</td><td class="hd">인허가 사전상담 3건</td><td>서울시 보존구역 · 강남구청 용도변경 · 공원녹지과. <b style="color:var(--tx)">전량 미착수</b></td><td>공간디자인 총괄</td><td>Phase 01 병행</td></tr>
+            <tr><td class="hd">5</td><td class="hd">임대차 시장 확인</td><td>"재임대하려면 실제로 얼마를 고쳐야 하는가"(27억 vs 57.5억). <b style="color:var(--tx)">증분 판단을 가르는 변수인데 아직 묻지 않았다</b> — 물으면 답이 나오는 질문이다</td><td>발주처 · 중개</td><td>즉시</td></tr>
+          </tbody>
+        </table>
+        <div class="co r" style="margin-top:12px;font-size:12.4px">
+          <b>9월 27일 총무원장 임기 만료가 임계경로다.</b> 회신 범위가 곧 수익 천장이고, 그 천장이 사업 성립 여부를 정한다.
+          그리고 결정을 미루는 동안 공실 기회비용이 <b>하루 약 820만원</b>씩 쌓인다 — Phase 0의 지연 90일은 약 7.4억이다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 법률·행정 검토 종합(전통사찰법·문화재법 5개 법령) · 세법·사업구조 검토(종교법인 과세·절세) ·
+        법인세법 제29조 고유목적사업준비금 · 계약 요구사항 갭체크(2026-08-17) 미착수 항목 · 기회비용은 재임대 연 30억 ÷ 365일 환산</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">29</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>06</b>Implementation Roadmap</span></div>
+  <div class="at">
+    <h1>회신을 기다리는 동안에도 <em>지금 시작할 수 있는 것이 넷</em> 있다</h1>
+    <div class="dek">어느 조건에서도 남는 것들 — 유권해석이 어느 쪽으로 나든 버려지지 않는 투자다.</div>
+  </div>
+  <div class="body">
+    <div class="g2" style="gap:14px">
+      <div class="card" style="border-left:3px solid var(--ok)">
+        <div class="lbl ok">인프라 01</div>
+        <h3>비파괴 삽입 전시구조</h3>
+        <p>건물 원형을 훼손하지 않고 넣었다 뺐다 할 수 있는 전시 구조.
+          <b style="color:var(--tx)">용도가 바뀌어도 회수된다</b> — 재임대로 선회하더라도 자산으로 남는다.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--ok)">
+        <div class="lbl ok">인프라 02</div>
+        <h3>신도·후원 회원 등급제</h3>
+        <p>멤버십의 전 단계. 기존 보시를 등급화하는 것이 아니라 <b style="color:var(--tx)">새로운 관계를 설계</b>하는 일이다.
+          RL-10(멤버십)은 램프업 곡선이 가장 가파른 라인이므로 선행 착수 효과가 크다.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--pri);background:var(--pri-dim)">
+        <div class="lbl p">인프라 03 · 가장 급하다</div>
+        <h3>디지털 예약 · CRM</h3>
+        <p>그 자체로는 팔리지 않지만 <b style="color:var(--tx)">전시 가동률 · 프로그램 갱신율 · 리테일 판매 데이터를 동시에 결정</b>한다.
+          무엇보다 <mark>이 사업의 제1지표인 체류시간·예약 전환을 셀 장치가 지금 없다.</mark></p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--ok)">
+        <div class="lbl ok">인프라 04</div>
+        <h3>영대공양 추모 서비스</h3>
+        <p>MEMORIAL Zone의 의례 중심 부분. <b style="color:var(--tx)">시설 없이 서비스만으로 먼저 검증</b>할 수 있어,
+          Zone 6 유보 판정과 모순되지 않으면서 수요를 실측할 수 있다.</p>
+      </div>
+    </div>
+    <div class="co o" style="margin-top:15px;font-size:13px">
+      <b>목표치를 세우기 전에 세는 장치부터 만든다.</b> 개관 후 첫 실측으로 기준선을 잡으려면 장치가 먼저 있어야 하고,
+      그 장치는 유권해석 회신과 무관하게 지금 만들 수 있다. 동시에 마케팅 1기도 <b>공사 기간</b>에 시작된다 —
+      기업 출강(회당 150~300만) · 영어 템플라이프 상시화 · OTA 등재와 영어 결제 복구 · 진정성 방어선 4원칙 정립.
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">30</div>
+</div>
+
+<!-- ═══════════ ⑨ EXPECTED IMPACT ═══════════ -->
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>07</b>Expected Impact</span></div>
+  <div class="at">
+    <h1>권고 경로 5개년 — <em>3년차 흑자 전환</em>, 그러나 5년차에도 기준 시나리오는 재임대에 못 미친다</h1>
+    <div class="dek">G2L · 2027 부분운영 · 2028 개관 가정. 기준과 낙관을 나란히 놓아야 실행 리스크의 크기가 보인다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 29</span><span class="t">권고경로 G2L 5개년 수지 — 기준 vs 낙관 (단위 억원)</span></div>
+      <div class="exh-b">
+        <table style="margin-bottom:13px">
+          <thead><tr><th style="width:22%">항목</th><th class="n">2027<br><span style="font-weight:400;color:var(--tx-4)">부분운영</span></th><th class="n">2028<br><span style="font-weight:400;color:var(--tx-4)">개관</span></th><th class="n">2029<br><span style="font-weight:400;color:var(--tx-4)">확장</span></th><th class="n">2030<br><span style="font-weight:400;color:var(--tx-4)">정착</span></th><th class="n">2031<br><span style="font-weight:400;color:var(--tx-4)">판정</span></th></tr></thead>
+          <tbody>
+            <tr><td class="hd">총매출 · 기준</td><td class="n">1.4</td><td class="n">42.8</td><td class="n">59.1</td><td class="n">68.5</td><td class="n">69.7</td></tr>
+            <tr><td class="hd">영업이익 <span style="font-weight:400;color:var(--tx-4);font-size:10.5px">공통비 차감 후</span></td><td class="n neg">−1.6</td><td class="n">7.1</td><td class="n">12.3</td><td class="n">15.2</td><td class="n">15.8</td></tr>
+            <tr><td class="hd">감가상각</td><td class="n">0.0</td><td class="n">8.7</td><td class="n">8.7</td><td class="n">8.7</td><td class="n">8.7</td></tr>
+            <tr class="hl"><td class="hd">세후이익 · 기준</td><td class="n neg">−2.8</td><td class="n neg">−2.8</td><td class="n pos">+2.3</td><td class="n pos">+5.0</td><td class="n pos">+5.5</td></tr>
+            <tr><td class="hd">총매출 · 낙관</td><td class="n">3.0</td><td class="n">92.2</td><td class="n">127.0</td><td class="n">147.0</td><td class="n">149.4</td></tr>
+            <tr class="hl"><td class="hd">세후이익 · 낙관</td><td class="n neg">−1.8</td><td class="n pos">+14.9</td><td class="n pos">+24.8</td><td class="n pos">+30.3</td><td class="n pos">+31.4</td></tr>
+          </tbody>
+        </table>
+        <div class="g3">
+          <div class="card" style="padding:12px 14px"><div class="lbl gray">1~2년차</div><p style="font-size:12.1px">적자는 정상이다. 2027은 공사 중이라 출강 등 부분 매출뿐이고, 2028은 개관해도 첫해라 정상 매출의 60% 수준이다.</p></div>
+          <div class="card" style="padding:12px 14px;border-left:3px solid var(--ok)"><div class="lbl ok">3년차</div><p style="font-size:12.1px">램프업 85%에 도달하며 <b style="color:var(--tx)">세후 +2.3억</b>. 현금흐름 기준으로는 이미 3년차부터 플러스다.</p></div>
+          <div class="card" style="padding:12px 14px;border-left:3px solid var(--risk)"><div class="lbl risk">5년차</div><p style="font-size:12.1px">기준 <b style="color:var(--tx)">5.5억 vs 재임대 27.1억</b> — 못 미친다. 낙관 드라이버가 실행돼야 31.4억이 된다.</p></div>
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 <code>five_year("G2L", 기준/낙관)</code> 산출 · 2028 개관 가정 · 램프업·CAPEX 시점 반영 ·
+        정상가동 판정치(세후 5.9 / 32.1억)는 개관 5년차(2032) 기준이므로 위 2031년 값(5.5 / 31.4억)과 다르다 — 차이는 멤버십 램프(1.72 → 1.82) 때문이다</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">31</div>
+</div>
+
+<div class="slide">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>07</b>Expected Impact</span></div>
+  <div class="at">
+    <h1>이 사업이 만드는 것은 공간이 아니라 <em>확산 가능한 모델</em>이다</h1>
+    <div class="dek">사다리의 첫 칸은 공간이지만 마지막 칸은 공간이 아니다 — 봉은문화센터는 결과물이 아니라 출발점이다.</div>
+  </div>
+  <div class="body">
+    <div class="flow" style="margin-bottom:16px">
+      <div class="n"><div class="i">01</div><div class="t">문화가 데려온다</div><div class="d">전시와 콘텐츠가 MZ와 외국인을 봉은사로 끌어온다</div></div>
+      <div class="n"><div class="i">02</div><div class="t">경험이 머물게 한다</div><div class="d">스쳐 지나가는 관광을 몇 시간의 경험으로 전환한다</div></div>
+      <div class="n"><div class="i">03</div><div class="t">소비가 발생한다</div><div class="d">F&amp;B · Retail · Premium Service — 머문 시간이 매출이 되는 지점</div></div>
+      <div class="n"><div class="i">04</div><div class="t">상품이 사업이 된다</div><div class="d">전시에서 발견된 것이 굿즈·IP·프로그램으로</div></div>
+      <div class="n"><div class="i">05</div><div class="t">모델이 확산된다</div><div class="d">전국 사찰, 그리고 K-Spiritual Culture의 실체로</div></div>
+    </div>
+    <div class="g3">
+      <div class="card acc">
+        <div class="lbl p">정량 임팩트 — 계상된 것</div>
+        <h3 style="font-size:14.5px">직접 재무 효과</h3>
+        <p style="font-size:12.2px">권고경로 정상가동 매출 70.5~151.1억 · 세후이익 5.9~32.1억 ·
+          5년 절세 약 15억(준비금 50%) · 국비 확보 시 43.4~72.8억의 외부 재원 유입.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--tx-4)">
+        <div class="lbl gray">정량 임팩트 — 미계상</div>
+        <h3 style="font-size:14.5px">근거가 없어 비워둔 것</h3>
+        <p style="font-size:12.2px">전국 사찰 도매 · IP 로열티 · 온라인 구독 · 봉안 시설형(16.0억).
+          <b style="color:var(--tx)">단가 근거 0건</b>이므로 1년차 실현율 0%로 두고, 실판매 데이터가 쌓인 2년차부터 별도 산정한다.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--warn)">
+        <div class="lbl warn">정성 임팩트 — 요구되었으나 미완</div>
+        <h3 style="font-size:14.5px">기대효과 챕터의 결손</h3>
+        <p style="font-size:12.2px">과업지시서가 요구한 <b style="color:var(--tx)">임팩트 정량화 · 정책 제언 3~5건 · 시장규모 정량</b>은
+          현재 정성 서술에 머물러 있다. 후속 과업 범위로 분리할 것을 권고한다(→ S34).</p>
+      </div>
+    </div>
+    <div class="co" style="margin-top:15px;font-size:13px">
+      이 순환 전체를 가능하게 하는 것이 <b>Content &amp; Destination Management Organization</b>이며,
+      그래서 조직은 이 보고서에서 공간·BM과 같은 비중으로 다뤄진다.
+      <b>임대는 계약서에 서명하면 끝나지만, 이 사업은 개관일에 시작된다.</b>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">32</div>
+</div>
+
+<!-- ═══════════ ⑩ DECISION & OPEN QUESTIONS ═══════════ -->
+<div class="slide tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>08</b>Decision Required</span></div>
+  <div class="at">
+    <h1>발주처가 지금 결정해야 할 것 <em>다섯</em></h1>
+    <div class="dek">이 보고서는 권고까지 한다. 그러나 아래 다섯은 컨설턴트가 대신 정할 수 없는 항목이다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 30</span><span class="t">의사결정 요청 사항 — 선택지와 권고</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:5%">#</th><th style="width:20%">결정 항목</th><th style="width:38%">선택지</th><th style="width:18%">본 보고서 권고</th><th>기한</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td class="hd">1</td><td class="hd">사업 방식</td><td>직영 추진 / 재임대 / 조건부 추진(회신 후 재판단)</td><td><b style="color:var(--pri-2)">조건부 추진</b> — 네 조건의 성립 가능성을 먼저 확정</td><td class="neg">9.27 이전</td></tr>
+            <tr class="hl"><td class="hd">2</td><td class="hd">유권해석 제출</td><td>5문항 일괄 제출 / 분리 제출 / 보류</td><td><b style="color:var(--pri-2)">일괄 제출</b> — 회신 시점 불일치가 게이트 판정을 지연시킨다</td><td class="neg">즉시</td></tr>
+            <tr><td class="hd">3</td><td class="hd">예산 프레임</td><td>A 총투자 200억 고정(예비비 3.1%) / B 예비비율 7.4% 유지(209.5억)</td><td><b style="color:var(--pri-2)">관점 B</b> — 같은 경내에서 139% 증액 선례가 발생 중</td><td>Phase 01</td></tr>
+            <tr><td class="hd">4</td><td class="hd">운영 주체</td><td>직영 / 위탁 / 하이브리드 · CDM 조직 신설 vs 장기 운영 파트너</td><td>직영 + <b style="color:var(--pri-2)">CDM 3년 단위</b> — 단, 3안 비교표는 후속 과업</td><td>Phase 02</td></tr>
+            <tr><td class="hd">5</td><td class="hd">미충족 과업 처리</td><td>이번 납품에 채운다 / 후속 과업으로 분리 / 혼합</td><td><b style="color:var(--pri-2)">분리 후 범위 재정의</b> — 회신 전 원리적 확정 불가 항목이 있다</td><td>납품 시</td></tr>
+          </tbody>
+        </table>
+        <div class="co w" style="margin-top:12px;font-size:12.3px">
+          <b>#5에 관하여</b> — 재무 모델은 유권해석 회신 전에는 원리적으로 확정할 수 없다(수익 천장이 게이트에 따라 5.6배 벌어진다).
+          그렇다면 선택은 "지금 억지로 채운다"가 아니라 <b>"어디까지가 이번 과업이고 어디부터가 회신 이후인가"를 계약 문서로 분리</b>하는 쪽이다.
+          아래 S35의 미결 7건이 그 분리선의 초안 역할을 한다 — 이것을 <b>후속 과업 제안서로 승격시키면 미이행이 아니라 범위 재정의</b>가 된다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 계약 요구사항 갭체크 45항목(2026-08-17) — 충족 28 / 부분 7 / 미충족 6 / 행정 확인 4 ·
+        미충족 6건은 모두 재무모델 계열이었으며 본 재무모델 v1.1로 최종결과물③·계약 제3조 1항·2항·과업지시서 Ch.7이 해소됨 ·
+        잔여 미충족은 경쟁 분석(Ch.2) · 운영방식 3안 비교표(Ch.6) · 기대효과 정량(정책 제언·시장규모)</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">33</div>
+</div>
+
+<div class="slide tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>08</b>Open Questions</span></div>
+  <div class="at">
+    <h1>이 보고서가 답하지 못한 것 <em>일곱</em> — 비어 있는 칸을 비어 있다고 적는다</h1>
+    <div class="dek">모르는 것을 모른다고 먼저 적어야, 그 위에 쌓은 전략이 어디까지 유효한지 판단할 수 있다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT 31</span><span class="t">미결 항목 7건 — 왜 중요한가 · 누가 · 언제</span></div>
+      <div class="exh-b">
+        <table>
+          <thead><tr><th style="width:19%">미결</th><th style="width:52%">왜 중요한가</th><th>누가 · 언제</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td class="hd">유권해석 5건</td><td>회신 폭이 수익 천장을 <b style="color:var(--tx)">12.5억 ↔ 70.5억으로 5.6배</b> 움직인다. 좁게 나오면 전 시나리오 적자</td><td>종무실 → 문체부 · 9.27 이전</td></tr>
+            <tr class="hl"><td class="hd">봉은사 가용 현금</td><td>권장선 <b style="color:var(--tx)">114.2억</b>. 이 수치를 모르면 조달 구조 전체를 짤 수 없다 — 킥오프 이래 미확인</td><td>발주처 · 즉시</td></tr>
+            <tr><td class="hd">재임대 시 실제 보수액</td><td><b style="color:var(--tx)">27억이냐 57.5억이냐</b>가 증분 판단을 가른다. 물으면 답이 나오는 질문인데 아직 묻지 않았다</td><td>임대차 시장 조회 · 즉시</td></tr>
+            <tr><td class="hd">진행 가능 인원</td><td>주 46회가 필요한데 봉은사 상주 인력이 확인되지 않았다. <b style="color:var(--tx)">공급이 매출의 상한</b>이다</td><td>봉은사 인력 실사 · Phase 01</td></tr>
+            <tr><td class="hd">벤치마크 12슬롯</td><td>공통 운영비 · 전시 실단가 · 해설 단가 · 다이닝 회전 · 클래스 가동률 · B2B 수주 건수 · 숙박 가동률 · 멤버십 갱신율 · 대관 가용일. <b style="color:var(--tx)">값이 들어오면 수치만 갱신된다</b></td><td>BM 리서치 진행 중</td></tr>
+            <tr><td class="hd">공간기획</td><td>층별 기능배치도·동선도 미보유. <b style="color:var(--tx)">전시 3,300㎡가 1층 무주 대공간에 실제로 앉는지 미검증</b></td><td>공간디자인 총괄 · Phase 03</td></tr>
+            <tr><td class="hd">인허가 사전상담</td><td>서울시 보존구역 · 강남구청 용도변경 · 공원녹지과 <b style="color:var(--tx)">전량 미착수</b></td><td>Phase 01 병행</td></tr>
+          </tbody>
+        </table>
+        <div class="co r" style="margin-top:12px;font-size:12.4px">
+          <b>모델이 말하지 않는 것도 함께 적는다.</b> ① 취득세 추징 가능성·과세 기준 '교인 외 이용' 판정 등
+          <b>손익계산서 밖에서 터질 수 있는 일회성 사건</b> ② 방문이 3~5월에 57.6% 몰리고 8~12월 다섯 달은 19.8%인
+          <b>계절성 8.2배</b>(연 단위 모델에 미반영 — 월별 현금흐름 설계 별도 필요) ③ 2028 개관은 가정이며 지연 시 전 표가 우측으로 밀린다.
+        </div>
+        <div class="co" style="margin-top:11px;font-size:12.4px">
+          <b>좁은 게이트로 회신이 올 경우</b> — 직영 지속의 근거를 수익이 아니라 <b>브랜드·공익 성과로 재정의</b>하거나
+          <b>재임대 병행안</b>을 검토해야 한다. 이 판단은 발주처의 몫이며, <b>판단 시점은 회신 후 90일 이내</b>를 권고한다.
+        </div>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 <code>pending_benchmarks</code> 12슬롯(B-01~B-12) · 계절성은 RXR 4,330건 게시일 분포(3~5월 57.6% · 8~12월 5개월 19.8%) ·
+        투자가이드 v2.1 필요현금 3단(개관 전 83.5 / 안정선 108.1 / 권장선 114.2억)</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">34</div>
+</div>
+
+<!-- ═══════════ [BACK-UP] ═══════════ -->
+<div class="slide bu">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>B</b>Back-up</span></div>
+  <div class="at">
+    <h1><span class="bu-tag" style="font-size:12px;padding:5px 12px">BACK-UP</span><br>본문은 결론이고, <em>여기부터는 그 결론에 도달한 경로</em>다</h1>
+    <div class="dek">본문 34장에서 의사결정에 필요한 것은 모두 다뤘다. 아래 12장은 근거를 검증하려는 독자를 위한 것이다.</div>
+  </div>
+  <div class="body">
+    <div class="g3">
+      <div class="card"><div class="lbl gray">B02 — B04 · 모델 구조</div>
+        <p style="font-size:12.3px;line-height:1.7">
+          <b style="color:var(--tx)">B02</b> 게이트 5종 정의 · 시나리오 3단 드라이버 · 대기 벤치마크 12슬롯<br>
+          <b style="color:var(--tx)">B03</b> Revenue Engine R1~R8 ↔ RL 코드 매핑 (대외/내부 정본)<br>
+          <b style="color:var(--tx)">B04</b> 라인별 드라이버 원장 RL-01~10 — 보수/기준/낙관 및 근거등급</p>
+      </div>
+      <div class="card"><div class="lbl gray">B05 — B08 · Zone 상세</div>
+        <p style="font-size:12.3px;line-height:1.7">
+          <b style="color:var(--tx)">B05</b> Exhibition 3,300㎡ — 수익 엔진이 아닌데 왜 중심인가<br>
+          <b style="color:var(--tx)">B06</b> Taste — 조리 게이트라는 단일 실패점<br>
+          <b style="color:var(--tx)">B07</b> Experience 4단 레벨링과 공급 병목<br>
+          <b style="color:var(--tx)">B08</b> Retail — 계상한 것과 비워둔 것</p>
+      </div>
+      <div class="card"><div class="lbl gray">B09 — B12 · 검증·부록</div>
+        <p style="font-size:12.3px;line-height:1.7">
+          <b style="color:var(--tx)">B09</b> 두 개의 모델(그리드 vs 단일점)을 더하면 안 되는 이유<br>
+          <b style="color:var(--tx)">B10</b> 세무 구조 · 고유목적사업준비금 50%<br>
+          <b style="color:var(--tx)">B11</b> 마케팅 3경로 · 계절성 8.2배<br>
+          <b style="color:var(--tx)">B12</b> Evidence Base 44건 인덱스</p>
+      </div>
+    </div>
+    <div class="co" style="margin-top:16px">
+      <b>재현 원칙</b> — 이 보고서의 모든 재무 수치는 <code style="color:var(--pri-2)">finance/model.py</code> 재실행으로 전량 재생성된다.
+      손계산은 0건이며, 모델 실행 시 구버전 드라이버 재현값(19.7 / 66.7 / 139.3억)을 자동 검증(assert)한다.
+      벤치마크 12슬롯의 값이 인입되면 <b>같은 구조에서 수치만 갱신</b>된다 — 모델을 다시 만들 필요가 없다.
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">35</div>
+</div>
+
+<div class="slide bu">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>B02</b>Back-up · 모델 구조</span></div>
+  <div class="at">
+    <h1><span class="bu-tag">BACK-UP B02</span><br>게이트 정의 · 시나리오 드라이버 · 대기 벤치마크 12슬롯</h1>
+  </div>
+  <div class="body">
+    <div class="g2" style="align-items:start">
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT B-1</span><span class="t">게이트별 포함 라인</span></div>
+        <div class="exh-b">
+          <table style="font-size:11.5px">
+            <thead><tr><th style="width:16%">게이트</th><th>포함 라인 (RL 코드)</th></tr></thead>
+            <tbody>
+              <tr><td class="hd">G0</td><td>01 전시 · 04 리테일</td></tr>
+              <tr><td class="hd">G1</td><td>01 · 04 · 05 교육 · 06 명상 · 07 B2B · 08 대관 · 09 숙박 · 10 멤버십</td></tr>
+              <tr><td class="hd">G1L</td><td>G1 − 09 숙박</td></tr>
+              <tr><td class="hd">G2</td><td>G1 + 02 전통다원 · 03 사찰음식 다이닝</td></tr>
+              <tr class="hl"><td class="hd">G2L</td><td>G2 − 09 숙박 <b style="color:var(--pri-2)">(권고경로 · 9개 라인)</b></td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:11.5px;color:var(--tx-3);margin-top:10px;line-height:1.6">
+            <b style="color:var(--tx-2)">시나리오 3단</b> — 보수(낮은 가동률·좌석·회전) / 기준(중간값) / 낙관(벤치마크 상한 내 최대 실행).
+            각 라인의 드라이버가 3개 값을 갖고, 게이트가 어떤 라인을 켜는지를 정한다.</p>
+        </div>
+        <div class="src"><b>출처</b> <code>inputs.json</code> gates · 해석구간 E-0163~0165</div>
+      </div>
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT B-2</span><span class="t">대기 벤치마크 12슬롯 — 값 인입 시 자동 갱신</span></div>
+        <div class="exh-b">
+          <table style="font-size:11.5px">
+            <thead><tr><th style="width:14%">슬롯</th><th>내용</th><th style="width:20%">영향 라인</th></tr></thead>
+            <tbody>
+              <tr class="hl"><td class="hd">B-01</td><td><b style="color:var(--tx)">공통 운영비 (㎡당 연)</b> — 민감도 2위 변수</td><td>전 라인</td></tr>
+              <tr><td class="hd">B-02~05</td><td>강남 유료전시 실단가 · 관람 전환율 · 기획전 회기 · 미디어아트 제작비</td><td>RL-01</td></tr>
+              <tr><td class="hd">B-06</td><td>다이닝 회전율 실측</td><td>RL-03</td></tr>
+              <tr><td class="hd">B-07</td><td>클래스 가동률</td><td>RL-05</td></tr>
+              <tr><td class="hd">B-08</td><td>B2B 연간 수주 건수</td><td>RL-07</td></tr>
+              <tr><td class="hd">B-09</td><td>도심 템플스테이 숙박 가동률 <span style="color:var(--tx-4)">(현재 0건)</span></td><td>RL-09</td></tr>
+              <tr><td class="hd">B-10</td><td>멤버십 갱신율 <span style="color:var(--tx-4)">(국내 사례 0건)</span></td><td>RL-10</td></tr>
+              <tr><td class="hd">B-11</td><td>해설 단가 · 이용률</td><td>RL-01b</td></tr>
+              <tr><td class="hd">B-12</td><td>회기 캘린더 하 대관 가용일</td><td>RL-08</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="src"><b>출처</b> <code>benchmarks.json</code> · 모델 실행 시 <code>pending_benchmarks</code>로 자동 집계(현재 12건)</div>
+      </div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">36</div>
+</div>
+
+<div class="slide bu tighter">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>B03·B04</b>Back-up · 수익 엔진 원장</span></div>
+  <div class="at">
+    <h1><span class="bu-tag">BACK-UP B03 · B04</span><br>Revenue Engine R1~R8 매핑과 라인별 드라이버 원장</h1>
+    <div class="dek">대외 문서는 R1~R8, 내부 재무는 RL 코드를 쓴다. 이 표가 매핑의 정본이다.</div>
+  </div>
+  <div class="body">
+    <div class="exh">
+      <div class="exh-h"><span class="n">EXHIBIT B-3</span><span class="t">라인별 드라이버 · 매출(보수/기준/낙관) · CAPEX · 근거등급 — 단위 억원</span></div>
+      <div class="exh-b" style="padding:12px 18px">
+        <table style="font-size:11.2px">
+          <thead><tr><th style="width:6%">RL</th><th style="width:7%">Engine</th><th style="width:13%">라인</th><th style="width:30%">드라이버</th>
+            <th class="n" style="width:6%">보수</th><th class="n" style="width:6%">기준</th><th class="n" style="width:6%">낙관</th>
+            <th class="n" style="width:6%">면적</th><th class="n" style="width:6%">CAPEX</th><th style="width:5%">등급</th></tr></thead>
+          <tbody>
+            <tr><td class="hd">01</td><td>R1</td><td class="hd">전시</td><td>입장(전환 12/18/20% × 1.0/1.3/1.5만) + 해설(이용 15/25/35% × 5/8/12천) + 심화</td><td class="n">1.6</td><td class="n">7.6</td><td class="n">22.0</td><td class="n">3,300</td><td class="n">24.7</td><td style="color:var(--warn)">C</td></tr>
+            <tr><td class="hd">02</td><td>R3</td><td class="hd">전통다원</td><td>좌석 60/80/80 × 객단가 1.5/2.0/2.5만 × 회전 1.0/1.5/1.8 × 300/330/350일</td><td class="n">2.7</td><td class="n">7.9</td><td class="n">12.6</td><td class="n">400</td><td class="n">—</td><td style="color:var(--neu)">B</td></tr>
+            <tr><td class="hd">03</td><td>R3</td><td class="hd">사찰음식 다이닝</td><td>좌석 60/80/80 × 코스 5/7/8만 × 회전 1.0/1.4/1.8 × 280/300/320일</td><td class="n">8.4</td><td class="n">23.5</td><td class="n">36.9</td><td class="n">600</td><td class="n">14.6</td><td style="color:var(--neu)">B</td></tr>
+            <tr><td class="hd">04</td><td>R4</td><td class="hd">리테일</td><td>방문모수 × 구매전환 15/21.5/28% × 객단가 6,400/9,000/12,000원</td><td class="n">1.1</td><td class="n">4.9</td><td class="n">17.7</td><td class="n">800</td><td class="n">4.0</td><td style="color:var(--neu)">B</td></tr>
+            <tr><td class="hd">05</td><td>R2</td><td class="hd">교육·체험</td><td>회차단가 5/7/10만 × 정원 16/16/20 × 가동 50/65/75% × 연 300/600/800회차</td><td class="n">1.2</td><td class="n">4.4</td><td class="n">12.0</td><td class="n">500</td><td class="n">3.2</td><td style="color:var(--neu)">B</td></tr>
+            <tr><td class="hd">06</td><td>R2</td><td class="hd">명상 (B2C)</td><td>도보권 112,349명 × 침투 1/3/4.5% × 연이용 10/20/25회 × 3~8천원</td><td class="n">0.3</td><td class="n">3.4</td><td class="n">10.1</td><td class="n">500</td><td class="n">—</td><td style="color:var(--neu)">B</td></tr>
+            <tr><td class="hd">07</td><td>R7</td><td class="hd">기업 B2B</td><td>회당 150/250/300만 × 연 30/80/120건</td><td class="n">0.5</td><td class="n">2.0</td><td class="n">3.6</td><td class="n">0</td><td class="n">—</td><td style="color:var(--neu)">B</td></tr>
+            <tr><td class="hd">08</td><td>R1</td><td class="hd">대관 (회기 회전)</td><td>기획전 트랙 2,000㎡ × 1,150/2,000/3,202원/㎡·일 × 40/70/100일 · <b style="color:var(--tx)">전용면적 0</b></td><td class="n">0.9</td><td class="n">2.8</td><td class="n">6.4</td><td class="n">0</td><td class="n">—</td><td style="color:var(--ok)">A</td></tr>
+            <tr class="dim"><td class="hd">09</td><td>R5</td><td class="hd">숙박 <span style="color:var(--warn)">(Phase 2)</span></td><td>객실 10/20/25 × 박단가 10/12/15만 × 가동 30/45/55% × 365일</td><td class="n">1.1</td><td class="n">3.9</td><td class="n">7.5</td><td class="n">800</td><td class="n">52.3</td><td style="color:var(--neu)">B</td></tr>
+            <tr><td class="hd">10</td><td>R7</td><td class="hd">멤버십·구독</td><td>법인 500~1,000만×10/25/45사 + 임원기수 500~800만×20/40/55명 + 개인 30~50만×200/800/1,500명</td><td class="n">2.1</td><td class="n">7.7</td><td class="n">16.4</td><td class="n">0</td><td class="n">—</td><td style="color:var(--neu)">B</td></tr>
+            <tr class="hl"><td class="hd" colspan="4">코어 10개 라인 합계</td><td class="n">19.9</td><td class="n">68.1</td><td class="n">145.2</td><td class="n">—</td><td class="n">98.8</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11.3px;color:var(--tx-3);margin-top:10px;line-height:1.62">
+          <b style="color:var(--tx-2)">R5 STAY · R6 MEMORIAL · R8 IP유통은 매출 0으로 둔다</b> — R5는 Phase 2 강등, R6는 면적 미배정·독립 P&amp;L, R8은 단가 근거 0건.
+          라인 기준값 합(68.1억)과 권고경로 정상가동 매출(70.5억)의 차이는 멤버십 램프 곡선(1.82배) 때문이다.</p>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 <code>model.py</code> LINES 정의 및 <code>out/finance-model.json</code> · 건물 CAPEX(45/57.5/70억)는 별도 ·
+        등급 A=실측·공식통계 / B=유사사례 앵커 / C=범위 명시 가정 · 도보권 112,349명은 통계청 전국사업체조사 2024 원자료(삼성1·2동 종사자)</div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">37</div>
+</div>
+
+<div class="slide bu tighter">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>B05</b>Back-up · Exhibition</span></div>
+  <div class="at">
+    <h1><span class="bu-tag">BACK-UP B05</span><br>Exhibition 3,300㎡ — 돈을 버는 엔진이 아닌데 왜 중심에 두는가</h1>
+    <div class="dek">면적을 2.3배로 키우면서도 이 판정은 바꾸지 않았다. 여기서 물러서면 구 92억 모델의 실패를 반복한다.</div>
+  </div>
+  <div class="body">
+    <div class="g2" style="margin-bottom:13px">
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT B-4</span><span class="t">3,300㎡의 구성 — 넷 중 둘은 매출 0이며, 그것이 의도다</span></div>
+        <div class="exh-b">
+          <table style="font-size:11.6px">
+            <thead><tr><th>구성</th><th class="n" style="width:15%">면적</th><th>수익</th></tr></thead>
+            <tbody>
+              <tr><td class="hd">상설 — 성보·서사</td><td class="n">1,000㎡</td><td class="x">매출 0 · 무료 개방 (집객·법적 안전판)</td></tr>
+              <tr><td class="hd">기획전 트랙 A</td><td class="n">1,200㎡</td><td>입장 + 해설 + 회기간 대관</td></tr>
+              <tr><td class="hd">기획전 트랙 B</td><td class="n">800㎡</td><td>입장 + 해설 + 회기간 대관</td></tr>
+              <tr><td class="hd">미디어아트</td><td class="n">300㎡</td><td class="x">매출 0 · 제작비 외부 조달(국가유산청 공모 전제)</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:11.6px;color:var(--tx-2);margin-top:10px;line-height:1.62">
+            <b style="color:var(--tx)">왜 2트랙인가</b> — 단일 트랙이면 전시 교체기간에 공간 전체가 죽는다.
+            두 트랙이 엇갈리면 항상 하나는 열려 있고, 비어 있는 쪽은 대관으로 돌린다. <b style="color:var(--tx)">면적 확대의 실제 효과가 여기 있다.</b></p>
+        </div>
+        <div class="src"><b>출처</b> RL-01 검토서 v1.3 앵커안 · 재무모델 v1.1 RL-01 서브라인 분해</div>
+      </div>
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT B-5</span><span class="t">정직한 숫자 — 면적 효율 최하위</span></div>
+        <div class="exh-b">
+          <div class="g2" style="gap:10px;margin-bottom:11px">
+            <div class="stat" style="padding:11px 12px"><div class="v" style="font-size:23px">13<em>만원/㎡</em></div><div class="k" style="font-size:10.8px">㎡당 영업이익 — 대관(32~39만)보다 낮고 다이닝의 6%</div></div>
+            <div class="stat" style="padding:11px 12px"><div class="v" style="font-size:23px">8.9<em>년</em></div><div class="k" style="font-size:10.8px">전시 단독 회수기간 — 전 라인 중 면적 효율 최하위</div></div>
+            <div class="stat" style="padding:11px 12px"><div class="v" style="font-size:23px">86<em>%</em></div><div class="k" style="font-size:10.8px">실질 기여 13.6억 중 <b style="color:var(--tx-2)">간접</b> 기여 비중</div></div>
+            <div class="stat" style="padding:11px 12px"><div class="v ok" style="font-size:23px">8<em>/9</em></div><div class="k" style="font-size:10.8px">전시 아이템 중 Tier1 — 유권해석 없이 즉시 가능</div></div>
+          </div>
+          <p style="font-size:11.6px;color:var(--tx-2);line-height:1.64">
+            <b style="color:var(--tx)">그럼에도 중심에 두는 이유 셋</b> — ① <b style="color:var(--tx)">남을 벌게 한다</b>(별마당 도서관은 직접 수익 0원으로 코엑스몰 방문객 1,700만 명을 만들었다)
+            ② <b style="color:var(--tx)">3법을 동시에 통과</b>한다(건축법·도시공원법·전통사찰법이 동시에 허락하는 유일 용도)
+            ③ <b style="color:var(--tx)">계약이 그렇게 적혀 있다</b>(과업 목적문에 '전시 및 팝업 스토어 중심' 명시).</p>
+        </div>
+        <div class="src"><b>출처</b> RL-01 수익성 검토서 v1.2 · 별마당 도서관 사례는 코엑스몰 공개 실적</div>
+      </div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">38</div>
+</div>
+
+<div class="slide bu tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>B05</b>Back-up · Exhibition (계속)</span></div>
+  <div class="at">
+    <h1><span class="bu-tag">BACK-UP B05 · 계속</span><br>전시 매출의 내부 구성과 <em>면적 비례 증액 금지</em> 원칙</h1>
+    <div class="dek">면적을 키운 효과는 매출이 아니라 운영 방식(2트랙 동시 운영)에서 나온다.</div>
+  </div>
+  <div class="body">
+    <div class="exh" style="margin-bottom:12px">
+      <div class="exh-h"><span class="n">EXHIBIT B-6</span><span class="t">RL-01 서브라인 분해 — 입장 · 해설 · 심화 (단위 억원)</span></div>
+      <div class="exh-b" style="padding:12px 16px">
+        <table style="font-size:11.6px">
+          <thead><tr><th style="width:14%">서브라인</th><th style="width:44%">드라이버</th><th class="n" style="width:10%">보수</th><th class="n" style="width:10%">기준</th><th class="n" style="width:10%">낙관</th><th>등급</th></tr></thead>
+          <tbody>
+            <tr><td class="hd">a 입장</td><td>방문모수 × 유료전환 12/18/20% × 티켓 1.0/1.3/1.5만원</td><td class="n">1.32</td><td class="n">5.97</td><td class="n">15.77</td><td style="color:var(--warn)">C</td></tr>
+            <tr><td class="hd">b 해설</td><td>유료관람객 × 이용률 15/25/35% × 해설료 5/8/12천원</td><td class="n">0.10</td><td class="n">0.92</td><td class="n">4.42</td><td style="color:var(--warn)">C · B-11 대기</td></tr>
+            <tr><td class="hd">c 심화</td><td>인경 체험 등 심화 프로그램</td><td class="n">0.20</td><td class="n">0.70</td><td class="n">1.80</td><td style="color:var(--warn)">C</td></tr>
+            <tr class="hl"><td class="hd">합계</td><td>+ 대관 회기 회전 0.9 / 2.8 / 6.4</td><td class="n">1.6</td><td class="n">7.6</td><td class="n">22.0</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="src"><b>출처</b> 재무모델 v1.1 RL-01 <code>sub</code> 분해 · 해설 단가·이용률은 벤치마크 슬롯 B-11 대기 중
+        <br><b>⚠ 정정</b> 발표본에는 "팔아야 할 것은 관람권이 아니라 해설 — 해설 4.3억 &gt; 입장 2.4억"으로 기재돼 있으나,
+        이는 RL-01 검토서 v1.2(전용 1,450㎡ 기준)의 값이다. <b>전용 3,300㎡ 앵커안을 반영한 현행 모델 v1.1에서는 세 케이스 모두 입장 &gt; 해설</b>이다
+        (낙관 15.77 vs 4.42). 해설의 전략적 의미는 <b>매출 규모가 아니라 추가 면적·설비 없이 붙는 마진</b>이라는 점에 있으므로, 본 보고서는 그 근거로만 사용한다.</div>
+    </div>
+    <div class="co r" style="font-size:12.4px">
+      <b>면적 비례 증액은 금지한다.</b> 구 92억 모델은 "15,000원 × 400명 × 350일 = 21억"으로 매출만 계산해 기각됐다.
+      전시 제작비는 관람객 수와 무관하게 먼저 나가므로 <b>3,300㎡라고 매출이 2.3배 되지 않는다</b> —
+      면적 확대의 실제 효과는 매출이 아니라 <b>기획전 2트랙 동시 운영</b>이며, 그 수익 효과는 RL-08(회기 회전 대관)에서 잡는다.
+      <b>제작비는 남이 댄다</b> — 블록버스터는 기획사 대관 구조, 미디어아트는 국가유산청 공모 전제다.
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">39</div>
+</div>
+<div class="slide bu">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>B06·B07</b>Back-up · Taste · Experience</span></div>
+  <div class="at">
+    <h1><span class="bu-tag">BACK-UP B06 · B07</span><br>Taste — 단일 실패점 · Experience — 4단 레벨링과 공급 병목</h1>
+  </div>
+  <div class="body">
+    <div class="g2" style="align-items:start">
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT B-7</span><span class="t">Zone 3 TASTE — 매출 1위인데 문 하나에 전부가 걸려 있다</span></div>
+        <div class="exh-b">
+          <table style="font-size:11.6px;margin-bottom:11px">
+            <thead><tr><th style="width:22%">층위</th><th>내용</th><th class="n" style="width:16%">기준 매출</th></tr></thead>
+            <tbody>
+              <tr><td class="hd">DINING</td><td>사찰음식 코스 5~8만 · 좌석 60~80 · 회전 1.0~1.8</td><td class="n">23.5억</td></tr>
+              <tr><td class="hd">TEA HOUSE</td><td>전통다원 — 시행령 제7조 명문 허용 · 소형 35석안</td><td class="n">7.9억</td></tr>
+              <tr class="hl"><td class="hd">합계</td><td>전 존 중 매출 1위</td><td class="n">31.4억</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:11.6px;color:var(--tx-2);line-height:1.64">
+            <b style="color:var(--tx)">전통다원은 가장 먼저 열 수 있다</b> — F&amp;B 중 유일하게 유권해석이 불필요하다(시행령 제7조에 '전통다원의 운영'이 문언 그대로 있다).
+            건축법 용도 하나만 넘으면 되고, <b style="color:var(--tx)">완제품 반입 경로로는 조리 게이트가 닫혀도 흑자</b>다(원가율만 +9%p).</p>
+          <p style="font-size:11.6px;color:var(--tx-2);line-height:1.64;margin-top:8px">
+            <b style="color:var(--tx)">왜 소형(35석)인가</b> — ㎡당 영업이익이 소형 180만원 vs 대형 120만원으로 1.5배 높다.
+            대형안은 F&amp;B 면적의 43.6%를 먹어 5축 구조를 무너뜨리고, <b style="color:var(--tx)">회전율 실측이 없는 상태에서 크게 짓는 것이 위험</b>하다.</p>
+          <div class="co r" style="margin-top:11px;font-size:11.8px">
+            <b>리스크 비대칭</b> — 식품위생법 미신고 영업은 <b>징역 3년 / 벌금 3,000만원</b>으로 전통사찰법 벌칙(500만원)의 6배다.
+            이 Zone은 <b>"일단 열고 나중에 정리"가 성립하지 않는다.</b>
+          </div>
+        </div>
+        <div class="src"><b>출처</b> RL-02·RL-03 수익성 검토서 · 전통사찰법 시행령 제7조 · 식품위생법 벌칙 조항</div>
+      </div>
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT B-8</span><span class="t">Zone 2 EXPERIENCE — 같은 콘텐츠를 네 개의 가격으로</span></div>
+        <div class="exh-b">
+          <table style="font-size:11.6px;margin-bottom:11px">
+            <thead><tr><th style="width:18%">레벨</th><th style="width:24%">가격대</th><th>내용</th></tr></thead>
+            <tbody>
+              <tr><td class="hd">OPEN</td><td>무료 ~ 5,000원</td><td>점심 선(禪) 회차권 · 드롭인 명상 · 상설전 무료</td></tr>
+              <tr><td class="hd">MASS</td><td>1~3만원</td><td>외국인 문화체험 · 다도·사찰음식 원데이 · 전시 해설</td></tr>
+              <tr><td class="hd">FINE</td><td>5~10만원</td><td>심화 클래스(정원 16~20) · 공예·인경 체험</td></tr>
+              <tr class="dim"><td class="hd">PREMIUM</td><td>500~1,000만원</td><td>임원 기수제 · 법인 멤버십 · 기업 리트리트 <b style="color:var(--warn)">(국내 사례 0건)</b></td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:11.6px;color:var(--tx-2);line-height:1.64">
+            <b style="color:var(--tx)">레벨링의 목적</b>은 종류를 늘리는 것이 아니라 <b style="color:var(--tx)">무료 → 유료 → 멤버십으로 올리는 것</b>이다.
+            전환율이 실제 KPI가 된다.</p>
+          <div class="co w" style="margin-top:11px;font-size:11.8px">
+            <b>설계 원칙 — 무료가 유료를 먹지 않게.</b> 무제한 회원은 회차권을 다시 사지 않는다.
+            모델에는 <b>이중계상 1.0억을 이미 차감</b>했다. OPEN은 유입 장치이지 매출 라인이 아니다.
+          </div>
+          <div class="co r" style="margin-top:9px;font-size:11.8px">
+            <b>공급이 상한이다</b> — 전 라인 합계 <b>주 46회(연 2,402회)</b>가 필요한데,
+            템플스테이 사찰당 평균 운영인력은 2.27명(2013년 기준)이고 봉은사 진행 가능 인원은 <b>미확인</b>이다.
+          </div>
+        </div>
+        <div class="src"><b>출처</b> RL-05·RL-06 검토서 · 교차정합 검증(이중계상 조정) · 도보권 모수 112,349명(통계청 2024)</div>
+      </div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">40</div>
+</div>
+
+<div class="slide bu">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>B08·B09</b>Back-up · Retail · 두 모델</span></div>
+  <div class="at">
+    <h1><span class="bu-tag">BACK-UP B08 · B09</span><br>Retail — 계상한 것과 비워둔 것 · 두 모델을 더하면 안 되는 이유</h1>
+  </div>
+  <div class="body">
+    <div class="g2" style="align-items:start">
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT B-9</span><span class="t">Zone 4 RETAIL — 근거가 있는 것만 매출에 넣는다</span></div>
+        <div class="exh-b">
+          <div class="card" style="padding:12px 14px;margin-bottom:10px;border-left:3px solid var(--ok)">
+            <div class="lbl ok">실측 보유 — 매출에 계상</div>
+            <p style="font-size:11.8px">방문모수 × 구매전환 <b style="color:var(--tx)">15/21.5/28%(A등급)</b> × 객단가 6,400/9,000/12,000원.
+              기준 <b style="color:var(--tx)">4.9억</b> · 낙관 17.7억. 구성은 50평 편집샵 + 온라인이며 <b style="color:var(--tx)">온라인이 60%</b>를 담당한다.</p>
+          </div>
+          <div class="card" style="padding:12px 14px;border-left:3px solid var(--tx-4)">
+            <div class="lbl gray">근거 0건 — 계상하지 않음</div>
+            <p style="font-size:11.8px">전국 사찰 도매 · IP 로열티 · 온라인 구독은 단가 근거가 <b style="color:var(--tx)">0건</b>이다.
+              1년차 실현율 0%로 보고 실판매 데이터가 쌓인 2년차부터 별도 산정한다.
+              <b style="color:var(--tx)">이 항목들을 다 넣으면 8.1억이 되지만 그 숫자는 쓰지 않는다.</b></p>
+          </div>
+          <p style="font-size:11.6px;color:var(--tx-2);line-height:1.64;margin-top:11px">
+            <b style="color:var(--tx)">벤치마크가 말하는 것</b> — 국립중앙박물관 뮷즈의 오프라인 매출 약 234억은
+            2025년 관람객 650만 명(13개 소속관 합계 1,470만) 위에 얹힌 숫자이고 상시 매장은 3곳뿐이다.
+            <b style="color:var(--tx)">상품 기획이 아니라 방문객 규모가 먼저였다</b> — 그래서 Retail은 Exhibition 뒤에 온다.</p>
+        </div>
+        <div class="src"><b>출처</b> RL-04 검토서 · 구매전환 A등급 실측 · 객단가는 뮷즈 역산 · 법적으로 뮤지엄숍은 독립 판매시설이 아니라 <b>전시 부대시설</b>이어야 한다</div>
+      </div>
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT B-10</span><span class="t">두 개의 모델 — 성격이 다르므로 합산 금지</span></div>
+        <div class="exh-b">
+          <table style="font-size:11.6px;margin-bottom:11px">
+            <thead><tr><th style="width:24%">구분</th><th>① 시나리오 그리드</th><th>② 단일점 종합</th></tr></thead>
+            <tbody>
+              <tr><td class="hd">보여주는 것</td><td><b style="color:var(--tx)">조건</b> — 어떤 조건에서 얼마인가</td><td><b style="color:var(--tx)">구성</b> — 무엇으로 이루어져 있는가</td></tr>
+              <tr><td class="hd">구조</td><td>게이트 5 × 시나리오 3 = 15칸</td><td>13개 수익 라인의 각 검토서 권고안 합</td></tr>
+              <tr><td class="hd">정상가동 매출</td><td class="n">70.5억 (G2L·기준)</td><td class="n">123.6억</td></tr>
+              <tr class="hl"><td class="hd">지위</td><td><b style="color:var(--pri-2)">본 보고서의 SSOT</b> — 판정은 전부 이것</td><td>부록 수록 · 구성 설명용</td></tr>
+            </tbody>
+          </table>
+          <div class="co r" style="font-size:11.8px">
+            <b>주의</b> — 같은 리테일 라인이 그리드에서는 <b>4.9억</b>, 단일점에서는 <b>19.0억</b>이다.
+            계산 방식이 다르기 때문이지 어느 하나가 틀린 것이 아니다. <b>두 표를 나란히 놓고 더하면 안 된다.</b>
+          </div>
+          <div class="co o" style="margin-top:9px;font-size:11.8px">
+            두 모델은 결국 같은 자리에 도착한다 — 단일점 모델도 5년차 세후 <b>26.8억</b>으로 재임대 27.1억에 근소 미달이고,
+            국비 43.4억이 확보되면 <b>30.0억</b>으로 기준선을 넘는다. 본문 EXHIBIT 26의 국비 수치가 이 계열이다.
+          </div>
+        </div>
+        <div class="src"><b>출처</b> 재무모델 v1.1(그리드) vs 라인별 검토서 권고안 종합(단일점) · 두 모델의 차이는 게이트·램프업·공통비 배분 방식</div>
+      </div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">41</div>
+</div>
+
+<div class="slide bu tight">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>B10·B11</b>Back-up · 세무 · 마케팅</span></div>
+  <div class="at">
+    <h1><span class="bu-tag">BACK-UP B10 · B11</span><br>세무 구조와 준비금 50% · 마케팅 3경로와 계절성 8.2배</h1>
+  </div>
+  <div class="body">
+    <div class="g2" style="align-items:start">
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT B-11</span><span class="t">세무 구조 — 구조를 정하는 순간 확정되는 유일한 이익</span></div>
+        <div class="exh-b">
+          <table style="font-size:11.6px;margin-bottom:11px">
+            <thead><tr><th style="width:32%">항목</th><th style="width:22%">적용</th><th>비고</th></tr></thead>
+            <tbody>
+              <tr><td class="hd">부가가치세</td><td>10% · 가격 포함</td><td>라인별 면세 비중 반영(리테일 5% · 교육 10%)</td></tr>
+              <tr class="hl"><td class="hd">고유목적사업준비금</td><td><b style="color:var(--pri-2)">소득의 50% 손금산입</b></td><td>법인세법 제29조 · 5년 내 미사용 시 익금산입 + 이자</td></tr>
+              <tr><td class="hd">법인세</td><td>2억 이하 9% / 200억 이하 19% / 3,000억 이하 21%</td><td>누진 구조 · 준비금 차감 후 과세표준에 적용</td></tr>
+              <tr><td class="hd">지방소득세</td><td>법인세의 10%</td><td>—</td></tr>
+              <tr><td class="hd">재산세</td><td>과표 300억 × 0.4% = 1.2억</td><td><b style="color:var(--warn)">과표는 가정</b> · 4개 안 모두 과세 전환</td></tr>
+              <tr><td class="hd">감가상각</td><td>정액 12년</td><td>건물분은 개관연도부터, 라인분은 투입 익년부터</td></tr>
+            </tbody>
+          </table>
+          <div class="co o" style="font-size:11.8px">
+            <b>준비금 50%의 절세 효과는 이익 규모에 비례한다</b> — 기준 케이스에서는 0.2억이지만
+            낙관에서는 연 수억 원, <b>5년 절세 약 15억</b>이다. 수익사업 개시신고·구분회계 설계를 <b>회신 전에</b> 마쳐야 한다.
+          </div>
+          <div class="co r" style="margin-top:9px;font-size:11.8px">
+            <b>P&amp;L 밖 사건 리스크</b> — 취득세 추징 가능성, 과세 기준 '교인 외 이용' 판정.
+            손익계산서 밖에서 터질 수 있는 항목이라 별도로 관리한다.
+          </div>
+        </div>
+        <div class="src"><b>출처</b> 세법·사업구조 검토(종교법인 과세·절세) · 재무모델 v1.1 <code>inputs.json</code> tax 블록 · 법인세법 제29조</div>
+      </div>
+      <div class="exh">
+        <div class="exh-h"><span class="n">EXHIBIT B-12</span><span class="t">마케팅 3경로 — 광고가 아니라 채널을 만든다</span></div>
+        <div class="exh-b">
+          <div class="card" style="padding:11px 13px;margin-bottom:8px">
+            <div class="lbl p">MZ · DOMESTIC</div>
+            <p style="font-size:11.7px">전시 → 인플루언서 → SNS → 방문 → 경험 → 커뮤니티 → <b style="color:var(--tx)">재방문 루프</b>.
+              도보권 112,349명에게 점심 회차권으로 첫 접점을 만들고 멤버십으로 올린다. 목표는 방문객 수가 아니라 <b style="color:var(--tx)">주 단위 습관</b>.</p>
+          </div>
+          <div class="card" style="padding:11px 13px;margin-bottom:8px">
+            <div class="lbl p">GLOBAL · INBOUND FIT</div>
+            <p style="font-size:11.7px">관광상품 → OTA·여행사 → 호텔 컨시어지 → 인플루언서 → 예약 → 경험 → 후기.
+              <b style="color:var(--tx)">97.5%가 개별여행</b>이므로 영어 결제·상시 예약·당일 참여가 전제이며, <b style="color:var(--tx)">코엑스 MICE 제휴</b>가 1차 채널.</p>
+          </div>
+          <div class="card" style="padding:11px 13px">
+            <div class="lbl p">B2B · CORPORATE MICE</div>
+            <p style="font-size:11.7px">기업 웰니스 → MICE → 브랜드 협업 → 연간 계약.
+              강남 GBD의 <b style="color:var(--tx)">같은 HR·복리후생 예산</b>을 멤버십과 B2B가 함께 겨냥하므로 <b style="color:var(--tx)">중복 계상을 이미 차감</b>했다.</p>
+          </div>
+          <div class="co w" style="margin-top:10px;font-size:11.8px">
+            <b>계절성 — 연매출 12등분 금지.</b> 방문이 3~5월에 <b>57.6%</b> 몰리고 8~12월 다섯 달은 <b>19.8%</b>에 그친다(8.2배 격차).
+            비수기 실내 콘텐츠가 없으면 연 단위 계획이 무너지며, <b>월별 현금흐름 설계가 별도로 필요</b>하다.
+          </div>
+          <div class="co" style="margin-top:9px;font-size:11.8px">
+            <b>공사 기간이 마케팅의 1기다.</b> 개관 후에 알리기 시작하면 늦다 —
+            기업 출강 · 영어 템플라이프 상시화 · OTA 등재 · 진정성 방어선 4원칙 정립이 Y1 과제다.
+          </div>
+        </div>
+        <div class="src"><b>출처</b> 마케팅·홍보 계획안 · 계절성은 RXR 4,330건 게시일 분포 · 교차정합 검증(B2B↔멤버십 중복 차감)</div>
+      </div>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">42</div>
+</div>
+
+<div class="slide bu">
+  <div class="rh"><span class="doc">봉은문화센터 Master Strategy</span><span class="sec"><b>B12</b>Back-up · Evidence Base</span></div>
+  <div class="at">
+    <h1><span class="bu-tag">BACK-UP B12</span><br>Evidence Base — 본 제안을 뒷받침하는 리서치 44건</h1>
+    <div class="dek">본문은 결론이고, 아래는 그 결론에 도달한 경로다. 각 항목은 개별 문서로 제출된다.</div>
+  </div>
+  <div class="body">
+    <div class="g3" style="gap:12px">
+      <div class="card" style="padding:12px 14px">
+        <div class="lbl gray">A1 · 계약 · 과업 정의 (4)</div>
+        <p style="font-size:11.3px;line-height:1.65">계약서·추가합의서 기반 RFP 분석(13섹션) · 과업 체크리스트 45항목/검수 매핑 · 착수계획서 · 과업지시서 9챕터 ↔ 최종보고서 매핑표</p>
+      </div>
+      <div class="card" style="padding:12px 14px">
+        <div class="lbl gray">A2 · 법률 · 행정 (4)</div>
+        <p style="font-size:11.3px;line-height:1.65">전통사찰법·문화재법 종합 검토(5개 법령) · 세법·사업구조 검토 · 문화집회시설 용도변경 법규 가이드 · 3-Tier 상업화 모델</p>
+      </div>
+      <div class="card" style="padding:12px 14px">
+        <div class="lbl gray">A3 · 시장 · 상권 (5)</div>
+        <p style="font-size:11.3px;line-height:1.65">삼성동 개발계획(GBC·영동대로) · 강남·삼성 외국인 트래픽 · 봉은사 상권 종합분석 · 삼성동 갭 분석 · 경쟁 포지셔닝·임대시장</p>
+      </div>
+      <div class="card" style="padding:12px 14px">
+        <div class="lbl gray">A4 · 불교 · 세대 인식 (5)</div>
+        <p style="font-size:11.3px;line-height:1.65">불교 브랜드 인식 분석(멘션 2,809건) · RXR 방문 실측 4,330건 · MZ 명상·불교 인식 · 외국인 사찰 체험 페인포인트 · McMindfulness 진정성 리스크</p>
+      </div>
+      <div class="card" style="padding:12px 14px">
+        <div class="lbl gray">A5 · 국내외 사례 (7)</div>
+        <p style="font-size:11.3px;line-height:1.65">종교공간 BM 글로벌 심층 · 일본 종교 운영공간 · 일본 사찰 BM(츠키지혼간지 외) · 동남아·유럽 종교공간 BM · 명동1898 케이스 · 국내 종교·문화공간 5건 · SETEC 대관 요금표·가동률</p>
+      </div>
+      <div class="card" style="padding:12px 14px">
+        <div class="lbl gray">A6 · 공간 · 건축 (4)</div>
+        <p style="font-size:11.3px;line-height:1.65">건축 도면 분석(무주 대공간·통층 천고) · 리모델링 견적 2사 비교 · 공간 재배분 Destination 확정안 · 법난기념관 기능분석·관계전략</p>
+      </div>
+      <div class="card" style="padding:12px 14px;border-left:3px solid var(--pri)">
+        <div class="lbl p">A7 · 비즈니스 모델 · 재무 (6)</div>
+        <p style="font-size:11.3px;line-height:1.65">라인별 수익성 검토 RL-01~16(12본) · 교차정합 검증(자원원장·이중계상) · <b style="color:var(--tx)">재무모델 v1.1(게이트 5 × 시나리오 3)</b> · 총사업비 2단 구조·투자 가이드 · 세금·5개년 경제성 검토 · 자금조달 구조</p>
+      </div>
+      <div class="card" style="padding:12px 14px">
+        <div class="lbl gray">A8 · 조사 · 인터뷰 (4)</div>
+        <p style="font-size:11.3px;line-height:1.65">이해관계자 인터뷰 가이드(7레벨 24질문) · 내부 방향성 설문지(22문항·6파트) · 온라인 설문 시스템·응답 집계 · 수요원자 54 ↔ 서비스 116 브리지 분석</p>
+      </div>
+      <div class="card" style="padding:12px 14px">
+        <div class="lbl gray">A9 · 통합 · 계약 산출물 (5)</div>
+        <p style="font-size:11.3px;line-height:1.65">Master Strategy Report(본편 262장) · 5개년 사업계획서(계약 제3조 1항) · 5개년 경제성 검토 보고서(제3조 2항) · 마케팅·홍보 계획안 · <b style="color:var(--tx)">본 진단·전략 컨설팅 덱</b></p>
+      </div>
+    </div>
+    <div class="co" style="margin-top:15px">
+      <b>총 44건</b> · 원문은 최종보고서 부록으로 편철하며, 본 덱의 모든 수치는 해당 원문에서 추적 가능하다.
+      <b>재무 수치는 계산 스크립트(<code style="color:var(--pri-2)">finance/model.py</code>) 재실행으로 전량 재현된다.</b>
+    </div>
+  </div>
+  <div class="fw">by Project Rent</div><div class="pn">43</div>
+</div>
+
+</body>
+</html>

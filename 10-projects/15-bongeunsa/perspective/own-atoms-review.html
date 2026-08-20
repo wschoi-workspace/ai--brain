@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>own Atom 28개 — Phase 1 인간 게이트</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{--bg:#1A1A1A;--bg-2:#111;--bg-3:#222;--fg:#F5F0EB;--fg-2:#C9C2BA;--fg-3:#7A7570;
+--line:#333;--line-2:#2a2a2a;--accent:#6C5CE7;--accent-l:#A29BFE;--warm:#E9DCC8;
+--rust:#B86C4A;--green:#8FA37E;--blue:#6F8AA3;--amber:#D9A34B;--coral:#E17055;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 32px 120px}
+
+header{padding:70px 0 44px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:16px}
+h1{font-size:38px;font-weight:700;letter-spacing:-.022em;line-height:1.25;margin-bottom:14px}
+.sub{font-size:15px;color:var(--fg-2);max-width:740px}
+.stats{margin-top:26px;display:flex;gap:10px;flex-wrap:wrap}
+.st{background:var(--bg-3);border:1px solid var(--line-2);border-radius:4px;padding:12px 18px}
+.st b{display:block;font-size:20px;font-weight:700;line-height:1.2}
+.st span{font-size:11px;color:var(--fg-3);letter-spacing:.04em}
+.st.hi b{color:var(--accent-l)}
+
+/* 게이트 안내 */
+.gate{background:linear-gradient(180deg,rgba(217,163,75,.09),rgba(217,163,75,.02));border:1px solid rgba(217,163,75,.3);border-radius:4px;padding:26px 30px;margin-top:36px}
+.gate h2{font-size:17px;font-weight:700;color:var(--amber);margin-bottom:14px}
+.gate-q{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.gq{background:var(--bg-2);border:1px solid var(--line-2);border-radius:3px;padding:15px 18px}
+.gq b{display:block;font-size:12.5px;color:var(--fg);margin-bottom:5px}
+.gq span{font-size:12px;color:var(--fg-2);line-height:1.6}
+
+section{margin-top:56px}
+.sec-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.sec-t{font-size:20px;font-weight:700;letter-spacing:-.012em}
+.sec-c{font-size:11px;font-weight:700;color:var(--accent-l);background:rgba(108,92,231,.15);padding:3px 9px;border-radius:2px}
+.sec-d{font-size:12.5px;color:var(--fg-3)}
+
+/* Atom 카드 */
+.atom{border-bottom:1px solid var(--line-2);padding:22px 0}
+.atom:last-child{border-bottom:0}
+.a-head{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:8px}
+.a-id{font-size:11px;font-family:ui-monospace,monospace;color:var(--fg-3);font-weight:600}
+.a-title{font-size:16.5px;font-weight:700;letter-spacing:-.008em;flex:1;min-width:200px}
+.a-kind{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);border:1px solid var(--line);padding:2px 7px;border-radius:2px}
+.tag{font-size:9.5px;letter-spacing:.09em;font-weight:700;padding:3px 7px;border-radius:2px;text-transform:uppercase}
+.t-new{background:rgba(108,92,231,.2);color:var(--accent-l)}
+.t-merge{background:rgba(111,138,163,.18);color:var(--blue)}
+.t-rec{background:rgba(143,163,126,.16);color:var(--green)}
+.t-key{background:rgba(184,108,74,.2);color:#D89070}
+.a-sum{font-size:13.5px;color:var(--fg-2);margin-bottom:10px;max-width:830px}
+.a-detail{background:var(--bg-2);border-left:2px solid var(--line);border-radius:0 3px 3px 0;padding:12px 16px;margin:10px 0;font-size:12.5px;color:var(--fg-2)}
+.a-detail b{color:var(--fg-3);font-size:10px;letter-spacing:.1em;display:block;margin-bottom:6px;font-weight:700}
+.a-detail li{margin-left:16px;padding:1.5px 0;line-height:1.6}
+.a-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.m{font-size:11.5px;padding:5px 10px;border-radius:3px;line-height:1.5}
+.m-src{background:var(--bg-3);color:var(--fg-3);font-family:ui-monospace,monospace;font-size:10.5px}
+.m-conf{background:rgba(225,112,85,.1);border:1px solid rgba(225,112,85,.25);color:var(--fg-2);flex:1;min-width:280px}
+.m-conf b{color:var(--coral)}
+.m-gap{background:rgba(217,163,75,.08);border:1px solid rgba(217,163,75,.22);color:var(--fg-2);flex:1;min-width:280px}
+.m-gap b{color:var(--amber)}
+.m-note{background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.22);color:var(--fg-2);flex:1;min-width:280px}
+.m-note b{color:var(--accent-l)}
+
+/* overflow */
+.of{background:var(--bg-2);border:1px solid var(--line-2);border-radius:4px;padding:22px 26px;margin-top:20px}
+.of h3{font-size:14px;font-weight:700;margin-bottom:10px}
+.of li{font-size:13px;color:var(--fg-2);margin-left:18px;padding:3px 0}
+
+footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-size:11.5px;color:var(--fg-3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+@media(max-width:820px){.wrap{padding:0 20px 80px}h1{font-size:29px}.gate-q{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">MPCF Phase 1 · 인간 게이트</div>
+  <h1>own Atom 28개 검토</h1>
+  <p class="sub">봉은사가 실제로 보유·통제하는 자산만 추린 목록. 이것만이 재조합 재료가 되고 볼륨 판정에 카운트된다. reference 60 · context 80 · constraint 40은 별도 클러스터로 분리돼 있다.</p>
+  <div class="stats">
+    <div class="st hi"><b>28</b><span>own Atom</span></div>
+    <div class="st"><b>280</b><span>셀 (× 렌즈 10)</span></div>
+    <div class="st"><b>T2</b><span>본격 가동</span></div>
+    <div class="st"><b>4</b><span>숫자 충돌</span></div>
+    <div class="st"><b>6</b><span>확인 필요(gaps)</span></div>
+    <div class="st"><b>208</b><span>전체 Atom</span></div>
+  </div>
+</header>
+
+<div class="gate">
+  <h2>확인해주실 것 3가지</h2>
+  <div class="gate-q">
+    <div class="gq"><b>① 빠진 것</b><span>봉은사가 가진 것 중 이 목록에 없는 자산</span></div>
+    <div class="gq"><b>② Atom이 아닌 것</b><span>자산이 아니라 의견·계획·남의 것인데 섞인 항목</span></div>
+    <div class="gq"><b>③ 더 쪼개야 할 것</b><span>묶여 있는데 실제로는 다른 결정을 낳는 항목</span></div>
+  </div>
+  <p style="font-size:12.5px;color:var(--fg-3);margin-top:14px">③이 특히 중요합니다. 판전군은 지시대로 1개로 묶었지만, 다른 항목 중에 결정이 갈리는데 뭉쳐 있는 게 있을 수 있습니다.</p>
+</div>
+
+<!-- 공간 -->
+<section>
+  <div class="sec-h"><span class="sec-t">공간 · 물리 자산</span><span class="sec-c">6</span><span class="sec-d">리뉴얼 대상 — 결정이 갈리므로 분할 유지</span></div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0041</span><span class="a-title">봉은문화회관 공간 제원</span><span class="a-kind">place</span><span class="tag t-merge">병합</span></div>
+    <p class="a-sum">용역 대상은 1층+2층 약 8,868㎡. 건물 전체 연면적은 그 2배 이상이라 대상 외 면적이 존재한다.</p>
+    <div class="a-detail"><b>DETAIL</b>
+      <li>1층 6,157.91㎡ / 2층 2,710.24㎡ / 대상 합계 약 8,868㎡</li>
+      <li>건물 연면적 18,730.87㎡ · 건축면적 3,477.75㎡</li>
+      <li>경내지 대지면적 66,230.3㎡ · 건폐율 5.25% · 용적률 10.9%</li>
+      <li>서울시 강남구 봉은사로 531</li>
+    </div>
+    <div class="a-meta">
+      <span class="m m-src">rfp-analysis-contract-based.md L32-43</span>
+      <span class="m m-note"><b>병합 근거</b> 면적 수치 5개는 데이터 필드이지 결정 단위가 아니다. 나눠도 나오는 활용 판단이 같다</span>
+    </div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0042</span><span class="a-title">건물 층 구성 — 계약서와 도면이 다름</span><span class="a-kind">place</span></div>
+    <p class="a-sum">1층=전시/연예장·주차장·간이주방·공조실·홀·계단실·예약실·사무실 / 2층=문화교실·연예장·간이주방·홀·공조실. 건물 규격 약 60m × 67m.</p>
+    <div class="a-meta">
+      <span class="m m-src">rfp-analysis-contract-based.md L44-48</span>
+      <span class="m m-conf"><b>충돌</b> 지하4층·지상3층(계약서 제2조) vs 지하1~지상2층(2002 도면 분석) — <b>지하 2~4층 현황이 어느 문서에도 없음</b></span>
+    </div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0043</span><span class="a-title">1층 무주(無柱) 대공간 300~350평</span><span class="a-kind">place</span></div>
+    <p class="a-sum">기둥 없이 트인 대형 홀. 전시 레이아웃 자유도가 높다. 홀 55%·코어 20%·부대 25%, 전면 15M 도로 접면과 차량 드롭오프·캐노피 보유.</p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L619-625</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0044</span><span class="a-title">1~2층 통층 6~8m 천고</span><span class="a-kind">place</span></div>
+    <p class="a-sum">1층과 2층이 통층으로 열린 구간의 천장 높이. 대형 설치·전시에 유리한 조건.</p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L620</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0045</span><span class="a-title">지하1층 반원형 홀 (계단식 좌석·곡선 복도)</span><span class="a-kind">place</span></div>
+    <p class="a-sum">공연/예식용 반원형 홀. 곡선벽 구조라 리테일에는 비효율이나 체험·공연에는 장점.</p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L621-635</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0054</span><span class="a-title">전통문화체험관 1·2관 681평 (2016 완공)</span><span class="a-kind">place</span></div>
+    <p class="a-sum">중창불사 1단계(2015~2016, 50억)로 조성된 경내 시설. <b>문화회관과 기능이 겹칠 수 있는 기존 자산.</b></p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L703</span></div>
+  </div>
+</section>
+
+<!-- 콘텐츠 -->
+<section>
+  <div class="sec-h"><span class="sec-t">콘텐츠 자산</span><span class="sec-c">3</span><span class="sec-d">관광상품화 가능 — 대표 지시로 결정 단위 묶음</span></div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0050</span><span class="a-title">판전군 — 관광상품화 가능한 보유 콘텐츠</span><span class="a-kind">object</span><span class="tag t-new">신규</span><span class="tag t-key">최고밀도</span></div>
+    <p class="a-sum">판전 건물·추사 절필 현판·화엄경 경판을 묶은 봉은사 최고 밀도 콘텐츠 자산. <b>리뉴얼 대상 공간이 아니라 문화회관에서 소개·연계할 콘텐츠 소스다.</b></p>
+    <div class="a-detail"><b>DETAIL</b>
+      <li><b>판전</b> 1856년(철종 7) 건립·1878 중수, 단층 맞배집 210.7㎡, 서울시 유형문화유산 제425호(2018.7.12), <b>경내 최고(最古) 건축물</b></li>
+      <li><b>판전 현판</b> 추사 김정희 글씨, 77×181cm '板殿' 양각, <b>별세 사흘 전 집필(절필)</b>, 1992.12.31 지정</li>
+      <li><b>화엄경 경판 3,438점</b> 1856년 남호 영기 주도, <b>왕실 내탕금 + 중신 시주</b>로 조성, 화엄경 80권</li>
+      <li>추사 만년 배경 — 1852년 북청 유배 해제 후 과지초당·봉은사 왕래</li>
+    </div>
+    <div class="a-meta">
+      <span class="m m-src">perspective/own-assets-research.md A-1~A-3</span>
+      <span class="m m-note"><b>입도</b> 전시 기획 프로젝트라면 3 Atom, 공간 활용전략에서는 1 Atom (대표 지시)</span>
+      <span class="m m-gap"><b>확인 필요</b> 현판 지정번호 1차 출처 / 경판 종수 / 일반 공개 범위·관람 동선</span>
+    </div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0051</span><span class="a-title">지정문화재군 — 보물 2점 + 서울시 유형문화유산 16건</span><span class="a-kind">object</span><span class="tag t-new">신규</span></div>
+    <p class="a-sum">관광상품화·전시 콘텐츠로 활용 가능한 지정문화재 묶음. <b>불화 10점 이상은 Visual 렌즈의 유일한 실물 재료다.</b></p>
+    <div class="a-detail"><b>DETAIL</b>
+      <li><b>보물</b> 목조석가여래삼불좌상(제1819호, 1651년 조각승 승일 외 9인 — 석가 146.5/아미타 117/약사 115cm) · 청동 은입사 향완(제321호)</li>
+      <li><b>유형문화유산</b> 선불당 · 목 사천왕상 · 목 삼불상 · 목 삼존불상 · 목 십육나한상</li>
+      <li><b>불화 10점+</b> 대웅전/판전 신중도 · 괘불도 · 비로자나불도 · 칠성도 · 삼세불도 · 삼장보살도 · 감로도 · 영산회상도 · 십육나한도</li>
+      <li>문화재자료 — 영산전 사자도 · 신중도</li>
+    </div>
+    <div class="a-meta">
+      <span class="m m-src">own-assets-research.md A-4~A-5</span>
+      <span class="m m-gap"><b>확인 필요</b> 소장 유물 전체 목록(비지정 포함) 미확보 — 사찰 직접 확인</span>
+    </div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0052</span><span class="a-title">역사·인물 서사 자산</span><span class="a-kind">concept</span><span class="tag t-new">신규</span></div>
+    <p class="a-sum">794년 창건부터 근현대까지. Story·People 렌즈의 재료이며, 특히 <b>'억압기에 승과를 되살린 절'</b>이라는 단일 서사로 묶인다.</p>
+    <div class="a-detail"><b>DETAIL</b>
+      <li>794년(신라 원성왕 10) 연회국사 <b>견성암</b> 창건</li>
+      <li>문정왕후 — <b>승과고시 부활</b>, 보우대사 주지 임명</li>
+      <li>서산·사명·벽암 주지 역임 / 정약용·김정희 교류</li>
+      <li>1925 을축년 대홍수 — 청호 학밀 주지 <b>708명 구제</b></li>
+      <li>1964 대학생불교연합회 · 1972 <b>동국역경원</b> 설치</li>
+      <li>선정릉 능침사찰 지위 · 개산 1225주년</li>
+    </div>
+    <div class="a-meta">
+      <span class="m m-src">own-assets-research.md B-1~B-9</span>
+      <span class="m m-conf"><b>충돌</b> 1,200년(통합제언·아이데이션) vs <b>1,000년(과업지시서 원문 키워드)</b> — 대외 문서 표기 통일 필요</span>
+    </div>
+  </div>
+</section>
+
+<!-- 운영 -->
+<section>
+  <div class="sec-h"><span class="sec-t">운영 · 트래픽</span><span class="sec-c">2</span><span class="sec-d">이미 돌아가고 있는 것</span></div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0053</span><span class="a-title">직영 템플스테이 — 외국인 전담 영어 프로그램 상시 운영</span><span class="a-kind">process</span><span class="tag t-new">신규</span><span class="tag t-key">급소</span></div>
+    <p class="a-sum"><b>공실을 새로 채울 것을 찾기 전에, 이미 운영 중인데 공간이 없어서 못 하는 것이 무엇인지가 먼저다.</b></p>
+    <div class="a-detail"><b>DETAIL</b>
+      <li>템플라이프(당일형) — 사찰순례·지화연꽃·참선·다선, <b>매월 특정 주말 영어 진행, 9~12만원대</b></li>
+      <li>체류형 1박2일 — 저녁예불·새벽예불·사찰음식</li>
+      <li>외국인 전담 운영, 사무국 02-3218-4826</li>
+      <li>정기 법회 — 일요·초하루·방생대법회, 전부 법왕루에서 봉행</li>
+    </div>
+    <div class="a-meta">
+      <span class="m m-src">own-assets-research.md C-1~C-4 · 통합제언 L313-315</span>
+      <span class="m m-gap"><b>확인 필요</b> 연간 참가자 수·외국인 비율 / 연중 행사 실제 캘린더 — 사찰 직접 확인</span>
+    </div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0055</span><span class="a-title">연간 신도 약 20만 명 · 일 외국인 관광객 300명+</span><span class="a-kind">audience</span></div>
+    <p class="a-sum">봉은사가 이미 보유한 트래픽. 입장료 무료라 매표 기반 공식 통계는 없다.</p>
+    <div class="a-meta">
+      <span class="m m-src">rfp-analysis-bongeunsa.md L784-785</span>
+      <span class="m m-gap"><b>확인 필요</b> 연간 방문객 통계 미확보 — 조사 항목에 '확보 필요'로만 남아 있음</span>
+    </div>
+  </div>
+</section>
+
+<!-- 경제 -->
+<section>
+  <div class="sec-h"><span class="sec-t">경제 조건</span><span class="sec-c">4</span></div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0046</span><span class="a-title">설비 전면 노후 — 냉난방 사용불능 외 5종</span><span class="a-kind">object</span></div>
+    <p class="a-sum">냉난방·배수·전기 20년+ 경과로 전면 교체 필요.</p>
+    <div class="a-detail"><b>DETAIL</b>
+      <li>냉난방 6.2억(사용불능) · 수변전 고압배전반 4.47억 · 옥상방수 누수 2.19억</li>
+      <li>비상발전기 1.38억 · 소방시설 오작동 1.14억</li>
+      <li>엘리베이터 3대 교체 2.1~10.4억 (정밀검사 대상연수 초과)</li>
+    </div>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L634-679</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0047</span><span class="a-title">수리 견적 2개사 — 28.56억 vs 27~41.5억</span><span class="a-kind">record</span><span class="tag t-rec">복구</span></div>
+    <p class="a-sum">업체별 견적 상이. <b>가용 예산이 미확인이라 견적만으로 실현성을 판정할 수 없다.</b></p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L670-680</span><span class="m m-note"><b>복구</b> 워커 ID 상한 초과로 누락됐던 항목</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0048</span><span class="a-title">3년째 공실 — 누적 기회비용 약 126억</span><span class="a-kind">record</span></div>
+    <p class="a-sum">기존 웨딩홀 임대수익 연 42억 × 3년 기준 산정.</p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L45</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0049</span><span class="a-title">구 더 라빌 웨딩홀 임대수익 월 3.5억 (연 42억)</span><span class="a-kind">record</span></div>
+    <p class="a-sum">경제성 분석의 baseline. 다만 <b>미팅 구두 확인치이며 계약 조건 원본은 미확보.</b></p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L44</span></div>
+  </div>
+</section>
+
+<!-- 조직 -->
+<section>
+  <div class="sec-h"><span class="sec-t">조직 · 거버넌스</span><span class="sec-c">3</span><span class="sec-d">Stakeholder 렌즈의 재료</span></div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0063</span><span class="a-title">발주처 대표 진우 스님 — 제37대 총무원장, 임기 2026.9.27 만료</span><span class="a-kind">person</span></div>
+    <p class="a-sum">계약서상 갑 대표. 1994년 선거제도 도입 이후 최초 무투표 당선. <b>임기가 프로젝트 종료 직후 만료된다.</b></p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L55</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0064</span><span class="a-title">봉은사 = 총무원 직영사찰 (주지 임면권·4년 임기)</span><span class="a-kind">concept</span></div>
+    <p class="a-sum">주지 임면권이 총무원장에게 있고 주지는 4년마다 교체된다. 의사결정 3주체 = 주지·총무원·신도회. 주지 원명 스님은 2015 취임 5회 연임, 중창불사 추진 주도.</p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L56·L62·L697</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0065</span><span class="a-title">수행 인력 8인 + 착수계획서</span><span class="a-kind">person</span></div>
+    <p class="a-sum">최원석 총괄 + 전제훈 공간디자인 총괄 + 배성원 사업PM 등 8인. 착수계획서는 작성 완료됐으나 발주처 제출이 소급 필요 상태.</p>
+    <div class="a-meta"><span class="m m-src">15-progress.md L69-75</span></div>
+  </div>
+</section>
+
+<!-- 계획·환경 -->
+<section>
+  <div class="sec-h"><span class="sec-t">경내 계획 · 환경</span><span class="sec-c">3</span></div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0060</span><span class="a-title">봉은사 지하주차장 공사 1,700억 진행 중</span><span class="a-kind">event</span></div>
+    <p class="a-sum">경내 대규모 공사. 동선·접근성에 일시 영향.</p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L61</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0061</span><span class="a-title">10.27 법난기념관 신축계획 — 879석 공연장</span><span class="a-kind">concept</span></div>
+    <p class="a-sum">봉은사 남측 전면부 계획 시설. 지상2층·지하4층, 879석 공연장 + 전시시설 + 이벤트 스페이스. 문화회관과 이웃한 별개 건물이라 <b>기능 중복 검토가 필요하다.</b></p>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L645-652</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0062</span><span class="a-title">중창불사 마스터플랜 3단계 — 문화회관은 '반환→신도 기도공간' 계획이었다</span><span class="a-kind">record</span><span class="tag t-key">전제 흔듦</span></div>
+    <p class="a-sum">1971 도시공원 지정 → 2015.7 역사공원 전환 후 추진. <b>2단계 계획이 '문화회관 반환 → 신도 기도공간'이었다는 사실은 본 프로젝트의 전제를 흔든다.</b></p>
+    <div class="a-detail"><b>DETAIL</b>
+      <li>1단계 2015~16 (50억) 완료 / 2단계 2017~20 완료(문화회관 제외) / 3단계 2021~25 진행 중</li>
+      <li>2030년 전체 리뉴얼 완료 예정</li>
+    </div>
+    <div class="a-meta"><span class="m m-src">rfp-analysis-bongeunsa.md L704-709</span></div>
+  </div>
+</section>
+
+<!-- 산출물 -->
+<section>
+  <div class="sec-h"><span class="sec-t">프로젝트 산출물</span><span class="sec-c">7</span><span class="sec-d">이번 용역에서 만든 자산</span></div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0070</span><span class="a-title">조사도구 3종 — 인터뷰가이드 24Q · 설문 22Q · 웹앱(라이브)</span><span class="a-kind">record</span></div>
+    <p class="a-sum">ARISA 7레벨 24질문 + 6파트 22문항 + bongeunsa-survey.vercel.app(Apps Script→구글시트, 수집 검증 완료).</p>
+    <div class="a-meta"><span class="m m-src">15-progress.md L76-87</span><span class="m m-gap"><b>확인 필요</b> 응답·녹취·전사 파일 0건 — 대표 결정: 추후 증분 추가</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0071</span><span class="a-title">컨설팅 레포트 MBB 덱</span><span class="a-kind">record</span></div>
+    <p class="a-sum">Governing Thought = '전통사찰법 제약이 곧 해자'. 하이브리드(MBB+한국공공형+Doblin) HTML 덱.</p>
+    <div class="a-meta"><span class="m m-src">15-progress.md L320</span><span class="m m-conf"><b>충돌</b> 슬라이드 장수 21장 vs 25장 — 증쇄 여부 불명</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0072</span><span class="a-title">중간산출물 덱 12종 + 출력본 12개</span><span class="a-kind">record</span></div>
+    <p class="a-sum">전략 3종 + 리서치 주제덱 7종 등. 2026-07-22 화이트 출력본 일괄 변환·검증 완료.</p>
+    <div class="a-meta"><span class="m m-src">15-progress.md L18-22</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0073</span><span class="a-title">최종보고서 마스터플랜 — 12챕터 완성도 45%</span><span class="a-kind">record</span></div>
+    <p class="a-sum">12챕터×FACT-INSIGHT-STRATEGY 구조. <b>리서치·진단은 거의 완료, 전략·실행은 뼈대만.</b></p>
+    <div class="a-meta"><span class="m m-src">master-report-plan.md L26</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0074</span><span class="a-title">공간활용 통합제언 + '봉은 1,200' 배치 시나리오</span><span class="a-kind">record</span></div>
+    <p class="a-sum">5대 활용 제언 + 8,868㎡를 7영역으로 배분한 통합 배치안 + 연 수익 시뮬레이션(낙관 92억 / 보수 46~55억).</p>
+    <div class="a-meta"><span class="m m-src">통합제언-보고서.md L459-522</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0075</span><span class="a-title">아이데이션 3안 + 종교시설 BM 22패턴 + 법적 3단계 맵</span><span class="a-kind">record</span></div>
+    <p class="a-sum">법적 허용 3단계(보수/긍정/옵션) + 시나리오 A(20~30억)·B(46~65억)·C(70~92억) 비교 매트릭스.</p>
+    <div class="a-meta"><span class="m m-src">bongeunsa-ideation-feasibility.md L163</span></div>
+  </div>
+
+  <div class="atom">
+    <div class="a-head"><span class="a-id">at-0076</span><span class="a-title">불교 인식·담론 brand-analysis 자산 (멘션 2,809건)</span><span class="a-kind">record</span><span class="tag t-rec">복구</span></div>
+    <p class="a-sum">자체 수행한 분석 산출물. <b>다만 데이터 자체는 context이며 방법론 한계가 크다</b> — 봉은사 검색어 18.1% 혼입(순환 참조), 3군 관측창 7배 차이, 진정성 산식은 임의 가중치.</p>
+    <div class="a-meta"><span class="m m-src">90-archive/30-buddhism-brand-analysis/progress.md L14</span><span class="m m-note"><b>복구</b> ID 상한 초과로 누락, 편입 결정됨</span></div>
+  </div>
+</section>
+
+<!-- overflow -->
+<section>
+  <div class="sec-h"><span class="sec-t">등록하지 않은 것</span><span class="sec-d">Atom으로 세우지 않고 다른 곳으로 보낸 항목</span></div>
+  <div class="of">
+    <h3>흡수 · 이관</h3>
+    <li>전면 15M 도로 접면·차량 드롭오프 캐노피 → <b>at-0043 detail로 흡수</b></li>
+    <li>분리된 서비스 동선 / 2층 대기실 소실 밀집(벽체 철거 필요) → 도면 자료 확보 후 재판단</li>
+    <li>건축물대장 용도 = 문화회관(문화집회시설) → <b>constraint 클러스터 G1</b>에서 다룸</li>
+    <li>계약 5,000만원·90일 → 계약 조건이지 자산이 아님 <span style="color:var(--fg-3)">(단, 기간 표기 충돌 있음: 3~6월 vs 5/18~8/16)</span></li>
+    <li>봉은사 자체 장류·텃밭 식재료 → <b>실재 여부 근거 없음.</b> 통합제언 L154의 제언일 뿐이라 자산으로 등록하지 않음</li>
+  </div>
+</section>
+
+<footer>
+  <span>MPCF Phase 1 · own Atom 28 / 전체 208 · 2026-07-29</span>
+  <span>원본: perspective/atoms-raw/01-own.final.json</span>
+</footer>
+
+</div>
+</body>
+</html>

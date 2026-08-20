@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전통다원 BM 수익성 검토 | PROJECT RENT</title>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+em{font-style:normal;color:var(--accent-light)}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.nav{position:fixed;top:50%;left:26px;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:10;font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color 150ms var(--ease-out)}
+.nav a:hover,.nav a.active{color:var(--accent)}
+.sec{padding:90px 120px 110px;max-width:1440px;margin:0 auto}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:26px;border-bottom:1px solid var(--line-2);margin-bottom:44px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:38px;font-weight:300;letter-spacing:-0.025em;line-height:1.15;margin-top:8px}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin-bottom:38px}
+h3.sub{font-size:19px;font-weight:400;color:var(--fg);margin:46px 0 14px;letter-spacing:-0.02em}
+h3.sub:first-of-type{margin-top:0}
+p.note{font-size:13px;color:var(--fg-2);margin:10px 0;max-width:920px}
+#cover{padding-top:140px;min-height:84vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:34px}
+.cover-title{font-size:62px;font-weight:200;letter-spacing:-0.04em;line-height:1.05;margin-bottom:24px}
+.cover-sub{font-size:19px;color:var(--fg-2);line-height:1.6;max-width:920px;margin-bottom:46px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:30px;max-width:1020px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:11px 12px;font-weight:400;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+tbody tr.total td{border-top:1px solid var(--line);color:var(--fg);font-weight:500;background:rgba(108,92,231,.05)}
+tbody tr.sub-row td{color:var(--fg-3);font-size:12px}
+tbody tr.sub-row td:first-child{color:var(--fg-3);padding-left:28px}
+tbody tr.grp td{background:var(--bg-2);color:var(--accent-light);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+tbody tr.dim td{color:var(--fg-3);font-size:12px;font-style:italic}
+tbody tr.win td{background:rgba(143,163,126,.07)}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--red)} .pos{color:var(--green)} .warn{color:var(--amber)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:3px 9px;font-size:10px;letter-spacing:.08em;white-space:nowrap}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi.hero{border-color:var(--accent)} .kpi.bad{border-color:rgba(225,112,85,.4)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:32px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi.bad .kpi-value{color:var(--red)}
+.kpi .kpi-unit{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px;line-height:1.5}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:22px 26px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.75}
+.callout p+p{margin-top:10px}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.gate{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:26px 0}
+.gate .g{background:var(--bg-3);border:1px solid var(--line-2);padding:26px 28px}
+.gate .g.pass{border-left:3px solid var(--green)}
+.gate .g.block{border-left:3px solid var(--red)}
+.gate .g .n{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.gate .g h4{font-size:19px;margin-bottom:14px;line-height:1.35}
+.gate .g p{font-size:13px;color:var(--fg-2);line-height:1.7;margin:0}
+.gate .g .verdict{margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2)}
+.bar-wrap{margin:26px 0}
+.bar-row{display:grid;grid-template-columns:170px 1fr 90px;gap:16px;align-items:center;margin-bottom:9px;font-size:12.5px}
+.bar-row .bl{color:var(--fg-2);font-size:12px;text-align:right}
+.bar-row .bl.hi{color:var(--fg);font-weight:500}
+.bar-track{position:relative;height:26px;background:var(--bg-2);border:1px solid var(--line-2);overflow:hidden}
+.bar-seg{position:absolute;top:0;left:0;height:100%}
+.bar-din{background:rgba(111,138,163,.55)}
+.bar-tea-s{background:rgba(108,92,231,.9)}
+.bar-tea-l{background:rgba(108,92,231,.45)}
+.bar-oth{background:rgba(122,117,112,.45)}
+.bar-val{color:var(--fg-2);font-variant-numeric:tabular-nums;font-size:12px}
+.legend{display:flex;gap:20px;font-size:11px;color:var(--fg-3);margin-top:16px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:7px}
+.legend i{width:13px;height:13px;display:inline-block}
+.foot{padding:60px 120px 80px;border-top:1px solid var(--line-2);text-align:center;color:var(--fg-3);font-size:11px;letter-spacing:.2em;max-width:1440px;margin:0 auto}
+@media (max-width:1100px){
+  .sec{padding:70px 40px 80px}.nav{display:none}
+  .cover-title{font-size:38px}.sec-head h2{font-size:28px}
+  .kpi-grid,.kpi-grid-3,.cover-meta{grid-template-columns:repeat(2,1fr)}
+  .gate{grid-template-columns:1fr}
+  .bar-row{grid-template-columns:104px 1fr 72px;gap:9px}
+}
+@media (max-width:560px){
+  .sec{padding:56px 22px 64px}
+  .kpi-grid,.kpi-grid-3,.cover-meta{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+<nav class="nav">
+  <a href="#cover">00 결론</a>
+  <a href="#s1">01 두 게이트</a>
+  <a href="#s2">02 좌석 2안</a>
+  <a href="#s3">03 회전율</a>
+  <a href="#s4">04 조리 경로</a>
+  <a href="#s5">05 앉을 자리</a>
+  <a href="#s6">06 중복</a>
+  <a href="#s7">07 판정</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">RL-02 · Traditional Tea House Business Model</div>
+  <h1 class="cover-title">법은 되는데<br>건물이 안 됩니다</h1>
+  <p class="cover-sub">
+    전통다원은 전통사찰법 시행령 제7조에 <em>문언 그대로</em> 적혀 있어
+    <strong>해석이 필요 없는 유일한 F&amp;B</strong>입니다<span style="color:var(--fg-3)">E-0136·E-0149</span>.
+    그런데 건물 용도가 문화집회시설이라
+    <strong>차·한과 준비 수준의 조리도 걸립니다</strong><span style="color:var(--fg-3)">E-0600</span>.
+    <strong>전 라인 중 유일하게 게이트가 반대로 걸린 라인</strong>입니다.
+  </p>
+  <dl class="cover-meta">
+    <div><dt>대상</dt><dd>전통다원 계열 3건 (E-0600·0601·0602)</dd></div>
+    <div><dt>권고</dt><dd>소형안 35석 · 총 167㎡</dd></div>
+    <div><dt>기준 매출·이익</dt><dd>6.57억 · +3.01억 (46%)</dd></div>
+    <div><dt>작성</dt><dd>2026.08.17 · 내부 문서</dd></div>
+  </dl>
+
+  <div class="kpi-grid" style="margin-top:52px">
+    <div class="kpi hero"><div class="kpi-label">㎡당 영업이익</div><div class="kpi-value">180<span class="kpi-unit">만원</span></div><div class="kpi-sub">전 라인 2위 · 다이닝 5축(206만)의 87%<br>대관·교육·숙박·전시의 4~14배</div></div>
+    <div class="kpi hero"><div class="kpi-label">회수기간</div><div class="kpi-value">1.4<span class="kpi-unit">년</span></div><div class="kpi-sub">CAPEX 4.17억 · 주방 설비 없음<br>전 라인 중 최단</div></div>
+    <div class="kpi bad"><div class="kpi-label">소형 vs 대형 격차</div><div class="kpi-value">1.50<span class="kpi-unit">배</span></div><div class="kpi-sub">㎡당 180만 vs 120만원<br>매출은 대형이 5.79억 크지만</div></div>
+    <div class="kpi bad"><div class="kpi-label">회전율 근거</div><div class="kpi-value">없음<span class="kpi-unit"></span></div><div class="kpi-sub">'80석 회전 1.5'는 벤치마크와<br>1:1 매핑된 적 없음<span style="color:var(--fg-3)"> E-0535</span></div></div>
+  </div>
+
+  <div class="callout callout-success" style="max-width:1020px">
+    <p><strong>결론 — 소형안(35석·167㎡)을 권고합니다</strong><br>
+    마스터 v0.2는 <strong>80석·400㎡·7.9억</strong>, RL-03 FINAL 축5는 <strong>35석·131㎡·4.6억</strong>으로
+    두 값이 어긋나 있었습니다. 둘 다 내부적으로는 일관되며 <strong>정책 선택의 문제</strong>입니다.
+    판정 기준을 <strong>㎡당 영업이익</strong>으로 잡으면 소형안이 <strong>1.50배</strong> 앞섭니다.
+    F&amp;B 배정 1,000㎡ 안에서 대형안은 <strong>43.6%</strong>를 먹어
+    다이닝·아카데미·곡차·편집샵을 밀어냅니다.</p>
+  </div>
+
+  <div class="callout callout-danger" style="max-width:1020px">
+    <p><strong>그리고 좌석을 키우면 모르는 것이 커집니다</strong><br>
+    회전율은 <strong>브리프 R-04가 '가장 값어치 높은 조사'로 지목한 미확정 값</strong>입니다.
+    회전 0.8~2.2 구간에서 매출 진폭이 소형안 <strong>4.47~8.67억</strong>인데
+    대형안은 <strong>7.56~17.16억</strong>으로 <strong>2.3배</strong>입니다.
+    <strong>실측 전에 크게 짓는 것이 위험한 이유입니다.</strong></p>
+  </div>
+</section>
+
+<!-- 01 두 게이트 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">Two Gates</div>
+    <h2>이 라인만 <em>게이트가 반대로</em> 걸립니다</h2></div>
+    <div class="no">01</div>
+  </div>
+  <p class="sec-desc">
+    다른 F&amp;B 라인은 <strong>건물 문제를 풀어도 전통사찰법 해석이 남았습니다.</strong>
+    다원은 정반대입니다 — 법은 문언 그대로 통과인데 건물이 막습니다.
+  </p>
+
+  <div class="gate">
+    <div class="g pass">
+      <div class="n">Gate 1 · 전통사찰법</div>
+      <h4>문언 그대로 통과</h4>
+      <p>시행령 제7조에 <strong>'전통다원의 운영'</strong>이 명시되어 있고
+      도시공원법 편익시설에도 해당하여, <strong>F&amp;B 중 유일하게 해석 없이 확실히 가능</strong>합니다<span style="color:var(--fg-3)">E-0136</span>.
+      프리미엄 전통차와 한과를 제공하며 명상 공간을 겸하는 형태는
+      <strong>법적 리스크가 사실상 없습니다</strong><span style="color:var(--fg-3)">E-0149</span>.
+      5대 합법 활용 영역 중 <strong>첫 번째이자 가장 확실한 수익원</strong>이며<span style="color:var(--fg-3)">E-0158</span>,
+      제7조에서 상업적 가치가 가장 큰 항목이기도 합니다<span style="color:var(--fg-3)">E-0182</span>.</p>
+      <div class="verdict"><span class="badge badge-yes">유권해석 불필요</span> R-03 회신을 기다릴 이유가 없음</div>
+    </div>
+    <div class="g block">
+      <div class="n">Gate 2 · 건축법 용도</div>
+      <h4>차 한 잔도 걸린다</h4>
+      <p>건물 용도가 <strong>문화집회시설</strong>이어서 음식 조리가 불가능하며 위반 시 과태료입니다<span style="color:var(--fg-3)">E-0041</span>.
+      서비스 원장은 전통다원 3건 모두에 같은 단서를 달아두었습니다 —
+      <strong>"차·한과 준비 수준의 조리도 문화집회시설 용도 제약에 걸린다.
+      조리 없는 완제품 반입 설계 또는 용도 확인이 전제다"</strong><span style="color:var(--fg-3)">E-0600 NOTE</span>.</p>
+      <div class="verdict"><span class="badge badge-no">건축법·식품위생법</span> 전통사찰법과 무관한 별도 트랙</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>두 게이트가 다른 법이라는 것이 이 라인의 전부입니다.</strong>
+    RL-03 FINAL은 다원을 실행 순서 <strong>1번</strong>으로 두며
+    <em>"조문 근거 최상·CAPEX 최소로 집객을 실측"</em>이라고 적었습니다.
+    조문 근거가 최상인 것은 맞지만, <strong>그것만으로 문을 열 수는 없습니다.</strong>
+    실제로 다원을 먼저 열 수 있는 근거는 조문이 아니라
+    <strong>차와 한과는 완제품 반입으로 영업이 가능하다</strong>는 물리적 사실입니다(§04).</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>확인되지 않은 것 — '차를 우리는 행위'는 조리인가</strong><br>
+    ①차를 우리는 것이 식품위생법상 조리에 해당하는지,
+    ②문화집회시설에 <strong>휴게음식점 영업신고</strong>가 가능한지는 별도 판단입니다.
+    브리프 R-03의 세 번째 항목 <strong>'식품위생법 영업신고 가능 형태 확인'</strong>이 정확히 이 질문이며,
+    <strong>이 검토는 그 답을 갖고 있지 않습니다.</strong> 법률 자문이 필요한 영역입니다.</p>
+  </div>
+</section>
+
+<!-- 02 좌석 2안 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">35 or 80 Seats</div>
+    <h2>두 문서가 <em>5.79억 어긋나</em> 있습니다</h2></div>
+    <div class="no">02</div>
+  </div>
+  <p class="sec-desc">
+    마스터 v0.2는 <strong>80석·400㎡</strong>, RL-03 FINAL 축5는 <strong>35석·131㎡</strong>입니다.
+    좌석 원단위를 보면 둘 다 내부적으로 일관됩니다 —
+    대형안 <strong>5.00㎡/석</strong>은 RL-03 FINAL이 다이닝 홀에 쓴 원단위와 같고,
+    소형안 <strong>3.74㎡/석</strong>은 주방이 거의 없는 다실의 조밀한 배치입니다.
+    <strong>계산 오류가 아니라 정책 선택</strong>이고, 그래서 판정 기준을 세워야 합니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">소형안 보수</th><th class="num">소형안 기준</th><th class="num">소형안 낙관</th><th class="num">대형안 보수</th><th class="num">대형안 기준</th><th class="num">대형안 낙관</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="7">구성</td></tr>
+      <tr><td>오픈형 좌석 / 다실</td><td class="num">28석 / 112㎡</td><td class="num">35석 / 131㎡</td><td class="num">42석 / 150㎡</td><td class="num">60석 / 300㎡</td><td class="num">80석 / 400㎡</td><td class="num">80석 / 400㎡</td></tr>
+      <tr class="sub-row"><td>좌석 원단위</td><td class="num">4.00㎡</td><td class="num">3.74㎡</td><td class="num">3.57㎡</td><td class="num">5.00㎡</td><td class="num">5.00㎡</td><td class="num">5.00㎡</td></tr>
+      <tr><td>오마카세 좌석 / 별도 다실</td><td class="num">6석 / 27㎡</td><td class="num">8석 / 36㎡</td><td class="num">10석 / 45㎡</td><td class="num">6석 / 27㎡</td><td class="num">8석 / 36㎡</td><td class="num">10석 / 45㎡</td></tr>
+      <tr class="total"><td>총 면적</td><td class="num">139㎡</td><td class="num">167㎡</td><td class="num">195㎡</td><td class="num">327㎡</td><td class="num">436㎡</td><td class="num">445㎡</td></tr>
+      <tr class="grp"><td colspan="7">매출</td></tr>
+      <tr><td>① 오픈형</td><td class="num">1.68억</td><td class="num">4.50억</td><td class="num">8.47억</td><td class="num">3.60억</td><td class="num">10.30억</td><td class="num">16.13억</td></tr>
+      <tr><td>② 티 오마카세</td><td class="num">0.30억</td><td class="num">1.66억</td><td class="num">4.95억</td><td class="num">0.30억</td><td class="num">1.66억</td><td class="num">4.95억</td></tr>
+      <tr><td>③ 티 클럽 멤버십</td><td class="num">0.10억</td><td class="num">0.40억</td><td class="num">1.20억</td><td class="num">0.10억</td><td class="num">0.40억</td><td class="num">1.20억</td></tr>
+      <tr class="total"><td>매출 합계</td><td class="num">2.08억</td><td class="num">6.57억</td><td class="num">14.62억</td><td class="num">4.00억</td><td class="num">12.36억</td><td class="num">22.28억</td></tr>
+      <tr class="grp"><td colspan="7">손익</td></tr>
+      <tr><td>영업이익 (자체 준비)</td><td class="num neg">-0.07억</td><td class="num pos">+3.01억</td><td class="num pos">+9.34억</td><td class="num neg">-0.16억</td><td class="num pos">+5.24억</td><td class="num pos">+13.57억</td></tr>
+      <tr><td>영업이익 (완제품 반입)</td><td class="num neg">-0.25억</td><td class="num pos">+2.42억</td><td class="num pos">+8.02억</td><td class="num neg">-0.52억</td><td class="num pos">+4.13억</td><td class="num pos">+11.56억</td></tr>
+      <tr><td>CAPEX</td><td class="num">3.48억</td><td class="num">4.17억</td><td class="num">4.88억</td><td class="num">8.18억</td><td class="num">10.90억</td><td class="num">11.12억</td></tr>
+      <tr class="win"><td><strong>★ ㎡당 영업이익</strong></td><td class="num neg">-5만원</td><td class="num pos"><strong>180만원</strong></td><td class="num pos">479만원</td><td class="num neg">-5만원</td><td class="num"><strong>120만원</strong></td><td class="num">305만원</td></tr>
+      <tr><td>좌석당 연 매출</td><td class="num">743만원</td><td class="num">1,877만원</td><td class="num">3,480만원</td><td class="num">667만원</td><td class="num">1,545만원</td><td class="num">2,785만원</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">
+    ※ RL-03 FINAL 축5는 <strong>"35석·상시 개방·131㎡"</strong>로 <strong>오픈형만</strong> 계산했고 오마카세는 포함하지 않았습니다.
+    오마카세는 예약제 소규모라 별도 다실이 필요하므로<span style="color:var(--fg-3)">E-0601</span>
+    <strong>면적을 따로 더했습니다</strong> — 같은 좌석을 오픈형과 오마카세로 두 번 세지 않기 위한 처리입니다.
+  </p>
+
+  <h3 class="sub">㎡당 영업이익 — 전 라인 대조</h3>
+  <div class="bar-wrap">
+    <div class="bar-row">
+      <div class="bl">다이닝 5축</div>
+      <div class="bar-track"><div class="bar-seg bar-din" style="width:100%"></div></div>
+      <div class="bar-val">206만원</div>
+    </div>
+    <div class="bar-row">
+      <div class="bl hi">다원 소형안 35석</div>
+      <div class="bar-track"><div class="bar-seg bar-tea-s" style="width:87.4%"></div></div>
+      <div class="bar-val">180만원</div>
+    </div>
+    <div class="bar-row">
+      <div class="bl">다원 대형안 80석</div>
+      <div class="bar-track"><div class="bar-seg bar-tea-l" style="width:58.3%"></div></div>
+      <div class="bar-val">120만원</div>
+    </div>
+    <div class="bar-row">
+      <div class="bl">대관 (RL-08)</div>
+      <div class="bar-track"><div class="bar-seg bar-oth" style="width:18.9%"></div></div>
+      <div class="bar-val">32~39만</div>
+    </div>
+    <div class="bar-row">
+      <div class="bl">교육·체험 (RL-05)</div>
+      <div class="bar-track"><div class="bar-seg bar-oth" style="width:17.0%"></div></div>
+      <div class="bar-val">17~35만</div>
+    </div>
+    <div class="bar-row">
+      <div class="bl">숙박 (RL-09)</div>
+      <div class="bar-track"><div class="bar-seg bar-oth" style="width:14.1%"></div></div>
+      <div class="bar-val">29만원</div>
+    </div>
+    <div class="bar-row">
+      <div class="bl">전시 (RL-01)</div>
+      <div class="bar-track"><div class="bar-seg bar-oth" style="width:6.3%"></div></div>
+      <div class="bar-val">13만원</div>
+    </div>
+    <div class="legend">
+      <span><i class="bar-tea-s"></i> 권고안</span>
+      <span><i class="bar-tea-l"></i> 대안</span>
+      <span><i class="bar-din"></i> 최고 효율 라인</span>
+      <span>막대는 다이닝 5축 206만원을 100%로 놓은 상대값</span>
+    </div>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>소형안은 다이닝 5축(206만원) 다음가는 면적 효율입니다.</strong>
+    대관·교육·숙박·전시의 <strong>4~14배</strong>이고, 회수기간은 <strong>1.4년</strong>으로 전 라인 중 가장 짧습니다.
+    주방 설비가 없어 CAPEX가 4.17억에 그치기 때문입니다.</p>
+    <p><strong>대형안을 택하면 그 효율이 120만원으로 내려앉습니다.</strong>
+    매출은 5.79억 크지만 면적을 2.6배 쓰기 때문입니다.
+    그리고 F&amp;B 배정 1,000㎡<span style="color:var(--fg-3)">E-0532</span> 안에서
+    RL-03 FINAL의 5축 합계는 691㎡(여유 309㎡)인데,
+    <strong>다원만 436㎡로 키우면 합계 996㎡ — 여유가 4㎡로 사라집니다.</strong>
+    아카데미·곡차·편집샵이 들어갈 자리가 없어집니다.</p>
+  </div>
+</section>
+
+<!-- 03 회전율 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">Turnover Sensitivity</div>
+    <h2>좌석을 키우면 <em>모르는 것이 커집니다</em></h2></div>
+    <div class="no">03</div>
+  </div>
+  <p class="sec-desc">
+    회전율 1.5는 92억 모델의 가정치이고 <strong>벤치마크 실적과 1:1로 대조된 적이 없습니다</strong><span style="color:var(--fg-3)">E-0535</span>.
+    브리프 R-04가 <strong>'가장 값어치 높은 조사'</strong>로 지목한 항목이 정확히 이것입니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num">회전율</th><th class="num">소형안 35석</th><th class="num">대형안 80석</th><th class="num">차이</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr><td class="num">0.8</td><td class="num">4.47억</td><td class="num">7.56억</td><td class="num">3.09억</td><td>예약제 중심 · 발우공양형(전석 룸 예약)</td></tr>
+      <tr><td class="num">1.0</td><td class="num">5.07억</td><td class="num">8.93억</td><td class="num">3.86억</td><td>보수 가정</td></tr>
+      <tr><td class="num">1.2</td><td class="num">5.67억</td><td class="num">10.30억</td><td class="num">4.63억</td><td>체류 연장 설계 시(§05)</td></tr>
+      <tr class="total"><td class="num">1.5</td><td class="num">6.57억</td><td class="num">12.36억</td><td class="num">5.79억</td><td><strong>기준 가정 — 근거 없음</strong></td></tr>
+      <tr><td class="num">1.8</td><td class="num">7.47억</td><td class="num">14.42억</td><td class="num">6.95억</td><td>워크인 중심 · 회전 우선 운영</td></tr>
+      <tr><td class="num">2.2</td><td class="num">8.67억</td><td class="num">17.16억</td><td class="num">8.49억</td><td>카페형 · 다원 정체성과 충돌</td></tr>
+      <tr class="dim"><td>진폭</td><td class="num">4.47~8.67억</td><td class="num">7.56~17.16억</td><td class="num">2.3배</td><td>같은 불확실성이 대형안에서 2.3배로 증폭</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>이것이 소형안을 권고하는 두 번째 이유입니다.</strong>
+    회전율은 지금 모르는 값이고, 개관 전에는 알 수 없습니다.
+    소형안에서 회전율이 0.8로 빠져도 <strong>4.47억</strong>이지만,
+    대형안에서 같은 일이 일어나면 <strong>7.56억</strong>으로
+    CAPEX 10.9억을 회수하지 못합니다.</p>
+    <p><strong>거꾸로 회전율이 잘 나오면 그때 키우면 됩니다.</strong>
+    다원은 주방 설비가 없어 증축·확장이 다른 F&amp;B보다 훨씬 쉽습니다.
+    RL-03 FINAL이 다원을 <strong>"집객을 실측"</strong>하는 순서 1번으로 둔 것도 같은 논리이며,
+    <strong>실측 도구를 실측 전에 크게 지을 이유가 없습니다.</strong></p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>회전율의 성격이 정체성과 묶여 있습니다.</strong>
+    회전 2.2는 카페형 운영에서나 나오는 값인데, 그것은
+    <em>"프리미엄 전통차와 한과를 제공하며 명상 공간을 겸하는"</em> 다원의 정의<span style="color:var(--fg-3)">E-0149</span>와 충돌합니다.
+    반대로 발우공양처럼 전석 예약제로 가면 회전이 구조적으로 1.0 아래로 떨어집니다<span style="color:var(--fg-3)">E-0424</span>.
+    <strong>회전율은 조사로 알아내는 값이자 동시에 우리가 고르는 값</strong>입니다 —
+    R-04 조사 설계에 <strong>"예약제 vs 워크인"</strong>을 먼저 정하는 항목이 들어가야 합니다.</p>
+  </div>
+</section>
+
+<!-- 04 조리 경로 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">Two Paths</div>
+    <h2>완제품 반입으로 <em>지금 열 수 있습니다</em></h2></div>
+    <div class="no">04</div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>경로</th><th class="num">원가율</th><th class="num">소형 기준 영업이익</th><th class="num">대형 기준 영업이익</th><th>전제</th></tr></thead>
+    <tbody>
+      <tr><td><strong>A · 완제품 반입</strong><br><span style="color:var(--fg-3)">지금 당장 가능</span></td>
+        <td class="num">34 / 31 / 27%</td><td class="num pos">+2.42억</td><td class="num pos">+4.13억</td>
+        <td>조리 없이 완제품 차·한과 반입 + 온수<br><span style="color:var(--fg-3)">가공 마진을 공급자에게 넘김 → 원가율 +9%p</span></td></tr>
+      <tr class="total"><td><strong>B · 용도 확인·변경</strong><br><span style="color:var(--fg-3)">R-03과 같은 트랙</span></td>
+        <td class="num">25 / 22 / 18%</td><td class="num pos">+3.01억</td><td class="num pos">+5.24억</td>
+        <td>자체 준비 가능<br><span style="color:var(--fg-3)">유권해석 회신 2~3개월</span></td></tr>
+      <tr><td>경로 B의 추가 이익</td><td class="num">-9%p</td><td class="num">+0.59억</td><td class="num">+1.11억</td><td>용도변경으로 얻는 연간 이익</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>다이닝과 결정적으로 다른 점입니다.</strong>
+    RL-03 다이닝은 조리 게이트가 닫히면 <strong>매출이 26% 수준으로 내려앉습니다.</strong>
+    다원은 <strong>완제품 반입으로 영업이 되고 원가율만 9%p 오릅니다</strong> —
+    기준안 영업이익이 3.01억에서 2.42억으로 줄 뿐 흑자를 유지합니다.</p>
+    <p>이유는 단순합니다. <strong>차는 우리는 것이고 한과는 원래 완제품</strong>입니다.
+    <strong>RL-03 FINAL이 다원을 실행 순서 1번으로 둔 진짜 근거가 이것입니다</strong> —
+    '조문 근거 최상'이 아니라 <strong>'게이트가 닫혀 있어도 열 수 있는 유일한 F&amp;B'</strong>라는 점입니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>다만 경로 A에도 확인할 것이 남습니다.</strong>
+    완제품 반입이어도 <strong>①물을 끓여 차를 우리는 행위가 식품위생법상 조리인지</strong>,
+    <strong>②문화집회시설에 휴게음식점 영업신고가 가능한지</strong>는 별도 판단입니다.
+    이 검토는 그 답을 갖고 있지 않으며, 법률 자문 또는 강남구청 사전상담이 필요합니다.
+    <strong>경로 A가 막히면 이 라인은 '차를 팔지 않는 다원'이 되어야 하고, 그건 성립하지 않습니다.</strong></p>
+    <p>따라서 R-03 유권해석 요청서에
+    <strong>'전통다원의 차 제공 형태(완제품 반입·온수 제공 포함)'</strong>를
+    별도 문항으로 넣는 것이 안전합니다. 이 라인만 게이트가 다르므로 질문도 달라야 합니다.</p>
+  </div>
+</section>
+
+<!-- 05 앉을 자리 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">What It Really Sells</div>
+    <h2>파는 것은 차가 아니라 <em>체류시간</em>입니다</h2></div>
+    <div class="no">05</div>
+  </div>
+  <p class="sec-desc">
+    RXR 실측이 지목한 병목은 상품이 아니라 자리였습니다 —
+    <strong>"봉은사에서 소비가 일어나지 않는 이유는 상품이 없어서가 아니라 앉아 있을 시간이 없어서다.
+    체류시간 연장이 F&amp;B·굿즈 전환의 전제 조건"</strong><span style="color:var(--fg-3)">E-1053</span>.
+    평균 체류 <strong>40분~1시간</strong>, 다음 행선지가 <strong>코엑스 35.4%</strong>입니다.
+    <strong>다원은 그 병목을 직접 푸는 유일한 상품</strong>입니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>체류 연장</th><th class="num">좌석 회전</th><th class="num">다원 매출</th><th class="num">리테일 전환 가정</th><th class="num">간접 기여</th><th>합</th></tr></thead>
+    <tbody>
+      <tr><td>+0분 (현행)</td><td class="num">1.5회</td><td class="num">6.57억</td><td class="num">+0.0%p</td><td class="num">0.00억</td><td class="num">6.57억</td></tr>
+      <tr><td>+30분</td><td class="num">1.4회</td><td class="num">6.27억</td><td class="num">+1.5%p</td><td class="num">0.34억</td><td class="num">6.61억</td></tr>
+      <tr><td>+60분</td><td class="num">1.2회</td><td class="num">5.67억</td><td class="num">+3.0%p</td><td class="num">0.69억</td><td class="num">6.36억</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">
+    간접 기여 = CV 255,000명 × 리테일 구매전환 상승폭 × 객단가 9,000원(RL-04 기준).
+    <strong>🔴 전환 상승폭 +1.5~3.0%p는 근거 없는 가정입니다</strong> — 방향만 보여주는 수치이고,
+    실측하려면 개관 후 <strong>체류시간과 구매전환을 동시에 측정</strong>해야 합니다.
+  </p>
+
+  <div class="callout">
+    <p><strong>체류가 늘면 회전율은 오히려 떨어집니다.</strong>
+    다원 자체 매출로만 보면 손해인데 다른 라인 전환이 오릅니다.
+    위 표에서 세 시나리오의 합계가 6.36~6.61억으로 거의 같다는 것이
+    <strong>이 트레이드오프가 다원 단독 손익으로는 판정되지 않는다</strong>는 뜻입니다.</p>
+    <p>RL-01 전시가 별마당 사례<span style="color:var(--fg-3)">E-0494</span>로 간접 기여를 다룬 것과 같은 구조입니다 —
+    <strong>자기가 버는 것보다 남을 벌게 하는 것이 큰 라인</strong>입니다.
+    다만 전시와 달리 다원은 <strong>자기 손익도 흑자</strong>라는 점이 다릅니다.</p>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>그래서 다원의 KPI를 회전율로 잡으면 안 됩니다.</strong>
+    회전율을 올리려면 손님을 빨리 내보내야 하는데, 그것은
+    이 라인이 존재하는 이유(체류 연장)와 정면으로 충돌합니다.
+    <strong>KPI는 회전율이 아니라 '다원 이용자의 후속 소비 전환율'이어야 합니다</strong> —
+    다원에 앉았던 사람이 리테일·전시·프로그램으로 얼마나 이어지는가.</p>
+    <p>이 측정은 어렵지 않습니다. 다원 영수증에 <strong>당일 리테일 할인 코드</strong>를 붙이면
+    전환이 그대로 집계됩니다. <strong>개관 1년차에 반드시 넣어야 할 설계</strong>입니다.</p>
+  </div>
+</section>
+
+<!-- 06 중복 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">Overlap</div><h2>중복 경고</h2></div>
+    <div class="no">06</div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>겹치는 라인</th><th class="num">기준 매출</th><th>무엇이 겹치는가</th><th>처리</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>RL-10 멤버십</strong><br><span style="color:var(--fg-3)">vs ③ 티 클럽</span></td>
+        <td class="num">1.30억<br><span style="color:var(--fg-3)">vs 0.40억</span></td>
+        <td>RL-10 문화 멤버십은 연 18만 × 714명, 티 클럽은 연 80만 × 50명입니다.
+        단가대는 다르지만 <strong>같은 사람의 같은 지갑</strong>입니다.
+        RL-10 검토는 <strong>"멤버십은 팔 것이 있어야 성립"</strong>이라며
+        개설 시점을 '다이닝·전시 이후'로 뒀는데, 티 클럽도 같은 조건에 걸립니다.</td>
+        <td><span class="badge badge-warn">RL-10으로 흡수</span><br>별도 라인 대신 <strong>멤버십의 '다원 티어'</strong>로</td>
+      </tr>
+      <tr>
+        <td><strong>RL-05 교육·체험</strong><br><span style="color:var(--fg-3)">vs ② 티 오마카세</span></td>
+        <td class="num">6.48억<br><span style="color:var(--fg-3)">vs 1.66억</span></td>
+        <td>오마카세는 <strong>다인(茶人)</strong>이 진행합니다 — RL-05가 확인한
+        진행 인력 6개 분야 중 <strong>'다도·차담'</strong>과 같은 사람입니다.
+        기준안 <strong>연 400회</strong>가 3개 라인 합계 1,528회에 더해집니다.</td>
+        <td><span class="badge badge-no">4개 라인 합계 1,928회</span><br>인력 풀 관리에 반드시 포함</td>
+      </tr>
+      <tr>
+        <td><strong>RL-03 다이닝</strong><br><span style="color:var(--fg-3)">F&amp;B 1,000㎡</span></td>
+        <td class="num">—</td>
+        <td>같은 F&amp;B 배정 면적을 5축이 나눠 씁니다.
+        5축 합계 691㎡(여유 309㎡)인데 <strong>대형안을 택하면 996㎡로 여유가 4㎡</strong>가 됩니다.</td>
+        <td><span class="badge badge-yes">소형안 권고</span><br>167㎡ = 배정의 16.7%</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">★ 교차 정합 검증(00C)과의 대조 — 이 검토가 면적 여유를 깨뜨립니다</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">00C 계상</th><th class="num">본 검토</th><th class="num">차이</th><th>영향</th></tr></thead>
+    <tbody>
+      <tr><td>전통다원 매출</td><td class="num">4.60억</td><td class="num">6.57억</td><td class="num">+1.97억</td><td>오마카세·티 클럽이 추가된 몫 — 합산 106.3 → 108.3억</td></tr>
+      <tr class="total"><td><strong>전통다원 면적</strong></td><td class="num">131㎡</td><td class="num">167㎡</td><td class="num neg">+36㎡</td><td><strong>α안 여유 14㎡ → 22㎡ 초과</strong></td></tr>
+      <tr><td>진행 인력</td><td class="num">주 46회</td><td class="num">+주 7.7회</td><td class="num neg">주 53.7회</td><td>오마카세 연 400회 ÷ 52주 — 다인은 '다도' 분야</td></tr>
+      <tr><td>이중계상 조정</td><td class="num">6건</td><td class="num">+1건</td><td class="num">7건</td><td>티 클럽 0.40억 → RL-10 흡수 (위 표)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>교차 정합 검증은 다원을 131㎡로 계상해 α안 면적 여유를 14㎡로 계산했습니다.</strong>
+    본 검토가 오마카세 별도 다실 36㎡를 더하면 <strong>8,890㎡ — 가용 8,868㎡를 22㎡ 초과</strong>합니다.
+    <strong>여유 14㎡짜리 계획에서는 어떤 라인도 면적을 늘릴 수 없다</strong>는 것을 이 검토가 실증한 셈입니다.</p>
+    <p><strong>해법은 오마카세를 별도 다실로 짓지 않는 것입니다.</strong>
+    연 400회 = 일 1.2회이므로 <strong>오픈형 다실의 8석을 저녁 시간대에 전용</strong>하면
+    추가 면적이 0입니다. 대신 그 시간대 오픈형 좌석이 줄어 회전율이 소폭 떨어지고,
+    <em>"다인이 좌석 앞에서 차를 순서대로 내리는"</em> 몰입감<span style="color:var(--fg-3)">E-0601</span>을
+    파티션으로 확보해야 합니다.</p>
+    <p><strong>이 선택은 면적 배분이 확정된 뒤에 해야 합니다.</strong>
+    00C가 지적한 <strong>결정적 미확정 변수(리테일 800㎡ + 교육 500㎡의 5축 흡수 여부)</strong>가
+    풀리면 β안에서는 1,817㎡가 초과 상태라 오마카세 다실은 논의 대상도 되지 않고,
+    α안이어도 22㎡를 어디서 뺄지 정해야 합니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>티 오마카세의 상한은 좌석이 아니라 다인입니다.</strong>
+    기준안 연 400회는 영업일 330일 기준 <strong>일 1.2회</strong>인데,
+    이는 <strong>다인 1명이 하루 종일 오마카세만 진행한다</strong>는 뜻에 가깝습니다.
+    RL-05 검토가 확인했듯 진행 인력은 <strong>분야별로 쪼개지고 상근이 성립하지 않는 구조</strong>입니다.
+    다인을 확보하지 못하면 오마카세 1.66억은 성립하지 않고,
+    그러면 소형안 기준 매출이 <strong>6.57억 → 4.91억</strong>으로 내려갑니다.</p>
+  </div>
+</section>
+
+<!-- 07 판정 -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div><div class="eyebrow">Verdict</div><h2>판정과 남은 것</h2></div>
+    <div class="no">07</div>
+  </div>
+
+  <h3 class="sub">좌석 2안 최종 대조</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>기준</th><th class="num">소형안 35석</th><th class="num">대형안 80석</th><th>판정</th></tr></thead>
+    <tbody>
+      <tr><td>기준 매출</td><td class="num">6.57억</td><td class="num">12.36억</td><td><span class="badge badge-info">대형안 우세</span> +5.79억</td></tr>
+      <tr><td>기준 영업이익</td><td class="num">+3.01억</td><td class="num">+5.24억</td><td><span class="badge badge-info">대형안 우세</span> +2.23억</td></tr>
+      <tr><td>총 면적</td><td class="num">167㎡</td><td class="num">436㎡</td><td><span class="badge badge-yes">소형안</span> 2.6배 절약</td></tr>
+      <tr><td>CAPEX</td><td class="num">4.17억</td><td class="num">10.90억</td><td><span class="badge badge-yes">소형안</span> 6.73억 절약</td></tr>
+      <tr class="win"><td><strong>★ ㎡당 영업이익</strong></td><td class="num pos"><strong>180만원</strong></td><td class="num">120만원</td><td><span class="badge badge-yes">소형안 1.50배</span></td></tr>
+      <tr><td>회수기간</td><td class="num pos">1.4년</td><td class="num">2.1년</td><td><span class="badge badge-yes">소형안</span></td></tr>
+      <tr><td>F&amp;B 1,000㎡ 점유율</td><td class="num pos">16.7%</td><td class="num neg">43.6%</td><td><span class="badge badge-no">대형안은 5축 붕괴</span></td></tr>
+      <tr><td>회전율 오차 진폭</td><td class="num pos">4.47~8.67억</td><td class="num neg">7.56~17.16억</td><td><span class="badge badge-no">대형안 2.3배 증폭</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">판정</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>질문</th><th>답</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>돈이 되는가</td><td><span class="badge badge-yes">된다 · 효율 최상위</span></td>
+        <td>㎡당 영업이익 180만원 — <strong>다이닝 다음 2위</strong> · 회수 1.4년으로 최단</td></tr>
+      <tr><td>몇 석으로 지을 것인가</td><td><span class="badge badge-yes">35석 · 총 167㎡</span></td>
+        <td>㎡당 1.50배 · F&amp;B 점유 16.7% · 회전율 오차 진폭 절반</td></tr>
+      <tr><td>법적 리스크는</td><td><span class="badge badge-yes">전 라인 중 최저</span></td>
+        <td>시행령 제7조 <strong>문언 그대로</strong> — 유권해석 불필요<span style="color:var(--fg-3)">E-0136·E-0149</span></td></tr>
+      <tr><td>그런데 왜 못 여는가</td><td><span class="badge badge-no">건축법 용도</span></td>
+        <td>문화집회시설이라 <strong>차·한과 준비 수준의 조리도 제약</strong><span style="color:var(--fg-3)">E-0600</span></td></tr>
+      <tr><td>게이트가 닫히면</td><td><span class="badge badge-warn">완제품 반입으로 영업</span></td>
+        <td>원가율 +9%p · 기준 영업이익 3.01 → <strong>2.42억으로 흑자 유지</strong></td></tr>
+      <tr><td>무엇이 승부를 가르는가</td><td><span class="badge badge-no">회전율</span></td>
+        <td>0.8~2.2 구간에서 소형안도 매출이 <strong>2배 벌어짐</strong> · 근거 0<span style="color:var(--fg-3)">E-0535</span></td></tr>
+      <tr><td>진짜 값어치는</td><td><span class="badge badge-yes">체류시간</span></td>
+        <td>소비 병목이 상품이 아니라 <strong>앉을 자리</strong><span style="color:var(--fg-3)">E-1053</span> — 이걸 푸는 유일한 상품</td></tr>
+      <tr><td>언제 여는가</td><td><span class="badge badge-yes">1번</span></td>
+        <td>RL-03 FINAL 실행 순서 1번 — <strong>게이트가 닫혀 있어도 열리는 유일한 F&amp;B</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">권고</h3>
+  <div class="callout">
+    <p><strong>① 소형안(오픈형 35석 131㎡ + 오마카세 8석 36㎡ = 167㎡)으로 짓습니다.</strong>
+    마스터 v0.2의 80석·400㎡는 <strong>㎡당 효율을 33% 떨어뜨리고</strong>
+    F&amp;B 배정 1,000㎡의 44%를 먹어 5축 구조를 무너뜨립니다.
+    회전율이 실측되고 잘 나오면 그때 확장합니다 — 다원은 주방이 없어 증축이 쉽습니다.
+    <strong>단, 오마카세 다실 36㎡는 별도로 짓지 않습니다</strong> —
+    교차 정합 검증(00C)의 α안 여유가 14㎡뿐이라 22㎡가 초과됩니다(§06).
+    <strong>오픈형 다실 8석을 저녁 시간대에 전용</strong>하는 방식으로 면적 추가를 0으로 만듭니다.</p>
+    <p><strong>② 마스터 v0.2의 RL-02 값을 교체합니다.</strong>
+    현재 2.7/7.9/12.6억·400㎡는 <strong>어느 검토와도 맞지 않습니다.</strong>
+    소형안 기준 <strong>2.08/6.57/14.62억·167㎡</strong>로 갱신하고,
+    RL-03 FINAL 축5(4.6억)와의 차이는 <strong>오마카세·티 클럽이 추가된 몫</strong>임을 명시합니다.</p>
+    <p><strong>③ R-03 유권해석 요청서에 다원 전용 문항을 넣습니다.</strong>
+    다른 F&amp;B와 게이트가 다르므로 질문도 달라야 합니다 —
+    <strong>'전통다원의 차 제공 형태(완제품 반입·온수 제공 포함)가 문화집회시설에서 가능한가',
+    '휴게음식점 영업신고 가능 여부'</strong>. 이 두 문항이 이 라인의 개관 가능 시점을 정합니다.</p>
+    <p><strong>④ KPI를 회전율이 아니라 후속 소비 전환율로 잡습니다.</strong>
+    회전율을 올리려면 손님을 빨리 내보내야 하는데 그것은 이 라인의 존재 이유와 충돌합니다.
+    <strong>다원 영수증에 당일 리테일 할인 코드</strong>를 붙이면 전환이 그대로 집계됩니다 —
+    개관 1년차 설계에 반드시 포함해야 합니다.</p>
+    <p><strong>⑤ 티 클럽을 별도 라인으로 세우지 않습니다.</strong>
+    RL-10 멤버십의 <strong>'다원 티어'</strong>로 흡수합니다.
+    같은 지갑이고, RL-10이 정한 개설 조건("팔 것이 있어야 성립")에 동일하게 걸립니다.</p>
+  </div>
+
+  <h3 class="sub">리서치 잔여</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num">#</th><th>항목</th><th>확정되는 것</th><th>난이도</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td><strong>회전율 (R-04)</strong></td><td>소형안 매출 4.47~8.67억 — <strong>이 라인의 유일한 실질 변수</strong></td><td>중 · <strong>브리프 최우선 조사</strong></td></tr>
+      <tr><td class="num">2</td><td><strong>예약제 vs 워크인</strong></td><td>회전율의 성격 자체 — 조사로 아는 값이자 <strong>고르는 값</strong></td><td>하 · 운영 정책 결정</td></tr>
+      <tr><td class="num">3</td><td>식품위생법 영업신고 형태</td><td><strong>경로 A의 성립 여부</strong> — 막히면 라인 자체가 불가</td><td>중 · 법률 자문 · 구청 사전상담</td></tr>
+      <tr><td class="num">4</td><td>완제품 반입 원가 실측</td><td>경로 A 원가율 31% — 현재는 +9%p 가정</td><td>하 · 공급자 견적</td></tr>
+      <tr><td class="num">5</td><td>티 오마카세 시장 실측</td><td>1.66억 전체 — <strong>국내 티 오마카세 실측 0건</strong></td><td>상 · 유사 카테고리 유추만 가능</td></tr>
+      <tr><td class="num">6</td><td>다인(茶人) 확보 가능 인원</td><td>오마카세 연 400회의 성립 — RL-05 인력 풀과 합산</td><td>하 · 종무 협조</td></tr>
+      <tr><td class="num">7</td><td>후속 소비 전환율</td><td>간접 기여 0.34~0.69억 — <strong>현재 근거 0</strong></td><td>중 · 개관 후 실측 설계</td></tr>
+      <tr><td class="num">8</td><td><strong>면적 배분 확정 (α/β)</strong></td><td>오마카세 다실 36㎡의 가부 — <strong>00C의 결정적 미확정 변수에 종속</strong></td><td>중 · 배치 설계 · 대관 존폐와 연동</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>이 검토가 아직 답하지 못하는 것</strong></p>
+    <p>① <strong>회전율이 없습니다.</strong> 브리프 R-04가 '가장 값어치 높은 조사'로 지목한 그대로이고,
+    이 검토도 1.5를 그대로 썼습니다. <strong>민감도로 진폭을 보여줬을 뿐 값을 채우지는 못했습니다.</strong></p>
+    <p>② <strong>티 오마카세는 국내 실측이 0건입니다.</strong> 차 명상 3~7만<span style="color:var(--fg-3)">E-1042</span>과
+    발우공양 코스 3.6~7만<span style="color:var(--fg-3)">E-0424</span>의 상단에서 8만원을 설정했지만
+    <strong>같은 카테고리의 가격이 아닙니다.</strong> 1.66억이 통째로 이 유추 위에 있습니다.</p>
+    <p>③ <strong>경로 A가 막힐 가능성을 계산하지 않았습니다.</strong>
+    '차를 우리는 행위'가 조리로 판정되고 휴게음식점 신고도 불가하면
+    <strong>이 라인은 성립하지 않습니다</strong>(차를 안 파는 다원은 다원이 아닙니다).
+    그 경우의 대안 — 예컨대 '병입 차 판매 + 다실 이용료' 구조 — 은 검토하지 않았습니다.</p>
+    <p>④ <strong>계절성이 반영되지 않았습니다.</strong> RXR 후기 게시일 분포가
+    <strong>3~5월 57.6% vs 8~12월 5개월 합 19.8%</strong>(8.2배)인데 영업일 330일에 균등 배분했습니다.
+    다원은 방문객 직결 상품이라 편차가 클 것이고,
+    <strong>성수기 좌석 부족과 비수기 유휴가 동시에 발생</strong>할 가능성이 있습니다.</p>
+  </div>
+</section>
+
+<div class="foot">PROJECT RENT · RL-02 전통다원 BM 수익성 검토 v1.0 · 내부 문서 · 대외 배포 금지</div>
+
+<script>
+const secs=document.querySelectorAll('.sec');
+const links=document.querySelectorAll('.nav a');
+const io=new IntersectionObserver((es)=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    const id=e.target.id;
+    links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id));
+  }});
+},{rootMargin:'-45% 0px -45% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

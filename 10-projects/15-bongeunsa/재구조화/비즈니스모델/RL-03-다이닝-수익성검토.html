@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RL-03 다이닝 수익성 검토 | PROJECT RENT</title>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+em{font-style:normal;color:var(--accent-light)}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.nav{position:fixed;top:50%;left:26px;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:10;font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color 150ms var(--ease-out)}
+.nav a:hover,.nav a.active{color:var(--accent)}
+.sec{padding:90px 120px 110px;max-width:1440px;margin:0 auto}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:26px;border-bottom:1px solid var(--line-2);margin-bottom:44px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:38px;font-weight:300;letter-spacing:-0.025em;line-height:1.15;margin-top:8px}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin-bottom:38px}
+h3.sub{font-size:19px;font-weight:400;color:var(--fg);margin:46px 0 14px;letter-spacing:-0.02em}
+h3.sub:first-of-type{margin-top:0}
+p.note{font-size:13px;color:var(--fg-2);margin:10px 0;max-width:920px}
+#cover{padding-top:140px;min-height:84vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:34px}
+.cover-title{font-size:68px;font-weight:200;letter-spacing:-0.04em;line-height:1.0;margin-bottom:22px}
+.cover-sub{font-size:19px;color:var(--fg-2);line-height:1.6;max-width:900px;margin-bottom:48px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:30px;max-width:1020px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:11px 12px;font-weight:400;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400;white-space:nowrap}
+tbody tr.total td{border-top:1px solid var(--line);color:var(--fg);font-weight:500;background:rgba(108,92,231,.05)}
+tbody tr.sub-row td{color:var(--fg-3);font-size:12px}
+tbody tr.sub-row td:first-child{color:var(--fg-3);padding-left:28px}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--red)}
+.pos{color:var(--green)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:3px 9px;font-size:10px;letter-spacing:.08em;white-space:nowrap}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi.hero{border-color:var(--accent)}
+.kpi.bad{border-color:rgba(225,112,85,.4)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:34px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi.bad .kpi-value{color:var(--red)}
+.kpi .kpi-unit{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px;line-height:1.5}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:22px 26px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.75}
+.callout p+p{margin-top:10px}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.bmcard{background:var(--bg-3);border:1px solid var(--line-2);border-left:3px solid var(--accent);padding:24px 26px 18px;margin:14px 0}
+.bmcard h4{font-size:16px;font-weight:500;color:var(--fg);margin-bottom:4px}
+.bmcard .loc{font-size:12px;color:var(--fg-3);margin-bottom:14px}
+.bmcard .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;padding:14px 0;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);margin-bottom:12px}
+.bmcard .ml{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+.bmcard .mv{font-size:14px;color:var(--fg);font-weight:400}
+.bmcard p{font-size:13px;color:var(--fg-2);margin:0}
+.bepbar{margin:22px 0;max-width:960px}
+.bepbar .row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.bepbar .lab{width:60px;font-size:13px;color:var(--fg)}
+.bepbar .track{flex:1;height:34px;background:var(--bg-3);border:1px solid var(--line-2);position:relative}
+.bepbar .fill{position:absolute;left:0;top:0;bottom:0;background:rgba(143,163,126,.25);border-right:2px solid var(--green)}
+.bepbar .fill.bad{background:rgba(225,112,85,.2);border-right-color:var(--red)}
+.bepbar .bep{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--amber)}
+.bepbar .beplab{position:absolute;top:-22px;transform:translateX(-50%);font-size:10px;color:var(--amber);white-space:nowrap}
+.bepbar .val{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--fg-2)}
+.bepbar .verdict{width:120px;font-size:12px;text-align:right}
+.foot{padding:60px 120px 80px;border-top:1px solid var(--line-2);text-align:center;color:var(--fg-3);font-size:11px;letter-spacing:.2em;max-width:1440px;margin:0 auto}
+@media (max-width:1100px){
+  .sec{padding:70px 40px 80px}.nav{display:none}
+  .cover-title{font-size:42px}.sec-head h2{font-size:28px}
+  .kpi-grid,.kpi-grid-3,.cover-meta{grid-template-columns:repeat(2,1fr)}
+  .bepbar .row{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+<nav class="nav">
+  <a href="#cover">00 결론</a>
+  <a href="#s1">01 벤치마크</a>
+  <a href="#s2">02 매출모델</a>
+  <a href="#s3">03 원가구조</a>
+  <a href="#s4">04 손익·BEP</a>
+  <a href="#s5">05 조리게이트</a>
+  <a href="#s6">06 판정·잔여</a>
+</nav>
+
+<!-- ============ COVER ============ -->
+<section class="sec" id="cover">
+  <div class="cover-line">RL-03 + RL-02 · Dining Business Model</div>
+  <h1 class="cover-title">다이닝 수익성 검토</h1>
+  <p class="cover-sub">
+    <em>곡차</em>는 사찰의 술입니다 — 수왕사 송화백일주는 승려가 빚어 식품명인 1호(1994)와
+    무형문화재(2013)가 됐습니다. 전통주 페어링을 축으로 놓고 양조 체험을 상품화하면
+    <strong>매출 34.8억 · 영업이익 11.5억 · ㎡당 이익 241만원</strong>이 됩니다.
+  </p>
+  <dl class="cover-meta">
+    <div><dt>대상</dt><dd>다이닝 + 전통주 페어링 + 양조 체험 + 전통다원</dd></div>
+    <div><dt>모델 버전</dt><dd>v4.0 (전통주 중심 · 체험 상품화)</dd></div>
+    <div><dt>벤치마크</dt><dd>발우공양 47,000 ↔ 온지음 250,000원</dd></div>
+    <div><dt>작성</dt><dd>2026.08.17 · 내부 문서</dd></div>
+  </dl>
+
+  <div class="kpi-grid" style="margin-top:56px">
+    <div class="kpi hero"><div class="kpi-label">기준안 매출</div><div class="kpi-value">34.8<span class="kpi-unit">억</span></div><div class="kpi-sub">v3.0 B안 20.2억 → +72%</div></div>
+    <div class="kpi hero"><div class="kpi-label">영업이익</div><div class="kpi-value">+11.5<span class="kpi-unit">억</span></div><div class="kpi-sub">이익률 33.2% · 회수 1.0년</div></div>
+    <div class="kpi hero"><div class="kpi-label">㎡당 영업이익</div><div class="kpi-value">241<span class="kpi-unit">만원</span></div><div class="kpi-sub">면적 478㎡ · v3.0 대비 +36%</div></div>
+    <div class="kpi"><div class="kpi-label">주류 관련 비중</div><div class="kpi-value">32<span class="kpi-unit">%</span></div><div class="kpi-sub">페어링 7.2 + 체험 2.3 + 병 1.5억</div></div>
+  </div>
+
+  <div class="callout callout-success" style="max-width:1020px">
+    <p><strong>앞선 "주류 배제" 판정을 정정합니다</strong> — 원장의 E-0612는 <strong>근거등급 C</strong>이고
+    출처가 Church Brew Works(피츠버그 성당 → <strong>맥주 브루펍</strong>)입니다.
+    즉 맥주 양조장을 배제한 판정이지 전통주를 직접 판정한 것이 아닙니다.
+    <strong>수왕사 송화백일주</strong>는 대한민국에서 유일하게 승려가 빚는 술로,
+    주지 벽암 스님이 제조해 <strong>1994년 식품명인 1호 · 2013년 전북 무형문화재</strong>가 됐습니다.
+    사찰의 술 제조·음용은 국가가 무형문화재로 인정한 전통문화입니다.</p>
+  </div>
+
+  <div class="callout callout-danger" style="max-width:1020px">
+    <p><strong>그럼에도 이 안의 진짜 장벽은 법이 아닙니다</strong> — 조문 근거는 두껍지만
+    <strong>불음주계에 대한 종단의 해석</strong>과 <strong>"사찰에서 술을 판다"는 여론 프레임</strong>이 남습니다.
+    관람료조차 "통행세"라 비판받았고<span style="color:var(--fg-3)">E-0233</span>
+    불신·상업화 토픽 2.2%가 브랜딩 방어선인 상황에서<span style="color:var(--fg-3)">E-0206</span>,
+    이 안은 그 선을 직접 건드립니다. <strong>실행 여부는 수익성이 아니라 종단 합의가 정합니다.</strong></p>
+  </div>
+
+  <div class="callout callout-success" style="max-width:1020px">
+    <p><strong>설계 지시 4가지를 그대로 반영했습니다</strong>
+    ① 복합공간이므로 규모 축소 → F&amp;B 1,000㎡ 배정에서 <strong>417㎡만 사용</strong>
+    ② 엔트리 파인 수준으로 경량화 → 좌석 50석 · 인력 22명
+    ③ 객단가 발우공양 대비 <strong>130~150%</strong> → 블렌디드 61,100~70,500원
+    ④ 좌석 40~60석 → 보수 40 / 기준 50 / 낙관 60석</p>
+  </div>
+
+  <div class="callout callout-danger" style="max-width:1020px">
+    <p><strong>이전 버전의 손익분기 계산을 정정합니다</strong> — v1.0·v1.1은 BEP 커버수를
+    다이닝 매출만으로 나눴는데, <strong>전통다원의 공헌이익도 같은 고정비를 부담</strong>합니다.
+    이를 반영하면 v1.1 기준안 BEP 점유율은 62%가 아니라 <strong>35%</strong>,
+    안전마진은 +11%가 아니라 <strong>+51%</strong>입니다.
+    "안전마진이 얇다"던 종전 진단은 과했고, 실제 구조는 그보다 여유가 있습니다.</p>
+  </div>
+
+  <div class="callout callout-warn" style="max-width:1020px">
+    <p><strong>발우공양 좌석수는 끝내 확인하지 못했습니다</strong> —
+    공식 사이트·미쉐린 가이드·예약 플랫폼·서울시 자료·공공데이터 인허가 API를 모두 확인했으나 미공개입니다.
+    대신 공식 사이트에서 <strong>영업 타임 구조</strong>를 확보해 좌석을 역산했습니다(50~60석).
+    또한 이 문서의 <strong>"발우공양 대비 130~150%"는 블렌디드 객단가 추정치(47,000원) 기준</strong>이며,
+    발우공양의 실제 코스 판매 믹스는 비공개라 이 기준점 자체가 추정입니다.</p>
+  </div>
+</section>
+
+<!-- ============ 01 ============ -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">Benchmark</div>
+    <h2>발우공양이 <em>가장 가까운 벤치마크</em>이자 가장 무거운 경고입니다</h2></div>
+    <div class="no">01</div>
+  </div>
+  <p class="sec-desc">
+    조계종이 직접 운영하는 사찰음식 파인다이닝이 이미 있습니다.
+    같은 종단, 같은 콘텐츠, 같은 직영 구조 — 봉은사 다이닝의 상한과 하한을 동시에 알려주는 유일한 실측치입니다.
+  </p>
+
+  <div class="bmcard">
+    <h4>발우공양 Balwoo Gongyang</h4>
+    <div class="loc">서울 종로구 견지동 템플스테이 통합정보센터 5층 · 한국불교문화사업단 직영 · 2009년 개업 · 미쉐린 1스타(2016~)</div>
+    <div class="grid">
+      <div><div class="ml">코스</div><div class="mv">36,000 / 50,000 / 70,000 / 120,000원</div></div>
+      <div><div class="ml">일 평균 객수</div><div class="mv">약 120명</div></div>
+      <div><div class="ml">외국인 비중</div><div class="mv">35% 이상</div></div>
+      <div><div class="ml">좌석 형태</div><div class="mv">전실 룸 · 홀 없음</div></div>
+      <div><div class="ml">일 타임수</div><div class="mv">3타임</div></div>
+      <div><div class="ml">영업일</div><div class="mv">월~토 · 일요일 휴무 = 연 313일</div></div>
+    </div>
+    <p style="margin-bottom:12px">선 36,000(<strong>평일 점심 한정</strong>) / 원 50,000 / 마음 70,000 /
+    희 120,000(사전예약·워크인 불가) 4단 구성. 콜키지 20,000원(2~4인).
+    시설은 <strong>4인석 / 6인석 / 단체석 / 프라이빗룸</strong> 구성.</p>
+    <div class="tbl-wrap" style="margin-top:4px">
+    <table style="margin:0">
+      <thead><tr><th>타임</th><th>운영</th><th class="num">길이</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td>점심 1부</td><td>11:30~13:20</td><td class="num">110분</td><td></td></tr>
+        <tr><td>점심 2부</td><td>13:30~14:50</td><td class="num">80분</td><td>주문마감 14:00</td></tr>
+        <tr><td>저녁</td><td>18:00~20:20</td><td class="num">140분</td><td>주문마감 19:10</td></tr>
+        <tr class="total"><td>합계</td><td>브레이크 15:00~18:00</td><td class="num">3타임</td><td>매주 일요일 휴무</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p style="margin-top:12px;color:var(--fg-3)">balwoo.or.kr 공식 페이지 실측(2026-08).
+    리포트 원장 E-0424에는 3코스만 기재돼 있어 '희 120,000'과 타임 구조는 이번에 추가 확인.</p>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>★ 이 타임 구조가 회전율의 정체입니다</strong></p>
+    <p>일 120명 ÷ 3타임 = <strong>타임당 40명</strong>. 여기서 좌석수를 역산할 수 있습니다.</p>
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num">좌석 가정</th><th class="num">타임당 인원</th><th class="num">타임당 점유율</th><th class="num">실효 회전</th><th>개연성</th></tr></thead>
+    <tbody>
+      <tr><td class="num">40석</td><td class="num">40명</td><td class="num">100%</td><td class="num">3.00</td><td><span class="badge badge-no">만석 전제 — 룸 예약제에서 비현실</span></td></tr>
+      <tr><td class="num">50석</td><td class="num">40명</td><td class="num">80%</td><td class="num">2.40</td><td><span class="badge badge-yes">★ 개연성 높음</span></td></tr>
+      <tr><td class="num">60석</td><td class="num">40명</td><td class="num">67%</td><td class="num">2.00</td><td><span class="badge badge-yes">★ 개연성 높음</span></td></tr>
+      <tr><td class="num">80석</td><td class="num">40명</td><td class="num">50%</td><td class="num">1.50</td><td><span class="badge badge-warn">과다 좌석 — 면적 낭비 (v1.0의 가정)</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">
+    4인석·6인석 룸에 2~3인 예약이 섞이면 좌석 손실이 생기므로 실질 점유율 상한은 70~80%입니다.
+    따라서 <strong>발우공양 실제 좌석은 50~60석, 실효 회전 2.0~2.4</strong>로 추정됩니다.
+    v1.0이 잡았던 "80석 × 회전 1.5"는 커버수는 맞지만 <strong>좌석이 과다하고 회전이 과소</strong>한 조합이었고,
+    그 차이가 그대로 면적과 CAPEX의 낭비로 이어집니다.
+  </p>
+
+  <div class="bmcard" style="border-left-color:var(--amber)">
+    <h4>온지음 Onjium — 고급 롤모델</h4>
+    <div class="loc">서울 종로구 통인동 · 화동문화재단 부설 전통문화연구소(2013.6 개관) · 미쉐린 1스타</div>
+    <div class="grid">
+      <div><div class="ml">코스</div><div class="mv">점심 200,000 / 저녁 300,000원</div></div>
+      <div><div class="ml">페어링</div><div class="mv">전통주 8~12만 · 와인 12~18만</div></div>
+      <div><div class="ml">좌석</div><div class="mv">약 30석 (테이블 4 + 바 + 룸 1)</div></div>
+      <div><div class="ml">일 타임수</div><div class="mv">2타임 (점심 12~15 · 저녁 18~22)</div></div>
+      <div><div class="ml">영업일</div><div class="mv">화~금 · <strong>주 4일</strong> = 연 208일</div></div>
+      <div><div class="ml">예약</div><div class="mv">매주 월 11시 · 5주 후 오픈</div></div>
+    </div>
+    <p style="margin-bottom:12px">아름지기(시민문화단체)가 모태이며 <strong>의·식·주를 옷공방·맛공방·집공방 3개 부문</strong>으로 나눈
+    연구소 구조입니다. 고조리서를 연구해 현대 메뉴로 옮기고, 메뉴는 2개월마다 바뀝니다.</p>
+    <div class="callout callout-warn" style="margin:12px 0 0">
+      <p><strong>봉은사와의 구조적 대응이 발우공양보다 정확합니다</strong> —
+      ① 비영리 법인이 운영 ② <strong>연구소 부설 다이닝</strong>(봉은 사찰음식문화연구소 2021 개소<span style="color:var(--fg-3)">E-0511</span>과 동일 구조)
+      ③ 단일 식당이 아니라 <strong>복합 구성</strong> ④ 전통 복원이 콘텐츠 그 자체</p>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>지표</th><th class="num">발우공양</th><th class="num">온지음</th><th>읽는 법</th></tr></thead>
+    <tbody>
+      <tr><td>블렌디드 객단가</td><td class="num">약 47,000원</td><td class="num">약 250,000원</td><td><strong>5.3배</strong></td></tr>
+      <tr><td>좌석</td><td class="num">50~60석</td><td class="num">약 30석</td><td>절반</td></tr>
+      <tr><td>영업일</td><td class="num">313일 (주6)</td><td class="num">208일 (주4)</td><td>66%</td></tr>
+      <tr><td>일 커버수</td><td class="num">120명</td><td class="num">약 48명</td><td>40%</td></tr>
+      <tr class="total"><td>연매출 환산</td><td class="num">17.7억</td><td class="num">25.0억</td><td><strong>좌석 절반·영업일 66%인데 1.4배</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout callout-success">
+    <p><strong>온지음이 증명한 것</strong> — 작게 열고 비싸게 팔면 크게 열고 싸게 파는 것보다 많이 법니다.
+    이것이 복합공간 안의 F&amp;B가 취해야 할 형태입니다.</p>
+  </div>
+  <div class="callout callout-danger">
+    <p><strong>다만 그대로 가져올 수 없습니다 — 주류</strong><br>
+    온지음 매출의 상당분이 전통주·와인 페어링(8~18만원)인데,
+    <strong>봉은사는 주류 F&amp;B가 전통사찰법 영업행위 금지에 정면으로 걸려 원천 배제</strong>됩니다<span style="color:var(--fg-3)">E-0612·E-0129</span>.
+    대체 수단은 무알콜 차·발효음료 페어링뿐이고 단가는 주류보다 낮게 형성됩니다.
+    아래 B안은 이 제약을 반영해 페어링 단가를 35,000원으로 잡았습니다.</p>
+  </div>
+
+  <div class="bmcard">
+    <h4>파인다이닝 손익 표준</h4>
+    <div class="loc">국내 사례 · 객단가 20만원급</div>
+    <div class="grid">
+      <div><div class="ml">구성</div><div class="mv">테이블 12 · 일수용 50명 · 예약률 70%</div></div>
+      <div><div class="ml">월 매출</div><div class="mv">2.1억원</div></div>
+      <div><div class="ml">식재료비</div><div class="mv">42.9%</div></div>
+      <div><div class="ml">인건비</div><div class="mv">33.3%</div></div>
+      <div><div class="ml">임대료</div><div class="mv">4.8%</div></div>
+      <div><div class="ml">순이익</div><div class="mv">9.5%</div></div>
+    </div>
+    <p>발렛 1.4% · 유지비 3.3% · 마케팅 2.4% · 세금 2.4%. 테이블당 요리사 1.5명.
+    미쉐린 획득 시 매출 평균 30% 상승. <strong>파인다이닝은 회전율이 낮아 구조적으로 수익 내기 어렵다</strong>는 것이 이 사례의 요지입니다.</p>
+  </div>
+
+  <div class="bmcard">
+    <h4>외식업 평균 (2024년 통계)</h4>
+    <div class="loc">국내 전체 · 참고 하한선</div>
+    <div class="grid">
+      <div><div class="ml">식재료비</div><div class="mv">40.7%</div></div>
+      <div><div class="ml">인건비</div><div class="mv">33.2%</div></div>
+      <div><div class="ml">영업이익률</div><div class="mv">8.7%</div></div>
+      <div><div class="ml">추세</div><div class="mv">2020년 12.1% → 3.4%p 하락</div></div>
+    </div>
+    <p>매출은 4년새 41.4% 늘었지만 식재료비 비중이 36.3%→40.7%로 확대되며 수익성은 오히려 악화됐습니다.</p>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>벤치마크가 던지는 경고 — 종단 내 자기잠식</strong><br>
+    발우공양은 <strong>조계종 직영</strong>이고 봉은사는 <strong>조계종 직영사찰 4곳 중 하나</strong>입니다.
+    같은 종단이 서울에서 사찰음식 파인다이닝 두 곳을 운영하게 되는 구조인데,
+    이 사안이 프로젝트 문서 어디에도 검토돼 있지 않습니다.
+    총무원장이 공개한 '미쉐린 3스타 사찰음식 전문점' 구상<span style="color:var(--fg-3)">E-0436</span>과의 관계도 미확인입니다 —
+    <strong>봉은사 다이닝이 그 구상의 실행체인지, 별개인지, 경쟁인지부터 확인해야 합니다.</strong></p>
+  </div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">Revenue Model</div>
+    <h2>두 갈래가 있습니다 — <em>엔트리 파인</em>이냐 <em>온지음형</em>이냐</h2></div>
+    <div class="no">02</div>
+  </div>
+  <p class="sec-desc">
+    발우공양(47,000원)과 온지음(250,000원) 사이는 5.3배로 벌어져 있습니다.
+    봉은사가 어디에 설 것인가가 이 사업의 성격을 정합니다.
+    <strong>A안은 발우공양의 140%, B안은 온지음의 49%</strong>에 자리를 잡습니다.
+    두 안은 규모·인력·면적·브랜드 톤이 전부 다른 별개 사업입니다.
+  </p>
+
+  <h3 class="sub">기준점 — 발우공양 블렌디드 객단가부터 정합니다</h3>
+  <p class="note" style="margin-bottom:18px">
+    "발우공양 대비 130~150%"를 계산하려면 발우공양의 <strong>실제 객단가</strong>가 필요합니다.
+    코스 정가는 알지만 판매 믹스는 비공개라, 타임 구조로 추정했습니다.
+  </p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>구간</th><th class="num">비중</th><th class="num">평균 단가</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>점심 (2타임)</td><td class="num">55%</td><td class="num">38,000원</td><td>선식 36,000(평일점심 한정) 중심 + 일부 원식</td></tr>
+      <tr><td>저녁 (1타임)</td><td class="num">45%</td><td class="num">58,000원</td><td>원 50,000 ~ 마음 70,000 중심 + 희 120,000 일부</td></tr>
+      <tr class="total"><td>블렌디드 객단가</td><td class="num" colspan="2">약 47,000원</td><td>일 120명 × 313일 환산 시 연 17.7억</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout callout-warn">
+    <p><strong>이 47,000원이 이 문서 전체의 기준점입니다.</strong> 발우공양의 실제 판매 믹스가 확인되면
+    아래 모든 객단가가 비례해서 이동합니다. 리서치 잔여 1순위로 올려뒀습니다.</p>
+  </div>
+
+  <h3 class="sub">RL-03 사찰음식 다이닝 — 엔트리 파인 · 소규모 고단가</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>드라이버</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>설계 근거</th></tr></thead>
+    <tbody>
+      <tr class="total"><td>발우공양 대비 배수</td><td class="num">130%</td><td class="num">140%</td><td class="num">150%</td><td><strong>설계 지시</strong></td></tr>
+      <tr class="total"><td>→ 블렌디드 객단가</td><td class="num">61,100원</td><td class="num">65,800원</td><td class="num">70,500원</td><td>47,000원 × 배수</td></tr>
+      <tr class="sub-row"><td>점심 코스</td><td class="num">42,100원</td><td class="num">44,500원</td><td class="num">47,000원</td><td>발우 선식 36,000의 117~131%</td></tr>
+      <tr class="sub-row"><td>저녁 코스</td><td class="num">84,300원</td><td class="num">88,900원</td><td class="num">94,000원</td><td>발우 마음식 70,000의 120~134%</td></tr>
+      <tr><td>좌석</td><td class="num">40석</td><td class="num">50석</td><td class="num">60석</td><td><strong>설계 지시 40~60석</strong> · 발우공양 추정 50~60석과 동급 이하</td></tr>
+      <tr><td>일 타임수</td><td class="num">2.5</td><td class="num">3.0</td><td class="num">3.0</td><td>고급화로 체류 연장 → 보수는 점심 1.5부</td></tr>
+      <tr><td>타임당 점유율</td><td class="num">50%</td><td class="num">65%</td><td class="num">78%</td><td>룸 예약제 상한 80%</td></tr>
+      <tr class="total"><td>→ 실효 회전</td><td class="num">1.25</td><td class="num">1.95</td><td class="num">2.34</td><td>타임 × 점유율의 결과</td></tr>
+      <tr class="total"><td>→ 일 커버수</td><td class="num">50명</td><td class="num">98명</td><td class="num">140명</td><td><strong>발우공양 120명의 42% / 81% / 117%</strong></td></tr>
+      <tr><td>영업일</td><td class="num">300일</td><td class="num">313일</td><td class="num">313일</td><td>월~토 · 일요일 휴무 (발우공양 실측)</td></tr>
+      <tr class="total"><td>다이닝 매출</td><td class="num">9.2억</td><td class="num">20.1억</td><td class="num">31.0억</td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout">
+    <p><strong>고급인데 커버수는 발우공양보다 적습니다</strong> — 기준안 일 98명은 발우공양의 81%입니다.
+    비싸게 파는 대신 덜 받는 구조이고, 이것이 "엔트리 파인 · 경량화" 지시의 수치적 실체입니다.
+    <strong>단가 140% × 커버 81% = 매출 113%</strong> — 발우공양보다 조금 더 벌면서 규모는 작습니다.</p>
+  </div>
+
+  <h3 class="sub">RL-02 전통다원 — 함께 경량화</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>드라이버</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><td>좌석</td><td class="num">30석</td><td class="num">40석</td><td class="num">50석</td><td>v1.1은 60~80석</td></tr>
+      <tr><td>객단가</td><td class="num">18,000</td><td class="num">22,000</td><td class="num">26,000</td><td>기대 객단가 15,000~30,000<span style="color:var(--fg-3)">E-0149</span> 상단</td></tr>
+      <tr><td>회전 × 영업일</td><td class="num">1.2 × 300</td><td class="num">1.6 × 313</td><td class="num">1.9 × 330</td><td></td></tr>
+      <tr class="total"><td>매출</td><td class="num">1.9억</td><td class="num">4.4억</td><td class="num">8.2억</td><td>v1.1은 2.7 / 7.9 / 12.6억</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">★ 면적 — 복합공간 안에서 얼마나 가벼워지는가</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>산식</th></tr></thead>
+    <tbody>
+      <tr><td>다이닝 홀</td><td class="num">160㎡</td><td class="num">200㎡</td><td class="num">240㎡</td><td>좌석 × 4.0㎡ (고급화로 v1.1의 3.75㎡에서 상향)</td></tr>
+      <tr><td>다이닝 주방</td><td class="num">53㎡</td><td class="num">67㎡</td><td class="num">80㎡</td><td>홀의 1/3</td></tr>
+      <tr><td>다이닝 소계</td><td class="num">213㎡</td><td class="num">267㎡</td><td class="num">320㎡</td><td></td></tr>
+      <tr><td>전통다원</td><td class="num">112㎡</td><td class="num">150㎡</td><td class="num">188㎡</td><td>좌석 × 3.0㎡ × 1.25(백룸)</td></tr>
+      <tr class="total"><td>F&amp;B 합계</td><td class="num">326㎡</td><td class="num">417㎡</td><td class="num">508㎡</td><td></td></tr>
+      <tr class="total"><td>v1.1 대비</td><td class="num pos">−324㎡</td><td class="num pos">−283㎡</td><td class="num pos">−242㎡</td><td></td></tr>
+      <tr class="total"><td>배정 1,000㎡ 대비</td><td class="num pos">−674㎡</td><td class="num pos">−583㎡</td><td class="num pos">−492㎡</td><td>통합 배치안<span style="color:var(--fg-3)">E-0532</span> 대비 여유</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout callout-success">
+    <p><strong>기준안에서 583㎡가 풀립니다.</strong> 8,868㎡ 전체에서 F&amp;B가 차지하는 비중이
+    통합 배치안 11.3% → <strong>4.7%</strong>로 줄어듭니다.
+    마스터 모델 검산에서 코어 10개 라인이 가용 면적을 800㎡ 초과한다고 잡혔는데,
+    F&amp;B 한 라인의 재설계만으로 <strong>그 초과분의 73%가 해소</strong>됩니다.</p>
+  </div>
+
+  <h3 class="sub">면적당 생산성 — 복합공간에서 F&amp;B가 자기 자리값을 하는가</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>지표</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>비교</th></tr></thead>
+    <tbody>
+      <tr><td>㎡당 매출</td><td class="num">341만원</td><td class="num">588만원</td><td class="num">771만원</td><td>v1.1: 200 / 401 / 679만원</td></tr>
+      <tr class="total"><td>㎡당 영업이익</td><td class="num">10만원</td><td class="num pos">140만원</td><td class="num pos">273만원</td><td><strong>v1.1: −22 / 83 / 241만원</strong></td></tr>
+      <tr><td>대관 대비</td><td class="num" colspan="3" style="text-align:center">코엑스 단가 연 100일 가동 시 ㎡당 32~39만원</td><td>기준안이 대관의 3.6~4.4배</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout">
+    <p><strong>이것이 복합공간에서 F&amp;B를 재는 올바른 자입니다.</strong>
+    같은 면적을 대관으로 돌리면 ㎡당 32~39만원인데 다이닝은 140만원입니다.
+    <strong>기준안 ㎡당 영업이익이 v1.1 대비 68% 올랐습니다</strong> —
+    매출이 13% 줄었는데도 그렇습니다. 작게 짓고 비싸게 파는 설계의 효과가 여기서 나옵니다.</p>
+  </div>
+
+  <h3 class="sub">★ A안 vs B안 — 온지음을 롤모델로 삼으면 무엇이 달라지는가</h3>
+  <p class="note" style="margin-bottom:18px">
+    A안은 앞서 설계한 엔트리 파인(발우공양 140%), B안은 온지음 구조를 봉은사 조건에 맞춰 옮긴 하이엔드입니다.
+    B안의 단가는 온지음의 49%인데, <strong>사찰음식은 채식이라 한식 파인다이닝보다 단가 상한이 낮게 형성</strong>되고
+    발우공양 최고 코스(희식 120,000원)가 그 천장을 알려주기 때문입니다.
+  </p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">A · 엔트리 파인</th><th class="num">B · 온지음형</th><th>차이</th></tr></thead>
+    <tbody>
+      <tr><td>좌석</td><td class="num">50석</td><td class="num">30석</td><td>−40%</td></tr>
+      <tr><td>일 타임수 · 점유율</td><td class="num">3타임 · 65%</td><td class="num">2타임 · 78%</td><td>적게 열고 꽉 채움</td></tr>
+      <tr><td>일 커버수</td><td class="num">98명</td><td class="num">47명</td><td>−52%</td></tr>
+      <tr><td>영업일</td><td class="num">313일 (주6)</td><td class="num">260일 (주5)</td><td>온지음은 주4일</td></tr>
+      <tr><td>점심 / 저녁 코스</td><td class="num">44,500 / 88,900</td><td class="num">90,000 / 150,000</td><td></td></tr>
+      <tr class="total"><td>블렌디드 객단가</td><td class="num">65,800원</td><td class="num">123,000원</td><td><strong>+87%</strong></td></tr>
+      <tr class="sub-row"><td>발우공양 47,000 대비</td><td class="num">140%</td><td class="num">262%</td><td></td></tr>
+      <tr class="sub-row"><td>온지음 250,000 대비</td><td class="num">26%</td><td class="num">49%</td><td></td></tr>
+      <tr><td>페어링 (차·발효음료)</td><td class="num">15,000 × 20%</td><td class="num">35,000 × 45%</td><td>주류 불가로 단가 제한</td></tr>
+      <tr class="total"><td>F&amp;B 매출</td><td class="num">25.4억</td><td class="num">20.2억</td><td>−5.2억</td></tr>
+      <tr><td>필요 인원</td><td class="num">22명</td><td class="num">16명</td><td>−6명</td></tr>
+      <tr class="sub-row"><td>커버·인 생산성</td><td class="num">5.0</td><td class="num">3.2</td><td>하이엔드는 밀도 상승</td></tr>
+      <tr class="total"><td>영업이익</td><td class="num">+6.3억</td><td class="num">+5.5억</td><td>−0.8억</td></tr>
+      <tr class="sub-row"><td>영업이익률</td><td class="num">24.6%</td><td class="num pos">27.5%</td><td>B가 우위</td></tr>
+      <tr><td>F&amp;B 면적</td><td class="num">417㎡</td><td class="num pos">312㎡</td><td>−104㎡</td></tr>
+      <tr><td>CAPEX</td><td class="num">7.1억</td><td class="num">7.1억</td><td>동일 (평당 단가↑ · 면적↓)</td></tr>
+      <tr><td>회수기간</td><td class="num">1.2년</td><td class="num">1.4년</td><td></td></tr>
+      <tr class="total"><td>★ ㎡당 영업이익</td><td class="num">150만원</td><td class="num pos">177만원</td><td><strong>B가 18% 높음</strong></td></tr>
+      <tr><td>BEP 타임당 점유율</td><td class="num">32%</td><td class="num">36%</td><td>B가 약간 불리</td></tr>
+      <tr><td>안전마진</td><td class="num">+50%</td><td class="num">+54%</td><td>둘 다 양호</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>절대 이익은 A, 면적 효율은 B</strong><br>
+    A가 0.8억 더 벌지만 면적을 104㎡ 더 씁니다. <strong>㎡당 영업이익은 B가 18% 높고</strong>,
+    배정 1,000㎡ 중 688㎡를 반납합니다(A는 583㎡).
+    복합공간에서 F&amp;B의 자리값을 면적으로 매긴다면 B가 낫습니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>B안이 요구하는 것 — 돈이 아니라 역량</strong></p>
+    <p>① <strong>커버당 인력이 5.0 → 3.2로 올라갑니다.</strong> 16명이지만 전원이 고숙련이어야 하고,
+    온지음처럼 <strong>고조리서 연구 인력</strong>이 별도로 필요합니다. 봉은 사찰음식문화연구소가 그 역할을 할 수 있는지가 관건입니다.</p>
+    <p>② <strong>객단가 123,000원은 발우공양 희식(120,000원)과 동급입니다.</strong>
+    즉 발우공양의 최상위 코스를 상시 판매하는 셈인데, 그 수요가 강남에 있는지는 검증되지 않았습니다.</p>
+    <p>③ <strong>주 5일 영업</strong>은 나머지 2일을 클래스·연구·행사로 쓴다는 전제입니다.
+    온지음이 주 4일로 버티는 이유가 연구소 본업이 따로 있기 때문이라, 봉은사도 같은 구조가 필요합니다.</p>
+  </div>
+
+  <h3 class="sub">온지음에서 가져올 것 — 단가와 무관하게 A안에도 적용 가능</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>온지음 방식</th><th>봉은사 적용</th><th>효과</th></tr></thead>
+    <tbody>
+      <tr><td><strong>연구소 부설 다이닝</strong></td>
+        <td>"레스토랑"이 아니라 <strong>사찰음식문화연구소가 여는 식탁</strong>으로 규정<span style="color:var(--fg-3)">E-0511</span></td>
+        <td>가격 정당화 + 상업화 비판 방어(원칙① 맥락 동반)</td></tr>
+      <tr><td><strong>예약 난이도의 상품화</strong></td>
+        <td>매주 정해진 요일·시간에 N주 후 예약 오픈 · 캐치테이블 등 외부 채널</td>
+        <td>희소성이 곧 브랜드 · 노쇼 감소 · 점유율 예측 가능</td></tr>
+      <tr><td><strong>2개월 주기 메뉴 변경</strong></td>
+        <td>절기 기반 사찰음식 — 24절기는 그 자체로 콘텐츠</td>
+        <td>재방문 유인 · 계절성 리스크<span style="color:var(--fg-3)">E-1033</span> 완화</td></tr>
+      <tr><td><strong>주 4일 영업</strong></td>
+        <td>비영업일을 클래스·연구·기업 프로그램으로 전환</td>
+        <td>같은 주방으로 RL-05 교육 라인 매출 발생</td></tr>
+      <tr><td><strong>의·식·주 3개 공방</strong></td>
+        <td>다이닝 + 전시 + 체험이 한 지붕 아래 — <strong>복합공간의 본래 구조와 일치</strong></td>
+        <td>F&amp;B 단독 채산 부담을 낮춤(테라카페 차니와 생존 조건<span style="color:var(--fg-3)">E-0456</span>과 동일 원리)</td></tr>
+      <tr><td>전통주·와인 페어링</td>
+        <td><span class="badge badge-no">불가</span> 주류는 영업행위 금지<span style="color:var(--fg-3)">E-0612</span> → 차·발효음료로 대체</td>
+        <td>온지음 대비 부가매출 손실 — B안에서 1.9억으로 제한</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">RL-02 전통다원</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>드라이버</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>좌석</td><td class="num">60석</td><td class="num">80석</td><td class="num">80석</td><td>400㎡ 배정</td></tr>
+      <tr><td>객단가</td><td class="num">15,000</td><td class="num">20,000</td><td class="num">25,000</td><td>전통차+한과 기대 객단가 15,000~30,000<span style="color:var(--fg-3)">E-0149</span></td></tr>
+      <tr><td>회전 × 영업일</td><td class="num">1.0 × 300</td><td class="num">1.5 × 330</td><td class="num">1.8 × 350</td><td></td></tr>
+      <tr class="total"><td>매출</td><td class="num">2.7억</td><td class="num">7.9억</td><td class="num">12.6억</td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">Cost Structure</div>
+    <h2>임차료 0이 <em>이 사업의 유일한 구조적 우위</em>입니다</h2></div>
+    <div class="no">03</div>
+  </div>
+  <p class="sec-desc">
+    일반 파인다이닝은 임대료로 매출의 4.8~15%를 냅니다. 봉은사는 자기 땅이라 0입니다.
+    1898 명동성당이 적자 브랜드와 공정무역 카페까지 품을 수 있었던 이유와 같은 구조이고
+    <span style="color:var(--fg-3)">E-0419</span>, 일반 디벨로퍼가 따라 할 수 없는 자리입니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>비용 항목</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>벤치마크 · 봉은사 조건</th></tr></thead>
+    <tbody>
+      <tr><td>식재료비</td><td class="num">38%</td><td class="num">35%</td><td class="num">32%</td>
+        <td>외식평균 40.7% · 파인다이닝 42.9% — <strong>육류·고급식재 없어 하향</strong>. 사찰음식문화연구소 장류 직제조<span style="color:var(--fg-3)">E-0511</span></td></tr>
+      <tr><td>인건비</td><td class="num">인원 × 임금</td><td class="num">인원 × 임금</td><td class="num">인원 × 임금</td>
+        <td>비율 가정 대신 커버당 인력으로 산정 — 아래 별도</td></tr>
+      <tr><td><strong>임차료</strong></td><td class="num pos">0%</td><td class="num pos">0%</td><td class="num pos">0%</td>
+        <td><strong>자가 — 파인다이닝 4.8% / 일반식당 15% 대비 절대 우위</strong></td></tr>
+      <tr><td>수도광열·소모품</td><td class="num">6%</td><td class="num">5%</td><td class="num">4.5%</td><td>유지비 벤치마크 3.3% + 대공간 냉난방 가산</td></tr>
+      <tr><td>마케팅</td><td class="num">3%</td><td class="num">2%</td><td class="num">1.5%</td><td>벤치마크 2.4% — 자체 트래픽·사찰 브랜드로 하향</td></tr>
+      <tr><td>관리·보험·기타</td><td class="num">4%</td><td class="num">3%</td><td class="num">3%</td><td>발렛 불요(주차 보유)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">인건비 — 비율이 아니라 인원으로 세야 하는 이유</h3>
+  <div class="callout callout-warn">
+    <p>인건비를 "매출의 30~35%"로 가정하면 <strong>저매출 구간에서 모델이 붕괴합니다.</strong>
+    사람은 매출에 비례해 줄일 수 없기 때문입니다. 그래서 커버당 인력으로 산정했습니다 —
+    KB 실측이 일 35커버에 약 25명(1.4커버·인, 객단가 20만원)이고, 일반 한정식이 13커버·인입니다.
+    사찰음식 코스(4~6만원)는 그 중간대인 5~7커버·인으로 잡았습니다.</p>
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th></tr></thead>
+    <tbody>
+      <tr><td>일 커버수</td><td class="num">50명</td><td class="num">98명</td><td class="num">140명</td></tr>
+      <tr><td>커버·인 생산성</td><td class="num">4.0</td><td class="num">5.0</td><td class="num">6.0</td></tr>
+      <tr class="sub-row"><td>v1.1 대비</td><td class="num">5.0 → 4.0</td><td class="num">6.0 → 5.0</td><td class="num">7.0 → 6.0</td></tr>
+      <tr><td>다이닝 인력</td><td class="num">13명</td><td class="num">20명</td><td class="num">23명</td></tr>
+      <tr><td>다원 인력 (20석당 1명)</td><td class="num">2명</td><td class="num">2명</td><td class="num">3명</td></tr>
+      <tr class="total"><td>총 인원</td><td class="num">14명</td><td class="num">22명</td><td class="num">26명</td></tr>
+      <tr><td>인건비 (1인 3,500만원)</td><td class="num">4.9억</td><td class="num">7.5억</td><td class="num">9.1억</td></tr>
+      <tr class="total"><td>매출 대비</td><td class="num neg">44%</td><td class="num">31%</td><td class="num pos">23%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">
+    보수안에서 인건비가 매출의 <strong>55%</strong>가 됩니다. 이것이 v0.2가 놓쳤던 지점입니다 —
+    비율 가정(35%)으로는 이 위험이 보이지 않습니다.
+  </p>
+
+  <h3 class="sub">CAPEX — 주방·인테리어 초기 투자</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>단가</td><td class="num">620만원/평</td><td class="num">560만원/평</td><td class="num">500만원/평</td>
+        <td><strong>고급 사양으로 상향</strong> (v1.1은 500/420/350) · 파인다이닝 상단 350~500 초과</td></tr>
+      <tr><td>대상 면적</td><td class="num">326㎡ · 99평</td><td class="num">417㎡ · 126평</td><td class="num">508㎡ · 154평</td>
+        <td>좌석 기반 산출</td></tr>
+      <tr class="total"><td>CAPEX</td><td class="num">6.1억</td><td class="num">7.1억</td><td class="num">7.7억</td>
+        <td>환기·가스·배수·방수·전기가 전체의 40%</td></tr>
+      <tr class="total"><td>v1.1 대비</td><td class="num pos">−3.7억</td><td class="num pos">−1.8억</td><td class="num pos">−0.2억</td>
+        <td><strong>평당 단가를 올렸는데도 총액이 줄었습니다</strong> — 면적이 더 크게 줄어서</td></tr>
+      <tr><td>감가상각 (10년)</td><td class="num">0.6억</td><td class="num">0.7억</td><td class="num">0.8억</td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">
+    총 리뉴얼 추정 45~70억<span style="color:var(--fg-3)">E-0530</span> 중 F&amp;B 몫이 10.6~15.1억입니다.
+    설비가 20년 넘어 전면 노후화된 상태<span style="color:var(--fg-3)">E-0504</span>라 이 금액은 신규 구축 기준이며,
+    <strong>실견적이 아니라 평당 단가 환산치</strong>입니다.
+  </p>
+</section>
+
+<!-- ============ 04 ============ -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">P&amp;L and Break-even</div>
+    <h2>같은 이익을 <em>면적 40% 적게</em> 냅니다</h2></div>
+    <div class="no">04</div>
+  </div>
+  <p class="sec-desc">
+    기준안 영업이익 5.8억은 v1.1과 정확히 같습니다. 달라진 건 그걸 만드는 데 드는
+    <strong>면적(700→417㎡)과 투자(8.9→7.1억)</strong>입니다.
+    복합공간 안의 F&amp;B는 매출 총액이 아니라 자기가 쓴 면적당 이익으로 평가받아야 합니다.
+  </p>
+
+  <h3 class="sub">F&amp;B 통합 손익 (RL-02 + RL-03) — 조리 게이트 열림 전제</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th class="num">v1.1 기준안</th></tr></thead>
+    <tbody>
+      <tr class="total"><td>매출액</td><td class="num">11.1억</td><td class="num">24.5억</td><td class="num">39.1억</td><td class="num">28.1억</td></tr>
+      <tr><td>식재료비</td><td class="num neg">−3.9억</td><td class="num neg">−8.1억</td><td class="num neg">−12.1억</td><td class="num">−9.8억</td></tr>
+      <tr><td>인건비</td><td class="num neg">−4.9억</td><td class="num neg">−7.5억</td><td class="num neg">−9.1억</td><td class="num">−8.7억</td></tr>
+      <tr class="sub-row"><td>필요 인원 · 매출 대비</td><td class="num">14명 · 44%</td><td class="num">22명 · 31%</td><td class="num">26명 · 23%</td><td class="num">25명</td></tr>
+      <tr><td>임차료</td><td class="num pos">0</td><td class="num pos">0</td><td class="num pos">0</td><td class="num">0</td></tr>
+      <tr><td>수도광열·소모품</td><td class="num neg">−0.6억</td><td class="num neg">−1.1억</td><td class="num neg">−1.6억</td><td class="num">−1.4억</td></tr>
+      <tr><td>마케팅</td><td class="num neg">−0.3억</td><td class="num neg">−0.5억</td><td class="num neg">−0.6억</td><td class="num">−0.6억</td></tr>
+      <tr><td>관리·보험·기타</td><td class="num neg">−0.4억</td><td class="num neg">−0.7억</td><td class="num neg">−1.2억</td><td class="num">−0.8억</td></tr>
+      <tr><td>감가상각</td><td class="num neg">−0.6억</td><td class="num neg">−0.7억</td><td class="num neg">−0.8억</td><td class="num">−0.9억</td></tr>
+      <tr class="total"><td>영업이익</td><td class="num">+0.3억</td><td class="num pos">+5.8억</td><td class="num pos">+13.8억</td><td class="num">+5.8억</td></tr>
+      <tr class="sub-row"><td>영업이익률</td><td class="num">+2.9%</td><td class="num pos">+23.9%</td><td class="num pos">+35.4%</td><td class="num">+20.7%</td></tr>
+      <tr><td>법인세 (준비금 50% 반영)</td><td class="num">0</td><td class="num neg">−0.3억</td><td class="num neg">−1.1억</td><td class="num">−0.3억</td></tr>
+      <tr class="total"><td>세후이익</td><td class="num">+0.3억</td><td class="num pos">+5.5억</td><td class="num pos">+12.7억</td><td class="num">+5.5억</td></tr>
+      <tr><td>CAPEX</td><td class="num">6.1억</td><td class="num">7.1억</td><td class="num">7.7억</td><td class="num">8.9억</td></tr>
+      <tr class="total"><td>회수기간</td><td class="num neg">19.9년</td><td class="num pos">1.3년</td><td class="num pos">0.6년</td><td class="num">1.6년</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout callout-success">
+    <p><strong>기준안: 영업이익 동일(5.8억), 영업이익률은 20.7% → 23.9%로 개선.</strong>
+    매출이 28.1억에서 24.5억으로 13% 줄었는데 이익이 같습니다 —
+    인력이 3명 줄고(25→22명) 감가상각이 줄어든(0.9→0.7억) 결과입니다.
+    <strong>낙관안만 이익이 감소</strong>(18.1→13.8억)하는데, 좌석을 70석에서 60석으로 줄였기 때문입니다.</p>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>보수안이 새로운 문제 지점입니다</strong> — 영업이익 +0.3억으로 형식상 흑자지만
+    CAPEX 6.1억 대비 <strong>회수기간 19.9년</strong>으로 사실상 회수 불가입니다.
+    40석 × 2.5타임 × 점유 50% = 일 50명은 <strong>발우공양의 42%</strong>인데,
+    이 규모로는 고정비(인건비 14명)를 감당하지 못합니다.
+    보수 구간에 대비하려면 <strong>타임을 3.0으로 유지하거나 초기 인력을 10명 이하로 시작</strong>해야 합니다.</p>
+  </div>
+  <p class="note">
+    법인세는 법인세법 제29조 고유목적사업준비금 50% 손금산입<span style="color:var(--fg-3)">E-0172</span>을 반영한 값입니다.
+    이 제도가 실효세율을 절반으로 낮춥니다. 다만 <strong>해당 부분의 재산세 면제는 어떤 구조를 택해도 사라지며</strong><span style="color:var(--fg-3)">E-0173</span>,
+    재산세는 이 표에 아직 반영되지 않았습니다.
+  </p>
+
+  <h3 class="sub">손익분기 — 계산 정정 후</h3>
+  <div class="callout callout-danger">
+    <p><strong>이전 버전의 BEP 계산이 틀렸습니다.</strong> 손익분기 커버수를 구할 때
+    BEP 매출 전체를 다이닝 객단가로 나눴는데, <strong>전통다원의 공헌이익도 같은 고정비를 부담</strong>합니다.
+    다이닝이 실제로 감당해야 할 몫은 <span style="font-family:monospace">(총고정비 − 다원 공헌이익) ÷ 공헌이익률</span>입니다.</p>
+    <p>정정 결과 v1.1 기준안 BEP 점유율은 62% → <strong>35%</strong>, 안전마진은 +11% → <strong>+51%</strong>입니다.
+    "안전마진이 얇다"던 종전 진단은 과했습니다.</p>
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th></tr></thead>
+    <tbody>
+      <tr><td>공헌이익률</td><td class="num">56%</td><td class="num">60%</td><td class="num">62%</td></tr>
+      <tr><td>고정비 (인건비+감가+마케팅)</td><td class="num">5.8억</td><td class="num">8.7억</td><td class="num">10.4억</td></tr>
+      <tr><td>BEP 매출 (F&amp;B 전체)</td><td class="num">10.5억</td><td class="num">14.7억</td><td class="num">16.8억</td></tr>
+      <tr><td>BEP 일 커버수 (다이닝 몫)</td><td class="num">47명</td><td class="num">50명</td><td class="num">39명</td></tr>
+      <tr><td>계획 일 커버수</td><td class="num">50명</td><td class="num">98명</td><td class="num">140명</td></tr>
+      <tr class="total"><td>BEP 타임당 점유율</td><td class="num warn">47%</td><td class="num pos">33%</td><td class="num pos">22%</td></tr>
+      <tr class="total"><td>계획 타임당 점유율</td><td class="num">50%</td><td class="num">65%</td><td class="num">78%</td></tr>
+      <tr class="sub-row"><td>v1.1 BEP 점유율 (정정 후)</td><td class="num">70%</td><td class="num">35%</td><td class="num">18%</td></tr>
+      <tr class="total"><td>안전마진</td><td class="num warn">+6%</td><td class="num pos">+49%</td><td class="num pos">+72%</td></tr>
+      <tr class="total"><td>판정</td><td class="num"><span class="badge badge-warn">간신히 흑자</span></td><td class="num"><span class="badge badge-yes">흑자</span></td><td class="num"><span class="badge badge-yes">흑자</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="bepbar">
+    <div class="row">
+      <div class="lab">보수</div>
+      <div class="track">
+        <div class="fill bad" style="width:50%"></div>
+        <div class="bep" style="left:47%"></div><div class="beplab" style="left:47%">BEP 47%</div>
+        <div class="val">계획 50% — 여유 3%p</div>
+      </div>
+      <div class="verdict" style="color:var(--amber)">+0.3억 · 회수 19.9년</div>
+    </div>
+    <div class="row">
+      <div class="lab">기준</div>
+      <div class="track">
+        <div class="fill" style="width:65%"></div>
+        <div class="bep" style="left:33%"></div><div class="beplab" style="left:33%">BEP 33%</div>
+        <div class="val">계획 65% — 여유 32%p</div>
+      </div>
+      <div class="verdict" style="color:var(--green)">+5.8억 · 마진 49%</div>
+    </div>
+    <div class="row">
+      <div class="lab">낙관</div>
+      <div class="track">
+        <div class="fill" style="width:78%"></div>
+        <div class="bep" style="left:22%"></div><div class="beplab" style="left:22%">BEP 22%</div>
+        <div class="val">계획 78% — 여유 56%p</div>
+      </div>
+      <div class="verdict" style="color:var(--green)">+13.8억 · 마진 72%</div>
+    </div>
+  </div>
+  <p class="note">막대 = 계획 점유율 · 세로선 = 손익분기 점유율. 막대가 선을 넘으면 흑자입니다.</p>
+
+  <div class="callout callout-success">
+    <p><strong>이 표의 핵심 한 줄</strong><br>
+    기준안은 <strong>50석 3타임에서 매 타임 17명(33%)이면 본전</strong>이고,
+    32명(65%)이면 계획 달성입니다. 안전마진 <strong>+49%</strong>로 상당한 여유가 있습니다 —
+    객단가를 140%로 올린 효과가 여기서 나옵니다. 비싸게 팔면 적게 팔아도 본전을 넘습니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>단 두 가지는 여전히 낙관입니다</strong></p>
+    <p>① <strong>계획 점유율 65%는 발우공양이 17년 걸려 만든 수준(67~80%)에 근접합니다.</strong>
+    개관 1년차부터 그 수치를 전제하는 것이 이 모델의 가장 큰 가정이고, 램프업 곡선이 아직 없습니다.</p>
+    <p>② <strong>발우공양보다 40% 비싼데 브랜드는 없습니다.</strong> 발우공양은 미쉐린 1스타이고
+    봉은사 다이닝은 신규입니다. 가격 프리미엄의 근거는 강남 입지·복합공간 경험·1,200년 정통성인데,
+    <strong>이것이 미쉐린 1스타를 이기는지는 검증된 바 없습니다.</strong></p>
+  </div>
+
+  <div class="callout">
+    <p><strong>전제 조건 — 타임제를 강제해야 합니다</strong><br>
+    회전 2.1은 <strong>예약 타임제에서만 나오는 숫자</strong>입니다.
+    워크인을 받으면 테이블이 비는 시간이 생겨 점유율이 구조적으로 떨어집니다.
+    발우공양이 전석 예약제를 고수하는 이유이고, 봉은사가 예약제냐 워크인이냐를 정하는 것이
+    곧 회전율을 정하는 일입니다. <strong>이건 시장이 아니라 우리가 정하는 변수입니다.</strong></p>
+  </div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">Cooking Gate</div>
+    <h2>조리가 막히면 <em>매출이 26%로</em> 떨어집니다</h2></div>
+    <div class="no">05</div>
+  </div>
+  <p class="sec-desc">
+    건물 용도가 문화집회시설이라 조리가 원천 불가하고 위반 시 과태료입니다<span style="color:var(--fg-3)">E-0041</span>.
+    이 게이트가 열리지 않으면 완제품 반입·콜드프렙 도시락형만 가능한데, 그러면 프리미엄이 성립하지 않고
+    외주 매입이라 원가율이 오히려 올라갑니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>항목</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th></tr></thead>
+    <tbody>
+      <tr><td>객단가</td><td class="num">18,000</td><td class="num">25,000</td><td class="num">30,000</td></tr>
+      <tr><td>일 커버수</td><td class="num">60명</td><td class="num">90명</td><td class="num">120명</td></tr>
+      <tr class="total"><td>매출액</td><td class="num">2.8억</td><td class="num">6.3억</td><td class="num">10.8억</td></tr>
+      <tr><td>매입원가 (외주 완제품)</td><td class="num neg">−1.7억 (62%)</td><td class="num neg">−3.7억 (58%)</td><td class="num neg">−5.9억 (55%)</td></tr>
+      <tr><td>인건비 (조리 불요)</td><td class="num neg">−0.6억 (22%)</td><td class="num neg">−1.3억 (20%)</td><td class="num neg">−1.9억 (18%)</td></tr>
+      <tr><td>기타</td><td class="num neg">−0.3억</td><td class="num neg">−0.6억</td><td class="num neg">−0.9억</td></tr>
+      <tr class="total"><td>영업이익</td><td class="num">+0.2억</td><td class="num">+0.8억</td><td class="num">+2.1억</td></tr>
+      <tr class="sub-row"><td>영업이익률</td><td class="num">6.0%</td><td class="num">13.0%</td><td class="num">19.0%</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="kpi-grid-3 kpi-grid">
+    <div class="kpi bad"><div class="kpi-label">게이트 열림 대비 매출</div><div class="kpi-value">26<span class="kpi-unit">%</span></div><div class="kpi-sub">24.5억 → 6.3억 (기준안)</div></div>
+    <div class="kpi bad"><div class="kpi-label">게이트 열림 대비 이익</div><div class="kpi-value">14<span class="kpi-unit">%</span></div><div class="kpi-sub">5.8억 → 0.8억 (기준안)</div></div>
+    <div class="kpi"><div class="kpi-label">마스터 모델 영향</div><div class="kpi-value">47<span class="kpi-unit">%</span></div><div class="kpi-sub">코어 66.7억 중 F&amp;B 몫</div></div>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>다원도 안전하지 않습니다</strong><br>
+    전통다원은 시행령 제7조 문언 그대로라 전통사찰법상으로는 확실히 가능합니다<span style="color:var(--fg-3)">E-0136</span>.
+    그런데 마스터리스트 원장은 <strong>"차·한과 준비 수준의 조리도 문화집회시설 용도 제약에 걸린다"</strong>고 적고 있습니다<span style="color:var(--fg-3)">E-0600 note</span>.
+    즉 <strong>전통사찰법과 건축법은 별개의 문</strong>이고, 전통사찰법이 열려도 건축법이 닫혀 있으면 F&amp;B 전체가 못 섭니다.
+    유권해석 요청 시 두 개를 한 건으로 묶지 말고 따로 열어야 합니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>식품위생법이 진짜 급소입니다</strong><br>
+    전통사찰법 위반은 500만원 이하 벌금<span style="color:var(--fg-3)">E-0114</span>이지만,
+    F&amp;B 미신고 영업은 <strong>3년 이하 징역 또는 3,000만원 이하 벌금</strong>입니다<span style="color:var(--fg-3)">E-0176</span>.
+    조리 가능 여부와 별개로 휴게음식점·일반음식점 영업신고 경로를 먼저 확정해야 합니다.</p>
+  </div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">Verdict &amp; Open Items</div>
+    <h2>판정 — <em>조건부 추진</em>, 단 안전마진이 얇습니다</h2></div>
+    <div class="no">06</div>
+  </div>
+
+  <h3 class="sub">판정</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>질문</th><th>답</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>돈이 되는가</td><td><span class="badge badge-yes">기준안 이상에서 됨</span></td>
+        <td>영업이익률 23.9~35.4% · 일반 파인다이닝 9.5%의 2.5~3.7배 · <strong>회수 1.3년</strong></td></tr>
+      <tr><td>왜 되는가</td><td><span class="badge badge-info">임차료 0 + 고단가</span></td>
+        <td>공헌이익률 60% · 객단가 140%로 <strong>BEP 점유율이 33%까지 내려감</strong></td></tr>
+      <tr><td>복합공간에 맞는가</td><td><span class="badge badge-yes">417㎡ · 전체의 4.7%</span></td>
+        <td>㎡당 영업이익 140만원 = 대관(32~39만원)의 3.6~4.4배</td></tr>
+      <tr><td>어디서 깨지는가</td><td><span class="badge badge-no">보수 구간의 회수</span></td>
+        <td>보수안 회수 19.9년 — 일 50명(발우공양의 42%)으로는 고정비를 못 이김</td></tr>
+      <tr><td>가장 큰 리스크</td><td><span class="badge badge-no">조리 게이트</span></td>
+        <td>닫히면 매출 23%·이익 16%로 붕괴. 마스터 모델 코어의 47%가 여기 걸림</td></tr>
+      <tr><td>두 번째 리스크</td><td><span class="badge badge-warn">인건비 경직성</span></td>
+        <td>보수안에서 매출의 55%. 사람은 매출에 비례해 줄일 수 없음</td></tr>
+      <tr><td>검토 안 된 것</td><td><span class="badge badge-warn">종단 내 자기잠식</span></td>
+        <td>발우공양도 조계종 직영. 총무원장 '미쉐린 3스타' 구상과의 관계 미확인</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">권고</h3>
+  <div class="callout">
+    <p><strong>① 다원 먼저, 다이닝 나중</strong> — 전통다원은 조문 근거가 가장 두껍고(Tier1 문언 그대로) CAPEX가 작습니다.
+    다원으로 실제 집객·객단가·재방문을 측정한 뒤 그 데이터로 다이닝 투자를 결정하는 순서가 맞습니다.</p>
+    <p><strong>①-1 A/B 선택은 다원 데이터 이후로 미룹니다</strong> — 두 안의 영업이익 차이는 0.8억으로 크지 않고,
+    <strong>갈리는 것은 돈이 아니라 역량</strong>입니다. B안은 커버당 인력 3.2명(고숙련)과
+    고조리서 연구 인력을 요구하는데, 봉은 사찰음식문화연구소가 그 수준인지가 먼저 확인돼야 합니다.
+    다원 운영 1년이 그 역량을 재는 시험대가 됩니다.</p>
+    <p><strong>② 좌석을 늘리지 말고 단가를 올릴 것</strong> — v2.0이 확인한 설계 원리입니다.
+    객단가를 발우공양의 140%로 올리자 <strong>BEP 점유율이 62%에서 33%로 내려갔습니다.</strong>
+    좌석을 늘리면 면적·CAPEX·인건비가 함께 늘어 BEP가 올라가지만, 단가를 올리면 BEP만 내려갑니다.
+    복합공간처럼 면적이 비싼 곳에서는 <strong>규모 확장보다 단가 인상이 구조적으로 유리</strong>합니다.</p>
+    <p><strong>②-1 보수 구간 대비책</strong> — 40석 2.5타임은 회수 19.9년으로 사실상 실패 시나리오입니다.
+    개관 초기에는 <strong>타임을 3.0으로 유지하고 인력을 10명 이하로 시작</strong>해
+    고정비를 낮춘 뒤 점유율을 보며 증원하는 편이 안전합니다.</p>
+    <p><strong>③ 점심 비중을 설계 변수로 다룰 것</strong> — 발우공양이 평일 점심 36,000원 코스를 따로 둔 이유가 있습니다.
+    도보권 직장인 11.2만 명<span style="color:var(--fg-3)">E-1021</span>과 삼성동 점심값 전국 1위 15,000원<span style="color:var(--fg-3)">E-1018</span>이
+    점심 수요의 근거인데, 36,000원은 그 2.4배입니다. <strong>점심 단가를 낮춘 별도 라인이 필요할 수 있습니다.</strong></p>
+  </div>
+
+  <h3 class="sub">리서치 잔여 — 이 모델을 확정하려면</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num">#</th><th>미확정 항목</th><th>확정되는 셀</th><th>방법</th><th>난이도</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td><strong>조리 가능 여부</strong></td><td>모델 전체 (매출 23%↔100%)</td><td>문체부 유권해석 + 강남구청 용도변경 사전상담 + 식품위생법 영업신고 경로</td><td>상 · 행정</td></tr>
+      <tr><td class="num">2</td><td><strong>발우공양 코스 판매 믹스</strong> <span class="badge badge-no">신규 · 최우선</span></td>
+        <td><strong>블렌디드 객단가 47,000원 — 이 문서 전 객단가의 기준점</strong></td>
+        <td>코스 정가는 공개(36/50/70/120천원)되나 믹스는 비공개. 확인되면 130~150% 밴드 전체가 비례 이동</td><td>중</td></tr>
+      <tr><td class="num">2-1</td><td>발우공양 좌석수 <span class="badge badge-warn">부분 해소</span></td>
+        <td>회전율 — 타임 구조로 역산(50~60석·회전 2.0~2.4), 절대값은 미확인</td>
+        <td>공식 사이트·미쉐린·예약 플랫폼·서울시·공공데이터 모두 <strong>미공개</strong> 확인 → 직접 문의(02-733-2081)만 남음</td><td>하</td></tr>
+      <tr><td class="num">2-2</td><td><strong>가격 프리미엄 수용도</strong> <span class="badge badge-no">신규</span></td>
+        <td>A안 객단가 65,800원 / B안 123,000원 — 두 설계의 공통 전제</td>
+        <td>A안은 발우공양보다 40%, B안은 162% 비싼데 브랜드는 없음. 강남 입지·복합공간 경험이 미쉐린 1스타를 이기는지 <strong>검증된 바 없음</strong> → 컨조인트 또는 프리오픈 실판매</td><td>중</td></tr>
+      <tr><td class="num">2-3</td><td><strong>온지음 실측 보강</strong> <span class="badge badge-no">신규</span></td>
+        <td>B안 전체의 근거</td>
+        <td>좌석수·점유율·인력 규모가 후기 기반 추정. 점심 가격도 자료에 따라 170,000 / 200,000으로 갈림 → 재확인 필요</td><td>하</td></tr>
+      <tr><td class="num">2-4</td><td><strong>봉은사 연구소 역량</strong> <span class="badge badge-no">B안 선결</span></td>
+        <td>B안 성립 여부 자체</td>
+        <td>사찰음식문화연구소<span style="color:var(--fg-3)">E-0511</span>의 인력·연구 축적·조리 실행력. 온지음의 고조리서 연구팀에 대응하는 조직이 실제로 있는가</td><td>하 · 내부</td></tr>
+      <tr><td class="num">3</td><td>발우공양 손익</td><td>인건비율·식재료비율 실측</td><td>한국불교문화사업단 — <strong>같은 종단이라 접근 가능성 있음</strong></td><td>중</td></tr>
+      <tr><td class="num">4</td><td>종단 내 역할 관계</td><td>사업 성립 여부 자체</td><td>총무원 '미쉐린 3스타 구상'과 봉은사 다이닝의 관계 확인<span style="color:var(--fg-3)">E-0436</span></td><td>중</td></tr>
+      <tr><td class="num">5</td><td>주방 CAPEX 실견적</td><td>10.6~15.1억 (평당 환산치)</td><td>주방 설비업체 실견적 — 환기·가스·배수가 40%</td><td>하</td></tr>
+      <tr><td class="num">6</td><td>봉은사 조리 역량</td><td>인건비 · 식재료비</td><td>사찰음식문화연구소<span style="color:var(--fg-3)">E-0511</span> 인력·장류 생산량 실측</td><td>하 · 내부</td></tr>
+      <tr><td class="num">7</td><td>점심 수요 실측</td><td>점심 비중 45~60% · 점심 단가</td><td>도보권 직장인 설문 (R-07 명상 회차권 조사와 통합 가능)</td><td>중</td></tr>
+      <tr><td class="num">8</td><td>재산세 전환분</td><td>손익 (현재 미반영)</td><td>과세 전환 시 재산세 시뮬레이션<span style="color:var(--fg-3)">E-0173</span></td><td>중</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>이 모델이 여전히 답하지 못하는 것</strong></p>
+    <p>① <strong>램프업이 없습니다.</strong> 1년차부터 타임당 점유 70%를 채우는 전제입니다.
+    발우공양이 17년에 걸쳐 만든 수준이라, 실제로는 개관 후 2~3년에 걸쳐 올라가고 그 기간의 누적 적자가 CAPEX에 더해집니다.
+    <strong>이것이 이 모델에 남은 가장 큰 낙관</strong>입니다.</p>
+    <p>② <strong>재산세가 빠져 있습니다.</strong> 어떤 구조를 택해도 해당 부분은 과세 전환됩니다<span style="color:var(--fg-3)">E-0173</span>.</p>
+    <p>③ <strong>점유율은 여전히 가정입니다.</strong> 회전율은 타임 구조로 분해했지만, 타임당 점유율 55/70/80%는
+    근거 없는 값입니다. 다만 v1.0의 "회전 1.0/1.5/1.8"보다는 검증 가능한 형태입니다 —
+    발우공양 실적(80% 상당)이라는 비교 기준이 생겼기 때문입니다.</p>
+    <p>④ <strong>계절성이 없습니다.</strong> RXR 실측에서 비수기(9~2월) 언급이 전체 평균을 밑도는데<span style="color:var(--fg-3)">E-1033</span>, 영업일을 균등 분배했습니다.</p>
+    <p>⑤ <strong>다원 400㎡는 손대지 않았습니다.</strong> 다이닝만 좌석 기반으로 재산출했고,
+    전통다원은 v1.0 값을 그대로 씁니다. 다원도 같은 방식으로 분해하면 면적이 더 줄어들 여지가 있습니다.</p>
+  </div>
+</section>
+
+<div class="foot">PROJECT RENT · RL-03 다이닝 수익성 검토 v3.0 · 내부 문서 · 대외 배포 금지</div>
+
+<script>
+const secs=document.querySelectorAll('.sec');
+const links=document.querySelectorAll('.nav a');
+const io=new IntersectionObserver((es)=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    const id=e.target.id;
+    links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id));
+  }});
+},{rootMargin:'-45% 0px -45% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
