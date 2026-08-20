@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봉은문화센터 — 공간 재배분 &amp; 재무모델 v1.1 (Destination 단일안)</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+em{font-style:normal;color:var(--accent-light)}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.advisory{position:fixed;top:24px;left:30px;font-size:10px;letter-spacing:.2em;color:var(--amber);z-index:10;border:1px solid rgba(217,163,75,.35);padding:4px 10px}
+.nav{position:fixed;top:50%;left:26px;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:10;font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color 150ms var(--ease-out)}
+.nav a:hover,.nav a.active{color:var(--accent)}
+.sec{padding:90px 120px 110px;max-width:1440px;margin:0 auto}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:26px;border-bottom:1px solid var(--line-2);margin-bottom:44px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:38px;font-weight:300;letter-spacing:-0.025em;line-height:1.15;margin-top:8px}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin-bottom:38px}
+h3.sub{font-size:19px;font-weight:400;color:var(--fg);margin:46px 0 14px;letter-spacing:-0.02em}
+h3.sub:first-of-type{margin-top:0}
+p.note{font-size:13px;color:var(--fg-2);margin:10px 0;max-width:920px}
+#cover{padding-top:140px;min-height:84vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:34px}
+.cover-title{font-size:64px;font-weight:200;letter-spacing:-0.04em;line-height:1.05;margin-bottom:24px}
+.cover-sub{font-size:19px;color:var(--fg-2);line-height:1.6;max-width:920px;margin-bottom:46px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:30px;max-width:1020px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:11px 12px;font-weight:400;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+tbody tr.total td{border-top:1px solid var(--line);color:var(--fg);font-weight:500;background:rgba(108,92,231,.05)}
+tbody tr.sub-row td{color:var(--fg-3);font-size:12px}
+tbody tr.sub-row td:first-child{color:var(--fg-3);padding-left:28px}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--red)} .pos{color:var(--green)} .warn{color:var(--amber)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:3px 9px;font-size:10px;letter-spacing:.08em;white-space:nowrap}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi.hero{border-color:var(--accent)} .kpi.bad{border-color:rgba(225,112,85,.4)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:32px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi.bad .kpi-value{color:var(--red)}
+.kpi .kpi-unit{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px;line-height:1.5}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:22px 26px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.75}
+.callout p+p{margin-top:10px}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.layer{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:26px 0}
+.layer .ly{background:var(--bg-3);border:1px solid var(--line-2);padding:22px}
+.layer .ly.core{border-color:var(--accent)}
+.layer .ly.danger{border-color:rgba(225,112,85,.4)}
+.layer .ly.ok{border-color:var(--green)}
+.layer .ly .n{font-size:10px;letter-spacing:.2em;color:var(--accent);margin-bottom:8px}
+.layer .ly.danger .n{color:var(--red)} .layer .ly.ok .n{color:var(--green)}
+.layer .ly h4{font-size:16px;margin-bottom:8px}
+.layer .ly p{font-size:12.5px;color:var(--fg-2);line-height:1.65;margin-bottom:10px}
+.layer .ly .v{font-size:21px;font-weight:200;color:var(--fg);letter-spacing:-0.02em}
+.layer .ly .s{font-size:11px;color:var(--fg-3);margin-top:4px}
+/* 스택 바 */
+.stk{margin:18px 0 26px}
+.stk .r{display:grid;grid-template-columns:150px 1fr 84px;gap:14px;align-items:center;margin-bottom:10px}
+.stk .lb{font-size:12.5px;color:var(--fg-2);text-align:right}
+.stk .tr{height:28px;background:var(--bg-3);border:1px solid var(--line-2);position:relative;overflow:hidden}
+.stk .sg{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding-left:9px;font-size:10.5px;color:var(--bg);white-space:nowrap}
+.stk .vv{font-size:12.5px;color:var(--fg);font-variant-numeric:tabular-nums}
+/* 경로 */
+.path{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:center;margin:26px 0}
+.path .n{background:var(--bg-3);border:1px solid var(--line-2);padding:18px 16px;text-align:center}
+.path .n.ok{border-color:var(--green)} .path .n.no{border-color:var(--red);opacity:.55}
+.path .n .t{font-size:14px;color:var(--fg);margin-bottom:5px}
+.path .n .d{font-size:11.5px;color:var(--fg-3);line-height:1.5}
+.path .ar{color:var(--fg-3);font-size:16px;text-align:center}
+.foot{padding:60px 120px 80px;border-top:1px solid var(--line-2);text-align:center;color:var(--fg-3);font-size:11px;letter-spacing:.2em;max-width:1440px;margin:0 auto}
+@media (max-width:1100px){
+  .sec{padding:70px 40px 80px}.nav,.advisory{display:none}
+  .cover-title{font-size:40px}.sec-head h2{font-size:28px}
+  .kpi-grid,.kpi-grid-3,.cover-meta,.layer{grid-template-columns:repeat(2,1fr)}
+  .path{grid-template-columns:1fr}.path .ar{transform:rotate(90deg)}
+  .stk .r{grid-template-columns:100px 1fr 74px}
+}
+
+</style>
+</head>
+<body>
+<div class="brand-mark">PROJECT RENT</div>
+<div class="advisory">Destination 단일안 확정 · 재무모델 v1.1</div>
+<nav class="nav">
+  <a href="#cover">00 결론</a>
+  <a href="#s1">01 세 결정</a>
+  <a href="#s2">02 면적 재배분</a>
+  <a href="#s3">03 전시 앵커</a>
+  <a href="#s4">04 대관 회전</a>
+  <a href="#s5">05 재무 영향</a>
+  <a href="#s6">06 판정 그리드</a>
+  <a href="#s7">07 잔여</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">Space Reallocation · Destination 단일안 · 00C §02~03 개정</div>
+  <h1 class="cover-title">숙박을 미루면<br>전시가 두 배가 됩니다</h1>
+  <p class="cover-sub">
+    프로젝트를 두 달간 막고 있던 것은 <strong>대관을 접느냐 마느냐</strong>였습니다.
+    리테일 800㎡와 교육 500㎡를 따로 두면 1,817㎡가 넘쳐서 대관을 포기해야 했습니다.
+    답은 대관이 아니라 <em>숙박</em>에 있었습니다. 2,645㎡를 Phase 2로 미루자
+    <strong>리테일·교육을 그대로 두고도 전시를 1,450㎡에서 3,300㎡로 키우고 200㎡가 남습니다.</strong>
+  </p>
+  <dl class="cover-meta">
+    <div><dt>전시 앵커</dt><dd>1,450 → <strong>3,300㎡</strong> <span style="color:var(--fg-3)">(약 1,000평)</span></dd></div>
+    <div><dt>대관 전용면적</dt><dd>1,500 → <strong>0㎡</strong> <span style="color:var(--fg-3)">회기 회전</span></dd></div>
+    <div><dt>총 소요</dt><dd><strong>8,668㎡</strong> / 가용 8,868</dd></div>
+    <div><dt>작성</dt><dd>2026.08.18 · v1.0</dd></div>
+  </dl>
+
+  <div class="kpi-grid" style="margin-top:52px">
+    <div class="kpi hero"><div class="kpi-label">면적 여유</div><div class="kpi-value">+200<span class="kpi-unit">㎡</span></div><div class="kpi-sub">구 β안 <strong>1,817㎡ 초과</strong>에서 전환<br>리테일·교육 별도 확보 유지</div></div>
+    <div class="kpi"><div class="kpi-label">전시 매출 (기준)</div><div class="kpi-value">7.6<span class="kpi-unit">억</span></div><div class="kpi-sub">6.0 → 7.6억<br>해설·심화 신설분</div></div>
+    <div class="kpi"><div class="kpi-label">권고경로 회수</div><div class="kpi-value">9<span class="kpi-unit">년</span></div><div class="kpi-sub">G2L·기준 · 낙관 시 <strong>3년</strong><br>총투자 104.0억</div></div>
+    <div class="kpi bad"><div class="kpi-label">재임대 초과 케이스</div><div class="kpi-value">2<span class="kpi-unit">/15</span></div><div class="kpi-sub">v1.0과 <strong>동일</strong><br>판정 구조는 바뀌지 않음</div></div>
+  </div>
+
+  <div class="callout callout-warn" style="margin-top:36px">
+    <p><strong>이 문서가 대체하는 것</strong> — <code>00C-교차정합검증-20260817.html</code>의 §02 자원 1(면적)과 §03(대관 존폐)을 개정합니다.
+    나머지 자원 원장(대공간 판매일·도보권 모수·선방 슬롯·진행 인력·법인 고객)과 이중계상 조정 6건은 그대로 유효합니다.</p>
+  </div>
+</section>
+
+<!-- S1 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">The Three Decisions</div><h2>공간을 바꾼 것은 세 개의 결정입니다</h2></div>
+    <div class="no">01</div>
+  </div>
+  <p class="sec-desc">
+    2026-08-18 확정. 보고서 구조가 “A/B/C 중 무엇을 고를까”에서 “하나의 Destination을 어떻게 증명할까”로 바뀌면서,
+    공간도 <strong>세 안의 병렬 배분</strong>에서 <strong>하나의 목적지를 구성하는 Zone 배분</strong>으로 바뀝니다.
+  </p>
+
+  <div class="layer">
+    <div class="ly ok">
+      <div class="n">결정 01</div>
+      <h4>STAY — Phase 2 강등</h4>
+      <p>CAPEX 52.3억 대비 기준 매출 3.9억. 재무모델이 이미 <strong>가치 파괴 라인</strong>으로 판정했고,
+      제외만으로 회수기간이 기준 12→9년, 낙관 5→3년으로 바뀝니다.</p>
+      <div class="v">−800 ~ −2,645㎡</div>
+      <div class="s">권고경로 = G2L(숙박 제외) · 가동률 실측 B-07 확보 후 재판단</div>
+    </div>
+    <div class="ly core">
+      <div class="n">결정 02</div>
+      <h4>EXHIBITION — 전용 3,300㎡</h4>
+      <p>집객·법적 안전판·정체성을 동시에 맡는 유일한 용도입니다.
+      1~2개 층 규모의 <strong>Museum Anchor</strong>로 위계를 올립니다.</p>
+      <div class="v">1,450 → 3,300㎡</div>
+      <div class="s">상설 1,000 + 기획전A 1,200 + 기획전B 800 + 미디어아트 300</div>
+    </div>
+    <div class="ly">
+      <div class="n">결정 03</div>
+      <h4>대관 — 전용면적 0</h4>
+      <p>대관홀을 따로 두지 않고 <strong>전시 기획전 트랙의 회기 사이 유휴</strong>로 돌립니다.
+      면적은 0이 되지만 매출은 거의 그대로 남습니다.</p>
+      <div class="v">1,500 → 0㎡</div>
+      <div class="s">매출 3.0 → 2.8억 (기준) · 공식 요금표 A등급 근거 유지</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>순서가 중요합니다.</strong> 대관을 접어서 전시를 키운 것이 아닙니다.
+    숙박을 미뤄서 생긴 여유로 전시를 키웠고, 그 커진 전시홀이 대관을 <em>흡수</em>한 것입니다.
+    그래서 대관 매출이 사라지지 않습니다.</p>
+  </div>
+</section>
+
+<!-- S2 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">Area Reconciliation</div><h2>α냐 β냐를 두 달 끌었는데, 답은 세 번째였습니다</h2></div>
+    <div class="no">02</div>
+  </div>
+  <p class="sec-desc">
+    00C §03이 제기한 결정적 변수는 “리테일 800㎡·교육 500㎡가 F&amp;B 5축에 흡수되는가”였습니다.
+    흡수되면(α) 대관 유지, 안 되면(β) 1,817㎡ 초과로 대관 포기. 이 질문은 <strong>숙박이 2,645㎡를 차지한다는 전제</strong> 위에 서 있었습니다.
+    전제가 사라지면 질문 자체가 사라집니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>시나리오</th><th>구성</th><th class="num">합계</th><th class="num">가용 8,868 대비</th><th>판정</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>구 α — 흡수 O</td>
+        <td>전시 1,450 / F&amp;B 691 / 대관 1,500 / 숙박+명상 2,645 / 로비 2,568</td>
+        <td class="num">8,854㎡</td><td class="num pos">+14㎡</td>
+        <td><span class="badge badge-warn">아슬아슬</span></td>
+      </tr>
+      <tr>
+        <td>구 β — 흡수 X</td>
+        <td>위 + 리테일 800 + 교육 500</td>
+        <td class="num">10,685㎡</td><td class="num neg">−1,817㎡</td>
+        <td><span class="badge badge-no">대관 포기 불가피</span></td>
+      </tr>
+      <tr class="total">
+        <td><strong>신 Destination 안</strong></td>
+        <td>전시 3,300 / F&amp;B 1,000 / 리테일 800 / 교육 500 / 명상 500 / 로비 2,568 <span style="color:var(--fg-3)">(숙박 0 · 대관 전용 0)</span></td>
+        <td class="num">8,668㎡</td><td class="num pos">+200㎡</td>
+        <td><span class="badge badge-yes">리테일·교육 별도 확보 + 전시 2.3배</span></td>
+      </tr>
+      <tr class="sub-row">
+        <td>└ 명상을 자원원장 기준(선방 450 + 다경실 350)으로 잡으면</td>
+        <td>명상 500 → 800㎡</td>
+        <td class="num">8,968㎡</td><td class="num warn">−100㎡</td>
+        <td>로비에서 흡수 가능 — 공간기획 단계 확정</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="stk">
+    <div class="r"><div class="lb">구 β안</div><div class="tr">
+      <div class="sg" style="left:0;width:13.6%;background:var(--accent)">전시 1,450</div>
+      <div class="sg" style="left:13.6%;width:6.5%;background:var(--green)">F&amp;B</div>
+      <div class="sg" style="left:20.1%;width:14.0%;background:var(--blue)">대관 1,500</div>
+      <div class="sg" style="left:34.1%;width:24.8%;background:var(--red)">숙박+명상 2,645</div>
+      <div class="sg" style="left:58.9%;width:12.2%;background:var(--amber)">리테일·교육</div>
+      <div class="sg" style="left:71.1%;width:24.0%;background:var(--fg-3)">로비 2,568</div>
+    </div><div class="vv neg">10,685</div></div>
+    <div class="r"><div class="lb">신 Destination 안</div><div class="tr">
+      <div class="sg" style="left:0;width:38.1%;background:var(--accent)">전시 앵커 3,300 (대관 회전 포함)</div>
+      <div class="sg" style="left:38.1%;width:11.5%;background:var(--green)">F&amp;B 1,000</div>
+      <div class="sg" style="left:49.6%;width:9.2%;background:var(--amber)">리테일 800</div>
+      <div class="sg" style="left:58.8%;width:5.8%;background:var(--blue)">교육 500</div>
+      <div class="sg" style="left:64.6%;width:5.8%;background:var(--accent-light)">명상 500</div>
+      <div class="sg" style="left:70.4%;width:29.6%;background:var(--fg-3)">로비·부대 2,568</div>
+    </div><div class="vv pos">8,668</div></div>
+  </div>
+  <p class="note">막대 길이는 가용 8,868㎡ 대비 비율입니다. 구 β안은 막대를 넘칩니다.</p>
+
+  <h3 class="sub">층별 배치 — 1층이 목적지, 2층이 수익축</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>층</th><th class="num">면적</th><th>배치</th><th>역할</th></tr></thead>
+    <tbody>
+      <tr><td>1층</td><td class="num">6,157.91㎡</td>
+        <td>개방 로비 + <strong>전시 앵커 3,300</strong> + 리테일 800 + F&amp;B 1,000(G2 조건부)</td>
+        <td>집객 — 무료 체류에서 유료 경험으로</td></tr>
+      <tr><td>2층</td><td class="num">2,710.24㎡</td>
+        <td>명상·클래스 스튜디오 500 + 교육 500 + 기업 프로그램 룸 + 멤버십 라운지 + 부대</td>
+        <td>수익 — 관계·반복 구매의 물리 거점</td></tr>
+      <tr class="total"><td>합계</td><td class="num">8,868.15㎡</td><td colspan="2">E-0500 · E-0013 (A등급)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout callout-warn">
+    <p><strong>미검증</strong> — 위 층별 배치는 면적 총량만 맞춘 것입니다.
+    전시 3,300㎡가 1층 무주 대공간(300~350평 단위)에 실제로 앉는지, 2층 소실 밀집 구조에서 벽체 철거 범위가 얼마인지는
+    <strong>공간기획(전제훈 총괄) 단계에서 확정</strong>해야 합니다. 층별 기능배치도·동선도는 현재 미보유(E-0574)입니다.</p>
+  </div>
+</section>
+
+<!-- S3 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">Exhibition Anchor</div><h2>전시는 돈을 버는 엔진이 아니라 사람을 데려오는 엔진입니다</h2></div>
+    <div class="no">03</div>
+  </div>
+  <p class="sec-desc">
+    면적을 2.3배로 키우면서도 이 판정은 바꾸지 않았습니다. RL-01 검토서 v1.2의 결론
+    — <strong>“전시를 수익 사업으로 보면 어떤 설계로도 매력적이지 않다”</strong> — 는 그대로 유효합니다.
+    ㎡당 영업이익 13만원은 대관(32~39만)보다 낮고 다이닝 5축(206만)의 6%입니다.
+    그럼에도 키우는 이유는 <em>실질 기여 13.6억 중 86%가 간접</em>이고, 3법을 동시에 통과하는 유일한 용도이기 때문입니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>구성</th><th class="num">면적</th><th>성격</th><th>수익</th></tr></thead>
+    <tbody>
+      <tr><td>상설 — 성보·서사</td><td class="num">1,000㎡</td><td>무료 개방</td><td><span class="badge badge-info">매출 0 · 집객·법적 안전판</span></td></tr>
+      <tr><td>기획전 트랙 A</td><td class="num">1,200㎡</td><td>블록버스터 · 기획사 대관 구조</td><td>입장 + 해설 + 회기간 대관</td></tr>
+      <tr><td>기획전 트랙 B</td><td class="num">800㎡</td><td>중소 기획전 · 2트랙 동시 운영</td><td>입장 + 해설 + 회기간 대관</td></tr>
+      <tr><td>미디어아트</td><td class="num">300㎡</td><td>국가유산청 공모 전제</td><td><span class="badge badge-warn">제작비 외부 조달 전제</span></td></tr>
+      <tr class="total"><td>합계</td><td class="num">3,300㎡</td><td>약 1,000평</td><td>기준 7.6억 <span style="color:var(--fg-3)">(+ 대관 2.8억)</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">매출 드라이버 — 면적이 아니라 회기와 해설</h3>
+  <div class="callout callout-danger">
+    <p><strong>면적 비례 증액 금지.</strong> 3,300㎡라고 해서 매출이 2.3배가 되지 않습니다.
+    구 92억 모델이 “15,000원 × 400명 × 350일 = 21억”으로 무너진 것이 정확히 이 오류였습니다(E-0526).
+    면적 확대의 실제 효과는 <strong>기획전 2트랙 동시 운영</strong>이며, 그 수익은 회기 캘린더에서만 나옵니다.</p>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>서브라인</th><th>드라이버</th><th class="num">보수</th><th class="num">기준</th><th class="num">낙관</th><th>등급</th></tr></thead>
+    <tbody>
+      <tr><td>a 입장</td><td>CV × 유료전환 12/18/20% × 티켓 1.0/1.3/1.5만</td>
+        <td class="num">1.32</td><td class="num">5.97</td><td class="num">15.77</td><td>C <span style="color:var(--fg-3)">v0.2 무변경</span></td></tr>
+      <tr><td>b 해설 <span class="badge badge-info">신설</span></td><td>유료관람객 × 이용률 15/25/35% × 해설료 5/8/12천원</td>
+        <td class="num">0.10</td><td class="num">0.92</td><td class="num">4.42</td><td>C · <strong>B-11 대기</strong></td></tr>
+      <tr><td>c 심화 <span class="badge badge-info">신설</span></td><td>검토서 v1.2 권고안 이관 (인경 체험 등)</td>
+        <td class="num">0.20</td><td class="num">0.70</td><td class="num">1.80</td><td>C</td></tr>
+      <tr class="total"><td>RL-01 합계</td><td>—</td><td class="num">1.6</td><td class="num">7.6</td><td class="num">22.0</td><td>억원</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">
+    해설을 신설한 근거는 검토서 v1.2의 판정 — <strong>“팔아야 하는 것은 관람권이 아니라 해설”</strong>(권고안에서 해설 4.3억 &gt; 입장료 2.4억,
+    수요원자에 관람권 0건). 다만 해설 단가·이용률의 국내 실측이 없어 전량 C등급이며, <strong>B-11</strong>로 벤치마크 슬롯을 신설했습니다.
+  </p>
+</section>
+
+<!-- S4 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">Venue Rotation</div><h2>대관은 없어지지 않습니다 — 방을 잃고 시간을 얻습니다</h2></div>
+    <div class="no">04</div>
+  </div>
+  <p class="sec-desc">
+    대관홀 1,500㎡를 전용으로 두지 않습니다. 대신 기획전 트랙 2,000㎡(A 1,200 + B 800)를
+    <strong>회기와 회기 사이</strong>에 대관으로 돌립니다. 면적은 넓어지고 가동일은 줄어들어, 매출은 사실상 유지됩니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th class="num">전용면적</th><th class="num">단가 (원/㎡·일)</th><th class="num">가동일</th><th class="num">기준 매출</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>구안 — 전용 대관홀</td><td class="num">1,500㎡</td><td class="num">1,150 / 2,000 / 3,202</td><td class="num">60 / 100 / 140</td><td class="num">3.0억</td><td>공식 요금표 A (E-1079)</td></tr>
+      <tr class="total"><td>신안 — 전시홀 회기 회전</td><td class="num pos">0㎡</td><td class="num">동일</td><td class="num warn">40 / 70 / 100</td><td class="num">2.8억</td><td>단가 A 유지 · 가동일 C (B-12 대기)</td></tr>
+      <tr class="sub-row"><td>차이</td><td class="num">−1,500㎡</td><td class="num">—</td><td class="num">−30일</td><td class="num">−0.2억</td><td>면적 1,500㎡를 0.2억에 회수</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>1,500㎡를 연 0.2억에 사는 거래입니다.</strong> 00C가 계산한 대관의 면적 생산성은 ㎡당 18.4만원으로 전 라인 최저였습니다.
+    같은 면적을 전시 앵커로 돌리면 직접 수익은 더 낮지만(㎡당 13만원) <em>간접 기여 11.7억</em>이 붙습니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>남은 제약 2건.</strong>
+    ① 대공간 판매일 상한 152일(SETEC 실측 41.7%)은 그대로 적용됩니다 — 대관 70일 + RL-07 B2B 34일 = 104일로 여유 48일.
+    구안(134일·여유 18일)보다 오히려 완화됐습니다.
+    ② 다만 <strong>전시 회기와 대관이 같은 방을 쓰므로</strong>, 기획전 회기가 길어지면 대관 가동일이 직접 깎입니다.
+    회기 캘린더가 곧 대관 매출입니다 — <strong>B-12</strong>로 벤치마크 슬롯을 신설했습니다.</p>
+  </div>
+</section>
+
+<!-- S5 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">Financial Impact</div><h2>결론은 좋아졌지만, 판정은 바뀌지 않았습니다</h2></div>
+    <div class="no">05</div>
+  </div>
+  <p class="sec-desc">
+    재무모델 v1.0 → v1.1. 권고경로 G2L(넓게·선별) 기준으로 매출은 늘고 투자도 늘었습니다.
+    회수기간은 기준 케이스에서 오히려 1년 길어졌고, <strong>재임대를 넘는 조합은 여전히 15개 중 2개</strong>입니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>G2L (권고경로)</th><th class="num">매출</th><th class="num">세후이익</th><th class="num">총투자</th><th class="num">회수</th><th class="num">vs 재임대</th></tr></thead>
+    <tbody>
+      <tr><td>v1.0 · 기준</td><td class="num">69.0</td><td class="num">6.3</td><td class="num">96.0</td><td class="num">8년</td><td class="num">0.23x</td></tr>
+      <tr class="total"><td>v1.1 · 기준</td><td class="num">70.5</td><td class="num">5.9</td><td class="num warn">104.0</td><td class="num warn">9년</td><td class="num">0.22x</td></tr>
+      <tr><td>v1.0 · 낙관</td><td class="num">145.2</td><td class="num">32.0</td><td class="num">83.5</td><td class="num">3년</td><td class="num pos">1.18x ✓</td></tr>
+      <tr class="total"><td>v1.1 · 낙관</td><td class="num">151.1</td><td class="num">32.1</td><td class="num">91.5</td><td class="num pos">3년</td><td class="num pos">1.19x ✓</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="layer">
+    <div class="ly">
+      <div class="n">늘어난 것</div>
+      <h4>매출 +1.5억 / 투자 +8.0억</h4>
+      <p>전시 해설·심화 신설(+1.6억)에서 대관 회전 손실(−0.2억)을 뺀 순증.
+      투자는 전시 CAPEX 16.7 → 24.7억.</p>
+      <div class="v">회수 8 → 9년</div>
+      <div class="s">투자 증가가 매출 증가를 앞섬 — 기준 케이스에서는 손해</div>
+    </div>
+    <div class="ly ok">
+      <div class="n">유지된 것</div>
+      <h4>낙관 경로 3년 회수</h4>
+      <p>해설의 낙관값(4.42억)이 CAPEX 증가를 상쇄합니다.
+      전시 앵커의 값어치는 <strong>낙관 경로에서만</strong> 드러납니다.</p>
+      <div class="v">1.19x ✓</div>
+      <div class="s">재임대 세후 27.1억 초과 — 2개 케이스 중 하나</div>
+    </div>
+    <div class="ly danger">
+      <div class="n">바뀌지 않은 것</div>
+      <h4>재임대 초과 = 2 / 15</h4>
+      <p>G2·낙관과 G2L·낙관뿐입니다. 좁은 게이트(G0)는 전 시나리오 적자,
+      기준 케이스는 어느 게이트에서도 재임대에 못 미칩니다.</p>
+      <div class="v">조건부 성립</div>
+      <div class="s">이 판정은 공간을 어떻게 바꿔도 움직이지 않음</div>
+    </div>
+  </div>
+
+  <h3 class="sub">5개년 수지 — G2L · 기준 (2027 부분운영 · 2028 개관 가정)</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th class="num">2027</th><th class="num">2028</th><th class="num">2029</th><th class="num">2030</th><th class="num">2031</th></tr></thead>
+    <tbody>
+      <tr><td>총매출</td><td class="num">1.4</td><td class="num">42.8</td><td class="num">59.1</td><td class="num">68.5</td><td class="num">69.7</td></tr>
+      <tr><td>영업이익 <span style="color:var(--fg-3)">(공통비 차감 후)</span></td><td class="num neg">−1.6</td><td class="num">7.1</td><td class="num">12.3</td><td class="num">15.2</td><td class="num">15.8</td></tr>
+      <tr><td>감가상각</td><td class="num">0.0</td><td class="num">8.7</td><td class="num">8.7</td><td class="num">8.7</td><td class="num">8.7</td></tr>
+      <tr class="total"><td>세후이익</td><td class="num neg">−2.8</td><td class="num neg">−2.8</td><td class="num pos">2.3</td><td class="num pos">5.0</td><td class="num pos">5.5</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">3년차 흑자 전환. 단위 억원. 낙관 경로는 세후 −1.8 → 14.9 → 24.8 → 30.3 → 31.4억.</p>
+</section>
+
+<!-- S6 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">Judgement Grid v1.1</div><h2>15개 케이스 — 유권해석이 좁으면 어떤 공간 설계도 소용없습니다</h2></div>
+    <div class="no">06</div>
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>게이트</th><th>케이스</th><th class="num">매출</th><th class="num">세후</th><th class="num">현금흐름</th><th class="num">vs 재임대</th><th class="num">BEP</th><th class="num">필요배수</th><th class="num">총투자</th><th class="num">회수</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3">G0 좁게 — Tier1만</td><td>보수</td><td class="num">2.7</td><td class="num neg">−17.8</td><td class="num neg">−9.5</td><td class="num neg">−0.66x</td><td class="num">—</td><td class="num">도달불가</td><td class="num">98.7</td><td class="num">15+</td></tr>
+      <tr><td>기준</td><td class="num">12.5</td><td class="num neg">−12.9</td><td class="num neg">−5.8</td><td class="num neg">−0.48x</td><td class="num">6.12x</td><td class="num">도달불가</td><td class="num">86.2</td><td class="num">15+</td></tr>
+      <tr><td>낙관</td><td class="num">39.6</td><td class="num neg">−4.5</td><td class="num">1.7</td><td class="num neg">−0.16x</td><td class="num">1.54x</td><td class="num">5.20x</td><td class="num">73.7</td><td class="num">15+</td></tr>
+      <tr><td rowspan="3">G1 중간 — Tier2 열림</td><td>보수</td><td class="num">10.5</td><td class="num neg">−19.1</td><td class="num neg">−6.2</td><td class="num neg">−0.70x</td><td class="num">5.98x</td><td class="num">도달불가</td><td class="num">154.2</td><td class="num">15+</td></tr>
+      <tr><td>기준</td><td class="num">43.0</td><td class="num neg">−4.7</td><td class="num">7.1</td><td class="num neg">−0.17x</td><td class="num">1.30x</td><td class="num">3.25x</td><td class="num">141.7</td><td class="num">15+</td></tr>
+      <tr><td>낙관</td><td class="num">109.1</td><td class="num">18.5</td><td class="num">29.3</td><td class="num">0.68x</td><td class="num">0.46x</td><td class="num">1.25x</td><td class="num">129.2</td><td class="num">6년</td></tr>
+      <tr><td rowspan="3">G1L 중간·선별</td><td>보수</td><td class="num">9.4</td><td class="num neg">−14.9</td><td class="num neg">−6.5</td><td class="num neg">−0.55x</td><td class="num">5.13x</td><td class="num">도달불가</td><td class="num">101.9</td><td class="num">15+</td></tr>
+      <tr><td>기준</td><td class="num">39.0</td><td class="num neg">−1.1</td><td class="num">6.3</td><td class="num neg">−0.04x</td><td class="num">1.08x</td><td class="num">3.13x</td><td class="num">89.4</td><td class="num">15+</td></tr>
+      <tr><td>낙관</td><td class="num">101.6</td><td class="num">21.1</td><td class="num">27.5</td><td class="num">0.78x</td><td class="num">0.36x</td><td class="num">1.19x</td><td class="num">76.9</td><td class="num">4년</td></tr>
+      <tr><td rowspan="3">G2 넓게 — 조리 해소</td><td>보수</td><td class="num">21.6</td><td class="num neg">−17.3</td><td class="num neg">−3.2</td><td class="num neg">−0.64x</td><td class="num">3.51x</td><td class="num">7.87x</td><td class="num">168.8</td><td class="num">15+</td></tr>
+      <tr><td>기준</td><td class="num">74.4</td><td class="num">2.6</td><td class="num">15.6</td><td class="num">0.10x</td><td class="num">0.89x</td><td class="num">2.13x</td><td class="num">156.3</td><td class="num">12년</td></tr>
+      <tr><td>낙관</td><td class="num">158.6</td><td class="num pos">29.6</td><td class="num">41.6</td><td class="num pos">1.09x ✓</td><td class="num">0.36x</td><td class="num">0.95x</td><td class="num">143.8</td><td class="num">5년</td></tr>
+      <tr><td rowspan="3"><strong>G2L 넓게·선별 (권고)</strong></td><td>보수</td><td class="num">20.5</td><td class="num neg">−13.1</td><td class="num neg">−3.4</td><td class="num neg">−0.48x</td><td class="num">2.97x</td><td class="num">7.47x</td><td class="num">116.5</td><td class="num">15+</td></tr>
+      <tr class="total"><td>기준</td><td class="num">70.5</td><td class="num">5.9</td><td class="num">14.5</td><td class="num">0.22x</td><td class="num">0.73x</td><td class="num">2.02x</td><td class="num">104.0</td><td class="num">9년</td></tr>
+      <tr class="total"><td>낙관</td><td class="num">151.1</td><td class="num pos">32.1</td><td class="num">39.8</td><td class="num pos">1.19x ✓</td><td class="num">0.28x</td><td class="num">0.89x</td><td class="num">91.5</td><td class="num pos">3년</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">단위 억원. 기준선 = 재임대 연 30억(세전) · 임대 과세 반영 시 세후 27.1억. 판정은 세후 기준.
+  ✓ = 재임대 초과. <strong>15개 중 2개.</strong></p>
+
+  <div class="path">
+    <div class="n no"><div class="t">유권해석 좁게</div><div class="d">G0 — 전 시나리오 적자<br>공간 설계 무관</div></div>
+    <div class="ar">→</div>
+    <div class="n ok"><div class="t">+ 조리 해소</div><div class="d">G2 — 기준에서 흑자 진입<br>단, 재임대엔 못 미침</div></div>
+    <div class="ar">→</div>
+    <div class="n ok"><div class="t">+ 선별 투자</div><div class="d">G2L — 회수 12→9년<br>낙관 5→3년</div></div>
+  </div>
+</section>
+
+<!-- S7 -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div><div class="eyebrow">Open Items</div><h2>이 문서가 만든 새 숙제</h2></div>
+    <div class="no">07</div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>#</th><th>항목</th><th>왜 급한가</th><th>등급</th></tr></thead>
+    <tbody>
+      <tr><td>B-11</td><td>전시 해설·도슨트 유료 프로그램 실단가·이용률</td>
+        <td>“관람권이 아니라 해설을 판다”로 전환했는데 단가·이용률이 전량 C등급 가정. 낙관 4.42억이 여기 걸림</td><td><span class="badge badge-no">★ 신설</span></td></tr>
+      <tr><td>B-12</td><td>전시 회기 캘린더 하 대관 가용일 (SETEC·DDP 교체기간 실적)</td>
+        <td>전용면적을 없앤 대가로 가동일 40/70/100일이 전부 가정이 됨</td><td><span class="badge badge-no">★ 신설</span></td></tr>
+      <tr><td>B-02</td><td>강남 유료전시 실단가·연 관람객</td>
+        <td>면적을 2.3배로 키웠는데 여전히 근거 0건. 구 92억 모델이 무너진 자리</td><td><span class="badge badge-no">★ 기존</span></td></tr>
+      <tr><td>—</td><td>전시 3,300㎡ 실견적</td>
+        <td>CAPEX 24.7억은 한계 CAPEX 43.3만원/㎡ 외삽 <strong>추정치</strong>. 항온항습·보안·보험이 상설 성보 구간에 붙으면 상향</td><td><span class="badge badge-warn">추정</span></td></tr>
+      <tr><td>—</td><td>층별 기능배치도·동선도</td>
+        <td>면적 총량만 맞춘 상태. 1층 무주 대공간에 3,300㎡가 실제로 앉는지 미검증 (E-0574)</td><td><span class="badge badge-warn">미보유</span></td></tr>
+      <tr><td>—</td><td>명상 면적 500 vs 800㎡</td>
+        <td>모델은 500, 자원원장(선방 450+다경실 350)은 800. 후자면 100㎡ 초과</td><td><span class="badge badge-warn">불일치</span></td></tr>
+      <tr><td>—</td><td>A단 리모델링 45~70억 재견적</td>
+        <td>이 견적은 숙박 800평 반영 전 산정치. STAY 강등으로 <strong>하향 여지</strong></td><td><span class="badge badge-info">기회</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>변하지 않은 최우선 과제.</strong> 유권해석 5건 미제출 — 9.27 총무원장 임기가 임계경로입니다.
+    G0(좁게)에서는 전 시나리오가 적자이므로, 공간을 어떻게 재배분해도 회신 없이는 사업이 성립하지 않습니다.
+    그리고 <strong>봉은사 가용 현금</strong>은 킥오프 이래 여전히 미확인입니다.</p>
+  </div>
+</section>
+
+<div class="foot">PROJECT RENT · 봉은문화센터 공간 재배분 &amp; 재무모델 v1.1 · 2026.08.18 · 내부 문서 · 대외 배포 금지</div>
+
+<script>
+const secs=[...document.querySelectorAll('.sec')],links=[...document.querySelectorAll('.nav a')];
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){
+  const id=e.target.id;links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id));}}),
+  {rootMargin:'-45% 0px -50% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

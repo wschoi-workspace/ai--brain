@@ -1,0 +1,952 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>봉은 덱 렌더 진단 — 잘림 0 · 축소 하한 0</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{--bg:#1A1A1A;--bg2:#212121;--card:#242424;--line:#333;--line2:#3D3D3D;
+--tx:#F5F5F5;--tx2:#B8B8B8;--tx3:#7A7A7A;--pri:#6C5CE7;--pri2:#8B7EF0;
+--ok:#8FA37E;--warn:#D9A34B;--risk:#E06060;--mid:#6F8AA3}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;
+font-weight:300;line-height:1.7;font-size:14px;-webkit-font-smoothing:antialiased}
+header,section,footer{max-width:1240px;margin:0 auto;padding:0 40px}
+header{padding-top:72px;padding-bottom:44px}
+.kick{font-size:11px;letter-spacing:.32em;color:var(--pri2);text-transform:uppercase;margin-bottom:22px;font-weight:700}
+h1{font-size:52px;font-weight:200;letter-spacing:-.035em;line-height:1.12}
+h1 em{font-style:normal;color:var(--pri2);font-weight:500}
+h1 s{color:var(--tx3);text-decoration-thickness:2px}
+.lede{margin-top:20px;font-size:16px;color:var(--tx2);max-width:900px}
+.lede b{color:var(--tx);font-weight:500}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:38px}
+.k{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--pri);padding:18px 20px;border-radius:0 8px 8px 0}
+.k.ok{border-left-color:var(--ok)}.k.warn{border-left-color:var(--warn)}
+.k .l{font-size:10px;letter-spacing:.2em;color:var(--tx3);text-transform:uppercase}
+.k .v{font-size:34px;font-weight:200;margin-top:8px;letter-spacing:-.02em}
+.k .v small{font-size:15px;color:var(--tx2);margin-left:3px}
+.k.ok .v{color:var(--ok)}.k.warn .v{color:var(--warn)}
+.k .s{font-size:11.5px;color:var(--tx3);margin-top:6px}
+section{padding-top:52px;padding-bottom:12px;border-top:1px solid var(--line);margin-top:44px}
+h2{font-size:26px;font-weight:300;letter-spacing:-.02em;margin-bottom:16px;display:flex;align-items:baseline;gap:14px}
+h2 .no{font-size:11px;letter-spacing:.2em;color:var(--pri2);font-weight:700}
+h3{font-size:16px;font-weight:600;margin-bottom:8px}
+p{color:var(--tx2);max-width:940px}
+.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:22px;margin-top:22px;align-items:start}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+.fr{background:var(--bg2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.fr iframe{width:1280px;height:720px;border:0;transform-origin:top left;display:block;background:#fff}
+.grid2 .fr iframe{transform:scale(.505)}.grid2 .fr{height:378px}
+.grid3 .fr iframe{transform:scale(.29)}.grid3 .fr{height:218px}
+.fr figcaption{padding:11px 14px;font-size:11.5px;color:var(--tx3);border-top:1px solid var(--line);line-height:1.55}
+.fr figcaption b{color:var(--tx2)}
+.why{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px}
+table.mini{width:100%;border-collapse:collapse;margin:12px 0 14px;font-size:12.5px}
+table.mini th{text-align:left;color:var(--tx3);font-weight:400;padding:7px 10px 7px 0;white-space:nowrap;vertical-align:top;width:88px}
+table.mini td{padding:7px 0;color:var(--tx2);border-bottom:1px solid var(--line)}
+td.bad{color:var(--risk)}
+.note{font-size:12px;color:var(--tx3);margin-top:10px;line-height:1.65}
+.note b{color:var(--tx2)}
+.rec{margin-top:14px;background:rgba(108,92,231,.1);border-left:3px solid var(--pri);padding:13px 16px;font-size:12.5px;color:var(--tx2)}
+.rec b{color:var(--pri2)}
+.rec.danger{background:rgba(224,96,96,.08);border-left-color:var(--risk);margin-top:20px;font-size:13px}
+.rec.danger b{color:var(--risk)}
+.fixes{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:20px}
+.fx{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 22px}
+.fx .fn{font-size:10px;letter-spacing:.18em;color:var(--pri2);font-weight:700;margin-bottom:8px}
+.fx p{font-size:12.5px;margin-bottom:8px}
+.fx .ev{font-size:11.5px;color:var(--ok);border-top:1px solid var(--line);padding-top:9px;margin:10px 0 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--bg2);padding:1px 5px;border-radius:3px;color:var(--pri2)}
+table.full{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:18px}
+table.full th{text-align:left;font-size:10px;letter-spacing:.14em;color:var(--tx3);text-transform:uppercase;
+font-weight:400;padding:9px 12px;border-bottom:1px solid var(--line2);background:var(--bg2)}
+table.full td{padding:7px 12px;border-bottom:1px solid var(--line);color:var(--tx2)}
+table.full td.n,table.full th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.risk td{background:rgba(224,96,96,.07)}tr.warn td{background:rgba(217,163,75,.05)}
+.pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:3px;letter-spacing:.06em}
+.pill.risk{background:rgba(224,96,96,.16);color:var(--risk)}
+.pill.warn{background:rgba(217,163,75,.16);color:var(--warn)}
+.pill.mid{background:rgba(111,138,163,.16);color:var(--mid)}
+.pill.ok{background:rgba(143,163,126,.16);color:var(--ok)}
+.pipe{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:center;margin:22px 0}
+.st{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;text-align:center}
+.st.danger{border-color:rgba(224,96,96,.45)}
+.st .sn{font-size:10px;letter-spacing:.2em;color:var(--pri2);font-weight:700;margin-bottom:8px}
+.st p{font-size:11.5px;color:var(--tx3);margin-top:7px}
+.ar{color:var(--tx3);text-align:center}
+footer{padding:56px 40px 72px;margin-top:48px;border-top:1px solid var(--line);
+text-align:center;font-size:11px;letter-spacing:.2em;color:var(--tx3)}
+@media(max-width:1000px){.kpis,.fixes,.grid2,.grid3{grid-template-columns:1fr}.pipe{grid-template-columns:1fr}}
+
+.fx.span2{grid-column:1 / -1}
+.st .hl{color:var(--ok);font-size:10.5px;display:block;margin-top:4px}
+.pipe{grid-template-columns:1fr auto 1fr auto 1fr auto 1fr}
+@media(max-width:1000px){.pipe{grid-template-columns:1fr}}
+</style></head><body>
+<header>
+  <div class="kick">Bongeun Master Strategy Deck · 렌더 진단 · 2026.08.20 최종</div>
+  <h1>잘림 <s>3장</s> → <em>0장</em><br>축소 하한 <s>5장</s> → <em>0장</em></h1>
+  <p class="lede">내용이 잘려 나가는 슬라이드도, 축소 하한(0.62배)에 닿아 글자가 뭉개지는 슬라이드도 <b>모두 사라졌습니다.</b>
+  남은 것은 눈에 잘 띄지 않는 완만한 축소 36장이고, 그중 가장 강한 것이 <b>0.686배</b>입니다.</p>
+  <div class="kpis">
+    <div class="k ok"><div class="l">실제 잘림</div><div class="v">0<small>장</small></div><div class="s">최초 3장 · 내용 손실 해소</div></div>
+    <div class="k ok"><div class="l">축소 하한 0.62</div><div class="v">0<small>장</small></div><div class="s">최초 5장 → 1장 → <b>0장</b></div></div>
+    <div class="k"><div class="l">최저 배율</div><div class="v">0.686</div><div class="s">B.2/3 · 15칸 판정 그리드</div></div>
+    <div class="k"><div class="l">슬라이드</div><div class="v">262<small>장</small></div><div class="s">본편 S8~S10 재작성 반영</div></div>
+  </div>
+</header>
+
+<section>
+  <h2><span class="no">01</span> 마지막까지 남았던 5.6/2 — 어떻게 풀었나</h2>
+  <p>카드 3개가 각각 <b>725~918자</b>였습니다. <code>choice-3</code>는 가로 3열이라 항목을 쪼개도 <b>행 높이가 그대로</b>여서 분할이 무효였습니다.</p>
+  <div class="grid2">
+    <figure class="fr"><iframe srcdoc="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css&quot;&gt;&lt;style&gt;
+/* ── R 디자인 가이드 적용(화이트 출력 테마) — 12col grid·8px scale·아래정렬 ── */
+:root{--bg:#FFFFFF;--bg-2:#F6F4F1;--bg-3:#EFECE7;--fg:#1A1A1A;--fg-2:#3D3A36;--fg-3:#8A857D;
+--line:#D8D4CD;--line-2:#E5E2DC;--accent:#6C5CE7;--accent-light:#5848C8;
+--green:#1E7D4E;--red:#C2472F;--amber:#A8720E;--blue:#3E6B8F;--warm:#8A6D3B;
+--rust:#A34D28;--stone:#8A8175;--accent-subtle:rgba(108,92,231,.07);--accent-dark:#5848C8}
+*{margin:0;padding:0;box-sizing:border-box;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+svg{max-width:100%;height:auto;min-width:0!important}
+html{background:#E9E7E2}
+body{font-family:&#x27;Pretendard Variable&#x27;,Pretendard,-apple-system,sans-serif;font-weight:400;color:var(--fg);
+background:#E9E7E2;letter-spacing:-0.01em}
+h1,h2,h3,h4{text-wrap:balance}
+.slide{width:1280px;height:720px;background:var(--bg);display:none;flex-direction:column;
+padding:40px 56px 24px;position:relative;overflow:hidden;margin:0 auto}
+@media screen{body{padding:24px 0}.slide{box-shadow:0 2px 18px rgba(0,0,0,.12)}
+.slide.active{display:flex}}
+/* 헤더: 상단 고정 (가이드 §4 슬라이드 규칙) */
+.slide-head{flex-shrink:0;border-bottom:1px solid var(--line-2);padding-bottom:16px}
+.eyebrow{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--fg-3);margin-bottom:8px}
+.eyebrow .num{display:inline-block;background:var(--accent);color:#fff;font-weight:600;
+padding:2px 8px;margin-right:8px;letter-spacing:.08em}
+.eyebrow .cont{color:var(--fg-3);letter-spacing:.1em;margin-left:6px}
+.slide-head h1{font-size:35px;font-weight:500;line-height:1.28;letter-spacing:-0.025em;max-width:1168px}
+.hsub{font-size:12.5px;color:var(--fg-2);line-height:1.6;margin-top:10px;max-width:1100px}
+.slide-head h1 em{font-style:normal;color:var(--accent-light)}
+/* 본문: 아래정렬 (justify-content:flex-end) */
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;position:relative;min-height:0}
+.fit{width:100%}
+.foot{flex-shrink:0;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.2em;
+text-transform:uppercase;color:var(--fg-3);border-top:1px solid var(--line-2);padding-top:14px;margin-top:16px}
+.foot b{color:var(--accent-light);font-weight:600}
+/* ── 본문 타이포 — 8px 리듬 ── */
+.fit p{font-size:12.5px;line-height:1.6;color:var(--fg-2);margin:8px 0;max-width:1168px}
+.fit p.lead{font-size:14px;color:var(--fg);border-left:3px solid var(--accent);padding-left:14px;margin:8px 0 16px}
+.fit h4{font-size:13px;font-weight:600;color:var(--fg);margin:16px 0 8px}
+.fit h4::before{content:&#x27;&#x27;;display:inline-block;width:3px;height:12px;background:var(--accent);margin-right:8px;vertical-align:-1px}
+.fit ul,.fit ol{margin:8px 0 8px 18px}
+.fit li{font-size:12px;line-height:1.6;color:var(--fg-2);margin:4px 0}
+.fit strong,.fit li strong{color:var(--fg);font-weight:600}
+/* ── 표 ── */
+.fit table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0}
+.fit th{background:var(--bg-3);color:var(--fg);font-weight:600;text-align:left;padding:6px 8px;
+border:1px solid var(--line);font-size:10px;letter-spacing:.04em}
+.fit td{padding:6px 8px;border:1px solid var(--line-2);color:var(--fg-2);line-height:1.5;vertical-align:top}
+.fit td small{font-size:10px;color:var(--fg-3)}
+.matrix td.hit{background:rgba(108,92,231,.10);color:var(--fg)}
+.matrix td.mid{background:rgba(168,114,14,.10)}
+.matrix td.out{background:rgba(194,71,47,.08);color:var(--fg-3)}
+/* ── 12-column grid (gap 14px · 개수→스팬 규칙) ── */
+.kpi-grid,.kpi-grid-3,.card-grid,.card-grid-2,.card-grid-4,.card-grid-5,
+.choice,.interpretation{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin:16px 0}
+.kpi-grid&gt;*{grid-column:span 3}
+.kpi-grid-3&gt;*,.card-grid&gt;*,.card-grid-5&gt;*,.choice-3&gt;*,.interpretation&gt;*{grid-column:span 4}
+.card-grid-2&gt;*,.choice-2&gt;*{grid-column:span 6}
+.card-grid-4&gt;*{grid-column:span 3}
+.split{display:grid;grid-template-columns:repeat(12,1fr);gap:0;margin:16px 0;border:1px solid var(--line-2)}
+.split&gt;div{grid-column:span 6;padding:16px}
+.split&gt;div:first-child{border-right:1px solid var(--line-2)}
+.split .sh{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+.split .sh.pos{color:var(--green)}
+.split .sh.neg{color:var(--red)}
+.split p{font-size:11px;margin:4px 0}
+/* ── 컴포넌트 (내부 패딩 16px 통일) ── */
+.callout,.callout-danger,.callout-success{border:1px solid var(--line);border-left:3px solid var(--accent);
+background:var(--bg-2);padding:16px;margin:16px 0;font-size:12px}
+.callout-danger{border-left-color:var(--red);background:rgba(194,71,47,.05)}
+.callout-success{border-left-color:var(--green);background:rgba(30,125,78,.05)}
+.callout p,.callout-danger p,.callout-success p{margin:4px 0;font-size:12px}
+.kpi{background:var(--bg-2);border:1px solid var(--line-2);padding:16px;text-align:center}
+.kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi-value{font-size:26px;font-weight:600;color:var(--accent-light);line-height:1.1;letter-spacing:-0.02em}
+.kpi-unit{font-size:13px;font-weight:500;margin-left:2px}
+.kpi-sub{font-size:10px;color:var(--fg-3);margin-top:8px;line-height:1.45}
+.card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px}
+.card h4{margin:0 0 8px;font-size:12px;font-weight:600}
+.card h4::before{content:none}
+.card p{font-size:11px;margin:4px 0;line-height:1.55}
+.card .tag,.tag{display:inline-block;font-size:9px;letter-spacing:.12em;color:var(--accent-light);
+border:1px solid var(--line);padding:2px 8px;margin-top:8px}
+.choice-card{border:1px solid var(--line);background:var(--bg-2);padding:16px;position:relative}
+.choice-card .ct{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.choice-card h5{font-size:13px;font-weight:600;margin-bottom:8px}
+.choice-card p{font-size:11px;margin:0 0 8px}
+.choice-card .pro,.choice-card .con{font-size:10.5px;line-height:1.5;padding-left:14px;position:relative;margin:4px 0;color:var(--fg-2)}
+.choice-card .pro::before{content:&quot;+&quot;;position:absolute;left:0;color:var(--green);font-weight:600}
+.choice-card .con::before{content:&quot;−&quot;;position:absolute;left:0;color:var(--red);font-weight:600}
+.choice-card.rec{border-color:var(--accent)}
+.choice-card.rec::after{content:&quot;권고&quot;;position:absolute;top:-1px;right:-1px;background:var(--accent);
+color:#fff;font-size:9px;letter-spacing:.15em;padding:2px 8px}
+.lens{border-left:3px solid var(--accent);background:var(--bg-2);padding:16px;margin:16px 0}
+.lens .lt{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.lens h5{font-size:12.5px;font-weight:600;margin-bottom:8px}
+.lens p{font-size:11px;margin:4px 0}
+blockquote{border-left:2px solid var(--accent);padding:8px 0 8px 16px;margin:16px 0;font-size:13px;
+color:var(--fg);line-height:1.55;max-width:1000px}
+blockquote cite{display:block;font-size:10px;color:var(--fg-3);font-style:normal;letter-spacing:.08em;margin-top:8px}
+.steps{margin:16px 0}
+.step{border:1px solid var(--line-2);padding:12px 16px;font-size:11px;background:var(--bg-2);margin:8px 0}
+.step-num{color:var(--accent-light);font-weight:700;margin-right:8px}
+.badge,.badge-yes,.badge-no,.badge-warn,.badge-info{display:inline-block;font-size:9px;letter-spacing:.1em;
+padding:2px 8px;border:1px solid var(--line);color:var(--fg-3);vertical-align:middle;white-space:nowrap}
+.badge-yes{color:var(--green);border-color:var(--green);background:rgba(30,125,78,.07)}
+.badge-no{color:var(--red);border-color:var(--red);background:rgba(194,71,47,.07)}
+.badge-warn{color:var(--amber);border-color:var(--amber);background:rgba(168,114,14,.07)}
+.badge-info{color:var(--blue);border-color:var(--blue);background:rgba(62,107,143,.07)}
+.ev{display:inline-block;font-size:8px;letter-spacing:.05em;color:var(--fg-3);border:1px solid var(--line-2);
+padding:0 4px;margin-left:3px;vertical-align:middle;white-space:nowrap}
+.ev.a{color:var(--accent-light);border-color:rgba(88,72,200,.4)}
+.ev.b{color:var(--blue);border-color:rgba(62,107,143,.4)}
+.internal{display:inline-block;font-size:8px;letter-spacing:.15em;background:rgba(194,71,47,.1);
+color:var(--red);padding:2px 8px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
+.hero-number{font-size:48px;font-weight:300;color:var(--accent-light);letter-spacing:-0.03em}
+.interp-card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px;font-size:11px}
+.placeholder{border:1px dashed var(--line);background:var(--bg-2);padding:24px;text-align:center;margin:16px 0}
+.placeholder .pt{font-size:9px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.placeholder h4{font-size:14px;color:var(--fg-2);margin:0 0 8px}
+.placeholder h4::before{content:none}
+.placeholder p{font-size:11px;color:var(--fg-3);max-width:560px;margin:0 auto}
+.compare-table th{font-size:10px}
+/* ── 표지 (중앙 정렬 예외 — 가이드 슬라이드 타입 규칙) ── */
+.slide.cover{justify-content:flex-start;padding-top:64px}
+.cv-line{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;margin-bottom:24px}
+.cv-title{font-size:60px;font-weight:300;line-height:1.05;letter-spacing:-0.04em;margin-bottom:16px}
+.cv-title em{font-style:normal;color:var(--accent-light)}
+.cv-sub{font-size:14px;color:var(--fg-2);line-height:1.6;max-width:760px;margin-bottom:24px}
+.cv-cols{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;flex:1;min-height:0}
+.cv-cols&gt;div:first-child{grid-column:span 7}
+.cv-cols&gt;div:last-child{grid-column:span 5}
+.cv-cols blockquote{font-size:15px}
+.cover-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 24px;margin-top:16px}
+.cover-meta dt{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:2px}
+.cover-meta dd{font-size:12px;color:var(--fg);margin:0}
+.toc h3{font-size:11px;letter-spacing:.25em;color:var(--accent-light);text-transform:uppercase;margin-bottom:8px}
+.toc ol{margin-left:18px}
+.toc li{font-size:11.5px;line-height:1.75;color:var(--fg-2)}
+.toc a{color:inherit;text-decoration:none}
+/* ── STEP 표지(간지 — 중앙 정렬 예외) ── */
+.slide.divider{justify-content:center;background:var(--bg-2)}
+.dv-no{font-size:104px;font-weight:700;color:rgba(108,92,231,.14);line-height:1;position:absolute;top:48px;right:56px}
+.dv-eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;margin-bottom:16px}
+.slide.divider h1{font-size:40px;font-weight:500;line-height:1.25;letter-spacing:-0.025em;max-width:1040px;margin-bottom:24px}
+.slide.divider h1 em{font-style:normal;color:var(--accent-light)}
+.dv-desc{font-size:14px;color:var(--fg-2);line-height:1.7;max-width:920px;margin-bottom:8px}
+.dv-desc strong{color:var(--fg)}
+/* ── 네비 ── */
+.prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:50;transition:width .18s}
+.nav{position:fixed;bottom:16px;right:20px;display:flex;gap:8px;z-index:50;align-items:center}
+.nav button{border:1px solid var(--line);background:#fff;color:var(--fg-2);font-size:11px;
+padding:6px 14px;cursor:pointer;font-family:inherit;letter-spacing:.1em}
+.nav button:hover{border-color:var(--accent);color:var(--accent-light)}
+.nav .cnt{font-size:11px;color:var(--fg-3);letter-spacing:.08em;padding:0 4px}
+.measuring{display:flex!important;visibility:hidden;position:absolute!important;top:0;left:0}
+/* SVG 다이어그램은 슬라이드 본문 높이를 넘지 않게 — 넘치면 fitAll 0.62 하한에 걸려 잘린다.
+   인라인 min-width/width를 !important로 무력화하고 종횡비를 유지한 채 높이로 맞춘다. (2026-08-19) */
+.fit svg{width:auto!important;min-width:0!important;max-width:100%!important;
+  height:auto!important;max-height:450px;display:block;margin:0 auto}
+@media print{
+  html,body{background:#fff;padding:0;margin:0}
+  .nav,.prog{display:none!important}
+  .slide{display:flex!important;page-break-after:always;break-after:page;box-shadow:none;margin:0}
+  .slide:last-child{page-break-after:auto}
+  @page{size:1280px 720px;margin:0}
+}
+
+body{margin:0;background:#fff}.slide{margin:0}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;slide active&quot; data-agenda=&quot;5.6&quot; data-key=&quot;5.6/2&quot;&gt;&lt;div class=&quot;slide-head&quot;&gt;&lt;div class=&quot;eyebrow&quot;&gt;&lt;span class=&quot;num&quot;&gt;5.6&lt;/span&gt; S5-BMX · 결론 &lt;span class=&quot;badge badge-warn&quot;&gt;상충 존재&lt;/span&gt; &lt;span class=&quot;cont&quot;&gt;· 계속 2/7&lt;/span&gt;&lt;/div&gt;&lt;h1&gt;두 최적안은 &lt;em&gt;수익의 기둥이 다릅니다&lt;/em&gt; — 프리미엄 체험이냐 부동산·장묘냐, 충돌은 STEP 8에서 풉니다&lt;/h1&gt;&lt;p class=&quot;hsub&quot;&gt;두 최적안의 충돌을 풀려면 먼저 선택지를 세 방향으로 정리해야 합니다. 매스는 무료로 열어 규모를 만들고 리테일·F&amp;amp;B·기부로 회수하며, 로컬은 유휴층을 골라 빌려주고 임대·장묘로 안정된 현금흐름을 만들며, 프리미엄은 사찰음식 파인다이닝과 리트리트로 객단가를 올립니다. 각 방향의 가장 강한 근거 둘과 결정적 반증 하나만 카드에 담았고, 나머지 근거·반증 19건은 다음 표로 옮겼습니다.&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;slide-body&quot;&gt;&lt;div class=&quot;fit&quot;&gt;&lt;h4 data-blk=&quot;5.6#3&quot;&gt;세 방향 — 매스인가, 로컬인가, 프리미엄인가&lt;/h4&gt;
+  &lt;div class=&quot;choice choice-3&quot; data-blk=&quot;5.6#4&quot;&gt;
+    &lt;div class=&quot;choice-card&quot;&gt;
+      &lt;div class=&quot;ct&quot;&gt;Direction 1&lt;/div&gt;
+      &lt;h5&gt;매스 — 무료로 열어 규모를 만듭니다&lt;/h5&gt;
+      &lt;p&gt;입장료 없이 열고, 회수는 리테일·F&amp;amp;B·기부·시즌 이벤트에서 합니다. 성과 지표는 방문객 수와 체류 시간입니다.&lt;/p&gt;
+      &lt;div class=&quot;pro&quot;&gt;싱가포르 불아사는 무료 개방과 기부만으로 연 약 360만 명을 받는 대형 관광 앵커가 됐습니다&lt;span class=&quot;ev a&quot;&gt;E-0484&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;pro&quot;&gt;별마당 도서관은 수익 0원으로 코엑스몰 방문객 1,700만 명과 인근 매장 매출 2배 이상을 만들었습니다&lt;span class=&quot;ev a&quot;&gt;E-0494&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;con&quot;&gt;한번 무료로 열면 &lt;strong&gt;입장료를 붙일 수 없습니다&lt;/strong&gt; — 체스터 대성당은 붙였다가 방문객이 줄어 폐지했습니다&lt;span class=&quot;ev c&quot;&gt;E-0473&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;choice-card&quot;&gt;
+      &lt;div class=&quot;ct&quot;&gt;Direction 2&lt;/div&gt;
+      &lt;h5&gt;로컬 — 유휴층을 골라서 빌려줍니다&lt;/h5&gt;
+      &lt;p&gt;운영 리스크를 외부에 넘기고 임대·장묘로 안정된 현금흐름을 만듭니다. 성과 지표는 임대율과 입점 브랜드의 질입니다.&lt;/p&gt;
+      &lt;div class=&quot;pro&quot;&gt;1898 명동성당은 국내 종교시설 임대사업의 유일한 대형 성공 사례이고, &lt;strong&gt;구 웨딩홀 유휴층과 구조가 가장 가깝습니다&lt;/strong&gt;&lt;span class=&quot;ev a&quot;&gt;E-0416&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;pro&quot;&gt;장묘는 수요가 가장 확실합니다 — 화장률 95.1%, 자연장 선호 45.4%, 국공립 수목장림 전국 5곳뿐&lt;span class=&quot;ev a&quot;&gt;E-0445&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;con&quot;&gt;업무시설 임대·공유오피스는 영업행위 금지에 걸립니다 — &lt;strong&gt;빌려줄 수 있는 업종 폭이 아주 좁습니다&lt;/strong&gt;&lt;span class=&quot;ev a&quot;&gt;E-0133&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;choice-card rec&quot;&gt;
+      &lt;div class=&quot;ct&quot;&gt;Direction 3&lt;/div&gt;
+      &lt;h5&gt;프리미엄 — 밀도를 팝니다&lt;/h5&gt;
+      &lt;p&gt;사찰음식 파인다이닝·프리미엄 다원·리트리트·기업 연수로 객단가를 올립니다. 성과 지표는 객단가와 재방문율입니다.&lt;/p&gt;
+      &lt;div class=&quot;pro&quot;&gt;시행령 제7조에서 상업적 가치가 가장 큰 항목이 &lt;strong&gt;&#x27;전통다원의 운영&#x27;&lt;/strong&gt;입니다 — 법을 지키면서 매출을 키우는 통로&lt;span class=&quot;ev a&quot;&gt;E-0182&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;pro&quot;&gt;발우공양이 미쉐린 1스타를 받아 &#x27;전통의 고급화&#x27;가 국내에서 통한다는 것을 이미 증명했습니다&lt;span class=&quot;ev a&quot;&gt;E-0423&lt;/span&gt;&lt;span class=&quot;ev a&quot;&gt;E-0143&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;con&quot;&gt;&#x27;전통&#x27;을 넓게 읽어주는 유권해석이 없으면 &lt;strong&gt;노선 자체가 성립하지 않습니다&lt;/strong&gt; — 좁으면 20~30억으로 떨어집니다&lt;span class=&quot;ev a&quot;&gt;E-0142&lt;/span&gt;&lt;span class=&quot;ev a&quot;&gt;E-0165&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;h4 data-blk=&quot;5.6#5&quot;&gt;세 방향의 나머지 근거와 반증 — 카드에 담지 못한 것&lt;/h4&gt;
+  &lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;foot&quot;&gt;&lt;span&gt;봉은문화센터 Master Strategy Report&lt;/span&gt;&lt;span class=&quot;r&quot;&gt;by &lt;b&gt;Project Rent&lt;/b&gt; · &lt;span class=&quot;pg&quot;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;script&gt;const f=document.querySelector(&quot;.fit&quot;),b=document.querySelector(&quot;.slide-body&quot;);if(f&amp;&amp;b){const a=b.clientHeight;let s2=1;for(let k=0;k&lt;3;k++){const h=f.scrollHeight;if(h&lt;=a+2)break;s2=Math.max(0.62,a/h*s2);f.style.transform=&quot;scale(&quot;+s2+&quot;)&quot;;f.style.transformOrigin=&quot;bottom left&quot;;f.style.width=(100/s2)+&quot;%&quot;;}}&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" scrolling="no" loading="lazy"></iframe><figcaption><b>5.6/2 · 현재 배율 1.000</b> — 카드는 요약으로, 근거 19건은 아래 표로 내렸습니다.</figcaption></figure>
+    <div class="why">
+      <h3>구조를 바꿨습니다</h3>
+      <table class="mini">
+        <tr><th>이전</th><td>카드 3개 × 725~918자 → 개당 470~490px · 배율 <b class="bad">0.620</b></td></tr>
+        <tr><th>시도①</th><td>임계값 500→460 하향 → <b class="bad">역효과</b>. 슬라이드만 1장 늘고 축소는 그대로 → 되돌림</td></tr>
+        <tr><th>시도②</th><td>서브카피 421→213자로 헤더 축소 → 가용 391→431px. <b class="bad">여전히 60px 부족</b></td></tr>
+        <tr><th>해결</th><td>카드 = 헤드 + 핵심 1문장 + 최강 근거 2 + 결정적 반증 1 (≈250px)<br>나머지 <b>근거·반증 19건은 compare-table로 이전</b> → 표는 자동 분할</td></tr>
+      </table>
+      <div class="rec"><b>내용은 하나도 버리지 않았습니다.</b> 근거칩 카운트로 대조해 검증했고, 초안에서 <code>E-0142</code> 하나가 빠진 것을 잡아 복원했습니다(파일 전체 277개 유지).</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">02</span> 지금 가장 작은 3장 — 잘림은 없습니다</h2>
+  <p>0.62 하한에는 닿지 않지만 상대적으로 작습니다. 셋 다 <b>단일 대형 블록</b>이 원인입니다.</p>
+  <div class="grid3">
+    <figure class="fr"><iframe srcdoc="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css&quot;&gt;&lt;style&gt;
+/* ── R 디자인 가이드 적용(화이트 출력 테마) — 12col grid·8px scale·아래정렬 ── */
+:root{--bg:#FFFFFF;--bg-2:#F6F4F1;--bg-3:#EFECE7;--fg:#1A1A1A;--fg-2:#3D3A36;--fg-3:#8A857D;
+--line:#D8D4CD;--line-2:#E5E2DC;--accent:#6C5CE7;--accent-light:#5848C8;
+--green:#1E7D4E;--red:#C2472F;--amber:#A8720E;--blue:#3E6B8F;--warm:#8A6D3B;
+--rust:#A34D28;--stone:#8A8175;--accent-subtle:rgba(108,92,231,.07);--accent-dark:#5848C8}
+*{margin:0;padding:0;box-sizing:border-box;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+svg{max-width:100%;height:auto;min-width:0!important}
+html{background:#E9E7E2}
+body{font-family:&#x27;Pretendard Variable&#x27;,Pretendard,-apple-system,sans-serif;font-weight:400;color:var(--fg);
+background:#E9E7E2;letter-spacing:-0.01em}
+h1,h2,h3,h4{text-wrap:balance}
+.slide{width:1280px;height:720px;background:var(--bg);display:none;flex-direction:column;
+padding:40px 56px 24px;position:relative;overflow:hidden;margin:0 auto}
+@media screen{body{padding:24px 0}.slide{box-shadow:0 2px 18px rgba(0,0,0,.12)}
+.slide.active{display:flex}}
+/* 헤더: 상단 고정 (가이드 §4 슬라이드 규칙) */
+.slide-head{flex-shrink:0;border-bottom:1px solid var(--line-2);padding-bottom:16px}
+.eyebrow{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--fg-3);margin-bottom:8px}
+.eyebrow .num{display:inline-block;background:var(--accent);color:#fff;font-weight:600;
+padding:2px 8px;margin-right:8px;letter-spacing:.08em}
+.eyebrow .cont{color:var(--fg-3);letter-spacing:.1em;margin-left:6px}
+.slide-head h1{font-size:35px;font-weight:500;line-height:1.28;letter-spacing:-0.025em;max-width:1168px}
+.hsub{font-size:12.5px;color:var(--fg-2);line-height:1.6;margin-top:10px;max-width:1100px}
+.slide-head h1 em{font-style:normal;color:var(--accent-light)}
+/* 본문: 아래정렬 (justify-content:flex-end) */
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;position:relative;min-height:0}
+.fit{width:100%}
+.foot{flex-shrink:0;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.2em;
+text-transform:uppercase;color:var(--fg-3);border-top:1px solid var(--line-2);padding-top:14px;margin-top:16px}
+.foot b{color:var(--accent-light);font-weight:600}
+/* ── 본문 타이포 — 8px 리듬 ── */
+.fit p{font-size:12.5px;line-height:1.6;color:var(--fg-2);margin:8px 0;max-width:1168px}
+.fit p.lead{font-size:14px;color:var(--fg);border-left:3px solid var(--accent);padding-left:14px;margin:8px 0 16px}
+.fit h4{font-size:13px;font-weight:600;color:var(--fg);margin:16px 0 8px}
+.fit h4::before{content:&#x27;&#x27;;display:inline-block;width:3px;height:12px;background:var(--accent);margin-right:8px;vertical-align:-1px}
+.fit ul,.fit ol{margin:8px 0 8px 18px}
+.fit li{font-size:12px;line-height:1.6;color:var(--fg-2);margin:4px 0}
+.fit strong,.fit li strong{color:var(--fg);font-weight:600}
+/* ── 표 ── */
+.fit table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0}
+.fit th{background:var(--bg-3);color:var(--fg);font-weight:600;text-align:left;padding:6px 8px;
+border:1px solid var(--line);font-size:10px;letter-spacing:.04em}
+.fit td{padding:6px 8px;border:1px solid var(--line-2);color:var(--fg-2);line-height:1.5;vertical-align:top}
+.fit td small{font-size:10px;color:var(--fg-3)}
+.matrix td.hit{background:rgba(108,92,231,.10);color:var(--fg)}
+.matrix td.mid{background:rgba(168,114,14,.10)}
+.matrix td.out{background:rgba(194,71,47,.08);color:var(--fg-3)}
+/* ── 12-column grid (gap 14px · 개수→스팬 규칙) ── */
+.kpi-grid,.kpi-grid-3,.card-grid,.card-grid-2,.card-grid-4,.card-grid-5,
+.choice,.interpretation{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin:16px 0}
+.kpi-grid&gt;*{grid-column:span 3}
+.kpi-grid-3&gt;*,.card-grid&gt;*,.card-grid-5&gt;*,.choice-3&gt;*,.interpretation&gt;*{grid-column:span 4}
+.card-grid-2&gt;*,.choice-2&gt;*{grid-column:span 6}
+.card-grid-4&gt;*{grid-column:span 3}
+.split{display:grid;grid-template-columns:repeat(12,1fr);gap:0;margin:16px 0;border:1px solid var(--line-2)}
+.split&gt;div{grid-column:span 6;padding:16px}
+.split&gt;div:first-child{border-right:1px solid var(--line-2)}
+.split .sh{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+.split .sh.pos{color:var(--green)}
+.split .sh.neg{color:var(--red)}
+.split p{font-size:11px;margin:4px 0}
+/* ── 컴포넌트 (내부 패딩 16px 통일) ── */
+.callout,.callout-danger,.callout-success{border:1px solid var(--line);border-left:3px solid var(--accent);
+background:var(--bg-2);padding:16px;margin:16px 0;font-size:12px}
+.callout-danger{border-left-color:var(--red);background:rgba(194,71,47,.05)}
+.callout-success{border-left-color:var(--green);background:rgba(30,125,78,.05)}
+.callout p,.callout-danger p,.callout-success p{margin:4px 0;font-size:12px}
+.kpi{background:var(--bg-2);border:1px solid var(--line-2);padding:16px;text-align:center}
+.kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi-value{font-size:26px;font-weight:600;color:var(--accent-light);line-height:1.1;letter-spacing:-0.02em}
+.kpi-unit{font-size:13px;font-weight:500;margin-left:2px}
+.kpi-sub{font-size:10px;color:var(--fg-3);margin-top:8px;line-height:1.45}
+.card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px}
+.card h4{margin:0 0 8px;font-size:12px;font-weight:600}
+.card h4::before{content:none}
+.card p{font-size:11px;margin:4px 0;line-height:1.55}
+.card .tag,.tag{display:inline-block;font-size:9px;letter-spacing:.12em;color:var(--accent-light);
+border:1px solid var(--line);padding:2px 8px;margin-top:8px}
+.choice-card{border:1px solid var(--line);background:var(--bg-2);padding:16px;position:relative}
+.choice-card .ct{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.choice-card h5{font-size:13px;font-weight:600;margin-bottom:8px}
+.choice-card p{font-size:11px;margin:0 0 8px}
+.choice-card .pro,.choice-card .con{font-size:10.5px;line-height:1.5;padding-left:14px;position:relative;margin:4px 0;color:var(--fg-2)}
+.choice-card .pro::before{content:&quot;+&quot;;position:absolute;left:0;color:var(--green);font-weight:600}
+.choice-card .con::before{content:&quot;−&quot;;position:absolute;left:0;color:var(--red);font-weight:600}
+.choice-card.rec{border-color:var(--accent)}
+.choice-card.rec::after{content:&quot;권고&quot;;position:absolute;top:-1px;right:-1px;background:var(--accent);
+color:#fff;font-size:9px;letter-spacing:.15em;padding:2px 8px}
+.lens{border-left:3px solid var(--accent);background:var(--bg-2);padding:16px;margin:16px 0}
+.lens .lt{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.lens h5{font-size:12.5px;font-weight:600;margin-bottom:8px}
+.lens p{font-size:11px;margin:4px 0}
+blockquote{border-left:2px solid var(--accent);padding:8px 0 8px 16px;margin:16px 0;font-size:13px;
+color:var(--fg);line-height:1.55;max-width:1000px}
+blockquote cite{display:block;font-size:10px;color:var(--fg-3);font-style:normal;letter-spacing:.08em;margin-top:8px}
+.steps{margin:16px 0}
+.step{border:1px solid var(--line-2);padding:12px 16px;font-size:11px;background:var(--bg-2);margin:8px 0}
+.step-num{color:var(--accent-light);font-weight:700;margin-right:8px}
+.badge,.badge-yes,.badge-no,.badge-warn,.badge-info{display:inline-block;font-size:9px;letter-spacing:.1em;
+padding:2px 8px;border:1px solid var(--line);color:var(--fg-3);vertical-align:middle;white-space:nowrap}
+.badge-yes{color:var(--green);border-color:var(--green);background:rgba(30,125,78,.07)}
+.badge-no{color:var(--red);border-color:var(--red);background:rgba(194,71,47,.07)}
+.badge-warn{color:var(--amber);border-color:var(--amber);background:rgba(168,114,14,.07)}
+.badge-info{color:var(--blue);border-color:var(--blue);background:rgba(62,107,143,.07)}
+.ev{display:inline-block;font-size:8px;letter-spacing:.05em;color:var(--fg-3);border:1px solid var(--line-2);
+padding:0 4px;margin-left:3px;vertical-align:middle;white-space:nowrap}
+.ev.a{color:var(--accent-light);border-color:rgba(88,72,200,.4)}
+.ev.b{color:var(--blue);border-color:rgba(62,107,143,.4)}
+.internal{display:inline-block;font-size:8px;letter-spacing:.15em;background:rgba(194,71,47,.1);
+color:var(--red);padding:2px 8px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
+.hero-number{font-size:48px;font-weight:300;color:var(--accent-light);letter-spacing:-0.03em}
+.interp-card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px;font-size:11px}
+.placeholder{border:1px dashed var(--line);background:var(--bg-2);padding:24px;text-align:center;margin:16px 0}
+.placeholder .pt{font-size:9px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.placeholder h4{font-size:14px;color:var(--fg-2);margin:0 0 8px}
+.placeholder h4::before{content:none}
+.placeholder p{font-size:11px;color:var(--fg-3);max-width:560px;margin:0 auto}
+.compare-table th{font-size:10px}
+/* ── 표지 (중앙 정렬 예외 — 가이드 슬라이드 타입 규칙) ── */
+.slide.cover{justify-content:flex-start;padding-top:64px}
+.cv-line{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;margin-bottom:24px}
+.cv-title{font-size:60px;font-weight:300;line-height:1.05;letter-spacing:-0.04em;margin-bottom:16px}
+.cv-title em{font-style:normal;color:var(--accent-light)}
+.cv-sub{font-size:14px;color:var(--fg-2);line-height:1.6;max-width:760px;margin-bottom:24px}
+.cv-cols{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;flex:1;min-height:0}
+.cv-cols&gt;div:first-child{grid-column:span 7}
+.cv-cols&gt;div:last-child{grid-column:span 5}
+.cv-cols blockquote{font-size:15px}
+.cover-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 24px;margin-top:16px}
+.cover-meta dt{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:2px}
+.cover-meta dd{font-size:12px;color:var(--fg);margin:0}
+.toc h3{font-size:11px;letter-spacing:.25em;color:var(--accent-light);text-transform:uppercase;margin-bottom:8px}
+.toc ol{margin-left:18px}
+.toc li{font-size:11.5px;line-height:1.75;color:var(--fg-2)}
+.toc a{color:inherit;text-decoration:none}
+/* ── STEP 표지(간지 — 중앙 정렬 예외) ── */
+.slide.divider{justify-content:center;background:var(--bg-2)}
+.dv-no{font-size:104px;font-weight:700;color:rgba(108,92,231,.14);line-height:1;position:absolute;top:48px;right:56px}
+.dv-eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;margin-bottom:16px}
+.slide.divider h1{font-size:40px;font-weight:500;line-height:1.25;letter-spacing:-0.025em;max-width:1040px;margin-bottom:24px}
+.slide.divider h1 em{font-style:normal;color:var(--accent-light)}
+.dv-desc{font-size:14px;color:var(--fg-2);line-height:1.7;max-width:920px;margin-bottom:8px}
+.dv-desc strong{color:var(--fg)}
+/* ── 네비 ── */
+.prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:50;transition:width .18s}
+.nav{position:fixed;bottom:16px;right:20px;display:flex;gap:8px;z-index:50;align-items:center}
+.nav button{border:1px solid var(--line);background:#fff;color:var(--fg-2);font-size:11px;
+padding:6px 14px;cursor:pointer;font-family:inherit;letter-spacing:.1em}
+.nav button:hover{border-color:var(--accent);color:var(--accent-light)}
+.nav .cnt{font-size:11px;color:var(--fg-3);letter-spacing:.08em;padding:0 4px}
+.measuring{display:flex!important;visibility:hidden;position:absolute!important;top:0;left:0}
+/* SVG 다이어그램은 슬라이드 본문 높이를 넘지 않게 — 넘치면 fitAll 0.62 하한에 걸려 잘린다.
+   인라인 min-width/width를 !important로 무력화하고 종횡비를 유지한 채 높이로 맞춘다. (2026-08-19) */
+.fit svg{width:auto!important;min-width:0!important;max-width:100%!important;
+  height:auto!important;max-height:450px;display:block;margin:0 auto}
+@media print{
+  html,body{background:#fff;padding:0;margin:0}
+  .nav,.prog{display:none!important}
+  .slide{display:flex!important;page-break-after:always;break-after:page;box-shadow:none;margin:0}
+  .slide:last-child{page-break-after:auto}
+  @page{size:1280px 720px;margin:0}
+}
+
+body{margin:0;background:#fff}.slide{margin:0}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;slide active&quot; data-agenda=&quot;B.2&quot; data-key=&quot;B.2/3&quot;&gt;&lt;div class=&quot;slide-head&quot;&gt;&lt;div class=&quot;eyebrow&quot;&gt;&lt;span class=&quot;num&quot;&gt;B.2&lt;/span&gt; Appendix · 5개년 재무계획 써머리 &lt;span class=&quot;cont&quot;&gt;· 계속 3/12&lt;/span&gt;&lt;/div&gt;&lt;h1&gt;적자가 문제가 아니라 &lt;em&gt;기회비용&lt;/em&gt;이 문제입니다 — 손익분기는 낮고, 재임대를 넘는 길은 좁습니다&lt;/h1&gt;&lt;p class=&quot;hsub&quot;&gt;15칸 그리드를 읽으면, 좁게 게이트는 어떤 시나리오로도 세후 적자(기준 -12.9억원)라 사업 자체가 성립하지 않습니다. 조리까지 풀리는 넓게 게이트는 기준 실행으로도 세후 2.6~5.9억원 흑자이지만 재임대 27.1억원에는 크게 못 미치고, 재임대를 넘는 칸은 &#x27;넓게×낙관&#x27;(세후 29.6억원, 회수 5년)과 &#x27;넓게·선별×낙관&#x27;(세후 32.1억원, 회수 3년) 둘뿐입니다. 그중 숙박을 제외한 선별 경로가 투자는 52억원 적고 회수는 2년 빠릅니다. 감가상각은 장부상 비용일 뿐 현금 유출이 아니라서, 기준 케이스도 현금흐름 기준으로는 연 +14.5억원이 돌지만 이 현금은 투자 회수에 먼저 쓰입니다.&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;slide-body&quot;&gt;&lt;div class=&quot;fit&quot;&gt;&lt;h4 data-blk=&quot;B.2#5&quot;&gt;판정 그리드 — 15칸 중 재임대를 넘는 칸은 둘뿐입니다&lt;/h4&gt;
+  &lt;table data-blk=&quot;B.2#6&quot;&gt;
+    &lt;thead&gt;
+      &lt;tr&gt;&lt;th&gt;유권해석 게이트&lt;/th&gt;&lt;th&gt;케이스&lt;/th&gt;&lt;th&gt;연 매출&lt;/th&gt;&lt;th&gt;세후이익&lt;/th&gt;&lt;th&gt;현금흐름&lt;/th&gt;&lt;th&gt;판정&lt;/th&gt;&lt;th&gt;총투자&lt;/th&gt;&lt;th&gt;회수&lt;/th&gt;&lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+      &lt;tr&gt;&lt;td rowspan=&quot;2&quot;&gt;좁게 — 전시·리테일만&lt;/td&gt;&lt;td&gt;기준&lt;/td&gt;&lt;td&gt;12.5억&lt;/td&gt;&lt;td&gt;-12.9억&lt;/td&gt;&lt;td&gt;-5.8억&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge badge-no&quot;&gt;불성립&lt;/span&gt;&lt;/td&gt;&lt;td&gt;86.2억&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;낙관&lt;/td&gt;&lt;td&gt;39.6억&lt;/td&gt;&lt;td&gt;-4.5억&lt;/td&gt;&lt;td&gt;+1.7억&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge badge-no&quot;&gt;불성립&lt;/span&gt;&lt;/td&gt;&lt;td&gt;73.7억&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td rowspan=&quot;2&quot;&gt;중간 — 명상·기업·멤버십까지&lt;/td&gt;&lt;td&gt;기준&lt;/td&gt;&lt;td&gt;43.0억&lt;/td&gt;&lt;td&gt;-4.7억&lt;/td&gt;&lt;td&gt;+7.1억&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge badge-no&quot;&gt;미달&lt;/span&gt;&lt;/td&gt;&lt;td&gt;141.7억&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;낙관&lt;/td&gt;&lt;td&gt;109.1억&lt;/td&gt;&lt;td&gt;+18.5억&lt;/td&gt;&lt;td&gt;+29.3억&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge badge-no&quot;&gt;미달(0.68x)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;129.2억&lt;/td&gt;&lt;td&gt;6년&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td rowspan=&quot;2&quot;&gt;중간·선별 — 숙박 제외&lt;/td&gt;&lt;td&gt;기준&lt;/td&gt;&lt;td&gt;39.0억&lt;/td&gt;&lt;td&gt;-1.1억&lt;/td&gt;&lt;td&gt;+6.3억&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge badge-no&quot;&gt;미달&lt;/span&gt;&lt;/td&gt;&lt;td&gt;89.4억&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;낙관&lt;/td&gt;&lt;td&gt;101.6억&lt;/td&gt;&lt;td&gt;+21.1억&lt;/td&gt;&lt;td&gt;+27.5억&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge badge-no&quot;&gt;미달(0.78x)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;76.9억&lt;/td&gt;&lt;td&gt;4년&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td rowspan=&quot;2&quot;&gt;넓게 — 조리 해소(다원·다이닝 포함)&lt;/td&gt;&lt;td&gt;기준&lt;/td&gt;&lt;td&gt;74.4억&lt;/td&gt;&lt;td&gt;+2.6억&lt;/td&gt;&lt;td&gt;+15.6억&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge badge-no&quot;&gt;미달(0.10x)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;156.3억&lt;/td&gt;&lt;td&gt;12년&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;낙관&lt;/td&gt;&lt;td&gt;158.6억&lt;/td&gt;&lt;td&gt;+29.6억&lt;/td&gt;&lt;td&gt;+41.6억&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge badge-info&quot;&gt;초과 ✓ (1.09x)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;143.8억&lt;/td&gt;&lt;td&gt;5년&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td rowspan=&quot;2&quot;&gt;&lt;strong&gt;넓게·선별 — 권고 경로&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;기준&lt;/td&gt;&lt;td&gt;70.5억&lt;/td&gt;&lt;td&gt;+5.9억&lt;/td&gt;&lt;td&gt;+14.5억&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge badge-no&quot;&gt;미달(0.22x)&lt;/span&gt;&lt;/td&gt;&lt;td&gt;104.0억&lt;/td&gt;&lt;td&gt;9년&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;&lt;strong&gt;낙관&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;151.1억&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;+32.1억&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;+39.8억&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge badge-info&quot;&gt;&lt;strong&gt;초과 ✓ (1.19x)&lt;/strong&gt;&lt;/span&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;91.5억&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;3년&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;/tbody&gt;
+  &lt;/table&gt;
+  &lt;p data-blk=&quot;B.2#7&quot;&gt;
+    &lt;strong&gt;읽는 법.&lt;/strong&gt; ①좁게 나오면 어떤 시나리오로도 적자 — &lt;strong&gt;사업 자체가 성립하지 않습니다&lt;/strong&gt;&lt;span class=&quot;ev a&quot;&gt;E-1086&lt;/span&gt;.
+    ②조리까지 풀려도(넓게) 기준 실행으로는 세후 2.6~5.9억 — 흑자이지만 재임대 27억에 크게 못 미칩니다.
+    ③재임대를 넘는 칸은 &lt;strong&gt;&quot;넓게 × 낙관 실행&quot; 둘뿐&lt;/strong&gt;이고, 그중 권고 경로(숙박 제외 선별)가 투자는 52억 적고 회수는 2년 빠릅니다&lt;span class=&quot;ev a&quot;&gt;E-1087&lt;/span&gt;.
+    ④세후이익과 현금흐름이 다른 이유 — 감가상각은 장부상 비용이지 현금 유출이 아니라서, 현금 기준으로는 기준 케이스도 연 +14.5억이 돕니다. 다만 그 현금은 투자 회수에 먼저 쓰입니다(회수 9년).
+    보수 케이스는 표에서 뺐지만 전 게이트에서 큰 적자입니다 — 전문의 15칸 전체 표를 참조하십시오.
+  &lt;/p&gt;
+
+  &lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;foot&quot;&gt;&lt;span&gt;봉은문화센터 Master Strategy Report&lt;/span&gt;&lt;span class=&quot;r&quot;&gt;by &lt;b&gt;Project Rent&lt;/b&gt; · &lt;span class=&quot;pg&quot;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;script&gt;const f=document.querySelector(&quot;.fit&quot;),b=document.querySelector(&quot;.slide-body&quot;);if(f&amp;&amp;b){const a=b.clientHeight;let s2=1;for(let k=0;k&lt;3;k++){const h=f.scrollHeight;if(h&lt;=a+2)break;s2=Math.max(0.62,a/h*s2);f.style.transform=&quot;scale(&quot;+s2+&quot;)&quot;;f.style.transformOrigin=&quot;bottom left&quot;;f.style.width=(100/s2)+&quot;%&quot;;}}&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" scrolling="no" loading="lazy"></iframe><figcaption><b>B.2/3 · 0.686</b> — 15칸 판정 그리드. 표가 커서 축소</figcaption></figure>
+    <figure class="fr"><iframe srcdoc="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css&quot;&gt;&lt;style&gt;
+/* ── R 디자인 가이드 적용(화이트 출력 테마) — 12col grid·8px scale·아래정렬 ── */
+:root{--bg:#FFFFFF;--bg-2:#F6F4F1;--bg-3:#EFECE7;--fg:#1A1A1A;--fg-2:#3D3A36;--fg-3:#8A857D;
+--line:#D8D4CD;--line-2:#E5E2DC;--accent:#6C5CE7;--accent-light:#5848C8;
+--green:#1E7D4E;--red:#C2472F;--amber:#A8720E;--blue:#3E6B8F;--warm:#8A6D3B;
+--rust:#A34D28;--stone:#8A8175;--accent-subtle:rgba(108,92,231,.07);--accent-dark:#5848C8}
+*{margin:0;padding:0;box-sizing:border-box;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+svg{max-width:100%;height:auto;min-width:0!important}
+html{background:#E9E7E2}
+body{font-family:&#x27;Pretendard Variable&#x27;,Pretendard,-apple-system,sans-serif;font-weight:400;color:var(--fg);
+background:#E9E7E2;letter-spacing:-0.01em}
+h1,h2,h3,h4{text-wrap:balance}
+.slide{width:1280px;height:720px;background:var(--bg);display:none;flex-direction:column;
+padding:40px 56px 24px;position:relative;overflow:hidden;margin:0 auto}
+@media screen{body{padding:24px 0}.slide{box-shadow:0 2px 18px rgba(0,0,0,.12)}
+.slide.active{display:flex}}
+/* 헤더: 상단 고정 (가이드 §4 슬라이드 규칙) */
+.slide-head{flex-shrink:0;border-bottom:1px solid var(--line-2);padding-bottom:16px}
+.eyebrow{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--fg-3);margin-bottom:8px}
+.eyebrow .num{display:inline-block;background:var(--accent);color:#fff;font-weight:600;
+padding:2px 8px;margin-right:8px;letter-spacing:.08em}
+.eyebrow .cont{color:var(--fg-3);letter-spacing:.1em;margin-left:6px}
+.slide-head h1{font-size:35px;font-weight:500;line-height:1.28;letter-spacing:-0.025em;max-width:1168px}
+.hsub{font-size:12.5px;color:var(--fg-2);line-height:1.6;margin-top:10px;max-width:1100px}
+.slide-head h1 em{font-style:normal;color:var(--accent-light)}
+/* 본문: 아래정렬 (justify-content:flex-end) */
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;position:relative;min-height:0}
+.fit{width:100%}
+.foot{flex-shrink:0;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.2em;
+text-transform:uppercase;color:var(--fg-3);border-top:1px solid var(--line-2);padding-top:14px;margin-top:16px}
+.foot b{color:var(--accent-light);font-weight:600}
+/* ── 본문 타이포 — 8px 리듬 ── */
+.fit p{font-size:12.5px;line-height:1.6;color:var(--fg-2);margin:8px 0;max-width:1168px}
+.fit p.lead{font-size:14px;color:var(--fg);border-left:3px solid var(--accent);padding-left:14px;margin:8px 0 16px}
+.fit h4{font-size:13px;font-weight:600;color:var(--fg);margin:16px 0 8px}
+.fit h4::before{content:&#x27;&#x27;;display:inline-block;width:3px;height:12px;background:var(--accent);margin-right:8px;vertical-align:-1px}
+.fit ul,.fit ol{margin:8px 0 8px 18px}
+.fit li{font-size:12px;line-height:1.6;color:var(--fg-2);margin:4px 0}
+.fit strong,.fit li strong{color:var(--fg);font-weight:600}
+/* ── 표 ── */
+.fit table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0}
+.fit th{background:var(--bg-3);color:var(--fg);font-weight:600;text-align:left;padding:6px 8px;
+border:1px solid var(--line);font-size:10px;letter-spacing:.04em}
+.fit td{padding:6px 8px;border:1px solid var(--line-2);color:var(--fg-2);line-height:1.5;vertical-align:top}
+.fit td small{font-size:10px;color:var(--fg-3)}
+.matrix td.hit{background:rgba(108,92,231,.10);color:var(--fg)}
+.matrix td.mid{background:rgba(168,114,14,.10)}
+.matrix td.out{background:rgba(194,71,47,.08);color:var(--fg-3)}
+/* ── 12-column grid (gap 14px · 개수→스팬 규칙) ── */
+.kpi-grid,.kpi-grid-3,.card-grid,.card-grid-2,.card-grid-4,.card-grid-5,
+.choice,.interpretation{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin:16px 0}
+.kpi-grid&gt;*{grid-column:span 3}
+.kpi-grid-3&gt;*,.card-grid&gt;*,.card-grid-5&gt;*,.choice-3&gt;*,.interpretation&gt;*{grid-column:span 4}
+.card-grid-2&gt;*,.choice-2&gt;*{grid-column:span 6}
+.card-grid-4&gt;*{grid-column:span 3}
+.split{display:grid;grid-template-columns:repeat(12,1fr);gap:0;margin:16px 0;border:1px solid var(--line-2)}
+.split&gt;div{grid-column:span 6;padding:16px}
+.split&gt;div:first-child{border-right:1px solid var(--line-2)}
+.split .sh{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+.split .sh.pos{color:var(--green)}
+.split .sh.neg{color:var(--red)}
+.split p{font-size:11px;margin:4px 0}
+/* ── 컴포넌트 (내부 패딩 16px 통일) ── */
+.callout,.callout-danger,.callout-success{border:1px solid var(--line);border-left:3px solid var(--accent);
+background:var(--bg-2);padding:16px;margin:16px 0;font-size:12px}
+.callout-danger{border-left-color:var(--red);background:rgba(194,71,47,.05)}
+.callout-success{border-left-color:var(--green);background:rgba(30,125,78,.05)}
+.callout p,.callout-danger p,.callout-success p{margin:4px 0;font-size:12px}
+.kpi{background:var(--bg-2);border:1px solid var(--line-2);padding:16px;text-align:center}
+.kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi-value{font-size:26px;font-weight:600;color:var(--accent-light);line-height:1.1;letter-spacing:-0.02em}
+.kpi-unit{font-size:13px;font-weight:500;margin-left:2px}
+.kpi-sub{font-size:10px;color:var(--fg-3);margin-top:8px;line-height:1.45}
+.card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px}
+.card h4{margin:0 0 8px;font-size:12px;font-weight:600}
+.card h4::before{content:none}
+.card p{font-size:11px;margin:4px 0;line-height:1.55}
+.card .tag,.tag{display:inline-block;font-size:9px;letter-spacing:.12em;color:var(--accent-light);
+border:1px solid var(--line);padding:2px 8px;margin-top:8px}
+.choice-card{border:1px solid var(--line);background:var(--bg-2);padding:16px;position:relative}
+.choice-card .ct{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.choice-card h5{font-size:13px;font-weight:600;margin-bottom:8px}
+.choice-card p{font-size:11px;margin:0 0 8px}
+.choice-card .pro,.choice-card .con{font-size:10.5px;line-height:1.5;padding-left:14px;position:relative;margin:4px 0;color:var(--fg-2)}
+.choice-card .pro::before{content:&quot;+&quot;;position:absolute;left:0;color:var(--green);font-weight:600}
+.choice-card .con::before{content:&quot;−&quot;;position:absolute;left:0;color:var(--red);font-weight:600}
+.choice-card.rec{border-color:var(--accent)}
+.choice-card.rec::after{content:&quot;권고&quot;;position:absolute;top:-1px;right:-1px;background:var(--accent);
+color:#fff;font-size:9px;letter-spacing:.15em;padding:2px 8px}
+.lens{border-left:3px solid var(--accent);background:var(--bg-2);padding:16px;margin:16px 0}
+.lens .lt{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.lens h5{font-size:12.5px;font-weight:600;margin-bottom:8px}
+.lens p{font-size:11px;margin:4px 0}
+blockquote{border-left:2px solid var(--accent);padding:8px 0 8px 16px;margin:16px 0;font-size:13px;
+color:var(--fg);line-height:1.55;max-width:1000px}
+blockquote cite{display:block;font-size:10px;color:var(--fg-3);font-style:normal;letter-spacing:.08em;margin-top:8px}
+.steps{margin:16px 0}
+.step{border:1px solid var(--line-2);padding:12px 16px;font-size:11px;background:var(--bg-2);margin:8px 0}
+.step-num{color:var(--accent-light);font-weight:700;margin-right:8px}
+.badge,.badge-yes,.badge-no,.badge-warn,.badge-info{display:inline-block;font-size:9px;letter-spacing:.1em;
+padding:2px 8px;border:1px solid var(--line);color:var(--fg-3);vertical-align:middle;white-space:nowrap}
+.badge-yes{color:var(--green);border-color:var(--green);background:rgba(30,125,78,.07)}
+.badge-no{color:var(--red);border-color:var(--red);background:rgba(194,71,47,.07)}
+.badge-warn{color:var(--amber);border-color:var(--amber);background:rgba(168,114,14,.07)}
+.badge-info{color:var(--blue);border-color:var(--blue);background:rgba(62,107,143,.07)}
+.ev{display:inline-block;font-size:8px;letter-spacing:.05em;color:var(--fg-3);border:1px solid var(--line-2);
+padding:0 4px;margin-left:3px;vertical-align:middle;white-space:nowrap}
+.ev.a{color:var(--accent-light);border-color:rgba(88,72,200,.4)}
+.ev.b{color:var(--blue);border-color:rgba(62,107,143,.4)}
+.internal{display:inline-block;font-size:8px;letter-spacing:.15em;background:rgba(194,71,47,.1);
+color:var(--red);padding:2px 8px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
+.hero-number{font-size:48px;font-weight:300;color:var(--accent-light);letter-spacing:-0.03em}
+.interp-card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px;font-size:11px}
+.placeholder{border:1px dashed var(--line);background:var(--bg-2);padding:24px;text-align:center;margin:16px 0}
+.placeholder .pt{font-size:9px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.placeholder h4{font-size:14px;color:var(--fg-2);margin:0 0 8px}
+.placeholder h4::before{content:none}
+.placeholder p{font-size:11px;color:var(--fg-3);max-width:560px;margin:0 auto}
+.compare-table th{font-size:10px}
+/* ── 표지 (중앙 정렬 예외 — 가이드 슬라이드 타입 규칙) ── */
+.slide.cover{justify-content:flex-start;padding-top:64px}
+.cv-line{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;margin-bottom:24px}
+.cv-title{font-size:60px;font-weight:300;line-height:1.05;letter-spacing:-0.04em;margin-bottom:16px}
+.cv-title em{font-style:normal;color:var(--accent-light)}
+.cv-sub{font-size:14px;color:var(--fg-2);line-height:1.6;max-width:760px;margin-bottom:24px}
+.cv-cols{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;flex:1;min-height:0}
+.cv-cols&gt;div:first-child{grid-column:span 7}
+.cv-cols&gt;div:last-child{grid-column:span 5}
+.cv-cols blockquote{font-size:15px}
+.cover-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 24px;margin-top:16px}
+.cover-meta dt{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:2px}
+.cover-meta dd{font-size:12px;color:var(--fg);margin:0}
+.toc h3{font-size:11px;letter-spacing:.25em;color:var(--accent-light);text-transform:uppercase;margin-bottom:8px}
+.toc ol{margin-left:18px}
+.toc li{font-size:11.5px;line-height:1.75;color:var(--fg-2)}
+.toc a{color:inherit;text-decoration:none}
+/* ── STEP 표지(간지 — 중앙 정렬 예외) ── */
+.slide.divider{justify-content:center;background:var(--bg-2)}
+.dv-no{font-size:104px;font-weight:700;color:rgba(108,92,231,.14);line-height:1;position:absolute;top:48px;right:56px}
+.dv-eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;margin-bottom:16px}
+.slide.divider h1{font-size:40px;font-weight:500;line-height:1.25;letter-spacing:-0.025em;max-width:1040px;margin-bottom:24px}
+.slide.divider h1 em{font-style:normal;color:var(--accent-light)}
+.dv-desc{font-size:14px;color:var(--fg-2);line-height:1.7;max-width:920px;margin-bottom:8px}
+.dv-desc strong{color:var(--fg)}
+/* ── 네비 ── */
+.prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:50;transition:width .18s}
+.nav{position:fixed;bottom:16px;right:20px;display:flex;gap:8px;z-index:50;align-items:center}
+.nav button{border:1px solid var(--line);background:#fff;color:var(--fg-2);font-size:11px;
+padding:6px 14px;cursor:pointer;font-family:inherit;letter-spacing:.1em}
+.nav button:hover{border-color:var(--accent);color:var(--accent-light)}
+.nav .cnt{font-size:11px;color:var(--fg-3);letter-spacing:.08em;padding:0 4px}
+.measuring{display:flex!important;visibility:hidden;position:absolute!important;top:0;left:0}
+/* SVG 다이어그램은 슬라이드 본문 높이를 넘지 않게 — 넘치면 fitAll 0.62 하한에 걸려 잘린다.
+   인라인 min-width/width를 !important로 무력화하고 종횡비를 유지한 채 높이로 맞춘다. (2026-08-19) */
+.fit svg{width:auto!important;min-width:0!important;max-width:100%!important;
+  height:auto!important;max-height:450px;display:block;margin:0 auto}
+@media print{
+  html,body{background:#fff;padding:0;margin:0}
+  .nav,.prog{display:none!important}
+  .slide{display:flex!important;page-break-after:always;break-after:page;box-shadow:none;margin:0}
+  .slide:last-child{page-break-after:auto}
+  @page{size:1280px 720px;margin:0}
+}
+
+body{margin:0;background:#fff}.slide{margin:0}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;slide active&quot; data-agenda=&quot;6.3&quot; data-key=&quot;6.3/1&quot;&gt;&lt;div class=&quot;slide-head&quot;&gt;&lt;div class=&quot;eyebrow&quot;&gt;&lt;span class=&quot;num&quot;&gt;6.3&lt;/span&gt; 그루핑 결과 ② · 건물 밖으로 나가는 것 · STEP 7 연결 &lt;/div&gt;&lt;h1&gt;뒤의 다섯은 &lt;em&gt;건물 밖으로 나갑니다&lt;/em&gt; — 밤·관계·사후, 그리고 전국 사찰까지입니다&lt;/h1&gt;&lt;p class=&quot;hsub&quot;&gt;뒤의 다섯 묶음은 시간과 관계와 거리로 뻗어 나갑니다. G6 재우는 것은 8개로 밤에 머무는 설비라는 같은 고정 투자를 전제해 전부 아니면 전무인 묶음이며, 유일한 합법 경로는 템플스테이 계열이고 호텔·게스트하우스는 영업행위 금지에 걸립니다. B안 6·A안 2·C안 0으로, C안에서는 통째로 사라지는 유일한 묶음입니다 — 재우는 일은 복제해 내보낼 수 없고 이 건물에서만 일어나기 때문입니다. G7 공간을 빌려주는 것은 10개로 큰 공간의 빈 시간을 팔아 운영 부담이 가장 낮고 지금 당장 시작할 수 있습니다. 집회장 본래 용도를 유지하지만 행사 성격에 따라 건건이 판단되기 때문에 이 묶음의 리스크 관리는 시설이 아니라 행사 심사 기준에 달려 있습니다.&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;slide-body&quot;&gt;&lt;div class=&quot;fit&quot;&gt;&lt;p class=&quot;lead&quot; data-blk=&quot;6.3#0&quot;&gt;
+    앞의 다섯이 &quot;방문객이 안에 있는 동안&quot;의 서비스라면, 뒤의 다섯은 시간과 관계와 거리로 뻗어 나갑니다.
+    하룻밤을 재우고, 남의 행사를 들이고, 돈을 받지 않고 열고, 오지 않는 사람과도 관계를 잇고,
+    마지막으로 &lt;strong&gt;여기서 만든 것을 건물 밖으로 내보냅니다&lt;/strong&gt;.
+    이 다섯은 면적당 수익이 아니라 &lt;strong&gt;가동률·관계 유지·확산&lt;/strong&gt;이 지표입니다.
+  &lt;/p&gt;
+
+  &lt;div class=&quot;card-grid-2 card-grid&quot; data-h=&quot;373&quot;&gt;&lt;div class=&quot;card&quot;&gt;
+      &lt;h4&gt;G6 재우는 것 &lt;span class=&quot;tag&quot;&gt;8개&lt;/span&gt;&lt;/h4&gt;
+      &lt;p&gt;&lt;strong&gt;묶인 것&lt;/strong&gt; — 도심형 템플스테이·프리미엄 명상 리트리트·독점 프라이빗 스테이·연간 리트리트 멤버십·사찰 워케이션·새벽 예불 결합 숙박, 그리고 안 되는 것 2건.&lt;/p&gt;
+      &lt;p&gt;&lt;strong&gt;왜 한 묶음인가&lt;/strong&gt; — 전부 &lt;strong&gt;밤에 머무는 설비(숙소·샤워·야간 인력)&lt;/strong&gt;라는 같은 고정 투자를 전제합니다. 하나를 위해 지으면 나머지는 거의 공짜로 붙고, 짓지 않으면 전부 불가능합니다. 전부 아니면 전무인 묶음입니다.&lt;/p&gt;
+      &lt;p&gt;&lt;strong&gt;법&lt;/strong&gt; — &lt;span class=&quot;badge badge-yes&quot;&gt;Tier1 2&lt;/span&gt; &lt;span class=&quot;badge badge-warn&quot;&gt;Tier2 4&lt;/span&gt; &lt;span class=&quot;badge badge-no&quot;&gt;Tier3 2&lt;/span&gt;. 재우는 것의 &lt;strong&gt;유일한 합법 경로는 템플스테이 계열&lt;/strong&gt;이며, 호텔·게스트하우스는 영업행위 금지에 걸립니다&lt;span class=&quot;ev a&quot;&gt;E-0131&lt;/span&gt;.&lt;/p&gt;
+      &lt;p&gt;&lt;strong&gt;어느 안에서 사는가&lt;/strong&gt; — B 6 · A 2 · C 0. &lt;strong&gt;C안에서는 통째로 사라지는 유일한 묶음&lt;/strong&gt;입니다. 재우는 일은 복제해 내보낼 수 없고 이 건물에서만 일어납니다.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card&quot;&gt;
+      &lt;h4&gt;G7 공간을 빌려주는 것 &lt;span class=&quot;tag&quot;&gt;10개&lt;/span&gt;&lt;/h4&gt;
+      &lt;p&gt;&lt;strong&gt;묶인 것&lt;/strong&gt; — 기업 연수 3종·문화행사 포럼 대관·브랜드 론칭 대관·공연장 대관·촬영 로케이션·종단 의전 행사·전통 혼례, 그리고 안 되는 것 1건.&lt;/p&gt;
+      &lt;p&gt;&lt;strong&gt;왜 한 묶음인가&lt;/strong&gt; — 전부 &lt;strong&gt;큰 공간의 빈 시간&lt;/strong&gt;을 팝니다. 운영 부담이 가장 낮고 지금 당장 시작할 수 있으며, 서로 같은 달력을 놓고 경쟁합니다. 규모가 그대로 상품이 되는 유일한 묶음입니다.&lt;/p&gt;
+      &lt;p&gt;&lt;strong&gt;법&lt;/strong&gt; — &lt;span class=&quot;badge badge-yes&quot;&gt;Tier1 1&lt;/span&gt; &lt;span class=&quot;badge badge-warn&quot;&gt;Tier2 8&lt;/span&gt; &lt;span class=&quot;badge badge-no&quot;&gt;Tier3 1&lt;/span&gt;. 집회장 본래 용도를 유지하는 것이지만 &lt;strong&gt;행사 성격에 따라 건건이 판단&lt;/strong&gt;됩니다. 그래서 이 묶음의 리스크 관리는 시설이 아니라 &lt;strong&gt;행사 심사 기준 문서&lt;/strong&gt;입니다&lt;span class=&quot;ev a&quot;&gt;E-0157&lt;/span&gt;.&lt;/p&gt;
+      &lt;p&gt;&lt;strong&gt;어느 안에서 사는가&lt;/strong&gt; — A 7 · B 5 · C 1. 돈이 되는 것이 6개로 열 묶음 중 가장 많지만, 브랜드를 깎는 것 2개도 여기 있습니다. &lt;strong&gt;돈과 브랜드가 정면으로 어긋나는 묶음&lt;/strong&gt;이며, 그 판단은 STEP 9의 몫입니다.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card&quot;&gt;
+      &lt;h4&gt;G8 무료로 여는 것 &lt;span class=&quot;tag&quot;&gt;9개&lt;/span&gt;&lt;/h4&gt;
+      &lt;p&gt;&lt;strong&gt;묶인 것&lt;/strong&gt; — 무료 개방 라이브러리·월례 무료 콘서트·시즌 연등 야간 개방·나이트마켓·지역 상인 입점·상생 기금 적립 판매·자원봉사 가이드 투어·커뮤니티 매칭·종교 간 대화 강좌.&lt;/p&gt;
+      &lt;p&gt;&lt;strong&gt;왜 한 묶음인가&lt;/strong&gt; — 전부 &lt;strong&gt;돈이 아니라 사람과 명분을 만들어냅니다.&lt;/strong&gt; 무료 도서관이 인근 상업시설의 집객 장치가 된 국내 선례가 이 묶음의 손익 논리를 그대로 대표합니다&lt;span class=&quot;ev a&quot;&gt;E-0494&lt;/span&gt;.&lt;/p&gt;
+      &lt;p&gt;&lt;strong&gt;법&lt;/strong&gt; — &lt;span class=&quot;badge badge-yes&quot;&gt;Tier1 5&lt;/span&gt; &lt;span class=&quot;badge badge-warn&quot;&gt;Tier2 4&lt;/span&gt;. 무료·공익 성격이 강할수록 법적으로 방어하기 쉬워지는 구조가 그대로 드러납니다.&lt;/p&gt;
+      &lt;p&gt;&lt;strong&gt;어느 안에서 사는가&lt;/strong&gt; — &lt;strong&gt;A 9(전량)&lt;/strong&gt; · C 1 · B 1. 돈이 안 되는 것이 7개인데 브랜드에 도움이 되는 것도 7개입니다. B안을 택하면 이 묶음은 통째로 비용이 됩니다. 삼성동에는 야간 문화 프로그램과 상시 커뮤니티 공간이 모두 없어, 도시 차원의 빈자리는 여기에 가장 크게 나 있습니다&lt;span class=&quot;ev b&quot;&gt;E-0346&lt;/span&gt;.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;foot&quot;&gt;&lt;span&gt;봉은문화센터 Master Strategy Report&lt;/span&gt;&lt;span class=&quot;r&quot;&gt;by &lt;b&gt;Project Rent&lt;/b&gt; · &lt;span class=&quot;pg&quot;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;script&gt;const f=document.querySelector(&quot;.fit&quot;),b=document.querySelector(&quot;.slide-body&quot;);if(f&amp;&amp;b){const a=b.clientHeight;let s2=1;for(let k=0;k&lt;3;k++){const h=f.scrollHeight;if(h&lt;=a+2)break;s2=Math.max(0.62,a/h*s2);f.style.transform=&quot;scale(&quot;+s2+&quot;)&quot;;f.style.transformOrigin=&quot;bottom left&quot;;f.style.width=(100/s2)+&quot;%&quot;;}}&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" scrolling="no" loading="lazy"></iframe><figcaption><b>6.3/1 · 0.697</b> — card-grid 373px + 리드 문단</figcaption></figure>
+    <figure class="fr"><iframe srcdoc="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css&quot;&gt;&lt;style&gt;
+/* ── R 디자인 가이드 적용(화이트 출력 테마) — 12col grid·8px scale·아래정렬 ── */
+:root{--bg:#FFFFFF;--bg-2:#F6F4F1;--bg-3:#EFECE7;--fg:#1A1A1A;--fg-2:#3D3A36;--fg-3:#8A857D;
+--line:#D8D4CD;--line-2:#E5E2DC;--accent:#6C5CE7;--accent-light:#5848C8;
+--green:#1E7D4E;--red:#C2472F;--amber:#A8720E;--blue:#3E6B8F;--warm:#8A6D3B;
+--rust:#A34D28;--stone:#8A8175;--accent-subtle:rgba(108,92,231,.07);--accent-dark:#5848C8}
+*{margin:0;padding:0;box-sizing:border-box;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+svg{max-width:100%;height:auto;min-width:0!important}
+html{background:#E9E7E2}
+body{font-family:&#x27;Pretendard Variable&#x27;,Pretendard,-apple-system,sans-serif;font-weight:400;color:var(--fg);
+background:#E9E7E2;letter-spacing:-0.01em}
+h1,h2,h3,h4{text-wrap:balance}
+.slide{width:1280px;height:720px;background:var(--bg);display:none;flex-direction:column;
+padding:40px 56px 24px;position:relative;overflow:hidden;margin:0 auto}
+@media screen{body{padding:24px 0}.slide{box-shadow:0 2px 18px rgba(0,0,0,.12)}
+.slide.active{display:flex}}
+/* 헤더: 상단 고정 (가이드 §4 슬라이드 규칙) */
+.slide-head{flex-shrink:0;border-bottom:1px solid var(--line-2);padding-bottom:16px}
+.eyebrow{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--fg-3);margin-bottom:8px}
+.eyebrow .num{display:inline-block;background:var(--accent);color:#fff;font-weight:600;
+padding:2px 8px;margin-right:8px;letter-spacing:.08em}
+.eyebrow .cont{color:var(--fg-3);letter-spacing:.1em;margin-left:6px}
+.slide-head h1{font-size:35px;font-weight:500;line-height:1.28;letter-spacing:-0.025em;max-width:1168px}
+.hsub{font-size:12.5px;color:var(--fg-2);line-height:1.6;margin-top:10px;max-width:1100px}
+.slide-head h1 em{font-style:normal;color:var(--accent-light)}
+/* 본문: 아래정렬 (justify-content:flex-end) */
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;position:relative;min-height:0}
+.fit{width:100%}
+.foot{flex-shrink:0;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.2em;
+text-transform:uppercase;color:var(--fg-3);border-top:1px solid var(--line-2);padding-top:14px;margin-top:16px}
+.foot b{color:var(--accent-light);font-weight:600}
+/* ── 본문 타이포 — 8px 리듬 ── */
+.fit p{font-size:12.5px;line-height:1.6;color:var(--fg-2);margin:8px 0;max-width:1168px}
+.fit p.lead{font-size:14px;color:var(--fg);border-left:3px solid var(--accent);padding-left:14px;margin:8px 0 16px}
+.fit h4{font-size:13px;font-weight:600;color:var(--fg);margin:16px 0 8px}
+.fit h4::before{content:&#x27;&#x27;;display:inline-block;width:3px;height:12px;background:var(--accent);margin-right:8px;vertical-align:-1px}
+.fit ul,.fit ol{margin:8px 0 8px 18px}
+.fit li{font-size:12px;line-height:1.6;color:var(--fg-2);margin:4px 0}
+.fit strong,.fit li strong{color:var(--fg);font-weight:600}
+/* ── 표 ── */
+.fit table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0}
+.fit th{background:var(--bg-3);color:var(--fg);font-weight:600;text-align:left;padding:6px 8px;
+border:1px solid var(--line);font-size:10px;letter-spacing:.04em}
+.fit td{padding:6px 8px;border:1px solid var(--line-2);color:var(--fg-2);line-height:1.5;vertical-align:top}
+.fit td small{font-size:10px;color:var(--fg-3)}
+.matrix td.hit{background:rgba(108,92,231,.10);color:var(--fg)}
+.matrix td.mid{background:rgba(168,114,14,.10)}
+.matrix td.out{background:rgba(194,71,47,.08);color:var(--fg-3)}
+/* ── 12-column grid (gap 14px · 개수→스팬 규칙) ── */
+.kpi-grid,.kpi-grid-3,.card-grid,.card-grid-2,.card-grid-4,.card-grid-5,
+.choice,.interpretation{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin:16px 0}
+.kpi-grid&gt;*{grid-column:span 3}
+.kpi-grid-3&gt;*,.card-grid&gt;*,.card-grid-5&gt;*,.choice-3&gt;*,.interpretation&gt;*{grid-column:span 4}
+.card-grid-2&gt;*,.choice-2&gt;*{grid-column:span 6}
+.card-grid-4&gt;*{grid-column:span 3}
+.split{display:grid;grid-template-columns:repeat(12,1fr);gap:0;margin:16px 0;border:1px solid var(--line-2)}
+.split&gt;div{grid-column:span 6;padding:16px}
+.split&gt;div:first-child{border-right:1px solid var(--line-2)}
+.split .sh{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+.split .sh.pos{color:var(--green)}
+.split .sh.neg{color:var(--red)}
+.split p{font-size:11px;margin:4px 0}
+/* ── 컴포넌트 (내부 패딩 16px 통일) ── */
+.callout,.callout-danger,.callout-success{border:1px solid var(--line);border-left:3px solid var(--accent);
+background:var(--bg-2);padding:16px;margin:16px 0;font-size:12px}
+.callout-danger{border-left-color:var(--red);background:rgba(194,71,47,.05)}
+.callout-success{border-left-color:var(--green);background:rgba(30,125,78,.05)}
+.callout p,.callout-danger p,.callout-success p{margin:4px 0;font-size:12px}
+.kpi{background:var(--bg-2);border:1px solid var(--line-2);padding:16px;text-align:center}
+.kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi-value{font-size:26px;font-weight:600;color:var(--accent-light);line-height:1.1;letter-spacing:-0.02em}
+.kpi-unit{font-size:13px;font-weight:500;margin-left:2px}
+.kpi-sub{font-size:10px;color:var(--fg-3);margin-top:8px;line-height:1.45}
+.card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px}
+.card h4{margin:0 0 8px;font-size:12px;font-weight:600}
+.card h4::before{content:none}
+.card p{font-size:11px;margin:4px 0;line-height:1.55}
+.card .tag,.tag{display:inline-block;font-size:9px;letter-spacing:.12em;color:var(--accent-light);
+border:1px solid var(--line);padding:2px 8px;margin-top:8px}
+.choice-card{border:1px solid var(--line);background:var(--bg-2);padding:16px;position:relative}
+.choice-card .ct{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.choice-card h5{font-size:13px;font-weight:600;margin-bottom:8px}
+.choice-card p{font-size:11px;margin:0 0 8px}
+.choice-card .pro,.choice-card .con{font-size:10.5px;line-height:1.5;padding-left:14px;position:relative;margin:4px 0;color:var(--fg-2)}
+.choice-card .pro::before{content:&quot;+&quot;;position:absolute;left:0;color:var(--green);font-weight:600}
+.choice-card .con::before{content:&quot;−&quot;;position:absolute;left:0;color:var(--red);font-weight:600}
+.choice-card.rec{border-color:var(--accent)}
+.choice-card.rec::after{content:&quot;권고&quot;;position:absolute;top:-1px;right:-1px;background:var(--accent);
+color:#fff;font-size:9px;letter-spacing:.15em;padding:2px 8px}
+.lens{border-left:3px solid var(--accent);background:var(--bg-2);padding:16px;margin:16px 0}
+.lens .lt{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.lens h5{font-size:12.5px;font-weight:600;margin-bottom:8px}
+.lens p{font-size:11px;margin:4px 0}
+blockquote{border-left:2px solid var(--accent);padding:8px 0 8px 16px;margin:16px 0;font-size:13px;
+color:var(--fg);line-height:1.55;max-width:1000px}
+blockquote cite{display:block;font-size:10px;color:var(--fg-3);font-style:normal;letter-spacing:.08em;margin-top:8px}
+.steps{margin:16px 0}
+.step{border:1px solid var(--line-2);padding:12px 16px;font-size:11px;background:var(--bg-2);margin:8px 0}
+.step-num{color:var(--accent-light);font-weight:700;margin-right:8px}
+.badge,.badge-yes,.badge-no,.badge-warn,.badge-info{display:inline-block;font-size:9px;letter-spacing:.1em;
+padding:2px 8px;border:1px solid var(--line);color:var(--fg-3);vertical-align:middle;white-space:nowrap}
+.badge-yes{color:var(--green);border-color:var(--green);background:rgba(30,125,78,.07)}
+.badge-no{color:var(--red);border-color:var(--red);background:rgba(194,71,47,.07)}
+.badge-warn{color:var(--amber);border-color:var(--amber);background:rgba(168,114,14,.07)}
+.badge-info{color:var(--blue);border-color:var(--blue);background:rgba(62,107,143,.07)}
+.ev{display:inline-block;font-size:8px;letter-spacing:.05em;color:var(--fg-3);border:1px solid var(--line-2);
+padding:0 4px;margin-left:3px;vertical-align:middle;white-space:nowrap}
+.ev.a{color:var(--accent-light);border-color:rgba(88,72,200,.4)}
+.ev.b{color:var(--blue);border-color:rgba(62,107,143,.4)}
+.internal{display:inline-block;font-size:8px;letter-spacing:.15em;background:rgba(194,71,47,.1);
+color:var(--red);padding:2px 8px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
+.hero-number{font-size:48px;font-weight:300;color:var(--accent-light);letter-spacing:-0.03em}
+.interp-card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px;font-size:11px}
+.placeholder{border:1px dashed var(--line);background:var(--bg-2);padding:24px;text-align:center;margin:16px 0}
+.placeholder .pt{font-size:9px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.placeholder h4{font-size:14px;color:var(--fg-2);margin:0 0 8px}
+.placeholder h4::before{content:none}
+.placeholder p{font-size:11px;color:var(--fg-3);max-width:560px;margin:0 auto}
+.compare-table th{font-size:10px}
+/* ── 표지 (중앙 정렬 예외 — 가이드 슬라이드 타입 규칙) ── */
+.slide.cover{justify-content:flex-start;padding-top:64px}
+.cv-line{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;margin-bottom:24px}
+.cv-title{font-size:60px;font-weight:300;line-height:1.05;letter-spacing:-0.04em;margin-bottom:16px}
+.cv-title em{font-style:normal;color:var(--accent-light)}
+.cv-sub{font-size:14px;color:var(--fg-2);line-height:1.6;max-width:760px;margin-bottom:24px}
+.cv-cols{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;flex:1;min-height:0}
+.cv-cols&gt;div:first-child{grid-column:span 7}
+.cv-cols&gt;div:last-child{grid-column:span 5}
+.cv-cols blockquote{font-size:15px}
+.cover-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 24px;margin-top:16px}
+.cover-meta dt{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:2px}
+.cover-meta dd{font-size:12px;color:var(--fg);margin:0}
+.toc h3{font-size:11px;letter-spacing:.25em;color:var(--accent-light);text-transform:uppercase;margin-bottom:8px}
+.toc ol{margin-left:18px}
+.toc li{font-size:11.5px;line-height:1.75;color:var(--fg-2)}
+.toc a{color:inherit;text-decoration:none}
+/* ── STEP 표지(간지 — 중앙 정렬 예외) ── */
+.slide.divider{justify-content:center;background:var(--bg-2)}
+.dv-no{font-size:104px;font-weight:700;color:rgba(108,92,231,.14);line-height:1;position:absolute;top:48px;right:56px}
+.dv-eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;margin-bottom:16px}
+.slide.divider h1{font-size:40px;font-weight:500;line-height:1.25;letter-spacing:-0.025em;max-width:1040px;margin-bottom:24px}
+.slide.divider h1 em{font-style:normal;color:var(--accent-light)}
+.dv-desc{font-size:14px;color:var(--fg-2);line-height:1.7;max-width:920px;margin-bottom:8px}
+.dv-desc strong{color:var(--fg)}
+/* ── 네비 ── */
+.prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:50;transition:width .18s}
+.nav{position:fixed;bottom:16px;right:20px;display:flex;gap:8px;z-index:50;align-items:center}
+.nav button{border:1px solid var(--line);background:#fff;color:var(--fg-2);font-size:11px;
+padding:6px 14px;cursor:pointer;font-family:inherit;letter-spacing:.1em}
+.nav button:hover{border-color:var(--accent);color:var(--accent-light)}
+.nav .cnt{font-size:11px;color:var(--fg-3);letter-spacing:.08em;padding:0 4px}
+.measuring{display:flex!important;visibility:hidden;position:absolute!important;top:0;left:0}
+/* SVG 다이어그램은 슬라이드 본문 높이를 넘지 않게 — 넘치면 fitAll 0.62 하한에 걸려 잘린다.
+   인라인 min-width/width를 !important로 무력화하고 종횡비를 유지한 채 높이로 맞춘다. (2026-08-19) */
+.fit svg{width:auto!important;min-width:0!important;max-width:100%!important;
+  height:auto!important;max-height:450px;display:block;margin:0 auto}
+@media print{
+  html,body{background:#fff;padding:0;margin:0}
+  .nav,.prog{display:none!important}
+  .slide{display:flex!important;page-break-after:always;break-after:page;box-shadow:none;margin:0}
+  .slide:last-child{page-break-after:auto}
+  @page{size:1280px 720px;margin:0}
+}
+
+body{margin:0;background:#fff}.slide{margin:0}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;slide active&quot; data-agenda=&quot;2.8&quot; data-key=&quot;2.8/2&quot;&gt;&lt;div class=&quot;slide-head&quot;&gt;&lt;div class=&quot;eyebrow&quot;&gt;&lt;span class=&quot;num&quot;&gt;2.8&lt;/span&gt; ⓑ 불교 전체 · 방어선 &lt;span class=&quot;cont&quot;&gt;· 계속 2/6&lt;/span&gt;&lt;/div&gt;&lt;h1&gt;무너지는 길은 &lt;em&gt;이미 두 번 관측됐습니다&lt;/em&gt; — 4원칙으로 미리 끊습니다&lt;/h1&gt;&lt;p class=&quot;hsub&quot;&gt;McMindfulness 4단계는 각각 봉은사의 대응 원칙과 짝지어집니다. 1단계 탈맥락화(윤리·공동체·해방을 떼어내고 기법만 남김)에는 원칙① 맥락 동반, 2단계 도구화(수행이 생산성 향상의 수단으로 내려앉음)에는 원칙② 총량·분리, 3단계 개인화(힘든 원인을 개인 탓으로 돌림)에는 원칙④ 참여, 4단계 신뢰 붕괴(종교가 &#x27;돈 받는 거래&#x27;로 보이는 순간 이탈)에는 원칙③ 투명성으로 대응합니다. 네 원칙은 이 4단계 붕괴를 각 단계에서 미리 끊기 위한 설계입니다.&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;slide-body&quot;&gt;&lt;div class=&quot;fit&quot;&gt;&lt;div class=&quot;steps&quot; data-blk=&quot;2.8#3&quot;&gt;
+    &lt;div class=&quot;step&quot;&gt;
+      &lt;div class=&quot;step-num&quot;&gt;1&lt;/div&gt;
+      &lt;div class=&quot;step-content&quot;&gt;
+        &lt;h4&gt;맥락을 떼어낸다 (탈맥락화)&lt;/h4&gt;
+        &lt;p&gt;윤리·공동체·해방을 &#x27;짐&#x27;이라며 떼어내고, 재고 팔 수 있는 기법만 남깁니다&lt;span class=&quot;ev a&quot;&gt;E-0237&lt;/span&gt;.&lt;/p&gt;
+        &lt;div class=&quot;step-target&quot;&gt;봉은사 대응: 원칙① 맥락 동반&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;step&quot;&gt;
+      &lt;div class=&quot;step-num&quot;&gt;2&lt;/div&gt;
+      &lt;div class=&quot;step-content&quot;&gt;
+        &lt;h4&gt;수단으로 쓴다 (도구화)&lt;/h4&gt;
+        &lt;p&gt;수행이 생산성 향상·스트레스 관리의 수단으로 내려앉습니다&lt;span class=&quot;ev a&quot;&gt;E-0237&lt;/span&gt;.&lt;/p&gt;
+        &lt;div class=&quot;step-target&quot;&gt;봉은사 대응: 원칙② 총량·분리&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;step&quot;&gt;
+      &lt;div class=&quot;step-num&quot;&gt;3&lt;/div&gt;
+      &lt;div class=&quot;step-content&quot;&gt;
+        &lt;h4&gt;개인 탓으로 돌린다 (개인화)&lt;/h4&gt;
+        &lt;p&gt;힘든 원인을 사회 구조가 아니라 개인의 마음으로 옮깁니다 — &quot;네가 덜 챙겨서 힘든 것&quot;&lt;span class=&quot;ev a&quot;&gt;E-0237&lt;/span&gt;.&lt;/p&gt;
+        &lt;div class=&quot;step-target&quot;&gt;봉은사 대응: 원칙④ 참여&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;step&quot;&gt;
+      &lt;div class=&quot;step-num&quot;&gt;4&lt;/div&gt;
+      &lt;div class=&quot;step-content&quot;&gt;
+        &lt;h4&gt;믿음이 무너진다 (신뢰 붕괴)&lt;/h4&gt;
+        &lt;p&gt;본질을 잃은 종교는 &#x27;돈 받는 거래&#x27;로 보이고, 그렇게 보이는 순간부터 사람이 떠납니다&lt;span class=&quot;ev a&quot;&gt;E-0237&lt;/span&gt;.&lt;/p&gt;
+        &lt;div class=&quot;step-target&quot;&gt;봉은사 대응: 원칙③ 투명성&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;foot&quot;&gt;&lt;span&gt;봉은문화센터 Master Strategy Report&lt;/span&gt;&lt;span class=&quot;r&quot;&gt;by &lt;b&gt;Project Rent&lt;/b&gt; · &lt;span class=&quot;pg&quot;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;script&gt;const f=document.querySelector(&quot;.fit&quot;),b=document.querySelector(&quot;.slide-body&quot;);if(f&amp;&amp;b){const a=b.clientHeight;let s2=1;for(let k=0;k&lt;3;k++){const h=f.scrollHeight;if(h&lt;=a+2)break;s2=Math.max(0.62,a/h*s2);f.style.transform=&quot;scale(&quot;+s2+&quot;)&quot;;f.style.transformOrigin=&quot;bottom left&quot;;f.style.width=(100/s2)+&quot;%&quot;;}}&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" scrolling="no" loading="lazy"></iframe><figcaption><b>2.8/2 · 0.716</b> — steps 블록 500px (임계값 500과 동률)</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">03</span> 무엇을 고쳤나 — 다섯 가지</h2>
+  <div class="fixes">
+    <div class="fx"><div class="fn">FIX 01</div><h3><code>measure_deck.py</code> 신규 작성</h3>
+      <p><code>build_deck.py</code> 주석이 참조하는데 <b>실물이 없었습니다.</b> 낡은 실측값(907블록)이 과밀 패킹을 만들고 있었고, 다시 재니 <b>89블록이 8px 이상</b> 달랐습니다.</p>
+      <p class="ev">검증 — 실제 빌드본 799블록과 <b>전량 0px 오차</b></p></div>
+    <div class="fx"><div class="fn">FIX 02</div><h3>SVG 높이 상한</h3>
+      <p>덱 전체 SVG는 2개뿐인데 <b>둘 다 잘리고 있었습니다.</b> 전략 매트릭스는 인라인 <code>min-width:1400px</code>으로 1,155px까지 늘어났습니다(가용 456px).</p>
+      <p class="ev">종횡비 유지한 채 <code>max-height:450px</code> · 대화형 파일 안내 캡션 추가</p></div>
+    <div class="fx"><div class="fn">FIX 03</div><h3><code>steps</code>를 분할 대상에 추가</h3>
+      <p>화이트리스트에 <code>card-grid·kpi-grid·choice</code>만 있고 <code>steps</code>가 빠져 있었습니다. 7.1의 551px 블록이 이 때문에 잘렸습니다.</p>
+      <p class="ev">임계값은 500 유지 — 460은 실측으로 역효과 확인</p></div>
+    <div class="fx"><div class="fn">FIX 04</div><h3>5.6 카드 구조 개편</h3>
+      <p>가로 3열 카드는 쪼개도 높이가 안 줄어듭니다. 카드를 요약으로 바꾸고 근거 19건을 표로 내려 <b>마지막 0.62를 해소</b>했습니다.</p>
+      <p class="ev">근거칩 277개 무손실 · 배율 0.620 → 1.000</p></div>
+    <div class="fx span2"><div class="fn">FIX 05 · 구조</div><h3>서브카피를 해시 키로 전환 — 재발 구조 제거</h3>
+      <p>서브카피 키가 <b>위치 기반</b>(<code>{아젠다}/{순번}</code>)이라, 재패킹으로 청크 경계가 밀리면 <b>그럴듯하지만 다른 슬라이드를 설명하는</b> 상태가 됐습니다. 눈으로는 못 찾는 종류입니다 — 실제로 두 번(13건·30건) 손으로 메웠습니다.</p>
+      <p>키를 <b>청크 본문 SHA1[:12]</b>로 바꿨습니다. 설계 근거는 한 줄입니다 — <b>빈칸은 보이고 오배치는 안 보인다.</b></p>
+      <p class="ev">검증 — 임계값을 낮춰 재패킹을 강제하니 24건이 <b>전부 빈칸</b>, 오배치 0건. 이후 실제 작업에서도 두 번(5.6 4건 · A.1 2건) 즉시 잡아냄</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">04</span> 축소 슬라이드 36장 전체</h2>
+  <table class="full">
+    <thead><tr><th class="n">#</th><th>키</th><th class="n">배율</th><th>정도</th><th class="n">본문 가용</th><th>아젠다</th></tr></thead>
+    <tbody><tr class="warn"><td class="n">253</td><td>B.2/3</td><td class="n"><b>0.686</b></td><td><span class="pill warn">강함</span></td><td class="n">411px</td><td>B.2 Appendix · 5개년 재무계획 써머리 · 계속 3/12</td></tr><tr class="warn"><td class="n">145</td><td>6.3/1</td><td class="n"><b>0.697</b></td><td><span class="pill warn">강함</span></td><td class="n">456px</td><td>6.3 그루핑 결과 ② · 건물 밖으로 나가는 것 · STEP 7 연결</td></tr><tr class="warn"><td class="n">39</td><td>2.8/2</td><td class="n"><b>0.716</b></td><td><span class="pill warn">강함</span></td><td class="n">476px</td><td>2.8 ⓑ 불교 전체 · 방어선 · 계속 2/6</td></tr><tr class="warn"><td class="n">151</td><td>07.0/1</td><td class="n"><b>0.736</b></td><td><span class="pill warn">강함</span></td><td class="n">431px</td><td>07.0 Strategy Matrix</td></tr><tr class="warn"><td class="n">172</td><td>7.5/2</td><td class="n"><b>0.749</b></td><td><span class="pill warn">강함</span></td><td class="n">436px</td><td>7.5 Demand Matrix · 수요 관점 · 계속 2/6</td></tr><tr class="mid"><td class="n">213</td><td>10.4/3</td><td class="n"><b>0.766</b></td><td><span class="pill mid">보통</span></td><td class="n">456px</td><td>10.4 Roadmap · 순서 · 계속 3/4</td></tr><tr class="mid"><td class="n">115</td><td>5.2/6</td><td class="n"><b>0.773</b></td><td><span class="pill mid">보통</span></td><td class="n">436px</td><td>5.2 S5-BM2 · 해외 종교시설 · 계속 6/7</td></tr><tr class="mid"><td class="n">142</td><td>6.2/2</td><td class="n"><b>0.774</b></td><td><span class="pill mid">보통</span></td><td class="n">456px</td><td>6.2 그루핑 결과 ① · 건물 안에서 파는 것 · 계속 2/4</td></tr><tr class="mid"><td class="n">258</td><td>B.2/8</td><td class="n"><b>0.774</b></td><td><span class="pill mid">보통</span></td><td class="n">411px</td><td>B.2 Appendix · 5개년 재무계획 써머리 · 계속 8/12</td></tr><tr class="mid"><td class="n">175</td><td>7.5/5</td><td class="n"><b>0.777</b></td><td><span class="pill mid">보통</span></td><td class="n">456px</td><td>7.5 Demand Matrix · 수요 관점 · 계속 5/6</td></tr><tr class="mid"><td class="n">107</td><td>5.1/4</td><td class="n"><b>0.778</b></td><td><span class="pill mid">보통</span></td><td class="n">436px</td><td>5.1 S5-BM1 · 국내 종교시설 · 계속 4/6</td></tr><tr class="mid"><td class="n">155</td><td>7.2/1</td><td class="n"><b>0.778</b></td><td><span class="pill mid">보통</span></td><td class="n">436px</td><td>7.2 여섯 갈림길 · 진짜는 둘</td></tr><tr class="mid"><td class="n">98</td><td>4.9/3</td><td class="n"><b>0.784</b></td><td><span class="pill mid">보통</span></td><td class="n">391px</td><td>4.9 Market Benchmark · 임대와 대관 · 계속 3/5</td></tr><tr class="mid"><td class="n">164</td><td>7.3/8</td><td class="n"><b>0.796</b></td><td><span class="pill mid">보통</span></td><td class="n">456px</td><td>7.3 전략 매트릭스 본체 · 가장 중요 · 계속 8/10</td></tr><tr class="mid"><td class="n">260</td><td>B.2/10</td><td class="n"><b>0.809</b></td><td><span class="pill mid">보통</span></td><td class="n">411px</td><td>B.2 Appendix · 5개년 재무계획 써머리 · 계속 10/12</td></tr><tr class="mid"><td class="n">69</td><td>3.5/2</td><td class="n"><b>0.815</b></td><td><span class="pill mid">보통</span></td><td class="n">436px</td><td>3.5 브랜드를 키울 것이냐 사업을 만들 것이냐 · C6 상위 결정축 · 계속 2/3</td></tr><tr class="mid"><td class="n">262</td><td>B.2/12</td><td class="n"><b>0.817</b></td><td><span class="pill mid">보통</span></td><td class="n">431px</td><td>B.2 Appendix · 5개년 재무계획 써머리 · 계속 12/12</td></tr><tr class="mid"><td class="n">168</td><td>7.4/2</td><td class="n"><b>0.840</b></td><td><span class="pill mid">보통</span></td><td class="n">436px</td><td>7.4 세 개의 묶음 · 끼워맞춘 게 아닌지 확인 · 계속 2/4</td></tr><tr class="mid"><td class="n">90</td><td>4.5/4</td><td class="n"><b>0.847</b></td><td><span class="pill mid">보통</span></td><td class="n">456px</td><td>4.5 입지 · 상징 · 스케일 자산 · 계속 4/4</td></tr><tr class="mid"><td class="n">66</td><td>3.4/2</td><td class="n"><b>0.855</b></td><td><span class="pill mid">보통</span></td><td class="n">436px</td><td>3.4 본원 공사와의 관계 · C4 · 계속 2/3</td></tr><tr class="mid"><td class="n">212</td><td>10.4/2</td><td class="n"><b>0.868</b></td><td><span class="pill mid">보통</span></td><td class="n">456px</td><td>10.4 Roadmap · 순서 · 계속 2/4</td></tr><tr class="mid"><td class="n">75</td><td>4.1/1</td><td class="n"><b>0.874</b></td><td><span class="pill mid">보통</span></td><td class="n">456px</td><td>4.1 시장성 · Market</td></tr><tr class="mid"><td class="n">147</td><td>6.3/3</td><td class="n"><b>0.880</b></td><td><span class="pill mid">보통</span></td><td class="n">436px</td><td>6.3 그루핑 결과 ② · 건물 밖으로 나가는 것 · STEP 7 연결 · 계속 3/5</td></tr><tr class="ok"><td class="n">64</td><td>3.3/8</td><td class="n"><b>0.902</b></td><td><span class="pill ok">약함</span></td><td class="n">456px</td><td>3.3 법을 어디까지 볼 것이냐 · C3 가장 중요 · 계속 8/8</td></tr><tr class="ok"><td class="n">173</td><td>7.5/3</td><td class="n"><b>0.912</b></td><td><span class="pill ok">약함</span></td><td class="n">456px</td><td>7.5 Demand Matrix · 수요 관점 · 계속 3/6</td></tr><tr class="ok"><td class="n">49</td><td>2.10/3</td><td class="n"><b>0.922</b></td><td><span class="pill ok">약함</span></td><td class="n">476px</td><td>2.10 ⓒ 실무자 · 수익 최대화 · 계속 3/3</td></tr><tr class="ok"><td class="n">169</td><td>7.4/3</td><td class="n"><b>0.936</b></td><td><span class="pill ok">약함</span></td><td class="n">456px</td><td>7.4 세 개의 묶음 · 끼워맞춘 게 아닌지 확인 · 계속 3/4</td></tr><tr class="ok"><td class="n">85</td><td>4.4/1</td><td class="n"><b>0.937</b></td><td><span class="pill ok">약함</span></td><td class="n">456px</td><td>4.4 시장 공백 · White Space</td></tr><tr class="ok"><td class="n">48</td><td>2.10/2</td><td class="n"><b>0.943</b></td><td><span class="pill ok">약함</span></td><td class="n">456px</td><td>2.10 ⓒ 실무자 · 수익 최대화 · 계속 2/3</td></tr><tr class="ok"><td class="n">198</td><td>9.2/2</td><td class="n"><b>0.945</b></td><td><span class="pill ok">약함</span></td><td class="n">476px</td><td>9.2 판정 그리드 · 가장 중요 · 계속 2/3</td></tr><tr class="ok"><td class="n">36</td><td>2.7/1</td><td class="n"><b>0.960</b></td><td><span class="pill ok">약함</span></td><td class="n">456px</td><td>2.7 ⓑ 불교 전체 · 역할론</td></tr><tr class="ok"><td class="n">148</td><td>6.3/4</td><td class="n"><b>0.974</b></td><td><span class="pill ok">약함</span></td><td class="n">456px</td><td>6.3 그루핑 결과 ② · 건물 밖으로 나가는 것 · STEP 7 연결 · 계속 4/5</td></tr><tr class="ok"><td class="n">22</td><td>2.1/1</td><td class="n"><b>0.981</b></td><td><span class="pill ok">약함</span></td><td class="n">456px</td><td>2.1 세 개의 시선 · 개관</td></tr><tr class="ok"><td class="n">91</td><td>4.6/1</td><td class="n"><b>0.981</b></td><td><span class="pill ok">약함</span></td><td class="n">456px</td><td>4.6 Timing · 왜 지금인가</td></tr><tr class="ok"><td class="n">184</td><td>8.3/2</td><td class="n"><b>0.981</b></td><td><span class="pill ok">약함</span></td><td class="n">476px</td><td>8.3 Zone 1 · Exhibition · 계속 2/2</td></tr><tr class="ok"><td class="n">55</td><td>3.2/2</td><td class="n"><b>0.983</b></td><td><span class="pill ok">약함</span></td><td class="n">456px</td><td>3.2 종교시설이냐 문화시설이냐 · C2 · 계속 2/3</td></tr></tbody>
+  </table>
+  <p class="note">배율 0.9 이상은 육안으로 거의 구분되지 않습니다. 0.75 미만 <b>5장</b>이 실질 관리 대상이며, <b>하한(0.62)에 닿은 슬라이드는 없습니다.</b></p>
+</section>
+
+<section>
+  <h2><span class="no">05</span> 재빌드 절차 — 스크립트로 고정됐습니다</h2>
+  <div class="pipe">
+    <div class="st"><div class="sn">1</div><code>measure_deck.py</code><p>블록 높이 실측</p></div>
+    <div class="ar">→</div>
+    <div class="st"><div class="sn">2</div><code>build_deck.py</code><p>패킹·분할 → <b>출력본</b>(내부용)<br><span class="hl">서브카피 정합 n/m 상시 출력</span></p></div>
+    <div class="ar">→</div>
+    <div class="st"><div class="sn">3</div><code>subcopy_tool.py --missing</code><p>빈칸 청크 확인·집필</p></div>
+    <div class="ar">→</div>
+    <div class="st danger"><div class="sn">4</div><code>make_songbu.py</code><p>「내부 전용」 제거 → <b>송부본</b>(대외)</p></div>
+  </div>
+  <div class="rec danger"><b>4단계를 건너뛰면 안 됩니다.</b> 출력본을 이름만 바꿔 보내면 계약 협상 내부 정보(추가합의서 배상 한도·수정요구 방어 논리·"회색지대" 표기 규칙)가 발주처로 나갑니다. 이전에는 이 편집이 손으로만 이뤄져 재현 근거가 없었습니다.</div>
+  <div class="rec"><b>현재 상태</b> — 송부본 262장 · JS 에러 0 · 잘림 0 · 0.62 하한 0 · 서브카피 정합 248/248 · 「내부 전용」 유출 0 · 근거칩 1,598개 · 요소 원장 798개(오류 0·경고 0)</div>
+</section>
+
+<footer>PROJECT RENT · 봉은문화센터 Master Strategy Deck 렌더 진단 · 2026.08.20 최종 · 내부 문서</footer>
+</body></html>

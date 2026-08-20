@@ -2,7 +2,7 @@
 """
 elements.json → 집필용 슬롯별 브리프 + 요소 원장
 usage: python3 query.py
-출력: briefs/S1.md ... briefs/S8.md, 00-요소원장.md
+출력: briefs/S1.md ... briefs/S10.md, 00-요소원장.md
 """
 import json, os
 from collections import defaultdict, Counter
@@ -19,7 +19,9 @@ SECTIONS = {
     "S4": ("기회", ["S4-O1","S4-O2a","S4-O2b","S4-O2c","S4-O2d","S4-O3","S4-O4","S4-O5"]),
     "S5": ("비즈니스 모델", ["S5-BM1","S5-BM2","S5-BM3","S5-BM4","S5-BM5","S5-BMX"]),
     "S6": ("서비스·콘텐츠", ["S6-RAW"]),
-    "S8": ("최종 수렴", ["S8-A","S8-B","S8-C","S8-FINAL"]),
+    "S8": ("Destination 확정 · 6 Zone", ["S8-DEST","S8-Z1","S8-Z2","S8-Z3","S8-Z4","S8-Z5","S8-Z6","S8-AREA","S8-FINAL"]),
+    "S9": ("재무 판정 · 성립 조건", ["S9-FIN","S9-EV","S9-COND"]),
+    "S10": ("제언 · 조직 · 로드맵 · 마케팅", ["S10-REC","S10-ORG","S10-RM","S10-MKT"]),
 }
 SLOT_NAME = {
     "S1-A":"고려요소·주의사항","S1-B":"요구사항·산출물 정의","S1-C":"합의·목적",
@@ -33,7 +35,11 @@ SLOT_NAME = {
     "S5-BM1":"국내 종교시설","S5-BM2":"해외 종교시설","S5-BM3":"문화시설 × 지역연계","S5-BM4":"프리미엄 웰니스·멤버십",
     "S5-BM5":"관광시설","S5-BMX":"결론 — 매스/로컬/프리미엄",
     "S6-RAW":"서비스·콘텐츠 나열",
-    "S8-A":"A · 불교 문화 목적지","S8-B":"B · 웰니스·라이프스타일","S8-C":"C · 비즈니스 이노베이션 랩","S8-FINAL":"최종 3안 × 3-Track",
+    "S8-DEST":"Destination 정의·포지셔닝","S8-Z1":"Zone 1 · EXHIBITION","S8-Z2":"Zone 2 · EXPERIENCE",
+    "S8-Z3":"Zone 3 · TASTE","S8-Z4":"Zone 4 · RETAIL","S8-Z5":"Zone 5 · STAY(2기)","S8-Z6":"Zone 6 · MEMORIAL(옵션)",
+    "S8-AREA":"공간 배분·면적 정합","S8-FINAL":"최종 수렴(v1 잔존)",
+    "S9-FIN":"15케이스 판정 그리드","S9-EV":"재무 근거·파라미터","S9-COND":"네 가지 성립 조건",
+    "S10-REC":"확정 방향·버리는 것","S10-ORG":"CDM 조직","S10-RM":"로드맵·Phase 0","S10-MKT":"마케팅·홍보 계획",
 }
 CONF_MARK = {"A": "🟣A", "B": "🔵B", "C": "⚪C"}
 

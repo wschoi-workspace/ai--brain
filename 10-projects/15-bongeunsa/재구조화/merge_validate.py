@@ -20,8 +20,14 @@ VALID_SLOTS = {
     "S6-RAW",
     "S7-RESERVED","S7-MTX",
     "S8-FINAL",  # v1 잔존 태그 — STEP 10 집필이 이 슬롯 브리프로 이미 이뤄져 유효하게 남긴다
-    "S8-A","S8-B","S8-C",
-    "S9-EVAL","S10-REC",
+    # ── v3 (2026-08-19) — A/B/C 비교 → 단일 Destination 확정 구조 ──────────────
+    #   S8-A/B/C 폐기. 기존 요소는 아래 슬롯으로 재태깅한다.
+    "S8-DEST",                                              # Destination 정의·포지셔닝
+    "S8-Z1","S8-Z2","S8-Z3","S8-Z4","S8-Z5","S8-Z6",        # 6 Zone: 전시·체험·미식·리테일·숙박·추모
+    "S8-AREA",                                              # 공간 배분·면적 정합
+    "S9-FIN","S9-EV",                                       # 재무 판정(그리드) — S9-EV는 13-finance 기존 태그
+    "S9-COND",                                              # 성립 조건(역산)
+    "S10-REC","S10-ORG","S10-RM","S10-MKT",                 # 제언·조직·로드맵·마케팅
 }
 VALID_KIND = {"fact","constraint","case","insight","option","service","risk","requirement","asset","actor"}
 VALID_OWN  = {"own","reference","context","constraint"}

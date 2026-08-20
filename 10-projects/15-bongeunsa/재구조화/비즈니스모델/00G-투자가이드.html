@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[v2.1] 투자 가이드 | PROJECT RENT</title>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111; --bg-3:#222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333; --line-2:#2a2a2a;
+  --accent:#6C5CE7; --accent-light:#A29BFE; --accent-subtle:rgba(108,92,231,.08);
+  --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --red:#E17055;
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;font-weight:300;letter-spacing:-0.01em;font-size:14px;line-height:1.7}
+h1,h2,h3,h4{text-wrap:balance;font-weight:500}
+strong{color:var(--fg);font-weight:500}
+em{font-style:normal;color:var(--accent-light)}
+.brand-mark{position:fixed;top:24px;right:30px;font-size:10px;letter-spacing:.35em;color:var(--fg-3);z-index:10}
+.nav{position:fixed;top:50%;left:26px;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:10;font-size:9px;letter-spacing:.16em;color:var(--fg-3);text-transform:uppercase}
+.nav a{color:var(--fg-3);text-decoration:none;transition:color 150ms var(--ease-out)}
+.nav a:hover,.nav a.active{color:var(--accent)}
+.sec{padding:90px 120px 110px;max-width:1440px;margin:0 auto}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:26px;border-bottom:1px solid var(--line-2);margin-bottom:44px}
+.sec-head .eyebrow{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase}
+.sec-head h2{font-size:38px;font-weight:300;letter-spacing:-0.025em;line-height:1.15;margin-top:8px}
+.sec-head .no{font-size:11px;letter-spacing:.2em;color:var(--fg-3)}
+.sec-desc{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin-bottom:38px}
+h3.sub{font-size:19px;font-weight:400;color:var(--fg);margin:46px 0 14px;letter-spacing:-0.02em}
+h3.sub:first-of-type{margin-top:0}
+p.note{font-size:13px;color:var(--fg-2);margin:10px 0;max-width:920px}
+#cover{padding-top:130px;min-height:86vh;display:flex;flex-direction:column;justify-content:center}
+.cover-line{font-size:11px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;margin-bottom:34px}
+.cover-title{font-size:62px;font-weight:200;letter-spacing:-0.04em;line-height:1.06;margin-bottom:24px}
+.cover-sub{font-size:19px;color:var(--fg-2);line-height:1.6;max-width:940px;margin-bottom:44px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;border-top:1px solid var(--line-2);padding-top:30px;max-width:1020px}
+.cover-meta dt{font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.cover-meta dd{font-size:14px;color:var(--fg);font-weight:400}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;font-size:13px}
+thead th{font-size:10px;letter-spacing:.18em;color:var(--fg-3);text-transform:uppercase;text-align:left;padding:11px 12px;font-weight:400;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-2);color:var(--fg-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--fg);font-weight:400}
+tbody tr.total td{border-top:1px solid var(--line);color:var(--fg);font-weight:500;background:rgba(108,92,231,.05)}
+tbody tr.sub-row td{color:var(--fg-3);font-size:12px}
+tbody tr.sub-row td:first-child{color:var(--fg-3);padding-left:28px}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--red)} .pos{color:var(--green)} .warn{color:var(--amber)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:3px 9px;font-size:10px;letter-spacing:.08em;white-space:nowrap}
+.badge-yes{background:rgba(143,163,126,.12);color:var(--green)}
+.badge-no{background:rgba(225,112,85,.1);color:var(--red)}
+.badge-warn{background:rgba(217,163,75,.12);color:var(--amber)}
+.badge-info{background:var(--accent-subtle);color:var(--accent-light);border:1px solid rgba(108,92,231,.2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+.kpi{background:var(--bg-3);border:1px solid var(--line-2);padding:22px;text-align:center}
+.kpi.hero{border-color:var(--accent)} .kpi.bad{border-color:rgba(225,112,85,.4)}
+.kpi.ok{border-color:var(--green)}
+.kpi .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi .kpi-value{font-size:32px;font-weight:200;color:var(--accent);line-height:1.1;letter-spacing:-0.02em}
+.kpi.bad .kpi-value{color:var(--red)} .kpi.ok .kpi-value{color:var(--green)}
+.kpi .kpi-unit{font-size:15px;font-weight:300;color:var(--fg-2)}
+.kpi .kpi-sub{font-size:11px;color:var(--fg-3);margin-top:6px;line-height:1.5}
+.callout{background:var(--accent-subtle);border-left:3px solid var(--accent);padding:22px 26px;margin:24px 0}
+.callout p{color:var(--fg-2);font-size:14px;margin:0;line-height:1.75}
+.callout p+p{margin-top:10px}
+.callout strong{color:var(--accent-light)}
+.callout-danger{background:rgba(225,112,85,.06);border-left-color:var(--red)}
+.callout-danger strong{color:var(--red)}
+.callout-success{background:rgba(143,163,126,.06);border-left-color:var(--green)}
+.callout-success strong{color:var(--green)}
+.callout-warn{background:rgba(217,163,75,.06);border-left-color:var(--amber)}
+.callout-warn strong{color:var(--amber)}
+.layer{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:26px 0}
+.layer .ly{background:var(--bg-3);border:1px solid var(--line-2);padding:22px}
+.layer .ly.core{border-color:var(--accent)}
+.layer .ly.danger{border-color:rgba(225,112,85,.4)}
+.layer .ly.ok{border-color:var(--green)}
+.layer .ly .n{font-size:10px;letter-spacing:.2em;color:var(--accent);margin-bottom:8px}
+.layer .ly.danger .n{color:var(--red)} .layer .ly.ok .n{color:var(--green)}
+.layer .ly h4{font-size:16px;margin-bottom:8px}
+.layer .ly p{font-size:12.5px;color:var(--fg-2);line-height:1.65;margin-bottom:10px}
+.layer .ly .v{font-size:26px;font-weight:200;color:var(--fg);letter-spacing:-0.02em}
+.layer .ly .s{font-size:11px;color:var(--fg-3);margin-top:4px}
+/* 계단 */
+.stair{margin:26px 0}
+.stair .r{display:grid;grid-template-columns:120px 1fr 96px;gap:14px;align-items:center;margin-bottom:9px}
+.stair .lb{font-size:13px;color:var(--fg);text-align:right}
+.stair .tr{height:30px;background:var(--bg-3);border:1px solid var(--line-2);position:relative}
+.stair .sg{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding-left:9px;font-size:10.5px;color:var(--bg);white-space:nowrap;overflow:hidden}
+.stair .vv{font-size:13px;color:var(--fg);font-variant-numeric:tabular-nums;font-weight:500}
+/* 신호등 */
+.light{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:26px 0}
+.light .c{padding:24px 22px;border:1px solid var(--line-2);background:var(--bg-3)}
+.light .c.go{border-left:4px solid var(--green)}
+.light .c.hold{border-left:4px solid var(--amber)}
+.light .c.stop{border-left:4px solid var(--red)}
+.light .c .t{font-size:12px;letter-spacing:.18em;margin-bottom:10px;text-transform:uppercase}
+.light .c.go .t{color:var(--green)} .light .c.hold .t{color:var(--amber)} .light .c.stop .t{color:var(--red)}
+.light .c .v{font-size:24px;font-weight:200;color:var(--fg);margin-bottom:10px;letter-spacing:-0.02em}
+.light .c p{font-size:12.5px;color:var(--fg-2);line-height:1.65;margin:0}
+.foot{padding:60px 120px 80px;border-top:1px solid var(--line-2);text-align:center;color:var(--fg-3);font-size:11px;letter-spacing:.2em;max-width:1440px;margin:0 auto}
+@media (max-width:1100px){
+  .sec{padding:70px 40px 80px}.nav{display:none}
+  .cover-title{font-size:38px}.sec-head h2{font-size:28px}
+  .kpi-grid,.kpi-grid-3,.cover-meta,.layer,.light{grid-template-columns:repeat(2,1fr)}
+  .stair .r{grid-template-columns:80px 1fr 82px}
+}
+</style>
+</head>
+<body>
+
+<div class="brand-mark">PROJECT RENT</div>
+<nav class="nav">
+  <a href="#cover">00 결론</a>
+  <a href="#s1">01 진짜 하방</a>
+  <a href="#s2">02 필요 현금</a>
+  <a href="#s3">03 재원별</a>
+  <a href="#s3b">03-B 증분투자</a>
+  <a href="#s4">04 단계 개관</a>
+  <a href="#s5">05 판단 기준</a>
+  <a href="#s6">06 권고</a>
+</nav>
+
+<!-- COVER -->
+<section class="sec" id="cover">
+  <div class="cover-line">봉은문화센터 · 투자 가이드 v2.0 · 총투자 200억 기준</div>
+  <h1 class="cover-title">122억을<br>확보하십시오</h1>
+  <p class="cover-sub">
+    총투자 200억 사업에서 봉은사가 실제로 준비해야 할 현금입니다.
+    국비 43.4억과 관광기금 30억을 확보한다는 전제이고,
+    <em>보수 시나리오 3년을 버티는 운전자본과 예비비가 포함</em>돼 있습니다.
+    <strong>개관 전에만 필요한 돈은 83.5억입니다.</strong>
+  </p>
+  <dl class="cover-meta">
+    <div><dt>최소선</dt><dd>83.5억 <span style="color:var(--fg-3)">— 개관은 가능</span></dd></div>
+    <div><dt>안정선</dt><dd>108.1억 <span style="color:var(--fg-3)">— 보수안 3년 생존</span></dd></div>
+    <div><dt>권장선</dt><dd><strong>114.2억</strong> <span style="color:var(--fg-3)">— 예비비 포함</span></dd></div>
+    <div><dt>전제</dt><dd>총투자 200억 · 국비 43.4 · 융자 30</dd></div>
+  </dl><div class="callout callout-warn"><p><strong>v2.1 갱신 (2026-08-18)</strong> — 전시 CAPEX를 <strong>16.7 → 24.7억</strong>(전용 3,300㎡ 앵커안)으로 반영했습니다. 이 모델에서 <strong>예비비는 잔여값</strong>(200억 − 소계)이라 증액분이 그대로 예비비를 잠식해 <strong>14.9억(7.4%) → 6.1억(3.1%)</strong>으로 내려갑니다. 통상 하한은 5~10%이고 법난기념관이 139%로 증액된 현장이므로, <strong>예비비율을 유지하려면 총투자는 209.5억</strong>입니다. 재현: <code>_data/model-budget-200-v1.1.py</code>. ⚠️증분이익은 감가상각 증가분(연 0.67억)을 반영한 <strong>추정치</strong>이며 정밀값은 단일점 모델(00F) 재실행이 필요합니다.</p></div>
+
+  <div class="kpi-grid" style="margin-top:48px">
+    <div class="kpi hero"><div class="kpi-label">보수 : 상업화</div><div class="kpi-value">57.5<span class="kpi-unit">:115.9</span></div><div class="kpi-sub">보수는 용도와 무관한 필수비<br><strong>재임대해도 드는 돈</strong></div></div>
+    <div class="kpi bad"><div class="kpi-label">보수안 매출</div><div class="kpi-value">41<span class="kpi-unit">%</span></div><div class="kpi-sub">기준안 123.6 → <strong>50.3억</strong><br>민감도 −20%보다 3배 깊음</div></div>
+    <div class="kpi bad"><div class="kpi-label">증분 회수</div><div class="kpi-value">30.0<span class="kpi-unit">년</span></div><div class="kpi-sub">국비 43.4 기준<br>국비 72.8이면 <strong>8.8년</strong></div></div>
+    <div class="kpi hero"><div class="kpi-label">단계 개관 효과</div><div class="kpi-value">29<span class="kpi-unit">억</span></div><div class="kpi-sub">Phase 2/3 중단만으로<br>필요 현금 감소</div></div>
+  </div>
+
+  <div class="callout callout-success" style="margin-top:32px">
+    <p><strong>v2.0에서 바뀐 것 — 보수예산과 상업화예산을 갈랐습니다.</strong>
+    노후설비 교체 57.5억은 <strong>이 건물을 쓰려면 어떤 용도로 쓰든 드는 돈</strong>입니다.
+    재임대를 택해도 20년 넘은 수변전·냉난방·엘리베이터·방수는 교체해야 합니다.</p>
+    <p>따라서 <strong>'사업이냐 재임대냐'를 비교할 때 보수비는 양쪽에 공통</strong>으로 들어가고,
+    사업의 순수 추가 투자는 <strong>200억이 아니라 142.5억</strong>입니다.
+    이 관점이 §04에서 판단을 바꿉니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>이 가이드의 전제 — 최악을 견딜 수 있어야 투자입니다.</strong>
+    기준안이 맞아떨어지면 114억은 과합니다. 개관 전 83.5억이면 충분합니다.
+    그러나 <strong>보수 시나리오가 현실이 되면 3년간 연 16억씩 현금이 빠집니다.</strong>
+    그때 자금이 마르면 사업이 아니라 사찰이 위험해집니다.</p>
+  </div>
+</section>
+
+<!-- 01 -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div><div class="eyebrow">The Real Downside</div>
+    <h2>진짜 하방은 −59%입니다</h2></div>
+    <div class="no">01</div>
+  </div>
+  <p class="sec-desc">
+    종합 재무 리포트는 민감도로 "매출 −20%"를 잡았습니다. 그런데 각 라인 검토가 제시한
+    <strong>보수 시나리오를 전부 합치면 기준안의 41%</strong>가 됩니다 —
+    지금까지 미계산으로 남겨뒀던 값이고, 이 가이드의 출발점입니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>라인</th><th class="num">기준안</th><th class="num">보수안</th><th class="num">비율</th><th>보수 가정</th></tr></thead>
+    <tbody>
+      <tr><td>RL-03 사찰음식</td><td class="num">28.80억</td><td class="num">14.60억</td><td class="num">51%</td><td>다이닝 13.6 + 곡차 1.0</td></tr>
+      <tr><td>RL-04 리테일</td><td class="num">19.00억</td><td class="num">9.50억</td><td class="num">50%</td><td>관람 20만 · SPV 4,000원</td></tr>
+      <tr><td>RL-09 숙박</td><td class="num">18.50억</td><td class="num">8.10억</td><td class="num">44%</td><td>가동률 30~38%</td></tr>
+      <tr><td>RL-10 멤버십</td><td class="num">14.16억</td><td class="num">4.19억</td><td class="num warn">30%</td><td>갱신율 55% · 회원 미달</td></tr>
+      <tr><td>RL-01 전시</td><td class="num">10.30억</td><td class="num">3.00억</td><td class="num warn">29%</td><td>관람 10.1만</td></tr>
+      <tr><td>RL-05 교육</td><td class="num">8.23억</td><td class="num">2.80억</td><td class="num warn">34%</td><td>회차·정원 미달</td></tr>
+      <tr><td>RL-06 명상</td><td class="num">6.64억</td><td class="num">2.11억</td><td class="num warn">32%</td><td>침투율 1.0%</td></tr>
+      <tr><td>RL-02 전통다원</td><td class="num">4.60억</td><td class="num">2.60억</td><td class="num">57%</td><td>회전율 저조</td></tr>
+      <tr><td>RL-13 시즌·야간</td><td class="num">4.28억</td><td class="num">0.52억</td><td class="num neg">12%</td><td>1시즌 20일 · 25부스</td></tr>
+      <tr><td>RL-11 장묘 서비스</td><td class="num">4.00억</td><td class="num">1.10억</td><td class="num warn">28%</td><td>영대공양 40건</td></tr>
+      <tr><td>RL-07 기업 B2B</td><td class="num">2.61억</td><td class="num">0.42억</td><td class="num neg">16%</td><td>수주 8사 × 2회</td></tr>
+      <tr><td>RL-08 대관</td><td class="num">1.84억</td><td class="num">1.20억</td><td class="num">65%</td><td>실측 기반이라 낙폭 작음</td></tr>
+      <tr><td>RL-16 아카데미</td><td class="num">0.60억</td><td class="num">0.12억</td><td class="num neg">20%</td><td>연 1기 15명</td></tr>
+      <tr class="total"><td>합계</td><td class="num">123.56억</td><td class="num">50.26억</td><td class="num neg">41%</td>
+        <td><strong>−59% — 민감도 −20%의 3배</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub">이 매출에서 손익은</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th class="num">1년차</th><th class="num">2년차</th><th class="num">3년차</th><th class="num">4년차</th><th class="num">5년차</th></tr></thead>
+    <tbody>
+      <tr><td>매출</td><td class="num">30.2억</td><td class="num">42.7억</td><td class="num">50.3억</td><td class="num">50.3억</td><td class="num">50.3억</td></tr>
+      <tr><td>영업이익</td><td class="num neg">−13.4억</td><td class="num neg">−6.0억</td><td class="num neg">−1.5억</td><td class="num neg">−1.5억</td><td class="num neg">−1.5억</td></tr>
+      <tr><td>감가상각</td><td class="num">13.5억</td><td class="num">13.5억</td><td class="num">13.5억</td><td class="num">13.5억</td><td class="num">13.5억</td></tr>
+      <tr class="total"><td>세후이익</td><td class="num neg">−28.2억</td><td class="num neg">−20.7억</td><td class="num neg">−16.3억</td><td class="num neg">−16.3억</td><td class="num neg">−16.3억</td></tr>
+      <tr class="sub-row"><td>영업 현금흐름 <span style="color:var(--fg-3)">(감가 제외)</span></td>
+        <td class="num neg">−14.6</td><td class="num neg">−7.2</td><td class="num neg">−2.7</td><td class="num neg">−2.7</td><td class="num neg">−2.7</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>보수안에서는 5년 내내 흑자로 돌아서지 않습니다.</strong>
+    영업이익 자체가 3년차에도 −1.5억이고, 감가상각 13.5억을 얹으면 연 16.3억 적자입니다.</p>
+    <p>다만 <strong>감가상각은 현금이 나가지 않습니다.</strong>
+    실제로 통장에서 빠지는 돈은 연 2.7~14.6억이고, 이것이 운전자본을 정하는 숫자입니다.</p>
+  </div>
+
+  <p class="note" style="color:var(--fg-3)">
+    ※ 손익 분해는 각 라인 리포트의 3구간 손익(보수·기준·낙관)에서 공헌이익률과 고정비를 역산해 적용했습니다 —
+    명상 68.5% · 교육 56.4% · 숙박 63.0%에서 전체 <strong>공헌이익률 65% · 고정비 31.3억</strong>을 도출했습니다.
+  </p>
+</section>
+
+<!-- 02 -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div><div class="eyebrow">Three Thresholds</div>
+    <h2>필요 현금을 셋으로 나눕니다</h2></div>
+    <div class="no">02</div>
+  </div>
+  <p class="sec-desc">
+    "얼마면 안정적인가"는 목적에 따라 답이 다릅니다.
+    <strong>문을 열 수 있는 돈</strong>과 <strong>버틸 수 있는 돈</strong>과
+    <strong>흔들려도 되는 돈</strong>은 다른 금액입니다.
+  </p>
+
+  <h3 class="sub">먼저 — 총투자 200억은 무엇으로 이뤄지는가</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>구분</th><th class="num">금액</th><th class="num">비중</th><th>성격</th></tr></thead>
+    <tbody>
+      <tr class="total"><td><strong>보수예산</strong></td><td class="num">57.5억</td><td class="num">28.7%</td>
+        <td><strong>용도와 무관한 필수비</strong> — 수변전 4.47 · 냉난방 6.20 · EV 3대 6.25 ·
+          옥상방수 2.19 · 급배수전기 간선 8.0 · 소방안전 5.0 · 외피창호 10.0 · 공용부 15.39</td></tr>
+      <tr class="total"><td><strong>상업화예산</strong></td><td class="num">115.9억</td><td class="num">58.0%</td>
+        <td>숙박 객실 52.3 + <strong>숙박 기반설비 17.1</strong> + 전시 24.7 + F&amp;B 14.6 + 리테일 4.0 + 교육 3.2</td></tr>
+      <tr><td>설계·감리</td><td class="num">16.5억</td><td class="num">8.2%</td><td>공사비의 9.5%</td></tr>
+      <tr><td>개관준비비</td><td class="num">4.0억</td><td class="num">2.0%</td><td>인력 채용·교육·마케팅·시스템</td></tr>
+      <tr><td>예비비</td><td class="num">6.1억</td><td class="num warn">3.1%</td>
+        <td>법난기념관 139% 증액 선례 <span style="color:var(--fg-3)">(통상 5~10%)</span></td></tr>
+      <tr class="total"><td>총투자</td><td class="num">200.0억</td><td class="num">100%</td><td>VAT 별도</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>숙박 기반설비 17.1억은 기존 견적에 없던 항목입니다.</strong>
+    객실 61실은 급배수 입상관·환기 덕트·방화구획·차음·스프링클러 밀도·급탕 용량을
+    <strong>새로 깔아야</strong> 합니다. 연회장은 사람이 몇 시간 머무는 곳이고 객실은 자는 곳이라,
+    건축법이 요구하는 것이 다릅니다.</p>
+    <p>이 값은 ㎡당 단가로 추정한 것이라 <strong>시공사 재견적이 필요</strong>합니다.</p>
+  </div>
+
+  <div class="stair">
+    <div class="r"><div class="lb">최소선</div>
+      <div class="tr"><div class="sg" style="left:0;width:67.7%;background:var(--red)">개관 전 투입 83.5억</div></div>
+      <div class="vv">83.5억</div></div>
+    <div class="r"><div class="lb">안정선</div>
+      <div class="tr">
+        <div class="sg" style="left:0;width:67.7%;background:var(--blue)">개관 전 83.5</div>
+        <div class="sg" style="left:67.7%;width:20.1%;background:var(--amber)">운전자본 24.6</div>
+      </div>
+      <div class="vv">108.1억</div></div>
+    <div class="r"><div class="lb"><strong>권장선</strong></div>
+      <div class="tr">
+        <div class="sg" style="left:0;width:67.7%;background:var(--accent)">개관 전 83.5</div>
+        <div class="sg" style="left:67.7%;width:20.1%;background:var(--accent-light)">운전자본 24.6</div>
+        <div class="sg" style="left:87.8%;width:12.2%;background:var(--green)">예비 6.1</div>
+      </div>
+      <div class="vv"><strong>114.2억</strong></div></div>
+  </div>
+
+  <div class="layer">
+    <div class="ly danger"><div class="n">최소선</div><h4>문을 열 수 있다</h4>
+      <p>보수 57.5 + 설계감리 16.5 + 개관준비 4.0 + 상업화 개관전분 78.9
+      − 국비 43.4 − 융자 30.0</p>
+      <div class="v">83.5억</div><div class="s">이 돈이 없으면 착공 자체가 불가</div></div>
+    <div class="ly core"><div class="n">안정선</div><h4>최악에서도 버틴다</h4>
+      <p>최소선 + <strong>보수 시나리오 3년 누적 현금부족 24.6억</strong>.
+      단계 개관 권고를 따라 Phase 2/3를 집행하지 않는 전제입니다.</p>
+      <div class="v">108.1억</div><div class="s">3년 안에 회복하지 못하면 그때 판단</div></div>
+    <div class="ly ok"><div class="n">권장선</div><h4>흔들려도 된다</h4>
+      <p>안정선 + 예비비 6.1억(총투자의 <strong>3.1%</strong>). 통상 하한 5~10%에 미달합니다 — 법난기념관이 139%로 튄 선례를 감안하면 <strong>부족</strong>하며, 7.4%를 유지하려면 총투자가 209.5억이 됩니다.</p>
+      <div class="v">114.2억</div><div class="s">공사비 증액·일정 지연을 흡수</div></div>
+  </div>
+
+  <div class="callout">
+    <p><strong>운전자본 24.6억은 어떻게 나온 숫자인가.</strong>
+    보수 시나리오에서 실제로 통장에서 빠지는 돈은
+    1년차 14.6억 · 2년차 7.2억 · 3년차 2.7억입니다(감가상각 제외).
+    누적하면 <strong>24.5억</strong>이고, 3년차에 바닥을 칩니다.</p>
+    <p>4년차부터는 연 2.7억 적자로 유지되므로 <strong>추가 소요가 완만해집니다</strong> —
+    보수안이 5년 지속되면 총 30억가량이 필요하지만,
+    그 시점이면 이미 사업 지속 여부를 재판단해야 하는 국면입니다.</p>
+  </div>
+</section>
+
+<!-- 03 -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div><div class="eyebrow">By Funding Mix</div>
+    <h2>국비와 융자가 필요 현금을 반으로 줄입니다</h2></div>
+    <div class="no">03</div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>재원 조합</th><th class="num">개관 전</th><th class="num">운전자본</th><th class="num">최소선</th><th class="num">안정선</th><th class="num">권장선</th></tr></thead>
+    <tbody>
+      <tr><td>A 국비 0 · 융자 0</td><td class="num">156.9억</td><td class="num">24.6억</td>
+        <td class="num">156.9억</td><td class="num">181.5억</td><td class="num neg">187.6억</td></tr>
+      <tr><td>B 국비 43.4 · 융자 0</td><td class="num">113.5억</td><td class="num">24.6억</td>
+        <td class="num">113.5억</td><td class="num">138.1억</td><td class="num">144.2억</td></tr>
+      <tr class="total"><td><strong>C 국비 43.4 · 관광기금 30</strong> <span style="color:var(--fg-3)">현실 기준</span></td>
+        <td class="num">83.5억</td><td class="num">24.6억</td>
+        <td class="num">83.5억</td><td class="num">108.1억</td><td class="num pos">114.2억</td></tr>
+      <tr><td>D 국비 72.8 · 관광기금 30</td><td class="num">54.1억</td><td class="num">24.6억</td>
+        <td class="num">54.1억</td><td class="num">78.7억</td><td class="num pos">84.8억</td></tr>
+      <tr><td>E 국비 88.4 · 관광기금 60</td><td class="num">8.5억</td><td class="num">24.6억</td>
+        <td class="num">8.5억</td><td class="num">33.1억</td><td class="num pos">39.2억</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>A와 E의 차이가 148억입니다.</strong>
+    같은 사업인데 재원을 어떻게 짜느냐에 따라 봉은사가 준비할 현금이
+    <strong>187.6억에서 39.2억으로</strong> 달라집니다.</p>
+    <p>그리고 그 차이를 만드는 것은 <strong>국비 인정 범위(숙박을 어떻게 정의하는가)</strong>와
+    <strong>관광기금 자격(전문휴양업 등록)</strong> 두 가지 행정 절차입니다.
+    돈을 더 버는 것보다 이쪽이 확실합니다.</p>
+  </div>
+
+  <h3 class="sub">국비 대상액 — 보수예산을 넣으면 커집니다</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>인정 범위</th><th class="num">대상액</th><th class="num">25%</th><th class="num">35%</th><th class="num">50%</th></tr></thead>
+    <tbody>
+      <tr><td>보수 — 보수예산 + 전시·교육</td><td class="num">98.5억</td>
+        <td class="num">24.6억</td><td class="num">34.5억</td><td class="num">49.3억</td></tr>
+      <tr class="total"><td><strong>적극 — 숙박까지 포함</strong></td><td class="num">178.5억</td>
+        <td class="num">44.6억</td><td class="num">62.5억</td><td class="num pos">89.3억</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>보수예산 57.5억을 국비 대상에 넣는 것이 자연스럽습니다.</strong>
+    문체부가 지원하지 않는 것은 <strong>순수 종교활동·포교 목적</strong>이고,
+    노후설비 교체는 <strong>국민에게 개방되는 문화시설의 기반 정비</strong>입니다.
+    수익시설(F&amp;B·리테일)이 아니므로 제외 사유에 걸리지 않습니다.</p>
+    <p>이 논리가 받아들여지면 국비 대상액이 98.5억, 숙박까지 인정받으면 <strong>178.5억</strong>이 되고,
+    50% 적용 시 <strong>국비 89.3억</strong>까지 열립니다.</p>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>이 표를 바꿀 변수는 A단 재견적입니다.</strong>
+    보수예산 57.5억은 <strong>웨딩홀을 문화시설로 바꾸는 전제</strong>의 견적이고,
+    숙박 기반설비 17.1억은 제가 ㎡당 단가로 추정한 값입니다.
+    <strong>시공사 재견적이 이 가이드의 최우선 갱신 사유</strong>입니다.</p>
+  </div>
+</section>
+
+<!-- 03-B 증분 투자 -->
+<section class="sec" id="s3b">
+  <div class="sec-head">
+    <div><div class="eyebrow">Incremental Investment</div>
+    <h2>재임대해도 보수비는 듭니다</h2></div>
+    <div class="no">03-B</div>
+  </div>
+  <p class="sec-desc">
+    지금까지 '사업 vs 재임대' 비교는 <strong>사업 총투자 전액</strong>을 사업 비용으로 놓고 했습니다.
+    그런데 <strong>보수예산 57.5억은 재임대를 택해도 드는 돈</strong>입니다 —
+    20년 넘은 수변전·냉난방·엘리베이터·방수를 그대로 두고 임대할 수는 없습니다.
+  </p>
+
+  <div class="layer">
+    <div class="ly"><div class="n">재임대 최소</div><h4>핵심 설비만 교체</h4>
+      <p>케희건설 2안(핵심 설비만) 27.0억 수준. 임차인이 내부 마감을 부담하는 전제.</p>
+      <div class="v">27.0억</div><div class="s">사업 증분 투자 <strong>173.0억</strong></div></div>
+    <div class="ly core"><div class="n">재임대 표준</div><h4>전면 보수</h4>
+      <p>공용부·외피까지 손봐야 새 임차인을 받을 수 있다고 보는 경우.</p>
+      <div class="v">57.5억</div><div class="s">사업 증분 투자 <strong>142.5억</strong></div></div>
+    <div class="ly danger"><div class="n">증분 이익</div><h4>연 −0.9 ~ +4.5억</h4>
+      <p>사업 5년차 세후(26.2~31.6억 — 전시 CAPEX 증액분 감가 반영) − 재임대 세후(27.1억).
+      <strong>국비 없이는 마이너스</strong>입니다.</p>
+      <div class="v">국비가 가른다</div><div class="s">0 → −0.3 / 43.4 → +2.9 / 72.8 → +5.1</div></div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>시나리오</th><th class="num">증분 투자</th><th class="num">증분 이익</th><th class="num">회수</th><th>해석</th></tr></thead>
+    <tbody>
+      <tr><td>국비 0 · 융자 30 · 임대보수 표준</td><td class="num">112.5억</td><td class="num neg">−0.9억</td>
+        <td class="num neg">불가</td><td><strong>재임대가 우월</strong></td></tr>
+      <tr><td>국비 43.4 · 융자 30 · 임대보수 최소</td><td class="num">99.6억</td><td class="num">+2.3억</td>
+        <td class="num neg">43.2년</td><td>회수 기간이 감가상각 12년의 3배</td></tr>
+      <tr><td>국비 43.4 · 융자 30 · 임대보수 표준</td><td class="num">69.1억</td><td class="num">+2.3억</td>
+        <td class="num warn">30.0년</td><td>여전히 길다</td></tr>
+      <tr><td>국비 72.8 · 융자 30 · 임대보수 최소</td><td class="num">70.2억</td><td class="num">+4.5억</td>
+        <td class="num warn">15.6년</td><td>—</td></tr>
+      <tr class="total"><td><strong>국비 72.8 · 융자 30 · 임대보수 표준</strong></td><td class="num">39.7억</td><td class="num pos">+4.5억</td>
+        <td class="num pos">8.8년</td><td><strong>유일하게 합리적인 구간</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-danger">
+    <p><strong>이 표가 앞의 어떤 숫자보다 냉정합니다.</strong>
+    총액으로 보면 사업이 재임대를 1.11~1.19배 이깁니다.
+    그런데 <strong>추가로 들어가는 돈 대비 추가로 버는 돈</strong>으로 보면
+    회수에 8~34년이 걸리고, 국비가 없으면 회수 자체가 불가능합니다.</p>
+    <p>합리적인 구간은 하나뿐입니다 —
+    <strong>국비 72.8억을 확보하고, 재임대를 택해도 전면 보수가 필요한 경우</strong>.
+    그때 증분 투자 39.7억으로 연 4.5억을 더 벌어 <strong>8.8년에 회수</strong>합니다.</p>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>그래서 두 가지가 재무 판단의 전부가 됩니다.</strong></p>
+    <p>① <strong>국비를 72.8억까지 끌어올릴 수 있는가</strong> —
+    숙박을 '외국인 K-Temple 체류 인프라'로 인정받느냐의 문제입니다.<br>
+    ② <strong>재임대를 하려면 실제로 얼마를 고쳐야 하는가</strong> —
+    27억이면 사업이 불리하고, 57.5억이면 유리해집니다.
+    <strong>이것은 임대차 시장에 물어보면 답이 나오는 질문</strong>이고, 아직 묻지 않았습니다.</p>
+  </div>
+</section>
+
+<!-- 04 -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div><div class="eyebrow">Staged Opening</div>
+    <h2>단계 개관이 29억을 아낍니다</h2></div>
+    <div class="no">04</div>
+  </div>
+  <p class="sec-desc">
+    숙박 검토(RL-09)는 <strong>"한 번에 열지 말고 낮부터 열자"</strong>를 권고하며
+    Phase 2(19.9억)·Phase 3(9.1억)를 2·3년차 말로 미뤘습니다.
+    이 권고가 수익 설계일 뿐 아니라 <strong>현금 방어 장치</strong>이기도 합니다.
+  </p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>대응</th><th class="num">운전자본</th><th class="num">권장선</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr class="total"><td><strong>Phase 중단</strong> — 1년차 실적 보고 판단</td>
+        <td class="num pos">24.6억</td><td class="num pos">114.2억</td>
+        <td>보수 시나리오가 확인되면 Phase 2/3(29억)를 집행하지 않는다</td></tr>
+      <tr><td>Phase 강행 — 계획대로 집행</td>
+        <td class="num neg">53.6억</td><td class="num neg">151.2억</td>
+        <td>매출이 안 나오는데 객실 29실을 추가로 짓는다</td></tr>
+      <tr class="sub-row"><td colspan="4">차이 <strong>29.0억</strong> — 필요 현금의 24%</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>이것이 단계 개관의 진짜 값어치입니다.</strong>
+    RL-09 리포트는 "CAPEX 45%로 매출 52%가 나온다"는 효율로 Phase 1을 정당화했는데,
+    <strong>더 큰 값어치는 최악이 왔을 때 멈출 수 있다는 것</strong>입니다.</p>
+    <p>한 번에 다 지으면 되돌릴 수 없습니다.
+    Phase 1(23.3억)만 열어두면 <strong>1년치 실적을 보고 나머지 29억을 결정</strong>할 수 있고,
+    그 선택권이 곧 29억짜리 보험입니다.</p>
+  </div>
+
+  <h3 class="sub">Phase 구조 — 무엇을 언제 짓는가</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>단계</th><th class="num">CAPEX</th><th class="num">시점</th><th>내용</th><th>판단 근거</th></tr></thead>
+    <tbody>
+      <tr><td>Phase 1</td><td class="num">23.3억</td><td class="num">개관 전</td>
+        <td>선방·다경실·장경각 베드 32 + 명상 라인 전량</td>
+        <td>조리 게이트·유권해석과 무관 — 가장 먼저 열 수 있음</td></tr>
+      <tr><td>Phase 2</td><td class="num">19.9억</td><td class="num">2년차 말</td>
+        <td>온돌 스탠다드 24실</td>
+        <td><strong>1년차 낮 이용자 데이터가 숙박 수요의 실측 근거</strong></td></tr>
+      <tr><td>Phase 3</td><td class="num">9.1억</td><td class="num">3년차 말</td>
+        <td>선재 스위트 5실 + 독점 프라이빗</td>
+        <td>단가 35만원 검증 후 — 가장 비싸고 불확실한 구간을 마지막에</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- 05 -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div><div class="eyebrow">Decision Rules</div>
+    <h2>가면 되는 조건, 멈춰야 할 조건</h2></div>
+    <div class="no">05</div>
+  </div>
+  <p class="sec-desc">
+    투자 가이드가 답해야 할 것은 "얼마"만이 아닙니다.
+    <strong>어떤 조건이면 시작하고, 어떤 조건이면 멈추는가</strong>가 함께 있어야 판단할 수 있습니다.
+  </p>
+
+  <div class="light">
+    <div class="c go"><div class="t">Go</div>
+      <div class="v">현금 122억 +<br>국비 확보</div>
+      <p><strong>착수 권고.</strong> 권장선을 충족하고 국비 43.4억 이상이 확정된 경우.
+      보수 시나리오 3년을 버티고 예비비까지 남습니다.</p></div>
+    <div class="c hold"><div class="t">Conditional</div>
+      <div class="v">현금 83~122억<br>또는 국비 미확정</div>
+      <p><strong>조건부 착수.</strong> Phase 1만 열고 Phase 2/3는 보류.
+      국비 협의 결과를 본 뒤 확장 여부를 결정합니다.
+      이 구간에서는 <strong>숙박 800평을 처음부터 짓지 않습니다.</strong></p></div>
+    <div class="c stop"><div class="t">Stop</div>
+      <div class="v">현금 83억 미만<br>또는 국비 0 확정</div>
+      <p><strong>재임대 재검토.</strong> 국비 없이는 5년차 세후 26.8억으로
+      재임대 27.1억에 미달합니다. 무리한 착수는 사찰 재정을 위협합니다.</p></div>
+  </div>
+
+  <h3 class="sub">착수 후 — 중단·축소 판단 기준</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>시점</th><th>확인 지표</th><th class="num">기준값</th><th>미달 시 조치</th></tr></thead>
+    <tbody>
+      <tr><td>개관 6개월</td><td>월 방문객 · 명상 프로그램 이용자</td><td class="num">기준안의 70%</td>
+        <td>마케팅 재설계 · Phase 2 착공 연기</td></tr>
+      <tr class="total"><td><strong>1년차 말</strong></td><td>매출 · 숙박 예약률</td><td class="num">기준안의 60%</td>
+        <td><strong>Phase 2/3 집행 중단</strong> — 29억 보전</td></tr>
+      <tr><td>2년차 말</td><td>영업 현금흐름</td><td class="num">−5억 이내</td>
+        <td>라인 축소 — 적자 라인 폐지 검토</td></tr>
+      <tr><td>3년차 말</td><td>누적 현금흐름</td><td class="num">−25억 이내</td>
+        <td>운전자본 한계 — <strong>사업 지속 여부 재판단</strong></td></tr>
+      <tr><td>상시</td><td>A단 공사비</td><td class="num">견적 대비 120%</td>
+        <td>설계 변경 · 범위 축소 <span style="color:var(--fg-3)">(법난기념관 139% 선례)</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <p><strong>1년차 말 기준값 60%가 이 표에서 가장 중요합니다.</strong>
+    보수 시나리오(41%)와 기준안 사이에 있는 값이고,
+    이 선을 넘지 못하면 <strong>Phase 2/3에 29억을 더 넣을 근거가 없습니다.</strong></p>
+    <p>반대로 이 선을 넘으면 숙박 수요가 실측으로 확인된 것이므로,
+    Phase 2 착공은 오히려 <strong>가정이 아니라 데이터에 기반한 투자</strong>가 됩니다.</p>
+  </div>
+</section>
+
+<!-- 06 -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div><div class="eyebrow">Recommendation</div>
+    <h2>권고</h2></div>
+    <div class="no">06</div>
+  </div>
+
+  <div class="kpi-grid-3 kpi-grid">
+    <div class="kpi bad"><div class="kpi-label">국비 없을 때</div><div class="kpi-value">196<span class="kpi-unit">억</span></div><div class="kpi-sub">국비 0 · 융자 0</div></div>
+    <div class="kpi hero"><div class="kpi-label">현실 기준</div><div class="kpi-value">122<span class="kpi-unit">억</span></div><div class="kpi-sub">국비 43.4 · 융자 30</div></div>
+    <div class="kpi ok"><div class="kpi-label">최대 확보 시</div><div class="kpi-value">47<span class="kpi-unit">억</span></div><div class="kpi-sub">국비 88.4 · 융자 60</div></div>
+  </div>
+
+  <div class="callout callout-success">
+    <p><strong>① 확보 목표를 122억으로 잡으십시오.</strong>
+    총투자 200억 사업을 국비·융자와 함께 완주하고,
+    보수 시나리오 3년을 버틴 뒤 예비비까지 남는 금액입니다.
+    웨딩홀 임대 세후 수입(연 27.1억)으로 환산하면 <strong>4.5년치</strong>입니다.</p>
+  </div>
+  <div class="callout">
+    <p><strong>② 122억을 한 번에 준비할 수 없다면 83억으로 시작하십시오.</strong>
+    단 그때는 <strong>Phase 1만 열고 숙박 800평을 처음부터 짓지 않습니다.</strong>
+    Phase 1은 조리 게이트·유권해석과 무관해 가장 먼저 열 수 있고,
+    CAPEX 23.3억으로 매출의 52%를 만듭니다.</p>
+  </div>
+  <div class="callout">
+    <p><strong>③ 현금을 더 모으는 것보다 재원 구조를 짜는 편이 빠릅니다.</strong>
+    국비 인정 범위와 관광기금 자격, 두 행정 절차가
+    필요 현금을 <strong>187.6억에서 39.2억까지</strong> 움직입니다.
+    같은 사업에서 148억 차이입니다.</p>
+  </div>
+  <div class="callout callout-warn">
+    <p><strong>④ 1년차 말 60% 룰을 사전에 합의해두십시오.</strong>
+    Phase 2/3 집행 여부를 그때 가서 논의하면 이미 늦습니다.
+    <strong>착수 전에 중단 기준을 문서로 정해두는 것</strong>이
+    29억을 지키는 유일한 방법입니다.</p>
+  </div>
+  <div class="callout callout-danger">
+    <p><strong>⑤ 현금 83억 미만이면 착수하지 마십시오.</strong>
+    개관 전 투입액에도 미치지 못하면 공사 중 자금이 끊깁니다.
+    이 경우 재임대(세후 27.1억)가 재무적으로 우월하며,
+    <strong>사업을 미루는 것이 실패하는 것보다 낫습니다.</strong></p>
+  </div>
+
+  <h3 class="sub">이 가이드의 한계</h3>
+  <p class="note">
+    ① <strong>보수 시나리오가 5년 지속된다고 가정하지 않았습니다.</strong>
+    3년까지만 계산했고, 그 이후에도 회복하지 못하면 필요 현금은 더 늘어납니다.<br>
+    ② <strong>공헌이익률 65%는 3개 라인에서 역산한 값</strong>입니다
+    (명상 68.5% · 교육 56.4% · 숙박 63.0%). 라인별로 실제 편차가 있습니다.<br>
+    ③ <strong>A단 재견적 전 수치</strong>입니다. 숙박 800평의 설비 부하가 반영되면 권장선이 올라갑니다.<br>
+    ④ <strong>운전자본에 재고·매출채권을 넣지 않았습니다.</strong>
+    리테일 재고와 멤버십 선수금의 현금 시점 차이는 별도 계산이 필요합니다.<br>
+    ⑤ <strong>차입 이자를 운전자본에 반영하지 않았습니다.</strong>
+    관광기금 30억이면 연 0.55억이 추가로 나갑니다.
+  </p>
+</section>
+
+<div class="foot">PROJECT RENT · 봉은문화센터 투자 가이드 v1.0 · 내부 문서 · 대외 배포 금지</div>
+
+<script>
+const secs=[...document.querySelectorAll('.sec')],links=[...document.querySelectorAll('.nav a')];
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+  const i=secs.indexOf(e.target);links.forEach(l=>l.classList.remove('active'));
+  if(links[i])links[i].classList.add('active');}})},{rootMargin:'-45% 0px -45% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
