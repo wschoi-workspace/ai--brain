@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>봉은문화센터 요약본 v2 — 구조 리뷰</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{--bg:#141414;--bg2:#1C1C1C;--card:#212121;--card2:#282828;--line:#333;--line2:#3E3E3E;
+--tx:#F2F2F2;--tx2:#B6B6B6;--tx3:#7C7C7C;--pri:#6C5CE7;--pri2:#8B7EF0;
+--a:#4ECDC4;--b:#FFB84D;--c:#FF6B9D;--ok:#8FA37E;--warn:#D9A34B;--risk:#E06060}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+-webkit-font-smoothing:antialiased;line-height:1.7;padding:52px 24px 90px}
+body>*{max-width:1120px;margin-left:auto;margin-right:auto}
+h1{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.25;margin-bottom:14px}
+h2{font-size:23px;font-weight:800;letter-spacing:-.02em;margin:52px 0 14px;padding-top:22px;border-top:1px solid var(--line)}
+h2 .sub2{font-size:15px;font-weight:600;color:var(--tx3);letter-spacing:0}
+h3{font-size:17px;font-weight:800;margin:26px 0 10px;color:var(--pri2)}
+p{color:var(--tx2);font-size:14.5px;margin-bottom:12px}
+p.lead{font-size:16px;color:var(--tx2)}
+p.lead b{color:var(--tx)} .dt{display:block;margin-top:8px;font-size:12.5px;color:var(--tx3);letter-spacing:.04em}
+b{color:var(--tx);font-weight:700} em{font-style:normal;color:var(--pri2);font-weight:700}
+code{background:var(--card2);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:12.5px;color:var(--a)}
+.s{font-size:12px;color:var(--tx3)}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin:24px 0 8px}
+.k{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--pri);border-radius:9px;padding:15px 17px}
+.k.v2{border-left-color:var(--c)} .k.e2{border-left-color:var(--b)} .k.ok{border-left-color:var(--ok)}
+.k .v{font-size:29px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.k .v small{font-size:14px;font-weight:700;color:var(--tx2);margin-left:2px}
+.k .l{font-size:11.5px;color:var(--tx3);margin-top:6px;line-height:1.45}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:14px 0}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;letter-spacing:.07em;color:var(--tx3);font-weight:700;text-transform:uppercase;background:var(--bg2)}
+td{color:var(--tx2);line-height:1.62}
+tr.hl{background:rgba(108,92,231,.08)} tr.hl td{color:var(--tx)}
+td.c{text-align:center;font-weight:800;color:var(--pri2);font-variant-numeric:tabular-nums}
+td.ok{color:var(--ok);font-weight:700}
+.quote{background:linear-gradient(135deg,rgba(108,92,231,.17),rgba(108,92,231,.04));border:1px solid rgba(108,92,231,.36);
+border-radius:13px;padding:26px 34px;text-align:center;font-size:20px;line-height:1.6;color:var(--tx2);margin:18px 0}
+.quote b{font-size:24px;color:var(--tx)}
+.ax{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0}
+.a{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:17px 19px}
+.a:nth-child(1){border-top:3px solid var(--a)} .a:nth-child(2){border-top:3px solid var(--b)} .a:nth-child(3){border-top:3px solid var(--pri)}
+.an{font-size:10.5px;letter-spacing:.11em;font-weight:800;color:var(--tx3);margin-bottom:8px}
+.at{font-size:16.5px;font-weight:800;line-height:1.35;margin-bottom:9px}
+.ad{font-size:12.8px;color:var(--tx2);line-height:1.65}
+.cps{display:flex;flex-direction:column;gap:9px;margin:14px 0}
+.cp{display:grid;grid-template-columns:1fr 34px 1fr;align-items:center;gap:6px;
+background:var(--card);border:1px solid var(--line);border-radius:9px;padding:12px 16px}
+.be4{font-size:13px;color:var(--tx3);text-decoration:line-through;text-decoration-color:rgba(224,96,96,.5);line-height:1.45}
+.ar{text-align:center;color:var(--pri2);font-weight:800}
+.af{font-size:14.5px;font-weight:700;color:var(--tx);line-height:1.45}
+.lg{display:flex;gap:14px;margin:14px 0 10px;font-size:12px;color:var(--tx3)}
+.lg span{display:flex;align-items:center;gap:6px}
+.lg span::before{content:'';width:10px;height:10px;border-radius:3px;background:var(--line2)}
+.lg .lv::before{background:var(--c)} .lg .le::before{background:var(--b)}
+.toc{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.pt{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,rgba(108,92,231,.16),transparent);
+padding:12px 16px;border-top:1px solid var(--line)}
+.pt:first-child{border-top:none}
+.pt.expand{background:linear-gradient(90deg,rgba(255,184,77,.15),transparent)}
+.pn{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--pri2);min-width:62px}
+.ph{font-size:15.5px;font-weight:800;color:var(--tx);flex:1}
+.row{display:flex;align-items:baseline;gap:12px;padding:9px 16px;border-top:1px solid rgba(255,255,255,.045)}
+.row.vision{background:rgba(255,107,157,.075);border-left:3px solid var(--c);padding-left:13px}
+.row.expand{background:rgba(255,184,77,.06);border-left:3px solid var(--b);padding-left:13px}
+.no{font-size:11px;color:var(--tx3);min-width:24px;text-align:right;font-variant-numeric:tabular-nums}
+.num{font-size:10.5px;letter-spacing:.06em;font-weight:700;color:var(--pri2);min-width:82px}
+.tx{flex:1;font-size:13.5px;line-height:1.5}
+.tx b{font-weight:700;color:var(--tx)}
+.tx i{display:block;font-style:normal;font-size:11.5px;color:var(--tx3);margin-top:2px;line-height:1.45}
+.bv,.be{display:inline-block;font-size:9.5px;letter-spacing:.08em;font-weight:800;padding:2px 7px;border-radius:3px;margin-left:8px;vertical-align:2px}
+.bv{background:rgba(255,107,157,.2);color:var(--c)} .be{background:rgba(255,184,77,.18);color:var(--b)}
+.note{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--warn);
+border-radius:0 9px 9px 0;padding:13px 18px;font-size:13px;color:var(--tx2);line-height:1.68;margin:14px 0}
+.rem{list-style:none;margin:12px 0}
+.rem li{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin-bottom:9px;
+font-size:13.5px;color:var(--tx2);line-height:1.6}
+.ft{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--tx3);text-align:center}
+.ft b{color:var(--pri2)}
+@media (max-width:900px){.kpis,.ax{grid-template-columns:1fr 1fr}.cp{grid-template-columns:1fr}.ar{display:none}}
+</style></head><body>
+<h1>봉은문화센터 요약본 v2 — 구조 리뷰</h1>
+<p class="lead">34장 → <b>57장</b>. 마케팅 관점 문구 재정리 <b>72건</b>, 구체화·실행플랜 <b>17장</b>, 비저닝 강화 <b>6장</b>.
+<span class="dt">2026-08-21 · Project Rent</span></p>
+
+<div class="kpis">
+  <div class="k"><div class="v">57<small>장</small></div><div class="l">전체 · PART 10부</div></div>
+  <div class="k v2"><div class="v">6<small>장</small></div><div class="l">비저닝 강화 — 이번 요청</div></div>
+  <div class="k e2"><div class="v">17<small>장</small></div><div class="l">구체화 · 실행플랜</div></div>
+  <div class="k"><div class="v">72<small>건</small></div><div class="l">문구 교체</div></div>
+  <div class="k ok"><div class="v">0</div><div class="l">넘침 · JS에러 · 폐기값</div></div>
+</div>
+
+<h2>1. 비저닝을 어떻게 세웠나</h2>
+<p>지적하신 다섯 가지 공백을 각각 슬라이드로 세웠습니다. 선언이 아니라 <b>논증</b>이 되도록 근거 → 결론의 사슬을 만들었습니다.</p>
+<table>
+<thead><tr><th style="width:7%">장</th><th style="width:26%">슬라이드</th><th style="width:67%">해결한 공백</th></tr></thead>
+<tbody>
+<tr><td class="c">5</td><td><b>03+ 일상이 되려면 다섯 가지가 바뀌어야 한다</b></td>
+<td>“불교를 바꾸자”가 아니라 <b>닿는 방식을 바꾸자</b>. 언어(법문→몸으로 통하는 것)·시간(새벽→점심)·가격(보시→3천원부터 보이는 값)·공간(경내→도심 1층)·관계(신도→회원) 5축 전환표 → <b>“다섯을 한 곳에서 동시에 바꿔볼 자리가 필요하다”</b>로 센터의 필요를 도출</td></tr>
+<tr><td class="c">11</td><td><b>05+ 상징이 생기면 네 가지가 따라온다</b></td>
+<td>국기원 → 봉은사 대입. ①<b>주소</b>(어디로 가야 하는가에 답) ②<b>표준</b>(전국 사찰이 처음부터 안 만들어도 됨) ③<b>유입 경로</b>(OTA·MICE가 연결할 대상) ④<b>수출 단위</b>. 순서도 명시 — 국기원은 <b>1972년에 먼저 섰고 세계화는 그 뒤</b></td></tr>
+<tr class="hl"><td class="c">16</td><td><b>07+ 봉은문화회관이라서 가능해지는 것</b></td>
+<td>비전을 <b>건물 조건에서 도출되는 결론</b>으로. 4단 사슬(조건→가능→결과→효과). <b>마지막 행이 급소</b> — 경내이되 독립 동선이라 “수행 환경 훼손 없음”을 <b>도면으로 입증</b>할 수 있고, 그것이 곧 제6조 제3항 단서 충족이다. <b>비전과 합법성이 같은 자리에서 만난다</b></td></tr>
+<tr><td class="c">22</td><td><b>08++ 엔진은 두 집단이 사는 것에서 도출된다</b></td>
+<td>공간→사업이 아니라 <b>타겟→BM 역산</b>. MZ=<b>빈도</b>(객단가 낮고 반복), 외국인=<b>객단가</b>(한 번에 묶어서). 소비 패턴이 정반대라 <b>MZ가 평일 낮·비수기를, 외국인이 객단가·성수기를</b> 채운다</td></tr>
+<tr class="hl"><td class="c">48</td><td><b>14+++++ 모든 것이 조문 하나의 해석 폭에 걸려 있다</b></td>
+<td>제6조 원칙 금지 ↔ <b>제3항 단서</b> + 시행령 제7조 3개 예외. 회신 3폭이 매출을 <b>12.5 / 39.0 / 70.5억</b>으로 5.6배 벌린다</td></tr>
+<tr class="hl"><td class="c">49</td><td><b>14++++++ 상업화 허가를 구하지 않는다 — 보존·발전의 방법을 제시한다</b> ★</td>
+<td>설득 3축 + <b>MZ·외국인이 법적 근거가 되는 구조</b> (아래 상세)</td></tr>
+</tbody></table>
+
+<h2>2. 유권해석 설득 논리 <span class="sub2">— 프레임을 뒤집었다</span></h2>
+<div class="quote">“이것도 되게 해달라”가 아니라 —<br><b>“법이 말한 보존·발전이 이것이다”</b></div>
+<div class="ax">
+  <div class="a"><div class="an">축 01 · 목적 부합</div><div class="at">3년의 공실이 ‘보존’인가</div>
+    <div class="ad">단서 요건이 <b>“보존·유지 및 발전”</b>인데, 8,868㎡가 3년째 비어 있고 누적 기회비용이 <b>90억</b>인 상태는 보존이 아니라 방치에 가깝다. 전통문화 체험으로 되살리는 것이 조문이 요구한 <b>‘발전’</b>이다.</div></div>
+  <div class="a"><div class="an">축 02 · 문언 근거</div><div class="at">새 예외를 요구하지 않는다</div>
+    <div class="ad">전통다원은 <b>문언 그대로</b>, 굿즈는 ‘불교문화 상품’, 명상·교육은 ‘수행·교육’에 이미 있다. 남은 쟁점은 <b>사찰음식이 ‘전통문화 관련’에 드는가 하나</b>이며 <b>조계사 발우공양</b>이 그 경로를 이미 열어놨다.</div></div>
+  <div class="a"><div class="an">축 03 · 정책 부합</div><div class="at">문체부가 하려는 일과 같다</div>
+    <div class="ad">K-컬처 확산·인바운드 관광은 문체부 정책 목표다. 과업지시서도 사업 목적을 <b>‘전통문화산업 진흥의 전진기지’</b>로 규정했다. <b>허가해주는 일이 아니라 정책을 실행하는 일</b>이 된다.</div></div>
+</div>
+
+<h3>MZ·외국인이 왜 법적 근거인가</h3>
+<p>타겟 데이터가 마케팅 근거에 그치지 않고 <b>합법성 논거로 전환</b>되는 것 — 이번 강화의 핵심입니다.</p>
+<table>
+<thead><tr><th style="width:24%">데이터</th><th style="width:36%">무엇을 증명하는가</th><th style="width:40%">어느 요건에 닿는가</th></tr></thead>
+<tbody>
+<tr><td><b>외국인 종교 활동 2.0%</b></td><td>방문 목적이 <b>포교·신앙이 아니다</b></td><td>국비(문체부) — <b>포교 사업 배제</b> 조항을 정면 통과</td></tr>
+<tr class="hl"><td><b>역사·전통 체험 46.6%</b><br><span class="s">전체 20.6%의 2.26배</span></td><td>수요의 실체가 <b>전통문화</b>다</td><td>시행령 제7조 — <b>‘전통문화 관련’</b> 해석의 사실적 근거</td></tr>
+<tr class="hl"><td><b>불교박람회 2030 약 80%</b></td><td>전통문화가 <b>다음 세대로 전승</b>되고 있다</td><td>제6조 제3항 — <b>‘발전’</b>의 실질적 내용</td></tr>
+<tr><td><b>개별여행 97.5%</b></td><td>단체 송출이 아니라 <b>자발적 선택</b>이다</td><td>관광 정책 — 인바운드 <b>질적 전환</b> 지표</td></tr>
+</tbody></table>
+<p class="note">그래서 질의는 <b>5문항을 한 공문으로 묶어</b> 낸다 — 개별 제출은 회신 시점이 어긋나 판정을 지연시키고, 무엇보다 세 축이 한 문서 안에서 함께 읽혀야 설득이 성립한다.</p>
+
+<h2>3. 문구 최적화 <span class="sub2">— 주요 12건</span></h2>
+<p>영어 헤드를 국문화하고, 내부 방법론을 청중 관점으로 바꾸고, 형용사 자리에 숫자를 넣었습니다.</p>
+<div class="cps"><div class="cp"><div class="be4">앞으로의 불교는 사회와 어떻게 만날 것인가</div><div class="ar">→</div><div class="af">3년째 답이 나오지 않은 이유는 <em>질문이 틀렸기 때문이다</em></div></div>
+<div class="cp"><div class="be4">종교의 영향력은 약해져도, 정신적 삶에 대한 수요는 사라지지 않았다</div><div class="ar">→</div><div class="af">종교는 줄었는데, <em>정신을 찾는 사람은 늘었다</em></div></div>
+<div class="cp"><div class="be4">불교는 이미 Wellness와 Lifestyle로 확장할 자산을 가지고 있다</div><div class="ar">→</div><div class="af">새로 만들 것이 없다 — <em>이미 다 가지고 있다</em></div></div>
+<div class="cp"><div class="be4">콘텐츠는 많지만, 그것을 한 번에 경험할 장소가 없다</div><div class="ar">→</div><div class="af">1년에 한 번, 전국에 흩어져, <em>보고 나면 끝난다</em></div></div>
+<div class="cp"><div class="be4">하나의 상징적 공간이 전체 산업의 인식을 바꾼다</div><div class="ar">→</div><div class="af">국기원 하나가 태권도를 <em>50개국이 찾아오는 목적지</em>로 만들었다</div></div>
+<div class="cp"><div class="be4">그 역할을 할 수 있는 가장 강력한 장소가 봉은사다</div><div class="ar">→</div><div class="af"><em>1,200년과 강남</em>을 동시에 가진 곳은 하나뿐이다</div></div>
+<div class="cp"><div class="be4">Buddhist Culture &amp; Wellness Destination</div><div class="ar">→</div><div class="af">서울 도심에서 <em>불교를 하루치로 경험하는 곳</em></div></div>
+<div class="cp"><div class="be4">Visit · See · Leave 를 여덟 칸으로</div><div class="ar">→</div><div class="af">세 칸에서 끝나던 하루를 <em>여덟 칸으로 늘린다</em></div></div>
+<div class="cp"><div class="be4">공간별이 아니라 Revenue Engine별로 계산한다 — R1~R8</div><div class="ar">→</div><div class="af">여덟 개 중 <em>셋은 매출을 0으로 뒀다</em></div></div>
+<div class="cp"><div class="be4">Content &amp; Destination Management Team</div><div class="ar">→</div><div class="af">이 열 가지를 <em>하나의 팀이 맡아야 한다</em></div></div>
+<div class="cp"><div class="be4">하나의 선순환 구조</div><div class="ar">→</div><div class="af">문화와 수익은 <em>싸우지 않는다</em></div></div>
+<div class="cp"><div class="be4">준공이 시작이 아니다 — 매일 콘텐츠를 생산해야 하는 사업이다</div><div class="ar">→</div><div class="af">준공은 끝이 아니라 <em>시작이다</em></div></div></div>
+
+<h2>4. 전체 구조 <span class="sub2">— 57장</span></h2>
+<div class="lg"><span class="lv">비저닝 강화</span><span class="le">구체화 · 실행플랜</span><span class="lo">기존</span></div>
+<div class="toc"><div class="row "><span class="no">1</span><span class="num"></span>
+          <span class="tx"><b>불교는 이 시대와 어떻게 만날 것인가</b><i></i></span></div>
+<div class="pt "><span class="pn">Part 1</span><span class="ph">한국 불교는 다음 Stage 로 가야 한다</span><span class="no">2</span></div>
+<div class="row "><span class="no">3</span><span class="num">01</span>
+          <span class="tx"><b>3년째 답이 나오지 않은 이유는 질문이 틀렸기 때문이다</b><i>같은 질문을 계속하면 답은 계속 같다 — 재임대 . 질문의 층위가 답의 차원을 정한다.</i></span></div>
+<div class="row "><span class="no">4</span><span class="num">02</span>
+          <span class="tx"><b>종교는 줄었는데, 정신을 찾는 사람은 늘었다</b><i>줄어드는 것은 신도 수 이고, 늘어나는 것은 명상·수행·정신문화를 소비하는 사람 이다. 같은 시장이 아니다.</i></span></div>
+<div class="row expand"><span class="no">5</span><span class="num">02+</span>
+          <span class="tx"><b>지금이어야 하는 이유 — 세 가지가 동시에 열리고 있다</b><b class="be">구체화</b><i>하나만 열려도 기회지만, 셋이 겹치는 구간은 길지 않다.</i></span></div>
+<div class="row "><span class="no">6</span><span class="num">03</span>
+          <span class="tx"><b>새로 만들 것이 없다 — 이미 다 가지고 있다</b><i>부족한 것은 콘텐츠가 아니라 번역 이다. 이 열두 가지는 지금 종교 안의 언어로만 존재한다.</i></span></div>
+<div class="row vision"><span class="no">7</span><span class="num">03+</span>
+          <span class="tx"><b>일상이 되려면 다섯 가지가 바뀌어야 한다</b><b class="bv">비저닝</b><i>불교를 바꾸자는 것이 아니다. 사람이 닿는 방식 을 바꾸자는 것이다.</i></span></div>
+<div class="pt "><span class="pn">Part 2</span><span class="ph">그런데 지금, 불교를 경험하려면 어디로 가야 하는가</span><span class="no">8</span></div>
+<div class="row "><span class="no">9</span><span class="num">04</span>
+          <span class="tx"><b>1년에 한 번, 전국에 흩어져, 보고 나면 끝난다</b><i>각각은 훌륭하다. 문제는 시간이 한정되고, 장소가 흩어지고, 경험이 이어지지 않는다 는 것이다.</i></span></div>
+<div class="row "><span class="no">10</span><span class="num">05</span>
+          <span class="tx"><b>국기원 하나가 태권도를 50개국이 찾아오는 목적지 로 만들었다</b><i>상징은 스스로 벌지 않는다 — 그 분야 전체의 인식을 바꾸고, 주변이 벌게 한다.</i></span></div>
+<div class="row vision"><span class="no">11</span><span class="num">05+</span>
+          <span class="tx"><b>상징이 생기면 네 가지가 따라온다</b><b class="bv">비저닝</b><i>국기원이 태권도에 만들어준 것을 하나씩 옮겨 적으면, 봉은사가 무엇이 될 수 있는지 가 보인다.</i></span></div>
+<div class="row "><span class="no">12</span><span class="num">06</span>
+          <span class="tx"><b>1,200년과 강남을 동시에 가진 곳은 하나뿐 이다</b><i>정통성·입지·규모·접근성을 하나씩 가진 곳은 많다. 넷을 동시에 가진 곳은 없다 — 그래서 아무도 흉내낼 수 없다.</i></span></div>
+<div class="row expand"><span class="no">13</span><span class="num">06+</span>
+          <span class="tx"><b>그런데 결정의 창이 닫히고 있다</b><b class="be">구체화</b><i>조건은 다 갖췄다. 남은 변수는 시간 이다 — 그리고 이건 우리가 늘릴 수 없다.</i></span></div>
+<div class="pt "><span class="pn">Part 3</span><span class="ph">그래서 봉은사가 무엇이 되어야 하는가</span><span class="no">14</span></div>
+<div class="row "><span class="no">15</span><span class="num">07</span>
+          <span class="tx"><b>서울 도심에서 불교를 하루치로 경험하는 곳</b><i>공식 명칭은 서울 도심형 K-Buddhism 문화·웰니스 체험 거점 · Buddhist Culture &amp; Wellness Destination — 국비 대응 포지셔닝과 같은 문장이다.</i></span></div>
+<div class="row vision"><span class="no">16</span><span class="num">07+</span>
+          <span class="tx"><b>봉은문화회관이라서 가능해지는 것</b><b class="bv">비저닝</b><i>비전은 선언이 아니라 건물 조건에서 도출되는 결론 이어야 한다 — 네 개의 사슬이 있다.</i></span></div>
+<div class="row expand"><span class="no">17</span><span class="num">07++</span>
+          <span class="tx"><b>누가 오는가 — 실측이 있는 두 집단에 집중한다</b><b class="be">구체화</b><i>타겟을 좁힌 이유는 취향이 아니라 근거의 비대칭 이다.</i></span></div>
+<div class="pt "><span class="pn">Part 4</span><span class="ph">사람은 이미 온다. 머물 이유가 없을 뿐이다</span><span class="no">18</span></div>
+<div class="row "><span class="no">19</span><span class="num">08</span>
+          <span class="tx"><b>세 칸에서 끝나던 하루를 여덟 칸으로 늘린다</b><i>목적지를 만든다는 것은 건물을 짓는 일이 아니라 머물 이유를 다섯 개 더 만드는 일 이다.</i></span></div>
+<div class="row "><span class="no">20</span><span class="num">08+</span>
+          <span class="tx"><b>먼저 인정한다 — 우리는 체류시간을 모른다</b><i>숫자가 없다는 사실이 이 프로젝트의 첫 번째 발견이다. 그래서 무엇을 목표로 삼을지부터 바꾼다.</i></span></div>
+<div class="row vision"><span class="no">21</span><span class="num">08++</span>
+          <span class="tx"><b>엔진은 두 집단이 사는 것에서 도출된다</b><b class="bv">비저닝</b><i>공간을 먼저 나누고 사업을 끼워넣은 것이 아니다 — 누가 무엇에 돈을 쓰는지에서 거꾸로 짰다.</i></span></div>
+<div class="pt "><span class="pn">Part 5</span><span class="ph">머물 이유를 만드는 다섯 개의 엔진</span><span class="no">22</span></div>
+<div class="row "><span class="no">23</span><span class="num">ENGINE 01</span>
+          <span class="tx"><b>전시 3,300㎡ — 사람을 데려오는 엔진</b><i>단순 전시대관장이 아니다. 1~2개 층 규모의 Museum Anchor 로 위계를 올린다 — 전용 3,300㎡(약 1,000평).</i></span></div>
+<div class="row expand"><span class="no">24</span><span class="num">ENGINE 01+</span>
+          <span class="tx"><b>넷 중 둘은 매출이 0 이다 — 그리고 그것이 의도다</b><b class="be">구체화</b><i>전시를 수익 사업으로 설계하면 실패한다. 집객과 법적 안전판이 이 엔진의 임무 다.</i></span></div>
+<div class="row "><span class="no">25</span><span class="num">ENGINE 02</span>
+          <span class="tx"><b>같은 콘텐츠를 네 개의 가격으로 — 머무르게 하는 엔진</b><i>보는 불교에서 직접 해보는 불교로. 같은 콘텐츠를 다른 깊이와 다른 가격 으로 설계한다 — 레벨링이 핵심이다.</i></span></div>
+<div class="row "><span class="no">26</span><span class="num">ENGINE 03</span>
+          <span class="tx"><b>매출 1위 31.4억 — 가장 쉬운 입구이자 가장 큰 관문</b><i>전 라인 중 매출 1위(기준 31.4억)이자, 단 하나의 유권해석에 전부가 걸려 있는 엔진이다.</i></span></div>
+<div class="row "><span class="no">27</span><span class="num">ENGINE 04</span>
+          <span class="tx"><b>뮤지엄숍 — 전시를 집까지 가져가게 하는 엔진</b><i>전시와 Retail을 하나의 생태계로 묶는다. 전시에서 발굴한 작가·주제·공예를 상품으로 전환하고 검증해 밖으로 내보낸다.</i></span></div>
+<div class="row expand"><span class="no">28</span><span class="num">ENGINE 04+</span>
+          <span class="tx"><b>전시에서 발굴한 것이 일곱 단계를 거쳐 밖으로 나간다</b><b class="be">구체화</b><i>이 사이클이 돌면 전시가 콘텐츠 공급원이 되고, 리테일이 그 검증장이 된다.</i></span></div>
+<div class="row "><span class="no">29</span><span class="num">ENGINE 05</span>
+          <span class="tx"><b>2시간에서 24시간으로 — 단, 1기에는 짓지 않는다</b><i>방향은 맞다. 그러나 1기에는 짓지 않는다 — 지금 지으면 사업 전체가 흔들린다. 재무모델의 판정을 그대로 싣는다.</i></span></div>
+<div class="row "><span class="no">30</span><span class="num">SPACE</span>
+          <span class="tx"><b>숙박을 미루자 전시가 두 배 가 됐다 — 두 달 막힌 문제가 여기서 풀렸다</b><i>두 달간 프로젝트를 막고 있던 것은 “대관을 접느냐”였다. 답은 대관이 아니라 숙박 에 있었다.</i></span></div>
+<div class="row expand"><span class="no">31</span><span class="num">SPACE+</span>
+          <span class="tx"><b>1층이 목적지 , 2층이 수익축 이다</b><b class="be">구체화</b><i>같은 8,868㎡라도 어느 층에 무엇을 두느냐 가 체류와 매출을 가른다.</i></span></div>
+<div class="pt "><span class="pn">Part 6</span><span class="ph">문화와 수익은 싸우지 않는다</span><span class="no">32</span></div>
+<div class="row "><span class="no">33</span><span class="num">09</span>
+          <span class="tx"><b>문화가 사람을 부르고, 사람이 돈을 만들고, 그 돈이 다시 문화를 만든다</b><i>이 바퀴가 돌지 않으면 다섯 엔진은 그냥 다섯 개의 시설 이다. 엔진을 바퀴로 만드는 것이 이 장의 핵심이다.</i></span></div>
+<div class="pt "><span class="pn">Part 7</span><span class="ph">여기서 되는 것만 밖으로 내보낸다</span><span class="no">34</span></div>
+<div class="row "><span class="no">35</span><span class="num">10</span>
+          <span class="tx"><b>봉은사는 목적지이자 시험대다</b><i>전국 사찰이 각자 처음부터 시작할 필요가 없어진다 — 봉은사에서 되는 것만 골라 가져간다.</i></span></div>
+<div class="pt "><span class="pn">Part 8</span><span class="ph">그런데 목적지는 건물로 만들어지지 않는다</span><span class="no">36</span></div>
+<div class="row "><span class="no">37</span><span class="num">11</span>
+          <span class="tx"><b>준공은 끝이 아니라 시작이다</b><i>건물을 다 지은 날부터 매일 새 콘텐츠를 만들어야 하는 사업 이 시작된다. 공간이나 사업모델만큼 조직이 중요한 이유다.</i></span></div>
+<div class="row "><span class="no">38</span><span class="num">12</span>
+          <span class="tx"><b>이 열 가지를 하나의 팀이 맡아야 한다</b><i>전담 조직 또는 장기 전문 운영 파트너 · Content &amp; Destination Management Team</i></span></div>
+<div class="row expand"><span class="no">39</span><span class="num">12+</span>
+          <span class="tx"><b>세 개의 경로를 따로 설계한다</b><b class="be">구체화</b><i>같은 공간이지만 오는 이유도, 만나는 채널도, 사는 것도 다르다.</i></span></div>
+<div class="row expand"><span class="no">40</span><span class="num">12++</span>
+          <span class="tx"><b>개관 후에 알리기 시작하면 이미 늦다</b><b class="be">구체화</b><i>공사 기간이 마케팅의 1기 다 — 문을 열었을 때 이미 줄이 서 있어야 한다.</i></span></div>
+<div class="pt "><span class="pn">Part 9</span><span class="ph">그래서 이것이 되는 사업인가</span><span class="no">41</span></div>
+<div class="row "><span class="no">42</span><span class="num">13</span>
+          <span class="tx"><b>여덟 개 중 셋은 매출을 0으로 뒀다</b><i>근거가 없는 것을 넣으면 나머지 숫자의 신뢰까지 무너진다. 엔진별로 따로 계산해야 무엇을 뺄지 판단할 수 있다.</i></span></div>
+<div class="row "><span class="no">43</span><span class="num">14</span>
+          <span class="tx"><b>15개 경우의 수를 다 계산했다 — 재임대를 넘는 것은 둘뿐이다</b><i>유권해석 5케이스 × 시나리오 3. 판정 기준은 재임대 세후 27.1억. 하나의 예측이 아니라 조건의 목록 을 제시한다.</i></span></div>
+<div class="row "><span class="no">44</span><span class="num">14+</span>
+          <span class="tx"><b>이 사업은 네 조건이 동시에 참일 때 성립한다</b><i>이것이 이 마스터플랜의 결론이다. 하나라도 빠지면 “차라리 재임대” 반론이 이긴다.</i></span></div>
+<div class="row "><span class="no">45</span><span class="num">14++</span>
+          <span class="tx"><b>총액으로는 이긴다 — 그런데 증분으로 보면 회수가 안 된다</b><i>보수비는 재임대를 택해도 나가는 돈 이다. 그렇다면 이 사업의 진짜 비용은 200억 전부가 아니다.</i></span></div>
+<div class="row expand"><span class="no">46</span><span class="num">14+++</span>
+          <span class="tx"><b>국비가 사업 성립의 경계를 정한다</b><b class="be">구체화</b><i>국비는 수익성을 개선하는 보너스가 아니라 성립 여부를 가르는 조건 이다.</i></span></div>
+<div class="row expand"><span class="no">47</span><span class="num">14++++</span>
+          <span class="tx"><b>이 모델이 말하지 않는 것 도 함께 적는다</b><b class="be">구체화</b><i>숫자가 커버하는 범위를 밝혀야, 그 숫자를 어디까지 믿을지 판단할 수 있다.</i></span></div>
+<div class="row vision"><span class="no">48</span><span class="num">14+++++</span>
+          <span class="tx"><b>모든 것이 조문 하나의 해석 폭 에 걸려 있다</b><b class="bv">비저닝</b><i>전통사찰법 제6조는 보존구역 내 영업행위를 원칙 금지 한다. 그런데 같은 조 제3항에 단서 가 있다.</i></span></div>
+<div class="row vision"><span class="no">49</span><span class="num">14++++++</span>
+          <span class="tx"><b>상업화 허가를 구하지 않는다 — 보존·발전의 방법을 제시한다</b><b class="bv">비저닝</b><i>질의의 프레임을 바꾼다. “이것도 되게 해달라”가 아니라 “법이 말한 보존·발전이 이것이다” 로 간다.</i></span></div>
+<div class="pt expand"><span class="pn">Part 10</span><span class="ph">그래서 지금, 무엇을 하면 되는가</span><span class="no">50</span></div>
+<div class="row expand"><span class="no">51</span><span class="num">PHASE 01</span>
+          <span class="tx"><b>일곱 단계 — 지금 서 있는 자리는 PHASE 01 이다</b><b class="be">구체화</b><i>유권해석 5건이 미제출이다. 여기가 안 풀리면 다음 칸으로 갈 수 없다.</i></span></div>
+<div class="row expand"><span class="no">52</span><span class="num">15+</span>
+          <span class="tx"><b>다섯 해가 각각 무엇을 증명하는 해 인가</b><b class="be">구체화</b><i>해마다 넘어야 할 판정 이벤트 가 하나씩 있다 — 그것을 넘으면 다음 해로 간다.</i></span></div>
+<div class="row expand"><span class="no">53</span><span class="num">15++</span>
+          <span class="tx"><b>회신 전에 반드시 통과해야 할 다섯 개의 문</b><b class="be">구체화</b><i>다섯 모두 담당과 기한이 정해져야 한다. 여기를 못 지나면 이후 단계는 의미를 잃는다.</i></span></div>
+<div class="row expand"><span class="no">54</span><span class="num">15+++</span>
+          <span class="tx"><b>회신을 기다리는 동안에도 지금 시작할 수 있는 것이 넷 있다</b><b class="be">구체화</b><i>유권해석이 어느 쪽으로 나든 버려지지 않는 투자 다.</i></span></div>
+<div class="row expand"><span class="no">55</span><span class="num">15++++</span>
+          <span class="tx"><b>발주처가 지금 결정해야 할 것 다섯</b><b class="be">구체화</b><i>이 보고서는 권고까지 한다. 그러나 아래 다섯은 컨설턴트가 대신 정할 수 없는 항목 이다.</i></span></div>
+<div class="row expand"><span class="no">56</span><span class="num">15+++++</span>
+          <span class="tx"><b>답하지 못한 것 일곱 — 비어 있는 칸을 비어 있다고 적는다</b><b class="be">구체화</b><i>모르는 것을 모른다고 먼저 적어야, 그 위에 쌓은 전략이 어디까지 유효한지 판단할 수 있다.</i></span></div>
+<div class="row "><span class="no">57</span><span class="num">16</span>
+          <span class="tx"><b>우리가 채우려는 것은 8,868㎡가 아니다</b><i>공실이 채워지는 것은 결과일 뿐이다. 이 여섯 가지가 실제로 만들려는 것 이다.</i></span></div></div>
+
+<h2>5. 검증</h2>
+<table class="vt">
+<thead><tr><th style="width:34%">항목</th><th style="width:22%">결과</th><th style="width:44%">방법</th></tr></thead>
+<tbody>
+<tr><td>슬라이드 수</td><td class="ok">57장</td><td>DOM 카운트</td></tr>
+<tr><td>콘텐츠 넘침</td><td class="ok">0장</td><td>Playwright — 자식 bottom vs 슬라이드 박스</td></tr>
+<tr><td>화면 밖 요소</td><td class="ok">0개</td><td>전 슬라이드 h1·표·카드 가시성 실측</td></tr>
+<tr><td>JS 에러</td><td class="ok">0건</td><td>pageerror · console.error 수집</td></tr>
+<tr><td>SSOT 45셀 대조</td><td class="ok">미발견 0</td><td>finance-model.json 15케이스 × 3값</td></tr>
+<tr><td>핵심 수치 31종</td><td class="ok">전량 유지</td><td>법조문·비율·면적·기회비용 포함</td></tr>
+<tr><td>폐기값</td><td class="ok">0건</td><td>42억 · 44.5% · 1,000년 태그 제거 후 검색</td></tr>
+<tr><td>연속 동일 헤드카피</td><td class="ok">0건</td><td>인접 h1 비교</td></tr>
+<tr><td>경어체 · 영어우세 헤드</td><td class="ok">0건</td><td>어투 통일 · 한글/라틴 문자수 비교</td></tr>
+<tr><td>CSS 미정의 클래스</td><td class="ok">0종</td><td>사용 110종 ↔ 정의 대조 <span class="s">(pg는 JS 전용 span)</span></td></tr>
+<tr><td>eyebrow 번호 중복</td><td class="ok">0건</td><td>num 카운터</td></tr>
+</tbody></table>
+<p class="note"><b>이번에 잡은 것</b> — 로드맵 삽입 후 45장이 474px 넘쳤는데, 텍스트가 많아서가 아니라 <b>CSS에 <code>.phases</code>/<code>.ph</code>가 아예 없어 7칸 그리드가 세로로 쌓인 것</b>이었다(phases 높이 722px 실측). 텍스트를 깎았으면 원인은 그대로 둔 채 증상만 옮겨 다녔을 것이다. 이후 <b>사용 클래스 ↔ CSS 정의 대조</b>를 검증에 상설 편입했다.</p>
+
+<h2>6. 남은 것</h2>
+<ul class="rem">
+<li><b>송부본 262장의 헤드카피</b> — 243장(93%)이 앞장과 같은 제목이다. 파이프라인은 완성(<code>deck-headline.json</code> 해시 조회, 없으면 원제목 유지·회귀 0 확인), <b>176장 카피 작성만 남았다</b></li>
+<li>요약본 v2 57장 + <code>build_deck.py</code> 변경 <b>미커밋</b></li>
+<li>국기원 근거 <code>E-11xx</code> 요소 원장 등재</li>
+<li>상시 미결 — 유권해석 5건 미제출(9.27) · 봉은사 가용 현금 · 재임대 실제 보수액(27억 vs 57.5억)</li>
+</ul>
+<p class="ft">봉은문화센터 활용전략 수립 및 운영모델 개발 용역 · by <b>Project Rent</b></p>
+
+</body></html>

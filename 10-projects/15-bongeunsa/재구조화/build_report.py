@@ -44,7 +44,8 @@ extra_css = """
 .agenda-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:26px}
 .agenda-head .no{font-size:10px;letter-spacing:.25em;color:var(--fg-3)}
 .agenda-head .eyebrow{font-size:10px;letter-spacing:.3em;color:var(--accent);text-transform:uppercase}
-.agenda h3{font-size:30px;font-weight:300;letter-spacing:-0.025em;line-height:1.2;margin:10px 0 0;max-width:1000px}
+.toc-apx{font-size:13px;margin:14px 0 0}
+.agenda h3{font-size:36px;font-weight:300;letter-spacing:-0.025em;line-height:1.2;margin:10px 0 0;max-width:1000px}
 .agenda h3 em{font-style:normal;color:var(--accent-light)}
 .agenda .lead{font-size:15px;color:var(--fg-2);line-height:1.75;max-width:900px;margin:22px 0 8px}
 .agenda p{font-size:14px;color:var(--fg-2);line-height:1.8;max-width:960px;margin:14px 0}
@@ -116,7 +117,7 @@ blockquote cite{display:block;font-size:11px;color:var(--fg-3);font-style:normal
   .agenda:last-of-type{page-break-after:auto}
   .sec{page-break-after:always;break-after:page}
   .card,.case-study,.choice-card,.kpi,.lens,.callout,.split,table{page-break-inside:avoid;break-inside:avoid}
-  .agenda h3{font-size:20pt}
+  .agenda h3{font-size:24pt}
   .agenda p,.agenda li{font-size:9.5pt;color:#333!important}
   .ev{display:none}
 }

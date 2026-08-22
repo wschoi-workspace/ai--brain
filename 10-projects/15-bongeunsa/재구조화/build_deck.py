@@ -129,6 +129,15 @@ if os.path.exists('deck-subcopy.json'):
         SUBCOPY_MODE = 'legacy'
     print(f'   (서브카피 {len(SUBCOPY)}건 · {SUBCOPY_MODE} 키)')
 SUB_HIT, SUB_MISS = [], []                  # 빌드 후 리포트용
+
+# 분할 2번째 장부터 h1을 그 장 고유의 주장으로 교체한다 — 같은 키(청크 해시)를 쓰므로
+#   본문이 바뀌면 헤드카피도 자동으로 빈칸이 되어 원 아젠다 제목으로 안전하게 되돌아간다.
+HEADLINE = {}
+if os.path.exists('deck-headline.json'):
+    _rawh = _json.load(open('deck-headline.json', encoding='utf-8'))
+    HEADLINE = {k: v['head'] for k, v in _rawh.get('entries', {}).items() if v.get('head')}
+    print(f'   (분할 헤드카피 {len(HEADLINE)}건 · hash 키)')
+HEAD_HIT, HEAD_MISS = [], []
 CHUNKS = {}   # 서브카피 생성용 슬라이드별 본문 덤프 → deck-chunks.json
 
 def weight(el):
@@ -242,7 +251,32 @@ def pack(blocks):
                 w += bw
         flush()
     flush()
-    return slides
+
+    # ── 저밀도 슬라이드 병합 ──────────────────────────────────────
+    # 폰트를 키우면서 분할이 잦아져 "제목만 있고 본문이 한 줄"인 장이 생긴다.
+    # 이웃과 합쳐도 예산 안에 들면 합친다. 빈 청크는 무조건 다음 장에 붙인다.
+    THIN = int(BUDGET * 0.55)          # 이 미만이면 저밀도로 본다
+    merged, i = [], 0
+    while i < len(slides):
+        cur = slides[i]
+        cw = sum(weight(b) for b in cur)
+        # 빈 청크 → 다음 장 앞에 붙인다(내용이 없으므로 위치만 차지)
+        if not cur:
+            i += 1
+            continue
+        while i + 1 < len(slides):
+            nxt = slides[i + 1]
+            nw = sum(weight(b) for b in nxt)
+            if cw >= THIN and nw >= THIN:
+                break                   # 둘 다 충분히 차 있으면 그대로 둔다
+            if cw + nw > BUDGET:
+                break                   # 합치면 넘친다
+            cur = cur + nxt
+            cw += nw
+            i += 1
+        merged.append(cur)
+        i += 1
+    return merged
 
 # ── 소스 파싱 ─────────────────────────────────────────────────────
 
@@ -300,6 +334,11 @@ def render_slides(no, eyebrow, title_html, blocks):
         else:
             expanded.append(b)
     chunks = pack(expanded) or [[]]
+    # 첫 청크가 lead 문단 하나뿐이면, 그 lead가 서브카피로 승격되면서 본문이 빈 장이 된다.
+    # 다음 청크를 당겨와 합친다(예산을 넘겨도 auto-fit이 흡수한다).
+    while len(chunks) > 1 and all('lead' in cls(b) or b.tag == 'h4' for b in chunks[0]):
+        chunks[1] = chunks[0] + chunks[1]
+        chunks = chunks[1:]
     total = len(chunks)
     out = []
     for i, chunk in enumerate(chunks):
@@ -320,6 +359,13 @@ def render_slides(no, eyebrow, title_html, blocks):
                 sub = re.sub(r'\s+', ' ', lead.text_content()).strip()
                 chunk_out.remove(lead)          # 서브카피로 승격 — 본문 중복 방지
         sub_html = f'<p class="hsub">{sub}</p>' if sub else ''
+        # 분할 2번째 장부터는 그 장 고유의 주장을 h1으로 올린다(없으면 원 아젠다 제목 유지)
+        head_now = title_html
+        if i > 0:
+            _hd = HEADLINE.get(_h, '')
+            (HEAD_HIT if _hd else HEAD_MISS).append((key, _h))
+            if _hd:
+                head_now = _hd
         cont = (f'<span class="cont">· 계속 {i + 1}/{total}</span>'
                 if total > 1 and i > 0 else '')
         big = ' data-big="1"' if len(chunk) == 1 and weight(chunk[0]) >= SOLO else ''
@@ -328,7 +374,7 @@ def render_slides(no, eyebrow, title_html, blocks):
             f'<div class="slide" data-agenda="{no}" data-key="{key}"{big}>'
             f'<div class="slide-head">'
             f'<div class="eyebrow"><span class="num">{no}</span> {eyebrow} {cont}</div>'
-            f'<h1>{title_html}</h1>{sub_html}</div>'
+            f'<h1>{head_now}</h1>{sub_html}</div>'
             f'<div class="slide-body"><div class="fit">{body}</div></div>'
             f'{FOOT}</div>')
     return out
@@ -408,12 +454,12 @@ padding:40px 56px 24px;position:relative;overflow:hidden;margin:0 auto}
 .slide.active{display:flex}}
 /* 헤더: 상단 고정 (가이드 §4 슬라이드 규칙) */
 .slide-head{flex-shrink:0;border-bottom:1px solid var(--line-2);padding-bottom:16px}
-.eyebrow{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--fg-3);margin-bottom:8px}
+.eyebrow{font-size:12px;letter-spacing:.25em;text-transform:uppercase;color:var(--fg-3);margin-bottom:8px}
 .eyebrow .num{display:inline-block;background:var(--accent);color:#fff;font-weight:600;
 padding:2px 8px;margin-right:8px;letter-spacing:.08em}
 .eyebrow .cont{color:var(--fg-3);letter-spacing:.1em;margin-left:6px}
 .slide-head h1{font-size:35px;font-weight:500;line-height:1.28;letter-spacing:-0.025em;max-width:1168px}
-.hsub{font-size:12.5px;color:var(--fg-2);line-height:1.6;margin-top:10px;max-width:1100px}
+.hsub{font-size:14px;color:var(--fg-2);line-height:1.6;margin-top:10px;max-width:1100px}
 .slide-head h1 em{font-style:normal;color:var(--accent-light)}
 /* 본문: 아래정렬 (justify-content:flex-end) */
 .slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;position:relative;min-height:0}
@@ -422,19 +468,19 @@ padding:2px 8px;margin-right:8px;letter-spacing:.08em}
 text-transform:uppercase;color:var(--fg-3);border-top:1px solid var(--line-2);padding-top:14px;margin-top:16px}
 .foot b{color:var(--accent-light);font-weight:600}
 /* ── 본문 타이포 — 8px 리듬 ── */
-.fit p{font-size:12.5px;line-height:1.6;color:var(--fg-2);margin:8px 0;max-width:1168px}
-.fit p.lead{font-size:14px;color:var(--fg);border-left:3px solid var(--accent);padding-left:14px;margin:8px 0 16px}
-.fit h4{font-size:13px;font-weight:600;color:var(--fg);margin:16px 0 8px}
+.fit p{font-size:14.5px;line-height:1.6;color:var(--fg-2);margin:8px 0;max-width:1168px}
+.fit p.lead{font-size:16px;color:var(--fg);border-left:3px solid var(--accent);padding-left:14px;margin:8px 0 16px}
+.fit h4{font-size:15px;font-weight:600;color:var(--fg);margin:16px 0 8px}
 .fit h4::before{content:'';display:inline-block;width:3px;height:12px;background:var(--accent);margin-right:8px;vertical-align:-1px}
 .fit ul,.fit ol{margin:8px 0 8px 18px}
-.fit li{font-size:12px;line-height:1.6;color:var(--fg-2);margin:4px 0}
+.fit li{font-size:14px;line-height:1.6;color:var(--fg-2);margin:4px 0}
 .fit strong,.fit li strong{color:var(--fg);font-weight:600}
 /* ── 표 ── */
-.fit table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0}
+.fit table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
 .fit th{background:var(--bg-3);color:var(--fg);font-weight:600;text-align:left;padding:6px 8px;
-border:1px solid var(--line);font-size:10px;letter-spacing:.04em}
+border:1px solid var(--line);font-size:11.5px;letter-spacing:.04em}
 .fit td{padding:6px 8px;border:1px solid var(--line-2);color:var(--fg-2);line-height:1.5;vertical-align:top}
-.fit td small{font-size:10px;color:var(--fg-3)}
+.fit td small{font-size:11px;color:var(--fg-3)}
 .matrix td.hit{background:rgba(108,92,231,.10);color:var(--fg)}
 .matrix td.mid{background:rgba(168,114,14,.10)}
 .matrix td.out{background:rgba(194,71,47,.08);color:var(--fg-3)}
@@ -448,67 +494,67 @@ border:1px solid var(--line);font-size:10px;letter-spacing:.04em}
 .split{display:grid;grid-template-columns:repeat(12,1fr);gap:0;margin:16px 0;border:1px solid var(--line-2)}
 .split>div{grid-column:span 6;padding:16px}
 .split>div:first-child{border-right:1px solid var(--line-2)}
-.split .sh{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+.split .sh{font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
 .split .sh.pos{color:var(--green)}
 .split .sh.neg{color:var(--red)}
-.split p{font-size:11px;margin:4px 0}
+.split p{font-size:13px;margin:4px 0}
 /* ── 컴포넌트 (내부 패딩 16px 통일) ── */
 .callout,.callout-danger,.callout-success{border:1px solid var(--line);border-left:3px solid var(--accent);
-background:var(--bg-2);padding:16px;margin:16px 0;font-size:12px}
+background:var(--bg-2);padding:16px;margin:16px 0;font-size:13.5px}
 .callout-danger{border-left-color:var(--red);background:rgba(194,71,47,.05)}
 .callout-success{border-left-color:var(--green);background:rgba(30,125,78,.05)}
-.callout p,.callout-danger p,.callout-success p{margin:4px 0;font-size:12px}
+.callout p,.callout-danger p,.callout-success p{margin:4px 0;font-size:13.5px}
 .kpi{background:var(--bg-2);border:1px solid var(--line-2);padding:16px;text-align:center}
-.kpi-label{font-size:10px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.kpi-label{font-size:11px;letter-spacing:.2em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
 .kpi-value{font-size:26px;font-weight:600;color:var(--accent-light);line-height:1.1;letter-spacing:-0.02em}
 .kpi-unit{font-size:13px;font-weight:500;margin-left:2px}
-.kpi-sub{font-size:10px;color:var(--fg-3);margin-top:8px;line-height:1.45}
+.kpi-sub{font-size:11.5px;color:var(--fg-3);margin-top:8px;line-height:1.45}
 .card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px}
-.card h4{margin:0 0 8px;font-size:12px;font-weight:600}
+.card h4{margin:0 0 8px;font-size:14px;font-weight:600}
 .card h4::before{content:none}
-.card p{font-size:11px;margin:4px 0;line-height:1.55}
-.card .tag,.tag{display:inline-block;font-size:9px;letter-spacing:.12em;color:var(--accent-light);
+.card p{font-size:13px;margin:4px 0;line-height:1.55}
+.card .tag,.tag{display:inline-block;font-size:10.5px;letter-spacing:.12em;color:var(--accent-light);
 border:1px solid var(--line);padding:2px 8px;margin-top:8px}
 .choice-card{border:1px solid var(--line);background:var(--bg-2);padding:16px;position:relative}
-.choice-card .ct{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
-.choice-card h5{font-size:13px;font-weight:600;margin-bottom:8px}
-.choice-card p{font-size:11px;margin:0 0 8px}
-.choice-card .pro,.choice-card .con{font-size:10.5px;line-height:1.5;padding-left:14px;position:relative;margin:4px 0;color:var(--fg-2)}
+.choice-card .ct{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.choice-card h5{font-size:15px;font-weight:600;margin-bottom:8px}
+.choice-card p{font-size:13px;margin:0 0 8px}
+.choice-card .pro,.choice-card .con{font-size:12.5px;line-height:1.5;padding-left:14px;position:relative;margin:4px 0;color:var(--fg-2)}
 .choice-card .pro::before{content:"+";position:absolute;left:0;color:var(--green);font-weight:600}
 .choice-card .con::before{content:"−";position:absolute;left:0;color:var(--red);font-weight:600}
 .choice-card.rec{border-color:var(--accent)}
 .choice-card.rec::after{content:"권고";position:absolute;top:-1px;right:-1px;background:var(--accent);
-color:#fff;font-size:9px;letter-spacing:.15em;padding:2px 8px}
+color:#fff;font-size:10.5px;letter-spacing:.15em;padding:2px 8px}
 .lens{border-left:3px solid var(--accent);background:var(--bg-2);padding:16px;margin:16px 0}
-.lens .lt{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
-.lens h5{font-size:12.5px;font-weight:600;margin-bottom:8px}
-.lens p{font-size:11px;margin:4px 0}
-blockquote{border-left:2px solid var(--accent);padding:8px 0 8px 16px;margin:16px 0;font-size:13px;
+.lens .lt{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);margin-bottom:8px}
+.lens h5{font-size:14px;font-weight:600;margin-bottom:8px}
+.lens p{font-size:13px;margin:4px 0}
+blockquote{border-left:2px solid var(--accent);padding:8px 0 8px 16px;margin:16px 0;font-size:15px;
 color:var(--fg);line-height:1.55;max-width:1000px}
-blockquote cite{display:block;font-size:10px;color:var(--fg-3);font-style:normal;letter-spacing:.08em;margin-top:8px}
+blockquote cite{display:block;font-size:11.5px;color:var(--fg-3);font-style:normal;letter-spacing:.08em;margin-top:8px}
 .steps{margin:16px 0}
-.step{border:1px solid var(--line-2);padding:12px 16px;font-size:11px;background:var(--bg-2);margin:8px 0}
+.step{border:1px solid var(--line-2);padding:12px 16px;font-size:13px;background:var(--bg-2);margin:8px 0}
 .step-num{color:var(--accent-light);font-weight:700;margin-right:8px}
-.badge,.badge-yes,.badge-no,.badge-warn,.badge-info{display:inline-block;font-size:9px;letter-spacing:.1em;
+.badge,.badge-yes,.badge-no,.badge-warn,.badge-info{display:inline-block;font-size:10.5px;letter-spacing:.1em;
 padding:2px 8px;border:1px solid var(--line);color:var(--fg-3);vertical-align:middle;white-space:nowrap}
 .badge-yes{color:var(--green);border-color:var(--green);background:rgba(30,125,78,.07)}
 .badge-no{color:var(--red);border-color:var(--red);background:rgba(194,71,47,.07)}
 .badge-warn{color:var(--amber);border-color:var(--amber);background:rgba(168,114,14,.07)}
 .badge-info{color:var(--blue);border-color:var(--blue);background:rgba(62,107,143,.07)}
-.ev{display:inline-block;font-size:8px;letter-spacing:.05em;color:var(--fg-3);border:1px solid var(--line-2);
+.ev{display:inline-block;font-size:9px;letter-spacing:.05em;color:var(--fg-3);border:1px solid var(--line-2);
 padding:0 4px;margin-left:3px;vertical-align:middle;white-space:nowrap}
 .ev.a{color:var(--accent-light);border-color:rgba(88,72,200,.4)}
 .ev.b{color:var(--blue);border-color:rgba(62,107,143,.4)}
 .internal{display:inline-block;font-size:8px;letter-spacing:.15em;background:rgba(194,71,47,.1);
 color:var(--red);padding:2px 8px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
 .hero-number{font-size:48px;font-weight:300;color:var(--accent-light);letter-spacing:-0.03em}
-.interp-card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px;font-size:11px}
+.interp-card{border:1px solid var(--line-2);background:var(--bg-2);padding:16px;font-size:13px}
 .placeholder{border:1px dashed var(--line);background:var(--bg-2);padding:24px;text-align:center;margin:16px 0}
-.placeholder .pt{font-size:9px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.placeholder .pt{font-size:10.5px;letter-spacing:.25em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
 .placeholder h4{font-size:14px;color:var(--fg-2);margin:0 0 8px}
 .placeholder h4::before{content:none}
 .placeholder p{font-size:11px;color:var(--fg-3);max-width:560px;margin:0 auto}
-.compare-table th{font-size:10px}
+.compare-table th{font-size:11.5px}
 /* ── 표지 (중앙 정렬 예외 — 가이드 슬라이드 타입 규칙) ── */
 .slide.cover{justify-content:flex-start;padding-top:64px}
 .cv-line{font-size:11px;letter-spacing:.3em;color:var(--fg-3);text-transform:uppercase;margin-bottom:24px}
@@ -570,16 +616,18 @@ function fitAll(){
 S.forEach(s=>{const body=s.querySelector('.slide-body'),f=s.querySelector('.fit');
 if(!body||!f)return;
 s.classList.add('measuring');
-f.style.transform='';f.style.width='100%';
+f.style.transform='';f.style.width='100%';f._sc=1;
 let avail=body.clientHeight;
-for(let k=0;k<3;k++){
-  const h=f.scrollHeight;
-  if(h<=avail+2)break;
-  const sc=Math.max(0.62,avail/h*(f._sc||1));
+for(let k=0;k<4;k++){
+  const h=f.scrollHeight;          /* 현재 폭 기준 · transform 영향 없음 */
+  const cur=f._sc||1;
+  if(h*cur<=avail+2)break;         /* 넘침 판정은 화면에 보이는 높이로 */
+  const sc=Math.max(0.62,avail/h); /* 배율도 같은 기준으로 다시 계산 — cur를 곱하면 중복 축소 */
   f._sc=sc;f.style.transform='scale('+sc+')';f.style.transformOrigin='bottom left';
   f.style.width=(100/sc)+'%';
-  s.dataset.scaled=sc.toFixed(3);
+  if(Math.abs(sc-cur)<0.005)break;
 }
+if((f._sc||1)<0.999)s.dataset.scaled=(f._sc).toFixed(3);else delete s.dataset.scaled;
 s.classList.remove('measuring');});
 window._fitDone=true;}
 document.fonts.ready.then(()=>requestAnimationFrame(fitAll));
@@ -611,6 +659,8 @@ n = len(slides)
 multi = {k: v for k, v in per_agenda.items() if v > 1}
 print(f'→ {OUT}')
 print(f'   서브카피 정합: {len(SUB_HIT)}/{len(SUB_HIT)+len(SUB_MISS)} 매칭' + (f"  ⚠️ 미매칭 {len(SUB_MISS)}건: " + ', '.join(k for k, _ in SUB_MISS[:8]) if SUB_MISS else '  ✓'))
+_ht = len(HEAD_HIT) + len(HEAD_MISS)
+print(f'   분할 헤드카피: {len(HEAD_HIT)}/{_ht} 장' + ('  ✓' if _ht and not HEAD_MISS else f"  · 원제목 유지 {len(HEAD_MISS)}장"))
 print(f'   슬라이드 {n}장 = 표지 2 + STEP 표지 {n - 2 - sum(per_agenda.values())} + 아젠다 {sum(per_agenda.values())}')
 print(f'   아젠다 54개 → 분할 분포: 1장 {sum(1 for v in per_agenda.values() if v == 1)}개 · '
       f'2장 {sum(1 for v in per_agenda.values() if v == 2)}개 · '

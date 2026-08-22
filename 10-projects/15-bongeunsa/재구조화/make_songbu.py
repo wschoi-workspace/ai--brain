@@ -72,6 +72,45 @@ def redact(src_html):
             removed.append(('callout', '이 문서의 위치'))
             drop(d)
 
+    # 규칙 9 — redaction 후 빈 껍데기로 남은 컨테이너 제거
+    #   「내부 전용」 문단만 들어 있던 callout 등이 빈 상자로 남아 슬라이드에 공백을 만든다.
+    for d in list(doc.xpath('//div[contains(@class,"callout") or contains(@class,"interpretation")'
+                            ' or contains(@class,"lens") or contains(@class,"step")]')):
+        if d.text_content().strip(): continue
+        if d.xpath('.//img|.//svg|.//table'): continue      # 시각 요소가 있으면 남긴다
+        removed.append(('empty', (d.get('data-blk') or d.get('class') or '')[:28]))
+        drop(d)
+
+    # 규칙 10 — 본문이 빈 슬라이드 제거 + '계속 i/total' 재계산
+    #   내부 전용 블록만 있던 장은 위 규칙으로 내용이 사라져 빈 장이 된다.
+    drop_slides = []
+    for s in doc.xpath('//div[contains(@class,"slide")]'):
+        fit = s.xpath('.//div[@class="fit"]')
+        if not fit: continue
+        f = fit[0]
+        if f.text_content().strip(): continue
+        if f.xpath('.//img|.//svg|.//table'): continue
+        drop_slides.append(s)
+    for s in drop_slides:
+        removed.append(('slide', (s.get('data-key') or '?')))
+        drop(s)
+    if drop_slides:
+        from collections import defaultdict
+        grp = defaultdict(list)
+        for s in doc.xpath('//div[contains(@class,"slide")][@data-agenda]'):
+            grp[s.get('data-agenda')].append(s)
+        for ag, ss in grp.items():
+            tot = len(ss)
+            for i, s in enumerate(ss):
+                s.set('data-key', f'{ag}/{i+1}')
+                for c in s.xpath('.//span[@class="cont"]'):
+                    c.getparent().remove(c)
+                if i > 0 and tot > 1:
+                    ey = s.xpath('.//div[@class="eyebrow"]')
+                    if ey:
+                        sp = etree.SubElement(ey[0], 'span'); sp.set('class', 'cont')
+                        sp.text = f'· 계속 {i+1}/{tot}'
+
     out = etree.tostring(doc, encoding='unicode', method='html', doctype='<!doctype html>')
 
     # 규칙 5·6 — 문자열 치환
