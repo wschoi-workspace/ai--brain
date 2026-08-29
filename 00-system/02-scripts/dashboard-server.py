@@ -65,6 +65,17 @@ ARISA2_UPSTREAM = f"http://127.0.0.1:{ARISA2_PORT}"
 # R4 회의 시뮬레이터 프록시 — /r4/* → localhost:R4_PORT (meeting-simulator-server.py, 2026-07-21)
 R4_PORT = int(os.environ.get("R4_PORT", "8781"))
 R4_UPSTREAM = f"http://127.0.0.1:{R4_PORT}"
+# ── 매장 화면 (레이아웃1.pptx 슬라이드 4·5, 2026-08-30) ──────────────────
+# 운영 권한자에게만 보이는 별도 탭. 팀 이름은 arisa-employees.json의 team 값과 같아야 한다.
+STORE_TEAMS = {t.strip() for t in (os.environ.get("ARISA_STORE_TEAMS") or "운영팀").split(",") if t.strip()}
+# 매장 주간·월 인사이트 HTML (basket-weekly-insight.py / basket-monthly-insight.py 산출)
+STORE_INSIGHT_DIR = Path(os.environ.get("STORE_INSIGHT_DIR")
+                         or (_WS / "10-projects" / "30-basket-report-webapp" / "insights"))
+# 팀 일정표 — ws.choi 메인 + PROJECT RENT 그룹 캘린더 (reference: gws-api 메모)
+CALENDAR_IDS = [c.strip() for c in (os.environ.get("ARISA_CALENDAR_IDS") or
+                "ws.choi@project-rent.com,f8apotjh6dkg5i8e90onoeim5k@group.calendar.google.com"
+                ).split(",") if c.strip()]
+CALENDAR_DAYS = int(os.environ.get("ARISA_CALENDAR_DAYS", "14"))
 _lock = threading.Lock()
 
 # ── 주간분장 시트 연동 (개인 대시보드 — 업무분장 입력/조회) ──
@@ -92,6 +103,14 @@ from shared import completion as _CP  # 완료 5요소 게이트 (vNext P1) — 
 from shared import meeting_delta as _MD  # R4 결과 → delta 결정론 투영 (vNext P2 WS6)
 from shared import project_context as _PC  # delta → 기계용 누적 상태 (vNext P2 WS6)
 from shared import meeting_link as _ML  # 회의 액션 선행·차단 조회 (WS1) — 배포 시 shared/meeting_link.py 동반 필수
+try:
+    # 매장 화면 — 명부·마감 열 정의 SSOT. 부가 기능이므로 없더라도 대시보드 본체는 떠야 한다.
+    from shared import stores as _STORES   # 배포 시 shared/stores.py + stores.json 동반 필수
+    from shared import closing as _CL      # 매장마감 열 순서는 여기서만 정의한다
+except Exception as _e:  # noqa: BLE001
+    print(f"[store] 매장 모듈 로드 실패 — 매장 탭 비활성: {_e}", flush=True)
+    _STORES = None
+    _CL = None
 try:
     from shared.status_log import log_status_change as _log_st  # 상태 이력 (G5) — 실패 무해
     from shared.status_log import load_history as _load_st_history  # 이력 조회 (G7)
@@ -1912,6 +1931,47 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 #arisa2-status{font-size:11px;color:var(--muted);margin-left:6px}
 #arisa2-status.ok{color:#00b894}
 #arisa2-status.err{color:var(--red)}
+/* 팀 일정표 — 레이아웃1.pptx 전 화면 좌측 패널 (2026-08-30) */
+.cal-box{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:16px}
+.cal-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cal-head .t{font-size:14px;font-weight:600}
+.cal-head .s{font-size:11.5px;color:var(--muted)}
+.cal-head a{margin-left:auto;font-size:11.5px;color:var(--accent);text-decoration:none}
+.cal-scroll{max-height:210px;overflow-y:auto}
+.cal-day{display:flex;gap:10px;padding:5px 0;border-top:1px solid var(--line)}
+.cal-day:first-child{border-top:0}
+.cal-d{width:74px;flex-shrink:0;font-size:11.5px;color:var(--muted);padding-top:2px}
+.cal-d.today{color:var(--accent);font-weight:600}
+.cal-evs{flex:1;min-width:0}
+.cal-ev{font-size:12.5px;line-height:1.6;display:flex;gap:7px}
+.cal-ev .h{color:var(--muted);flex-shrink:0;width:38px;font-variant-numeric:tabular-nums}
+.cal-ev .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-empty{font-size:12.5px;color:var(--muted);padding:4px 0}
+/* 매장 화면 — 레이아웃1.pptx 슬라이드 4·5 */
+#f-stores{overflow:auto;padding:24px}
+.st-sub{display:flex;gap:6px;margin-bottom:16px}
+.st-sub button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 16px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500}
+.st-sub button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.st-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:6px}
+.st-card{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:14px 15px}
+.st-card.prep{opacity:.55}
+.st-card .sname{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.st-card .sbadge{font-size:10.5px;border-radius:5px;padding:1px 7px;background:var(--bg-3);color:var(--muted);font-weight:400}
+.st-card .smgr{font-size:11.5px;color:var(--muted);margin-top:3px}
+.st-sales{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 2px;padding:9px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.st-sales .m{min-width:64px}
+.st-sales .m .l{font-size:10.5px;color:var(--muted)}
+.st-sales .m .v{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.st-sales .m .v.na{font-size:12.5px;font-weight:300;color:var(--muted)}
+.st-sec{margin-top:10px}
+.st-sec .h{font-size:11.5px;color:var(--accent);font-weight:600;margin-bottom:4px}
+/* 보고 원문이 길어 카드 높이가 제각각이 된다 — 3줄로 접고 전문은 title 툴팁으로 */
+.st-sec .li{font-size:12px;line-height:1.65;color:var(--fg);border-left:2px solid var(--line);padding-left:9px;margin-bottom:5px;word-break:break-word;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.st-sec .li.voc{border-left-color:var(--red)}
+.st-none{font-size:12px;color:var(--muted)}
+.st-note{font-size:12px;color:var(--muted);margin:4px 0 14px;line-height:1.6}
+.st-frame{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--bg);height:calc(100vh - 190px);min-height:420px}
 </style></head>
 <body>
 <div id="login-gate"><div id="login-box">
@@ -1927,6 +1987,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     <button class="tab on" data-t="mywork">내 업무</button>
     <button class="tab" data-t="projects">프로젝트</button>
     <button class="tab" data-t="docsim">문서 시뮬레이터</button>
+    <button class="tab" data-t="stores" style="display:none">🏪 매장</button><!-- 대표·운영팀 리더·운영팀만 (2026-08-30) — 서버 /api/stores도 같은 게이트 -->
     <button class="tab" data-t="brief" style="display:none">오늘 Brief</button>
     <button class="tab" data-t="weekly" style="display:none">이번 주</button>
     <button class="tab-ext" id="tab-hr" onclick="window.open('/sso/hr','_blank')">HR 포털 ↗</button><!-- 전 직원 노출 (2026-07-22) — 포털 자체가 staff/manager/admin 개인별 권한 강제 -->
@@ -1934,6 +1995,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     <span class="who" id="who"></span>
   </div>
   <div class="frame on" id="f-mywork"></div>
+  <div class="frame" id="f-stores"></div>
   <iframe class="frame" id="f-projects"></iframe>
   <iframe class="frame" id="f-brief"></iframe>
   <iframe class="frame" id="f-weekly"></iframe>
@@ -1945,7 +2007,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   var sel=document.getElementById('scope-sel');
   var frames={mywork:document.getElementById('f-mywork'),projects:document.getElementById('f-projects'),
               brief:document.getElementById('f-brief'),weekly:document.getElementById('f-weekly'),
-              docsim:document.getElementById('f-docsim')};
+              docsim:document.getElementById('f-docsim'),stores:document.getElementById('f-stores')};
   var SESS=null, curTab='mywork', curScope='', loaded={projects:false,brief:false,weekly:false,docsim:false};
   var MW_ASSIGNEES=[], MW_ORIGIN=null;   // 갭B — 검토 초안의 유입 출처(주간계획 업로드 등)
   var MW_TODAY=[];                        // 갭C — 오늘 하기로 선언한 항목 키
@@ -2004,6 +2066,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     document.querySelectorAll('.tab').forEach(function(b){ b.classList.toggle('on', b.dataset.t===t); });
     Object.keys(frames).forEach(function(k){ frames[k].classList.toggle('on', k===t); });
     if(t==='mywork'){ renderMyWork(); return; }  // div 직접 렌더(iframe 아님) — 매번 최신
+    if(t==='stores'){ renderStores(); return; }  // 매장도 div 직접 렌더
     if(!loaded[t]){ frames[t].src=srcFor(t); loaded[t]=true; }
   }
   function loadScope(scope){
@@ -2078,6 +2141,161 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         }).catch(function(){ pb.disabled=false; msg.textContent='서버 오류'; });
     };
   }
+  // ── 팀 일정표 (레이아웃1.pptx 전 화면 좌측 패널, 2026-08-30) ──
+  // 읽기 전용. 일정 추가는 구글 캘린더로 보낸다(쓰기 권한 경계는 별건).
+  var CAL_WD=['일','월','화','수','목','금','토'];
+  function calFetch(){
+    return fetch('/api/calendar').then(function(r){return r.json();}).catch(function(){return null;});
+  }
+  function calToday(){
+    var d=new Date();
+    return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+  }
+  function calDayLabel(s){
+    var p=String(s).split('-');
+    if(p.length<3) return s;
+    var d=new Date(+p[0], +p[1]-1, +p[2]);
+    return (+p[1])+'/'+(+p[2])+' ('+CAL_WD[d.getDay()]+')';
+  }
+  function mwCalendarHtml(cal){
+    var evs=(cal&&cal.events)||[], days=(cal&&cal.days)||14;
+    var h='<div class="cal-box"><div class="cal-head"><span class="t">📅 팀 일정표</span>'
+      +'<span class="s">앞으로 '+days+'일'+(evs.length?(' · '+evs.length+'건'):'')+'</span>'
+      +'<a href="https://calendar.google.com/" target="_blank" rel="noopener">구글 캘린더에서 추가 ↗</a></div>';
+    if(!evs.length){
+      return h+'<div class="cal-empty">'
+        +((cal&&cal.error)?('일정을 불러오지 못했습니다 — '+esc(cal.error)):'예정된 일정이 없습니다.')
+        +'</div></div>';
+    }
+    var g={}, order=[], td=calToday();
+    evs.forEach(function(e){ if(!(e.date in g)){ g[e.date]=[]; order.push(e.date); } g[e.date].push(e); });
+    h+='<div class="cal-scroll">';
+    order.forEach(function(d){
+      h+='<div class="cal-day"><div class="cal-d'+(d===td?' today':'')+'">'
+        +(d===td?'오늘 ':'')+esc(calDayLabel(d))+'</div><div class="cal-evs">';
+      g[d].forEach(function(e){
+        var where=e.where?(' · '+e.where):'';
+        h+='<div class="cal-ev"><span class="h">'+(e.allday?'종일':esc(e.time))+'</span>'
+          +'<span class="n" title="'+esc(e.title+where)+'">'+esc(e.title)
+          +(e.where?('<span style="color:var(--muted)"> · '+esc(e.where)+'</span>'):'')
+          +'</span></div>';
+      });
+      h+='</div></div>';
+    });
+    return h+'</div></div>';
+  }
+
+  // ── 매장 화면 (레이아웃1.pptx 슬라이드 4·5, 2026-08-30) ──
+  // 대표·운영팀 리더·운영팀 소속만 탭이 보인다(서버 /api/stores도 같은 게이트).
+  var ST_SUB='daily';
+  function stSubHtml(){
+    function b(k,l){ return '<button class="st-sub-b'+(ST_SUB===k?' on':'')+'" data-s="'+k+'">'+l+'</button>'; }
+    return '<div class="st-sub">'+b('daily','일일')+b('week','주간')+b('month','월')+'</div>';
+  }
+  function stBindSub(box){
+    box.querySelectorAll('.st-sub-b').forEach(function(b){
+      b.onclick=function(){ ST_SUB=b.getAttribute('data-s'); renderStores(); };
+    });
+  }
+  function stMetric(label, value, isNum){
+    var na=(value===''||value===null||value===undefined);
+    return '<div class="m"><div class="l">'+esc(label)+'</div><div class="v'+(na?' na':'')+'">'
+      +(na?'—':esc(isNum?Number(value).toLocaleString():value))+'</div></div>';
+  }
+  function stCardHtml(s, d){
+    var rec=(d.daily||{})[s.id], wk=(d.week||{})[s.id]||{};
+    var iss=(d.issues||{})[s.id]||[], voc=(d.voc||{})[s.id]||[];
+    // 준비중이어도 최근 보고가 있으면 흐리게 두지 않는다(아랑재처럼 오픈 직전인 매장)
+    var prep=(s.status&&s.status!=='운영')&&!rec&&!iss.length&&!voc.length;
+    var ago=rec?Number(rec.days_ago||0):0;
+    // 마감보고가 며칠 전 것인지 라벨에 박는다 — 37일 전 매출이 오늘 매출로 읽히면 안 된다
+    var salesLabel='일 매출'+(rec&&ago>=2?(' ('+ago+'일 전)'):'');
+    var h='<div class="st-card'+(prep?' prep':'')+'"><div class="sname">'+esc(s.name)
+      +'<span class="sbadge">'+esc(s.status||'')+'</span></div>'
+      +'<div class="smgr">담당 '+esc((s.managers||[]).join('·')||'미지정')
+      +(rec&&rec.date?(' · 최근 마감보고 '+esc(rec.date)+(rec.manager?(' '+esc(rec.manager)):'')
+                       +(ago>=2?(' — '+ago+'일 전'):''))
+                    :' · 최근 90일 마감보고 없음')+'</div>';
+    h+='<div class="st-sales">'
+      +stMetric(salesLabel, rec?rec.sales:'')
+      +stMetric('방문객', rec?rec.visitors:'')
+      +stMetric('주간 합계', wk.sales_sum?wk.sales_sum:'', true)
+      +stMetric('주간 보고', wk.reports?((wk.days?(wk.days+'일 · '):'')+wk.reports+'건'):'')
+      +'</div>';
+    if(rec && (rec.drinks||rec.desserts)){
+      h+='<div class="st-sec"><div class="h">판매 상세</div>';
+      if(rec.drinks) h+='<div class="li">☕ '+esc(rec.drinks)+'</div>';
+      if(rec.desserts) h+='<div class="li">🍰 '+esc(rec.desserts)+'</div>';
+      h+='</div>';
+    }
+    function lines(arr, cls, empty){
+      // 카드마다 4건까지만 — 전문은 title 툴팁, 나머지는 건수만 알린다
+      var s=arr.slice(0,4).map(function(t){
+        return '<div class="li'+cls+'" title="'+esc(t)+'">'+esc(t)+'</div>';
+      }).join('');
+      if(arr.length>4) s+='<div class="st-none">+ '+(arr.length-4)+'건 더</div>';
+      return s||('<div class="st-none">'+empty+'</div>');
+    }
+    h+='<div class="st-sec"><div class="h">주요이슈 (일일보고 기반 · 최근 30일)</div>';
+    h+=lines(iss, '', '최근 30일 보고 없음');
+    h+='</div><div class="st-sec"><div class="h">주의사항 · VOC</div>';
+    h+=lines(voc, ' voc', '등록된 고객·운영 이슈 없음');
+    return h+'</div></div>';
+  }
+  function renderStores(){
+    var box=frames.stores;
+    if(ST_SUB!=='daily'){
+      // 주간·월은 basket-*-insight 배치가 이미 만들어 둔 HTML을 그대로 띄운다
+      box.innerHTML=stSubHtml()
+        +'<div class="st-note">매주 월요일(주간)·매월 초(월간) 자동 생성되는 매장 인사이트 리포트입니다.</div>'
+        +'<iframe class="st-frame" src="/store-insight/'+(ST_SUB==='week'?'weekly':'monthly')+'"></iframe>';
+      stBindSub(box); return;
+    }
+    box.innerHTML=stSubHtml()+'<div class="mw-empty">불러오는 중…</div>';
+    Promise.all([
+      fetch('/api/stores').then(function(r){return r.json();}).catch(function(){return null;}),
+      calFetch()
+    ]).then(function(res){
+      var d=res[0]||{}, cal=res[1], h=stSubHtml();
+      if(d.ok===false){
+        box.innerHTML=h+'<div class="mw-empty">'+esc(d.error||'매장 데이터를 불러오지 못했습니다.')+'</div>';
+        stBindSub(box); return;
+      }
+      h+=mwCalendarHtml(cal);
+      if(d.error) h+='<div class="st-note">⚠️ '+esc(d.error)+'</div>';
+      var S=d.stores||[];
+      h+='<div class="mw-h">🏪 매장별 매출 · 이슈 <span class="sub2">'
+        +esc(d.date||'')+' 기준 · 매출=최근 마감보고 1건(90일 내)·주간 합계=7일 · 이슈=30일</span></div>';
+      if(S.length){
+        // 운영중 매장 먼저, 준비중은 뒤로(흐리게)
+        var ord=S.slice().sort(function(a,b){ return (a.status==='운영'?0:1)-(b.status==='운영'?0:1); });
+        h+='<div class="st-grid">'+ord.map(function(s){ return stCardHtml(s,d); }).join('')+'</div>';
+      } else { h+='<div class="mw-empty">등록된 매장이 없습니다 (stores.json).</div>'; }
+      // 체크사항 두 갈래 — 시트 코멘트(읽기 전용)와 분장(완료처리 가능)은 성격이 달라 섞지 않는다
+      var SC=d.sheet_checks||[];
+      h+='<div class="mw-h">📋 매장 체크 코멘트 <span class="sub2">'+SC.length
+        +'건 — 일일보고의 장비·구매·송금승인 칸 (최근 30일 · 시트 원문이라 완료처리는 없습니다)</span></div>';
+      if(SC.length){
+        h+=SC.map(function(c){
+          return '<div class="mw-card"><div class="t"><span class="mw-badge" style="background:var(--bg-3);color:var(--muted)">'
+            +esc(c.kind)+'</span> '+esc(c.text)+'</div><div class="m">'+esc(c.store)+' · '+esc(c.date)
+            +' · '+esc(c.who||'작성자 미상')+'</div></div>';
+        }).join('');
+      } else { h+='<div class="mw-empty">최근 30일 매장 체크 코멘트가 없습니다.</div>'; }
+      var AC=d.assign_checks||[];
+      h+='<div class="mw-h">✅ 완료처리 대상 <span class="sub2">'+AC.length
+        +'건 — 매장 담당자('+esc((d.managers||[]).join('·')||'미지정')
+        +') 배정 미완 분장 · 완료하면 주간분장 시트에 그대로 반영됩니다</span></div>';
+      h+=AC.length?mwAssignListHtml(AC, true)
+        :'<div class="mw-empty">매장 담당자에게 배정된 미완 분장이 없습니다. 매장 업무를 분장으로 등록하면 여기서 완료처리됩니다.</div>';
+      box.innerHTML=h;
+      stBindSub(box);
+      mwBindStatus(box); mwBindChain(box); mwBindBulk(box);
+      mwBindEdit(box); mwBindInline(box); mwBindToday(box);
+    }).catch(function(){
+      box.innerHTML=stSubHtml()+'<div class="mw-empty">불러오기 실패</div>'; stBindSub(box);
+    });
+  }
   function renderLeadHome(){
     // 리더 홈 — 팀 Todo(대표·리더 분장) + 분장 생성 + 진행중 프로젝트 + 팀원 오늘 보고
     var box=frames.mywork;
@@ -2085,9 +2303,10 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     var u=encodeURIComponent(SESS.name);
     Promise.all([
       fetch('/api/lead-home?user='+u).then(function(r){return r.json();}),
-      fetch('/api/assignees?user='+u).then(function(r){return r.json();})
+      fetch('/api/assignees?user='+u).then(function(r){return r.json();}),
+      calFetch()
     ]).then(function(res){
-      var lh=res[0]||{}, ac=res[1]||{}, h='<div class="mw-wrap">';
+      var lh=res[0]||{}, ac=res[1]||{}, h='<div class="mw-wrap">'+mwCalendarHtml(res[2]);
       MW_ASSIGNEES = ac.assignees || [];
       MW_TODAY = lh.today_plan || [];   // 갭C — 리더 본인의 오늘 선언
       var A=lh.assignments||[];
@@ -2188,9 +2407,10 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     Promise.all([
       fetch('/api/my-work?user='+u).then(function(r){return r.json();}),
       fetch('/api/assignees?user='+u).then(function(r){return r.json();}),
-      SESS.admin ? fetch('/api/exec-attn?user='+u).then(function(r){return r.json();}) : Promise.resolve(null)
+      SESS.admin ? fetch('/api/exec-attn?user='+u).then(function(r){return r.json();}) : Promise.resolve(null),
+      calFetch()
     ]).then(function(res){
-      var mw=res[0]||{}, ac=res[1]||{}, ex=res[2], h='<div class="mw-wrap">';
+      var mw=res[0]||{}, ac=res[1]||{}, ex=res[2], h='<div class="mw-wrap">'+mwCalendarHtml(res[3]);
       MW_ASSIGNEES = ac.assignees || [];
       if(SESS.admin){ h+='<div class="mw-quick"><a class="mw-link" href="/sso/hr" target="_blank" rel="noopener">🏢 HR 포털 바로가기 ↗</a><a class="mw-link" href="https://rent-hr-portal.fly.dev/onboard/admin/v2" target="_blank" rel="noopener">🧾 입퇴사 온보딩 ↗</a></div>'; }  // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크), 온보딩=입퇴사 자동화 대시보드 v2
       if(ex && ex.ok){
@@ -3101,8 +3321,16 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     SESS=s; var j=JSON.stringify(s);
     SESS_KEYS.forEach(function(k){ localStorage.setItem(k,j); });
     // 서버 세션 쿠키 갱신 (2026-07-22) — 캐시 로그인·서버 재시작 후에도 iframe/API 게이트 통과
+    // 이어서 /api/me로 매장 권한을 확인한다 (2026-08-30). localStorage에 남은 옛 세션에는
+    // store_access가 없고, 권한은 명부에서 바뀔 수 있으니 서버 답을 신뢰한다.
     fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({id:s.id||s.name,pin:s.pin})}).catch(function(){});
+      body:JSON.stringify({id:s.id||s.name,pin:s.pin})})
+      .then(function(){ return fetch('/api/me'); })
+      .then(function(r){ return r.json(); })
+      .then(function(m){
+        if(m && m.ok) SESS.store_access = !!m.store_access;
+        if(SESS.store_access) tabBtn('stores').style.display='';
+      }).catch(function(){});
     gate.style.display='none'; shell.style.display='flex';
     who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-guide">가이드</a> <a id="lg-pin-c">PIN변경</a> <a id="lg-out">로그아웃</a>';
     document.getElementById('lg-out').onclick=function(){ CLEAR_KEYS.forEach(function(k){localStorage.removeItem(k);}); location.reload(); };
@@ -3263,7 +3491,8 @@ def web_session(tok):
     name = v["name"]
     if not load_users().get(name):
         return None
-    return {"name": name, "admin": is_admin(name), "lead_teams": lead_teams_of(name)}
+    return {"name": name, "admin": is_admin(name), "lead_teams": lead_teams_of(name),
+            "store_access": store_access(name)}
 
 
 # 무인증 허용 경로 (그 외 전부 쿠키 세션 필요)
@@ -3354,7 +3583,8 @@ def svc_session(secret, tg_id, path):
     name = (load_emp().get("by_telegram_id", {}) or {}).get(tg)
     if not name or not load_users().get(name):
         return None
-    return {"name": name, "admin": is_admin(name), "lead_teams": lead_teams_of(name), "svc": True}
+    return {"name": name, "admin": is_admin(name), "lead_teams": lead_teams_of(name),
+            "store_access": store_access(name), "svc": True}
 
 # ── PIN 정책 (plan: partitioned-beaming-turing, 2026-07-27) ──────────
 # HR 포털 SSO를 켜면서 PIN 하나의 가치가 올라갔다(ARISA 로그인 → HR 본인 데이터 접근).
@@ -3433,6 +3663,45 @@ def emp_team(name):
 def is_leader(uid):
     """팀 리더 여부(대표 제외한 순수 리더도 True, 대표도 True)."""
     return bool(lead_teams_of(uid))
+
+
+def store_access(uid):
+    """매장 화면 열람 권한 — 대표 · 운영팀 리더 · 운영팀 소속.
+
+    명부(arisa-employees.json) 기반이라 운영팀 신규 입사자가 자동으로 포함된다.
+    2026-08-30 현재 통과: 최원석(대표) · 윤혜정(운영팀·기획팀 리더) · 양은정 · 김준호.
+    기획팀 소속 staff는 통과하지 않는다(대표 지시 범위 그대로).
+    """
+    if not uid:
+        return False
+    if is_admin(uid):
+        return True
+    if STORE_TEAMS & set(lead_teams_of(uid)):
+        return True
+    return (emp_team(uid) or "") in STORE_TEAMS
+
+
+# ── 외부 I/O TTL 캐시 (2026-08-30) ─────────────────────────────────────
+# 캘린더·매장 시트는 화면 진입마다 gws 서브프로세스를 띄운다(캘린더 2개 + 시트 2탭 = 4회).
+# 세션 dict(_WEB_SESS)와 같은 모듈 전역 방식. 서버는 ThreadingHTTPServer라 락으로 감싼다.
+_IO_CACHE = {}
+_IO_CACHE_LOCK = threading.Lock()
+
+
+def _cached(key, ttl, fn):
+    """ttl초 안의 같은 key 요청은 저장된 값을 그대로 준다. fn 예외는 호출측으로 전파."""
+    now = time.time()
+    with _IO_CACHE_LOCK:
+        hit = _IO_CACHE.get(key)
+        if hit and now - hit[0] < ttl:
+            return hit[1]
+    val = fn()
+    with _IO_CACHE_LOCK:
+        _IO_CACHE[key] = (now, val)
+        if len(_IO_CACHE) > 200:   # 날짜 파라미터로 키가 늘어나도 무한히 쌓이지 않게
+            for k in [k for k, v in _IO_CACHE.items() if now - v[0] > 3600]:
+                _IO_CACHE.pop(k, None)
+    return val
 
 
 # 매칭 로직 단일출처 이관 (R4 개편 1차) — 배포 시 shared/project_match.py 동반 필수.
@@ -4725,6 +4994,249 @@ def can_edit(uid, p):
     # 내용(업무·이슈·브리프) 편집은 기존대로 담당 PM·대표만 — 리더는 멤버 배정만
     return is_admin(uid) or uid == p.get("pm")
 
+
+# ── 팀 일정표 (레이아웃1.pptx 전 화면 좌측 패널, 2026-08-30) ─────────────
+def _cal_events(days=None):
+    """등록 캘린더 병합 → 오늘부터 N일 일정. 60초 TTL. 실패해도 예외를 올리지 않는다.
+
+    캘린더가 죽어도 화면은 떠야 한다(_assign_read의 '실패 시 [] 반환'과 같은 원칙).
+    """
+    days = int(days or CALENDAR_DAYS)
+    today = datetime.date.today()
+
+    def _fetch():
+        if not _asgws or not hasattr(_asgws, "calendar_events"):
+            return {"events": [], "error": "gws 래퍼 없음"}
+        tz = datetime.datetime.now().astimezone().tzinfo
+        tmin = datetime.datetime.combine(today, datetime.time.min, tzinfo=tz).isoformat()
+        tmax = datetime.datetime.combine(today + datetime.timedelta(days=days),
+                                         datetime.time.max, tzinfo=tz).isoformat()
+        out, err = [], ""
+        for cid in CALENDAR_IDS:
+            try:
+                items = _asgws.calendar_events(cid, tmin, tmax, limit=100)
+            except Exception as e:  # noqa: BLE001
+                err, items = str(e)[:100], []
+            for it in items:
+                st, en = (it.get("start") or {}), (it.get("end") or {})
+                allday = "date" in st
+                sd = st.get("date") or (st.get("dateTime") or "")[:10]
+                if not sd:
+                    continue
+                out.append({
+                    "date": sd,
+                    "time": "" if allday else (st.get("dateTime") or "")[11:16],
+                    "end": "" if allday else (en.get("dateTime") or "")[11:16],
+                    "allday": allday,
+                    "title": (it.get("summary") or "(제목 없음)")[:120],
+                    "where": (it.get("location") or "")[:80],
+                    "link": it.get("htmlLink") or "",
+                })
+        # PROJECT RENT 캘린더는 ws.choi로 병합돼 있어 같은 일정이 두 번 온다 — 날짜·시각·제목으로 접는다
+        seen, uniq = set(), []
+        for e in sorted(out, key=lambda x: (x["date"], x["time"] or "")):
+            k = (e["date"], e["time"], e["title"])
+            if k in seen:
+                continue
+            seen.add(k)
+            uniq.append(e)
+        return {"events": uniq, "error": err}
+
+    try:
+        return _cached(f"cal|{today.isoformat()}|{days}", 60, _fetch)
+    except Exception as e:  # noqa: BLE001
+        return {"events": [], "error": str(e)[:100]}
+
+
+# ── 매장 화면 데이터 (레이아웃1.pptx 슬라이드 4·5, 2026-08-30) ────────────
+# 일일보고 탭 15열 라벨 — _report_raw_lookup의 blabs와 같은 정의(열 순서 SSOT는 봇쪽 양식).
+# 일일보고 탭 15열 라벨 — _report_raw_lookup의 blabs와 같은 정의(열 순서 SSOT는 봇쪽 양식).
+_STORE_DAILY_LABELS = {3: "매출", 4: "지출", 5: "송금·승인", 6: "특이사항", 7: "장비",
+                       8: "업무보고", 9: "대관", 10: "스태프", 11: "구매", 12: "입점제안", 13: "복기"}
+# PPTX 대응 — 체크사항(장비 확인·결제 처리·재고관리) / 현장이슈 / 주의사항·VOC
+_STORE_CHECK_COLS = (7, 11, 5)      # 장비·구매·송금승인
+_STORE_ISSUE_COLS = (8, 9, 10, 12)  # 업무보고·대관·스태프·입점제안
+_STORE_VOC_COLS = (6, 13)           # 특이사항·복기
+# 조회 창 — 마감보고가 드문드문 들어오므로 '최근 1건'은 넓게, 합계·이슈는 좁게 본다.
+# (2026-08-30 실측: 매장마감 탭 실데이터 1건(리진 07-24), 일일보고 매출칸 전부 공란)
+_STORE_WIN_RECENT = 90
+_STORE_WIN_WEEK = 7
+_STORE_WIN_ISSUE = 30
+
+
+def _store_sid(name_or_id):
+    """매장명이든 store_id든 → store_id. 마감 탭은 매장'명', 일일보고 탭은 store_id를 쓴다."""
+    s = (name_or_id or "").strip()
+    if not s or not _STORES:
+        return ""
+    if _STORES.by_id(s):
+        return s
+    return _STORES.resolve(s)
+
+
+def _store_num(s):
+    """'266,500원' · '32만원' 같은 표기에서 금액만. 못 뽑으면 None(0과 구분해야 한다)."""
+    raw = str(s or "")
+    digits = re.sub(r"[^\d]", "", raw)
+    if not digits:
+        return None
+    try:
+        n = int(digits)
+    except ValueError:
+        return None
+    if "만" in raw and n < 10000:   # '32만' 표기 보정
+        n *= 10000
+    return n
+
+
+def _store_days_ago(d, base):
+    """'YYYY-MM-DD' 두 개의 일수 차. 파싱 실패 시 큰 값(창 밖으로 밀어낸다)."""
+    try:
+        return (datetime.date.fromisoformat(base) - datetime.date.fromisoformat(d)).days
+    except Exception:  # noqa: BLE001
+        return 10 ** 6
+
+
+def _store_snapshot(date_str=None):
+    """매장 화면 데이터. 매장마감·일일보고 시트 + 주간분장. 60초 TTL.
+
+    새 저장소를 만들지 않는다 — assign_checks는 주간분장 행 형식 그대로라
+    화면의 완료처리가 기존 /api/assign-status를 그대로 탄다(승인 체인·감사 로그 승계).
+    시트 코멘트(sheet_checks)는 상태를 저장할 곳이 없어 읽기 전용으로 구분해 내보낸다.
+    """
+    sel = date_str or datetime.date.today().isoformat()
+
+    def _fetch():
+        try:
+            from shared.normalize import normalize_date as _nd
+        except Exception:  # noqa: BLE001
+            def _nd(s):
+                return (s or "").strip()[:10]
+
+        stores = [{"id": s["id"], "name": s["name"], "status": s.get("status", ""),
+                   "managers": list(s.get("managers") or [])}
+                  for s in (_STORES.active_stores() if _STORES else [])]
+        ids = [s["id"] for s in stores]
+        names = {s["id"]: s["name"] for s in stores}
+
+        daily = {i: None for i in ids}
+        week = {i: {"sales_sum": 0, "days": 0, "reports": 0} for i in ids}
+        issues = {i: [] for i in ids}
+        voc = {i: [] for i in ids}
+        sheet_checks = []
+        err = ""
+
+        bsid = os.environ.get("BASKET_REPORT_SHEET_ID", "")
+        if not bsid:
+            err = "BASKET_REPORT_SHEET_ID 미설정 — 매장 시트를 읽을 수 없습니다"
+        elif _asgws:
+            # ① 매장마감 탭 — 일매출·방문객·음료·디저트 (closing.FIELDS가 열 순서 SSOT)
+            try:
+                crows = _asgws.values_get(bsid, f"{_CL.TAB if _CL else '매장마감'}!A2:K5000",
+                                          retries=2, timeout=25)
+            except Exception as e:  # noqa: BLE001
+                err, crows = str(e)[:100], []
+            for r in crows:
+                r = list(r) + [""] * (11 - len(r))
+                sid = _store_sid(r[0])
+                if sid not in daily:
+                    continue
+                d = _nd(r[1]) or ""
+                ago = _store_days_ago(d, sel)
+                if not (0 <= ago < _STORE_WIN_RECENT):
+                    continue
+                rec = {"date": d, "manager": (r[2] or "").strip(), "visitors": (r[4] or "").strip(),
+                       "sales": (r[5] or "").strip(), "drinks": (r[6] or "").strip(),
+                       "desserts": (r[7] or "").strip(), "notes": (r[8] or "").strip(),
+                       "days_ago": ago}
+                if ago < _STORE_WIN_WEEK:
+                    n = _store_num(rec["sales"])
+                    if n:
+                        week[sid]["sales_sum"] += n
+                        week[sid]["days"] += 1
+                cur = daily[sid]
+                if cur is None or d > cur["date"]:   # 창 안에서 가장 최근 마감보고 1건
+                    daily[sid] = rec
+                if rec["notes"] and ago < _STORE_WIN_ISSUE:
+                    voc[sid].append(f"[{d} 마감] {rec['notes']}"[:300])
+
+            # ② 일일보고 탭 — 현장이슈·VOC·체크 코멘트 원문
+            try:
+                drows = _asgws.values_get(bsid, "일일보고!A2:O5000", retries=2, timeout=25)
+            except Exception as e:  # noqa: BLE001
+                err, drows = err or str(e)[:100], []
+            for r in drows:
+                r = list(r) + [""] * (15 - len(r))
+                sid = _store_sid(r[0])
+                if sid not in daily:
+                    continue
+                d = _nd(r[1]) or ""
+                ago = _store_days_ago(d, sel)
+                if not (0 <= ago < _STORE_WIN_ISSUE):
+                    continue
+                if ago < _STORE_WIN_WEEK:
+                    week[sid]["reports"] += 1
+                who = (r[2] or "").strip()
+                for idx in _STORE_ISSUE_COLS:
+                    txt = (r[idx] or "").strip()
+                    if txt:
+                        issues[sid].append(f"[{d} {_STORE_DAILY_LABELS[idx]}·{who}] {txt}"[:300])
+                for idx in _STORE_VOC_COLS:
+                    txt = (r[idx] or "").strip()
+                    if txt:
+                        voc[sid].append(f"[{d} {_STORE_DAILY_LABELS[idx]}·{who}] {txt}"[:300])
+                # PPTX '체크사항' = 장비 확인·결제 처리·재고관리 코멘트. 매장 구분해서 한 줄씩.
+                for idx in _STORE_CHECK_COLS:
+                    txt = (r[idx] or "").strip()
+                    if txt:
+                        sheet_checks.append({"store": names.get(sid, sid), "date": d, "who": who,
+                                             "kind": _STORE_DAILY_LABELS[idx], "text": txt[:300],
+                                             "days_ago": ago})
+
+        for i in ids:
+            issues[i] = sorted(issues[i], reverse=True)[:8]
+            voc[i] = sorted(voc[i], reverse=True)[:8]
+        sheet_checks.sort(key=lambda c: (c["date"], c["store"]), reverse=True)
+
+        # ③ 완료처리 대상 — 주간분장 중 **매장 담당자(stores.json managers)** 배정 미완분.
+        #    프로젝트명 매칭은 쓰지 않는다: '여수'가 매장 별칭이자 '여수 섬박람회' 프로젝트라
+        #    공간팀 업무 22건이 매장 체크사항으로 딸려 들어온다(2026-08-30 실측).
+        mgrs = {n for s in stores for n in s["managers"]}
+        assign_checks = [a for a in _assign_read()
+                         if a.get("assignee") in mgrs
+                         and not _ST.is_assign_done(a.get("status") or "")
+                         and (a.get("status") or "") not in _ASSIGN_HIDDEN_STATES]
+        assign_checks.sort(key=lambda a: (a.get("deadline") or "9999", a.get("assignee") or ""))
+
+        return {"date": sel, "stores": stores, "daily": daily, "week": week,
+                "issues": issues, "voc": voc,
+                "sheet_checks": sheet_checks[:30], "assign_checks": assign_checks[:40],
+                "managers": sorted(mgrs), "error": err}
+
+    try:
+        return _cached(f"store|{sel}", 60, _fetch)
+    except Exception as e:  # noqa: BLE001
+        return {"date": sel, "stores": [], "daily": {}, "week": {}, "issues": {}, "voc": {},
+                "sheet_checks": [], "assign_checks": [], "managers": [], "error": str(e)[:120]}
+
+
+def _store_insight_html(kind):
+    """매장 주간·월 인사이트 최신 HTML — basket-*-insight.py 산출물을 그대로 서빙."""
+    pat = "weekly-insight-*.html" if kind == "weekly" else "monthly-insight-*.html"
+    try:
+        files = sorted(STORE_INSIGHT_DIR.glob(pat))
+    except Exception:  # noqa: BLE001
+        files = []
+    if not files:
+        label = "주간" if kind == "weekly" else "월간"
+        return (f"<html><body style='font-family:sans-serif;background:#1A1A1A;color:#8A857E;"
+                f"display:flex;align-items:center;justify-content:center;height:100vh'>"
+                f"<div style='text-align:center'><h3 style='color:#F5F0EB'>{label} 인사이트가 아직 없습니다</h3>"
+                f"<p style='font-size:13px'>basket-{kind}-insight 배치가 생성하면 여기에 표시됩니다.</p>"
+                f"</div></body></html>")
+    return files[-1].read_text(encoding="utf-8")
+
+
 class H(BaseHTTPRequestHandler):
     server_version = "PRDashboard/1.0"
     def log_message(self, *a): pass
@@ -4901,6 +5413,13 @@ class H(BaseHTTPRequestHandler):
             team = (q.get("team") or [""])[0]
             if not (sess.get("admin") or team in (sess.get("lead_teams") or [])):
                 return self._send(403, "<h1>해당 팀 리더 전용 페이지입니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
+        # 매장 화면 — 대표·운영팀 리더·운영팀 소속만 (2026-08-30). 클라이언트 탭 숨김만으론 API가 열린다.
+        if path == "/api/stores" or path.startswith("/store-insight"):
+            if not sess.get("store_access"):
+                if path.startswith("/api/"):
+                    return self._send(403, {"ok": False, "error": "매장 화면은 운영 권한자만 볼 수 있습니다."})
+                return self._send(403, "<h1>매장 화면은 운영 권한자만 볼 수 있습니다.</h1>".encode("utf-8"),
+                                  "text/html; charset=utf-8")
         if path == "/lead-brief":
             teams = [t.strip() for t in ((q.get("teams") or [""])[0]).split(",") if t.strip()]
             if not (sess.get("admin") or (teams and set(teams) <= set(sess.get("lead_teams") or []))):
@@ -5142,9 +5661,27 @@ class H(BaseHTTPRequestHandler):
             return
         if path == "/api/health":
             return self._send(200, {"ok": True})
+        if path == "/api/calendar":
+            # 팀 일정표 — 전 역할 공통(로그인만 통과하면 됨). 읽기 전용.
+            d = _cal_events((q.get("days") or [""])[0] or None)
+            return self._send(200, {"ok": True, "days": CALENDAR_DAYS, **d})
+        if path == "/api/stores":
+            # 매장 화면 데이터 (게이트는 위 경로별 블록에서 이미 통과)
+            if not _STORES:
+                return self._send(200, {"ok": False, "error": "매장 모듈이 로드되지 않았습니다.",
+                                        "stores": [], "daily": {}, "week": {}, "issues": {},
+                                        "voc": {}, "sheet_checks": [], "assign_checks": []})
+            snap = _store_snapshot((q.get("date") or [""])[0] or None)
+            return self._send(200, {"ok": True, **snap})
+        if path in ("/store-insight/weekly", "/store-insight/monthly"):
+            kind = path.rsplit("/", 1)[-1]
+            return self._send(200, _store_insight_html(kind).encode("utf-8"),
+                              "text/html; charset=utf-8")
         if path == "/api/me":
             # 쿠키 세션 신원 확인 — 시뮬레이터(공개 페이지)의 제출 UI가 자기 이름을 알기 위함
-            return self._send(200, {"ok": True, "name": sess.get("name"), "admin": bool(sess.get("admin"))})
+            return self._send(200, {"ok": True, "name": sess.get("name"), "admin": bool(sess.get("admin")),
+                                    "lead_teams": sess.get("lead_teams") or [],
+                                    "store_access": bool(sess.get("store_access"))})
         if path == "/api/assignees":
             # 계층적 분장 후보 — 대표=리더급, 리더=자기 팀원 + 타팀 리더(이관)
             uid = (q.get("user") or [""])[0]
@@ -5758,7 +6295,8 @@ class H(BaseHTTPRequestHandler):
             _pin_ok(uid)
             tok = issue_web_session(uid)  # 서버측 세션 쿠키 (2026-07-22 공개 전환)
             return self._send(200, {"ok": True, "name": uid, "role": u.get("role", "직원"),
-                                    "admin": is_admin(uid), "lead_teams": lead_teams_of(uid), "pin_set": pin_set},
+                                    "admin": is_admin(uid), "lead_teams": lead_teams_of(uid),
+                                    "store_access": store_access(uid), "pin_set": pin_set},
                               headers={"Set-Cookie":
                                        f"arisa_sid={tok}; Path=/; Max-Age={_SESS_TTL}; HttpOnly; SameSite=Lax; Secure"})
         if path == "/api/set-pin":

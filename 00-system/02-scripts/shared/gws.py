@@ -114,6 +114,44 @@ def values_update(sheet_id: str, rng: str, values: list[list],
     return _run_with_retry(cmd, f"sheet update({rng})", timeout=timeout)[0]
 
 
+# ── 캘린더 읽기 (2026-08-30, 대시보드 팀 일정표) ────────────────────────
+# 레이아웃 원안(레이아웃1.pptx)이 전 화면 좌측에 '구글 팀일정표'를 두는데 연동이 없었다.
+# 읽기 전용 — 일정 생성(events insert)은 권한 경계가 별건이라 여기 넣지 않는다.
+
+
+def calendar_events(calendar_id: str, time_min: str, time_max: str,
+                    limit: int = 50, retries: int = 2, timeout: int = 25) -> list[dict]:
+    """캘린더 1개의 기간 내 일정 → items 리스트. 실패 시 [] (화면이 죽지 않게).
+
+    time_min/time_max는 RFC3339(예: 2026-08-30T00:00:00+09:00).
+    singleEvents=true로 반복 일정을 개별 인스턴스로 펼치고 시작시각 순 정렬한다.
+    """
+    if not calendar_id:
+        return []
+    params = json.dumps({
+        "calendarId": calendar_id, "timeMin": time_min, "timeMax": time_max,
+        "maxResults": max(1, min(int(limit), 250)),
+        "singleEvents": True, "orderBy": "startTime",
+    })
+    for attempt in range(retries):
+        try:
+            r = subprocess.run(
+                ["gws", "calendar", "events", "list", "--params", params],
+                capture_output=True, text=True, timeout=timeout,
+            )
+            if r.returncode == 0:
+                items = json.loads(r.stdout or "{}").get("items", [])
+                return items if isinstance(items, list) else []
+            sys.stderr.write(f"[gws cal retry {attempt+1}] {calendar_id}: {r.stderr[:120]}\n")
+            if _classify(r.stderr) == "auth":
+                break  # 인증 장애 — 재시도 무의미
+        except Exception as e:  # noqa: BLE001
+            sys.stderr.write(f"[gws cal err {attempt+1}] {calendar_id}: {e}\n")
+        if attempt < retries - 1:
+            time.sleep(2)
+    return []
+
+
 # ── 드라이브 읽기 (2026-08-09, 사내 규정 질의응답) ──────────────────────
 # 이 래퍼는 지금까지 시트만 다뤘다. 사내 규정 원본이 드라이브 .docx로 있어서 읽기가 필요해졌다.
 #
