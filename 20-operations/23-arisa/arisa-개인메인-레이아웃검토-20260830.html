@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISA 개인 메인 화면 레이아웃 검토 — 2026-08-30</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#222; --card:#252525; --line:#333;
+  --fg:#EDEDED; --fg-2:#BDBDBD; --muted:#8A8A8A;
+  --accent:#6C5CE7; --ok:#3DBE8B; --warn:#E8B84B; --bad:#E06C6C;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Pretendard',-apple-system,sans-serif;
+  line-height:1.65;padding:48px 24px 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto}
+.kicker{color:var(--accent);font-size:13px;font-weight:700;letter-spacing:.08em;margin-bottom:10px}
+h1{font-size:34px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
+.lede{color:var(--fg-2);font-size:16px;max-width:780px}
+.meta{color:var(--muted);font-size:13px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+h2{font-size:21px;font-weight:700;margin:52px 0 16px;padding-left:12px;border-left:3px solid var(--accent)}
+h3{font-size:15px;font-weight:700;margin:24px 0 10px;color:var(--fg)}
+p{color:var(--fg-2);margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 4px}
+th,td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+td.c,th.c{text-align:center;white-space:nowrap}
+.y{color:var(--ok);font-weight:700}
+.h{color:var(--warn);font-weight:700}
+.x{color:var(--bad);font-weight:700}
+.n{color:var(--muted)}
+.chip{display:inline-block;background:#2E2E2E;border:1px solid var(--line);border-radius:6px;
+  padding:2px 9px;font-size:12px;color:var(--fg-2);margin:2px 4px 2px 0}
+.chip.a{background:rgba(108,92,231,.16);border-color:var(--accent);color:#B6ACFF}
+.chip.w{background:rgba(232,184,75,.14);border-color:#6b5520;color:var(--warn)}
+.chip.g{background:rgba(61,190,139,.14);border-color:#245c44;color:var(--ok)}
+ul{margin:6px 0 12px 20px;color:var(--fg-2);font-size:14px}
+li{margin-bottom:6px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.note{background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.35);border-radius:10px;
+  padding:16px 18px;font-size:14px;color:var(--fg-2);margin-bottom:14px}
+.note.w{background:rgba(232,184,75,.08);border-color:rgba(232,184,75,.35)}
+.note.b{background:rgba(224,108,108,.08);border-color:rgba(224,108,108,.35)}
+.note b{color:var(--fg)}
+code{background:#2C2C2C;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:#C9C2FF}
+.tblwrap{overflow-x:auto}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:16px 0 6px}
+.kpi .k{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.kpi .k .v{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.kpi .k .l{font-size:12.5px;color:var(--muted);margin-top:4px}
+.kpi .k.g .v{color:var(--ok)} .kpi .k.w .v{color:var(--warn)} .kpi .k.b .v{color:var(--bad)}
+footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="kicker">ARISA · 화면 설계 검토</div>
+<h1>개인 메인 대시보드 검토 + 매장 화면 신설</h1>
+<p class="lede">
+설계 원안 <code>레이아웃1.pptx</code>(5장) 대 현재 라이브 화면(<code>dashboard-server.py</code> · 맥미니 8780)을
+항목별로 대조했다. 원안이 요구하는 13개 요소 중 <b>6개는 이미 구현</b>, <b>4개는 부분 구현</b>,
+<b>3개는 없었다</b>. 없던 3개 중 <b>팀 일정표와 매장 화면은 이번에 만들었고</b>, 나머지는 아래 후속 과제로 남긴다.
+</p>
+<div class="meta">
+2026-08-30 · 원안: 레이아웃1.pptx(슬라이드 1 대표 / 2 팀리더 / 3 Staff / 4 Basket 매장 통합 / 5 매장 단일뷰) ·
+대상: arisa-os.com 통합 셸(브랜치 <code>arisa-vnext</code>) · by Project Rent
+</div>
+
+<h2>0. 요약</h2>
+<div class="kpi">
+  <div class="k g"><div class="v">6</div><div class="l">이미 구현돼 있던 요소</div></div>
+  <div class="k w"><div class="v">4</div><div class="l">부분 구현 — 축이 빠짐</div></div>
+  <div class="k b"><div class="v">3</div><div class="l">아예 없던 요소</div></div>
+  <div class="k a"><div class="v">2</div><div class="l">이번에 만든 것 (일정표·매장)</div></div>
+</div>
+<div class="note">
+<b>가장 큰 발견은 화면이 아니라 데이터였다.</b> 매장 화면을 만들면서 원본 시트를 열어 보니,
+<b>매장마감 탭에 실데이터가 1행(리진 2026-07-24)뿐</b>이고 <b>일일보고 탭의 매출·지출 칸은 최근 보고 전부 공란</b>이었다.
+매출 세분화(커피·디저트·굿즈·이벤트) 이전에 <b>마감보고 자체가 7/24 이후 0건</b>이라는 게 먼저 풀 문제다.
+화면은 이 사실이 그대로 보이게 만들었다 — 빈칸을 감추지 않고 "최근 90일 마감보고 없음"으로 적는다.
+</div>
+
+<h2>1. 원안 × 현재 구현 대조</h2>
+<div class="tblwrap">
+<table>
+<thead><tr>
+  <th>원안 요소</th><th class="c">슬라이드</th><th class="c">상태</th><th>현재 구현 / 갭</th>
+</tr></thead>
+<tbody>
+<tr><td><b>구글 팀일정표</b> (좌측 대형)</td><td class="c">1·2·3·4·5</td>
+    <td class="c"><span class="chip a">이번 구현</span></td>
+    <td>없었다(캘린더 연동 0). → <code>/api/calendar</code>로 ws.choi 메인 + PROJECT RENT 그룹 캘린더를 병합해 향후 14일을 <b>내 업무·팀 홈·매장 화면 최상단</b>에 붙였다. 읽기 전용 + "구글 캘린더에서 추가 ↗".</td></tr>
+<tr><td>오늘 할일</td><td class="c">1·2·3</td><td class="c"><span class="y">구현</span></td>
+    <td><code>✅ 오늘 할 일 · 내 분장</code> + <code>☀️ 오늘 하기로 한 일</code>(본인 선언) — 원안보다 한 층 깊다(계획 대비 실행률 측정 가능).</td></tr>
+<tr><td>데일리루틴 4종<br><span class="n">회신필요 메일 / 미팅일정 / 체크업무 / 결제·승인</span></td><td class="c">1 대표</td>
+    <td class="c"><span class="h">부분</span></td>
+    <td>결제·승인만 있다(<code>⑦ 결재 확인 필요</code>). <b>미팅일정은 이번 팀 일정표로 해소.</b> <b>"최근 3일간 검토 후 회신 필요한 메일"은 여전히 없다</b> → 후속 과제 A.</td></tr>
+<tr><td>업무분장 — 담당자 지정</td><td class="c">1·2</td><td class="c"><span class="y">구현</span></td>
+    <td>자유 서술 → AI 항목화 → 프로젝트 그룹별 담당자·마감·우선순위 지정 → 등록. 주간업무계획 .xlsx 업로드 경로도 있다.</td></tr>
+<tr><td>담당자 지정 시 <b>업무 코멘트</b></td><td class="c">1·2</td><td class="c"><span class="x">없음</span></td>
+    <td>등록 편집기에 코멘트 칸이 없다(업무명·담당자·마감·우선순위 4개뿐). → 후속 과제 B.</td></tr>
+<tr><td>완료 승인 → 목록에서 제거</td><td class="c">1·2</td><td class="c"><span class="y">구현</span></td>
+    <td>승인 체인(담당→리더→PM→대표) + <code>_remove_done_task</code>. 원안보다 단계가 세분화돼 있다.</td></tr>
+<tr><td>이번주 진행할 일 <b>(완료산출물)</b></td><td class="c">1·2·3</td><td class="c"><span class="h">부분</span></td>
+    <td>분장 목록은 있으나 <b>'산출물' 축이 화면에 없다.</b> 시트 G열(결과물)에 데이터는 들어가는데 화면이 안 읽는다. → 후속 과제 C. <span class="n">(8/25 사업기획팀 분석에서 "완료 18건 중 15건 산출물 미기재"가 나온 것과 같은 뿌리)</span></td></tr>
+<tr><td>팀 프로젝트별 <b>이슈</b></td><td class="c">1 대표</td><td class="c"><span class="h">부분</span></td>
+    <td><code>📌 진행 상황</code>은 신호등·진행률·건수다. <b>이슈 텍스트 목록이 아니다.</b> → 후속 과제 D.</td></tr>
+<tr><td>참여 프로젝트 + 프로젝트별 이슈</td><td class="c">2·3</td><td class="c"><span class="h">부분</span></td>
+    <td><code>내 프로젝트 일정</code>(task 나열)만 있고 이슈가 없다. 위와 같은 과제.</td></tr>
+<tr><td>부가업무 · 팀업무 · 잡무</td><td class="c">2·3</td><td class="c"><span class="x">없음</span></td>
+    <td>분류 축이 없어 프로젝트 없는 건이 '기타'로 뭉친다. → 후속 과제 E.</td></tr>
+<tr><td><b>내일 할일 / 체크 필요 사항</b></td><td class="c">3 Staff</td><td class="c"><span class="x">없음</span></td>
+    <td>오늘 선언(<code>today_plan</code>)만 있고 내일 층이 없다. → 후속 과제 F.</td></tr>
+<tr><td>오프라인 매장별 매출·이슈</td><td class="c">1 대표</td>
+    <td class="c"><span class="chip a">이번 구현</span></td>
+    <td>대표도 <code>🏪 매장</code> 탭에서 본다(별도 분류 지시 반영).</td></tr>
+<tr><td>매장 대시보드 (로그인/일일/주간/월)</td><td class="c">4·5</td>
+    <td class="c"><span class="chip a">이번 구현</span></td>
+    <td>일일/주간/월 서브탭으로 구현. 주간·월은 기존 basket-insight 배치 산출물을 그대로 띄운다.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>원안보다 앞서 있는 부분 (원안에는 없지만 이미 돌아가는 것)</h3>
+<p>
+<span class="chip g">Decision · Intervention · Risk 3분류</span>
+<span class="chip g">승인 체인 단계 표시(리더→PM→대표)</span>
+<span class="chip g">ReportScore 보고 채점</span>
+<span class="chip g">마감 달력(월 단위 몰림)</span>
+<span class="chip g">입력 완결성 경고(마감·프로젝트 누락)</span>
+<span class="chip g">오늘 선언 대비 실행률</span>
+<span class="chip g">회의 액션 선행·차단 표시</span>
+</p>
+<p class="n">원안은 "무엇을 보여줄 것인가"의 지도이고, 지금 화면은 그 위에 "무엇을 결정하게 할 것인가"가 얹혀 있다. 검토 결론은 원안으로 되돌리는 게 아니라 <b>원안이 짚은 빈칸만 메우는 것</b>이다.</p>
+
+<h2>2. 이번에 만든 것 ①: 팀 일정표</h2>
+<div class="grid2">
+<div class="card">
+<h3>동작</h3>
+<ul>
+  <li>대상 캘린더 2종 — <code>ws.choi@project-rent.com</code>(메인) + PROJECT RENT 그룹</li>
+  <li>범위: 오늘 ~ +14일. 반복 일정은 개별 인스턴스로 펼침</li>
+  <li>두 캘린더가 병합돼 있어 같은 일정이 두 번 오므로 <b>날짜·시각·제목으로 중복 제거</b></li>
+  <li>붙는 곳: <b>내 업무(대표·직원) · 팀 홈(리더) · 매장 화면</b> 최상단</li>
+  <li>60초 TTL 캐시 — 없으면 화면 진입마다 gws 프로세스가 2개씩 뜬다</li>
+  <li>캘린더가 죽어도 화면은 뜬다(빈 목록 + 사유 표시)</li>
+</ul>
+</div>
+<div class="card">
+<h3>범위 제한 — 읽기 전용</h3>
+<p>원안은 "일정추가 가능"이라고 적혀 있으나 <b>1단계는 읽기 전용</b>으로 뒀다.
+쓰기(<code>events insert</code>)는 누가 어느 캘린더에 무엇을 쓸 수 있는지의 권한 경계 설계가 별건이라,
+같이 넣으면 이번 배포의 검증이 흐려진다. 대신 패널 우상단에 <b>구글 캘린더에서 추가 ↗</b> 링크를 뒀다.</p>
+<p class="n">후속 과제 G로 남긴다.</p>
+</div>
+</div>
+
+<h2>3. 이번에 만든 것 ②: 🏪 매장 화면</h2>
+
+<h3>3-1. 누가 보는가</h3>
+<p>지시대로 <b>대표 · 운영팀 리더 · 운영팀 담당자</b>만. 이름을 박아 넣지 않고
+인사명부(<code>arisa-employees.json</code>) 기준으로 판정해, 운영팀 신규 입사자가 자동 포함되게 했다.</p>
+<div class="tblwrap">
+<table>
+<thead><tr><th>계정</th><th>소속</th><th>리더 팀</th><th class="c">매장 탭</th><th class="c">/api/stores</th></tr></thead>
+<tbody>
+<tr><td>최원석</td><td>경영 (대표)</td><td>전 팀</td><td class="c y">보임</td><td class="c y">200</td></tr>
+<tr><td>윤혜정</td><td>운영팀</td><td>기획팀 · 운영팀</td><td class="c y">보임</td><td class="c y">200</td></tr>
+<tr><td>양은정</td><td>운영팀</td><td>—</td><td class="c y">보임</td><td class="c y">200</td></tr>
+<tr><td>김준호</td><td>운영팀</td><td>—</td><td class="c y">보임</td><td class="c y">200</td></tr>
+<tr><td>양지혜 <span class="n">(대조군)</span></td><td>기획팀</td><td>—</td><td class="c x">안 보임</td><td class="c x">403</td></tr>
+<tr><td colspan="5" class="n">그 외 전제훈·배성원·김도영·김가은·김예진·정예은·안윤숙 전원 미노출(코드 판정으로 12명 전수 확인)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note w">
+<b>권한은 두 층으로 걸었다.</b> 탭 숨김(클라이언트)만으로는 API가 열려 있다.
+<code>/api/stores</code>와 <code>/store-insight/*</code>는 서버에서 403으로 막고, 탭 표시는 서버 <code>/api/me</code> 응답으로 결정한다.
+로그인 캐시가 낡아 있어도 매번 서버에 다시 물어보므로, 명부에서 권한이 바뀌면 다음 접속에 반영된다.
+</div>
+
+<h3>3-2. 화면 구성 (원안 슬라이드 4·5 대응)</h3>
+<div class="grid2">
+<div class="card">
+<h3>일일 탭</h3>
+<ul>
+  <li><b>팀 일정표</b> — 원안 좌측 패널</li>
+  <li><b>매장별 카드</b> (바스켓·리진·아랑재·올드타운·여수) — 일 매출 · 방문객 · 주간 합계 · 주간 보고 건수 / 판매 상세(음료·디저트) / 주요이슈 / 주의사항·VOC</li>
+  <li><b>📋 매장 체크 코멘트</b> — 일일보고의 장비·구매·송금승인 칸 (원안 "장비 확인, 결제 처리, 재고관리 등 담당자 코멘트")</li>
+  <li><b>✅ 완료처리 대상</b> — 매장 담당자 배정 미완 분장. 완료 버튼이 기존 <code>/api/assign-status</code>를 그대로 타서 주간분장 시트에 반영된다</li>
+</ul>
+</div>
+<div class="card">
+<h3>주간 · 월 탭</h3>
+<p>새로 만들지 않았다. <code>basket-weekly-insight.py</code>(매주 월 09:00)와
+<code>basket-monthly-insight.py</code>가 이미 생성하고 있는 인사이트 HTML을 그대로 띄운다.</p>
+<p class="n">최신본: 주간 260824 · 월간 2607. 원안의 로그인/일일/주간/월 4탭 중 '로그인'은 통합 셸 로그인이 대신한다.</p>
+</div>
+</div>
+
+<h3>3-3. 체크사항을 두 갈래로 나눈 이유</h3>
+<p>처음에는 "운영팀 담당자의 미완 분장"을 체크사항으로 잡았는데, 실데이터로 돌려 보니 <b>23건 중 대부분이 매장과 무관한 프로젝트 업무</b>였다.
+프로젝트명 매칭도 붙여 봤더니 <b>'여수'가 매장 별칭이면서 동시에 '여수 섬박람회' 프로젝트 이름</b>이라, 공간팀 업무 22건이 매장 체크사항으로 딸려 들어왔다.</p>
+<p>그래서 성격이 다른 두 가지를 섞지 않고 나눴다.</p>
+<div class="tblwrap">
+<table>
+<thead><tr><th>블록</th><th>출처</th><th class="c">현재 건수</th><th>완료처리</th></tr></thead>
+<tbody>
+<tr><td>📋 매장 체크 코멘트</td><td>일일보고 시트 ⑤장비·⑨구매·③송금승인 (최근 30일)</td><td class="c">14건</td>
+    <td class="n">불가 — 시트 텍스트라 상태를 저장할 곳이 없다</td></tr>
+<tr><td>✅ 완료처리 대상</td><td>주간분장 중 매장 담당자(양은정·김준호) 배정 미완분</td><td class="c">0건</td>
+    <td class="y">가능 — 승인 체인·감사 로그 그대로 승계</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note">
+<b>0건이 화면의 결함은 아니다.</b> 매장 업무가 아직 주간분장으로 등록되지 않고 있다는 사실이다.
+화면에는 "매장 업무를 분장으로 등록하면 여기서 완료처리됩니다"라고 적어 뒀다.
+매장 코멘트를 분장으로 승격시키는 버튼은 넣지 않았다 — 대표는 리더·본인에게만 분장할 수 있다는 기존 권한 규칙과 충돌해서, 별도 설계가 필요하다(후속 과제 H).
+</div>
+
+<h2>4. 매출 데이터 실태 — 세분화보다 먼저 풀 문제</h2>
+<p>원안 슬라이드 4·5는 <b>일매출 / 커피·음료 / 디저트 / 상품·굿즈 / 이벤트매출(수수료 20%)</b> 5축을 요구한다.
+현재 시트 상태는 이렇다.</p>
+<div class="tblwrap">
+<table>
+<thead><tr><th>축</th><th>현재 저장 형태</th><th class="c">최근 실데이터</th></tr></thead>
+<tbody>
+<tr><td>일매출</td><td>매장마감 탭 F열 — 문자열(<code>266,500원</code>)</td><td class="c h">1건 (리진 07-24)</td></tr>
+<tr><td>커피·음료</td><td>매장마감 G열 — <b>금액 아님.</b> 잔수·품목 서술</td><td class="c h">1건</td></tr>
+<tr><td>디저트</td><td>매장마감 H열 — <b>금액 아님.</b> 개수·품목 서술</td><td class="c h">1건</td></tr>
+<tr><td>상품·굿즈</td><td class="x">칸 자체가 없음</td><td class="c x">—</td></tr>
+<tr><td>이벤트매출(수수료 20%)</td><td class="x">칸 자체가 없음</td><td class="c x">—</td></tr>
+<tr><td class="n">참고 — 일일보고 탭 '매출'</td><td class="n">D열</td><td class="c x">최근 보고 5건 전부 공란</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note b">
+<b>순서를 바꿔야 한다.</b> 시트에 칸을 4개 더 만들어도, <b>마감보고가 7/24 이후 0건</b>이면 빈칸만 4개 늘어난다.
+① 마감보고 제출을 다시 돌게 하는 것 → ② 그 다음에 필드 확장.
+그래서 이번 배포에는 필드 확장을 넣지 않았다. 화면은 지금 있는 필드(일매출·방문객·음료·디저트)로 뜨고,
+값이 없으면 <b>"최근 90일 마감보고 없음"</b>이라고 적는다 — 빈 화면을 고장으로 오해하지 않게.
+</div>
+<h3>필드 확장을 실행할 때의 체크리스트 (후속 과제 I)</h3>
+<ul>
+  <li><code>shared/closing.py</code> — <code>FIELDS</code>·<code>PROMPT</code>·<code>build_row</code>에 커피·디저트·굿즈·이벤트 금액 4열 추가 (11열 → 15열)</li>
+  <li>⚠️ <code>append_row</code>의 숫자 강제 인덱스 <code>[1, 2, 10]</code>이 열 추가로 밀린다 — <b>같이 고치지 않으면 조용히 어긋난다</b></li>
+  <li><code>daily-brief-aggregate.py</code>의 <code>매장마감!A2:K5000</code> → <code>A2:O5000</code></li>
+  <li>대시보드의 매장마감 읽기 범위도 <code>A2:K</code> → <code>A2:O</code></li>
+  <li>봇 재기동 후 담당자 실제 보고 1건으로 왕복 확인</li>
+</ul>
+
+<h2>5. 후속 과제 (이번에 손대지 않은 것)</h2>
+<div class="tblwrap">
+<table>
+<thead><tr><th class="c">#</th><th>과제</th><th>왜 이번에 안 했나</th><th class="c">규모</th></tr></thead>
+<tbody>
+<tr><td class="c">A</td><td><b>대표 데일리루틴 — 회신 필요한 메일</b><br><span class="n">원안 슬라이드 1 "최근 3일간 검토 후 회신 필요한 메일"</span></td>
+    <td>Gmail 연동 + "회신 필요" 판정 로직이 필요하다. <code>/morning</code>·<code>inquiry-auto-draft</code>에 유사 로직이 이미 있어 재사용 여지가 크다.</td><td class="c">중</td></tr>
+<tr><td class="c">B</td><td>분장 등록 시 <b>업무 코멘트 칸</b></td><td>시트에 코멘트 열 추가 여부부터 결정해야 한다(결과물 G열에 넣을지, 신설할지).</td><td class="c">소</td></tr>
+<tr><td class="c">C</td><td><b>완료 산출물 축</b> 화면 노출</td><td>데이터(시트 G열)는 있는데 화면이 안 읽는다. 화면만 고치면 되지만, 8/25 분석이 지적한 "기재 규칙이 업무유형에 안 맞는다"를 같이 풀어야 의미가 있다.</td><td class="c">중</td></tr>
+<tr><td class="c">D</td><td>프로젝트별 <b>이슈 텍스트</b> 목록</td><td>이슈의 단일 출처를 정해야 한다(프로젝트 JSON · 일일보고 · 회의 결정 중 어디를 SSOT로 볼지).</td><td class="c">중</td></tr>
+<tr><td class="c">E</td><td>부가업무 · 팀업무 · 잡무 <b>분류 축</b></td><td>업무유형 어휘(<code>shared/assign_sheet.TASK_TYPES</code>)가 이미 있어 여기에 얹는 게 맞다. 어휘 확정이 선행.</td><td class="c">소</td></tr>
+<tr><td class="c">F</td><td>Staff <b>내일 할일</b></td><td><code>today_plan</code>이 날짜별 파일이라 '내일' 층은 저장 구조를 거의 안 바꾸고 붙는다. 다만 리마인드 정책까지 같이 정해야 한다.</td><td class="c">소</td></tr>
+<tr><td class="c">G</td><td>일정표에서 <b>일정 추가</b></td><td>쓰기 권한 경계 설계가 별건(누가 어느 캘린더에).</td><td class="c">중</td></tr>
+<tr><td class="c">H</td><td>매장 코멘트 → <b>분장 승격</b> 버튼</td><td>"대표는 리더·본인에게만 분장" 규칙과 충돌.</td><td class="c">소</td></tr>
+<tr><td class="c">I</td><td>매출 <b>필드 확장</b> 4열</td><td>마감보고 제출이 먼저(§4).</td><td class="c">중</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>6. 검증 기록</h2>
+<div class="tblwrap">
+<table>
+<thead><tr><th>항목</th><th>방법</th><th>결과</th></tr></thead>
+<tbody>
+<tr><td>Python 문법</td><td><code>ast.parse</code></td><td class="y">OK <span class="n">(40만자 단일 파일 — 오류 1개면 서비스가 죽는다)</span></td></tr>
+<tr><td>셸 내장 JS 문법</td><td>UNIFIED_SHELL의 <code>&lt;script&gt;</code> 추출 → <code>node --check</code></td><td class="y">OK (77KB)</td></tr>
+<tr><td>권한 판정</td><td>모듈 직접 import → 전 직원 12명 <code>store_access()</code> 전수</td><td class="y">의도한 4명만 True</td></tr>
+<tr><td>서버 게이트</td><td>테스트 전용 계정 4개로 실제 로그인 → API 호출</td><td class="y">3명 200 · 양지혜 403 (API·HTML 둘 다)</td></tr>
+<tr><td>브라우저 렌더</td><td>Playwright, 계정별 독립 컨텍스트</td><td class="y">JS 에러 0 · 가로 오버플로 0 (1440=1440)</td></tr>
+<tr><td>매장 탭 노출</td><td>DOM visible 확인</td><td class="y">3명 보임 · 양지혜 안 보임</td></tr>
+<tr><td>서브탭 전환</td><td>일일→주간→월→일일</td><td class="y">주간·월 iframe 실제 내용 로드 확인</td></tr>
+<tr><td>팀 일정표</td><td>대표·리더·직원 3화면</td><td class="y">전부 최상단 렌더 · 18건 · 실제 캘린더와 대조</td></tr>
+<tr><td>TTL 캐시</td><td>연속 2회 호출</td><td class="y">1.5s → 0.000s</td></tr>
+<tr><td>기존 화면 회귀</td><td>내 업무(대표·리더·직원) 섹션 목록</td><td class="y">기존 블록 유지 · 캘린더만 추가</td></tr>
+</tbody>
+</table>
+</div>
+<p class="n">실제 PIN은 검증에 쓰지 않았다 — 격리된 테스트 데이터 폴더에 더미 계정 4개를 만들어 돌렸다.</p>
+
+<footer>
+ARISA 개인 메인 대시보드 검토 + 매장 화면 신설 · 2026-08-30 · 브랜치 <code>arisa-vnext</code> ·
+원안 레이아웃1.pptx 대조 · by Project Rent
+</footer>
+
+</div>
+</body>
+</html>
