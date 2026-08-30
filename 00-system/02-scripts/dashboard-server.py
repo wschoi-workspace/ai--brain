@@ -1857,8 +1857,10 @@ body{background:var(--bg);color:var(--fg);font-family:'Pretendard Variable',sans
 #tabs .who a{color:var(--accent);cursor:pointer;margin-left:8px}
 .frame{flex:1;border:0;width:100%;display:none;background:var(--bg)}
 .frame.on{display:block}
-#f-mywork{overflow:auto;padding:24px}
+/* 패널 대시보드(원안)는 페이지를 스크롤하지 않는다 — 넘침은 패널 안에서. 좁은 화면은 위 미디어쿼리가 되돌린다 */
+#f-mywork{overflow:hidden;padding:16px}
 .mw-wrap{max-width:1000px;margin:0 auto}
+.mw-wrap.dash{max-width:none}
 .mw-h{font-size:15px;font-weight:600;margin:22px 0 12px}
 .mw-form{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
 .mw-form select,.mw-form input{background:var(--bg-3);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit}
@@ -1931,6 +1933,48 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 #arisa2-status{font-size:11px;color:var(--muted);margin-left:6px}
 #arisa2-status.ok{color:#00b894}
 #arisa2-status.err{color:var(--red)}
+/* ── 대시보드 패널 레이아웃 (레이아웃1.pptx 원안, 2026-08-30) ──────────────
+   원안 5장이 전부 같은 골격이다: 좌우 2열(각 5.28in) · 좌상단 고정 팀일정표 ·
+   패널마다 "스코롤 통해서 아래로 확장"(6회). 즉 16:9 한 화면에 패널을 다 놓고
+   넘치는 내용은 패널 안에서 굴린다 — 페이지 자체는 스크롤하지 않는다. */
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:14px;height:100%;min-height:0}
+.dash-col{display:grid;gap:14px;min-height:0}
+.pn{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;
+  display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.pn-h{flex-shrink:0;display:flex;align-items:baseline;gap:9px;padding:11px 15px 10px;
+  border-bottom:1px solid var(--line);background:var(--bg-2)}
+.pn-h .t{font-size:14px;font-weight:600;white-space:nowrap}
+.pn-h .s{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn-h .a{margin-left:auto;flex-shrink:0;font-size:11.5px;color:var(--accent);cursor:pointer;white-space:nowrap;text-decoration:none}
+.pn-h .a:hover{text-decoration:underline}
+.pn-b{flex:1;min-height:0;overflow-y:auto;padding:12px 15px 14px}
+.pn-b>.mw-h:first-child{margin-top:0}
+/* 패널 배경(--bg-2)과 카드 배경이 같아 평평해진다 — 패널 안에서는 한 단계 올린다 */
+.pn-b .mw-card,.pn-b .mw-assign,.pn-b .tg-box,.pn-b .cal-box,.pn-b .st-card,
+.pn-b .mw-done-sec,.pn-b .mw-form{background:var(--bg-3)}
+.pn-b .cal-box{border:0;padding:0;margin:0}
+.pn-b .cal-box .cal-head{display:none}      /* 제목은 패널 헤더가 대신한다 */
+.pn-b .cal-scroll{max-height:none}
+.pn-sec{font-size:12px;font-weight:600;color:var(--accent);margin:14px 0 6px;
+  display:flex;align-items:center;gap:7px}
+.pn-sec:first-child{margin-top:0}
+.pn-sec .c{font-size:11px;color:var(--muted);font-weight:400}
+.pn-empty{color:var(--muted);font-size:12.5px;padding:4px 0}
+/* 매장 요약(대표 화면 우하단 — 원안 슬라이드1) */
+.sm-row{display:flex;gap:9px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);font-size:12.5px}
+.sm-row:first-child{border-top:0}
+.sm-row .n{width:64px;flex-shrink:0;font-weight:600}
+.sm-row .v{width:112px;flex-shrink:0;color:var(--fg-2);font-variant-numeric:tabular-nums}
+.sm-row .i{flex:1;min-width:0;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 좁거나 낮은 화면 — 패널을 강제하면 못 쓴다. 기존 1열 세로 스택 + 페이지 스크롤로 복귀 */
+@media (max-width:1199px),(max-height:699px){
+  #f-mywork,#f-stores{overflow:auto}
+  .dash{display:block;height:auto}
+  .dash-col{display:block}
+  .pn{margin-bottom:14px}
+  .pn-b{overflow:visible;max-height:none}
+  .pn-b .cal-scroll{max-height:240px}
+}
 /* 팀 일정표 — 레이아웃1.pptx 전 화면 좌측 패널 (2026-08-30) */
 .cal-box{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:16px}
 .cal-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
@@ -1948,11 +1992,24 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .cal-ev .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cal-empty{font-size:12.5px;color:var(--muted);padding:4px 0}
 /* 매장 화면 — 레이아웃1.pptx 슬라이드 4·5 */
-#f-stores{overflow:auto;padding:24px}
-.st-sub{display:flex;gap:6px;margin-bottom:16px}
+/* display는 .on일 때만 — 그냥 #f-stores{display:flex}로 주면 ID 우선순위가
+   .frame{display:none}을 이겨서 탭을 바꿔도 매장 화면이 계속 떠 있는다 (2026-08-30) */
+#f-stores{overflow:hidden;padding:16px}
+#f-stores.on{display:flex;flex-direction:column}
+.st-sub{display:flex;gap:6px;margin-bottom:12px;flex-shrink:0}
 .st-sub button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 16px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500}
 .st-sub button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-.st-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:6px}
+/* 매장 화면 — 원안 슬라이드4: 상단 2열(일정표 | 매출·체크사항) + 하단 전폭 매장 4열 */
+.st-dash{flex:1;min-height:0;display:grid;grid-template-rows:1.45fr 1fr;gap:14px}
+.st-top{display:grid;grid-template-columns:1fr 1fr;gap:14px;min-height:0}
+.st-top .dash-col{grid-template-rows:auto 1fr}
+.st-bot{min-height:0;display:flex;flex-direction:column}
+.st-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:6px}
+@media (max-width:1199px),(max-height:699px){
+  .st-dash{display:block;height:auto}
+  .st-top{display:block}
+  .st-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+}
 .st-card{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:14px 15px}
 .st-card.prep{opacity:.55}
 .st-card .sname{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
@@ -1971,7 +2028,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .st-sec .li.voc{border-left-color:var(--red)}
 .st-none{font-size:12px;color:var(--muted)}
 .st-note{font-size:12px;color:var(--muted);margin:4px 0 14px;line-height:1.6}
-.st-frame{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--bg);height:calc(100vh - 190px);min-height:420px}
+.st-frame{width:100%;flex:1;min-height:420px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
 </style></head>
 <body>
 <div id="login-gate"><div id="login-box">
@@ -2094,6 +2151,28 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     }).catch(function(){ a2s.textContent='ARISA 2.0 OFF'; a2s.className='err'; });
   }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  // ── 패널 (레이아웃1.pptx 원안 배치) ──
+  // 제목은 패널 헤더가 갖고, 본문은 .pn-b 안에서만 스크롤한다. 4개 화면이 같이 쓴다.
+  function pnl(title, sub, body, act){
+    var a='';
+    if(act){
+      a = act.href
+        ? '<a class="a" href="'+esc(act.href)+'" target="_blank" rel="noopener">'+esc(act.label)+'</a>'
+        : '<span class="a" data-go="'+esc(act.go||'')+'">'+esc(act.label)+'</span>';
+    }
+    return '<section class="pn"><div class="pn-h"><span class="t">'+title+'</span>'
+      +(sub?('<span class="s">'+esc(sub)+'</span>'):'')+a
+      +'</div><div class="pn-b">'+(body||'<div class="pn-empty">표시할 내용이 없습니다.</div>')+'</div></section>';
+  }
+  function pnSec(title, count){
+    return '<div class="pn-sec">'+title+(count!=null?('<span class="c">'+count+'</span>'):'')+'</div>';
+  }
+  function pnBindGo(box){
+    box.querySelectorAll('.pn-h .a[data-go]').forEach(function(a){
+      var t=a.getAttribute('data-go'); if(!t) return;
+      a.onclick=function(){ showTab(t); };
+    });
+  }
   function mwAssignHtml(lv){
     return '<div class="mw-h">업무 분장 <span class="sub2">— 자유롭게 적으면 AI가 항목화 → 편집 후 '+lv+'에게 배분 → 승인'+(lv==='팀원'?' (대표가 배분한 내 업무를 참고해도 됩니다)':'')+'</span></div>'
       +'<div class="mw-assign">'
@@ -2242,7 +2321,26 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     h+=lines(voc, ' voc', '등록된 고객·운영 이슈 없음');
     return h+'</div></div>';
   }
+  function stSalesHtml(d){
+    // 원안 슬라이드4 우상단 '매출' — 매장별 일매출·방문객·주간 합계 한 줄씩
+    var S=(d.stores||[]).slice().sort(function(a,b){ return (a.status==='운영'?0:1)-(b.status==='운영'?0:1); });
+    if(!S.length) return '<div class="pn-empty">등록된 매장이 없습니다 (stores.json).</div>';
+    return S.map(function(s){
+      var rec=(d.daily||{})[s.id], wk=(d.week||{})[s.id]||{};
+      var ago=rec?Number(rec.days_ago||0):0;
+      var sales=rec&&rec.sales?(esc(rec.sales)+(ago>=2?(' <span style="opacity:.6">('+ago+'일 전)</span>'):'')):'—';
+      var meta=[];
+      if(rec&&rec.visitors) meta.push('방문 '+rec.visitors);
+      if(wk.sales_sum) meta.push('주간 '+Number(wk.sales_sum).toLocaleString()+'원');
+      if(wk.reports) meta.push('보고 '+wk.reports+'건');
+      if(!meta.length) meta.push(rec?'최근 마감보고 '+rec.date:'최근 90일 마감보고 없음');
+      return '<div class="sm-row"><span class="n">'+esc(s.name)+'</span>'
+        +'<span class="v">'+sales+'</span>'
+        +'<span class="i" title="'+esc(meta.join(' · '))+'">'+esc(meta.join(' · '))+'</span></div>';
+    }).join('');
+  }
   function renderStores(){
+    // 원안 슬라이드 4: 상단 2열(팀 일정표 | 매출·체크사항) + 하단 전폭 매장 4열
     var box=frames.stores;
     if(ST_SUB!=='daily'){
       // 주간·월은 basket-*-insight 배치가 이미 만들어 둔 HTML을 그대로 띄운다
@@ -2256,48 +2354,59 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       fetch('/api/stores').then(function(r){return r.json();}).catch(function(){return null;}),
       calFetch()
     ]).then(function(res){
-      var d=res[0]||{}, cal=res[1], h=stSubHtml();
+      var d=res[0]||{}, cal=res[1];
       if(d.ok===false){
-        box.innerHTML=h+'<div class="mw-empty">'+esc(d.error||'매장 데이터를 불러오지 못했습니다.')+'</div>';
+        box.innerHTML=stSubHtml()+'<div class="mw-empty">'+esc(d.error||'매장 데이터를 불러오지 못했습니다.')+'</div>';
         stBindSub(box); return;
       }
-      h+=mwCalendarHtml(cal);
-      if(d.error) h+='<div class="st-note">⚠️ '+esc(d.error)+'</div>';
-      var S=d.stores||[];
-      h+='<div class="mw-h">🏪 매장별 매출 · 이슈 <span class="sub2">'
-        +esc(d.date||'')+' 기준 · 매출=최근 마감보고 1건(90일 내)·주간 합계=7일 · 이슈=30일</span></div>';
-      if(S.length){
-        // 운영중 매장 먼저, 준비중은 뒤로(흐리게)
-        var ord=S.slice().sort(function(a,b){ return (a.status==='운영'?0:1)-(b.status==='운영'?0:1); });
-        h+='<div class="st-grid">'+ord.map(function(s){ return stCardHtml(s,d); }).join('')+'</div>';
-      } else { h+='<div class="mw-empty">등록된 매장이 없습니다 (stores.json).</div>'; }
       // 체크사항 두 갈래 — 시트 코멘트(읽기 전용)와 분장(완료처리 가능)은 성격이 달라 섞지 않는다
-      var SC=d.sheet_checks||[];
-      h+='<div class="mw-h">📋 매장 체크 코멘트 <span class="sub2">'+SC.length
-        +'건 — 일일보고의 장비·구매·송금승인 칸 (최근 30일 · 시트 원문이라 완료처리는 없습니다)</span></div>';
-      if(SC.length){
-        h+=SC.map(function(c){
-          return '<div class="mw-card"><div class="t"><span class="mw-badge" style="background:var(--bg-3);color:var(--muted)">'
-            +esc(c.kind)+'</span> '+esc(c.text)+'</div><div class="m">'+esc(c.store)+' · '+esc(c.date)
-            +' · '+esc(c.who||'작성자 미상')+'</div></div>';
-        }).join('');
-      } else { h+='<div class="mw-empty">최근 30일 매장 체크 코멘트가 없습니다.</div>'; }
-      var AC=d.assign_checks||[];
-      h+='<div class="mw-h">✅ 완료처리 대상 <span class="sub2">'+AC.length
-        +'건 — 매장 담당자('+esc((d.managers||[]).join('·')||'미지정')
-        +') 배정 미완 분장 · 완료하면 주간분장 시트에 그대로 반영됩니다</span></div>';
-      h+=AC.length?mwAssignListHtml(AC, true)
-        :'<div class="mw-empty">매장 담당자에게 배정된 미완 분장이 없습니다. 매장 업무를 분장으로 등록하면 여기서 완료처리됩니다.</div>';
+      var SC=d.sheet_checks||[], AC=d.assign_checks||[], chk='';
+      chk+=pnSec('📋 매장 체크 코멘트', SC.length+'건 — 일일보고 장비·구매·송금승인 (시트 원문, 완료처리 없음)');
+      chk+=SC.length
+        ? SC.map(function(c){
+            return '<div class="mw-card"><div class="t"><span class="mw-badge" style="background:var(--bg-2);color:var(--muted)">'
+              +esc(c.kind)+'</span> '+esc(c.text)+'</div><div class="m">'+esc(c.store)+' · '+esc(c.date)
+              +' · '+esc(c.who||'작성자 미상')+'</div></div>';
+          }).join('')
+        : '<div class="pn-empty">최근 30일 매장 체크 코멘트가 없습니다.</div>';
+      chk+=pnSec('✅ 완료처리 대상', AC.length+'건 — 매장 담당자('+esc((d.managers||[]).join('·')||'미지정')+') 배정 미완 분장');
+      chk+=AC.length ? mwAssignListHtml(AC, true)
+        : '<div class="pn-empty">매장 담당자에게 배정된 미완 분장이 없습니다. 매장 업무를 분장으로 등록하면 여기서 완료처리됩니다.</div>';
+
+      var S=(d.stores||[]).slice().sort(function(a,b){ return (a.status==='운영'?0:1)-(b.status==='운영'?0:1); });
+      var calN=((cal&&cal.events)||[]).length;
+      var h=stSubHtml()
+        + (d.error?('<div class="st-note">⚠️ '+esc(d.error)+'</div>'):'')
+        + '<div class="st-dash">'
+        +   '<div class="st-top">'
+        +     pnl('📅 팀 일정표', '앞으로 '+((cal&&cal.days)||14)+'일'+(calN?(' · '+calN+'건'):''),
+                  mwCalendarHtml(cal), {label:'구글 캘린더 ↗', href:'https://calendar.google.com/'})
+        +     '<div class="dash-col" style="grid-template-rows:auto 1fr">'
+        +       pnl('💰 매출', esc(d.date||'')+' 기준 · 최근 마감보고', stSalesHtml(d))
+        +       pnl('✅ 체크사항', '장비 확인 · 결제 처리 · 재고관리', chk)
+        +     '</div>'
+        +   '</div>'
+        +   '<section class="pn st-bot"><div class="pn-h"><span class="t">🏪 매장별 주요이슈 · VOC</span>'
+        +     '<span class="s">'+S.length+'곳 · 이슈 최근 30일</span></div>'
+        +     '<div class="pn-b">'
+        +       (S.length ? '<div class="st-grid">'+S.map(function(s){ return stCardHtml(s,d); }).join('')+'</div>'
+                          : '<div class="pn-empty">등록된 매장이 없습니다 (stores.json).</div>')
+        +     '</div></section>'
+        + '</div>';
       box.innerHTML=h;
       stBindSub(box);
+      pnBindGo(box);
       mwBindStatus(box); mwBindChain(box); mwBindBulk(box);
       mwBindEdit(box); mwBindInline(box); mwBindToday(box);
-    }).catch(function(){
+    }).catch(function(e){
+      console.error('[renderStores]', e);
       box.innerHTML=stSubHtml()+'<div class="mw-empty">불러오기 실패</div>'; stBindSub(box);
     });
   }
   function renderLeadHome(){
-    // 리더 홈 — 팀 Todo(대표·리더 분장) + 분장 생성 + 진행중 프로젝트 + 팀원 오늘 보고
+    // 리더 홈 — 원안 슬라이드 2 배치.
+    //   좌: 팀 일정표 / 참여 프로젝트 및 이슈
+    //   우: 업무 분장·필요 항목 / 오늘 할 일 / 이번 주 진행할 일
     var box=frames.mywork;
     box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오는 중…</div></div>';
     var u=encodeURIComponent(SESS.name);
@@ -2306,7 +2415,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       fetch('/api/assignees?user='+u).then(function(r){return r.json();}),
       calFetch()
     ]).then(function(res){
-      var lh=res[0]||{}, ac=res[1]||{}, h='<div class="mw-wrap">'+mwCalendarHtml(res[2]);
+      var lh=res[0]||{}, ac=res[1]||{}, cal=res[2];
       MW_ASSIGNEES = ac.assignees || [];
       MW_TODAY = lh.today_plan || [];   // 갭C — 리더 본인의 오늘 선언
       var A=lh.assignments||[];
@@ -2318,13 +2427,11 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         if(_rcSeen[k]) return false; _rcSeen[k]=1; return true;
       });
       var teamTodo=A.filter(function(a){ return a.assignee!==SESS.name; });
-      h+=mwDailyFocusHtml(lh.daily);
-      var lhNew=mwNewTodosHtml(lh.daily);
-      if(lhNew){ h+='<div class="mw-h">🆕 새로 해야 할 일 <span class="sub2">어제 보고에서 도출 — [분장 등록]으로 확정</span></div>'+lhNew; }
-      h+=mwProjUpdatesHtml(lh.daily);
-      h+=mwApprovalsHtml(lh.approvals||[]);
+      var assign='', today='', week='', proj='';   // 우상 / 우중 / 우하 / 좌하
+
+      // ── 우상 업무 분장 · 필요 항목 (원안 "업무분장_필요항목")
       if(received.length){
-        h+='<div class="mw-h">📥 받은 업무 <span class="sub2">— 대표 지시·리더 이관 · [상세 분장]으로 팀원에게 쪼개서 배분하세요</span></div>';
+        assign+=pnSec('📥 받은 업무', received.length+'건 — 대표 지시·리더 이관');
         received.forEach(function(a,i){
           var st=a.status||'미착수';
           var badge='<span class="lh-st '+(st==='완료'?'lh-done':((st==='진행중'||st==='검토중'||st==='승인대기')?'lh-doing':'lh-todo'))+'">'+esc(st)+'</span>';
@@ -2336,18 +2443,26 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
             if(st==='완료'){ act='<span class="st-wait">⏳ 승인 대기</span>'+mwStBtn(a,'진행중','↩ 되돌리기'); }
             else{ act=mwStBtn(a,'완료','✓ 완료')+mwStBtn(a,'완료','📣 완료·보고',true); }
           }
-          h+='<div class="mw-card rc-card"><div class="t">'+badge+' '+esc(a.task)+urg+act
+          assign+='<div class="mw-card rc-card"><div class="t">'+badge+' '+esc(a.task)+urg+act
             +'<button class="rc-btn" data-i="'+i+'">→ 팀원에게 상세 분장</button></div>'
             +'<div class="m">'+pj+esc(a.src||'대표 지시')+dl+'</div></div>';
         });
       }
-      h+=mwDueHtml(A);                              // A1 — 지난·오늘·내일 마감 모아보기
-      h+=mwTeamTodayHtml(lh.team_today);            // C — 팀원이 오늘 하기로 한 일
-      h+=mwUnassignedHtml(lh.unassigned||[]);       // A2 — 담당 미지정 배정 큐
-      h+=mwIncompleteHtml(lh.incomplete, false);    // 입력 완결성 — 마감·프로젝트 누락
-      h+=mwCalHtml(A);                              // 마감 달력 — 월 단위 몰림 확인
-      h+='<div class="mw-h">팀 Todo · 이번주 분장 <span class="sub2">'+esc((lh.teams||[]).join(' · '))
-        +mwSrcMixHtml(lh.source_mix)+mwTypeMixHtml(lh.type_mix)+'</span></div>';
+      var lhNew=mwNewTodosHtml(lh.daily);
+      if(lhNew){ assign+=pnSec('🆕 새로 해야 할 일', '어제 보고에서 도출')+lhNew; }
+      assign+=mwUnassignedHtml(lh.unassigned||[]);   // A2 — 담당 미지정 배정 큐
+      if(ac.canAssign){ assign+=mwAssignHtml(ac.level||'팀원'); }
+
+      // ── 우중 오늘 할 일
+      today+=mwDailyFocusHtml(lh.daily);
+      today+=mwTeamTodayHtml(lh.team_today);         // C — 팀원이 오늘 하기로 한 일
+      today+=mwApprovalsHtml(lh.approvals||[]);
+      today+=mwDueHtml(A);                           // A1 — 지난·오늘·내일 마감 모아보기
+      today+=mwIncompleteHtml(lh.incomplete, false); // 입력 완결성 — 마감·프로젝트 누락
+
+      // ── 우하 이번 주 진행할 일 (팀 Todo 본체)
+      week+=pnSec('팀 Todo · 이번주 분장', esc((lh.teams||[]).join(' · ')));
+      week+='<div class="sub2" style="padding:0 0 6px">'+mwSrcMixHtml(lh.source_mix)+mwTypeMixHtml(lh.type_mix)+'</div>';
       if(teamTodo.length){
         // B3 — 담당자별 보기 (filament 팀 보드 사이드바 패턴: 이름 + 열린 건수)
         var pf={}, pfo=[];
@@ -2355,21 +2470,41 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           if(!(n in pf)){ pf[n]=0; pfo.push(n); }
           if(['미착수','진행중','검토중','승인대기','보류'].indexOf(a.status)>=0) pf[n]++;
         });
-        h+='<div class="pf-bar"><span class="pf-chip on" data-name="">전체 '+teamTodo.length+'</span>';
-        pfo.forEach(function(n){ h+='<span class="pf-chip" data-name="'+esc(n)+'">'+esc(n)+' '+pf[n]+'</span>'; });
-        h+='</div><div id="lh-todo-list">'+mwAssignListHtml(teamTodo, true)+'</div>';
+        week+='<div class="pf-bar"><span class="pf-chip on" data-name="">전체 '+teamTodo.length+'</span>';
+        pfo.forEach(function(n){ week+='<span class="pf-chip" data-name="'+esc(n)+'">'+esc(n)+' '+pf[n]+'</span>'; });
+        week+='</div><div id="lh-todo-list">'+mwAssignListHtml(teamTodo, true)+'</div>';
       }
-      else { h+='<div class="mw-empty">팀원에게 배분된 분장이 아직 없습니다. 아래에서 바로 만들 수 있습니다.</div>'; }
-      if(ac.canAssign){ h+=mwAssignHtml(ac.level||'팀원'); }
-      h+='<div class="mw-h">진행중인 프로젝트 <span class="sub2">'+(lh.projects||[]).length+'건 — 클릭하면 프로젝트 탭</span></div>';
+      else { week+='<div class="pn-empty">팀원에게 배분된 분장이 아직 없습니다. 위 [업무 분장] 패널에서 바로 만들 수 있습니다.</div>'; }
+      week+=mwCalHtml(A);                            // 마감 달력 — 월 단위 몰림 확인
+      week+=pnSec('팀원 오늘 보고', esc(lh.brief_date||''));
+      week+=(lh.brief_html||'<div class="pn-empty">보고가 아직 없습니다.</div>');
+
+      // ── 좌하 참여 프로젝트 및 이슈
       var P=lh.projects||[];
-      if(P.length){ P.forEach(function(p){
-        var pr=(p.task_total?(' · 업무 '+p.task_done+'/'+p.task_total+(p.percent!=null?(' · '+p.percent+'%'):'')):'');
-        h+='<div class="lh-proj" data-open="projects"><div class="t">'+esc(p.name)+'</div><div class="m">PM '+esc(p.pm||'-')+(p.dday?(' · D-day '+esc(p.dday)):'')+pr+'</div></div>';
-      }); } else { h+='<div class="mw-empty">진행중인 팀 프로젝트가 없습니다.</div>'; }
-      h+='<div class="mw-h">팀원 오늘 보고 <span class="sub2">'+esc(lh.brief_date||'')+'</span></div>';
-      h+=(lh.brief_html||'<div class="mw-empty">보고가 아직 없습니다.</div>');
-      h+='</div>'; box.innerHTML=h;
+      proj+=mwProjUpdatesHtml(lh.daily);
+      if(P.length){
+        proj+=pnSec('진행중인 프로젝트', P.length+'건 — 클릭하면 프로젝트 탭');
+        P.forEach(function(p){
+          var pr=(p.task_total?(' · 업무 '+p.task_done+'/'+p.task_total+(p.percent!=null?(' · '+p.percent+'%'):'')):'');
+          proj+='<div class="lh-proj" data-open="projects"><div class="t">'+esc(p.name)+'</div><div class="m">PM '+esc(p.pm||'-')+(p.dday?(' · D-day '+esc(p.dday)):'')+pr+'</div></div>';
+        });
+      } else { proj+='<div class="pn-empty">진행중인 팀 프로젝트가 없습니다.</div>'; }
+
+      // ── 패널 조립 (원안 슬라이드 2)
+      var calN=((cal&&cal.events)||[]).length;
+      var h='<div class="mw-wrap dash">'
+        + '<div class="dash-col" style="grid-template-rows:1.4fr 1fr">'
+        +   pnl('📅 팀 일정표', '앞으로 '+((cal&&cal.days)||14)+'일'+(calN?(' · '+calN+'건'):''),
+                mwCalendarHtml(cal), {label:'구글 캘린더 ↗', href:'https://calendar.google.com/'})
+        +   pnl('📌 참여 프로젝트 및 이슈', P.length?(P.length+'건'):'', proj)
+        + '</div>'
+        + '<div class="dash-col" style="grid-template-rows:1.1fr 1.55fr 2fr">'
+        +   pnl('📥 업무 분장 · 필요 항목', received.length?(received.length+'건 받음'):'담당자 지정 후 배분', assign)
+        +   pnl('✅ 오늘 할 일', '', today||'<div class="pn-empty">오늘 챙길 항목이 없습니다.</div>')
+        +   pnl('📄 이번 주 진행할 일', teamTodo.length?(teamTodo.length+'건'):'완료 산출물', week)
+        + '</div></div>';
+      box.innerHTML=h;
+      pnBindGo(box);
       mwBindParse();
       mwBindStatus(box);
       mwBindChain(box);
@@ -2396,7 +2531,64 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
           ta.focus(); ta.scrollIntoView({behavior:'smooth',block:'center'});
         };
       });
-    }).catch(function(){ box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>'; });
+    }).catch(function(e){
+      console.error('[renderLeadHome]', e);
+      box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>';
+    });
+  }
+  // ── 대표·Staff 화면 (원안 슬라이드 1·3) ──────────────────────────────
+  // 블록을 없앤 게 아니라 원안 4~5패널 안으로 옮겼다. 페이지는 스크롤하지 않고
+  // 넘치는 내용은 각 패널(.pn-b) 안에서 굴린다.
+  function exRiskCard(r){
+    return '<div class="mw-card ex-red"><div class="t">'+esc(r.title)+'</div><div class="m">'
+      +esc(r.who||'')+(r.project?(' · '+esc(r.project)):'')+(r.detail?('<br>'+esc(r.detail)):'')+'</div></div>';
+  }
+  function stSummaryHtml(d){
+    // 원안 슬라이드1 우하단 '오프라인 매장별 매출 및 이슈' — 한 줄 요약. 상세는 매장 탭이 담당.
+    if(!d || d.ok===false) return '<div class="pn-empty">매장 데이터를 불러오지 못했습니다.</div>';
+    var S=d.stores||[];
+    if(!S.length) return '<div class="pn-empty">등록된 매장이 없습니다.</div>';
+    // 운영중이거나 최근 보고가 있는 매장만 (준비중 빈 매장으로 패널을 채우지 않는다)
+    var live=S.filter(function(s){
+      return s.status==='운영' || (d.daily||{})[s.id] || (((d.issues||{})[s.id]||[]).length);
+    });
+    return (live.length?live:S).map(function(s){
+      var rec=(d.daily||{})[s.id];
+      var iss=((d.issues||{})[s.id]||[])[0]||((d.voc||{})[s.id]||[])[0]||'';
+      var sales=(rec&&rec.sales)?rec.sales:'';
+      return '<div class="sm-row"><span class="n">'+esc(s.name)+'</span>'
+        +'<span class="v">'+(sales?esc(sales):'—')+'</span>'
+        +'<span class="i" title="'+esc(iss)+'">'+(iss?esc(iss):'최근 보고 없음')+'</span></div>';
+    }).join('');
+  }
+  function mwTomorrowHtml(A){
+    // 원안 슬라이드3 '내일 할일 / 체크 필요한 사항'. 읽기 전용 자동 산출 —
+    // /api/today-plan이 서버에서 오늘 날짜를 고정하고 있어 '내일 선언' 토글은 후속 과제.
+    var d=new Date(); d.setDate(d.getDate()+1);
+    var tm=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+    var OPEN=['미착수','진행중','검토중','승인대기','보류'];
+    var due=(A||[]).filter(function(a){ return (a.deadline||'')===tm; });
+    var carry=(A||[]).filter(function(a){
+      return OPEN.indexOf(a.status)>=0 && MW_TODAY.indexOf(mwTodayKey(a))>=0
+             && (a.deadline||'')!==tm;
+    });
+    var h='';
+    if(due.length){
+      h+=pnSec('📌 내일 마감', due.length+'건');
+      due.forEach(function(a){
+        h+='<div class="mw-card"><div class="t">'+esc(a.task)+'</div><div class="m">'
+          +(a.project?(esc(a.project)+' · '):'')+esc(a.status||'')+'</div></div>';
+      });
+    }
+    if(carry.length){
+      h+=pnSec('↪️ 오늘 선언했지만 아직 미완', carry.length+'건');
+      carry.forEach(function(a){
+        h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+'</div><div class="m">'
+          +(a.project?(esc(a.project)+' · '):'')+esc(a.status||'')
+          +(a.deadline?(' · 마감 '+esc(a.deadline)):' · 마감 없음')+'</div></div>';
+      });
+    }
+    return h||'<div class="pn-empty">내일 마감이거나 넘어갈 일이 없습니다.</div>';
   }
   function renderMyWork(){
     var lt=SESS.lead_teams||[];
@@ -2408,32 +2600,47 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       fetch('/api/my-work?user='+u).then(function(r){return r.json();}),
       fetch('/api/assignees?user='+u).then(function(r){return r.json();}),
       SESS.admin ? fetch('/api/exec-attn?user='+u).then(function(r){return r.json();}) : Promise.resolve(null),
-      calFetch()
+      calFetch(),
+      // 대표 화면 우하단 매장 요약 — 서버가 60초 캐시하므로 매장 탭과 중복 호출해도 싸다
+      (SESS.admin && SESS.store_access)
+        ? fetch('/api/stores').then(function(r){return r.json();}).catch(function(){return null;})
+        : Promise.resolve(null)
     ]).then(function(res){
-      var mw=res[0]||{}, ac=res[1]||{}, ex=res[2], h='<div class="mw-wrap">'+mwCalendarHtml(res[3]);
+      var mw=res[0]||{}, ac=res[1]||{}, ex=res[2], cal=res[3], stx=res[4];
       MW_ASSIGNEES = ac.assignees || [];
-      if(SESS.admin){ h+='<div class="mw-quick"><a class="mw-link" href="/sso/hr" target="_blank" rel="noopener">🏢 HR 포털 바로가기 ↗</a><a class="mw-link" href="https://rent-hr-portal.fly.dev/onboard/admin/v2" target="_blank" rel="noopener">🧾 입퇴사 온보딩 ↗</a></div>'; }  // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크), 온보딩=입퇴사 자동화 대시보드 v2
+      MW_TODAY = mw.today_plan || [];    // 갭C — 내가 오늘 하기로 선언한 항목
+      var A=mw.assignments||[];
+      var today='', week='', proj='';    // 우상 / 우중·우하 / 좌하
+      var nToday=0, nWeek=0, nProj=0;
+
+      if(SESS.admin){
+        // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크), 온보딩=입퇴사 자동화 대시보드 v2
+        today+='<div class="mw-quick"><a class="mw-link" href="/sso/hr" target="_blank" rel="noopener">🏢 HR 포털 ↗</a>'
+          +'<a class="mw-link" href="https://rent-hr-portal.fly.dev/onboard/admin/v2" target="_blank" rel="noopener">🧾 입퇴사 온보딩 ↗</a></div>';
+      }
       if(ex && ex.ok){
-        // R4 3차 — 대표창 재배치 (가이드 §6): ①오늘의 핵심 ②Decision ③Intervention
-        // ④Risk ⑤진행 상황 ⑥완료 승인 ⑦결재 확인. 지연·미지정은 하단 접힘.
+        // R4 3차 대표창 블록을 원안 패널로 분배 (2026-08-30):
+        //   오늘 할 일  ← 오늘의 핵심 · Decision · Intervention · 결재
+        //   이번 주     ← 완료 승인 · 지연 · 담당 미지정 · 단계 처리
+        //   프로젝트 이슈 ← 진행 상황 · Risk
         var D=ex.decisions||[], O=ex.overdue||[];
-        // ① 오늘의 핵심 할 일 (4~6개 — 대표의 하루 행동 기준)
         var TF=ex.today_focus||[];
         if(TF.length){
-          h+='<div class="mw-h">🎯 오늘의 핵심 할 일 <span class="sub2">'+TF.length+'개 — 오늘 반드시 결정·확인·지시할 것</span></div>';
+          nToday+=TF.length;
+          today+=pnSec('🎯 오늘의 핵심', TF.length+'개 — 오늘 반드시 결정·확인·지시할 것');
           TF.forEach(function(f,i){
             var pj=f.project?(' · '+esc(f.project)):'';
-            h+='<div class="mw-card"><div class="t"><span class="mw-badge" style="background:var(--accent);color:#fff">'+(i+1)+' '+esc(f.act)+'</span> '
+            today+='<div class="mw-card"><div class="t"><span class="mw-badge" style="background:var(--accent);color:#fff">'+(i+1)+' '+esc(f.act)+'</span> '
               +esc(f.text)+'</div>'+((f.sub||pj)?('<div class="m">'+esc(f.sub||'')+pj+'</div>'):'')+'</div>';
           });
         }
-        // ② Decision — 결정 필요 (프로젝트별 그룹핑, 추천안·기한·지연영향 표시)
         if(D.length){
-          h+='<div class="mw-h">⚖️ Decision · 결정 필요 <span class="sub2">'+D.length+'건 — 에스컬레이션·PM 미지정만 (나머지는 PM 라우팅)</span></div>';
+          nToday+=D.length;
+          today+=pnSec('⚖️ Decision · 결정 필요', D.length+'건 — 에스컬레이션·PM 미지정만');
           var dg={}, dgo=[];
           D.forEach(function(d){ var k=d.pname||d.project||'기타'; if(!(k in dg)){dg[k]=[];dgo.push(k);} dg[k].push(d); });
           dgo.forEach(function(k){
-            if(dgo.length>1) h+='<div class="m" style="margin:8px 2px 4px;font-weight:600;color:var(--fg-2)">'+esc(k)+'</div>';
+            if(dgo.length>1) today+='<div class="m" style="margin:8px 2px 4px;font-weight:600;color:var(--fg-2)">'+esc(k)+'</div>';
             dg[k].forEach(function(d){
               var age=d.age>0?(' · '+d.age+'일 경과'):'';
               var eb=d.esc?('<span class="mw-badge mw-urgent">▲ '+esc(d.esc)+'</span> '):'';
@@ -2443,35 +2650,36 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
               if(d.deadline) sub+=' · 기한 '+esc(d.deadline);
               if(d.delay_impact) sub+='<br>지연 시: '+esc(d.delay_impact);
               if(d.recommender||d.decider){ var rp=[]; if(d.recommender)rp.push('추천 '+esc(d.recommender)); if(d.decider)rp.push('결정 '+esc(d.decider)+(d.decider_is_pm?'(PM)':'')); sub+='<br>결정권한: '+rp.join(' → '); }
-              h+='<div class="mw-card ex-red"><div class="t">'+eb+esc(d.title)+act+'</div><div class="m">'+sub+'</div></div>';
+              today+='<div class="mw-card ex-red"><div class="t">'+eb+esc(d.title)+act+'</div><div class="m">'+sub+'</div></div>';
             });
           });
         }
-        // ③ Intervention — 개입 필요
         var IV=ex.interventions||[];
         if(IV.length){
-          h+='<div class="mw-h">🤝 Intervention · 개입 필요 <span class="sub2">'+IV.length+'건 — 조율·지시·지원이 필요한 지점</span></div>';
+          nToday+=IV.length;
+          today+=pnSec('🤝 Intervention · 개입 필요', IV.length+'건 — 조율·지시·지원');
           IV.forEach(function(it){
             var eb=it.esc?('<span class="mw-badge mw-urgent">▲ PM 요청</span> '):'';
             var act=it.logged_at?('<a class="dc-act" data-la="'+esc(it.logged_at)+'" data-action="resolve">✓ 처리 입력</a>'):'';
-            h+='<div class="mw-card ex-amber"><div class="t">'+eb+esc(it.title)+act+'</div><div class="m">'
+            today+='<div class="mw-card ex-amber"><div class="t">'+eb+esc(it.title)+act+'</div><div class="m">'
               +esc(it.who||'')+(it.project?(' · '+esc(it.project)):'')+(it.detail?('<br>'+esc(it.detail)):'')+'</div></div>';
           });
         }
-        // ④ Risk — 높음 기본 노출, 나머지 접힘
-        var RK=ex.risks||[];
-        if(RK.length){
-          var hi=RK.filter(function(r){return r.urgency==='high';}), lo=RK.filter(function(r){return r.urgency!=='high';});
-          h+='<div class="mw-h">⚠️ Risk · 리스크 <span class="sub2">높음 '+hi.length+'건'+(lo.length?(' · 그 외 '+lo.length+'건 접힘'):'')+'</span></div>';
-          function rkCard(r){ return '<div class="mw-card ex-red"><div class="t">'+esc(r.title)+'</div><div class="m">'
-            +esc(r.who||'')+(r.project?(' · '+esc(r.project)):'')+(r.detail?('<br>'+esc(r.detail)):'')+'</div></div>'; }
-          hi.forEach(function(r){ h+=rkCard(r); });
-          if(lo.length){ h+='<details class="mw-done-sec"><summary>▸ 중간·낮음 리스크 '+lo.length+'건</summary>'; lo.forEach(function(r){ h+=rkCard(r); }); h+='</details>'; }
+        var PY=ex.payments||[];
+        if(PY.length){
+          nToday+=PY.length;
+          today+=pnSec('🧾 결재 확인 필요', PY.length+'건 — 송금·지출 승인');
+          PY.forEach(function(d){
+            var act=d.logged_at?('<a class="dc-act" data-la="'+esc(d.logged_at)+'" data-action="resolve">✓ 결재 처리</a>'):'';
+            today+='<div class="mw-card ex-red"><div class="t">'+esc(d.title)+act+'</div><div class="m">'
+              +esc(d.who||'')+((d.pname||d.project)?(' · '+esc(d.pname||d.project)):'')+'</div></div>';
+          });
         }
-        // ⑤ 진행 상황 — 이번 주 중요 프로젝트 써머리 (2차)
+        // ── 좌하 프로젝트 이슈 패널
         var PS=ex.project_summary||[];
         if(PS.length){
-          h+='<div class="mw-h">📌 진행 상황 · 이번 주 중요 프로젝트 <span class="sub2">보고·분장 활동 상위 '+PS.length+'개</span></div>';
+          nProj+=PS.length;
+          proj+=pnSec('📌 진행 상황 · 이번 주', '활동 상위 '+PS.length+'개');
           PS.forEach(function(s){
             var chips='';
             // WS3c — 신호등: 분장 이행이 말하는 상태. 회색(⚪)은 '판정 보류'이며 색을 칠하지 않는다.
@@ -2484,104 +2692,146 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
             // 선언(brief.status)과 자동 판정이 어긋나면 PM에게 선언 갱신을 요구한다
             var mm=s.declared_mismatch
               ? '<div class="mw-deps">선언 '+esc(s.status)+' ↔ 자동 🔴 — 프로젝트 상태 갱신 필요</div>' : '';
-            h+='<div class="mw-card"><div class="t">'+esc(s.name)+' '+chips+'</div>'
+            proj+='<div class="mw-card"><div class="t">'+esc(s.name)+' '+chips+'</div>'
               +'<div class="m">PM '+esc(s.pm||'미지정')+' · 이번주 활동 '+s.week+'건 · 완료 '+s.done
               +pr+(s.dday?(' · D-day '+esc(s.dday)):'')+(s.status?(' · '+esc(s.status)):'')+'</div>'
               +mm+'</div>';
           });
         }
-        // ⑥ 완료 승인 대기 (대표 차례만) — 프로젝트별 그룹핑
+        var RK=ex.risks||[];
+        if(RK.length){
+          var hi=RK.filter(function(r){return r.urgency==='high';}), lo=RK.filter(function(r){return r.urgency!=='high';});
+          nProj+=RK.length;
+          proj+=pnSec('⚠️ Risk · 리스크', '높음 '+hi.length+'건'+(lo.length?(' · 그 외 '+lo.length+'건 접힘'):''));
+          hi.forEach(function(r){ proj+=exRiskCard(r); });
+          if(lo.length){
+            proj+='<details class="mw-done-sec"><summary>▸ 중간·낮음 리스크 '+lo.length+'건</summary>';
+            lo.forEach(function(r){ proj+=exRiskCard(r); });
+            proj+='</details>';
+          }
+        }
+        // ── 우중 이번 주 패널
         var AP2=ex.approvals||[];
         if(AP2.length){
-          h+='<div class="mw-h">✅ 완료 승인 대기 <span class="sub2">'+AP2.length+'건 — 대표 차례만 (리더·PM 단계 제외)</span></div>';
+          nWeek+=AP2.length;
+          week+=pnSec('✅ 완료 승인 대기', AP2.length+'건 — 대표 차례만');
           var ag={}, ago=[];
           AP2.forEach(function(a){ var k=(a.project||'').trim()||'기타'; if(!(k in ag)){ag[k]=[];ago.push(k);} ag[k].push(a); });
           ago.sort(function(a,b){ if(a==='기타') return 1; if(b==='기타') return -1; return a.localeCompare(b,'ko'); });
           ago.forEach(function(k){
-            h+='<details class="mw-done-sec" open><summary>▸ '+esc(k)+' '+ag[k].length+'건</summary>';
+            week+='<details class="mw-done-sec" open><summary>▸ '+esc(k)+' '+ag[k].length+'건</summary>';
             ag[k].forEach(function(a){
               var dl=a.deadline?(' · 마감 '+esc(a.deadline)):'';
               var st=(a.status||'')==='승인대기'?'<span class="st-wait">PM 클리어</span> ':'';
-              h+='<div class="mw-card"><div class="t">'+st+esc(a.task)+mwChainBtns(a)+mwStBtn(a,'삭제','🗑')+mwChk(a)
+              week+='<div class="mw-card"><div class="t">'+st+esc(a.task)+mwChainBtns(a)+mwStBtn(a,'삭제','🗑')+mwChk(a)
                 +'</div><div class="m">'+esc(a.assignee||'미지정')+dl+'</div></div>';
             });
-            h+='</details>';
+            week+='</details>';
           });
         }
-        // ⑦ 결재 확인 필요 — [결재] 송금·승인 등 지출성만 분리
-        var PY=ex.payments||[];
-        if(PY.length){
-          h+='<div class="mw-h">🧾 결재 확인 필요 <span class="sub2">'+PY.length+'건 — 송금·지출 승인</span></div>';
-          PY.forEach(function(d){
-            var act=d.logged_at?('<a class="dc-act" data-la="'+esc(d.logged_at)+'" data-action="resolve">✓ 결재 처리</a>'):'';
-            h+='<div class="mw-card ex-red"><div class="t">'+esc(d.title)+act+'</div><div class="m">'
-              +esc(d.who||'')+((d.pname||d.project)?(' · '+esc(d.pname||d.project)):'')+'</div></div>';
-          });
-        }
-        // 하단 — 지연·미지정·단계 처리는 요약·접힘 (핵심을 가리지 않게)
         if(O.length){
-          h+='<details class="mw-done-sec"><summary>▸ ⏰ 지연 업무 '+O.length+'건 — 마감 경과·미완료 분장</summary>';
+          nWeek+=O.length;
+          week+='<details class="mw-done-sec"><summary>▸ ⏰ 지연 업무 '+O.length+'건 — 마감 경과·미완료 분장</summary>';
           O.forEach(function(a){
             var pj=a.project?(esc(a.project)+' · '):'';
-            h+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+' <span class="mw-badge mw-urgent">D+'+a.days_overdue+'</span>'
+            week+='<div class="mw-card ex-amber"><div class="t">'+esc(a.task)+' <span class="mw-badge mw-urgent">D+'+a.days_overdue+'</span>'
               +(a.row?(mwStBtn(a,'삭제','🗑')+mwChk(a)):'')+'</div>'
               +'<div class="m">'+pj+esc(a.assignee||'미지정')+' · 마감 '+esc(a.deadline||'')+' · '+esc(a.status||'미착수')+'</div></div>';
           });
-          h+='</details>';
+          week+='</details>';
         }
-        h+=mwUnassignedHtml(ex.unassigned||[]);   // A2 — 담당 미지정 배정 큐 (대표: 리더급에게 배정)
+        week+=mwUnassignedHtml(ex.unassigned||[]);   // A2 — 담당 미지정 배정 큐 (대표: 리더급에게 배정)
+        nWeek+=(ex.unassigned||[]).length;
         var PR=ex.pm_routed||[], SG=ex.staged||{};
         var sgTot=(SG['파트리더']||0)+(SG['PM']||0);
         if(PR.length||sgTot){
           var byPm={}; PR.forEach(function(x){ byPm[x.pm]=(byPm[x.pm]||0)+1; });
           var pmTxt=Object.keys(byPm).map(function(k){ return esc(k)+' '+byPm[k]; }).join(' · ');
-          h+='<div class="mw-card" style="opacity:.75"><div class="t">🔀 단계 처리 중 — 대표 확인 불필요</div><div class="m">'
+          week+='<div class="mw-card" style="opacity:.75"><div class="t">🔀 단계 처리 중 — 대표 확인 불필요</div><div class="m">'
             +(PR.length?('결정 PM 검토 '+PR.length+'건 ('+pmTxt+')'):'')
             +(PR.length&&sgTot?' · ':'')
             +(sgTot?('승인 대기: 리더 검토 '+(SG['파트리더']||0)+'건 · PM 클리어 '+(SG['PM']||0)+'건'):'')
             +'</div></div>';
         }
-        if(!TF.length && !D.length && !O.length && !AP2.length && !(ex.unassigned||[]).length){ h+='<div class="mw-h">✅ 지연·결재·승인 대기 없음</div>'; }
       }
       // R4 2차 — PM 클리어 큐: 내가 PM인 프로젝트의 승인 대기 분장 + 라우팅된 결정
       var PQ=mw.pm_queue||[], PD=mw.pm_decisions||[];
       if(PQ.length||PD.length){
-        h+='<div class="mw-h">🧭 PM 클리어 <span class="sub2">내 프로젝트 '+(PQ.length+PD.length)+'건 — 정리 후 필요한 것만 대표에게</span></div>';
+        nWeek+=PQ.length+PD.length;
+        week+=pnSec('🧭 PM 클리어', '내 프로젝트 '+(PQ.length+PD.length)+'건');
         PD.forEach(function(d){
           var age=d.age>0?(' · '+d.age+'일 경과'):'';
-          h+='<div class="mw-card ex-red"><div class="t">'+esc(d.title)
+          week+='<div class="mw-card ex-red"><div class="t">'+esc(d.title)
             +'<a class="dc-act" data-la="'+esc(d.logged_at)+'" data-action="resolve">✓ 결정</a>'
             +'<a class="dc-act" data-la="'+esc(d.logged_at)+'" data-action="escalate">▲ 대표</a>'
             +'</div><div class="m">'+esc(d.who||'')+(d.project?(' · '+esc(d.project)):'')+age+'</div></div>';
         });
         PQ.forEach(function(a){
           var pj=a.pname||a.project||'';
-          h+='<div class="mw-card"><div class="t"><span class="st-wait">승인대기</span> '+esc(a.task)+mwChainBtns(a)
+          week+='<div class="mw-card"><div class="t"><span class="st-wait">승인대기</span> '+esc(a.task)+mwChainBtns(a)
             +'</div><div class="m">'+(pj?(esc(pj)+' · '):'')+esc(a.assignee||'미지정')+(a.deadline?(' · 마감 '+esc(a.deadline)):'')+'</div></div>';
         });
       }
-      if(ac.canAssign){ h+=mwAssignHtml(ac.level||'담당자'); }
-      h+=mwDailyFocusHtml(mw.daily);
-      MW_TODAY=mw.today_plan||[];        // 갭C — 내가 오늘 하기로 선언한 항목
-      var A=mw.assignments||[];
-      h+=mwTodayHtml(mw.today_summary, A);
-      h+=mwIncompleteHtml(mw.incomplete, true);     // 내 업무 중 마감·프로젝트 누락
-      h+='<div class="mw-h">✅ 오늘 할 일 · 내 분장 <span class="sub2">☀️를 누르면 오늘 하기로 선언 · 🆕 제안 = 어제 보고에서 도출</span></div>';
-      if(A.length){ h+=mwAssignListHtml(A, false); }
-      h+=mwNewTodosHtml(mw.daily);
-      if(!A.length && !((mw.daily||{}).new_todos||[]).length){ h+='<div class="mw-empty">배정된 분장이 없습니다.</div>'; }
-      h+=mwProjUpdatesHtml(mw.daily);
-      h+='<div class="mw-h">내 프로젝트 일정</div>';
+      // ── 내 분장 (원안 "오늘 할일" 본체)
+      today+=mwDailyFocusHtml(mw.daily);
+      today+=mwTodayHtml(mw.today_summary, A);
+      today+=mwIncompleteHtml(mw.incomplete, true);     // 내 업무 중 마감·프로젝트 누락
+      today+=pnSec('✅ 내 분장', '☀️를 누르면 오늘 하기로 선언');
+      if(A.length){ today+=mwAssignListHtml(A, false); nToday+=A.length; }
+      var NT=mwNewTodosHtml(mw.daily);
+      if(!A.length && !NT){ today+='<div class="pn-empty">배정된 분장이 없습니다.</div>'; }
+      // 업무 분장 입력기 — 원안에서도 '오늘할일' 패널에 붙은 주석이다. 평소엔 접어 둔다.
+      if(ac.canAssign){
+        today+='<details class="mw-done-sec" style="margin-top:14px"><summary>▸ ✏️ 업무 분장 등록</summary>'
+          +mwAssignHtml(ac.level||'담당자')+'</details>';
+      }
+      // ── 이번 주 (Staff는 제안·프로젝트 업데이트가 여기로)
+      week+=NT;
+      week+=mwProjUpdatesHtml(mw.daily);
+      // ── 좌하 프로젝트 패널 — 내 프로젝트 일정
       var P=mw.projects||[];
-      if(P.length){ P.forEach(function(p){
-        h+='<div class="mw-proj"><div class="mw-proj-name">'+esc(p.name)+(p.dday?(' <span style="color:var(--muted);font-weight:400;font-size:12px">D-day '+esc(p.dday)+'</span>'):'')+'</div>';
-        (p.tasks||[]).forEach(function(t){
-          var per=(t.start||'')+(t.end?('~'+t.end):'');
-          h+='<div class="mw-card"><div class="t">'+esc(t.task||'')+'</div><div class="m">'+esc(t.status||'')+' · '+esc(t.division||'')+(per?(' · '+esc(per)):'')+'</div></div>';
+      if(P.length){
+        nProj+=P.length;
+        proj+=pnSec('🗂 내 프로젝트 일정', P.length+'건');
+        P.forEach(function(p){
+          proj+='<div class="mw-proj"><div class="mw-proj-name">'+esc(p.name)+(p.dday?(' <span style="color:var(--muted);font-weight:400;font-size:12px">D-day '+esc(p.dday)+'</span>'):'')+'</div>';
+          (p.tasks||[]).forEach(function(t){
+            var per=(t.start||'')+(t.end?('~'+t.end):'');
+            proj+='<div class="mw-card"><div class="t">'+esc(t.task||'')+'</div><div class="m">'+esc(t.status||'')+' · '+esc(t.division||'')+(per?(' · '+esc(per)):'')+'</div></div>';
+          });
+          proj+='</div>';
         });
-        h+='</div>';
-      }); } else { h+='<div class="mw-empty">배정된 프로젝트 업무가 없습니다.</div>'; }
-      h+='</div>'; box.innerHTML=h;
+      }
+      if(!proj) proj='<div class="pn-empty">배정된 프로젝트 업무가 없습니다.</div>';
+      if(!week) week='<div class="pn-empty">이번 주 처리할 항목이 없습니다.</div>';
+
+      // ── 패널 조립 (원안 슬라이드 1 대표 / 3 Staff) ──
+      var calN=((cal&&cal.events)||[]).length;
+      var right='', rows='';
+      if(SESS.admin){
+        var stPanel=(SESS.store_access)
+          ? pnl('🏪 매장', '오프라인 매장별 매출·이슈', stSummaryHtml(stx), {label:'전체 보기 →', go:'stores'})
+          : '';
+        rows = stPanel ? '2.4fr 1.5fr 1fr' : '2.4fr 1.5fr';
+        right = pnl('✅ 오늘 할 일', nToday?(nToday+'건'):'', today)
+              + pnl('📄 이번 주 진행할 일', nWeek?(nWeek+'건'):'완료 산출물', week)
+              + stPanel;
+      } else {
+        rows = '1.9fr 1.25fr 1.6fr';
+        right = pnl('✅ 오늘 할 일', nToday?(nToday+'건'):'', today)
+              + pnl('🌙 내일 할 일', '내일 마감 · 넘어갈 일', mwTomorrowHtml(A))
+              + pnl('📄 이번 주 진행할 일', nWeek?(nWeek+'건'):'완료 산출물', week);
+      }
+      var h='<div class="mw-wrap dash">'
+        + '<div class="dash-col" style="grid-template-rows:1.4fr 1fr">'
+        +   pnl('📅 팀 일정표', '앞으로 '+((cal&&cal.days)||14)+'일'+(calN?(' · '+calN+'건'):''),
+                mwCalendarHtml(cal), {label:'구글 캘린더 ↗', href:'https://calendar.google.com/'})
+        +   pnl(SESS.admin?'📌 팀 프로젝트별 이슈':'📌 참여 프로젝트 및 이슈', nProj?(nProj+'건'):'', proj)
+        + '</div>'
+        + '<div class="dash-col" style="grid-template-rows:'+rows+'">'+right+'</div>'
+        + '</div>';
+      box.innerHTML=h;
+      pnBindGo(box);
       mwBindParse();
       mwBindStatus(box);
       mwBindChain(box);
@@ -2590,8 +2840,12 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       mwBindEdit(box);
       mwBindInline(box);
       mwBindToday(box);   // 갭C — 오늘 선언 토글
-    }).catch(function(){ box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>'; });
+    }).catch(function(e){
+      console.error('[renderMyWork]', e);
+      box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오기 실패</div></div>';
+    });
   }
+
   function mwAsOpts(sel){ return MW_ASSIGNEES.map(function(a){var lbl=a.name+' ('+(a.team||'')+(a.leader?' 리더 · 이관':'')+')';return '<option value="'+esc(a.name)+'"'+(a.name===sel?' selected':'')+'>'+esc(lbl)+'</option>';}).join(''); }
   function mwTodoRow(it){
     it=it||{};
