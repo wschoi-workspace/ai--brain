@@ -2039,6 +2039,28 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .st-sec .li.voc{border-left-color:var(--red)}
 .st-none{font-size:12px;color:var(--muted)}
 .st-note{font-size:12px;color:var(--muted);margin:4px 0 14px;line-height:1.6}
+/* 일일보고 AI 요약 한 줄(매출 중심) */
+.st-head{font-size:12.5px;line-height:1.5;color:#B6ACFF;background:rgba(108,92,231,.12);
+  border:1px solid rgba(108,92,231,.32);border-radius:8px;padding:7px 10px;margin:9px 0 2px}
+.st-digest{font-size:11.5px;color:var(--muted);margin-bottom:8px}
+/* 매출 자료 업로드 */
+.sx-box{margin-top:4px}
+.sx-form{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:7px}
+.sx-form select,.sx-form input{background:var(--bg-3);border:1px solid var(--line);color:var(--fg);
+  border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit}
+.sx-form .sx-note{flex:1;min-width:110px}
+.sx-btn{background:rgba(108,92,231,.14);border:1px solid rgba(108,92,231,.42);color:var(--accent);
+  border-radius:7px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.sx-btn:hover{background:var(--accent);color:#fff}
+.sx-msg{min-height:15px;margin-bottom:6px}
+.sx-item{border-top:1px solid var(--line);padding:8px 0}
+.sx-item:first-child{border-top:0}
+.sx-item .t{font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sx-item .m{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.55}
+.sx-sum{font-size:11px;border-radius:5px;padding:1px 7px;background:rgba(61,190,139,.14);
+  border:1px solid rgba(61,190,139,.35);color:#3DBE8B;font-variant-numeric:tabular-nums}
+.sx-dl,.sx-del{margin-left:auto;font-size:11.5px;color:var(--accent);cursor:pointer;text-decoration:none}
+.sx-del{margin-left:0;color:var(--red)}
 .st-frame{width:100%;flex:1;min-height:420px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
 </style></head>
 <body>
@@ -2324,13 +2346,20 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     return '<div class="m"><div class="l">'+esc(label)+'</div><div class="v'+(na?' na':'')+'">'
       +(na?'—':esc(isNum?Number(value).toLocaleString():value))+'</div></div>';
   }
+  function stLines(arr, cls, empty){
+    // 카드마다 4건까지 — 전문은 title 툴팁, 나머지는 건수만
+    var s=(arr||[]).slice(0,4).map(function(t){
+      return '<div class="li'+cls+'" title="'+esc(t)+'">'+esc(t)+'</div>';
+    }).join('');
+    if((arr||[]).length>4) s+='<div class="st-none">+ '+(arr.length-4)+'건 더</div>';
+    return s||('<div class="st-none">'+empty+'</div>');
+  }
   function stCardHtml(s, d){
     var rec=(d.daily||{})[s.id], wk=(d.week||{})[s.id]||{};
     var iss=(d.issues||{})[s.id]||[], voc=(d.voc||{})[s.id]||[];
-    // 준비중이어도 최근 보고가 있으면 흐리게 두지 않는다(아랑재처럼 오픈 직전인 매장)
+    var dg=(d.digest||{})[s.id];
     var prep=(s.status&&s.status!=='운영')&&!rec&&!iss.length&&!voc.length;
     var ago=rec?Number(rec.days_ago||0):0;
-    // 마감보고가 며칠 전 것인지 라벨에 박는다 — 37일 전 매출이 오늘 매출로 읽히면 안 된다
     var salesLabel='일 매출'+(rec&&ago>=2?(' ('+ago+'일 전)'):'');
     var h='<div class="st-card'+(prep?' prep':'')+'"><div class="sname">'+esc(s.name)
       +'<span class="sbadge">'+esc(s.status||'')+'</span></div>'
@@ -2338,6 +2367,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       +(rec&&rec.date?(' · 최근 마감보고 '+esc(rec.date)+(rec.manager?(' '+esc(rec.manager)):'')
                        +(ago>=2?(' — '+ago+'일 전'):''))
                     :' · 최근 90일 마감보고 없음')+'</div>';
+    // AI 한 줄 요약(매출 중심) — 있으면 맨 위에
+    if(dg&&dg.headline) h+='<div class="st-head" title="일일보고 AI 요약">'+esc(dg.headline)+'</div>';
     h+='<div class="st-sales">'
       +stMetric(salesLabel, rec?rec.sales:'')
       +stMetric('방문객', rec?rec.visitors:'')
@@ -2350,19 +2381,26 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       if(rec.desserts) h+='<div class="li">🍰 '+esc(rec.desserts)+'</div>';
       h+='</div>';
     }
-    function lines(arr, cls, empty){
-      // 카드마다 4건까지만 — 전문은 title 툴팁, 나머지는 건수만 알린다
-      var s=arr.slice(0,4).map(function(t){
-        return '<div class="li'+cls+'" title="'+esc(t)+'">'+esc(t)+'</div>';
-      }).join('');
-      if(arr.length>4) s+='<div class="st-none">+ '+(arr.length-4)+'건 더</div>';
-      return s||('<div class="st-none">'+empty+'</div>');
+    if(dg){
+      // AI 정리본 — 매출을 먼저 본다(대표 지시). 원문은 아래 접힘에 그대로 둔다
+      if((dg.sales||[]).length){
+        h+='<div class="st-sec"><div class="h">💰 매출·정산</div>'+stLines(dg.sales,'','')+'</div>';
+      }
+      h+='<div class="st-sec"><div class="h">운영 이슈</div>'+stLines(dg.issues,'','최근 이슈 없음')+'</div>';
+      h+='<div class="st-sec"><div class="h">주의사항 · VOC</div>'+stLines(dg.voc,' voc','등록된 고객·운영 이슈 없음')+'</div>';
+      if(iss.length||voc.length){
+        h+='<details class="mw-done-sec" style="margin-top:8px"><summary>▸ 보고 원문 '+(iss.length+voc.length)+'건</summary>'
+          +'<div style="padding:8px 10px">'
+          +iss.concat(voc).map(function(t){ return '<div class="li">'+esc(t)+'</div>'; }).join('')
+          +'</div></details>';
+      }
+    } else {
+      h+='<div class="st-sec"><div class="h">주요이슈 (일일보고 기반 · 최근 30일)</div>'
+        +stLines(iss,'','최근 30일 보고 없음')+'</div>';
+      h+='<div class="st-sec"><div class="h">주의사항 · VOC</div>'
+        +stLines(voc,' voc','등록된 고객·운영 이슈 없음')+'</div>';
     }
-    h+='<div class="st-sec"><div class="h">주요이슈 (일일보고 기반 · 최근 30일)</div>';
-    h+=lines(iss, '', '최근 30일 보고 없음');
-    h+='</div><div class="st-sec"><div class="h">주의사항 · VOC</div>';
-    h+=lines(voc, ' voc', '등록된 고객·운영 이슈 없음');
-    return h+'</div></div>';
+    return h+'</div>';
   }
   function stSalesHtml(d){
     // 원안 슬라이드4 우상단 '매출' — 매장별 일매출·방문객·주간 합계 한 줄씩
@@ -2376,11 +2414,75 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       if(rec&&rec.visitors) meta.push('방문 '+rec.visitors);
       if(wk.sales_sum) meta.push('주간 '+Number(wk.sales_sum).toLocaleString()+'원');
       if(wk.reports) meta.push('보고 '+wk.reports+'건');
-      if(!meta.length) meta.push(rec?'최근 마감보고 '+rec.date:'최근 90일 마감보고 없음');
+      if(!meta.length) meta.push(rec?('최근 마감보고 '+rec.date):'최근 90일 마감보고 없음');
       return '<div class="sm-row"><span class="n">'+esc(s.name)+'</span>'
         +'<span class="v">'+sales+'</span>'
         +'<span class="i" title="'+esc(meta.join(' · '))+'">'+esc(meta.join(' · '))+'</span></div>';
     }).join('');
+  }
+  // ── 매출 자료 업로드 (월간·주간 엑셀, 2026-08-30) ──
+  function stSalesUploadHtml(d){
+    var S=(d.stores||[]);
+    var h='<div class="sx-box"><div class="sx-form">'
+      +'<select class="sx-kind"><option value="monthly">월간</option><option value="weekly">주간</option></select>'
+      +'<select class="sx-store"><option value="">공통(매장 미지정)</option>'
+      +S.map(function(s){ return '<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>'; }).join('')
+      +'</select>'
+      +'<input class="sx-note" placeholder="메모(선택) — 예: 8월 확정본">'
+      +'<label class="sx-btn" for="sx-file">📊 엑셀 올리기</label>'
+      +'<input type="file" id="sx-file" accept=".xlsx,.xlsm,.xls,.csv" style="display:none">'
+      +'</div><div class="sx-msg sub2"></div>';
+    var L=d.sales||[];
+    if(!L.length) return h+'<div class="st-none">아직 올린 매출 자료가 없습니다. 서식은 자유입니다 — 원본은 그대로 보관됩니다.</div></div>';
+    h+='<div class="sx-list">';
+    L.forEach(function(x){
+      var sc=x.scan||{}, tot=sc.total;
+      var meta=[x.kind==='weekly'?'주간':'월간', x.store_name||'공통',
+                (x.uploaded_at||'').slice(0,16).replace('T',' '), x.by||''].filter(Boolean).join(' · ');
+      // 컬럼명에 이미 '합계/계/매출'이 있으면 '합계'를 또 붙이지 않는다
+      var col=String(tot?tot.column:'');
+      var sum=tot?('<span class="sx-sum" title="숫자 컬럼 자동 감지 — 추정값입니다">'
+                   +esc(col)+(/합계|계$|매출/.test(col)?' ':' 합계 ')
+                   +Number(tot.value).toLocaleString()+'</span>'):'';
+      var sheets=(sc.sheets||[]).map(function(s){ return s.name+'('+s.rows+'행)'; }).join(' · ');
+      h+='<div class="sx-item"><div class="t">'+esc(x.filename)+sum
+        +'<a class="sx-dl" href="/api/store-sales/file?id='+encodeURIComponent(x.id)+'">내려받기</a>'
+        +(SESS.admin?('<a class="sx-del" data-id="'+esc(x.id)+'">삭제</a>'):'')
+        +'</div><div class="m">'+esc(meta)+(x.note?(' · '+esc(x.note)):'')
+        +(sheets?('<br>'+esc(sheets)):'')+(sc.error?('<br>⚠️ 읽기 실패: '+esc(sc.error)):'')+'</div></div>';
+    });
+    return h+'</div></div>';
+  }
+  function stBindSales(box){
+    var f=box.querySelector('#sx-file'); if(!f) return;
+    var msg=box.querySelector('.sx-msg');
+    f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      var kind=box.querySelector('.sx-kind').value, store=box.querySelector('.sx-store').value;
+      var note=box.querySelector('.sx-note').value;
+      msg.textContent='📊 '+file.name+' 올리는 중…';
+      var rd=new FileReader();
+      rd.onload=function(){
+        fetch('/api/store-sales/upload',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({kind:kind,store:store,note:note,filename:file.name,b64:rd.result})})
+          .then(function(r){return r.json();}).then(function(res){
+            f.value='';
+            if(res.ok){ msg.textContent='저장 완료 — '+file.name; renderStores(); }
+            else msg.textContent=res.error||'업로드 실패';
+          }).catch(function(){ f.value=''; msg.textContent='서버 오류'; });
+      };
+      rd.readAsDataURL(file);
+    };
+    box.querySelectorAll('.sx-del').forEach(function(a){
+      a.onclick=function(){
+        if(!confirm('이 자료를 삭제할까요? 원본 파일도 함께 지워집니다.')) return;
+        fetch('/api/store-sales/delete',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({id:a.getAttribute('data-id')})})
+          .then(function(r){return r.json();}).then(function(res){
+            if(res.ok) renderStores(); else alert(res.error||'삭제 실패');
+          }).catch(function(){ alert('서버 오류'); });
+      };
+    });
   }
   function renderStores(){
     // 원안 슬라이드 4: 상단 2열(팀 일정표 | 매출·체크사항) + 하단 전폭 매장 4열
@@ -2419,11 +2521,15 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       var S=(d.stores||[]).slice().sort(function(a,b){ return (a.status==='운영'?0:1)-(b.status==='운영'?0:1); });
       var h=stSubHtml()
         + (d.error?('<div class="st-note">⚠️ '+esc(d.error)+'</div>'):'')
+        + (d.digest_pending?('<div class="st-note">🧠 일일보고 AI 요약을 만드는 중입니다 — 잠시 뒤 새로고침하면 반영됩니다.</div>')
+           :(d.digest_at?('<div class="st-digest">🧠 일일보고 AI 요약 '+esc(String(d.digest_at).slice(0,16).replace('T',' '))+' 기준 · 원문은 카드 안 접힘에서 대조</div>'):''))
         + '<div class="st-dash">'
         +   '<div class="st-top">'
         +     pnl('📅 팀 일정표', calSub(cal), mwCalendarHtml(cal), calActs(cal))
-        +     '<div class="dash-col" style="grid-template-rows:auto 1fr">'
-        +       pnl('💰 매출', esc(d.date||'')+' 기준 · 최근 마감보고', stSalesHtml(d))
+        +     '<div class="dash-col" style="grid-template-rows:1fr 1.05fr 1.1fr">'
+        +       pnl('💰 매출', esc(d.date||'')+' 기준 · 마감보고', stSalesHtml(d))
+        +       pnl('📊 매출 자료', '월간·주간 엑셀 '+((d.sales||[]).length)+'건 · 서식 자유 · 원본 보관',
+                    stSalesUploadHtml(d))
         +       pnl('✅ 체크사항', '장비 확인 · 결제 처리 · 재고관리', chk)
         +     '</div>'
         +   '</div>'
@@ -2436,6 +2542,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         + '</div>';
       box.innerHTML=h;
       stBindSub(box);
+      stBindSales(box);
       pnBindGo(box);
       mwBindStatus(box); mwBindChain(box); mwBindBulk(box);
       mwBindEdit(box); mwBindInline(box); mwBindToday(box);
@@ -5574,8 +5681,9 @@ def _store_snapshot(date_str=None):
                                              "days_ago": ago})
 
         for i in ids:
-            issues[i] = sorted(issues[i], reverse=True)[:8]
-            voc[i] = sorted(voc[i], reverse=True)[:8]
+            # 규칙 정리 — 무의미 토막·중복을 걷어낸 뒤 최신순 8건
+            issues[i] = _store_clean(sorted(issues[i], reverse=True))[:8]
+            voc[i] = _store_clean(sorted(voc[i], reverse=True))[:8]
         sheet_checks.sort(key=lambda c: (c["date"], c["store"]), reverse=True)
 
         # ③ 완료처리 대상 — 주간분장 중 **매장 담당자(stores.json managers)** 배정 미완분.
@@ -5598,6 +5706,224 @@ def _store_snapshot(date_str=None):
     except Exception as e:  # noqa: BLE001
         return {"date": sel, "stores": [], "daily": {}, "week": {}, "issues": {}, "voc": {},
                 "sheet_checks": [], "assign_checks": [], "managers": [], "error": str(e)[:120]}
+
+
+# ── 매장 일일보고 정리 (2026-08-30 대표 지시 "자동으로 정리해서 매장에 업데이트") ──
+# 지금까지는 시트 셀 원문을 그대로 붙여서 '진행'·'완료' 같은 한 단어도 이슈로 떴다.
+# ① 규칙으로 먼저 거른다(무의미 토막·중복). ② 그 위에 AI가 매출 중심으로 하루 1회 요약한다.
+# AI 결과는 날짜별 파일에 캐시하고, 없으면 규칙 결과를 바로 주면서 백그라운드로 만든다
+# — 화면 진입이 LLM을 기다리지 않게. 원문은 항상 함께 보관해 대조할 수 있다.
+STORE_DIGEST_DIR = Path(os.environ.get("STORE_DIGEST_DIR") or (DATA / "store-digest"))
+_STORE_NOISE = {"진행", "완료", "완료.", "없음", "동일", "특이사항 없음", "해당없음", "-", "ㅡ", "n/a", "na", "."}
+_digest_running = set()
+_digest_lock = threading.Lock()
+
+
+def _store_clean(items):
+    """보고 토막 정리 — 무의미 단어·중복 제거, 줄바꿈/불릿 분해. 원문 훼손은 하지 않는다."""
+    out, seen = [], set()
+    for it in items or []:
+        body = it.split("] ", 1)[-1] if it.startswith("[") else it
+        head = it[:len(it) - len(body)]
+        for part in re.split(r"[\n·•]\s*|(?<=[.。])\s+", body):
+            s = part.strip(" -–—>·•\t")
+            if not s:
+                continue
+            if s.lower() in _STORE_NOISE or len(s) < 4:
+                continue
+            key = re.sub(r"\W", "", s)[:40]
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append((head + s)[:300])
+    return out
+
+
+_STORE_DIGEST_PROMPT = """너는 오프라인 매장 운영 보고 정리 담당이다.
+매장 담당자가 텔레그램 봇으로 올린 일일 운영 보고 원문을 받아 매장별로 정리한다.
+
+**매출을 중심에 둔다.** 금액·정산·발주 비용·매출에 영향을 주는 사건을 먼저 잡고,
+그 다음에 운영 이슈와 고객(VOC)을 정리한다.
+
+규칙:
+- 보고에 적힌 것만 쓴다. 없는 숫자·사실을 만들지 않는다.
+- 금액은 원문 표기 그대로 옮긴다(예: "932,800원").
+- 한 항목은 한 줄. 날짜를 앞에 붙인다(예: "08-25 오트밀크 발주 예정").
+- 의미 없는 토막('진행','완료' 한 단어 등)은 버린다.
+- 각 배열은 최대 5개. 없으면 빈 배열.
+
+스키마(JSON만 출력):
+{"stores":[{"store":"매장명",
+  "headline":"이 매장 최근 상황 한 줄(매출 중심, 40자 이내)",
+  "sales":["매출·정산·비용 관련 항목"],
+  "issues":["운영·장비·재고 이슈"],
+  "voc":["고객 관련·주의사항"]}]}"""
+
+
+def _store_digest_build(date_str, payload):
+    """LLM 요약 1회 생성 → 파일 저장. 실패하면 파일을 안 만든다(다음에 재시도)."""
+    try:
+        res = _call_llm_json(_STORE_DIGEST_PROMPT, payload, max_tokens=1800)
+        if not (res and isinstance(res.get("stores"), list)):
+            return None
+        res["_generated_at"] = datetime.datetime.now().isoformat(timespec="seconds")
+        STORE_DIGEST_DIR.mkdir(parents=True, exist_ok=True)
+        (STORE_DIGEST_DIR / f"{date_str}.json").write_text(
+            json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+        return res
+    except Exception as e:  # noqa: BLE001
+        print(f"[store-digest] 생성 실패 {date_str}: {e}", flush=True)
+        return None
+    finally:
+        with _digest_lock:
+            _digest_running.discard(date_str)
+
+
+def _store_digest(date_str, snap):
+    """그 날짜의 AI 요약. 캐시가 있으면 그대로, 없으면 백그라운드 생성 시작하고 None."""
+    f = STORE_DIGEST_DIR / f"{date_str}.json"
+    try:
+        if f.exists():
+            return json.loads(f.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        pass
+    if not (ANTHROPIC_KEY or OPENAI_KEY):
+        return None
+    lines = []
+    for s in snap.get("stores") or []:
+        sid = s["id"]
+        body = (snap.get("issues", {}).get(sid) or []) + (snap.get("voc", {}).get(sid) or [])
+        rec = (snap.get("daily") or {}).get(sid)
+        if rec and rec.get("sales"):
+            body.insert(0, f"[{rec['date']} 마감] 일매출 {rec['sales']}")
+        if not body:
+            continue
+        lines.append(f"### {s['name']}\n" + "\n".join("- " + b for b in body[:12]))
+    if not lines:
+        return None
+    with _digest_lock:
+        if date_str in _digest_running:
+            return None
+        _digest_running.add(date_str)
+    threading.Thread(target=_store_digest_build, args=(date_str, "\n\n".join(lines)),
+                     daemon=True).start()
+    return None
+
+
+# ── 매출 자료 업로드 (월간·주간 엑셀, 2026-08-30 대표 지시) ──────────────
+# 자유 서식으로 받는다 — 원본을 그대로 보관하고, 시트를 훑어 숫자 컬럼을 자동 감지해
+# 합계·행수만 뽑는다. 서식이 바뀌어도 업로드 자체는 깨지지 않는다.
+STORE_SALES_DIR = Path(os.environ.get("STORE_SALES_DIR") or (DATA / "store-sales"))
+STORE_SALES_KINDS = {"weekly": "주간", "monthly": "월간"}
+_SALES_MAX_BYTES = 15 * 1024 * 1024
+_SALES_EXT = {".xlsx", ".xlsm", ".xls", ".csv"}
+
+
+def _sales_index_path():
+    return STORE_SALES_DIR / "index.json"
+
+
+def _sales_index():
+    try:
+        d = json.loads(_sales_index_path().read_text(encoding="utf-8"))
+        return d if isinstance(d, list) else []
+    except Exception:
+        return []
+
+
+def _sales_index_save(rows):
+    STORE_SALES_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = _sales_index_path().with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
+    tmp.replace(_sales_index_path())
+
+
+def _sales_scan(path):
+    """엑셀/CSV 훑기 → {sheets:[{name, rows, cols, headers, numeric:{컬럼:합계}, preview}]}.
+
+    어떤 서식이든 읽히는 만큼만 읽는다. 실패해도 업로드는 성공시킨다(원본은 이미 보관).
+    """
+    out = {"sheets": [], "total": None, "error": ""}
+
+    def num(v):
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            return float(v)
+        s = re.sub(r"[,\s₩원]", "", str(v or ""))
+        if re.fullmatch(r"-?\d+(\.\d+)?", s or ""):
+            return float(s)
+        return None
+
+    def scan_rows(name, rows):
+        rows = [list(r) for r in rows if any(str(c or "").strip() for c in r)]
+        if not rows:
+            return
+        # 헤더 = 숫자가 가장 적은 첫 5행 중 하나
+        hi = min(range(min(5, len(rows))),
+                 key=lambda i: sum(1 for c in rows[i] if num(c) is not None))
+        headers = [str(c or "").strip() for c in rows[hi]]
+        body = rows[hi + 1:]
+        numeric = {}
+        for ci, hname in enumerate(headers):
+            vals = [num(r[ci]) for r in body if ci < len(r)]
+            vals = [v for v in vals if v is not None]
+            # 절반 이상이 숫자인 컬럼만 '금액/수량 컬럼'으로 본다
+            if vals and len(vals) >= max(2, len(body) * 0.5):
+                numeric[hname or f"열{ci+1}"] = round(sum(vals), 2)
+        out["sheets"].append({
+            "name": name, "rows": len(body), "cols": len(headers),
+            "headers": headers[:12], "numeric": dict(list(numeric.items())[:8]),
+            "preview": [[str(c or "")[:40] for c in r[:8]] for r in body[:5]],
+        })
+
+    try:
+        if str(path).lower().endswith(".csv"):
+            import csv as _csv
+            with open(path, newline="", encoding="utf-8-sig", errors="replace") as f:
+                scan_rows("CSV", list(_csv.reader(f)))
+        else:
+            import openpyxl
+            wb = openpyxl.load_workbook(path, data_only=True, read_only=True)
+            for ws in wb.worksheets:
+                scan_rows(ws.title, list(ws.iter_rows(values_only=True))[:2000])
+            wb.close()
+    except Exception as e:  # noqa: BLE001
+        out["error"] = str(e)[:120]
+    # 대표값 = 가장 큰 숫자 컬럼 합계(보통 매출 컬럼). 추정치이므로 라벨을 함께 준다
+    best = None
+    for sh in out["sheets"]:
+        for k, v in (sh.get("numeric") or {}).items():
+            if best is None or v > best[1]:
+                best = (k, v, sh["name"])
+    if best:
+        out["total"] = {"column": best[0], "value": best[1], "sheet": best[2]}
+    return out
+
+
+def _sales_save(kind, store, filename, raw, who, note=""):
+    """업로드 1건 저장 → 인덱스 항목 반환. 원본은 손대지 않고 그대로 쓴다."""
+    ext = Path(filename or "").suffix.lower()
+    if ext not in _SALES_EXT:
+        raise ValueError(f"지원하지 않는 형식({ext or '확장자 없음'}) — xlsx·xlsm·xls·csv만 됩니다")
+    if not raw or len(raw) > _SALES_MAX_BYTES:
+        raise ValueError("빈 파일이거나 15MB를 넘습니다")
+    kind = kind if kind in STORE_SALES_KINDS else "monthly"
+    sid = _store_sid(store) or (store or "").strip() or _STORES.COMMON_LABEL if _STORES else "공통"
+    ts = datetime.datetime.now()
+    safe = re.sub(r"[^\w.\-가-힣]", "_", Path(filename).name)[:80]
+    rel = f"{sid}/{kind}/{ts:%Y%m%d-%H%M%S}__{safe}"
+    dst = STORE_SALES_DIR / rel
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_bytes(raw)
+    scan = _sales_scan(dst)
+    item = {"id": rel, "kind": kind, "store": sid,
+            "store_name": (_STORES.display(sid) if _STORES else sid),
+            "filename": Path(filename).name, "bytes": len(raw),
+            "uploaded_at": ts.isoformat(timespec="seconds"), "by": who,
+            "note": (note or "").strip()[:200], "scan": scan}
+    rows = _sales_index()
+    rows.insert(0, item)
+    _sales_index_save(rows[:500])
+    return item
 
 
 def _store_insight_html(kind):
@@ -5794,7 +6120,7 @@ class H(BaseHTTPRequestHandler):
             if not (sess.get("admin") or team in (sess.get("lead_teams") or [])):
                 return self._send(403, "<h1>해당 팀 리더 전용 페이지입니다.</h1>".encode("utf-8"), "text/html; charset=utf-8")
         # 매장 화면 — 대표·운영팀 리더·운영팀 소속만 (2026-08-30). 클라이언트 탭 숨김만으론 API가 열린다.
-        if path == "/api/stores" or path.startswith("/store-insight"):
+        if path == "/api/stores" or path.startswith("/store-insight") or path.startswith("/api/store-sales"):
             if not sess.get("store_access"):
                 if path.startswith("/api/"):
                     return self._send(403, {"ok": False, "error": "매장 화면은 운영 권한자만 볼 수 있습니다."})
@@ -6058,7 +6384,29 @@ class H(BaseHTTPRequestHandler):
                                         "stores": [], "daily": {}, "week": {}, "issues": {},
                                         "voc": {}, "sheet_checks": [], "assign_checks": []})
             snap = _store_snapshot((q.get("date") or [""])[0] or None)
+            # AI 요약(매출 중심) — 캐시가 있으면 붙이고, 없으면 백그라운드 생성 후 다음 진입에 뜬다
+            dg = _store_digest(snap.get("date"), snap)
+            by_store = {}
+            for s in (dg or {}).get("stores") or []:
+                sid = _store_sid(s.get("store"))
+                if sid:
+                    by_store[sid] = s
+            snap["digest"] = by_store
+            snap["digest_at"] = (dg or {}).get("_generated_at", "")
+            snap["digest_pending"] = bool(not dg and (ANTHROPIC_KEY or OPENAI_KEY))
+            # 업로드된 매출 자료(월간·주간) 최신 목록
+            snap["sales"] = _sales_index()[:20]
             return self._send(200, {"ok": True, **snap})
+        if path == "/api/store-sales/file":
+            fid = (q.get("id") or [""])[0]
+            row = next((r for r in _sales_index() if r.get("id") == fid), None)
+            fp = (STORE_SALES_DIR / fid).resolve() if row else None
+            # 경로 이탈 차단 — id는 인덱스에 있는 값만, 게다가 보관 폴더 안이어야 한다
+            if not (row and fp and str(fp).startswith(str(STORE_SALES_DIR.resolve())) and fp.exists()):
+                return self._send(404, {"ok": False, "error": "파일을 찾을 수 없습니다."})
+            return self._send(200, fp.read_bytes(), "application/octet-stream",
+                              {"Content-Disposition":
+                               "attachment; filename*=UTF-8''" + quote(row["filename"])})
         if path in ("/store-insight/weekly", "/store-insight/monthly"):
             kind = path.rsplit("/", 1)[-1]
             return self._send(200, _store_insight_html(kind).encode("utf-8"),
@@ -6658,6 +7006,39 @@ class H(BaseHTTPRequestHandler):
                 return self._send(403, {"ok": False, "error": "대표 전용입니다."})
             return self._proxy_r4("POST")
         b = self._body()
+        if path == "/api/store-sales/upload":
+            # 매출 자료 업로드 — 매장 화면 권한자(대표·운영팀 리더·운영팀). 자유 서식.
+            if not sess.get("store_access"):
+                return self._send(403, {"ok": False, "error": "매장 운영 권한자만 올릴 수 있습니다."})
+            import base64
+            try:
+                raw = base64.b64decode((b.get("b64") or "").split(",")[-1])
+            except Exception:
+                return self._send(400, {"ok": False, "error": "파일 디코드 실패"})
+            try:
+                item = _sales_save(b.get("kind"), b.get("store"), b.get("filename") or "",
+                                   raw, sess.get("name") or "", b.get("note") or "")
+            except ValueError as e:
+                return self._send(400, {"ok": False, "error": str(e)})
+            except Exception as e:  # noqa: BLE001
+                print(f"[store-sales] 저장 실패: {e}", flush=True)
+                return self._send(500, {"ok": False, "error": "저장 실패 — 서버 로그를 확인하세요."})
+            return self._send(200, {"ok": True, "item": item, "sales": _sales_index()[:20]})
+        if path == "/api/store-sales/delete":
+            # 삭제는 대표만 — 남의 업로드를 지울 수 있으면 기록이 조용히 사라진다
+            if not sess.get("admin"):
+                return self._send(403, {"ok": False, "error": "삭제는 대표만 가능합니다."})
+            fid = (b.get("id") or "").strip()
+            rows = _sales_index()
+            row = next((r for r in rows if r.get("id") == fid), None)
+            if not row:
+                return self._send(404, {"ok": False, "error": "항목을 찾을 수 없습니다."})
+            fp = (STORE_SALES_DIR / fid).resolve()
+            if str(fp).startswith(str(STORE_SALES_DIR.resolve())) and fp.exists():
+                try: fp.unlink()
+                except OSError: pass
+            _sales_index_save([r for r in rows if r.get("id") != fid])
+            return self._send(200, {"ok": True, "sales": _sales_index()[:20]})
         if path == "/api/login":
             uid = b.get("id", ""); pin = b.get("pin", "")
             users = load_users()
