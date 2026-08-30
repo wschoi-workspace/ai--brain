@@ -2209,10 +2209,11 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     });
     box.querySelectorAll('.pn-h .a[data-act]').forEach(function(a){
       a.onclick=function(){
-        if(a.getAttribute('data-act')==='cal-personal'){
+        var t=a.getAttribute('data-act');
+        if(t==='cal-personal'){
           CAL_SHOW_PERSONAL=!CAL_SHOW_PERSONAL;
           if(curTab==='stores') renderStores(); else renderMyWork();
-        }
+        } else if(t==='ops-only'){ opsSet(!OPS_ONLY); }
       };
     });
   }
@@ -2267,6 +2268,24 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   // 읽기 전용. 일정 추가는 구글 캘린더로 보낸다(쓰기 권한 경계는 별건).
   var CAL_WD=['일','월','화','수','목','금','토'];
   var CAL_SHOW_PERSONAL=false;   // 개인 일정은 기본 숨김 — 패널 헤더 토글로 켠다
+  // 운영 스코프 — 운영팀·운영리드는 프로젝트 일정에서 운영 관련만 본다(기본 ON).
+  // 대표·타팀은 기본 OFF. 사람이 끄고 켠 값은 기억한다.
+  var OPS_ONLY=false;
+  function opsInit(){
+    var v=null; try{ v=localStorage.getItem('ops_only'); }catch(e){}
+    OPS_ONLY = (v===null) ? !!SESS.ops_member : (v==='1');
+  }
+  function opsSet(on){
+    OPS_ONLY=!!on;
+    try{ localStorage.setItem('ops_only', OPS_ONLY?'1':'0'); }catch(e){}
+    renderMyWork();
+  }
+  function opsQS(){ return OPS_ONLY?'&ops=1':''; }
+  function opsAct(d){
+    // 운영 스코프 토글 — 가려진 게 몇 건인지 함께 보여준다(조용히 숨기지 않는다)
+    var hid=(d&&d.ops_hidden)||0;
+    return {label:(OPS_ONLY?('운영만 ✓'+(hid?(' · '+hid+'건 숨김'):'')):'전체 보는 중'), act:'ops-only'};
+  }
   function calFetch(){
     return fetch('/api/calendar'+(CAL_SHOW_PERSONAL?'?personal=1':''))
       .then(function(r){return r.json();}).catch(function(){return null;});
@@ -2559,7 +2578,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오는 중…</div></div>';
     var u=encodeURIComponent(SESS.name);
     Promise.all([
-      fetch('/api/lead-home?user='+u).then(function(r){return r.json();}),
+      fetch('/api/lead-home?user='+u+opsQS()).then(function(r){return r.json();}),
       fetch('/api/assignees?user='+u).then(function(r){return r.json();}),
       calFetch()
     ]).then(function(res){
@@ -2642,7 +2661,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       var h='<div class="mw-wrap dash">'
         + '<div class="dash-col" style="grid-template-rows:1.4fr 1fr">'
         +   pnl('📅 팀 일정표', calSub(cal), mwCalendarHtml(cal), calActs(cal))
-        +   pnl('📌 참여 프로젝트 및 이슈', P.length?(P.length+'건'):'', proj)
+        +   pnl('📌 참여 프로젝트 및 이슈', P.length?(P.length+'건'):'', proj, opsAct(lh))
         + '</div>'
         + '<div class="dash-col" style="grid-template-rows:1.1fr 1.55fr 2fr">'
         +   pnl('📥 업무 분장 · 필요 항목', received.length?(received.length+'건 받음'):'담당자 지정 후 배분', assign)
@@ -2743,7 +2762,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     box.innerHTML='<div class="mw-wrap"><div class="mw-empty">불러오는 중…</div></div>';
     var u=encodeURIComponent(SESS.name);
     Promise.all([
-      fetch('/api/my-work?user='+u).then(function(r){return r.json();}),
+      fetch('/api/my-work?user='+u+opsQS()).then(function(r){return r.json();}),
       fetch('/api/assignees?user='+u).then(function(r){return r.json();}),
       SESS.admin ? fetch('/api/exec-attn?user='+u).then(function(r){return r.json();}) : Promise.resolve(null),
       calFetch(),
@@ -2967,7 +2986,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       var h='<div class="mw-wrap dash">'
         + '<div class="dash-col" style="grid-template-rows:1.4fr 1fr">'
         +   pnl('📅 팀 일정표', calSub(cal), mwCalendarHtml(cal), calActs(cal))
-        +   pnl(SESS.admin?'📌 팀 프로젝트별 이슈':'📌 참여 프로젝트 및 이슈', nProj?(nProj+'건'):'', proj)
+        +   pnl(SESS.admin?'📌 팀 프로젝트별 이슈':'📌 참여 프로젝트 및 이슈', nProj?(nProj+'건'):'',
+                proj, opsAct(mw))
         + '</div>'
         + '<div class="dash-col" style="grid-template-rows:'+rows+'">'+right+'</div>'
         + '</div>';
@@ -3715,6 +3735,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   }
   function enter(s){
     SESS=s; var j=JSON.stringify(s);
+    opsInit();   // 운영 스코프 기본값 — 캐시 세션 기준. /api/me 응답 오면 아래에서 재확인
+
     SESS_KEYS.forEach(function(k){ localStorage.setItem(k,j); });
     // 서버 세션 쿠키 갱신 (2026-07-22) — 캐시 로그인·서버 재시작 후에도 iframe/API 게이트 통과
     // 이어서 /api/me로 매장 권한을 확인한다 (2026-08-30). localStorage에 남은 옛 세션에는
@@ -3724,8 +3746,11 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       .then(function(){ return fetch('/api/me'); })
       .then(function(r){ return r.json(); })
       .then(function(m){
-        if(m && m.ok) SESS.store_access = !!m.store_access;
+        if(m && m.ok){ SESS.store_access = !!m.store_access; SESS.ops_member = !!m.ops_member; }
         if(SESS.store_access) tabBtn('stores').style.display='';
+        // 옛 캐시 세션엔 ops_member가 없다 — 서버 답으로 기본값을 다시 잡고, 바뀌었으면 다시 그린다
+        var before=OPS_ONLY; opsInit();
+        if(OPS_ONLY!==before && curTab==='mywork') renderMyWork();
       }).catch(function(){});
     gate.style.display='none'; shell.style.display='flex';
     who.innerHTML = s.name+' ('+(s.role||'')+') <a id="lg-guide">가이드</a> <a id="lg-pin-c">PIN변경</a> <a id="lg-out">로그아웃</a>';
@@ -3892,7 +3917,7 @@ def web_session(tok):
     if not load_users().get(name):
         return None
     return {"name": name, "admin": is_admin(name), "lead_teams": lead_teams_of(name),
-            "store_access": store_access(name)}
+            "store_access": store_access(name), "ops_member": ops_member(name)}
 
 
 # 무인증 허용 경로 (그 외 전부 쿠키 세션 필요)
@@ -3984,7 +4009,7 @@ def svc_session(secret, tg_id, path):
     if not name or not load_users().get(name):
         return None
     return {"name": name, "admin": is_admin(name), "lead_teams": lead_teams_of(name),
-            "store_access": store_access(name), "svc": True}
+            "store_access": store_access(name), "ops_member": ops_member(name), "svc": True}
 
 # ── PIN 정책 (plan: partitioned-beaming-turing, 2026-07-27) ──────────
 # HR 포털 SSO를 켜면서 PIN 하나의 가치가 올라갔다(ARISA 로그인 → HR 본인 데이터 접근).
@@ -4063,6 +4088,29 @@ def emp_team(name):
 def is_leader(uid):
     """팀 리더 여부(대표 제외한 순수 리더도 True, 대표도 True)."""
     return bool(lead_teams_of(uid))
+
+
+# ── 운영 관련 필터 (2026-08-30 대표 지시 "운영팀에는 운영 관련 내용만") ──────────
+# 프로젝트 tasks의 division 값이 이미 팀 이름이다(실측: 운영팀 77 · 경영 57 · 사업기획 45 ·
+# 공간팀 43 · 기획팀 31 + 영문 변형 Operation 9). 이 값으로 거른다.
+_OPS_DIVISIONS = {d.strip().lower() for d in (os.environ.get("ARISA_OPS_DIVISIONS")
+                  or "운영팀,운영,operation,operations,ops,매장,store").split(",") if d.strip()}
+
+
+def _is_ops_div(v):
+    return (v or "").strip().lower() in _OPS_DIVISIONS
+
+
+def ops_member(uid):
+    """운영 스코프 기본값 대상 — 운영팀 소속이거나 운영팀 리더. 대표는 포함하지 않는다.
+
+    (대표는 전사를 봐야 하므로 기본 ON이 아니다. 토글로 켤 수는 있다.)
+    """
+    if not uid:
+        return False
+    if STORE_TEAMS & set(lead_teams_of(uid)) and not is_admin(uid):
+        return True
+    return (emp_team(uid) or "") in STORE_TEAMS
 
 
 def store_access(uid):
@@ -6415,7 +6463,8 @@ class H(BaseHTTPRequestHandler):
             # 쿠키 세션 신원 확인 — 시뮬레이터(공개 페이지)의 제출 UI가 자기 이름을 알기 위함
             return self._send(200, {"ok": True, "name": sess.get("name"), "admin": bool(sess.get("admin")),
                                     "lead_teams": sess.get("lead_teams") or [],
-                                    "store_access": bool(sess.get("store_access"))})
+                                    "store_access": bool(sess.get("store_access")),
+                                    "ops_member": bool(sess.get("ops_member"))})
         if path == "/api/assignees":
             # 계층적 분장 후보 — 대표=리더급, 리더=자기 팀원 + 타팀 리더(이관)
             uid = (q.get("user") or [""])[0]
@@ -6453,10 +6502,17 @@ class H(BaseHTTPRequestHandler):
             mine = [a for a in _assign_read() if a["assignee"] == uid and a["status"] not in _ASSIGN_HIDDEN_STATES]
             mine.sort(key=lambda a: (_ST.is_assign_done(a["status"]), a["status"] != "진행중", a.get("deadline") or "9999"))
             _attach_deps(mine)   # WS1 — 회의에서 나온 선행·차단을 카드에 표시(진행은 막지 않는다)
+            # 운영 스코프 — ?ops=1이면 division이 운영 계열인 업무만 (대표 지시 2026-08-30)
+            ops_only = (q.get("ops") or [""])[0] in ("1", "true", "on")
             projs = []
+            ops_hidden = 0
             for p in load_projects():
                 ts = [t for t in (p.get("tasks") or []) if t.get("owner") == uid
                       and (t.get("status") or "") not in _TASK_DONE_STATES]
+                if ops_only:
+                    _before = len(ts)
+                    ts = [t for t in ts if _is_ops_div(t.get("division"))]
+                    ops_hidden += _before - len(ts)
                 if ts:
                     projs.append({"id": p.get("id"), "name": p.get("name"), "dday": p.get("dday"),
                                   "tasks": [{"task": t.get("task"), "start": t.get("start"), "end": t.get("end"),
@@ -6494,6 +6550,7 @@ class H(BaseHTTPRequestHandler):
             _td = datetime.date.today().isoformat()
             _tkeys = _TP.load_person(DATA, _td, uid)
             return self._send(200, {"ok": True, "user": uid, "assignments": mine, "projects": projs,
+                                    "ops_only": ops_only, "ops_hidden": ops_hidden,
                                     "pm_queue": pm_queue, "pm_decisions": pm_decisions,
                                     "today_plan": _tkeys,
                                     "today_summary": _TP.summarize(_tkeys, mine, _ST),
@@ -6762,11 +6819,21 @@ class H(BaseHTTPRequestHandler):
                     a["src"] = f"{by} 리더 이관"
                 else:
                     a["src"] = f"{by} 등록"
+            # 운영 스코프 — ?ops=1이면 운영 계열 업무가 있는 프로젝트만, 진행률도 그 업무 기준
+            ops_only = (q.get("ops") or [""])[0] in ("1", "true", "on")
             projs = []
+            ops_hidden = 0
             for p in load_projects():
                 if not (project_teams(p) & set(teams)):
                     continue
-                ru = _ST.task_rollup(p.get("tasks"))  # G3 — 태스크 파생 진행률 롤업
+                tasks = p.get("tasks") or []
+                if ops_only:
+                    ops_tasks = [t for t in tasks if _is_ops_div(t.get("division"))]
+                    if not ops_tasks:
+                        ops_hidden += 1
+                        continue
+                    tasks = ops_tasks
+                ru = _ST.task_rollup(tasks)  # G3 — 태스크 파생 진행률 롤업
                 end = (p.get("end") or p.get("dday") or "").strip()
                 if end and end < today.isoformat():
                     continue  # 종료된 프로젝트 제외
@@ -6796,6 +6863,7 @@ class H(BaseHTTPRequestHandler):
                 brief_html = f'<div class="muted">보고 로드 실패: {e}</div>'
             return self._send(200, {"ok": True, "teams": teams, "assignments": assigns,
                                     "projects": projs, "approvals": approvals,
+                                    "ops_only": ops_only, "ops_hidden": ops_hidden,
                                     "unassigned": unassigned,
                                     "source_mix": _PV.source_mix(assigns, _ST),  # 갭B — 업무 유입 출처 분포
                                     "team_today": _team_today(assigns),          # 갭C — 팀원별 오늘 계획 대비
@@ -7063,7 +7131,8 @@ class H(BaseHTTPRequestHandler):
             tok = issue_web_session(uid)  # 서버측 세션 쿠키 (2026-07-22 공개 전환)
             return self._send(200, {"ok": True, "name": uid, "role": u.get("role", "직원"),
                                     "admin": is_admin(uid), "lead_teams": lead_teams_of(uid),
-                                    "store_access": store_access(uid), "pin_set": pin_set},
+                                    "store_access": store_access(uid), "ops_member": ops_member(uid),
+                                    "pin_set": pin_set},
                               headers={"Set-Cookie":
                                        f"arisa_sid={tok}; Path=/; Max-Age={_SESS_TTL}; HttpOnly; SameSite=Lax; Secure"})
         if path == "/api/set-pin":
