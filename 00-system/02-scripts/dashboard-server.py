@@ -71,11 +71,19 @@ STORE_TEAMS = {t.strip() for t in (os.environ.get("ARISA_STORE_TEAMS") or "운�
 # 매장 주간·월 인사이트 HTML (basket-weekly-insight.py / basket-monthly-insight.py 산출)
 STORE_INSIGHT_DIR = Path(os.environ.get("STORE_INSIGHT_DIR")
                          or (_WS / "10-projects" / "30-basket-report-webapp" / "insights"))
-# 팀 일정표 — ws.choi 메인 + PROJECT RENT 그룹 캘린더 (reference: gws-api 메모)
-CALENDAR_IDS = [c.strip() for c in (os.environ.get("ARISA_CALENDAR_IDS") or
-                "ws.choi@project-rent.com,f8apotjh6dkg5i8e90onoeim5k@group.calendar.google.com"
-                ).split(",") if c.strip()]
+# 팀 일정표 (reference: gws-api 메모). 캘린더를 세 갈래로 나눠 읽는다 —
+#   MY   = 본인 메인. 업무·개인이 섞여 있다(timehora 개인 캘린더가 여기로 병합돼 있다)
+#   WORK = 팀 그룹 캘린더. 팀원이 업무로 등록한 것 = 항상 표시
+#   PERSONAL = 개인 캘린더. 여기서 온 건(및 MY로 병합된 같은 건)은 기본 숨김
+CAL_MINE = (os.environ.get("ARISA_CALENDAR_MINE") or "ws.choi@project-rent.com").strip()
+CAL_WORK = [c.strip() for c in (os.environ.get("ARISA_CALENDAR_WORK") or
+            "f8apotjh6dkg5i8e90onoeim5k@group.calendar.google.com,"
+            "g4pn2cr0p2hle0e94rp9c5q7cs@group.calendar.google.com").split(",") if c.strip()]
+CAL_PERSONAL = [c.strip() for c in (os.environ.get("ARISA_CALENDAR_PERSONAL") or
+                "timehora@gmail.com").split(",") if c.strip()]
 CALENDAR_DAYS = int(os.environ.get("ARISA_CALENDAR_DAYS", "14"))
+# 개인 일정 표식 — MY 캘린더에 직접 넣은 사적 일정은 제목으로만 가려낼 수 있다(색·공개범위 미사용).
+CAL_PERSONAL_RE = re.compile(r"(?:\[|\(|#)\s*(?:개인|사적|private|personal)\s*(?:\]|\))?", re.I)
 _lock = threading.Lock()
 
 # ── 주간분장 시트 연동 (개인 대시보드 — 업무분장 입력/조회) ──
@@ -1946,6 +1954,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .pn-h .t{font-size:14px;font-weight:600;white-space:nowrap}
 .pn-h .s{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pn-h .a{margin-left:auto;flex-shrink:0;font-size:11.5px;color:var(--accent);cursor:pointer;white-space:nowrap;text-decoration:none}
+.pn-h .a.a2{margin-left:12px}   /* 두 번째 액션부터는 앞 액션 옆에 붙는다 */
 .pn-h .a:hover{text-decoration:underline}
 .pn-b{flex:1;min-height:0;overflow-y:auto;padding:12px 15px 14px}
 .pn-b>.mw-h:first-child{margin-top:0}
@@ -1989,6 +1998,11 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .cal-evs{flex:1;min-width:0}
 .cal-ev{font-size:12.5px;line-height:1.6;display:flex;gap:7px}
 .cal-ev .h{color:var(--muted);flex-shrink:0;width:38px;font-variant-numeric:tabular-nums}
+/* 일정 라벨 — 업무(팀원 등록)·내 일정·개인 (2026-08-30) */
+.cal-tag{flex-shrink:0;font-size:10.5px;line-height:1.5;border-radius:4px;padding:0 6px;
+  border:1px solid var(--line);color:var(--muted);background:var(--bg-3);white-space:nowrap;align-self:center}
+.cal-tag.work{background:rgba(108,92,231,.16);border-color:rgba(108,92,231,.45);color:#B6ACFF}
+.cal-tag.personal{background:rgba(225,112,85,.14);border-color:rgba(225,112,85,.4);color:var(--red)}
 .cal-ev .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cal-empty{font-size:12.5px;color:var(--muted);padding:4px 0}
 /* 매장 화면 — 레이아웃1.pptx 슬라이드 4·5 */
@@ -2154,12 +2168,13 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   // ── 패널 (레이아웃1.pptx 원안 배치) ──
   // 제목은 패널 헤더가 갖고, 본문은 .pn-b 안에서만 스크롤한다. 4개 화면이 같이 쓴다.
   function pnl(title, sub, body, act){
-    var a='';
-    if(act){
-      a = act.href
-        ? '<a class="a" href="'+esc(act.href)+'" target="_blank" rel="noopener">'+esc(act.label)+'</a>'
-        : '<span class="a" data-go="'+esc(act.go||'')+'">'+esc(act.label)+'</span>';
-    }
+    // act = {label, href|go|act} 하나 또는 배열(우측에 나란히)
+    var a=(act?(Array.isArray(act)?act:[act]):[]).map(function(x,i){
+      var cls='a'+(i?' a2':'');
+      if(x.href) return '<a class="'+cls+'" href="'+esc(x.href)+'" target="_blank" rel="noopener">'+esc(x.label)+'</a>';
+      if(x.act)  return '<span class="'+cls+'" data-act="'+esc(x.act)+'">'+esc(x.label)+'</span>';
+      return '<span class="'+cls+'" data-go="'+esc(x.go||'')+'">'+esc(x.label)+'</span>';
+    }).join('');
     return '<section class="pn"><div class="pn-h"><span class="t">'+title+'</span>'
       +(sub?('<span class="s">'+esc(sub)+'</span>'):'')+a
       +'</div><div class="pn-b">'+(body||'<div class="pn-empty">표시할 내용이 없습니다.</div>')+'</div></section>';
@@ -2171,6 +2186,14 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     box.querySelectorAll('.pn-h .a[data-go]').forEach(function(a){
       var t=a.getAttribute('data-go'); if(!t) return;
       a.onclick=function(){ showTab(t); };
+    });
+    box.querySelectorAll('.pn-h .a[data-act]').forEach(function(a){
+      a.onclick=function(){
+        if(a.getAttribute('data-act')==='cal-personal'){
+          CAL_SHOW_PERSONAL=!CAL_SHOW_PERSONAL;
+          if(curTab==='stores') renderStores(); else renderMyWork();
+        }
+      };
     });
   }
   function mwAssignHtml(lv){
@@ -2223,8 +2246,26 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
   // ── 팀 일정표 (레이아웃1.pptx 전 화면 좌측 패널, 2026-08-30) ──
   // 읽기 전용. 일정 추가는 구글 캘린더로 보낸다(쓰기 권한 경계는 별건).
   var CAL_WD=['일','월','화','수','목','금','토'];
+  var CAL_SHOW_PERSONAL=false;   // 개인 일정은 기본 숨김 — 패널 헤더 토글로 켠다
   function calFetch(){
-    return fetch('/api/calendar').then(function(r){return r.json();}).catch(function(){return null;});
+    return fetch('/api/calendar'+(CAL_SHOW_PERSONAL?'?personal=1':''))
+      .then(function(r){return r.json();}).catch(function(){return null;});
+  }
+  function calSub(cal){
+    var n=((cal&&cal.events)||[]).length, hid=(cal&&cal.hidden)||0;
+    return '앞으로 '+((cal&&cal.days)||14)+'일'+(n?(' · '+n+'건'):'')
+      +(hid&&!CAL_SHOW_PERSONAL?(' · 개인 '+hid+'건 숨김'):'')
+      +((cal&&cal.mine_shown===false)?' · 팀 일정만':'');
+  }
+  function calActs(cal){
+    // '개인 포함' 토글은 본인 캘린더가 보이는 사람(= 그 캘린더 주인)에게만 의미가 있다
+    var a=[];
+    if(cal&&cal.mine_shown){
+      var hid=cal.hidden||0;
+      a.push({label:(CAL_SHOW_PERSONAL?'개인 숨기기':'개인 포함'+(hid?(' ('+hid+')'):'')), act:'cal-personal'});
+    }
+    a.push({label:'구글 캘린더 ↗', href:'https://calendar.google.com/'});
+    return a;
   }
   function calToday(){
     var d=new Date();
@@ -2254,8 +2295,12 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         +(d===td?'오늘 ':'')+esc(calDayLabel(d))+'</div><div class="cal-evs">';
       g[d].forEach(function(e){
         var where=e.where?(' · '+e.where):'';
+        // 라벨 — 업무(팀원이 그룹 캘린더에 등록, 등록자 이름 병기) / 내 일정 / 개인
+        var k=e.kind||'mine';
+        var lbl=(k==='work')?('업무'+(e.who?(' · '+e.who):'')):(k==='personal'?'개인':'내 일정');
         h+='<div class="cal-ev"><span class="h">'+(e.allday?'종일':esc(e.time))+'</span>'
-          +'<span class="n" title="'+esc(e.title+where)+'">'+esc(e.title)
+          +'<span class="cal-tag '+k+'">'+esc(lbl)+'</span>'
+          +'<span class="n" title="'+esc(lbl+' — '+e.title+where)+'">'+esc(e.title)
           +(e.where?('<span style="color:var(--muted)"> · '+esc(e.where)+'</span>'):'')
           +'</span></div>';
       });
@@ -2374,13 +2419,11 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
         : '<div class="pn-empty">매장 담당자에게 배정된 미완 분장이 없습니다. 매장 업무를 분장으로 등록하면 여기서 완료처리됩니다.</div>';
 
       var S=(d.stores||[]).slice().sort(function(a,b){ return (a.status==='운영'?0:1)-(b.status==='운영'?0:1); });
-      var calN=((cal&&cal.events)||[]).length;
       var h=stSubHtml()
         + (d.error?('<div class="st-note">⚠️ '+esc(d.error)+'</div>'):'')
         + '<div class="st-dash">'
         +   '<div class="st-top">'
-        +     pnl('📅 팀 일정표', '앞으로 '+((cal&&cal.days)||14)+'일'+(calN?(' · '+calN+'건'):''),
-                  mwCalendarHtml(cal), {label:'구글 캘린더 ↗', href:'https://calendar.google.com/'})
+        +     pnl('📅 팀 일정표', calSub(cal), mwCalendarHtml(cal), calActs(cal))
         +     '<div class="dash-col" style="grid-template-rows:auto 1fr">'
         +       pnl('💰 매출', esc(d.date||'')+' 기준 · 최근 마감보고', stSalesHtml(d))
         +       pnl('✅ 체크사항', '장비 확인 · 결제 처리 · 재고관리', chk)
@@ -2491,11 +2534,9 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       } else { proj+='<div class="pn-empty">진행중인 팀 프로젝트가 없습니다.</div>'; }
 
       // ── 패널 조립 (원안 슬라이드 2)
-      var calN=((cal&&cal.events)||[]).length;
       var h='<div class="mw-wrap dash">'
         + '<div class="dash-col" style="grid-template-rows:1.4fr 1fr">'
-        +   pnl('📅 팀 일정표', '앞으로 '+((cal&&cal.days)||14)+'일'+(calN?(' · '+calN+'건'):''),
-                mwCalendarHtml(cal), {label:'구글 캘린더 ↗', href:'https://calendar.google.com/'})
+        +   pnl('📅 팀 일정표', calSub(cal), mwCalendarHtml(cal), calActs(cal))
         +   pnl('📌 참여 프로젝트 및 이슈', P.length?(P.length+'건'):'', proj)
         + '</div>'
         + '<div class="dash-col" style="grid-template-rows:1.1fr 1.55fr 2fr">'
@@ -2806,7 +2847,6 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       if(!week) week='<div class="pn-empty">이번 주 처리할 항목이 없습니다.</div>';
 
       // ── 패널 조립 (원안 슬라이드 1 대표 / 3 Staff) ──
-      var calN=((cal&&cal.events)||[]).length;
       var right='', rows='';
       if(SESS.admin){
         var stPanel=(SESS.store_access)
@@ -2824,8 +2864,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       }
       var h='<div class="mw-wrap dash">'
         + '<div class="dash-col" style="grid-template-rows:1.4fr 1fr">'
-        +   pnl('📅 팀 일정표', '앞으로 '+((cal&&cal.days)||14)+'일'+(calN?(' · '+calN+'건'):''),
-                mwCalendarHtml(cal), {label:'구글 캘린더 ↗', href:'https://calendar.google.com/'})
+        +   pnl('📅 팀 일정표', calSub(cal), mwCalendarHtml(cal), calActs(cal))
         +   pnl(SESS.admin?'📌 팀 프로젝트별 이슈':'📌 참여 프로젝트 및 이슈', nProj?(nProj+'건'):'', proj)
         + '</div>'
         + '<div class="dash-col" style="grid-template-rows:'+rows+'">'+right+'</div>'
@@ -5250,56 +5289,141 @@ def can_edit(uid, p):
 
 
 # ── 팀 일정표 (레이아웃1.pptx 전 화면 좌측 패널, 2026-08-30) ─────────────
-def _cal_events(days=None):
-    """등록 캘린더 병합 → 오늘부터 N일 일정. 60초 TTL. 실패해도 예외를 올리지 않는다.
+def _cal_person(email):
+    """캘린더 이벤트 등록자 이메일 → 이름. 명부에 없으면 '' (추측하지 않는다)."""
+    e = (email or "").strip().lower()
+    return (load_emp().get("by_calendar_email") or {}).get(e, "")
 
-    캘린더가 죽어도 화면은 떠야 한다(_assign_read의 '실패 시 [] 반환'과 같은 원칙).
+
+def _cal_key(ev):
+    """중복 제거용 키(날짜·시각·제목). 같은 일정이 여러 캘린더에 있을 때 접는다."""
+    st = ev.get("start") or {}
+    d = st.get("date") or (st.get("dateTime") or "")[:10]
+    t = "" if "date" in st else (st.get("dateTime") or "")[11:16]
+    return (d, t, (ev.get("summary") or "").strip())
+
+
+def _cal_daykey(ev):
+    """개인 캘린더 ↔ 메인 캘린더의 같은 일정을 맞추는 키 — **시각은 빼고** 날짜+제목.
+
+    병합 자동화가 시각을 바꿔 넣는다(실측: '다도'가 개인 12:00 → 메인 09:00).
+    시각을 키에 넣으면 병합 복사본을 개인으로 못 잡는다.
+    """
+    st = ev.get("start") or {}
+    d = st.get("date") or (st.get("dateTime") or "")[:10]
+    return (d, (ev.get("summary") or "").strip())
+
+
+def _cal_owner():
+    """MY 캘린더 주인 이름. 명부에 없으면 '' — 그러면 본인 판정을 못 하니 아무에게도 안 보인다."""
+    return _cal_person(CAL_MINE)
+
+
+def _cal_events(days=None, include_personal=False, viewer=None):
+    """캘린더 병합 → 오늘부터 N일 일정. 60초 TTL. 실패해도 예외를 올리지 않는다.
+
+    개인 일정 분리 (2026-08-30 대표 지시 "내 개인으로 등록된 일정은 숨기고,
+    업무로 등록한 건 라벨 구분"):
+      · WORK 그룹 캘린더 = 팀원이 업무로 등록 → kind="work" (+ 등록자 이름)
+      · PERSONAL 캘린더에서 온 것, 또는 MY 캘린더로 병합된 같은 건 → kind="personal"
+      · 제목에 [개인]·(개인)·#개인·[사적]·[private] → kind="personal"
+        (색·공개범위는 한 건도 쓰고 있지 않아 제목 외에 판별 근거가 없다)
+      · 그 밖의 MY 캘린더 일정 → kind="mine"
+    기본은 personal을 빼고 몇 건을 숨겼는지만 알려준다. include_personal이면 포함해서 준다.
     """
     days = int(days or CALENDAR_DAYS)
     today = datetime.date.today()
 
     def _fetch():
         if not _asgws or not hasattr(_asgws, "calendar_events"):
-            return {"events": [], "error": "gws 래퍼 없음"}
+            return {"events": [], "hidden": 0, "error": "gws 래퍼 없음"}
         tz = datetime.datetime.now().astimezone().tzinfo
         tmin = datetime.datetime.combine(today, datetime.time.min, tzinfo=tz).isoformat()
         tmax = datetime.datetime.combine(today + datetime.timedelta(days=days),
                                          datetime.time.max, tzinfo=tz).isoformat()
-        out, err = [], ""
-        for cid in CALENDAR_IDS:
+        err = ""
+
+        def pull(cid):
+            nonlocal err
             try:
-                items = _asgws.calendar_events(cid, tmin, tmax, limit=100)
+                return _asgws.calendar_events(cid, tmin, tmax, limit=100)
             except Exception as e:  # noqa: BLE001
-                err, items = str(e)[:100], []
-            for it in items:
-                st, en = (it.get("start") or {}), (it.get("end") or {})
-                allday = "date" in st
-                sd = st.get("date") or (st.get("dateTime") or "")[:10]
-                if not sd:
-                    continue
-                out.append({
-                    "date": sd,
-                    "time": "" if allday else (st.get("dateTime") or "")[11:16],
-                    "end": "" if allday else (en.get("dateTime") or "")[11:16],
-                    "allday": allday,
-                    "title": (it.get("summary") or "(제목 없음)")[:120],
-                    "where": (it.get("location") or "")[:80],
-                    "link": it.get("htmlLink") or "",
-                })
-        # PROJECT RENT 캘린더는 ws.choi로 병합돼 있어 같은 일정이 두 번 온다 — 날짜·시각·제목으로 접는다
-        seen, uniq = set(), []
-        for e in sorted(out, key=lambda x: (x["date"], x["time"] or "")):
-            k = (e["date"], e["time"], e["title"])
-            if k in seen:
+                err = str(e)[:100]
+                return []
+
+        # 개인 캘린더는 '무엇이 개인인지' 판정용으로 먼저 읽는다(화면에 바로 넣지 않는다)
+        personal_keys, raw = set(), []
+        for cid in CAL_PERSONAL:
+            for it in pull(cid):
+                personal_keys.add(_cal_daykey(it))
+                raw.append(("personal", it))
+        for cid in CAL_WORK:
+            raw.extend(("work", it) for it in pull(cid))
+        if CAL_MINE:
+            raw.extend(("mine", it) for it in pull(CAL_MINE))
+
+        out = []
+        for kind, it in raw:
+            st, en = (it.get("start") or {}), (it.get("end") or {})
+            allday = "date" in st
+            sd = st.get("date") or (st.get("dateTime") or "")[:10]
+            if not sd:
                 continue
-            seen.add(k)
+            title = (it.get("summary") or "(제목 없음)").strip()
+            if kind == "mine" and (_cal_daykey(it) in personal_keys or CAL_PERSONAL_RE.search(title)):
+                kind = "personal"       # 개인 캘린더에서 병합됐거나 제목에 개인 표식
+            elif kind == "work" and CAL_PERSONAL_RE.search(title):
+                kind = "personal"
+            out.append({
+                "date": sd,
+                "time": "" if allday else (st.get("dateTime") or "")[11:16],
+                "end": "" if allday else (en.get("dateTime") or "")[11:16],
+                "allday": allday,
+                "title": title[:120],
+                "where": (it.get("location") or "")[:80],
+                "link": it.get("htmlLink") or "",
+                "kind": kind,
+                # 등록자는 업무 일정에만 붙인다 — 내 일정에 내 이름을 붙여야 할 이유가 없다
+                "who": _cal_person((it.get("creator") or {}).get("email")) if kind == "work" else "",
+            })
+
+        # 같은 일정이 여러 캘린더에 있다(개인→메인 병합, 그룹→메인 초대).
+        # 날짜·시각·제목으로 접되 work > personal > mine 순으로 살린다 — 업무 라벨을 잃지 않게.
+        rank = {"work": 0, "personal": 1, "mine": 2}
+        best = {}
+        for e in out:
+            k = (e["date"], e["time"], e["title"])
+            cur = best.get(k)
+            if cur is None or rank[e["kind"]] < rank[cur["kind"]]:
+                best[k] = e
+        # 개인 일정은 병합 복사본이 시각까지 달라져서 위 키로는 안 접힌다 — 날짜+제목으로 한 번 더
+        seen_p, uniq = set(), []
+        for e in sorted(best.values(), key=lambda x: (x["date"], x["time"] or "")):
+            if e["kind"] == "personal":
+                k = (e["date"], e["title"])
+                if k in seen_p:
+                    continue
+                seen_p.add(k)
             uniq.append(e)
         return {"events": uniq, "error": err}
 
     try:
-        return _cached(f"cal|{today.isoformat()}|{days}", 60, _fetch)
+        d = _cached(f"cal|{today.isoformat()}|{days}", 60, _fetch)
     except Exception as e:  # noqa: BLE001
-        return {"events": [], "error": str(e)[:100]}
+        return {"events": [], "hidden": 0, "error": str(e)[:100]}
+    evs = d.get("events") or []
+    # MY 캘린더는 주인에게만. 팀 일정표는 팀 일정을 보는 자리지 남의 개인 캘린더를 보는 자리가 아니다.
+    # (실측 2026-08-30: 직원·리더 화면에 대표의 사적 일정 '저녁식사 (김은영, 이나리)'까지 노출되고 있었다)
+    owner = _cal_owner()
+    mine_ok = bool(owner) and (viewer is None or viewer == owner)
+    if not mine_ok:
+        # 남의 개인 일정은 건수조차 알릴 필요가 없다 — 통째로 뺀다
+        return {"events": [e for e in evs if e["kind"] == "work"],
+                "hidden": 0, "mine_shown": False, "error": d.get("error", "")}
+    hidden = sum(1 for e in evs if e["kind"] == "personal")
+    if not include_personal:
+        evs = [e for e in evs if e["kind"] != "personal"]
+    return {"events": evs, "hidden": hidden, "mine_shown": True, "error": d.get("error", "")}
 
 
 # ── 매장 화면 데이터 (레이아웃1.pptx 슬라이드 4·5, 2026-08-30) ────────────
@@ -5917,8 +6041,11 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True})
         if path == "/api/calendar":
             # 팀 일정표 — 전 역할 공통(로그인만 통과하면 됨). 읽기 전용.
-            d = _cal_events((q.get("days") or [""])[0] or None)
-            return self._send(200, {"ok": True, "days": CALENDAR_DAYS, **d})
+            # personal=1이면 개인 일정도 포함(화면의 '개인 포함' 토글). 기본은 숨기고 건수만 준다.
+            inc = (q.get("personal") or [""])[0] in ("1", "true", "on")
+            d = _cal_events((q.get("days") or [""])[0] or None, include_personal=inc,
+                            viewer=sess.get("name"))
+            return self._send(200, {"ok": True, "days": CALENDAR_DAYS, "personal": inc, **d})
         if path == "/api/stores":
             # 매장 화면 데이터 (게이트는 위 경로별 블록에서 이미 통과)
             if not _STORES:
