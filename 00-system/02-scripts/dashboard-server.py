@@ -5374,12 +5374,14 @@ def _cal_events(days=None, include_personal=False, viewer=None):
                 kind = "personal"       # 개인 캘린더에서 병합됐거나 제목에 개인 표식
             elif kind == "work" and CAL_PERSONAL_RE.search(title):
                 kind = "personal"
+            # 화면엔 [개인] 배지가 따로 붙으니 제목의 표식은 지우고 보여준다(원본은 안 건드린다)
+            shown = CAL_PERSONAL_RE.sub("", title).strip(" ·-—") if kind == "personal" else title
             out.append({
                 "date": sd,
                 "time": "" if allday else (st.get("dateTime") or "")[11:16],
                 "end": "" if allday else (en.get("dateTime") or "")[11:16],
                 "allday": allday,
-                "title": title[:120],
+                "title": (shown or title)[:120],
                 "where": (it.get("location") or "")[:80],
                 "link": it.get("htmlLink") or "",
                 "kind": kind,
