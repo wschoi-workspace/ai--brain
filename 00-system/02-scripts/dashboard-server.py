@@ -1924,9 +1924,6 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
 .mw-proj{border-left:2px solid var(--accent);padding-left:14px;margin-bottom:16px}
 .mw-proj-name{font-size:14px;font-weight:600;margin-bottom:8px}
 .mw-empty{color:var(--muted);font-size:13px;padding:8px 0}
-.mw-quick{margin:2px 0 6px;display:flex;gap:8px;flex-wrap:wrap}
-.mw-link{display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.4);color:var(--accent);border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;text-decoration:none}
-.mw-link:hover{background:var(--accent);color:#fff}
 .mw-done-sec{margin:4px 0 16px;border:1px solid var(--line);border-radius:10px;background:var(--bg-2)}
 .mw-done-sec summary{cursor:pointer;color:var(--muted);font-size:13px;padding:10px 14px}
 .mw-done-sec[open] summary{border-bottom:1px solid var(--line)}
@@ -2062,6 +2059,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     <button class="tab" data-t="brief" style="display:none">오늘 Brief</button>
     <button class="tab" data-t="weekly" style="display:none">이번 주</button>
     <button class="tab-ext" id="tab-hr" onclick="window.open('/sso/hr','_blank')">HR 포털 ↗</button><!-- 전 직원 노출 (2026-07-22) — 포털 자체가 staff/manager/admin 개인별 권한 강제 -->
+    <button class="tab-ext" id="tab-onboard" style="display:none">입퇴사 온보딩 ↗</button><!-- 대표 전용 (2026-08-30) — 화면 안 링크에서 탭바로 통합 -->
     <select id="scope-sel" style="display:none"></select>
     <span class="who" id="who"></span>
   </div>
@@ -2654,11 +2652,8 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
       var today='', week='', proj='';    // 우상 / 우중·우하 / 좌하
       var nToday=0, nWeek=0, nProj=0;
 
-      if(SESS.admin){
-        // 대표 전용 — 독립 서비스 새 창(탭바 tab-hr와 동일 링크), 온보딩=입퇴사 자동화 대시보드 v2
-        today+='<div class="mw-quick"><a class="mw-link" href="/sso/hr" target="_blank" rel="noopener">🏢 HR 포털 ↗</a>'
-          +'<a class="mw-link" href="https://rent-hr-portal.fly.dev/onboard/admin/v2" target="_blank" rel="noopener">🧾 입퇴사 온보딩 ↗</a></div>';
-      }
+      // HR 포털·입퇴사 온보딩 링크는 탭바(tab-hr·tab-onboard)로 통합했다 (2026-08-30 대표 지시).
+      // 화면 안에 또 두면 같은 링크가 두 군데 있게 되고, 오늘 할 일 패널의 첫 화면을 링크가 차지한다.
       if(ex && ex.ok){
         // R4 3차 대표창 블록을 원안 패널로 분배 (2026-08-30):
         //   오늘 할 일  ← 오늘의 핵심 · Decision · Intervention · 결재
@@ -3131,6 +3126,7 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     return h;
   }
   var MW_TYPES=__TASK_TYPES__;
+  var HR_ONBOARD_URL=__HR_ONBOARD_URL__;   // HR_PORTAL_URL 기준 — 주소를 화면에 박아두지 않는다
   function mwTypeOpts(cur){
     return '<option value="">유형…</option>'+MW_TYPES.map(function(t){
       return '<option'+(t===cur?' selected':'')+'>'+esc(t)+'</option>';}).join('');
@@ -3632,6 +3628,10 @@ button.btn-sec{background:var(--bg-3);color:var(--fg);border:1px solid var(--lin
     var lt=s.lead_teams||[];
     if(s.admin){
       tabBtn('brief').style.display=''; tabBtn('weekly').style.display='';
+      // 입퇴사 온보딩 — 대표 전용 (2026-08-30). HR 포털 탭 옆에 붙는다.
+      // 대상 서비스도 자체 권한을 강제하므로 이 숨김은 화면 정리이지 유일한 방벽이 아니다.
+      var ob=document.getElementById('tab-onboard');
+      if(ob){ ob.style.display=''; ob.onclick=function(){ window.open(HR_ONBOARD_URL,'_blank','noopener'); }; }
       // HR 포털 탭은 전 직원 상시 노출 (2026-07-22) — 온보딩 링크만 아래 mywork 블록에서 대표 전용 유지
       // Decision Window(ARISA 2.0)는 데이터 취합 백단 창구 — 대시보드 전면 노출 안 함(탭 숨김)
       sel.style.display='inline-block'; sel.innerHTML='<option value="">전체</option>';
@@ -5822,6 +5822,9 @@ class H(BaseHTTPRequestHandler):
             html = UNIFIED_SHELL.replace("</style>", BRIEF_CARD_CSS + "</style>", 1)
             # 업무 유형 어휘는 shared/assign_sheet가 SSOT — 화면 셀렉트에 그대로 주입
             html = html.replace("__TASK_TYPES__", json.dumps(list(_AS.TASK_TYPES), ensure_ascii=False))
+            # 입퇴사 온보딩(대표 전용 탭) — HR_PORTAL_URL을 따라간다
+            html = html.replace("__HR_ONBOARD_URL__",
+                                json.dumps(f"{HR_PORTAL_URL}/onboard/admin/v2", ensure_ascii=False))
             return self._send(200, html.encode("utf-8"), "text/html; charset=utf-8")
         if path == "/projects":
             # 포트폴리오 HTML (구 / 핸들러) — 셸 iframe 또는 직접 접속(자체 로그인)
