@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>봉은문화센터 — 면적 정합성 진단</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{--bg:#141414;--bg2:#1C1C1C;--card:#212121;--card2:#282828;--line:#333;--line2:#3E3E3E;
+--tx:#F2F2F2;--tx2:#B6B6B6;--tx3:#7C7C7C;--pri:#6C5CE7;--pri2:#8B7EF0;
+--ok:#8FA37E;--warn:#D9A34B;--risk:#E06060;--info:#4ECDC4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+-webkit-font-smoothing:antialiased;line-height:1.7;padding:56px 24px 110px}
+body>*{max-width:1080px;margin-left:auto;margin-right:auto}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--pri2);text-transform:uppercase;margin-bottom:14px}
+h1{font-size:36px;font-weight:800;letter-spacing:-.035em;line-height:1.25;margin-bottom:16px}
+h1 .hi{color:var(--pri2)}
+.meta{font-size:12.5px;color:var(--tx3);margin-bottom:34px;letter-spacing:.02em}
+.tldr{background:linear-gradient(135deg,rgba(108,92,231,.15),rgba(108,92,231,.03));
+border:1px solid rgba(108,92,231,.34);border-radius:12px;padding:22px 26px;margin-bottom:52px}
+.tldr b{color:var(--tx)}
+.tldr p{font-size:15px;color:var(--tx2);line-height:1.8}
+.tldr p+p{margin-top:10px}
+h2{font-size:23px;font-weight:800;letter-spacing:-.025em;margin:58px 0 8px;padding-top:24px;border-top:1px solid var(--line)}
+h2 .n{display:inline-block;min-width:30px;color:var(--pri2)}
+.sub{font-size:14px;color:var(--tx3);margin-bottom:20px;line-height:1.7}
+h3{font-size:15.5px;font-weight:700;margin:30px 0 11px;color:var(--tx)}
+p{font-size:14.5px;color:var(--tx2);line-height:1.85;margin:12px 0}
+b,strong{color:var(--tx);font-weight:700}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;
+background:var(--card2);padding:1px 6px;border-radius:4px;color:var(--info)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px}
+th{background:var(--card2);color:var(--tx2);font-weight:700;text-align:left;
+padding:10px 13px;border-bottom:1px solid var(--line2);font-size:12.5px;letter-spacing:.01em}
+td{padding:10px 13px;border-bottom:1px solid var(--line);color:var(--tx2);vertical-align:top;line-height:1.65}
+tr:last-child td{border-bottom:none}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;padding:2px 7px;
+border-radius:4px;vertical-align:middle;white-space:nowrap}
+.t-ok{background:rgba(143,163,126,.16);color:var(--ok)}
+.t-bad{background:rgba(224,96,96,.14);color:var(--risk)}
+.t-warn{background:rgba(217,163,75,.14);color:var(--warn)}
+.t-as{background:rgba(78,205,196,.13);color:var(--info)}
+.t-fact{background:rgba(108,92,231,.16);color:var(--pri2)}
+.calc{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--pri);
+border-radius:0 9px 9px 0;padding:15px 19px;margin:15px 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+font-size:13px;color:var(--tx2);line-height:2}
+.calc .r{color:var(--tx);font-weight:700}
+.calc .bad{color:var(--risk);font-weight:700}
+.calc .ok{color:var(--ok);font-weight:700}
+.box{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:18px 22px;margin:18px 0}
+.box.risk{border-left:3px solid var(--risk)}
+.box.warn{border-left:3px solid var(--warn)}
+.box.info{border-left:3px solid var(--info)}
+.box h4{font-size:14.5px;font-weight:700;color:var(--tx);margin-bottom:8px}
+.box p{font-size:13.5px;margin:7px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+.note{font-size:12.5px;color:var(--tx3);line-height:1.75;margin-top:12px;
+padding-top:11px;border-top:1px solid var(--line)}
+ol,ul{margin:12px 0 12px 20px}
+li{font-size:14px;color:var(--tx2);line-height:1.85;margin:7px 0}
+.ask{counter-reset:q}
+.ask li{list-style:none;position:relative;padding-left:34px;margin:14px 0;font-size:14.5px}
+.ask li::before{counter-increment:q;content:counter(q);position:absolute;left:0;top:2px;
+width:22px;height:22px;border-radius:50%;background:var(--pri);color:#fff;
+font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.ask li b{display:block;color:var(--tx);margin-bottom:2px}
+.ask li span{font-size:13px;color:var(--tx3)}
+footer{max-width:1080px;margin:70px auto 0;padding-top:22px;border-top:1px solid var(--line);
+font-size:11.5px;color:var(--tx3);line-height:1.9}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 0;font-size:11.5px;color:var(--tx3)}
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Area Integrity Check</div>
+<h1>면적 전제가 <span class="hi">흔들립니다</span> — 계약서 안에서도, 보고서 안에서도</h1>
+<div class="meta">2026-08-23 · 계약서 제2조 원문 대조 · 봉은문화센터 마스터 전략 보고서 v1.1 기준 · by Project Rent</div>
+
+<div class="box ok" style="margin-bottom:26px;border-left:3px solid var(--ok)">
+  <h4 style="color:var(--ok)">▲ 갱신 (같은 날, 도면 실측 입수) — 02의 모순 ②가 해소됐습니다</h4>
+  <p><b>1층은 3,477.75㎡였습니다.</b> 계약서의 "지상 1층 6,157.91㎡" 표기가 틀린 값이고, 1층 = 건축면적 3,477.75㎡가 맞습니다.
+  과업 대상은 8,868.15 → <b>6,187.99㎡</b>(−2,680.16), 벽체·공조실·테라스를 뺀 실사용은 <b>약 5,483㎡</b>입니다.</p>
+  <p>이에 따라 <b>05의 전용면적 가정(25~35%)은 더 이상 필요 없고</b>, <b>06의 임대료 예측(91~105%)은 실측으로 확인</b>됐습니다 — 바닥 기준 97.9%, 실사용 기준 110.5%.
+  아래 본문은 <b>당시 기록으로 그대로 둡니다.</b> 정정 기준의 층별 소요는 별도 문서 <code>봉은문화센터-층별소요면적-20260823.html</code>에 있습니다.</p>
+  <p>본문의 <b>대관 역산(25.8억)·임대료(68.4%)는 당시 값</b>입니다 — 이후 확정된 값은 <b>대관 14.6억(요구 가동 750일)</b>, <b>임대료 GBD 97.9~110.5%</b>이고 본편·덱·요약본에 모두 반영됐습니다(2026-08-24).</p>
+  <p class="note">해소되지 않은 것 — 용적률 10.9%는 여전히 안 맞습니다(실측 지상 연면적 8,217.99㎡ = 12.4%, 역산 대비 +999㎡). 08의 확인 요청 4번은 유효합니다.</p>
+</div>
+
+<div class="tldr">
+  <p><b>세 층위에서 어긋납니다.</b> ①<b>계약서 수치끼리</b> 맞지 않습니다 — 건축면적보다 1층이 1.77배 크고, 용적률로 역산한 지상 연면적이 1·2층 합보다 1,649㎡ 작습니다.
+  ②<b>계약서와 보고서</b>가 맞지 않습니다 — 계약서가 1층에 넣어둔 주차장·공조실·계단실·코어를 보고서는 한 번도 빼지 않았습니다(<code>전용률</code> 문서 전체 0건).
+  ③<b>보고서 안에서</b> 배분안 두 개가 서로 다른 축으로 동시에 살아 있습니다.</p>
+  <p><b>가장 크게 흔들리는 것은 재임대 기준선입니다.</b> 웨딩홀 임대료를 전용면적으로 환산하면 강남 오피스 시세의 68.4%가 아니라 <b>91~105%</b>가 됩니다.
+  "헐값이라 우리가 이길 수 있다"가 아니라 "제값 받던 자리"라는 뜻이고, 그러면 넘어야 할 기준선의 성격이 바뀝니다.</p>
+  <p class="note">이 문서는 <b>진단만</b> 합니다. 답을 단정하지 않고, 무엇을 확인해야 답이 나오는지까지만 적습니다. 수정 범위는 이 문서를 보고 정합니다.</p>
+</div>
+
+<h2><span class="n">01</span> 계약서가 확정해 주는 것</h2>
+<p class="sub">계약서 제2조 ② 원문. 이 표의 값만이 현재 확정 사실이고, 나머지는 전부 추정이거나 미확인입니다.</p>
+
+<table>
+  <thead><tr><th style="width:26%">항목</th><th style="width:26%">값</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>소재지 · 건물명</td><td>서울시 강남구 봉은사로 531 · 봉은문화회관</td><td>—</td></tr>
+    <tr><td>대지면적</td><td class="num">66,230.3㎡</td><td>원문 앞자리 판독 불가(<code>++,230.3</code>) → 건폐율 역산으로 확정. 기존 <code>E-0014</code>의 "봉은사 전체 경내지" 값과 일치</td></tr>
+    <tr><td>연면적</td><td class="num">18,730.87㎡</td><td>지하4층 · 지상3층 전체</td></tr>
+    <tr><td>건축면적</td><td class="num">3,477.75㎡</td><td><span class="tag t-bad">쟁점</span> 1층 면적과 모순 — 02 참조</td></tr>
+    <tr><td>건폐율 / 용적률</td><td class="num">5.25% / 10.9%</td><td><span class="tag t-bad">쟁점</span> 용적률이 층별 면적과 모순 — 02 참조</td></tr>
+    <tr><td>규모 · 용도</td><td>지하4층 지상3층 · 문화회관</td><td>층수 표기가 문서마다 달랐던 것이 여기서 확정됩니다(07 참조)</td></tr>
+  </tbody>
+</table>
+
+<h3>용역 대상 공간 — 실내 구성까지 계약서에 적혀 있습니다</h3>
+<table>
+  <thead><tr><th style="width:14%">층</th><th style="width:14%">면적</th><th>계약서가 열거한 구성</th></tr></thead>
+  <tbody>
+    <tr><td>지상 1층</td><td class="num">6,157.91㎡</td>
+      <td>전시 및 연예장 · <b style="color:var(--risk)">주차장</b> · 간이주방 · <b style="color:var(--risk)">공조실</b> · <b style="color:var(--risk)">홀 및 복도</b> · <b style="color:var(--risk)">공조실</b> · <b style="color:var(--risk)">계단실 및 코아</b> · <b style="color:var(--risk)">예약실</b> · <b style="color:var(--risk)">사무실</b> 등</td></tr>
+    <tr><td>지상 2층</td><td class="num">2,710.24㎡</td>
+      <td>문화교실 · 연예장 · 간이주방 · <b style="color:var(--risk)">홀 및 복도</b> · <b style="color:var(--risk)">공조실</b> 등</td></tr>
+    <tr><td><b>합계</b></td><td class="num"><b>8,868.15㎡</b></td><td>약 2,683평. 보고서가 <code>E-0013</code>·<code>E-0500</code>으로 A등급 확정해 쓰는 값</td></tr>
+  </tbody>
+</table>
+<p class="note">붉게 표시한 것이 <b>영업에 쓸 수 없는 면적</b>입니다. 계약서는 이것을 1·2층 면적 안에 포함시켰는데, 보고서는 이 면적을 공제한 적이 없습니다(03 참조).</p>
+
+<div class="box info">
+  <h4>과업 산출물 (제3조) — 이번 검토가 결국 답해야 하는 것</h4>
+  <p>① 1·2층 운영 사업계획서(5개년) — 전통문화콘텐츠·상품 기반 상설전시 및 판매 운영 타당성 검토와 사업 계획<br>
+  ② 운영 사업계획에 따른 <b>경제성 검토(5개년) 분석 보고서</b></p>
+  <p class="note">경제성 검토가 계약상 산출물이므로, 면적 전제가 흔들리면 산출물의 근거가 함께 흔들립니다. 이것이 이 진단을 지금 하는 이유입니다.</p>
+</div>
+
+<h2><span class="n">02</span> 계약서 수치끼리 맞지 않습니다 <span class="tag t-bad">최우선</span></h2>
+<p class="sub">네 개를 검산했습니다. 하나는 맞고 셋이 어긋납니다. 셋은 같은 곳을 가리킵니다.</p>
+
+<div class="calc">
+① 건폐율 &nbsp; 3,477.75 ÷ 66,230.3 = <span class="ok">5.25%</span> &nbsp;→ 계약서 5.25% <span class="ok">일치 ✓</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--tx3)">대지면적 66,230.3㎡가 이 검산으로 확정됩니다 (OCR 판독 불가분 해소)</span><br><br>
+② 건축면적 vs 1층 &nbsp; 6,157.91 ÷ 3,477.75 = <span class="bad">1.77배</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--tx3)">건축면적은 통상 1층 수평투영면적이라 1층이 그보다 클 수 없습니다</span><br><br>
+③ 용적률 역산 &nbsp; 66,230.3 × 10.9% = <span class="r">7,219㎡</span> (지상 연면적)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;1층 6,157.91 + 2층 2,710.24 = <span class="r">8,868.15㎡</span> &nbsp;→ <span class="bad">1,649㎡ 초과</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--tx3)">3층이 따로 있는데도 1·2층만으로 이미 넘습니다</span><br><br>
+④ 연면적 ÷ 대지 &nbsp; 18,730.87 ÷ 66,230.3 = <span class="r">28.3%</span> &nbsp;vs 계약서 용적률 <span class="bad">10.9%</span>
+</div>
+
+<h3>가능한 해석 셋 — 어느 쪽이든 보고서 전제가 바뀝니다</h3>
+<table>
+  <thead><tr><th style="width:24%">해석</th><th style="width:38%">내용</th><th>보고서에 주는 영향</th></tr></thead>
+  <tbody>
+    <tr><td><b>A. 용적률 미산입 면적이 많다</b></td>
+      <td>1층 주차장이 필로티·부속주차로 용적률에서 빠지는 경우. 산입 제외분이 최소 1,649㎡(3층 면적을 0으로 볼 때의 하한이므로 <b>실제로는 더 큼</b>)</td>
+      <td>가장 개연성이 높습니다. 그렇다면 1층 6,157.91㎡ 중 <b>1,649㎡ 이상이 주차장 등 비영업 면적</b>이라는 뜻이 되어, 04·05의 배치가 성립하지 않습니다</td></tr>
+    <tr><td><b>B. "1층"이 단일 층이 아니다</b></td>
+      <td>지하층 일부 또는 복수 층 합산이 '1층'으로 표기된 경우. 건축면적 모순(②)이 이 가설로 설명됨</td>
+      <td>과업 범위의 물리적 위치 자체가 재정의됩니다. 지하 곡선벽 리테일 비효율(<code>E-0504</code>)이 과업 범위 안 문제가 됩니다</td></tr>
+    <tr><td><b>C. 계약서 제원 표기 오류</b></td>
+      <td>건축개요 항목이 다른 건물·다른 시점 값을 옮겨 적은 경우</td>
+      <td>계약 문서 정정이 필요합니다. 우리가 판단할 수 없는 영역이라 발주처 확인 사항입니다</td></tr>
+  </tbody>
+</table>
+<p class="note">이 진단서는 <b>어느 해석이 맞는지 단정하지 않습니다.</b> 세 해석 모두 층별 평면도 또는 건축물대장 한 장이면 결론이 납니다 — 08의 확인 요청 6번입니다.</p>
+
+<h2><span class="n">03</span> 보고서가 공용·설비 면적을 통째로 빠뜨렸습니다</h2>
+<p class="sub"><code>재구조화/sections/*.html</code> 전수 검색 결과입니다.</p>
+
+<table>
+  <thead><tr><th style="width:34%">계약서가 1·2층에 열거한 구성</th><th style="width:16%">보고서 등장</th><th>상태</th></tr></thead>
+  <tbody>
+    <tr><td>전시 및 연예장 · 문화교실</td><td class="num">있음</td><td><span class="tag t-ok">반영</span> <code>E-0015</code></td></tr>
+    <tr><td>주차장</td><td class="num">언급만</td><td><span class="tag t-warn">부분</span> 용도 설명에만 등장하고 <b>면적 공제 없음</b>. 문서의 '주차 182대'는 경내 주차장(법난기념관 공사분)이라 별개 사안</td></tr>
+    <tr><td>간이주방</td><td class="num">있음</td><td><span class="tag t-ok">반영</span> 조리 불가 논거로 활용</td></tr>
+    <tr><td><b>공조실</b></td><td class="num">0건</td><td><span class="tag t-bad">누락</span></td></tr>
+    <tr><td><b>홀 및 복도</b></td><td class="num">0건</td><td><span class="tag t-bad">누락</span></td></tr>
+    <tr><td><b>계단실 및 코아</b></td><td class="num">0건</td><td><span class="tag t-bad">누락</span></td></tr>
+    <tr><td><b>예약실 · 사무실</b></td><td class="num">0건</td><td><span class="tag t-bad">누락</span> 운영 조직이 쓸 사무공간인데 배분표에 자리가 없습니다</td></tr>
+    <tr><td colspan="2"><b><code>전용률</code>·<code>전용면적</code> 개념</b></td><td><span class="tag t-bad">0건</td> 8,868㎡ 전체를 배분 대상으로 사용</td></tr>
+  </tbody>
+</table>
+
+<div class="box risk">
+  <h4>보고서는 이미 알고 있었습니다 — 다만 넘어갔습니다</h4>
+  <p><code>E-0015</code>가 계약서 구성을 <b>"…등"</b>으로 줄이면서 다섯 항목이 사라졌고, 이후 아무도 펴지 않았습니다.</p>
+  <p>본문 5.9는 스스로 자인하고 있습니다 — <b>"위 배치는 면적 총량만 맞춘 것입니다. 전시 3,300㎡가 1층 무주 대공간에 실제로 앉는지는 공간기획 단계에서 확인해야 합니다."</b></p>
+  <p>배분표의 유일한 공용 항목은 <b>로비·동선 2,568㎡(29.0%)</b> 하나뿐이고, 여기에 주차장·설비·코어·사무실이 포함되는지에 대한 정의가 없습니다.</p>
+</div>
+
+<h2><span class="n">04</span> 배분안이 둘 공존합니다 — 서로 다른 축입니다</h2>
+<p class="sub">대표 결정에 따라 둘 다 유지합니다. 다만 역할이 다르다는 것을 문서에 명시해야 합니다.</p>
+
+<table>
+  <thead><tr><th style="width:15%">안</th><th style="width:11%">근거</th><th>구성 (㎡)</th><th style="width:12%">합계</th></tr></thead>
+  <tbody>
+    <tr><td><b>구 '봉은 1,200'</b><br><span style="font-size:12px;color:var(--tx3)">본문 6.3</span></td><td><code>E-0532</code></td>
+      <td>전시·체험 2,000 / F&amp;B 1,000 / 상품판매 800 / 명상·웰니스 500 / <b>대관홀 1,500</b> / 외국인체험 500 / 로비·동선 2,568</td>
+      <td class="num">8,868</td></tr>
+    <tr><td><b>Destination</b><br><span style="font-size:12px;color:var(--tx3)">본문 5.9</span></td><td><code>E-1090</code></td>
+      <td><b>전시 3,300</b> / F&amp;B 1,000 / 리테일 800 / 교육 500 / 명상 500 / 로비·동선 2,568 <span style="color:var(--tx3)">(숙박 0 · 대관 전용 0)</span></td>
+      <td class="num">8,668<br><span style="font-size:11.5px;color:var(--ok)">+200 여유</span></td></tr>
+  </tbody>
+</table>
+
+<div class="grid2">
+  <div class="box warn">
+    <h4>무엇이 문제인가</h4>
+    <p>본문 6.3의 <b>"면적 11.3%가 수익 45%"</b>는 <b>구안</b> 기준입니다.<br>
+    본문 9.3의 <b>재무모델 v1.1</b>은 <b>신안</b> 기준입니다.</p>
+    <p>같은 보고서 안에서 독자가 두 배분을 오가게 됩니다. 대관홀 1,500㎡가 있는 안과 없는 안, 전시가 2,000㎡인 안과 3,300㎡인 안이 나란히 서술됩니다.</p>
+  </div>
+  <div class="box info">
+    <h4>권고 — 역할을 못박습니다</h4>
+    <p><b>구안</b> = 수익 최대화 시선이 어디까지 가는지 보여주는 <b>사고실험</b>. "가장 작은 구획이 가장 많이 번다"는 발견의 근거로만 씁니다.</p>
+    <p><b>신안</b> = <b>확정 배치</b>. 재무·CAPEX·회수 계산은 전부 이 기준입니다.</p>
+    <p class="note">두 표가 나오는 자리마다 한 줄로 역할을 붙이면 혼선이 사라집니다. 수치는 그대로 둡니다.</p>
+  </div>
+</div>
+
+<h2><span class="n">05</span> 전용면적을 걸면 배치가 들어가지 않습니다 <span class="tag t-as">가정</span></h2>
+<p class="sub">건축물대장·평면도가 없어 <b>공용비율을 가정</b>했습니다. 아래 표의 전용면적은 전부 가정치이며, 확인되면 즉시 대체해야 합니다.</p>
+
+<table>
+  <thead><tr><th style="width:15%">공용비율 <span class="tag t-as">가정</span></th><th>전체 전용면적</th><th>Destination 소요 8,668㎡ 대비</th><th>1층 전용면적</th><th>1층 소요 5,100㎡ 대비</th><th>전시 3,300이<br>1층 전용에서 차지</th></tr></thead>
+  <tbody>
+    <tr><td class="num">25%</td><td class="num">6,651㎡</td><td class="num" style="color:var(--risk)">−2,017㎡</td><td class="num">4,618㎡</td><td class="num" style="color:var(--risk)">−482㎡</td><td class="num">71%</td></tr>
+    <tr><td class="num"><b>30%</b></td><td class="num">6,208㎡</td><td class="num" style="color:var(--risk)"><b>−2,460㎡</b></td><td class="num">4,311㎡</td><td class="num" style="color:var(--risk)"><b>−789㎡</b></td><td class="num"><b>77%</b></td></tr>
+    <tr><td class="num">35%</td><td class="num">5,764㎡</td><td class="num" style="color:var(--risk)">−2,904㎡</td><td class="num">4,003㎡</td><td class="num" style="color:var(--risk)">−1,097㎡</td><td class="num">82%</td></tr>
+  </tbody>
+</table>
+<p class="note">1층 소요 5,100㎡ = 전시 3,300 + 리테일 800 + F&amp;B 1,000 (본문 5.9 층별 배치 기준, 로비 별도).
+문화·집회시설의 통상 전용률이 65~75%인 점을 감안해 25~35% 구간을 잡았습니다 — <b>업계 통상치이지 이 건물의 실측이 아닙니다.</b></p>
+
+<div class="box risk">
+  <h4>어느 가정을 걸어도 결론이 같습니다</h4>
+  <p>공용을 가장 낮게(25%) 잡아도 <b>전체 2,017㎡·1층 482㎡가 초과</b>합니다. 지금의 Destination 배치는 <b>공용면적이 0일 때만</b> 성립합니다.</p>
+  <p>그리고 전시 3,300㎡ 앵커가 1층 전용의 <b>71~82%</b>를 먹습니다. 무료 개방 로비·리테일·다이닝이 들어갈 자리가 남지 않습니다 —
+  "1층이 목적지, 2층이 수익축"이라는 5.9의 설계 원리가 물리적으로 성립하지 않게 됩니다.</p>
+</div>
+
+<h2><span class="n">06</span> 흔들리는 지표 — 하나는 결론이 뒤집힙니다</h2>
+<p class="sub">면적을 분모로 쓰는 지표 다섯을 점검했습니다. 넷은 값만 바뀌고, 하나는 <b>판단이 바뀝니다</b>.</p>
+
+<h3 style="color:var(--risk)">★ 재임대 기준선 — 여기가 뒤집힙니다</h3>
+<div class="calc">
+현재 표기 (<code>E-1078</code>) &nbsp; 월 2.5억 ÷ 8,868㎡ × 3.3 = <span class="r">93,194원</span> &nbsp;→ GBD 시세 136,200원의 <span class="r">68.4%</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--tx3)">→ "헐값이 아니라 시세권 하단"이라는 것이 현재 보고서의 결론</span><br><br>
+전용면적 기준으로 다시 계산하면 <span class="tag t-as">가정</span><br>
+&nbsp;&nbsp;공용 25% → <span class="r">124,039원</span> &nbsp;= 시세의 <span class="bad">91.1%</span><br>
+&nbsp;&nbsp;공용 30% → <span class="r">132,899원</span> &nbsp;= 시세의 <span class="bad">97.6%</span><br>
+&nbsp;&nbsp;공용 35% → <span class="r">143,122원</span> &nbsp;= 시세의 <span class="bad">105.1%</span>
+</div>
+<div class="box risk">
+  <h4>무엇이 달라지는가</h4>
+  <p>"웨딩홀은 시세보다 싸게 임대돼 있었다(68.4%)" → <b>"시세대로, 혹은 시세보다 비싸게 받고 있었다(91~105%)"</b>로 바뀝니다.</p>
+  <p>이것은 재임대 대안의 평가를 바꿉니다. 시세 하단이면 "임대는 아깝게 팔린 것이니 직영이 낫다"는 논리가 서지만,
+  시세 수준이면 <b>재임대는 이미 제값을 받던 안정적 대안</b>이 됩니다. 넘어야 할 기준선의 무게가 달라집니다.</p>
+  <p class="note">본문 9.4의 판정 기준(세후 27.1억)과 증분 분석(회수 8.8~43년)은 금액 기준이라 <b>수치 자체는 그대로</b>입니다. 바뀌는 것은 그 금액을 <b>어떻게 해석하느냐</b>입니다.</p>
+</div>
+
+<h3>산술 오류 1건 — 같은 자리에서 발견</h3>
+<div class="calc">
+<code>E-1078</code> 표기 &nbsp; 93,194원<br>
+실제 계산 &nbsp; 250,000,000 ÷ 8,868.15 × 3.3 = <span class="r">93,030원</span><br>
+93,194원이 나오려면 분모가 <span class="bad">8,852.5㎡</span> — 계약서 8,868.15㎡와 <span class="bad">15.65㎡ 차이</span>
+</div>
+<p class="note">차이 0.18%로 결론(68.4% → 68.3%)에는 영향이 없습니다. 다만 <b>분모가 무엇인지 불명확한 채로 A등급이 붙어 있는 것</b>이 문제입니다. 정정 대상입니다.</p>
+
+<h3>나머지 넷 — 값은 바뀌고 결론은 유지</h3>
+<table>
+  <thead><tr><th style="width:26%">지표</th><th style="width:24%">현재</th><th>전용면적 기준이 되면</th></tr></thead>
+  <tbody>
+    <tr><td>㎡당 영업이익 순위</td>
+      <td>다이닝 206만 · 다원 180만 · 숙박 29만 · 대관 18.4만 · 전시 13만</td>
+      <td><span class="tag t-ok">결론 유지</span> 모든 라인의 분모가 같은 비율로 줄어 값은 오르지만 <b>순위는 그대로</b>. "이익은 시설이 아니라 시간·관계에서 나온다"는 판정 불변</td></tr>
+    <tr><td>"면적 11.3%가 수익 45%" (6.3)</td>
+      <td>구안·총면적 기준</td>
+      <td><span class="tag t-warn">재산정</span> F&amp;B 1,000㎡는 전용면적이므로 분자는 그대로, 분모(8,868)만 줄어 <b>비율이 올라갑니다</b> — 주장은 오히려 강해집니다</td></tr>
+    <tr><td>대관 역산 SETEC 25.8억 (<code>E-1080</code>)</td>
+      <td>1층 6,157.91㎡ × 1,150원/㎡·일 × 365</td>
+      <td><span class="tag t-ok">결론 강화</span> 실제 대관 가능 면적이 더 작으므로 상한이 25.8억보다 낮아집니다. <b>"대관 단독으로 30억 불가"는 더 확실해집니다</b></td></tr>
+    <tr><td>전시 3,300㎡ 앵커 (<code>E-1090</code>)</td>
+      <td>1층에 앉는지 미검증(본문 자인)</td>
+      <td><span class="tag t-bad">성립 불투명</span> 1층 전용의 71~82%. 05 참조 — <b>이번 진단에서 가장 실무적인 쟁점</b></td></tr>
+  </tbody>
+</table>
+
+<h2><span class="n">07</span> 표기 불일치 — 계약서로 확정 가능한 것들</h2>
+<p class="sub">기존 <code>E-0520</code>이 B등급으로 잡아둔 항목입니다. 계약서 원문이 확보됐으므로 이제 확정할 수 있습니다.</p>
+
+<table>
+  <thead><tr><th style="width:16%">항목</th><th style="width:44%">문서에 공존하는 표기</th><th>계약서 기준 확정</th></tr></thead>
+  <tbody>
+    <tr><td>층수</td><td>지하4~지상3 / 지하1~지상2(도면분석) / "5개 층"(리뉴얼 리서치)</td><td><b>지하4층 · 지상3층</b> <span class="tag t-fact">확정</span></td></tr>
+    <tr><td>건물 규모</td><td>연면적 18,730.87㎡ / "1,500평(300평×5층)" = 약 4,959㎡ / 과업 대상 8,868㎡</td><td><b>연면적 18,730.87㎡</b> · 과업 대상은 그중 1·2층 <span class="tag t-fact">확정</span></td></tr>
+    <tr><td>1층 구성</td><td>"300~350평 대형 연회홀"(<code>E-0502</code>, 2002년 도면)</td><td><span class="tag t-warn">병존</span> 6,157.91㎡와 990~1,157㎡는 6배 차이 — 도면값은 <b>연회홀 단일 실</b>의 크기로 읽어야 정합</td></tr>
+    <tr><td>대지면적</td><td>66,230.3㎡ (경내지 전체)</td><td><b>66,230.3㎡</b> — 건폐율 역산으로 검증됨 <span class="tag t-fact">확정</span></td></tr>
+    <tr><td><b>3층</b></td><td>—</td><td><span class="tag t-bad">공백</span> 지상3층인데 과업은 1·2층뿐. <b>3층의 용도·사용 주체가 문서 어디에도 없습니다</b></td></tr>
+    <tr><td>역사 연수</td><td>1,000년 / 1,200년 (<code>E-0506</code>)</td><td>계약서 범위 밖 — 별도 확정 필요(기존 미결 유지)</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="n">08</span> 발주처에 확인할 것 — 여섯 가지</h2>
+<p class="sub">아래 여섯 중 <b>6번 한 장</b>이면 1~5가 대부분 해소됩니다. 우선순위는 6번입니다.</p>
+
+<ol class="ask">
+  <li><b>지상 1층 6,157.91㎡의 정의는 무엇입니까</b><span>건축면적 3,477.75㎡보다 1.77배 큽니다. 지하층이 포함된 값인지, 다른 산정 기준인지 확인이 필요합니다.</span></li>
+  <li><b>1층 주차장의 면적과 주차 대수는 얼마입니까</b><span>용적률 역산상 최소 1,649㎡가 산입 제외 면적으로 추정됩니다. 이 면적이 과업 대상 8,868㎡ 안에 포함된 것인지가 배치 설계의 전제입니다.</span></li>
+  <li><b>공조실·계단실·코어·사무실·예약실의 면적은 얼마입니까</b><span>계약서가 열거했으나 면적이 없습니다. 영업 가능 면적을 확정하려면 필요합니다.</span></li>
+  <li><b>용적률 10.9%는 무엇을 분모·분자로 한 값입니까</b><span>연면적÷대지면적은 28.3%로 계산됩니다. 지상 연면적 기준이라면 1·2층 합(8,868㎡)이 이미 역산치(7,219㎡)를 넘습니다.</span></li>
+  <li><b>지상 3층은 무슨 용도이고 누가 씁니까</b><span>과업 범위 밖인데 동선·설비·소음이 1·2층 운영과 연결됩니다. 운영계획에 반영해야 할 제약일 수 있습니다.</span></li>
+  <li><b>층별 평면도 또는 건축물대장을 받을 수 있습니까</b> <span class="tag t-warn" style="margin-left:6px">최우선</span><span>이 한 장이면 1~4가 동시에 해소되고, 전용면적이 가정이 아니라 실측이 됩니다. 현재 재무모델의 면적 전제가 전부 여기에 걸려 있습니다.</span></li>
+</ol>
+
+<div class="box warn">
+  <h4>회신 전까지 이 보고서를 어떻게 다룰 것인가</h4>
+  <p><b>수치를 고치지 않습니다.</b> 지금 가진 것은 가정뿐이고, 가정으로 A등급 수치를 덮으면 근거 등급 체계가 무너집니다.</p>
+  <p>대신 <b>전제를 명시</b>합니다 — 면적 기반 서술이 나오는 자리에 "총면적 기준이며 전용면적 확정 시 재산정 대상"임을 다는 것까지가 회신 전에 할 수 있는 일입니다.</p>
+  <p class="note">단, <b>06의 재임대 기준선 해석</b>은 회신과 무관하게 지금 손봐야 합니다. 어떤 공용비율을 걸어도 68.4%가 아니라 90%대가 되므로, "헐값" 프레임은 근거를 잃었습니다.</p>
+</div>
+
+<footer>
+  봉은문화센터 마스터 전략 보고서 — 면적 정합성 진단 · 2026-08-23<br>
+  대조 원본: 계약서 제2조 ②·제3조 · 보고서 <code>재구조화/sections/*.html</code> (10 PART + 부록 2) · 근거 원장 <code>elements.json</code><br>
+  인용 근거칩: E-0013 · E-0014 · E-0015 · E-0057 · E-0500 · E-0501 · E-0502 · E-0504 · E-0520 · E-0527 · E-0532 · E-1060 · E-1078 · E-1080 · E-1082 · E-1090<br>
+  <b>가정 표기</b> — <span class="tag t-as">가정</span> 라벨이 붙은 값은 실측이 아닙니다. 공용비율 25/30/35%는 문화·집회시설 통상 전용률(65~75%)에서 잡은 구간이며 본 건물 실측이 아닙니다.<br>
+  by Project Rent · 내부 검토용
+</footer>
+
+</body>
+</html>

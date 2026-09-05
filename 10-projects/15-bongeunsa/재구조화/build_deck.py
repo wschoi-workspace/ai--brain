@@ -293,7 +293,11 @@ def divider_slide(sec):
     h2 = sec.find('.//h2')
     descs = ''.join(f'<p class="dv-desc">{inner(d)}</p>'
                     for d in sec.findall('.//p[@class="sec-desc"]'))
-    return (f'<div class="slide divider">'
+    # 표지 목차가 #p01~#pB 로 링크하므로 간지 슬라이드가 그 id를 가져야 한다
+    # (없으면 목차 링크 12개가 전부 죽는다 — 2026-09-05)
+    sid = sec.get('id') or ''
+    idattr = f' id="{sid}"' if sid else ''
+    return (f'<div class="slide divider"{idattr}>'
             f'<div class="dv-no">{no}</div>'
             f'<div class="dv-eyebrow">{eyebrow}</div>'
             f'<h1>{inner(h2) if h2 is not None else ""}</h1>'
@@ -612,6 +616,14 @@ if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(cur+1)
 if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(cur-1)}
 if(e.key==='Home')show(0); if(e.key==='End')show(S.length-1);});
 S.forEach((s,i)=>{const pg=s.querySelector('.pg');if(pg)pg.textContent=String(i+1).padStart(2,'0')+' / '+S.length;});
+/* 표지 목차(#p01~#pB) — 슬라이드가 display:none이라 브라우저 스크롤로는 못 간다.
+   간지 슬라이드로 직접 점프시킨다. */
+document.addEventListener('click',e=>{
+const a=e.target.closest('a[href^="#"]');if(!a)return;
+const id=a.getAttribute('href').slice(1);if(!id)return;
+const t=document.getElementById(id);if(!t)return;
+const i=S.indexOf(t.closest('.slide')||t);if(i<0)return;
+e.preventDefault();show(i);});
 function fitAll(){
 S.forEach(s=>{const body=s.querySelector('.slide-body'),f=s.querySelector('.fit');
 if(!body||!f)return;
