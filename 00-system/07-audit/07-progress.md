@@ -69,7 +69,17 @@ staged가 18.9MB여야 할 것이 **181.9MB**로 튀었다. 커밋 전 크기 �
     · `deck-measured-{raw,raw2,new}.json` + `m390.jpeg` + `scope-top.jpeg` → `20-operations/23-arisa/`
   - 복구분은 원래도 untracked였으므로 추적 상태 변화 없음
   - ⚠️ `rm`이 이 환경에서 차단돼 있다. 삭제는 `mv ~/.Trash/` 로 우회했다
-- [ ] **`90-archive/_cleanup-20260722/` 32MB** — 2개월 전 정리하다 만 보관소. 같은 방식으로 결론 필요
+- [x] **`90-archive/_cleanup-20260722/` 32MB 정리 완료** (2026-09-16) — 7월에 분리해두고 2개월 방치된 보관소.
+      원본 생존 여부를 전수 확인하고 `~/.Trash/ws-cleanup-20260722/`로 이동
+  - `png-root/` 64개 26MB — 페이지별 확인용 캡처(`proposal-p1~p10` · `50p-slide-1~10` · `guide-01~06` 등). 원본 덱은 각 프로젝트 폴더에 생존
+  - `to-delete/` 4개 5.2MB — `_gubi-v1-preview.pdf`(원본 PDF는 90-archive/31-gubi-dapsimni/reports/에 있음) ·
+    `_part2-capture.html`+`part2-preview.png`(원본은 26-reporting-os 가이드 Part2) ·
+    **`_napkin-v3-share-nopw.pdf`** — 무암호 공유본. 메모리 `share_pdf_security`(PDF 128bit 암호화 필수)에 비추면
+    **남겨두는 쪽이 오히려 위험**한 파일이었다. 원본 HTML은 30-napkin-mag-sns/reports/에 생존
+  - `bak-files/` 11개 + `bak-sensitive/` 2개 524KB — **원본 13개 전부 생존 확인**.
+    bak-sensitive는 `users.json`·`portfolio-users.json` 백업(7/4)으로 민감정보라 제거가 맞다
+  - 부수: `.gitignore` 103행 `90-archive/_cleanup-20260722/` 제거 — 215행 와일드카드 `_cleanup-*/`와 중복이었다
+  - **격리 폴더 전량 정리 완료. 워크스페이스 2.59GB**
 - [ ] `node_modules` 810MB — `38-ax-pre-diagnosis` 469MB(소스는 164K), 루트 341MB
 
 ### 정리 중 발견 — 확인 필요
