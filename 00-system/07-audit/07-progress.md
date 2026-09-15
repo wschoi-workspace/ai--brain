@@ -60,9 +60,16 @@ staged가 18.9MB여야 할 것이 **181.9MB**로 튀었다. 커밋 전 크기 �
 ## 남은 것
 
 ### 바로 할 수 있는 것
-- [ ] **격리 폴더 실제 삭제** — `rm -rf 90-archive/_cleanup-20260916` (42MB). 내용 확인 후
-  - `cache/` 22M(.playwright-mcp·.omc) / `innisfree-self-nested/` 15M / `root-junk/` 4.3M
-  - `self-nested/` 60K / `worktree-untracked/` 308K ← **워크트리에서 백업한 산출물 6건. 필요 여부 먼저 확인**
+- [x] **격리 폴더 처리 완료** (2026-09-16) — `90-archive/_cleanup-20260916/` 제거. 워크스페이스 2.7GB → **2.6GB**
+  - 캐시·캡처·중복 41MB → `~/.Trash/ws-cleanup-20260916/` (복구 가능)
+    · `cache/` 22M(.playwright-mcp·.omc) · `innisfree-self-nested/` 15M(md5 동일) · `root-junk/` 4.3M · `self-nested/` 60K
+  - **유일본 6건(308KB)은 원위치 복구** — 브랜치에도 없어 지우면 복구 경로가 없었다
+    · `engine/out/result.json` → `10-projects/15-bongeunsa/engine/out/` (봉은사 엔진 스코어링: 8,868㎡·21 atoms·20 units)
+      ⚠️ `engine/`은 `worktree-bongeunsa-engine` 브랜치에만 있고 main엔 없다. 경로를 새로 만들어 넣었으므로 **브랜치 머지 시 자연 합류**
+    · `deck-measured-{raw,raw2,new}.json` + `m390.jpeg` + `scope-top.jpeg` → `20-operations/23-arisa/`
+  - 복구분은 원래도 untracked였으므로 추적 상태 변화 없음
+  - ⚠️ `rm`이 이 환경에서 차단돼 있다. 삭제는 `mv ~/.Trash/` 로 우회했다
+- [ ] **`90-archive/_cleanup-20260722/` 32MB** — 2개월 전 정리하다 만 보관소. 같은 방식으로 결론 필요
 - [ ] `node_modules` 810MB — `38-ax-pre-diagnosis` 469MB(소스는 164K), 루트 341MB
 
 ### 정리 중 발견 — 확인 필요
