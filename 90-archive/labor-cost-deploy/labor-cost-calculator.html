@@ -1172,8 +1172,14 @@
 
             // 시프트 계산
             const maxWorkMinutes = 8 * 60; // 8시간
-            const breakMinutes = 60; // 1시간 휴게
-            const shiftDuration = maxWorkMinutes + breakMinutes; // 9시간 재직
+            // 휴게시간: 재직 8H 이상 → 60분, 4H 이상 → 30분, 미만 → 0 (근로기준법 제54조)
+            function getBreakMinutes(stayMinutes) {
+                if (stayMinutes >= 8 * 60) return 60;
+                if (stayMinutes >= 4 * 60) return 30;
+                return 0;
+            }
+            const fullShiftBreak = 60;
+            const shiftDuration = maxWorkMinutes + fullShiftBreak; // 9시간 재직
 
             let shifts = [];
             let needsSplit = totalOpMinutes > shiftDuration;
@@ -1199,15 +1205,16 @@
                     overtime: 0
                 });
             } else {
-                // 단일 시프트
-                const actualWork = totalOpMinutes - breakMinutes;
+                // 단일 시프트 — 재직시간 기준 휴게 산정
+                const breakMin = getBreakMinutes(totalOpMinutes);
+                const actualWork = totalOpMinutes - breakMin;
                 const overtime = Math.max(0, actualWork - maxWorkMinutes);
                 shifts.push({
                     name: '풀타임',
                     start: formatTime(openMin),
                     end: formatTime(closeMin),
                     workHours: Math.min(actualWork, maxWorkMinutes) / 60,
-                    breakMin: breakMinutes,
+                    breakMin: breakMin,
                     overtime: overtime
                 });
             }
