@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이니스프리 SNS Mention Analysis — 2026-07-27</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1A1A1A; --card: #242424; --card-alt: #2C2C2C;
+    --text: #E8E8E8; --text-sub: #999; --text-dim: #666;
+    --accent: #6666FF; --accent-light: #8888FF;
+    --pos: #4CAF50; --neg: #FF5252; --mix: #FFB74D; --neu: #78909C;
+    --border: #333;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Pretendard Variable',system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.7; padding:40px 20px; }
+  .container { max-width:1100px; margin:0 auto; }
+  h1 { font-size:28px; font-weight:800; letter-spacing:-1px; margin-bottom:6px; }
+  h1 span { color:var(--accent); }
+  .subtitle { color:var(--text-sub); font-size:14px; margin-bottom:36px; }
+  h2 { font-size:18px; font-weight:700; color:var(--accent-light); margin:40px 0 16px; letter-spacing:-0.5px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+  .grid { display:grid; gap:16px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .card { background:var(--card); border-radius:12px; padding:20px; border:1px solid var(--border); }
+  .card-accent { border-left:3px solid var(--accent); }
+  .stat-label { font-size:12px; color:var(--text-sub); font-weight:500; margin-bottom:4px; }
+  .stat-value { font-size:28px; font-weight:800; letter-spacing:-1px; }
+  .stat-unit { font-size:14px; color:var(--text-sub); font-weight:500; }
+  .stat-sub { font-size:12px; color:var(--text-dim); margin-top:2px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; padding:10px 12px; background:var(--card-alt); color:var(--text-sub); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; }
+  td { padding:10px 12px; border-bottom:1px solid var(--border); }
+  tr:last-child td { border-bottom:none; }
+  .bar-wrap { display:flex; align-items:center; gap:8px; }
+  .bar { height:8px; border-radius:4px; min-width:2px; }
+  .bar-pos { background:var(--pos); }
+  .bar-neg { background:var(--neg); }
+  .bar-mix { background:var(--mix); }
+  .bar-neu { background:var(--neu); }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+  .badge-pos { background:rgba(76,175,80,0.15); color:var(--pos); }
+  .badge-neg { background:rgba(255,82,82,0.15); color:var(--neg); }
+  .badge-mix { background:rgba(255,183,77,0.15); color:var(--mix); }
+  .badge-neu { background:rgba(120,144,156,0.15); color:var(--neu); }
+  .gauge { display:flex; align-items:center; gap:12px; margin:8px 0; }
+  .gauge-track { flex:1; height:10px; background:var(--card-alt); border-radius:5px; overflow:hidden; }
+  .gauge-fill { height:100%; border-radius:5px; background:var(--accent); }
+  .gauge-val { font-size:20px; font-weight:800; min-width:50px; text-align:right; }
+  .insight-box { background:var(--card); border-left:3px solid var(--accent); border-radius:0 12px 12px 0; padding:20px 24px; margin:12px 0; }
+  .insight-box h3 { font-size:14px; font-weight:700; color:var(--accent-light); margin-bottom:6px; }
+  .insight-box p { font-size:13px; color:var(--text-sub); line-height:1.8; }
+  .product-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .product-row:last-child { border-bottom:none; }
+  .product-name { font-weight:700; min-width:70px; }
+  .product-bar { flex:1; display:flex; gap:2px; height:20px; border-radius:4px; overflow:hidden; }
+  .product-bar div { height:100%; }
+  .tag { display:inline-block; background:var(--card-alt); padding:3px 10px; border-radius:12px; font-size:11px; color:var(--text-sub); margin:2px; }
+  @media(max-width:768px) { .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- RXR Header -->
+<div style="display:flex;align-items:center;gap:10px;margin:0 0 20px 0;padding:0;background:transparent;border:none;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <strong style="font-size:19px;color:#6666FF;letter-spacing:-0.6px;font-weight:900;line-height:1;">RXR</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+  <strong style="font-size:19px;color:#e8e8e8;letter-spacing:-0.6px;font-weight:900;line-height:1;">AI intention</strong>
+  <strong style="font-size:19px;color:#9a9a9a;letter-spacing:-0.6px;font-weight:900;line-height:1;">analysis solution</strong>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:#888;font-weight:500;white-space:nowrap;">_by</span>
+  <strong style="font-size:13px;color:#6666FF;font-weight:700;letter-spacing:-0.1px;white-space:nowrap;">Project Rent</strong>
+  <span style="display:inline-block;width:1.5px;height:18px;background:#6666FF;"></span>
+</div>
+
+<h1><span>이니스프리</span> SNS Mention Analysis</h1>
+<p class="subtitle">분석일 2026-07-27 · 최근 7일 · 네이버 블로그 · 맥미니 RXR 테스트</p>
+
+<!-- ── Section 1: Overview KPI ── -->
+<h2>1. 데이터 수집 개요</h2>
+<div class="grid grid-4">
+  <div class="card card-accent">
+    <div class="stat-label">전체 크롤링</div>
+    <div class="stat-value">12,672</div>
+    <div class="stat-sub">14개 쿼리 · 네이버 블로그 API</div>
+  </div>
+  <div class="card card-accent">
+    <div class="stat-label">필터 후 대상</div>
+    <div class="stat-value">1,077</div>
+    <div class="stat-sub">중복·무관 제거</div>
+  </div>
+  <div class="card card-accent">
+    <div class="stat-label">유효 분석 대상</div>
+    <div class="stat-value" style="color:var(--accent);">941</div>
+    <div class="stat-sub">A+B+C 등급 (87%)</div>
+  </div>
+  <div class="card card-accent">
+    <div class="stat-label">필터 제외</div>
+    <div class="stat-value" style="color:var(--text-dim);">136</div>
+    <div class="stat-sub">D 25 · F 8 · G 103</div>
+  </div>
+</div>
+
+<div class="grid grid-3" style="margin-top:16px;">
+  <div class="card">
+    <div class="stat-label">A등급 · 진성후기</div>
+    <div class="stat-value" style="color:var(--pos);">141 <span class="stat-unit">15%</span></div>
+  </div>
+  <div class="card">
+    <div class="stat-label">B등급 · 일반포스트</div>
+    <div class="stat-value">714 <span class="stat-unit">76%</span></div>
+  </div>
+  <div class="card">
+    <div class="stat-label">C등급 · 협찬/체험단</div>
+    <div class="stat-value" style="color:var(--mix);">86 <span class="stat-unit">9%</span></div>
+  </div>
+</div>
+
+<!-- ── Section 2: Sentiment ── -->
+<h2>2. 감성 분포</h2>
+<div class="grid grid-2">
+  <div class="card">
+    <table>
+      <tr><th>감성</th><th>건수</th><th>비율</th><th style="width:40%">분포</th></tr>
+      <tr><td><span class="badge badge-pos">긍정</span></td><td>465</td><td>49%</td><td><div class="bar bar-pos" style="width:49%"></div></td></tr>
+      <tr><td><span class="badge badge-mix">혼합</span></td><td>268</td><td>28%</td><td><div class="bar bar-mix" style="width:28%"></div></td></tr>
+      <tr><td><span class="badge badge-neu">중립</span></td><td>126</td><td>13%</td><td><div class="bar bar-neu" style="width:13%"></div></td></tr>
+      <tr><td><span class="badge badge-neg">부정</span></td><td>82</td><td>9%</td><td><div class="bar bar-neg" style="width:9%"></div></td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="stat-label" style="margin-bottom:12px;">전체 vs 코어 세그먼트 비교</div>
+    <div style="display:flex;gap:4px;height:32px;border-radius:6px;overflow:hidden;margin-bottom:8px;">
+      <div style="width:49%;background:var(--pos);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">49%</div>
+      <div style="width:28%;background:var(--mix);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#333;">28%</div>
+      <div style="width:13%;background:var(--neu);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">13%</div>
+      <div style="width:9%;background:var(--neg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">9%</div>
+    </div>
+    <div class="stat-sub">전체 941건</div>
+    <div style="display:flex;gap:4px;height:32px;border-radius:6px;overflow:hidden;margin:12px 0 8px;">
+      <div style="width:67%;background:var(--pos);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">67%</div>
+      <div style="width:25%;background:var(--mix);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#333;">25%</div>
+      <div style="width:5%;background:var(--neu);"></div>
+      <div style="width:4%;background:var(--neg);"></div>
+    </div>
+    <div class="stat-sub">코어 393건 (브랜드가 주제인 글)</div>
+    <div style="margin-top:12px;font-size:12px;color:var(--pos);">코어 긍정률 +18%p ↑</div>
+  </div>
+</div>
+
+<!-- ── Section 3: Topics ── -->
+<h2>3. 토픽 × 감성</h2>
+<div class="card">
+  <table>
+    <tr><th>토픽</th><th>건수</th><th>긍정</th><th>혼합</th><th>부정</th><th style="width:30%">분포</th></tr>
+    <tr>
+      <td style="font-weight:700;">효능_피부변화</td><td>426</td><td style="color:var(--pos)">60%</td><td style="color:var(--mix)">27%</td><td style="color:var(--neg)">7%</td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:60%;background:var(--pos)"></div><div style="width:27%;background:var(--mix)"></div><div style="width:7%;background:var(--neg)"></div></div></td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">성분_클린뷰티 <span class="badge badge-neg" style="font-size:9px;">논쟁</span></td><td>158</td><td style="color:var(--pos)">30%</td><td style="color:var(--mix)">38%</td><td style="color:var(--neg)">15%</td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:30%;background:var(--pos)"></div><div style="width:38%;background:var(--mix)"></div><div style="width:15%;background:var(--neg)"></div></div></td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">가격_가성비</td><td>122</td><td style="color:var(--pos)">62%</td><td style="color:var(--mix)">18%</td><td style="color:var(--neg)">6%</td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:62%;background:var(--pos)"></div><div style="width:18%;background:var(--mix)"></div><div style="width:6%;background:var(--neg)"></div></div></td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">사용감_텍스처</td><td>119</td><td style="color:var(--pos)">46%</td><td style="color:var(--mix)">39%</td><td style="color:var(--neg)">13%</td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:46%;background:var(--pos)"></div><div style="width:39%;background:var(--mix)"></div><div style="width:13%;background:var(--neg)"></div></div></td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">향_패키지</td><td>50</td><td style="color:var(--pos)">36%</td><td style="color:var(--mix)">32%</td><td style="color:var(--neg)">6%</td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:36%;background:var(--pos)"></div><div style="width:32%;background:var(--mix)"></div><div style="width:6%;background:var(--neg)"></div></div></td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">브랜드_이미지</td><td>18</td><td style="color:var(--pos)">17%</td><td style="color:var(--mix)">28%</td><td style="color:var(--neu)">중립 50%</td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:17%;background:var(--pos)"></div><div style="width:28%;background:var(--mix)"></div><div style="width:50%;background:var(--neu)"></div></div></td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── Section 4: Psyche + Linguistic ── -->
+<h2>4. Psyche Layer + Linguistic Layer</h2>
+<div class="grid grid-2">
+  <div class="card">
+    <div class="stat-label">Authenticity · 진정성</div>
+    <div class="gauge"><div class="gauge-val" style="color:var(--pos);">79.5</div><div class="gauge-track"><div class="gauge-fill" style="width:79.5%;background:var(--pos);"></div></div></div>
+    <div class="stat-sub">Linguistic 보정 +6.4 · A등급 92.1</div>
+
+    <div class="stat-label" style="margin-top:16px;">Clout · 추천 확신도</div>
+    <div class="gauge"><div class="gauge-val" style="color:var(--mix);">56.7</div><div class="gauge-track"><div class="gauge-fill" style="width:56.7%;background:var(--mix);"></div></div></div>
+
+    <div class="stat-label" style="margin-top:16px;">Freshness · 정보 신선도</div>
+    <div class="gauge"><div class="gauge-val" style="color:var(--neu);">48.0</div><div class="gauge-track"><div class="gauge-fill" style="width:48%;background:var(--neu);"></div></div></div>
+  </div>
+  <div class="card">
+    <div class="stat-label">LAI · 언어학적 진정성</div>
+    <div class="gauge"><div class="gauge-val" style="color:var(--accent);">32.3</div><div class="gauge-track"><div class="gauge-fill" style="width:32.3%;"></div></div></div>
+    <div class="stat-sub">A등급 46.0 · 서열 비교만 유효 (절대값 주의)</div>
+
+    <div class="stat-label" style="margin-top:16px;">EDS · 인지적 몰입도</div>
+    <div class="gauge"><div class="gauge-val" style="color:var(--accent);">15.5</div><div class="gauge-track"><div class="gauge-fill" style="width:15.5%;"></div></div></div>
+    <div class="stat-sub">A등급 18.2 · 분량은 충분하나 깊이 부족</div>
+
+    <div class="stat-label" style="margin-top:16px;">Trust Score</div>
+    <div class="gauge"><div class="gauge-val" style="color:var(--pos);">98.8</div><div class="gauge-track"><div class="gauge-fill" style="width:98.8%;background:var(--pos);"></div></div></div>
+  </div>
+</div>
+
+<!-- ── Section 5: Product Lines ── -->
+<h2>5. 제품 라인별 분석 (코어 393건)</h2>
+<div class="card">
+  <table>
+    <tr><th>제품</th><th>건수</th><th>긍정률</th><th>Auth</th><th>특이사항</th><th style="width:25%">감성</th></tr>
+    <tr><td style="font-weight:700;">그린티</td><td>111</td><td style="color:var(--pos)">68%</td><td>86</td><td><span class="tag">최대 볼륨</span></td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:68%;background:var(--pos)"></div><div style="width:22%;background:var(--mix)"></div><div style="width:10%;background:var(--neg)"></div></div></td></tr>
+    <tr><td style="font-weight:700;">히알루론</td><td>80</td><td style="color:var(--pos)">69%</td><td style="color:var(--pos);">88</td><td><span class="tag">최고 진정성</span></td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:69%;background:var(--pos)"></div><div style="width:21%;background:var(--mix)"></div><div style="width:10%;background:var(--neg)"></div></div></td></tr>
+    <tr><td style="font-weight:700;">노세범</td><td>58</td><td style="color:var(--mix)">52%</td><td>84</td><td><span class="badge badge-mix">평가 갈림</span></td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:52%;background:var(--pos)"></div><div style="width:38%;background:var(--mix)"></div><div style="width:10%;background:var(--neg)"></div></div></td></tr>
+    <tr><td style="font-weight:700;">화산송이</td><td>50</td><td style="color:var(--pos);font-weight:700;">72%</td><td>83</td><td><span class="tag">최고 긍정률</span></td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:72%;background:var(--pos)"></div><div style="width:20%;background:var(--mix)"></div><div style="width:8%;background:var(--neg)"></div></div></td></tr>
+    <tr><td style="font-weight:700;">레티놀</td><td>40</td><td style="color:var(--pos)">68%</td><td>86</td><td><span class="badge badge-neg" style="font-size:10px;">자극 10%</span></td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:68%;background:var(--pos)"></div><div style="width:22%;background:var(--mix)"></div><div style="width:10%;background:var(--neg)"></div></div></td></tr>
+    <tr><td style="font-weight:700;">선크림</td><td>25</td><td style="color:var(--mix)">48%</td><td>84</td><td><span class="badge badge-neg" style="font-size:10px;">최저 긍정</span></td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:48%;background:var(--pos)"></div><div style="width:32%;background:var(--mix)"></div><div style="width:20%;background:var(--neg)"></div></div></td></tr>
+    <tr><td style="font-weight:700;">비자</td><td>23</td><td style="color:var(--pos)">65%</td><td>86</td><td></td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:65%;background:var(--pos)"></div><div style="width:25%;background:var(--mix)"></div><div style="width:10%;background:var(--neg)"></div></div></td></tr>
+    <tr><td style="font-weight:700;">쿠션</td><td>18</td><td style="color:var(--pos)">61%</td><td>84</td><td></td>
+      <td><div style="display:flex;gap:2px;height:14px;border-radius:3px;overflow:hidden;"><div style="width:61%;background:var(--pos)"></div><div style="width:28%;background:var(--mix)"></div><div style="width:11%;background:var(--neg)"></div></div></td></tr>
+  </table>
+</div>
+
+<!-- ── Section 6: RQL ── -->
+<h2>6. 리뷰 품질 등급 (RQL)</h2>
+<div class="grid grid-2">
+  <div class="card">
+    <table>
+      <tr><th>등급</th><th>건수</th><th style="width:50%">분포</th></tr>
+      <tr><td style="font-weight:700;color:var(--accent);">Q5 서사형</td><td>75</td><td><div class="bar" style="width:calc(75/467*100%);background:var(--accent);"></div></td></tr>
+      <tr><td style="font-weight:700;">Q4 분석형</td><td>392</td><td><div class="bar" style="width:calc(392/467*100%);background:var(--accent-light);"></div></td></tr>
+      <tr><td>Q4 승격 (담화 복잡성)</td><td>92</td><td><div class="bar" style="width:calc(92/467*100%);background:var(--accent-light);opacity:0.6;"></div></td></tr>
+      <tr><td>Q3 경험형</td><td>193</td><td><div class="bar" style="width:calc(193/467*100%);background:var(--neu);"></div></td></tr>
+      <tr><td>Q2 감상형</td><td>151</td><td><div class="bar" style="width:calc(151/467*100%);background:var(--text-dim);"></div></td></tr>
+      <tr><td style="color:var(--text-dim);">Q1 간단형</td><td>38</td><td><div class="bar" style="width:calc(38/467*100%);background:var(--text-dim);opacity:0.5;"></div></td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="stat-label">Q4+Q5 비율</div>
+    <div class="stat-value" style="color:var(--accent);">59% <span class="stat-unit">전체</span></div>
+    <div style="font-size:16px;font-weight:700;color:var(--accent-light);margin-top:4px;">72% <span class="stat-unit">코어</span></div>
+    <div style="margin-top:20px;">
+      <div class="stat-label">리뷰 자산값</div>
+      <div class="stat-value">1,106</div>
+      <div class="stat-sub">평균 1.18/건</div>
+    </div>
+    <div style="margin-top:20px;">
+      <div class="stat-label">담화 복잡성 승격</div>
+      <div style="font-size:20px;font-weight:700;">92건 <span class="stat-unit">Q3→Q4</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Section 7: Sponsored vs Organic ── -->
+<h2>7. 협찬 vs 자발</h2>
+<div class="card">
+  <table>
+    <tr><th>지표</th><th>자발 (855건)</th><th>협찬 (86건)</th><th>차이</th></tr>
+    <tr><td style="font-weight:700;">Authenticity</td><td style="color:var(--pos);">80.9</td><td>64.6</td><td style="color:var(--neg);">−16.4</td></tr>
+    <tr><td style="font-weight:700;">Trust</td><td style="color:var(--pos);">99.7</td><td>89.9</td><td style="color:var(--neg);">−9.8</td></tr>
+    <tr><td style="font-weight:700;">LAI</td><td>32.9</td><td>26.5</td><td style="color:var(--neg);">−6.3</td></tr>
+  </table>
+</div>
+
+<!-- ── Section 8: Linguistic ── -->
+<h2>8. 언어학 레이어</h2>
+<div class="grid grid-3">
+  <div class="card">
+    <div class="stat-label">문체 분포</div>
+    <div style="margin-top:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;"><span>해요체</span><span style="font-weight:700;">61%</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px;"><span>합쇼체</span><span style="font-weight:700;">27%</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px;"><span>해체</span><span style="font-weight:700;">10%</span></div>
+    </div>
+    <div class="stat-sub" style="margin-top:8px;">템플릿 의심 32건 (3.4%)</div>
+  </div>
+  <div class="card">
+    <div class="stat-label">확신도 비율</div>
+    <div class="stat-value">21.7</div>
+    <div class="stat-sub">헤징 우세 — 단정 회피형 서술</div>
+    <div style="margin-top:12px;">
+      <div class="stat-label">감각어 밀도</div>
+      <div style="font-size:18px;font-weight:700;">1.90<span class="stat-unit">/100단어</span></div>
+      <div class="stat-sub">3 이상은 29%</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="stat-label">대조표지 2개+</div>
+    <div class="stat-value">209<span class="stat-unit">건 (22%)</span></div>
+    <div class="stat-sub">장단점 병기형</div>
+    <div style="margin-top:12px;">
+      <div class="stat-label">간접부정·완서법</div>
+      <div style="font-size:18px;font-weight:700;">35<span class="stat-unit">건</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Section 9: Insights ── -->
+<h2>9. 핵심 해석 & 액션 포인트</h2>
+
+<div class="insight-box">
+  <h3>여론은 나쁘지 않다. 존재감이 약하다.</h3>
+  <p>코어 세그먼트 긍정률 67%, A등급 Auth 92는 브랜드 호감이 견고함을 보여줍니다. 문제는 유효 941건 중 58%가 브랜드를 스치기만 한 글이고, <strong>브랜드_이미지</strong> 토픽은 18건(2%)에 불과합니다. 제품은 소비되지만 브랜드 서사는 유통되지 않습니다.</p>
+</div>
+
+<div class="insight-box">
+  <h3>성분_클린뷰티가 유일한 리스크 지대</h3>
+  <p>부정 15%·혼합 38%로 전 토픽 중 최고 논쟁률. 제주·녹차·화산송이라는 자연주의 자산이 지금은 방어 자산이 아니라 검증 요구를 유발하는 지점입니다. 레티놀 라인 부정 10%(자극 이슈)도 같은 축입니다.</p>
+</div>
+
+<div class="insight-box">
+  <h3>EDS 15.5 — 길지만 얕다</h3>
+  <p>Q4+Q5가 59%인데 EDS는 15점대. 분량은 충분한데 은유·한정표지("개인적으로", "제 피부 기준")·구체적 수치가 희박한 정보 나열형이 다수. 조건부 추천이 941건 중 1건뿐이라는 수치가 이를 단적으로 보여줍니다. 리뷰가 검색 노출용으로 최적화되면서 개인 서사가 빠졌습니다.</p>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <div class="stat-label" style="margin-bottom:12px;">ACTION POINTS</div>
+  <table>
+    <tr><td style="color:var(--accent);font-weight:700;width:30px;">01</td><td>볼륨 확대보다 <strong>주제성 전환</strong> — 스침 언급 221건을 코어로 끌어올릴 앵커 콘텐츠(라인 단위 스토리) 필요</td></tr>
+    <tr><td style="color:var(--accent);font-weight:700;">02</td><td>앰플리파이 우선순위: <strong>화산송이</strong>(긍정 72%) → <strong>히알루론</strong>(Auth 88) → <strong>그린티</strong>(볼륨 111)</td></tr>
+    <tr><td style="color:var(--accent);font-weight:700;">03</td><td><strong>선크림·노세범 혼합 감성 정밀 진단</strong> — 혼합 32~38%는 개선 가능한 특정 불만(백탁·밀림)이 반복되는 신호</td></tr>
+    <tr><td style="color:var(--accent);font-weight:700;">04</td><td><strong>성분 커뮤니케이션 리브랜딩</strong> — 자연주의를 주장이 아니라 근거(함량·시험 데이터)로 제시</td></tr>
+  </table>
+</div>
+
+<!-- ── Section 10: Caveats ── -->
+<h2>10. 방법론 한계</h2>
+<div class="grid grid-2">
+  <div class="card" style="border-left:3px solid var(--neg);">
+    <div style="font-size:13px;font-weight:700;color:var(--neg);margin-bottom:8px;">LAI v1.0 캘리브레이션 미스</div>
+    <p style="font-size:12px;color:var(--text-sub);line-height:1.7;">LAI-Auth 괴리 플래그 847건(90%). 한국어 주어 생략으로 1인칭 어절 비율 중위값 0.56%(LAI 요구 5~15% 대비 0%). <strong>LAI 절대값 신뢰 불가</strong> — 등급 간 서열(A 43.7 > B 30.7 > C 26.5) 상대 비교만 유효.</p>
+  </div>
+  <div class="card" style="border-left:3px solid var(--neg);">
+    <div style="font-size:13px;font-weight:700;color:var(--neg);margin-bottom:8px;">부정어 매칭 극성 반전 미처리</div>
+    <p style="font-size:12px;color:var(--text-sub);line-height:1.7;">"백탁" 72%, "끈적" 67%, "무겁" 55%가 "없이/않게" 형태로 긍정 의미. 전체 부정 9%·혼합 28%는 과대 계상. 실제 긍정 기조는 코어 67%에 가까움.</p>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- RXR Footer -->
+<footer style="max-width:1100px;margin:40px auto;padding:0;font-size:12px;color:#555;font-family:'Pretendard Variable',system-ui,sans-serif;">
+  <div style="background:#2a2a2a;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;border-bottom:1px solid #333;line-height:1.7;color:#999;">
+    <p style="margin:0 0 4px;">본 분석은 공개 SNS 데이터에 대한 규칙 기반 텍스트 분석의 결과이며, 모든 수치는 상대 비교용 추정치입니다.</p>
+    <p style="margin:0;">공유된 대상자 외 재배포·인용을 금하며, 외부 공개를 원할 경우 분석 주체에게 사전 협의를 요청드립니다.</p>
+  </div>
+  <div style="background:#1e1e3a;padding:22px 24px;border-left:4px solid #6666FF;text-align:left;line-height:1.8;">
+    <div style="font-weight:800;color:#6666FF;font-size:14px;margin-bottom:8px;letter-spacing:-0.3px;">💠 RXR SNS Analysis Solution</div>
+    <p style="margin:0;color:#ccc;font-size:12.5px;">
+      본 분석 솔루션은 온·오프라인 리테일 미디어 서비스 <strong style="color:#6666FF;">『프로젝트 렌트(Project Rent)』</strong>가
+      자체 설계·운영하는 <strong>독자분석 AI 엔진</strong>을 기반으로 구축된
+      정량·정성 통합 SNS 인식 분석 솔루션이며, <strong>프로젝트 렌트의 지적재산(Intellectual Property)</strong>입니다.
+    </p>
+  </div>
+  <div style="background:#2a2a2a;padding:16px 22px;border-radius:0 0 10px 10px;text-align:center;font-size:12px;color:#888;">
+    📧 <strong>본 솔루션 또는 리포트에 대한 문의</strong>&nbsp;·&nbsp;
+    <a href="mailto:ws.choi@project-rent.com" style="color:#6666FF;text-decoration:none;font-weight:700;">ws.choi@project-rent.com</a>
+    <div style="margin-top:6px;color:#666;font-size:11px;">© Project Rent. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>
