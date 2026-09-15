@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sankey Flow Report</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+<style>
+:root{
+  --bg:#1A1A1A; --bg-2:#111111; --bg-3:#222222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --accent:#6C5CE7; --accent-dk:#5A4BD1; --accent-lt:#A29BFE; --accent-sub:#2A2540;
+  --warm:#E9DCC8; --rust:#B86C4A; --green:#8FA37E; --blue:#6F8AA3; --amber:#D9A34B; --coral:#E17055;
+  --line:#333333; --line-2:#2A2A2A;
+  --tint:rgba(255,255,255,.03); --tint-2:rgba(255,255,255,.06);
+}
+body.theme-light{
+  --bg:#F4F1EC; --bg-2:#FFFFFF; --bg-3:#FAF7F2;
+  --fg:#1F1B16; --fg-2:#4A443C; --fg-3:#8A847A;
+  --accent:#6C5CE7; --accent-dk:#5A4BD1; --accent-lt:#5A4BD1; --accent-sub:#EDE9FE;
+  --warm:#9A7B3A; --rust:#A85C3C; --green:#5E7A4A; --blue:#4E6B84; --amber:#B07E28; --coral:#C4533A;
+  --line:#E3DDD2; --line-2:#EEE9E0;
+  --tint:rgba(0,0,0,.035); --tint-2:rgba(0,0,0,.065);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  background:var(--bg);color:var(--fg);font-size:13px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
+
+/* ── Topbar ── */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding:16px 22px;border-bottom:1px solid var(--line);background:var(--bg-2);flex-wrap:wrap}
+.topbar .label{font-size:10px;letter-spacing:.18em;color:var(--accent-lt);font-weight:600;text-transform:uppercase}
+.topbar h1{font-size:19px;font-weight:500;letter-spacing:-.02em;margin-top:4px}
+.topbar .sub{font-size:12px;color:var(--fg-3);margin-top:3px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.badge{font-size:10px;font-weight:600;letter-spacing:.02em;padding:3px 8px;border-radius:4px;
+  border:1px solid var(--line);color:var(--fg-2);background:var(--bg-3)}
+.badge.accent{border-color:var(--accent);color:var(--accent-lt);background:var(--accent-sub)}
+.badge.warn{border-color:var(--amber);color:var(--amber);background:transparent}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap}
+.btn{font-family:inherit;font-size:11px;font-weight:600;color:var(--fg-2);background:var(--bg-3);
+  border:1px solid var(--line);border-radius:6px;padding:7px 11px;cursor:pointer;transition:.12s;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--fg)}
+.btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── Layout ── */
+.app{display:grid;grid-template-columns:1fr 360px;height:calc(100vh - 82px);min-height:520px}
+.app.panel-off{grid-template-columns:1fr 0}
+.app.panel-off .panel{display:none}
+.stage-wrap{overflow:auto;position:relative;background:var(--bg)}
+svg{display:block}
+
+/* ── SVG parts ── */
+.stage-hd{cursor:pointer}
+.stage-hd rect{fill:var(--tint);stroke:var(--line-2)}
+.stage-hd:hover rect{stroke:var(--accent)}
+.stage-hd .st-label{font-size:11px;font-weight:600;fill:var(--fg-2);letter-spacing:.02em}
+.stage-hd .st-role{font-size:9px;fill:var(--fg-3);letter-spacing:.08em;text-transform:uppercase}
+.stage-hd .st-toggle{font-size:11px;fill:var(--fg-3);font-weight:700}
+.stage-hd.collapsed rect{fill:var(--accent-sub);stroke:var(--accent)}
+.stage-hd.collapsed .st-label{fill:var(--accent-lt)}
+
+.link{fill:none;stroke-opacity:.34;transition:stroke-opacity .15s}
+.link.lowconf{stroke-dasharray:6 4}
+.link.skip{stroke-dasharray:2 5;stroke-opacity:.22}
+.link:hover{stroke-opacity:.7;cursor:pointer}
+.node rect{stroke-width:1;cursor:pointer;transition:filter .15s}
+.node.orphan rect{stroke-dasharray:3 2;fill-opacity:.25}
+.node:hover rect{filter:brightness(1.25)}
+.node .n-label{font-size:11px;fill:var(--fg);pointer-events:none;font-weight:500}
+.node .n-val{font-size:9.5px;fill:var(--fg-3);pointer-events:none}
+.node.sel rect{stroke:var(--fg);stroke-width:2}
+.badge-mark{font-size:10px;font-weight:700;pointer-events:none}
+.ghost{stroke:var(--amber);stroke-dasharray:3 4;stroke-opacity:.5;fill:none;stroke-width:1.5}
+
+.dim .link:not(.hl){stroke-opacity:.05}
+.dim .node:not(.hl) rect{opacity:.18}
+.dim .node:not(.hl) .n-label,.dim .node:not(.hl) .n-val{opacity:.2}
+
+/* ── Legend ── */
+.legend{display:flex;gap:6px;flex-wrap:wrap;padding:10px 22px;border-top:1px solid var(--line);
+  background:var(--bg-2);align-items:center}
+.legend .lg-title{font-size:10px;color:var(--fg-3);letter-spacing:.1em;text-transform:uppercase;margin-right:4px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--fg-2);
+  border:1px solid var(--line);border-radius:20px;padding:3px 10px;cursor:pointer;transition:.12s;user-select:none}
+.chip:hover{border-color:var(--accent)}
+.chip .dot{width:9px;height:9px;border-radius:50%}
+.chip.off{opacity:.35;text-decoration:line-through}
+
+/* ── Panel ── */
+.panel{border-left:1px solid var(--line);background:var(--bg-2);overflow-y:auto;padding:18px}
+.panel h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-lt);
+  font-weight:600;margin-bottom:10px}
+.panel .empty{color:var(--fg-3);font-size:12px;line-height:1.7}
+.pn-title{font-size:16px;font-weight:500;letter-spacing:-.01em;margin-bottom:3px}
+.pn-meta{font-size:11px;color:var(--fg-3);margin-bottom:12px}
+.pn-sum{font-size:12.5px;color:var(--fg-2);line-height:1.65;padding:10px 12px;background:var(--bg-3);
+  border-radius:6px;border:1px solid var(--line-2);margin-bottom:14px}
+.ev{border-left:2px solid var(--accent);padding:7px 0 7px 11px;margin-bottom:10px}
+.ev q{font-size:12px;color:var(--fg);line-height:1.6;display:block;quotes:'“' '”'}
+.ev .src{font-size:10px;color:var(--fg-3);margin-top:5px;display:block;word-break:break-all}
+.no-ev{font-size:11.5px;color:var(--amber);border:1px dashed var(--amber);border-radius:5px;padding:8px 10px}
+.flow-row{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:5px 0;
+  border-bottom:1px solid var(--line-2);cursor:pointer}
+.flow-row:hover{color:var(--accent-lt)}
+.flow-row .v{color:var(--fg-3);flex-shrink:0}
+.ws-item{border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:5px;
+  padding:10px 11px;margin-bottom:9px;background:var(--bg-3)}
+.ws-item .t{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);font-weight:700}
+.ws-item .q{font-size:12px;color:var(--fg);margin-top:5px;line-height:1.55}
+.ws-item .i{font-size:11.5px;color:var(--fg-2);margin-top:7px;line-height:1.55;
+  padding-top:7px;border-top:1px dashed var(--line)}
+.ws-item .i::before{content:'아이디어 · ';color:var(--amber);font-weight:600}
+.concl{border:1px solid var(--line);border-radius:6px;padding:11px 12px;margin-bottom:9px;background:var(--bg-3)}
+.concl .st{font-size:13px;font-weight:500;line-height:1.5}
+.concl .sw{font-size:11.5px;color:var(--fg-2);margin-top:6px;line-height:1.55}
+.concl .sp{font-size:10px;color:var(--fg-3);margin-top:7px}
+.concl.thin{border-left:3px solid var(--amber)}
+
+/* ── Print appendix ── */
+.appendix{display:none;padding:24px 22px}
+.appendix h2{font-size:14px;font-weight:500;margin:22px 0 9px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.appendix table{width:100%;border-collapse:collapse;font-size:10.5px}
+.appendix th{text-align:left;font-weight:600;color:var(--fg-2);padding:5px 7px;
+  border-bottom:1px solid var(--line);background:var(--tint);white-space:nowrap}
+.appendix td{padding:5px 7px;border-bottom:1px solid var(--line-2);vertical-align:top;color:var(--fg-2)}
+.appendix tr{break-inside:avoid}
+
+body.print-preview .app{height:auto;grid-template-columns:1fr}
+body.print-preview .panel{display:none}
+body.print-preview .appendix{display:block}
+body.print-preview .stage-wrap{overflow:visible}
+
+@media print{
+  @page{size:A4 landscape;margin:12mm}
+  body{background:#fff;color:#111;font-size:10px}
+  .topbar{background:#fff;border-color:#ccc}
+  .toolbar,.panel,.legend{display:none!important}
+  .app{display:block;height:auto}
+  .stage-wrap{overflow:visible}
+  .appendix{display:block;break-before:page}
+  .dim .link:not(.hl),.dim .node:not(.hl) rect{stroke-opacity:.34;opacity:1}
+  .node .n-label,.node .n-val{opacity:1!important}
+  svg{max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ 데이터 주입 지점 ══════════════
+     스킬이 sankey-graph.json 내용을 아래 script 안에 통째로 넣는다.
+     아래 값은 템플릿 단독 동작 확인용 데모다. -->
+<script id="graph-data" type="application/json">
+{
+ "meta": {
+  "title": "유럽 진출 협업 회의 — 이슈 상태 전이",
+  "subtitle": "2026-07-14 · 최원석, 진실님, 혜정님 · 협업 회의",
+  "source": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json",
+  "generated_at": "2026-07-30",
+  "axis": "time",
+  "mode": "generate",
+  "value_basis": "equal",
+  "value_note": "회의 항목 건수 (중요도 아님)"
+ },
+ "stages": [
+  {
+   "id": "t1",
+   "label": "이전 상태",
+   "order": 0,
+   "role": "origin",
+   "note": "changes[].before"
+  },
+  {
+   "id": "t2",
+   "label": "논의",
+   "order": 1,
+   "role": "structure",
+   "note": "discussions · risks · to_verify"
+  },
+  {
+   "id": "t3",
+   "label": "이후 상태",
+   "order": 2,
+   "role": "synthesis",
+   "note": "changes[].after"
+  },
+  {
+   "id": "t4",
+   "label": "결론",
+   "order": 3,
+   "role": "conclusion",
+   "note": ""
+  }
+ ],
+ "nodes": [
+  {
+   "evidence": [
+    {
+     "quote": "개별 협력 → 유럽 AHQ 중심 협업",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#changes[0]"
+    }
+   ],
+   "id": "b0",
+   "stage": "t1",
+   "label": "개별 협력",
+   "category": "iss0",
+   "summary": "회의 이전 상태",
+   "flags": []
+  },
+  {
+   "evidence": [],
+   "id": "a0",
+   "stage": "t3",
+   "label": "유럽 AHQ 중심 협업",
+   "category": "iss0",
+   "summary": "회의 이후 상태",
+   "flags": []
+  },
+  {
+   "evidence": [
+    {
+     "quote": "행사 대응 중심 → 시장 진출 전략 중심",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#changes[1]"
+    }
+   ],
+   "id": "b1",
+   "stage": "t1",
+   "label": "행사 대응 중심",
+   "category": "iss1",
+   "summary": "회의 이전 상태",
+   "flags": []
+  },
+  {
+   "evidence": [],
+   "id": "a1",
+   "stage": "t3",
+   "label": "시장 진출 전략 중심",
+   "category": "iss1",
+   "summary": "회의 이후 상태",
+   "flags": []
+  },
+  {
+   "evidence": [
+    {
+     "quote": "한국 내 제작 및 운영 → 유럽 현지 운영 및 관리",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#changes[2]"
+    }
+   ],
+   "id": "b2",
+   "stage": "t1",
+   "label": "한국 내 제작 및 운영",
+   "category": "iss2",
+   "summary": "회의 이전 상태",
+   "flags": []
+  },
+  {
+   "evidence": [],
+   "id": "a2",
+   "stage": "t3",
+   "label": "유럽 현지 운영 및 관리",
+   "category": "iss2",
+   "summary": "회의 이후 상태",
+   "flags": []
+  },
+  {
+   "evidence": [],
+   "id": "b-new",
+   "stage": "t1",
+   "label": "신규 제기",
+   "category": "iss-new",
+   "summary": "이전 상태 기록이 없는 안건 — 이번 회의에서 처음 나온 것",
+   "flags": [
+    "hub"
+   ]
+  },
+  {
+   "evidence": [
+    {
+     "quote": "진실님이 유럽 AHQ 역할 수행",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#discussions[0].conclusion"
+    }
+   ],
+   "id": "d0",
+   "stage": "t2",
+   "label": "유럽 AHQ 역할",
+   "category": "iss0",
+   "summary": "진실님이 프로젝트 렌트의 유럽 AHQ 역할을 맡기로 합의",
+   "flags": []
+  },
+  {
+   "evidence": [
+    {
+     "quote": "차주 초 오피셜 메일 발송 목표",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#discussions[1].conclusion"
+    }
+   ],
+   "id": "d1",
+   "stage": "t2",
+   "label": "유럽형 소개자료 제작",
+   "category": "iss2",
+   "summary": "유럽형 소개자료를 이번 주말까지 완성하여 차주 초 발송",
+   "flags": []
+  },
+  {
+   "evidence": [
+    {
+     "quote": "수의계약 한도 내 진행",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#discussions[2].conclusion"
+    }
+   ],
+   "id": "d2",
+   "stage": "t2",
+   "label": "OECD 국경일 행사 진행",
+   "category": "iss1",
+   "summary": "OECD 한국 대표부 국경일 행사를 수의계약으로 진행",
+   "flags": []
+  },
+  {
+   "evidence": [
+    {
+     "quote": "진실님이 아트디렉팅 담당 팀장 태핑",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#discussions[3].conclusion"
+    }
+   ],
+   "id": "d3",
+   "stage": "t2",
+   "label": "파리 한국문화원 사업",
+   "category": "iss1",
+   "summary": "내년 입찰 목표로 빌드업",
+   "flags": []
+  },
+  {
+   "evidence": [],
+   "id": "unres",
+   "stage": "t3",
+   "label": "미해결",
+   "category": "iss-open",
+   "summary": "이 회의에서 상태가 바뀌지 않고 남은 것",
+   "flags": [
+    "hub"
+   ]
+  },
+  {
+   "evidence": [
+    {
+     "quote": "대사관 평판 이슈로 11/20 행사가 마지막 기회",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#risks[0]"
+    }
+   ],
+   "id": "r0",
+   "stage": "t2",
+   "label": "리스크 · 사업",
+   "category": "iss-open",
+   "summary": "대사관 평판 이슈로 11/20 행사가 마지막 기회",
+   "flags": []
+  },
+  {
+   "evidence": [
+    {
+     "quote": "유럽 수출 실무 리스크로 행정 주체 필요",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#risks[1]"
+    }
+   ],
+   "id": "r1",
+   "stage": "t2",
+   "label": "리스크 · 운영",
+   "category": "iss-open",
+   "summary": "유럽 수출 실무 리스크로 행정 주체 필요",
+   "flags": []
+  },
+  {
+   "evidence": [
+    {
+     "quote": "경쟁 구도에서 이노션 프랑스와의 경쟁",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#risks[2]"
+    }
+   ],
+   "id": "r2",
+   "stage": "t2",
+   "label": "리스크 · 경쟁",
+   "category": "iss-open",
+   "summary": "경쟁 구도에서 이노션 프랑스와의 경쟁",
+   "flags": []
+  },
+  {
+   "evidence": [
+    {
+     "quote": "수의계약 주체 결정",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#to_verify[0]"
+    },
+    {
+     "quote": "진실님 현지 법인의 물품 수취 실무 가능 여부",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#to_verify[1]"
+    },
+    {
+     "quote": "이탈리아 캠페인 참여 여부",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#to_verify[2]"
+    },
+    {
+     "quote": "OECD 행사 예산 규모",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#to_verify[3]"
+    }
+   ],
+   "id": "tv",
+   "stage": "t2",
+   "label": "확인 필요 4건",
+   "category": "iss-open",
+   "summary": "수의계약 주체 결정 / 진실님 현지 법인의 물품 수취 실무 가능 여부 / 이탈리아 캠페인 참여 여부 / OECD 행사 예산 규모",
+   "flags": [
+    "hub"
+   ]
+  },
+  {
+   "evidence": [],
+   "id": "k-fix",
+   "stage": "t4",
+   "label": "확정",
+   "category": "go",
+   "summary": "decisions 3건 — 이번 회의에서 결론이 난 것",
+   "flags": []
+  },
+  {
+   "evidence": [],
+   "id": "k-open",
+   "stage": "t4",
+   "label": "미결 · 확인 필요",
+   "category": "hold",
+   "summary": "to_verify — 답이 나와야 다음이 움직인다",
+   "flags": []
+  },
+  {
+   "evidence": [],
+   "id": "k-risk",
+   "stage": "t4",
+   "label": "리스크 관찰",
+   "category": "drop",
+   "summary": "risks — 결론이 아니라 계속 봐야 하는 것",
+   "flags": []
+  }
+ ],
+ "links": [
+  {
+   "id": "l-d0-in",
+   "source": "b0",
+   "target": "d0",
+   "value": 1
+  },
+  {
+   "id": "l-d0-out",
+   "source": "d0",
+   "target": "a0",
+   "value": 1
+  },
+  {
+   "id": "l-d1-in",
+   "source": "b2",
+   "target": "d1",
+   "value": 1
+  },
+  {
+   "id": "l-d1-out",
+   "source": "d1",
+   "target": "a2",
+   "value": 1
+  },
+  {
+   "id": "l-d2-in",
+   "source": "b1",
+   "target": "d2",
+   "value": 1
+  },
+  {
+   "id": "l-d2-out",
+   "source": "d2",
+   "target": "a1",
+   "value": 1
+  },
+  {
+   "id": "l-d3-in",
+   "source": "b1",
+   "target": "d3",
+   "value": 1
+  },
+  {
+   "id": "l-d3-out",
+   "source": "d3",
+   "target": "a1",
+   "value": 1
+  },
+  {
+   "id": "l-r0-in",
+   "source": "b-new",
+   "target": "r0",
+   "value": 1
+  },
+  {
+   "id": "l-r0-out",
+   "source": "r0",
+   "target": "unres",
+   "value": 1
+  },
+  {
+   "id": "l-r1-in",
+   "source": "b-new",
+   "target": "r1",
+   "value": 1
+  },
+  {
+   "id": "l-r1-out",
+   "source": "r1",
+   "target": "unres",
+   "value": 1
+  },
+  {
+   "id": "l-r2-in",
+   "source": "b-new",
+   "target": "r2",
+   "value": 1
+  },
+  {
+   "id": "l-r2-out",
+   "source": "r2",
+   "target": "unres",
+   "value": 1
+  },
+  {
+   "id": "l-tv-in",
+   "source": "b-new",
+   "target": "tv",
+   "value": 4
+  },
+  {
+   "id": "l-tv-out",
+   "source": "tv",
+   "target": "unres",
+   "value": 4
+  },
+  {
+   "id": "l-fix0",
+   "source": "a0",
+   "target": "k-fix",
+   "value": 1
+  },
+  {
+   "id": "l-fix1",
+   "source": "a1",
+   "target": "k-fix",
+   "value": 1
+  },
+  {
+   "id": "l-fix2",
+   "source": "a2",
+   "target": "k-fix",
+   "value": 1
+  },
+  {
+   "id": "l-open2",
+   "source": "a1",
+   "target": "k-open",
+   "value": 1,
+   "evidence": [
+    {
+     "quote": "내년 입찰 목표로 빌드업",
+     "src": "10-projects/39-r4-meeting-os/arisa-summary-europe-final.json#discussions[3].points"
+    }
+   ]
+  },
+  {
+   "id": "l-open",
+   "source": "unres",
+   "target": "k-open",
+   "value": 4
+  },
+  {
+   "id": "l-risk",
+   "source": "unres",
+   "target": "k-risk",
+   "value": 3
+  }
+ ],
+ "conclusions": [
+  {
+   "node_id": "k-fix",
+   "statement": "이 회의의 실질은 협업 구조 전환이다 — 개별 협력에서 유럽 AHQ 중심으로",
+   "so_what": "개별 안건이 아니라 구조 변경으로 기록하고 후속 실무를 그 전제 위에 짠다",
+   "support": [
+    "l-fix0",
+    "l-fix1",
+    "l-fix2"
+   ]
+  },
+  {
+   "node_id": "k-open",
+   "statement": "수의계약 주체와 현지 수취 실무가 정해지지 않아 실행이 멈춰 있다",
+   "so_what": "이 두 건이 다음 회의 이전에 답이 나와야 11/20 일정이 산다",
+   "support": [
+    "l-open",
+    "l-open2"
+   ]
+  },
+  {
+   "node_id": "k-risk",
+   "statement": "11/20 행사가 마지막 기회라는 시한이 모든 판단을 압박하고 있다",
+   "so_what": "리스크 3건을 결론이 아니라 상시 관찰 항목으로 분리해 관리한다",
+   "support": [
+    "l-risk"
+   ]
+  }
+ ],
+ "whitespace": [
+  {
+   "type": "thin_path",
+   "where": [
+    "k-risk"
+   ],
+   "question": "'11/20 행사가 마지막 기회라는 시한이 모든 판단을 압박하고 있다'를 뒷받침하는 근거가 1건뿐이다 — 더 있는가, 아니면 취소할 것인가?",
+   "idea": "이 결론을 확인하려면 어떤 데이터를 더 봐야 하는가"
+  },
+  {
+   "type": "collision",
+   "where": [
+    "b1"
+   ],
+   "question": "행사 대응 중심이 확정 50% / 미결 · 확인 필요 50%로 갈렸다 — 무엇이 방향을 갈랐는가?",
+   "idea": "그 갈림 조건 자체를 새 단계로 세우면 무엇이 보이는가"
+  },
+  {
+   "type": "collision",
+   "where": [
+    "a1"
+   ],
+   "question": "시장 진출 전략 중심이 확정 50% / 미결 · 확인 필요 50%로 갈렸다 — 무엇이 방향을 갈랐는가?",
+   "idea": "그 갈림 조건 자체를 새 단계로 세우면 무엇이 보이는가"
+  },
+  {
+   "type": "collision",
+   "where": [
+    "b-new"
+   ],
+   "question": "신규 제기가 미결 · 확인 필요 57% / 리스크 관찰 43%로 갈렸다 — 무엇이 방향을 갈랐는가?",
+   "idea": "그 갈림 조건 자체를 새 단계로 세우면 무엇이 보이는가"
+  },
+  {
+   "type": "collision",
+   "where": [
+    "unres"
+   ],
+   "question": "미해결이 미결 · 확인 필요 57% / 리스크 관찰 43%로 갈렸다 — 무엇이 방향을 갈랐는가?",
+   "idea": "그 갈림 조건 자체를 새 단계로 세우면 무엇이 보이는가"
+  },
+  {
+   "type": "hub",
+   "where": [
+    "b-new"
+   ],
+   "question": "신규 제기에 흐름이 몰리는데 하류가 4갈래뿐인 이유는?",
+   "idea": "신규 제기를 여러 갈래로 쪼개면 각각 무엇이 되는가"
+  },
+  {
+   "type": "hub",
+   "where": [
+    "unres"
+   ],
+   "question": "미해결에 흐름이 몰리는데 하류가 2갈래뿐인 이유는?",
+   "idea": "미해결을 여러 갈래로 쪼개면 각각 무엇이 되는가"
+  },
+  {
+   "type": "hub",
+   "where": [
+    "tv"
+   ],
+   "question": "확인 필요 4건에 흐름이 몰리는데 하류가 1갈래뿐인 이유는?",
+   "idea": "확인 필요 4건을 여러 갈래로 쪼개면 각각 무엇이 되는가"
+  }
+ ]
+}
+</script>
+
+<div class="topbar">
+  <div>
+    <div class="label">Sankey Flow</div>
+    <h1 id="ttl">—</h1>
+    <div class="sub" id="sub"></div>
+    <div class="badges" id="badges"></div>
+  </div>
+  <div class="toolbar">
+    <button class="btn" id="b-sort">정렬 · 값순</button>
+    <button class="btn" id="b-panel">패널</button>
+    <button class="btn" id="b-print">인쇄 미리보기</button>
+    <button class="btn" id="b-theme">라이트</button>
+    <button class="btn" id="b-reset">초기화</button>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <div class="stage-wrap" id="wrap"><svg id="svg"></svg></div>
+  <aside class="panel" id="panel"></aside>
+</div>
+
+<div class="legend" id="legend"></div>
+
+<div class="appendix" id="appendix"></div>
+
+<script>
+(function(){
+"use strict";
+
+const RAW = JSON.parse(document.getElementById('graph-data').textContent);
+const PALETTE = ['#6C5CE7','#A29BFE','#6F8AA3','#8FA37E','#D9A34B','#E17055'];
+const NW = 17, TOP = 46, PAD_R = 190, PAD_L = 14, ROW_MIN = 30;
+
+// ── 정규화 ────────────────────────────────────────────────
+const stages = RAW.stages.slice().sort((a,b)=>a.order-b.order);
+const stageById = new Map(stages.map(s=>[s.id,s]));
+const stageIdx  = new Map(stages.map((s,i)=>[s.id,i]));
+
+const nodes0 = RAW.nodes.map((n,i)=>Object.assign({},n,{
+  __ord:i, stageOrder:stageIdx.get(n.stage), evidence:n.evidence||[], flags:(n.flags||[]).slice()
+}));
+const nodeById = new Map(nodes0.map(n=>[n.id,n]));
+
+const links0 = RAW.links.map((l,i)=>Object.assign({},l,{
+  id: l.id || ('l'+i+'-'+l.source+'>'+l.target), evidence:l.evidence||[]
+}));
+
+// 고립/막다른 노드 표시
+(function flag(){
+  const inD=new Map(), outD=new Map();
+  links0.forEach(l=>{ outD.set(l.source,(outD.get(l.source)||0)+1); inD.set(l.target,(inD.get(l.target)||0)+1); });
+  const last = stages[stages.length-1].id;
+  nodes0.forEach(n=>{
+    const i=inD.get(n.id)||0, o=outD.get(n.id)||0;
+    if(!i && !o && !n.flags.includes('orphan')) n.flags.push('orphan');
+    else if(i && !o && n.stage!==last && !n.flags.includes('dead_end')) n.flags.push('dead_end');
+  });
+})();
+
+// 색상 — category 기준
+const cats = Array.from(new Set(nodes0.map(n=>n.category||n.stage)));
+const color = d3.scaleOrdinal().domain(cats).range(
+  cats.length<=PALETTE.length ? PALETTE : cats.map((_,i)=>d3.interpolateRainbow(i/cats.length)));
+const catOf = n => n.category || n.stage;
+
+const EQUAL = RAW.meta.value_basis === 'equal';
+const wsByNode = new Map();
+(RAW.whitespace||[]).forEach(w => (w.where||[]).forEach(id=>{
+  if(!wsByNode.has(id)) wsByNode.set(id,[]); wsByNode.get(id).push(w);
+}));
+const conclByNode = new Map((RAW.conclusions||[]).map(c=>[c.node_id,c]));
+const thinConcl = new Set((RAW.conclusions||[]).filter(c=>(c.support||[]).length<=1).map(c=>c.node_id));
+
+// ── 상태 ──────────────────────────────────────────────────
+const state = { collapsed:new Set(), hiddenCats:new Set(), sort:'value', sel:null };
+
+// ── 작업 그래프 구성 (접기·필터 반영, 우회 링크 합성) ──────
+function buildGraph(){
+  const visStages = stages.filter(s=>!state.collapsed.has(s.id));
+  const visIdx = new Map(visStages.map((s,i)=>[s.id,i]));
+
+  const keep = new Set(nodes0.filter(n=>
+    !state.collapsed.has(n.stage) && !state.hiddenCats.has(catOf(n))).map(n=>n.id));
+
+  // 제거 노드를 우회하는 링크 합성 (비례 배분)
+  let cur = links0.map(l=>({id:l.id, source:l.source, target:l.target, value:l.value,
+    confidence:l.confidence, evidence:l.evidence, note:l.note, __syn:false}));
+  const gone = nodes0.filter(n=>!keep.has(n.id)).map(n=>n.id);
+  gone.forEach(rid=>{
+    const ins  = cur.filter(l=>l.target===rid && l.source!==rid);
+    const outs = cur.filter(l=>l.source===rid && l.target!==rid);
+    cur = cur.filter(l=>l.source!==rid && l.target!==rid);
+    const tot = d3.sum(outs,d=>d.value);
+    if(!tot) return;
+    ins.forEach(i=>outs.forEach(o=>{
+      cur.push({id:i.id+'~'+o.id, source:i.source, target:o.target,
+        value:i.value*(o.value/tot),
+        confidence:(i.confidence==='low'||o.confidence==='low')?'low':undefined,
+        evidence:i.evidence.concat(o.evidence), __syn:true});
+    }));
+  });
+
+  // 동일 source-target 병합
+  const merged = new Map();
+  cur.forEach(l=>{
+    const k=l.source+'>'+l.target;
+    if(merged.has(k)){
+      const m=merged.get(k); m.value+=l.value; m.evidence=m.evidence.concat(l.evidence);
+      if(l.confidence==='low') m.confidence='low';
+    } else merged.set(k, Object.assign({},l));
+  });
+  const L = Array.from(merged.values()).filter(l=>l.value>0 && keep.has(l.source) && keep.has(l.target));
+
+  const used = new Set(); L.forEach(l=>{used.add(l.source);used.add(l.target);});
+  const N = nodes0.filter(n=>keep.has(n.id)).map(n=>{
+    const c = Object.assign({},n);
+    c.stageIndex = visIdx.get(n.stage);
+    if(!used.has(n.id)) c.fixedValue = 1;   // 고립 노드도 자리를 지킨다
+    return c;
+  });
+
+  L.forEach(l=>{
+    const s=nodeById.get(l.source), t=nodeById.get(l.target);
+    l.__skip = s && t && (visIdx.get(t.stage)-visIdx.get(s.stage))>1;
+  });
+  return {N,L,visStages,visIdx};
+}
+
+// ── 렌더 ──────────────────────────────────────────────────
+let G = null;
+function render(){
+  const {N,L,visStages,visIdx} = buildGraph();
+  const wrap = document.getElementById('wrap');
+  const W = Math.max(680, wrap.clientWidth - 4);
+  const maxRows = d3.max(d3.rollup(N, v=>v.length, d=>d.stageIndex).values()) || 1;
+  const H = Math.max(540, maxRows*ROW_MIN + TOP + 40, wrap.clientHeight - 4);
+  const innerW = W - PAD_L - PAD_R;
+
+  const svg = d3.select('#svg').attr('width',W).attr('height',H);
+  svg.selectAll('*').remove();
+  if(!N.length){ svg.append('text').attr('x',24).attr('y',60).attr('fill','#888')
+    .text('표시할 노드가 없습니다 — 필터를 확인하세요'); return; }
+
+  const sk = d3.sankey().nodeId(d=>d.id).nodeWidth(NW).nodePadding(11)
+    .nodeAlign(d=>d.stageIndex)
+    .extent([[PAD_L,TOP],[PAD_L+innerW,H-14]]);
+
+  let graph;
+  try{
+    graph = sk({nodes:N.map(d=>Object.assign({},d)), links:L.map(d=>Object.assign({},d))});
+  }catch(e){
+    svg.append('text').attr('x',24).attr('y',60).attr('fill','#E17055')
+      .text('레이아웃 계산 실패 — 순환 링크 가능성: '+e.message);
+    console.error(e); return;
+  }
+
+  // 스테이지별 y 재배치(정렬 반영) → 링크 y 재계산 → x 고정
+  const byStage = d3.group(graph.nodes, d=>d.stageIndex);
+  byStage.forEach(arr=>{
+    const cmp = state.sort==='value' ? (a,b)=>b.value-a.value
+              : state.sort==='label' ? (a,b)=>String(a.label).localeCompare(String(b.label),'ko')
+              : (a,b)=>a.__ord-b.__ord;
+    arr.sort(cmp);
+    const tot = d3.sum(arr,d=>d.y1-d.y0);
+    const gaps = Math.max(1, arr.length-1);
+    const free = (H-14-TOP) - tot;
+    const pad = arr.length>1 ? Math.max(4, Math.min(26, free/gaps)) : 0;
+    let y = TOP + Math.max(0, (free - pad*gaps)/2);
+    arr.forEach(d=>{ const h=Math.max(2,d.y1-d.y0); d.y0=y; d.y1=y+h; y+=h+pad; });
+  });
+  sk.update(graph);
+  const kx = visStages.length>1 ? (innerW-NW)/(visStages.length-1) : 0;
+  graph.nodes.forEach(n=>{ n.x0 = PAD_L + n.stageIndex*kx; n.x1 = n.x0+NW; });
+
+  G = graph;
+
+  // 인접 색인
+  const bySrc=new Map(), byTgt=new Map();
+  graph.links.forEach(l=>{
+    if(!bySrc.has(l.source.id)) bySrc.set(l.source.id,[]);
+    if(!byTgt.has(l.target.id)) byTgt.set(l.target.id,[]);
+    bySrc.get(l.source.id).push(l); byTgt.get(l.target.id).push(l);
+  });
+
+  // ── 스테이지 헤더
+  const hd = svg.append('g');
+  visStages.forEach((s,i)=>{
+    const x = PAD_L + i*kx, canFold = s.role!=='origin' && s.role!=='conclusion';
+    const g = hd.append('g').attr('class','stage-hd')
+      .style('cursor', canFold?'pointer':'default')
+      .on('click',()=>{ if(canFold){ state.collapsed.add(s.id); render(); } });
+    g.append('rect').attr('x',x-6).attr('y',8).attr('width',Math.max(96,kx-10)).attr('height',30).attr('rx',5);
+    g.append('text').attr('class','st-role').attr('x',x+2).attr('y',20).text(s.role);
+    g.append('text').attr('class','st-label').attr('x',x+2).attr('y',33).text(s.label);
+    if(canFold) g.append('text').attr('class','st-toggle')
+      .attr('x',x+Math.max(96,kx-10)-18).attr('y',27).text('–').append('title').text('이 단계 접기');
+  });
+  // 접힌 스테이지 복원 버튼
+  const folded = stages.filter(s=>state.collapsed.has(s.id));
+  if(folded.length){
+    const g = hd.append('g').attr('class','stage-hd collapsed').style('cursor','pointer')
+      .on('click',()=>{ state.collapsed.clear(); render(); });
+    g.append('rect').attr('x',PAD_L+innerW+8).attr('y',8).attr('width',PAD_R-24).attr('height',30).attr('rx',5);
+    g.append('text').attr('class','st-label').attr('x',PAD_L+innerW+16).attr('y',27)
+      .text('접힘 '+folded.length+'단계 · 펼치기');
+  }
+
+  // ── 링크 (그라디언트는 개수가 적을 때만)
+  const useGrad = graph.links.length <= 220;
+  if(useGrad){
+    const defs = svg.append('defs');
+    graph.links.forEach((l,i)=>{
+      const gr = defs.append('linearGradient').attr('id','g'+i).attr('gradientUnits','userSpaceOnUse')
+        .attr('x1',l.source.x1).attr('x2',l.target.x0);
+      gr.append('stop').attr('offset','0%').attr('stop-color',color(catOf(l.source)));
+      gr.append('stop').attr('offset','100%').attr('stop-color',color(catOf(l.target)));
+    });
+  }
+  const linkG = svg.append('g');
+  linkG.selectAll('path').data(graph.links).join('path')
+    .attr('class',d=>'link'+(d.confidence==='low'?' lowconf':'')+(d.__skip?' skip':''))
+    .attr('d',d3.sankeyLinkHorizontal())
+    .attr('stroke',(d,i)=>useGrad?('url(#g'+i+')'):color(catOf(d.source)))
+    .attr('stroke-width',d=>Math.max(1,d.width))
+    .on('click',(e,d)=>{ e.stopPropagation(); showLink(d); })
+    .append('title').text(d=>d.source.label+' → '+d.target.label+(EQUAL?'':' · '+fmt(d.value)));
+
+  // ── 고스트(empty_cell)
+  (RAW.whitespace||[]).filter(w=>w.type==='empty_cell' && (w.where||[]).length===2).forEach(w=>{
+    const a=graph.nodes.find(n=>n.id===w.where[0]), b=graph.nodes.find(n=>n.id===w.where[1]);
+    if(!a||!b) return;
+    svg.append('path').attr('class','ghost')
+      .attr('d','M'+a.x1+','+((a.y0+a.y1)/2)+'C'+((a.x1+b.x0)/2)+','+((a.y0+a.y1)/2)
+        +' '+((a.x1+b.x0)/2)+','+((b.y0+b.y1)/2)+' '+b.x0+','+((b.y0+b.y1)/2))
+      .style('cursor','pointer').on('click',()=>showWs(w))
+      .append('title').text('빈 교차: '+w.question);
+  });
+
+  // ── 노드
+  const nodeG = svg.append('g');
+  const nsel = nodeG.selectAll('g').data(graph.nodes).join('g')
+    .attr('class',d=>'node'+(d.flags.includes('orphan')?' orphan':'')+(state.sel===d.id?' sel':''))
+    .attr('data-id',d=>d.id);
+
+  nsel.append('rect')
+    .attr('x',d=>d.x0).attr('y',d=>d.y0)
+    .attr('width',d=>d.x1-d.x0).attr('height',d=>Math.max(2,d.y1-d.y0))
+    .attr('rx',2).attr('fill',d=>color(catOf(d))).attr('stroke',d=>color(catOf(d)))
+    .on('click',(e,d)=>{ e.stopPropagation(); state.sel=d.id; showNode(d); render(); })
+    .on('mouseenter',(e,d)=>hl(d.id,bySrc,byTgt))
+    .on('mouseleave',()=>svg.classed('dim',false));
+
+  nsel.append('text').attr('class','n-label')
+    .attr('x',d=>d.x1+7).attr('y',d=>(d.y0+d.y1)/2 - (EQUAL?0:4))
+    .attr('dy','.35em').text(d=>d.label);
+  if(!EQUAL) nsel.append('text').attr('class','n-val')
+    .attr('x',d=>d.x1+7).attr('y',d=>(d.y0+d.y1)/2+8).attr('dy','.35em')
+    .text(d=>fmt(d.value));
+
+  nsel.each(function(d){
+    const marks=[];
+    if(d.flags.includes('orphan')) marks.push(['○','var(--amber)','고립 — 어떤 흐름에도 안 걸림']);
+    if(d.flags.includes('dead_end')) marks.push(['✕','var(--coral)','결론에 닿지 못함']);
+    if(thinConcl.has(d.id)) marks.push(['⚠','var(--amber)','근거 1건짜리 결론']);
+    if(wsByNode.has(d.id) && !marks.length) marks.push(['●','var(--amber)','빈틈 탐지']);
+    marks.forEach((m,i)=>{
+      d3.select(this).append('text').attr('class','badge-mark')
+        .attr('x',d.x0-6-i*11).attr('y',(d.y0+d.y1)/2).attr('dy','.35em')
+        .attr('text-anchor','end').attr('fill',m[1]).text(m[0])
+        .append('title').text(m[2]);
+    });
+  });
+
+  svg.on('click',()=>{ state.sel=null; showIntro(); render(); });
+}
+
+function hl(id,bySrc,byTgt){
+  const svg=d3.select('#svg'), keepN=new Set([id]), keepL=new Set();
+  const up=[id]; while(up.length){ const c=up.pop();
+    (byTgt.get(c)||[]).forEach(l=>{ if(!keepL.has(l)){keepL.add(l);keepN.add(l.source.id);up.push(l.source.id);} }); }
+  const dn=[id]; while(dn.length){ const c=dn.pop();
+    (bySrc.get(c)||[]).forEach(l=>{ if(!keepL.has(l)){keepL.add(l);keepN.add(l.target.id);dn.push(l.target.id);} }); }
+  svg.classed('dim',true);
+  svg.selectAll('.link').classed('hl',d=>keepL.has(d));
+  svg.selectAll('.node').classed('hl',d=>keepN.has(d.id));
+}
+
+const fmt = v => (Math.round(v*10)/10).toLocaleString('ko-KR');
+
+// ── 패널 ──────────────────────────────────────────────────
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function evHtml(list){
+  if(!list||!list.length) return '<div class="no-ev">근거 미기재 — 이 연결은 원문 인용이 없습니다</div>';
+  return list.map(e=>'<div class="ev"><q>'+esc(e.quote)+'</q><span class="src">'+esc(e.src||'')+'</span></div>').join('');
+}
+function wsHtml(list){
+  return list.map(w=>'<div class="ws-item"><div class="t">'+esc(w.type)+'</div>'
+    +'<div class="q">'+esc(w.question)+'</div>'
+    +(w.idea?'<div class="i">'+esc(w.idea)+'</div>':'')+'</div>').join('');
+}
+function showNode(d){
+  const raw = nodeById.get(d.id) || d;
+  const ins = (G?G.links.filter(l=>l.target.id===d.id):[]);
+  const outs = (G?G.links.filter(l=>l.source.id===d.id):[]);
+  const c = conclByNode.get(d.id);
+  let h = '<h2>노드</h2><div class="pn-title">'+esc(raw.label)+'</div>'
+    +'<div class="pn-meta">'+esc(stageById.get(raw.stage).label)
+    +(raw.category?' · '+esc(raw.category):'')
+    +(EQUAL?'':' · '+fmt(d.value)+' ('+esc(RAW.meta.value_note||RAW.meta.value_basis)+')')+'</div>';
+  if(raw.summary) h+='<div class="pn-sum">'+esc(raw.summary)+'</div>';
+  if(c){
+    h+='<h2>결론</h2><div class="concl'+(thinConcl.has(d.id)?' thin':'')+'">'
+      +'<div class="st">'+esc(c.statement)+'</div>'
+      +(c.so_what?'<div class="sw">→ '+esc(c.so_what)+'</div>':'')
+      +'<div class="sp">근거 링크 '+((c.support||[]).length)+'건'
+      +((c.support||[]).length<=1?' · ⚠ 근거가 얇습니다':'')+'</div></div>';
+  }
+  if(wsByNode.has(d.id)) h+='<h2>빈틈</h2>'+wsHtml(wsByNode.get(d.id));
+  h+='<h2>근거</h2>'+evHtml(raw.evidence);
+  if(ins.length) h+='<h2>들어오는 흐름</h2>'+ins.map(l=>row(l.source.label,l.value,l)).join('');
+  if(outs.length) h+='<h2>나가는 흐름</h2>'+outs.map(l=>row(l.target.label,l.value,l)).join('');
+  setPanel(h);
+}
+function row(label,v,l){
+  return '<div class="flow-row" data-lid="'+esc(l.id)+'"><span>'+esc(label)+'</span>'
+    +'<span class="v">'+(EQUAL?'—':fmt(v))+'</span></div>';
+}
+function showLink(l){
+  setPanel('<h2>연결</h2><div class="pn-title">'+esc(l.source.label)+' → '+esc(l.target.label)+'</div>'
+    +'<div class="pn-meta">'+(EQUAL?'두께 없음(정성)':fmt(l.value)+' · '+esc(RAW.meta.value_note||''))
+    +(l.confidence?' · 신뢰도 '+esc(l.confidence):'')+(l.__syn?' · 접힌 단계를 우회해 합성된 연결':'')+'</div>'
+    +'<h2>근거</h2>'+evHtml(l.evidence));
+}
+function showWs(w){ setPanel('<h2>빈틈</h2>'+wsHtml([w])); }
+function setPanel(h){
+  document.getElementById('panel').innerHTML=h;
+  document.querySelectorAll('.flow-row').forEach(el=>el.addEventListener('click',()=>{
+    const l = G && G.links.find(x=>x.id===el.dataset.lid); if(l) showLink(l);
+  }));
+}
+function showIntro(){
+  const m=RAW.meta;
+  let h='<h2>읽는 법</h2><div class="empty">노드에 마우스를 올리면 그 노드를 지나는 전체 경로만 남습니다.'
+    +'<br>노드·연결을 클릭하면 근거 원문이 여기 표시됩니다.'
+    +'<br>단계 머리글을 클릭하면 그 단계를 접고 상·하류를 직결합니다.'
+    +'<br>아래 범례를 클릭하면 계열별로 껐다 켤 수 있습니다.</div>';
+  if((RAW.conclusions||[]).length){
+    h+='<h2>결론 '+RAW.conclusions.length+'건</h2>'+RAW.conclusions.map(c=>
+      '<div class="concl'+(thinConcl.has(c.node_id)?' thin':'')+'"><div class="st">'+esc(c.statement)+'</div>'
+      +(c.so_what?'<div class="sw">→ '+esc(c.so_what)+'</div>':'')
+      +'<div class="sp">근거 '+((c.support||[]).length)+'건'
+      +((c.support||[]).length<=1?' · ⚠ 얇음':'')+'</div></div>').join('');
+  }
+  if(m.mode==='generate' && (RAW.whitespace||[]).length){
+    const order={thin_path:0,collision:1,dead_end:2,empty_cell:3,hub:4,triad:5,orphan:6};
+    const ws=RAW.whitespace.slice().sort((a,b)=>(order[a.type]??9)-(order[b.type]??9));
+    h+='<h2>빈틈 '+ws.length+'건</h2>'+wsHtml(ws);
+  }
+  document.getElementById('panel').innerHTML=h;
+}
+
+// ── 범례 ──────────────────────────────────────────────────
+function legend(){
+  const el=document.getElementById('legend');
+  el.innerHTML='<span class="lg-title">계열</span>'+cats.map(c=>
+    '<span class="chip'+(state.hiddenCats.has(c)?' off':'')+'" data-c="'+esc(c)+'">'
+    +'<span class="dot" style="background:'+color(c)+'"></span>'+esc(c)+'</span>').join('');
+  el.querySelectorAll('.chip').forEach(ch=>ch.addEventListener('click',()=>{
+    const c=ch.dataset.c;
+    state.hiddenCats.has(c)?state.hiddenCats.delete(c):state.hiddenCats.add(c);
+    legend(); render();
+  }));
+}
+
+// ── 헤더·부록 ─────────────────────────────────────────────
+function header(){
+  const m=RAW.meta;
+  document.getElementById('ttl').textContent=m.title||'Sankey Flow';
+  document.getElementById('sub').textContent=[m.subtitle,m.source].filter(Boolean).join(' · ');
+  const b=[];
+  b.push('<span class="badge accent">'+(m.mode==='generate'?'GENERATE · 빈틈 탐지':'STRUCTURE')+'</span>');
+  b.push('<span class="badge">'+(m.axis==='time'?'시간축':'주제축')+'</span>');
+  b.push(EQUAL
+    ? '<span class="badge warn">두께는 양이 아님 — 연결 유무만 표시</span>'
+    : '<span class="badge">두께 = '+(m.value_note||m.value_basis)+'</span>');
+  b.push('<span class="badge">노드 '+RAW.nodes.length+' · 연결 '+RAW.links.length+'</span>');
+  if(m.generated_at) b.push('<span class="badge">'+m.generated_at+'</span>');
+  document.getElementById('badges').innerHTML=b.join('');
+  document.title=(m.title||'Sankey Flow')+' — Sankey Flow Report';
+}
+function appendix(){
+  const T=(head,rows)=>'<table><thead><tr>'+head.map(h=>'<th>'+h+'</th>').join('')
+    +'</tr></thead><tbody>'+rows+'</tbody></table>';
+  let h='<h2>부록 A — 결론과 근거</h2>';
+  h+=T(['결론','So what','근거 링크'],(RAW.conclusions||[]).map(c=>{
+    const n=nodeById.get(c.node_id);
+    return '<tr><td>'+esc(n?n.label:c.node_id)+' · '+esc(c.statement)+'</td><td>'+esc(c.so_what||'')
+      +'</td><td>'+esc((c.support||[]).join(', '))+((c.support||[]).length<=1?' ⚠':'')+'</td></tr>';
+  }).join('') || '<tr><td colspan="3">결론 없음</td></tr>');
+
+  h+='<h2>부록 B — 노드 근거</h2>';
+  h+=T(['단계','노드',(EQUAL?'—':'값'),'요약 / 근거'],nodes0.map(n=>
+    '<tr><td>'+esc(stageById.get(n.stage).label)+'</td><td>'+esc(n.label)
+    +(n.flags.length?' <em>('+esc(n.flags.join(','))+')</em>':'')+'</td>'
+    +'<td>'+(EQUAL?'—':(n.value!=null?fmt(n.value):''))+'</td><td>'+esc(n.summary||'')
+    +(n.evidence.length?n.evidence.map(e=>'<br>“'+esc(e.quote)+'” <small>'+esc(e.src||'')+'</small>').join(''):'')
+    +'</td></tr>').join(''));
+
+  h+='<h2>부록 C — 연결</h2>';
+  h+=T(['출발','도착',(EQUAL?'—':'값'),'신뢰도','근거'],links0.map(l=>{
+    const s=nodeById.get(l.source),t=nodeById.get(l.target);
+    return '<tr><td>'+esc(s?s.label:l.source)+'</td><td>'+esc(t?t.label:l.target)+'</td>'
+      +'<td>'+(EQUAL?'—':fmt(l.value))+'</td><td>'+esc(l.confidence||'')+'</td><td>'
+      +(l.evidence.length?l.evidence.map(e=>'“'+esc(e.quote)+'” <small>'+esc(e.src||'')+'</small>').join('<br>'):'')
+      +'</td></tr>';
+  }).join(''));
+
+  if((RAW.whitespace||[]).length){
+    h+='<h2>부록 D — 빈틈과 아이디어</h2>';
+    h+=T(['유형','위치','질문','아이디어'],RAW.whitespace.map(w=>
+      '<tr><td>'+esc(w.type)+'</td><td>'+esc((w.where||[]).map(id=>{
+        const n=nodeById.get(id); return n?n.label:id; }).join(' × '))
+      +'</td><td>'+esc(w.question)+'</td><td>'+esc(w.idea||'')+'</td></tr>').join(''));
+  }
+  h+='<h2>출처</h2><table><tbody><tr><td>'+esc(RAW.meta.source||'')+'</td>'
+    +'<td>두께 기준: '+esc(RAW.meta.value_basis)+(RAW.meta.value_note?' ('+esc(RAW.meta.value_note)+')':'')
+    +'</td><td>생성 '+esc(RAW.meta.generated_at||'')+'</td></tr></tbody></table>';
+  document.getElementById('appendix').innerHTML=h;
+}
+
+// ── 컨트롤 ────────────────────────────────────────────────
+const SORTS=[['value','값순'],['label','이름순'],['orig','원본순']];
+document.getElementById('b-sort').addEventListener('click',function(){
+  const i=SORTS.findIndex(s=>s[0]===state.sort), n=SORTS[(i+1)%SORTS.length];
+  state.sort=n[0]; this.textContent='정렬 · '+n[1]; render();
+});
+document.getElementById('b-panel').addEventListener('click',function(){
+  document.getElementById('app').classList.toggle('panel-off');
+  this.classList.toggle('on'); render();
+});
+document.getElementById('b-print').addEventListener('click',function(){
+  document.body.classList.toggle('print-preview'); this.classList.toggle('on'); render();
+});
+document.getElementById('b-theme').addEventListener('click',function(){
+  document.body.classList.toggle('theme-light');
+  this.textContent=document.body.classList.contains('theme-light')?'다크':'라이트'; render();
+});
+document.getElementById('b-reset').addEventListener('click',()=>{
+  state.collapsed.clear(); state.hiddenCats.clear(); state.sel=null;
+  legend(); showIntro(); render();
+});
+let rt; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(render,160); });
+
+header(); legend(); appendix(); showIntro(); render();
+window.__sankey = {RAW, state, graph:()=>G, render};   // 검증용 훅
+})();
+</script>
+</body>
+</html>

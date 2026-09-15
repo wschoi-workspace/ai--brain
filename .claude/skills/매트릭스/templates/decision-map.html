@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision Map</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
+<style>
+:root{
+  --bg:#FFFFFF; --bg-2:#FAFAF8; --bg-3:#F4F2EE;
+  --fg:#1A1A1A; --fg-2:#5A5650; --fg-3:#9A948C;
+  --line:#E2DED6; --line-2:#EFECE6;
+  --accent:#6C5CE7; --accent-sub:#F0EDFC; --accent-dk:#5A4BD1;
+  --amber:#B07E28; --coral:#C4533A; --green:#5E7A4A;
+  --off:#C9C4BC;
+}
+body.theme-dark{
+  --bg:#1A1A1A; --bg-2:#111111; --bg-3:#222222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333333; --line-2:#2A2A2A;
+  --accent:#A29BFE; --accent-sub:#2A2540; --accent-dk:#6C5CE7;
+  --amber:#D9A34B; --coral:#E17055; --green:#8FA37E;
+  --off:#4A4640;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'SUIT Variable','SUIT','Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  background:var(--bg);color:var(--fg);font-size:13px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
+
+/* ── Topbar ── */
+.topbar{padding:14px 22px 0;border-bottom:1px solid var(--line);background:var(--bg-2)}
+.tb-row{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.tb-row .label{font-size:10px;letter-spacing:.18em;color:var(--accent);font-weight:600;text-transform:uppercase}
+.tb-row h1{font-size:18px;font-weight:600;letter-spacing:-.02em;margin-top:4px}
+.tb-row .sub{font-size:11.5px;color:var(--fg-3);margin-top:3px;max-width:900px}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap}
+.btn{font-family:inherit;font-size:11px;font-weight:600;color:var(--fg-2);background:var(--bg-3);
+  border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer;transition:.12s;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--fg)}
+.btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── Concept 탭 — 시작점 ── */
+.ctabs{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.ctab{border:1px solid var(--line);border-bottom:none;border-radius:8px 8px 0 0;padding:9px 16px 11px;
+  cursor:pointer;background:var(--bg-3);transition:.14s;min-width:120px}
+.ctab:hover{border-color:var(--accent)}
+.ctab.on{background:var(--bg);border-color:var(--accent);border-bottom:2px solid var(--bg);
+  margin-bottom:-1px;box-shadow:0 -2px 0 var(--accent) inset}
+.ctab .t{font-size:13px;font-weight:700;letter-spacing:-.01em}
+.ctab.on .t{color:var(--accent)}
+.ctab .c{font-size:10.5px;color:var(--fg-3);margin-top:2px}
+
+/* ── Layout ── */
+.app{display:grid;grid-template-columns:206px 1fr 330px;height:calc(100vh - 148px);min-height:520px}
+.side{border-right:1px solid var(--line);background:var(--bg-2);overflow-y:auto;padding:16px 14px}
+/* 열 수는 IR이 정한다 — JS가 grid-template-columns를 채운다 */
+.cols{display:grid;grid-template-columns:1fr 1fr 1.35fr .8fr;overflow:hidden}
+.panel{border-left:1px solid var(--line);background:var(--bg-2);overflow-y:auto;padding:16px}
+
+.side h3,.panel h3{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+  font-weight:700;margin:0 0 8px}
+.side .grp{margin-bottom:20px}
+.chk{display:flex;align-items:flex-start;gap:7px;font-size:11.5px;color:var(--fg-2);
+  padding:5px 6px;border-radius:5px;cursor:pointer;transition:.1s;user-select:none;line-height:1.35}
+.chk:hover{background:var(--bg-3);color:var(--fg)}
+.chk.on{background:var(--accent-sub);color:var(--accent);font-weight:600}
+.chk .box{width:12px;height:12px;border:1.5px solid var(--fg-3);border-radius:3px;flex-shrink:0;margin-top:2px}
+.chk.on .box{background:var(--accent);border-color:var(--accent);position:relative}
+.chk.on .box::after{content:'✓';position:absolute;inset:0;color:#fff;font-size:9px;
+  display:flex;align-items:center;justify-content:center;font-weight:900}
+.chk .n{margin-left:auto;font-size:10px;color:var(--fg-3);flex-shrink:0}
+.side .note{font-size:10.5px;color:var(--fg-3);line-height:1.55;padding:8px;background:var(--bg-3);
+  border-radius:5px;border:1px solid var(--line-2)}
+
+/* ── Columns ── */
+.col{border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.col:last-child{border-right:none}
+.col-hd{padding:11px 13px 9px;border-bottom:1px solid var(--line);background:var(--bg-2);flex-shrink:0}
+.col-hd .t{font-size:11.5px;font-weight:700;letter-spacing:-.01em}
+.col-hd .d{font-size:10px;color:var(--fg-3);margin-top:2px}
+.col-body{overflow-y:auto;padding:8px;flex:1}
+
+.it{border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-bottom:5px;
+  cursor:pointer;transition:.12s;background:var(--bg)}
+.it:hover{border-color:var(--accent)}
+.it .t{font-size:12px;font-weight:600;letter-spacing:-.01em;line-height:1.35}
+.it .d{font-size:10.5px;color:var(--fg-3);margin-top:3px;line-height:1.45}
+.it .n{font-size:10px;color:var(--accent);font-weight:700;margin-left:6px}
+.it.sel{border-color:var(--accent);background:var(--accent-sub);box-shadow:0 0 0 1px var(--accent)}
+.it.hot{border-color:var(--accent)}
+.it.off{opacity:.32;background:var(--bg-3)}
+.it.off .t{color:var(--fg-3)}
+.it.blocked{border-style:dashed;border-color:var(--coral)}
+.it.blocked .t{text-decoration:line-through;color:var(--coral)}
+.vd{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:3px;
+  border:1px solid var(--line);color:var(--fg-3);margin-right:4px;vertical-align:1px}
+.vd.core{border-color:var(--green);color:var(--green)}
+.vd.ok{border-color:var(--accent);color:var(--accent)}
+.vd.cond{border-color:var(--amber);color:var(--amber)}
+.vd.no{border-color:var(--coral);color:var(--coral)}
+.tier{display:inline-block;font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;margin-left:5px}
+.tier.t1{background:rgba(94,122,74,.14);color:var(--green)}
+.tier.t2{background:rgba(176,126,40,.14);color:var(--amber)}
+.tier.t3{background:rgba(196,83,58,.14);color:var(--coral)}
+.cat-hd{font-size:10px;font-weight:700;color:var(--fg-3);letter-spacing:.05em;
+  padding:9px 4px 4px;border-bottom:1px dashed var(--line);margin-bottom:5px}
+
+/* ── Panel ── */
+.pn-t{font-size:15px;font-weight:600;letter-spacing:-.01em;margin-bottom:3px}
+.pn-m{font-size:11px;color:var(--fg-3);margin-bottom:11px}
+.pn-s{font-size:12px;color:var(--fg-2);line-height:1.65;padding:9px 11px;background:var(--bg-3);
+  border-radius:6px;border:1px solid var(--line-2);margin-bottom:13px}
+.path{display:flex;flex-direction:column;gap:3px;margin-bottom:14px}
+.path .p{display:flex;gap:7px;align-items:baseline;font-size:11.5px;padding:5px 8px;
+  background:var(--bg-3);border-radius:5px;border-left:2px solid var(--accent)}
+.path .p .k{font-size:9.5px;color:var(--fg-3);letter-spacing:.06em;text-transform:uppercase;
+  min-width:62px;flex-shrink:0}
+.path .p .v{color:var(--fg);font-weight:500}
+.path .p.no{border-left-color:var(--coral)} .path .p.no .v{color:var(--coral)}
+.ev{border-left:2px solid var(--line);padding:6px 0 6px 10px;margin-bottom:8px}
+.ev q{font-size:11.5px;color:var(--fg-2);line-height:1.55;display:block}
+.ev .s{font-size:9.5px;color:var(--fg-3);margin-top:4px;display:block;word-break:break-all}
+.empty{color:var(--fg-3);font-size:11.5px;line-height:1.7}
+.rs{border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:5px;
+  padding:9px 10px;margin-bottom:7px;background:var(--bg-3)}
+.rs .t{font-size:11px;font-weight:700;color:var(--amber)}
+.rs .d{font-size:11px;color:var(--fg-2);margin-top:4px;line-height:1.5}
+.slot{border:1px dashed var(--amber);border-radius:5px;padding:9px 10px;margin-bottom:7px}
+.slot .t{font-size:11px;font-weight:700;color:var(--amber)}
+.slot .d{font-size:11px;color:var(--fg-2);margin-top:4px;line-height:1.5}
+
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body{background:#fff;color:#111}
+  .toolbar,.side{display:none!important}
+  .app{display:block;height:auto}
+  .cols{display:grid;grid-template-columns:1fr 1fr 1.3fr .7fr}
+  .col-body{overflow:visible;max-height:none}
+  .it.off{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ 데이터 주입 지점 ══════════ -->
+<script id="graph-data" type="application/json">
+{
+  "meta": {"title":"Decision Map 데모","subtitle":"템플릿 단독 확인용","source":"demo",
+    "generated_at":"2026-07-30","axis":"topic","mode":"structure","render":"decision",
+    "value_basis":"equal"},
+  "stages": [
+    {"id":"concept","label":"Concept","order":0,"role":"entry"},
+    {"id":"bm","label":"Business Model","order":1,"role":"structure"},
+    {"id":"cat","label":"Service Category","order":2,"role":"structure"},
+    {"id":"svc","label":"Service Contents","order":3,"role":"structure"},
+    {"id":"legal","label":"Legal Check","order":4,"role":"gate"},
+    {"id":"target","label":"Target","order":5,"role":"filter"},
+    {"id":"research","label":"Research","order":6,"role":"data"}
+  ],
+  "nodes": [
+    {"id":"C-A","stage":"concept","label":"Concept A","caption":"Cultural Destination","summary":"상징적 문화 목적지"},
+    {"id":"bm2","stage":"bm","label":"체험경제형","verdict":"핵심"},
+    {"id":"bm5","stage":"bm","label":"박물관전시형","verdict":"가능"},
+    {"id":"G4","stage":"cat","label":"명상·웰니스"},
+    {"id":"G2","stage":"cat","label":"전시·뮤지엄"},
+    {"id":"s1","stage":"svc","parent":"G4","bm":"bm2","legal":"Tier1","label":"드롭인 명상 클래스","concepts":["C-A"],"targets":["t-mz"]},
+    {"id":"s2","stage":"svc","parent":"G2","bm":"bm5","legal":"Tier1","label":"봉은사 상설 뮤지엄","concepts":["C-A"],"targets":["t-intl"]},
+    {"id":"Tier1","stage":"legal","label":"Tier 1 · 해석 없이 가능"},
+    {"id":"t-mz","stage":"target","label":"MZ"},
+    {"id":"t-intl","stage":"target","label":"외국인"}
+  ],
+  "links": [], "conclusions": [], "whitespace": []
+}
+</script>
+
+<div class="topbar">
+  <div class="tb-row">
+    <div>
+      <div class="label">Decision Map</div>
+      <h1 id="ttl">—</h1>
+      <div class="sub" id="sub"></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="b-reset">전체 해제</button>
+      <button class="btn" id="b-theme">다크</button>
+      <button class="btn" id="b-print">인쇄</button>
+    </div>
+  </div>
+  <div class="ctabs" id="ctabs"></div>
+</div>
+
+<div class="app">
+  <aside class="side" id="side"></aside>
+  <div class="cols" id="cols"></div>
+  <aside class="panel" id="panel"></aside>
+</div>
+
+<script>
+(function(){
+"use strict";
+const RAW = JSON.parse(document.getElementById('graph-data').textContent);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nl2br = s => esc(s).replace(/\n/g,'<br>');
+const byStage = id => RAW.nodes.filter(n=>n.stage===id);
+
+const N = new Map(RAW.nodes.map(n=>[n.id,n]));
+const lab = id => (N.get(id)||{}).label || id;
+
+// ── 열 역할 ───────────────────────────────────────────────
+// 매트릭스와 같은 IR을 먹되, 열마다 '이 화면에서 어떻게 쓸지'만 다르게 읽는다.
+//   tab=상단 탭 · col=중앙 열 · detail=원자 열(서비스) · filter=좌측 체크 · data=참고 레이어 · skip=안 씀
+// config가 stages[].dec로 선언한다. 없으면 role·atomic·filter_only에서 추론한다.
+const LEGACY_DEC = {concept:'tab', bm:'col', cat:'col', svc:'detail',
+                    legal:'filter+col', target:'filter', research:'data'};
+function decOf(s){
+  if(s.dec) return s.dec;
+  if(LEGACY_DEC[s.id]) return LEGACY_DEC[s.id];
+  if(s.role==='conclusion' || s.role==='entry') return 'tab';
+  if(s.atomic) return 'detail';
+  if(s.filter_only) return 'filter';
+  return 'col';
+}
+const STG = (RAW.stages||[]).map(s=>Object.assign({}, s, {dec:decOf(s)}));
+const roleIs = (s,k) => s.dec.split('+').indexOf(k) >= 0;
+const pick1 = k => STG.filter(s=>roleIs(s,k))[0] || null;
+const TAB_ST = pick1('tab'), DETAIL_ST = pick1('detail'), DATA_ST = pick1('data');
+const FILTER_ST = STG.filter(s=>roleIs(s,'filter'));
+const COL_ST = STG.filter(s=>roleIs(s,'col') || roleIs(s,'detail'));
+// 원자 열을 묶어 보여줄 기준 열 — 없으면 첫 번째 중앙 열
+const GROUP_ST = (DETAIL_ST && DETAIL_ST.dec_group && STG.filter(s=>s.id===DETAIL_ST.dec_group)[0])
+              || STG.filter(s=>roleIs(s,'col'))[0] || null;
+
+const RESEARCH = DATA_ST ? byStage(DATA_ST.id) : [];
+const isSlot = n => !!n.slot || n.category==='리서치 필요';
+const SLOTS = RAW.nodes.filter(isSlot);
+// 슬롯은 '자료가 없어 비워둔 칸'이다 — 필터나 열에 세우면 늘 0건으로 뜬다. 패널에만 둔다.
+const stageNodes = id => byStage(id).filter(n=>!isSlot(n));
+
+// ── 원자 ──────────────────────────────────────────────────
+// atoms가 있으면 그걸 쓴다(매트릭스와 같은 IR). 없으면 구 IR의 서비스 노드에서 만든다.
+const AXIS = RAW.axis_map || {};
+const HAS_ATOMS = (RAW.atoms||[]).length > 0 && Object.keys(AXIS).length > 0;
+const asArr = v => v==null ? [] : (Array.isArray(v) ? v : [v]);
+
+const ITEMS = HAS_ATOMS
+  ? RAW.atoms.map(a=>({
+      id:a.id, label:a.label, blocked:!!a.blocked, summary:a.summary||'', evidence:a.evidence||[],
+      val:sid => AXIS[sid] ? asArr((a.axes||{})[AXIS[sid]]) : []}))
+  : byStage(DETAIL_ST ? DETAIL_ST.id : 'svc').map(n=>{
+      const F = {bm:()=>[n.bm], cat:()=>[n.parent], svc:()=>[n.id], legal:()=>[n.legal],
+                 target:()=>n.targets||[], concept:()=>n.concepts||[]};
+      return {id:n.id, label:n.label, blocked:!!n.blocked, summary:n.summary||'', evidence:n.evidence||[],
+              val:sid => ((F[sid]||(()=>[]))()).filter(Boolean)};
+    });
+
+// ── 상태 ──────────────────────────────────────────────────
+// 핵심: '살아 있는 서비스 집합'이 진실이고 나머지 열은 전부 거기서 파생된다.
+// 그래서 어느 쪽을 눌러도(정방향·역방향) 같은 계산 한 번으로 활성 범위가 정해진다.
+const st = { concept:null, focus:null, sets:{}, research:false };
+FILTER_ST.forEach(s=>st.sets[s.id] = new Set());
+
+function liveServices(){
+  return ITEMS.filter(it=>{
+    if(st.concept && TAB_ST && !it.val(TAB_ST.id).includes(st.concept)) return false;
+    for(const sid in st.sets){
+      const set = st.sets[sid];
+      if(set.size && !it.val(sid).some(v=>set.has(v))) return false;
+    }
+    if(st.focus){
+      const f = st.focus;
+      if(DETAIL_ST && f.stage===DETAIL_ST.id){ if(it.id!==f.id) return false; }
+      else if(!it.val(f.stage).includes(f.id)) return false;
+    }
+    return true;
+  });
+}
+// 필터 개수를 셀 때는 그 축 자신은 빼고 센다(자기 필터 때문에 0으로 보이는 일을 막는다)
+function countWith(sid, id){
+  const bakSets = st.sets, bakFocus = st.focus;
+  st.sets = Object.assign({}, st.sets); st.sets[sid] = new Set([id]); st.focus = null;
+  const n = liveServices().length;
+  st.sets = bakSets; st.focus = bakFocus;
+  return n;
+}
+
+// 이 원자가 그 열의 그 노드에 걸리는가
+const hits = (it, sid, id) => it.val(sid).includes(id);
+const VD = {'핵심':'core','최근접':'core','가능':'ok','진입점':'ok',
+            '조건부':'cond','최대규모':'cond','보조':'cond','부분':'no','배제':'no'};
+
+function render(){
+  const live = liveServices();
+  const liveIds = new Set(live.map(s=>s.id));
+  // 열마다 '지금 살아 있는 값'을 미리 모아둔다 — 노드마다 다시 훑지 않기 위해서
+  const onBy = {};
+  STG.forEach(s=>{ const set = new Set();
+    live.forEach(it=>it.val(s.id).forEach(v=>set.add(v))); onBy[s.id] = set; });
+
+  // ── 탭 (결론 열)
+  document.getElementById('ctabs').innerHTML = !TAB_ST ? '' :
+    `<div class="ctab${st.concept?'':' on'}" data-c=""><div class="t">전체</div>
+       <div class="c">${ITEMS.length}건</div></div>` +
+    stageNodes(TAB_ST.id).map(c=>{
+      const n = ITEMS.filter(it=>hits(it, TAB_ST.id, c.id)).length;
+      return `<div class="ctab${st.concept===c.id?' on':''}" data-c="${esc(c.id)}">
+        <div class="t">${esc(c.label)}</div>
+        <div class="c">${esc(c.caption||'')} · ${n}건</div></div>`;
+    }).join('');
+
+  // ── 좌측 필터 (filter 열마다 한 묶음)
+  document.getElementById('side').innerHTML =
+    FILTER_ST.map(s=>{
+      const rows = stageNodes(s.id).map(t=>{
+        const n = countWith(s.id, t.id);
+        return `<div class="chk${st.sets[s.id].has(t.id)?' on':''}" data-f="${esc(s.id)}" data-id="${esc(t.id)}">
+          <span class="box"></span><span>${esc(t.label)}</span><span class="n">${n}</span></div>`;
+      }).join('');
+      return `<div class="grp"><h3>${esc(s.label)}</h3>${rows}` +
+        (s.note ? `<div class="note">${esc(s.note)}</div>` : '') + `</div>`;
+    }).join('') +
+    (RESEARCH.length ? `<div class="grp"><h3>Research</h3>
+      <div class="chk${st.research?' on':''}" data-f="research" data-id="_">
+        <span class="box"></span><span>검증 데이터 보기</span>
+        <span class="n">${RESEARCH.reduce((a,r)=>a+(r.items||[]).length,0)}</span></div>
+      <div class="note">서비스를 만드는 단계가 아니라 각 요소를 뒷받침하는 데이터 레이어.</div></div>` : '');
+
+  // ── 중앙 열
+  const col = (id,title,desc,body)=>`<div class="col"><div class="col-hd">
+    <div class="t">${esc(title)}</div><div class="d">${esc(desc||'')}</div></div>
+    <div class="col-body" data-col="${esc(id)}">${body}</div></div>`;
+
+  // 일반 열 — 노드마다 살아 있는 원자 수를 센다
+  function plainCol(s){
+    return stageNodes(s.id).map(b=>{
+      const n = live.filter(it=>hits(it, s.id, b.id)).length;
+      const dead = !ITEMS.some(it=>hits(it, s.id, b.id));
+      const cls = st.focus&&st.focus.id===b.id ? ' sel'
+                : (dead ? ' blocked' : (onBy[s.id].has(b.id)?'':' off'));
+      return `<div class="it${cls}" data-s="${esc(s.id)}" data-id="${esc(b.id)}">
+        <div class="t">${b.verdict?`<span class="vd ${VD[b.verdict]||''}">${esc(b.verdict)}</span>`:''}${esc(b.label)}
+          ${n?`<span class="n">${n}</span>`:''}</div>
+        ${b.summary?`<div class="d">${esc(String(b.summary).split('\n')[0])}</div>`:''}</div>`;
+    }).join('');
+  }
+
+  // 원자 열 — 기준 열(GROUP_ST)로 묶어 보여준다 (Level 1 → Level 2)
+  function detailCol(s){
+    const gs = GROUP_ST;
+    const tierSt = FILTER_ST.filter(f=>/legal|tier|law/i.test(f.id) || /법/.test(f.label||''))[0];
+    const badge = it => {
+      if(!tierSt) return '';
+      const v = it.val(tierSt.id)[0]; if(!v) return '';
+      const m = String(v).match(/(\d+)/);                 // t1 · Tier1 · tier-1 → T1
+      const cls = m ? 't'+m[1] : '';
+      return `<span class="tier ${esc(cls)}">${esc(m ? 'T'+m[1] : String(v).slice(0,3))}</span>`;
+    };
+    const row = it => {
+      const cls = st.focus&&st.focus.id===it.id ? ' sel'
+                : (it.blocked?' blocked':(liveIds.has(it.id)?'':' off'));
+      return `<div class="it${cls}" data-s="${esc(s.id)}" data-id="${esc(it.id)}">
+        <div class="t">${esc(it.label)}${badge(it)}</div></div>`;
+    };
+    if(!gs) return ITEMS.map(row).join('');
+    let h = '';
+    stageNodes(gs.id).forEach(g=>{
+      const mine = ITEMS.filter(it=>hits(it, gs.id, g.id));
+      if(!mine.length) return;
+      if(st.focus && st.focus.stage===gs.id && st.focus.id!==g.id) return;
+      h += `<div class="cat-hd">${esc(g.label)} · ${mine.filter(it=>liveIds.has(it.id)).length}/${mine.length}</div>`
+         + mine.map(row).join('');
+    });
+    return h;
+  }
+
+  const colsEl = document.getElementById('cols');
+  // 원자 열은 이름이 길어 폭을 더 준다 — 열 수는 IR이 정하므로 그리드도 여기서 만든다
+  colsEl.style.gridTemplateColumns =
+    COL_ST.map(s=>(DETAIL_ST && s.id===DETAIL_ST.id) ? '1.5fr' : '1fr').join(' ');
+  colsEl.innerHTML = COL_ST.map(s=>
+    col(s.id, s.label, s.note,
+        (DETAIL_ST && s.id===DETAIL_ST.id) ? detailCol(s) : plainCol(s))).join('');
+
+  bind();
+  if(!st.focus) intro(live);
+}
+
+// ── 클릭 ──────────────────────────────────────────────────
+function bind(){
+  document.querySelectorAll('.ctab').forEach(el=>el.onclick=()=>{
+    st.concept = el.dataset.c || null; st.focus=null; render();
+  });
+  document.querySelectorAll('.chk').forEach(el=>el.onclick=()=>{
+    const f=el.dataset.f, id=el.dataset.id;
+    if(f==='research') st.research=!st.research;
+    else { const set = st.sets[f]; if(!set) return;
+           set.has(id)?set.delete(id):set.add(id); }
+    render();
+  });
+  document.querySelectorAll('.it').forEach(el=>el.onclick=()=>{
+    const id=el.dataset.id, sid=el.dataset.s;
+    // 원자 열은 노드가 아니라 원자다 — 클릭 대상을 stage로 구분한다
+    const n = N.get(id) || Object.assign({}, ITEMS.filter(x=>x.id===id)[0], {stage:sid});
+    st.focus = (st.focus && st.focus.id===id) ? null : Object.assign({}, n, {stage:sid});
+    render(); if(st.focus) detail(st.focus);
+  });
+}
+
+// ── 우측 패널 ─────────────────────────────────────────────
+function evHtml(list){
+  if(!list||!list.length) return '<div class="empty">근거 미기재</div>';
+  return list.map(e=>`<div class="ev"><q>${esc(e.quote)}</q><span class="s">${esc(e.src||'')}</span></div>`).join('');
+}
+function detail(n){
+  const stg = STG.filter(s=>s.id===n.stage)[0];
+  const isAtom = DETAIL_ST && n.stage===DETAIL_ST.id;
+  let h = `<div class="pn-t">${esc(n.label)}</div>
+           <div class="pn-m">${esc(stg?stg.label:n.stage)}${n.verdict?' · 판정 '+esc(n.verdict):''}</div>`;
+  if(n.summary) h += `<div class="pn-s">${nl2br(n.summary)}</div>`;
+
+  // "이 서비스는 어디에 속하는가" — 모든 축의 값을 순서대로 편다
+  if(isAtom){
+    const it = ITEMS.filter(x=>x.id===n.id)[0];
+    h += `<h3>어디에 속하는가</h3><div class="path">` +
+      STG.filter(s=>!roleIs(s,'data') && !roleIs(s,'skip')).map(s=>{
+        if(s.id===n.stage)
+          return `<div class="p${it&&it.blocked?' no':''}"><span class="k">${esc(s.label)}</span>
+                  <span class="v">${esc(n.label)}${it&&it.blocked?' — 현행 불가':''}</span></div>`;
+        const vs = it ? it.val(s.id).map(lab) : [];
+        return `<div class="p"><span class="k">${esc(s.label)}</span>
+                <span class="v">${esc(vs.join(' · ')||'—')}</span></div>`;
+      }).join('') + `</div>`;
+  }
+  // 역방향 — 이 BM/카테고리/타깃에서 가능한 것
+  if(!isAtom){
+    const live=liveServices();
+    h += `<h3>여기서 가능한 서비스 ${live.length}</h3>` +
+      (live.length ? `<div class="pn-s">${live.slice(0,14).map(s=>esc(s.label)).join(' · ')}${live.length>14?` … 외 ${live.length-14}건`:''}</div>`
+                   : `<div class="empty">이 조건에서 가능한 서비스가 없습니다 — 조합이 닫혀 있습니다.</div>`);
+  }
+  h += `<h3>근거</h3>${evHtml(n.evidence)}`;
+  if(st.research) h += researchHtml();
+  document.getElementById('panel').innerHTML = h;
+}
+function researchHtml(){
+  if(!RESEARCH.length) return '';
+  return `<h3>Research</h3>` + RESEARCH.map(r=>
+    `<div class="rs"><div class="t">${esc(r.label)} · ${(r.items||[]).length}</div>
+     <div class="d">${esc((r.items||[]).slice(0,6).join(' / '))}${(r.items||[]).length>6?' …':''}</div></div>`).join('');
+}
+function intro(live){
+  const c = st.concept ? N.get(st.concept) : null;
+  let h = c ? `<div class="pn-t">${esc(c.label)}</div>
+               <div class="pn-m">${esc(c.caption||'')}</div>
+               ${c.summary?`<div class="pn-s">${nl2br(c.summary)}</div>`:''}`
+            : `<div class="pn-t">전체 보기</div><div class="pn-m">Concept을 고르면 그 방향에서 가능한 것만 남습니다</div>`;
+  h += `<h3>지금 살아 있는 것 ${live.length} / ${ITEMS.length}</h3>
+    <div class="empty">
+      · <b>Concept</b>을 고르면 그 방향의 사업만 남습니다<br>
+      · <b>Business Model</b>을 누르면 그 모델로 가능한 서비스가 켜집니다<br>
+      · <b>서비스</b>를 누르면 그것이 어디에 속하는지 경로가 전부 보입니다<br>
+      · <b>Legal</b>은 필터입니다 — 고르면 그 조건에서 가능한 것만 남습니다<br>
+      · 취소선·점선은 현행 법으로 <b>닫힌</b> 것입니다
+    </div>`;
+  if(st.research) h += researchHtml();
+  if(SLOTS.length){
+    h += `<h3>비어 있는 슬롯 ${SLOTS.length}</h3>` + SLOTS.map(s=>
+      `<div class="slot"><div class="t">${esc(s.label)}</div>
+       <div class="d">${esc(s.summary||'')}</div></div>`).join('');
+  }
+  document.getElementById('panel').innerHTML = h;
+}
+
+document.getElementById('b-reset').onclick=()=>{
+  st.concept=null; st.focus=null;
+  for(const k in st.sets) st.sets[k].clear();
+  render();
+};
+document.getElementById('b-theme').onclick=function(){
+  document.body.classList.toggle('theme-dark');
+  this.textContent=document.body.classList.contains('theme-dark')?'라이트':'다크';
+};
+document.getElementById('b-print').onclick=()=>window.print();
+
+document.getElementById('ttl').textContent = RAW.meta.title||'Decision Map';
+document.getElementById('sub').textContent = [RAW.meta.subtitle,RAW.meta.source].filter(Boolean).join(' · ');
+document.title = (RAW.meta.title||'Decision Map')+' — Decision Map';
+render();
+window.__dmap = {RAW, st, render, liveServices};   // 검증용 훅
+})();
+</script>
+</body>
+</html>

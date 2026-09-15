@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept Map</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
+<style>
+:root{
+  --bg:#FFFFFF; --bg-2:#FAFAF8; --bg-3:#F4F2EE;
+  --fg:#1A1A1A; --fg-2:#5A5650; --fg-3:#9A948C;
+  --line:#E2DED6; --line-2:#EFECE6;
+  --wire:#CFCBC4; --wire-hl:#6C5CE7;
+  --accent:#6C5CE7; --accent-sub:#F0EDFC;
+  --amber:#B07E28; --coral:#C4533A;
+}
+body.theme-dark{
+  --bg:#1A1A1A; --bg-2:#111111; --bg-3:#222222;
+  --fg:#F5F0EB; --fg-2:#C9C2BA; --fg-3:#7A7570;
+  --line:#333333; --line-2:#2A2A2A;
+  --wire:#3E3A36; --wire-hl:#A29BFE;
+  --accent:#A29BFE; --accent-sub:#2A2540;
+  --amber:#D9A34B; --coral:#E17055;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'SUIT Variable','SUIT','Pretendard Variable','Pretendard',-apple-system,sans-serif;
+  background:var(--bg);color:var(--fg);font-size:13px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
+
+/* ── Topbar ── */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding:18px 26px 14px;border-bottom:1px solid var(--line);background:var(--bg-2);flex-wrap:wrap}
+.topbar .label{font-size:10px;letter-spacing:.18em;color:var(--accent);font-weight:600;text-transform:uppercase}
+.topbar h1{font-size:20px;font-weight:500;letter-spacing:-.02em;margin-top:5px}
+.topbar .sub{font-size:12px;color:var(--fg-3);margin-top:4px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;
+  border:1px solid var(--line);color:var(--fg-2);background:var(--bg-3)}
+.badge.accent{border-color:var(--accent);color:var(--accent);background:var(--accent-sub)}
+.badge.warn{border-color:var(--amber);color:var(--amber);background:transparent}
+/* 걸린 필터를 늘 보이게 — 선이 없는 열을 눌렀을 때 화면이 안 변한 것처럼 보이는 걸 막는다 */
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;font-size:11px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:12px;
+  font-weight:600;color:var(--accent);background:var(--accent-sub);
+  border:1px solid var(--accent);cursor:pointer}
+.chip .k{opacity:.7;font-weight:500}
+.chip .x{font-size:12px;line-height:1;opacity:.6}
+.chip:hover .x{opacity:1}
+.chips .sum{color:var(--fg-3)}
+.chips .hint{color:var(--fg-3);font-weight:500}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap}
+.btn{font-family:inherit;font-size:11px;font-weight:600;color:var(--fg-2);background:var(--bg-3);
+  border:1px solid var(--line);border-radius:6px;padding:7px 11px;cursor:pointer;transition:.12s;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--fg)}
+.btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── Layout ── */
+.app{display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 100px)}
+.app.panel-off{grid-template-columns:1fr 0}
+.app.panel-off .panel{display:none}
+.canvas{position:relative;overflow:auto;padding:26px 30px 40px}
+
+/* ── Map grid ── */
+/* 열 사이 여백은 선이 펼쳐질 공간이다 — 좁으면 선이 수직으로 겹쳐 관계가 안 보인다 */
+.map{position:relative;display:grid;gap:0 var(--colgap,78px);align-items:stretch}
+.wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:visible}
+.col{position:relative;z-index:1;display:flex;flex-direction:column;min-width:0}
+.col-hd{font-size:13px;font-weight:700;letter-spacing:-.01em;text-align:center;
+  padding-bottom:9px;border-bottom:1px solid var(--fg);margin-bottom:22px;flex-shrink:0}
+.col.is-conclusion .col-hd{border-bottom:2px solid var(--accent);color:var(--accent)}
+/* 필터 전용 열 — 흐름이 아니라 조건이라는 걸 테두리로 말한다 */
+.col.filteronly .col-hd{border-bottom:1px dashed var(--fg);opacity:.75}
+.col.filteronly .node{border-style:dashed}
+.fo-tag{display:inline-block;margin-left:5px;padding:1px 5px;border:1px dashed currentColor;
+  border-radius:8px;font-size:9px;font-weight:600;vertical-align:middle;opacity:.8}
+.col-body{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:2px}
+.col.dense .col-body{justify-content:center;gap:5px}
+/* .grp로 묶인 열은 짝이 되는 열과 같은 분배 규칙을 써야 세로가 맞는다 */
+.col.grouped .col-body{justify-content:space-around;gap:0}
+
+/* ── Nodes ── */
+.node{position:relative;cursor:pointer;transition:opacity .15s}
+/* 요소 폭을 글자에 맞춘다 — 열 전체 폭을 차지하면 선이 글자에서 멀리 떨어져 붙는다 */
+.node.item{font-size:12.5px;color:var(--fg-2);padding:2px 5px;border-radius:3px;line-height:1.35;
+  max-width:100%}
+.col.align-r .col-body,.col.align-r .grp{align-items:flex-end}
+.col.align-c .col-body,.col.align-c .grp{align-items:center}
+.col.align-r .node.item{text-align:right}
+.col.align-c .node.item{text-align:center}
+.node.item:hover{color:var(--fg);background:var(--bg-3)}
+.node.item.sel{color:var(--accent);font-weight:600}
+.node.item .mark{font-size:10px;color:var(--amber);margin:0 2px}
+
+.node.group{text-align:center;padding:14px 10px;border-radius:8px}
+.node.group:hover{background:var(--bg-3)}
+.node.group .g-title{font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--fg)}
+.node.group .g-desc{font-size:11.5px;color:var(--fg-3);margin-top:7px;line-height:1.55}
+/* 멤버는 세로 목록 — 각 줄이 곧 선의 도착점이다 */
+.node.group .g-mem{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);
+  display:flex;flex-direction:column;gap:1px;text-align:left}
+.mem{font-size:11.5px;color:var(--accent);line-height:1.75;word-break:keep-all;
+  padding:0 4px;border-radius:3px;transition:background .12s,color .12s}
+.mem.hl{background:var(--accent-sub);font-weight:600}
+.mem.unlinked{color:var(--fg-3);font-style:italic}
+
+.node.card{text-align:center;padding:16px 12px;
+  border-top:2px solid var(--accent);border-bottom:2px solid var(--accent)}
+.node.card:hover{background:var(--accent-sub)}
+.node.card .c-title{font-size:19px;font-weight:700;color:var(--accent);letter-spacing:-.02em}
+.node.card .c-cap{font-size:13px;font-weight:600;color:var(--fg);margin-top:4px}
+.node.card .c-desc{font-size:11.5px;color:var(--fg-3);margin-top:10px;line-height:1.6;word-break:keep-all}
+.node.card .c-mem{font-size:11.5px;color:var(--fg-2);margin-top:9px;line-height:1.6}
+.node.card.thin{border-left:3px solid var(--amber)}
+
+/* 건수는 렌더러가 센다 — 라벨에 박아두면 필터를 걸 때 거짓이 된다 */
+/* 폭을 고정한다 — 자릿수가 바뀌면 줄바꿈 위치가 달라져 노드가 위아래로 튄다 */
+.cnt{display:inline-block;font-size:10px;font-weight:700;color:var(--accent);
+  background:var(--accent-sub);border-radius:9px;padding:0 4px;margin-left:5px;vertical-align:1px;
+  min-width:2.6em;text-align:center}
+.node.picked{outline:2px solid var(--accent);outline-offset:3px;border-radius:5px}
+.node.item.picked{background:var(--accent-sub);color:var(--accent);font-weight:700}
+.node.empty{opacity:.34}
+.node.empty .cnt{color:var(--fg-3);background:var(--bg-3)}
+
+/* 상세 열은 촘촘히 — 다른 열처럼 벌려 놓으면 상위 노드와 멀어져 선이 길게 늘어진다 */
+.col.atomic .col-body{justify-content:center;gap:0}
+/* 짝지어진 두 열은 같은 규칙으로 분배해야 세로가 맞는다 */
+.col.paired .col-body{justify-content:space-around;gap:0}
+.col.atomic .grp{gap:1px}
+.col.atomic .grp + .grp{margin-top:9px}
+.col.atomic .node.item{padding:1px 5px;line-height:1.35;font-size:11.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+.col.atomic .node.item.empty{opacity:.28}
+
+.grp{display:flex;flex-direction:column;justify-content:center;gap:4px}
+.grp + .grp{margin-top:26px}
+
+/* dim */
+.map.dim .node:not(.hl){opacity:.2}
+/* stroke·fill은 JS가 계열 색으로 넣는다. 여기서 지정하면 CSS가 이겨 색이 전부 회색이 된다 */
+.wires path{fill:none;stroke-width:1;stroke-opacity:.45;
+  transition:stroke .15s,stroke-width .15s,opacity .15s,stroke-opacity .15s}
+.wires path.lowconf{stroke-dasharray:5 4}
+/* 상세로 드나드는 잔가지 — 수가 많아 굵은 줄기와 같은 농도면 화면이 잠긴다 */
+.wires path.detail{stroke-width:.7;stroke-opacity:.3}
+.map.dim .wires path.detail.hl{stroke-width:1.8}
+.wires circle{opacity:.3;transition:opacity .15s,fill .15s,r .15s}
+.map.dim .wires path{opacity:.07}
+.map.dim .wires circle{opacity:.05}
+.map.dim .wires path.hl{opacity:1;stroke-width:2.4;stroke-opacity:1}
+.map.dim .wires circle.hl{opacity:1;r:3.4}
+.map.pinned .wires path.hl{stroke-dasharray:none}
+
+/* ── Panel ── */
+.panel{border-left:1px solid var(--line);background:var(--bg-2);overflow-y:auto;padding:20px}
+.panel h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+  font-weight:600;margin-bottom:10px}
+.panel .empty{color:var(--fg-3);font-size:12px;line-height:1.75}
+.pn-title{font-size:16px;font-weight:600;letter-spacing:-.01em;margin-bottom:3px}
+.pn-meta{font-size:11px;color:var(--fg-3);margin-bottom:12px}
+.pn-sum{font-size:12.5px;color:var(--fg-2);line-height:1.65;padding:10px 12px;background:var(--bg-3);
+  border-radius:6px;border:1px solid var(--line-2);margin-bottom:14px}
+.ev{border-left:2px solid var(--accent);padding:7px 0 7px 11px;margin-bottom:10px}
+.ev q{font-size:12px;color:var(--fg);line-height:1.6;display:block}
+.ev .src{font-size:10px;color:var(--fg-3);margin-top:5px;display:block;word-break:break-all}
+.no-ev{font-size:11.5px;color:var(--amber);border:1px dashed var(--amber);border-radius:5px;padding:8px 10px}
+.flow-row{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:5px 0;
+  border-bottom:1px solid var(--line-2);cursor:pointer}
+.flow-row:hover{color:var(--accent)}
+.ws-item{border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:5px;
+  padding:10px 11px;margin-bottom:9px;background:var(--bg-3)}
+.ws-item .t{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);font-weight:700}
+.ws-item .q{font-size:12px;color:var(--fg);margin-top:5px;line-height:1.55}
+.ws-item .i{font-size:11.5px;color:var(--fg-2);margin-top:7px;line-height:1.55;
+  padding-top:7px;border-top:1px dashed var(--line)}
+.ws-item .i::before{content:'아이디어 · ';color:var(--amber);font-weight:600}
+.concl{border:1px solid var(--line);border-radius:6px;padding:11px 12px;margin-bottom:9px;background:var(--bg-3)}
+.concl .st{font-size:13px;font-weight:500;line-height:1.5}
+.concl .sw{font-size:11.5px;color:var(--fg-2);margin-top:6px;line-height:1.55}
+.concl .sp{font-size:10px;color:var(--fg-3);margin-top:7px}
+.concl.thin{border-left:3px solid var(--amber)}
+
+/* ── Print appendix ── */
+.appendix{display:none;padding:26px 30px}
+.appendix h2{font-size:14px;font-weight:600;margin:22px 0 9px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.appendix table{width:100%;border-collapse:collapse;font-size:10.5px}
+.appendix th{text-align:left;font-weight:600;color:var(--fg-2);padding:5px 7px;
+  border-bottom:1px solid var(--line);background:var(--bg-3);white-space:nowrap}
+.appendix td{padding:5px 7px;border-bottom:1px solid var(--line-2);vertical-align:top;color:var(--fg-2)}
+.appendix tr{break-inside:avoid}
+
+body.print-preview .app{grid-template-columns:1fr}
+body.print-preview .panel{display:none}
+body.print-preview .appendix{display:block}
+
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body{background:#fff;color:#111}
+  .toolbar,.panel{display:none!important}
+  .app{display:block}
+  .canvas{overflow:visible;padding:0}
+  .appendix{display:block;break-before:page}
+  .map.dim .node:not(.hl){opacity:1}
+  .map.dim .wires path{opacity:1}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ 데이터 주입 지점 ══════════════
+     스킬이 sankey-graph.json 내용을 아래 script 안에 통째로 넣는다.
+     아래 값은 템플릿 단독 동작 확인용 데모다. -->
+<script id="graph-data" type="application/json">
+{
+  "meta": {
+    "title": "샘플 — 자산에서 컨셉까지",
+    "subtitle": "템플릿 데모 데이터 (실제 산출 시 교체됨)",
+    "source": "demo", "generated_at": "2026-07-30",
+    "axis": "topic", "mode": "structure", "render": "map",
+    "value_basis": "equal", "value_note": "연결 유무만 표시"
+  },
+  "stages": [
+    {"id":"s1","label":"Segment A","order":0,"role":"origin","note":""},
+    {"id":"s2","label":"Segment B","order":1,"role":"structure","note":""},
+    {"id":"s3","label":"Concept","order":2,"role":"conclusion","note":""}
+  ],
+  "nodes": [
+    {"id":"a1","stage":"s1","label":"연출가","kind":"item","category":"people"},
+    {"id":"a2","stage":"s1","label":"연출 노트","kind":"item","category":"people"},
+    {"id":"a3","stage":"s1","label":"무대 미술","kind":"item","category":"visual"},
+    {"id":"a4","stage":"s1","label":"무대 복장","kind":"item","category":"visual"},
+    {"id":"a5","stage":"s1","label":"제작 클래스","kind":"item","category":"exp"},
+    {"id":"b1","stage":"s2","label":"PEOPLE","kind":"group","category":"people",
+      "summary":"공연 관련 사람들의 이야기\n인터뷰 / 작가의 설명","members":["연출가","연출 노트"]},
+    {"id":"b2","stage":"s2","label":"VISUAL ART","kind":"group","category":"visual",
+      "summary":"공연 관련 비주얼 아트의 커뮤니케이션","members":["무대 미술","무대 복장"]},
+    {"id":"b3","stage":"s2","label":"EXPERIENCE","kind":"group","category":"exp",
+      "summary":"공연과 연관된 경험 확장성","members":["제작 클래스"]},
+    {"id":"c1","stage":"s3","label":"Archiving","kind":"card","category":"arch","caption":"아카이빙",
+      "summary":"다양한 공연을 한번에 설명할 수 있는 아카이빙"},
+    {"id":"c2","stage":"s3","label":"Interactive","kind":"card","category":"inter","caption":"참여형 콘텐츠",
+      "summary":"정적인 형태와 동적인 형태의 참여형 컨텐츠"}
+  ],
+  "links": [
+    {"id":"l1","source":"a1","target":"b1","value":1},
+    {"id":"l2","source":"a2","target":"b1","value":1},
+    {"id":"l3","source":"a3","target":"b2","value":1},
+    {"id":"l4","source":"a4","target":"b2","value":1},
+    {"id":"l5","source":"a5","target":"b3","value":1},
+    {"id":"l6","source":"b1","target":"c1","value":1},
+    {"id":"l7","source":"b2","target":"c1","value":1},
+    {"id":"l8","source":"b3","target":"c2","value":1},
+    {"id":"l9","source":"b2","target":"c2","value":1}
+  ],
+  "conclusions": [
+    {"node_id":"c1","statement":"흩어진 공연 기록을 한 번에 설명하는 아카이브가 성립한다",
+     "so_what":"4~6개 동시 전시 / 소개 형태 및 시즌제","support":["l6","l7"]},
+    {"node_id":"c2","statement":"제작 과정이 곧 참여형 콘텐츠가 된다",
+     "so_what":"정적·동적 두 형태로 나눠 설계한다","support":["l8","l9"]}
+  ],
+  "whitespace": []
+}
+</script>
+
+<div class="topbar">
+  <div>
+    <div class="label">Concept Map</div>
+    <h1 id="ttl">—</h1>
+    <div class="sub" id="sub"></div>
+    <div class="badges" id="badges"></div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="toolbar">
+    <button class="btn on" id="b-sort">정렬 · 교차 최소</button>
+    <button class="btn" id="b-fowire" hidden>연결선</button>
+    <button class="btn" id="b-panel">패널</button>
+    <button class="btn" id="b-print">인쇄 미리보기</button>
+    <button class="btn" id="b-theme">다크</button>
+    <button class="btn" id="b-reset">초기화</button>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <div class="canvas"><div class="map" id="map"><svg class="wires" id="wires"></svg></div></div>
+  <aside class="panel" id="panel"></aside>
+</div>
+
+<div class="appendix" id="appendix"></div>
+
+<script>
+(function(){
+"use strict";
+
+const RAW = JSON.parse(document.getElementById('graph-data').textContent);
+const stages = RAW.stages.slice().sort((a,b)=>a.order-b.order);
+const stageById = new Map(stages.map(s=>[s.id,s]));
+const stageIdx  = new Map(stages.map((s,i)=>[s.id,i]));
+const nodes = RAW.nodes.map((n,i)=>Object.assign({kind:'item'},n,{
+  __ord:i, evidence:n.evidence||[], flags:(n.flags||[]).slice(), members:n.members||[]
+}));
+const nodeById = new Map(nodes.map(n=>[n.id,n]));
+const byLabel = new Map(nodes.map(n=>[n.label, n.id]));   // 멤버 이름 → 노드 id
+const rank = new Map();                                   // 노드 id → 열 안에서의 순위
+const state = {sel:null, pin:null, sort:'cross', pick:{}, filterWires:false};
+
+// ── 원자 레이어 ───────────────────────────────────────────
+// atoms가 있으면 링크와 건수를 '매번 다시 센다'. 없으면 기존대로 RAW.links를 그대로 그린다.
+const ATOMS = RAW.atoms || [];
+const AXIS  = RAW.axis_map || {};              // stage id → 원자의 축 이름
+const HAS_ATOMS = ATOMS.length > 0 && Object.keys(AXIS).length > 0;
+const ATOMIC = new Set(stages.filter(s=>s.atomic).map(s=>s.id));   // 원자 1:1 상세 열
+// 필터 전용 열 — 흐름의 한 칸이 아니라 조건이다. 선을 안 그리고 앞뒤를 직접 잇는다.
+// (상세 열에서 이 열로 내려꽂히는 선이 평균 1,251px·최대 3,065px가 되어 화면을 덮었다)
+const FILTERONLY = new Set(stages.filter(s=>s.filter_only).map(s=>s.id));
+const RULE = Object.assign({strong:.60, weak:.35}, (RAW.meta||{}).link_rule||{});
+const axVals = (a, ax) => { const v=(a.axes||{})[ax]; return v==null?[]:(Array.isArray(v)?v:[v]); };
+
+// state.pick — 열마다 하나씩 고른 값(AND 조합). 살아 있는 원자 집합이 진실이고 나머지는 전부 파생된다.
+function liveAtoms(){
+  if(!HAS_ATOMS) return [];
+  return ATOMS.filter(a=>{
+    for(const sid in state.pick){
+      const v = state.pick[sid]; if(!v) continue;
+      const ax = AXIS[sid]; if(!ax) continue;
+      if(!axVals(a, ax).includes(v)) return false;
+    }
+    return true;
+  });
+}
+function countOf(nodeId){
+  const n = nodeById.get(nodeId); if(!n || !HAS_ATOMS) return null;
+  const ax = AXIS[n.stage]; if(!ax) return null;          // 축이 없는 열(빈 슬롯 등)은 세지 않는다
+  return liveAtoms().filter(a=>axVals(a, ax).includes(nodeId)).length;
+}
+// 줄기에 낄 열인가 — 상세 열은 늘 빠지고, 필터 전용 열은 켤 때만 낀다
+const inChain = x => !ATOMIC.has(x.id) && (state.filterWires || !FILTERONLY.has(x.id));
+// 인접한 두 열 사이를 원자로 세어 링크를 만든다. 곁가지는 점선, 아주 약하면 끊는다.
+function buildLinks(atoms){
+  const out = [];
+  // 줄기는 상세 열을 건너뛰고 흐른다. 상세를 흐름 한가운데 끼우면
+  // 다음 열로 갈 때 낙차가 커져 교차가 1,200건을 넘는다.
+  const chain = stages.filter(inChain);
+  const pairs = [];
+  for(let i=0;i<chain.length-1;i++) pairs.push([chain[i].id, chain[i+1].id, false]);
+  // 상세는 바로 위 단계에서 뻗어나오고, 다음 줄기 단계로 다시 합류한다
+  stages.forEach((x,i)=>{
+    if(!ATOMIC.has(x.id) || i===0) return;
+    const prev = stages.slice(0,i).reverse().find(inChain);
+    if(prev) pairs.push([prev.id, x.id, true]);                     // 위에서 들어옴
+    const next = stages.slice(i+1).find(inChain);
+    if(next) pairs.push([x.id, next.id, true]);                     // 다음 줄기로 나감
+  });
+
+  pairs.forEach(([sa, sb, isDetail])=>{
+    const A = AXIS[sa], B = AXIS[sb];
+    if(!A || !B) return;
+    const cnt = new Map();
+    atoms.forEach(a=>axVals(a,A).forEach(x=>axVals(a,B).forEach(y=>{
+      const k = x+' '+y; cnt.set(k, (cnt.get(k)||0)+1);
+    })));
+    const om={}, im={};
+    cnt.forEach((v,k)=>{ const [x,y]=k.split(' ');
+      om[x]=Math.max(om[x]||0,v); im[y]=Math.max(im[y]||0,v); });
+    cnt.forEach((v,k)=>{
+      const [x,y]=k.split(' ');
+      if(!nodeById.has(x)||!nodeById.has(y)) return;
+      const r = Math.max(v/om[x], v/im[y]);
+      if(!isDetail && r < RULE.weak) return;        // 잎은 전부 남긴다 — 목록이니까
+      out.push({id:`a-${x}-${y}`, source:x, target:y, value:1, detail:isDetail,
+        confidence: r>=RULE.strong ? 'high' : 'low',
+        note:`서비스 ${v}건 · 이 단계 주 경로 대비 ${Math.round(r*100)}%`, evidence:[]});
+    });
+  });
+  return out;
+}
+
+let links = [], bySrc = new Map(), byTgt = new Map();
+function refreshLinks(){
+  links = (HAS_ATOMS
+      ? buildLinks(liveAtoms())
+      : RAW.links.map((l,i)=>Object.assign({},l,{
+          id:l.id||('l'+i+'-'+l.source+'>'+l.target), evidence:l.evidence||[]})))
+    .filter(l=>nodeById.has(l.source)&&nodeById.has(l.target));
+  bySrc = new Map(); byTgt = new Map();
+  links.forEach(l=>{
+    if(!bySrc.has(l.source)) bySrc.set(l.source,[]);
+    if(!byTgt.has(l.target)) byTgt.set(l.target,[]);
+    bySrc.get(l.source).push(l); byTgt.get(l.target).push(l);
+  });
+}
+refreshLinks();
+// 고립·막다른 표시
+(function(){
+  const last = stages[stages.length-1].id;
+  nodes.forEach(n=>{
+    if(FILTERONLY.has(n.stage)) return;        // 선이 없는 게 정상인 열 — 고립으로 읽으면 오탐
+    const i=(byTgt.get(n.id)||[]).length, o=(bySrc.get(n.id)||[]).length;
+    if(!i && !o && !n.flags.includes('orphan')) n.flags.push('orphan');
+    else if(i && !o && n.stage!==last && !n.flags.includes('dead_end')) n.flags.push('dead_end');
+  });
+})();
+
+if(RAW.meta.accent){
+  document.documentElement.style.setProperty('--accent', RAW.meta.accent);
+  document.documentElement.style.setProperty('--wire-hl', RAW.meta.accent);
+}
+
+const wsByNode = new Map();
+(RAW.whitespace||[]).forEach(w=>(w.where||[]).forEach(id=>{
+  if(!wsByNode.has(id)) wsByNode.set(id,[]); wsByNode.get(id).push(w);
+}));
+const conclByNode = new Map((RAW.conclusions||[]).map(c=>[c.node_id,c]));
+const thinConcl = new Set((RAW.conclusions||[]).filter(c=>(c.support||[]).length<=1).map(c=>c.node_id));
+
+
+// 계열 색 — 어느 갈래에서 나온 선인지 색으로 구분한다
+const PALETTE = ['#6C5CE7','#A29BFE','#6F8AA3','#8FA37E','#D9A34B','#E17055'];
+const cats = [...new Set(nodes.map(n=>n.category||n.stage))];
+const colorOf = n => PALETTE[cats.indexOf(n.category||n.stage) % PALETTE.length];
+
+// ── 교차 최소화 (barycenter) ──────────────────────────────
+// 연결된 상대의 평균 위치로 요소를 옮긴다. 결론 열과 category 묶음 순서는 건드리지 않는다.
+let ORDER_CACHE = null;
+function computeOrder(){
+  // 전체 기준으로 한 번만 계산하고 캐시한다. 필터를 걸 때마다 다시 정렬하면
+  // 노드가 위아래로 튀어 어디를 보고 있었는지 잃는다 — 선만 바뀌고 자리는 그대로여야 한다.
+  if(ORDER_CACHE) return ORDER_CACHE;
+  const cols = stages.map(s=>nodes.filter(n=>n.stage===s.id).sort((a,b)=>a.__ord-b.__ord));
+  if(state.sort !== 'cross') return (ORDER_CACHE = cols.map(c=>c.map(n=>n.id)));
+  let order = cols.map(c=>c.map(n=>n.id));
+  const catRank = cols.map(col=>{
+    const seen=[]; col.forEach(n=>{ const k=n.category||n.id; if(!seen.includes(k)) seen.push(k); });
+    return seen;
+  });
+  const posMap = () => {
+    const m = new Map();
+    order.forEach(col=>col.forEach((id,i)=>m.set(id, col.length>1 ? i/(col.length-1) : .5)));
+    return m;
+  };
+  const bary = (id, p) => {
+    const nb = [...(bySrc.get(id)||[]).map(l=>l.target), ...(byTgt.get(id)||[]).map(l=>l.source)];
+    if(!nb.length) return 2;                      // 고립은 맨 아래로 밀어 시야를 어지럽히지 않는다
+    return nb.reduce((s,x)=>s+(p.get(x)??.5),0)/nb.length;
+  };
+  for(let it=0; it<5; it++){
+    const p = posMap();
+    order = order.map((col, ci)=>{
+      if(stages[ci].role === 'conclusion') return col;   // 결론 순서는 의미가 있으므로 고정
+      const rank = catRank[ci];
+      return col.slice().sort((a,b)=>{
+        const na=nodeById.get(a), nb2=nodeById.get(b);
+        const ka=rank.indexOf(na.category||na.id), kb=rank.indexOf(nb2.category||nb2.id);
+        if(ka!==kb) return ka-kb;                        // category 묶음은 흩뜨리지 않는다
+        return bary(a,p) - bary(b,p);
+      });
+    });
+  }
+  return (ORDER_CACHE = order);
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+const nl2br = s => esc(s).replace(/\n/g,'<br>');
+
+// ── 열·노드 DOM 구성 ──────────────────────────────────────
+function buildDom(){
+  const map = document.getElementById('map');
+  [...map.querySelectorAll('.col')].forEach(el=>el.remove());
+  map.style.setProperty('--colgap', stages.length >= 7 ? '46px' : '78px');
+  map.style.gridTemplateColumns = stages.map(s=>{
+    const kinds = new Set(nodes.filter(n=>n.stage===s.id).map(n=>n.kind));
+    if(ATOMIC.has(s.id)) return '1.5fr';                  // 상세 열은 이름이 길다
+    return (kinds.has('group')||kinds.has('card')) ? '1.5fr' : '1fr';
+  }).join(' ');
+
+  const ORDER = computeOrder();
+  // 상세 열은 조건에서 빠진 항목을 감춘다 — 116개가 늘 자리를 차지하면 필터가 무의미해진다
+  const anyPick = HAS_ATOMS && Object.values(state.pick).some(Boolean);
+  // 멤버 줄 순서를 상류 열 순서에 맞추기 위한 순위표 — 어긋나면 선이 서로를 넘는다
+  rank.clear();
+  ORDER.forEach(col=>col.forEach((id,i)=>rank.set(id,i)));
+  stages.forEach((s,si)=>{
+    const col = document.createElement('div');
+    const mine = ORDER[si].map(id=>nodeById.get(id));
+    const allItem = mine.every(n=>n.kind==='item');
+    col.className = 'col'
+      + (ATOMIC.has(s.id) ? ' atomic' : '')
+      + (s.role==='conclusion' ? ' is-conclusion' : '')
+      + (allItem ? ' dense' : '')
+      + (allItem ? (si===0 ? ' align-r' : ' align-c') : '');
+    col.dataset.stage = s.id;
+    if(FILTERONLY.has(s.id)) col.classList.add('filteronly');
+    col.innerHTML = '<div class="col-hd">'+esc(s.label)
+      + (FILTERONLY.has(s.id) ? '<span class="fo-tag">옵션 필터</span>' : '') + '</div>';
+    const body = document.createElement('div');
+    body.className = 'col-body';
+
+    // category 그룹이 마지막 두 열에서 카드와 짝을 이루면 묶어서 배치한다
+    const groupsOrder = [];
+    mine.forEach(n=>{ const k=n.category||n.id;
+      if(!groupsOrder.includes(k)) groupsOrder.push(k); });
+    if(ATOMIC.has(s.id) && si>0){
+      // 앞 열의 순서를 그대로 쓰되, 해당 항목이 없는 자리도 빈 묶음으로 남긴다.
+      // 개수가 어긋나면 두 열의 분배가 달라져 짝이 맞지 않는다(실측 최대 717px 어긋남).
+      groupsOrder.length = 0;
+      ORDER[si-1].forEach(id=>groupsOrder.push(id));
+    }
+    const useGroups = allItem && si>0 && groupsOrder.length>1 && groupsOrder.length<mine.length;
+
+    // 결론 카드도 같은 .grp 구조로 감싼다 — 앞 열의 그룹과 마진·정렬 규칙이 어긋나면 짝이 세로로 안 맞는다
+    const wrapCards = s.role==='conclusion' && mine.length>1 && mine.every(n=>n.kind==='card');
+
+    if(useGroups || wrapCards){
+      col.classList.add('grouped');
+      groupsOrder.forEach(k=>{
+        const g = document.createElement('div');
+        g.className='grp'; g.dataset.cat=k;
+        mine.filter(n=>(n.category||n.id)===k).forEach(n=>g.appendChild(nodeEl(n)));
+        body.appendChild(g);
+      });
+    } else {
+      mine.forEach(n=>body.appendChild(nodeEl(n)));
+    }
+    col.appendChild(body);
+    map.appendChild(col);
+  });
+}
+
+function nodeEl(n){
+  const el = document.createElement('div');
+  const picked = HAS_ATOMS && state.pick[n.stage]===n.id;
+  const live = countOf(n.id);                          // 판정용
+  const cnt = ATOMIC.has(n.stage) ? (live > 1 ? live : null) : live;   // 상세 열은 1건이면 배지 생략
+
+  el.className = 'node ' + n.kind
+    + (state.sel===n.id?' sel':'') + (picked?' picked':'')
+    + (live===0 ? ' empty' : '')
+    + (n.kind==='card' && thinConcl.has(n.id) ? ' thin':'');
+  el.dataset.id = n.id;
+  const marks = (n.flags.includes('orphan')?'<span class="mark" title="고립 — 어떤 흐름에도 안 걸림">○</span>':'')
+    + (n.flags.includes('dead_end')?'<span class="mark" title="결론에 닿지 못함">✕</span>':'')
+    + (wsByNode.has(n.id)?'<span class="mark" title="빈틈 탐지">●</span>':'');
+
+  if(n.kind==='group'){
+    // 멤버를 세로 목록으로 — 각 줄이 곧 선의 도착점이 된다.
+    // links[]에 없는 멤버는 흐리게 표시한다. "써 있는데 선이 없는" 상태를 숨기지 않는다.
+    const linked = new Set([...(byTgt.get(n.id)||[]).map(l=>l.source),
+                            ...(bySrc.get(n.id)||[]).map(l=>l.target)]);
+    const list = state.sort==='cross'
+      ? n.members.slice().sort((a,b)=>
+          (rank.get(byLabel.get(a)) ?? 999) - (rank.get(byLabel.get(b)) ?? 999))
+      : n.members;
+    const mems = list.map(m=>{
+      const mid = byLabel.get(m);
+      // 노드가 아닌 이름(그냥 설명 텍스트)은 평범하게 둔다.
+      // 노드인데 links에 없을 때만 '연결 없음'으로 흐리게 — 그래야 경고가 경고로 읽힌다.
+      const cls = !mid ? '' : (linked.has(mid) ? '' : ' unlinked');
+      return '<span class="mem'+cls+'" data-mem="'+esc(m)+'"'
+        + (mid && linked.has(mid) ? ' data-mem-id="'+esc(mid)+'"' : '')
+        + (cls ? ' title="이 이름은 members에만 있고 links에는 없습니다"' : '')
+        + '>'+esc(m)+'</span>';
+    }).join('');
+    el.innerHTML = '<div class="g-title">'+esc(n.label)
+      +(cnt!=null?`<span class="cnt">${cnt}</span>`:'')+marks+'</div>'
+      + (n.summary?'<div class="g-desc">'+nl2br(n.summary)+'</div>':'')
+      + (mems?'<div class="g-mem">'+mems+'</div>':'');
+  } else if(n.kind==='card'){
+    const c = conclByNode.get(n.id);
+    el.innerHTML = '<div class="c-title">'+esc(n.label)
+      +(cnt!=null?`<span class="cnt">${cnt}</span>`:'')+marks+'</div>'
+      + (n.caption?'<div class="c-cap">'+esc(n.caption)+'</div>':'')
+      + (n.summary?'<div class="c-desc">'+nl2br(n.summary)+'</div>':'')
+      + (n.members.length?'<div class="c-mem">'+n.members.map(esc).join(' / ')+'</div>':'')
+      + (c&&thinConcl.has(n.id)?'<div class="c-desc" style="color:var(--amber)">⚠ 근거 1건</div>':'');
+  } else {
+    el.innerHTML = esc(n.label)+(cnt!=null?`<span class="cnt">${cnt}</span>`:'')+marks;
+  }
+  el.addEventListener('click',e=>{
+    e.stopPropagation();
+    const filterable = HAS_ATOMS && AXIS[n.stage];
+    if(filterable){
+      // 같은 열에서 하나만 고른다. 다시 누르면 해제. 여러 열을 겹치면 AND로 좁혀진다.
+      state.pick[n.stage] = (state.pick[n.stage]===n.id) ? null : n.id;
+      state.sel = n.id; state.pin = null; clearHl(true);
+      render(); showNode(n);
+      return;
+    }
+    state.pin = (state.pin===n.id) ? null : n.id;   // 클릭하면 강조가 고정된다 — 마우스를 떼도 유지
+    state.sel = n.id; showNode(n); paint();
+    state.pin ? hl(n.id, true) : clearHl(true);
+  });
+  el.addEventListener('mouseenter',()=>{ if(!state.pin) hl(n.id); });
+  el.addEventListener('mouseleave',()=>clearHl());
+  return el;
+}
+
+// 상세 열의 각 묶음을 앞 열의 상위 노드와 같은 높이로 맞춘다.
+// 이걸 안 하면 'G4'는 위에 있는데 그 서비스 10개는 한참 아래에 놓여 선이 대각선으로 길게 늘어진다.
+function alignAtomic(){
+  const cols = [...document.querySelectorAll('.col')];
+  cols.forEach((c,i)=>{
+    if(!c.classList.contains('atomic') || i===0) return;
+    const prev = cols[i-1];
+    [...c.querySelectorAll('.grp')].forEach(g=>{
+      const up = prev.querySelector('.node[data-id="'+CSS.escape(g.dataset.cat)+'"]');
+      if(!up) return;
+      g.style.minHeight=''; up.style.minHeight='';
+      const h = Math.max(g.offsetHeight, up.offsetHeight);
+      g.style.minHeight = h+'px'; up.style.minHeight = h+'px';
+    });
+    // 짝을 맞췄으면 두 열이 같은 규칙으로 분배되어야 한다
+    prev.classList.add('paired'); c.classList.add('paired');
+  });
+}
+
+// 마지막 두 열의 대응 그룹 높이를 맞춰 시각적으로 짝을 이루게 한다
+function alignGroups(){
+  const cols = [...document.querySelectorAll('.col')];
+  if(cols.length<2) return;
+  const a = cols[cols.length-2], b = cols[cols.length-1];
+  const ga = [...a.querySelectorAll('.grp')], gb = [...b.querySelectorAll('.grp')];
+  if(!ga.length || ga.length!==gb.length) return;
+  const pair = g => gb.find(x=>x.dataset.cat===g.dataset.cat) || gb[ga.indexOf(g)];
+  ga.forEach(g=>{ g.style.minHeight=''; const q=pair(g); if(q) q.style.minHeight=''; });
+  ga.forEach(g=>{
+    const q = pair(g); if(!q) return;
+    const h = Math.max(g.offsetHeight, q.offsetHeight);
+    g.style.minHeight = h+'px'; q.style.minHeight = h+'px';
+  });
+}
+
+// ── 라인 그리기 ───────────────────────────────────────────
+function drawWires(){
+  const map = document.getElementById('map'), svg = document.getElementById('wires');
+  const mb = map.getBoundingClientRect();
+  svg.setAttribute('viewBox', '0 0 '+mb.width+' '+mb.height);
+  svg.setAttribute('width', mb.width); svg.setAttribute('height', mb.height);
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+
+  const box = id => {
+    const el = map.querySelector('.node[data-id="'+CSS.escape(id)+'"]');
+    return el ? el.getBoundingClientRect() : null;
+  };
+  // 상대 노드의 이름이 이 노드의 멤버 목록에 있으면, 그 줄의 y를 도착점으로 쓴다
+  const memY = (hostId, otherId) => {
+    const host = map.querySelector('.node[data-id="'+CSS.escape(hostId)+'"]');
+    if(!host) return null;
+    const m = host.querySelector('.mem[data-mem-id="'+CSS.escape(otherId)+'"]');
+    if(!m) return null;
+    const r = m.getBoundingClientRect();
+    return r.top - mb.top + r.height/2;
+  };
+
+  // 1단계 — 멤버 줄에 붙는 것부터 확정
+  const A = new Map();
+  links.forEach(l=>{
+    const sb = box(l.source), tb = box(l.target);
+    if(!sb || !tb) return;
+    A.set(l.id, { sb, tb, sx: sb.right - mb.left, tx: tb.left - mb.left,
+                  sy: memY(l.source, l.target), ty: memY(l.target, l.source) });
+  });
+
+  // 2단계 — 남은 끝점은 노드 가장자리에 펼쳐 붙인다(포트). 한 점에 모으면 관계가 안 보인다.
+  ['s','t'].forEach(side=>{
+    const grouped = new Map();
+    links.forEach(l=>{
+      const a = A.get(l.id); if(!a) return;
+      if(side==='s' ? a.sy!=null : a.ty!=null) return;
+      const nid = side==='s' ? l.source : l.target;
+      if(!grouped.has(nid)) grouped.set(nid, []);
+      grouped.get(nid).push(l);
+    });
+    grouped.forEach((ls, nid)=>{
+      const r = box(nid); if(!r) return;
+      const otherMid = l=>{ const a=A.get(l.id); const o = side==='s' ? a.tb : a.sb;
+        return (a && (side==='s' ? (a.ty!=null ? a.ty+mb.top : o.top+o.height/2) : (a.sy!=null ? a.sy+mb.top : o.top+o.height/2))); };
+      ls.sort((x,y)=>otherMid(x)-otherMid(y));      // 상대 위치 순으로 붙여 선이 서로 넘지 않게
+      const pad = Math.min(14, r.height * 0.16);
+      const top = r.top - mb.top + pad, span = Math.max(0, r.height - pad*2);
+      ls.forEach((l,i)=>{
+        const y = ls.length===1 ? top + span/2 : top + span*i/(ls.length-1);
+        const a = A.get(l.id);
+        if(side==='s') a.sy = y; else a.ty = y;
+      });
+    });
+  });
+
+  // 3단계 — 그리기
+  const dot = (x,y,c,l)=>{
+    const el = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    el.setAttribute('cx',x); el.setAttribute('cy',y); el.setAttribute('r',2.2);
+    el.setAttribute('fill',c); el.dataset.id = l.id; svg.appendChild(el);
+  };
+  links.forEach(l=>{
+    const a = A.get(l.id); if(!a) return;
+    const c = colorOf(nodeById.get(l.source));
+    const dx = Math.max(30, (a.tx - a.sx) * .42);
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d','M'+a.sx+','+a.sy+'C'+(a.sx+dx)+','+a.sy+' '+(a.tx-dx)+','+a.ty+' '+a.tx+','+a.ty);
+    p.setAttribute('stroke', c);
+    p.setAttribute('class', (l.confidence==='low'?'lowconf ':'') + (l.detail?'detail':''));
+    p.dataset.id = l.id; p.dataset.s = l.source; p.dataset.t = l.target;
+    p.addEventListener('click',e=>{ e.stopPropagation(); showLink(l); });
+    const ti = document.createElementNS('http://www.w3.org/2000/svg','title');
+    ti.textContent = nodeById.get(l.source).label+' → '+nodeById.get(l.target).label;
+    p.appendChild(ti);
+    svg.appendChild(p);
+    dot(a.sx,a.sy,c,l); dot(a.tx,a.ty,c,l);
+  });
+  svg.style.pointerEvents = 'none';
+  svg.querySelectorAll('path').forEach(p=>p.style.pointerEvents='stroke');
+  if(state.pin) hl(state.pin, true);
+}
+
+function paint(){
+  document.querySelectorAll('.node').forEach(el=>{
+    el.classList.toggle('sel', el.dataset.id===state.sel);
+  });
+}
+
+function hl(id, isPin){
+  const map = document.getElementById('map');
+  const keepN = new Set([id]), keepL = new Set();
+  const up=[id]; while(up.length){ const c=up.pop();
+    (byTgt.get(c)||[]).forEach(l=>{ if(!keepL.has(l.id)){keepL.add(l.id);keepN.add(l.source);up.push(l.source);} }); }
+  const dn=[id]; while(dn.length){ const c=dn.pop();
+    (bySrc.get(c)||[]).forEach(l=>{ if(!keepL.has(l.id)){keepL.add(l.id);keepN.add(l.target);dn.push(l.target);} }); }
+  map.classList.add('dim');
+  map.classList.toggle('pinned', !!isPin);
+  map.querySelectorAll('.node').forEach(el=>el.classList.toggle('hl', keepN.has(el.dataset.id)));
+  map.querySelectorAll('.wires path, .wires circle')
+     .forEach(p=>p.classList.toggle('hl', keepL.has(p.dataset.id)));
+  map.querySelectorAll('.mem').forEach(m=>m.classList.toggle('hl', keepN.has(m.dataset.memId)));
+}
+function clearHl(force){
+  if(state.pin && !force) return;                  // 고정된 상태는 마우스가 떠나도 유지한다
+  const map = document.getElementById('map');
+  map.classList.remove('dim','pinned');
+  map.querySelectorAll('.hl').forEach(el=>el.classList.remove('hl'));
+}
+
+// ── 패널 ──────────────────────────────────────────────────
+function evHtml(list){
+  if(!list||!list.length) return '<div class="no-ev">근거 미기재 — 이 연결은 원문 인용이 없습니다</div>';
+  return list.map(e=>'<div class="ev"><q>'+esc(e.quote)+'</q><span class="src">'+esc(e.src||'')+'</span></div>').join('');
+}
+function wsHtml(list){
+  return list.map(w=>'<div class="ws-item"><div class="t">'+esc(w.type)+'</div>'
+    +'<div class="q">'+esc(w.question)+'</div>'
+    +(w.idea?'<div class="i">'+esc(w.idea)+'</div>':'')+'</div>').join('');
+}
+const lbl = id => (nodeById.get(id)||{}).label || id;
+function showNode(n){
+  const ins=(byTgt.get(n.id)||[]), outs=(bySrc.get(n.id)||[]);
+  const c=conclByNode.get(n.id);
+  let h='<h2>'+({item:'요소',group:'그룹',card:'컨셉'}[n.kind]||'노드')+'</h2>'
+    +'<div class="pn-title">'+esc(n.label)+'</div>'
+    +'<div class="pn-meta">'+esc(stageById.get(n.stage).label)
+    +(n.category?' · '+esc(n.category):'')+'</div>';
+  if(n.summary) h+='<div class="pn-sum">'+nl2br(n.summary)+'</div>';
+  if(n.members.length) h+='<h2>구성</h2><div class="pn-sum">'+n.members.map(esc).join(' · ')+'</div>';
+  if(c){
+    h+='<h2>결론</h2><div class="concl'+(thinConcl.has(n.id)?' thin':'')+'">'
+      +'<div class="st">'+esc(c.statement)+'</div>'
+      +(c.so_what?'<div class="sw">→ '+esc(c.so_what)+'</div>':'')
+      +'<div class="sp">근거 링크 '+((c.support||[]).length)+'건'
+      +((c.support||[]).length<=1?' · ⚠ 근거가 얇습니다':'')+'</div></div>';
+  }
+  if(wsByNode.has(n.id)) h+='<h2>빈틈</h2>'+wsHtml(wsByNode.get(n.id));
+  h+='<h2>근거</h2>'+evHtml(n.evidence);
+  h = pickHtml() + h;
+  if(ins.length) h+='<h2>들어오는 연결 '+ins.length+'</h2>'
+    +ins.map(l=>'<div class="flow-row" data-lid="'+esc(l.id)+'"><span>'+esc(nodeById.get(l.source).label)+'</span></div>').join('');
+  if(outs.length) h+='<h2>나가는 연결 '+outs.length+'</h2>'
+    +outs.map(l=>'<div class="flow-row" data-lid="'+esc(l.id)+'"><span>'+esc(nodeById.get(l.target).label)+'</span></div>').join('');
+  setPanel(h);
+}
+function showLink(l){
+  setPanel('<h2>연결</h2><div class="pn-title">'+esc(nodeById.get(l.source).label)
+    +' → '+esc(nodeById.get(l.target).label)+'</div>'
+    +'<div class="pn-meta">'+(l.confidence?'신뢰도 '+esc(l.confidence):'관계 표시 — 양은 나타내지 않음')+'</div>'
+    +(l.note?'<div class="pn-sum">'+esc(l.note)+'</div>':'')
+    +'<h2>근거</h2>'+evHtml(l.evidence));
+}
+function setPanel(h){
+  document.getElementById('panel').innerHTML=h;
+  document.querySelectorAll('.flow-row').forEach(el=>el.addEventListener('click',()=>{
+    const l=links.find(x=>x.id===el.dataset.lid); if(l) showLink(l);
+  }));
+}
+function pickHtml(){
+  if(!HAS_ATOMS) return '';
+  const on = Object.keys(state.pick).filter(k=>state.pick[k]);
+  const live = liveAtoms().length;
+  if(!on.length) return `<h2>지금 보고 있는 것</h2><div class="pn-sum">전체 ${ATOMS.length}건 · 필터 없음<br>
+    <span style="color:var(--fg-3)">아무 요소나 누르면 그 조건으로 좁혀집니다. 여러 열을 겹쳐 누를 수 있습니다.</span></div>`;
+  return `<h2>걸린 필터 ${on.length}</h2><div class="pn-sum">`
+    + on.map(k=>`<b>${esc(stageById.get(k).label)}</b> · ${esc(lbl(state.pick[k]))}`).join('<br>')
+    + `<br><br>남은 것 <b>${live}</b> / ${ATOMS.length}건`
+    + (live===0?'<br><span style="color:var(--amber)">이 조합은 성립하는 것이 없습니다</span>':'')
+    + `</div>`;
+}
+// 걸린 필터를 상단에 칩으로 — 누르면 그 조건만 푼다
+function chips(){
+  const el = document.getElementById('chips');
+  if(!el) return;
+  if(!HAS_ATOMS){ el.innerHTML=''; return; }
+  const on = Object.keys(state.pick).filter(k=>state.pick[k]);
+  if(!on.length){
+    el.innerHTML = '<span class="hint">요소를 누르면 그 조건으로 좁혀집니다 — 여러 열을 겹쳐 누를 수 있습니다</span>';
+    return;
+  }
+  const live = liveAtoms().length;
+  el.innerHTML = on.map(k=>`<span class="chip" data-stage="${esc(k)}">`
+      + `<span class="k">${esc((stageById.get(k).label||'').split('·').pop().trim())}</span>`
+      + esc(lbl(state.pick[k])) + '<span class="x">✕</span></span>').join('')
+    + `<span class="sum">남은 것 <b>${live}</b> / ${ATOMS.length}건`
+    + (live===0 ? ' — 이 조합은 성립하는 것이 없습니다' : '') + '</span>';
+  el.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+    state.pick[c.dataset.stage]=null; state.sel=null; clearHl(true); render();
+  }));
+}
+function showIntro(){
+  let h=pickHtml()+'<h2>읽는 법</h2><div class="empty">선은 양이 아니라 <b>관계</b>를 나타냅니다. 굵기에 뜻이 없습니다.'
+    +'<br><br>· 요소에 <b>마우스를 올리면</b> 그 요소가 닿는 경로만 남습니다'
+    +'<br>· <b>클릭하면 고정</b>됩니다 — 마우스를 떼도 유지되고, 다시 누르면 풀립니다'
+    +'<br>· 선은 그룹 블록 안의 <b>같은 이름 줄</b>로 정확히 들어갑니다'
+    +'<br>· 흐린 이탤릭 멤버는 <b>목록에만 있고 연결이 없는</b> 것입니다'
+    +'<br>· 상단 <b>정렬</b> 버튼으로 교차 최소 ↔ 원본순을 바꿉니다</div>';
+  if((RAW.conclusions||[]).length){
+    h+='<h2>컨셉 '+RAW.conclusions.length+'건</h2>'+RAW.conclusions.map(c=>{
+      const n=nodeById.get(c.node_id);
+      return '<div class="concl'+(thinConcl.has(c.node_id)?' thin':'')+'">'
+      +'<div class="st">'+esc(n?n.label+' — ':'')+esc(c.statement)+'</div>'
+      +(c.so_what?'<div class="sw">→ '+esc(c.so_what)+'</div>':'')
+      +'<div class="sp">근거 '+((c.support||[]).length)+'건'
+      +((c.support||[]).length<=1?' · ⚠ 얇음':'')+'</div></div>';}).join('');
+  }
+  if((RAW.whitespace||[]).length){
+    h+='<h2>빈틈 '+RAW.whitespace.length+'건</h2>'+wsHtml(RAW.whitespace);
+  }
+  document.getElementById('panel').innerHTML=h;
+}
+
+// ── 헤더·부록 ─────────────────────────────────────────────
+function header(){
+  const m=RAW.meta;
+  document.getElementById('ttl').textContent=m.title||'Concept Map';
+  document.getElementById('sub').textContent=[m.subtitle,m.source].filter(Boolean).join(' · ');
+  const b=['<span class="badge accent">CONCEPT MAP</span>',
+    '<span class="badge warn">선은 관계만 표시 — 굵기에 양의 뜻 없음</span>',
+    '<span class="badge">요소 '+nodes.length+' · 연결 '+links.length+'</span>'];
+  if(m.mode==='generate') b.push('<span class="badge">빈틈 탐지 '+((RAW.whitespace||[]).length)+'</span>');
+  if(m.generated_at) b.push('<span class="badge">'+m.generated_at+'</span>');
+  document.getElementById('badges').innerHTML=b.join('');
+  document.title=(m.title||'Concept Map')+' — Concept Map';
+}
+function appendix(){
+  const T=(head,rows)=>'<table><thead><tr>'+head.map(h=>'<th>'+h+'</th>').join('')
+    +'</tr></thead><tbody>'+rows+'</tbody></table>';
+  let h='<h2>부록 A — 컨셉과 근거</h2>';
+  h+=T(['컨셉','내용','So what','근거'],(RAW.conclusions||[]).map(c=>{
+    const n=nodeById.get(c.node_id);
+    return '<tr><td>'+esc(n?n.label:c.node_id)+'</td><td>'+esc(c.statement)+'</td><td>'
+      +esc(c.so_what||'')+'</td><td>'+esc((c.support||[]).join(', '))
+      +((c.support||[]).length<=1?' ⚠':'')+'</td></tr>';
+  }).join('') || '<tr><td colspan="4">컨셉 없음</td></tr>');
+
+  h+='<h2>부록 B — 요소</h2>';
+  h+=T(['단계','요소','종류','설명 / 근거'],nodes.map(n=>
+    '<tr><td>'+esc(stageById.get(n.stage).label)+'</td><td>'+esc(n.label)
+    +(n.flags.length?' <em>('+esc(n.flags.join(','))+')</em>':'')+'</td><td>'+esc(n.kind)+'</td><td>'
+    +esc((n.summary||'').replace(/\n/g,' / '))
+    +(n.members.length?'<br><small>'+esc(n.members.join(' / '))+'</small>':'')
+    +(n.evidence.length?n.evidence.map(e=>'<br>“'+esc(e.quote)+'” <small>'+esc(e.src||'')+'</small>').join(''):'')
+    +'</td></tr>').join(''));
+
+  h+='<h2>부록 C — 연결'+(HAS_ATOMS?` (원자 ${liveAtoms().length}/${ATOMS.length}건 기준)`:'')+'</h2>';
+  h+=T(['출발','도착','신뢰도','근거'],links.map(l=>
+    '<tr><td>'+esc(nodeById.get(l.source).label)+'</td><td>'+esc(nodeById.get(l.target).label)+'</td>'
+    +'<td>'+esc(l.confidence||'')+'</td><td>'
+    +(l.evidence.length?l.evidence.map(e=>'“'+esc(e.quote)+'” <small>'+esc(e.src||'')+'</small>').join('<br>'):'')
+    +'</td></tr>').join(''));
+
+  if((RAW.whitespace||[]).length){
+    h+='<h2>부록 D — 빈틈과 아이디어</h2>';
+    h+=T(['유형','위치','질문','아이디어'],RAW.whitespace.map(w=>
+      '<tr><td>'+esc(w.type)+'</td><td>'+esc((w.where||[]).map(id=>{
+        const n=nodeById.get(id); return n?n.label:id;}).join(' × '))
+      +'</td><td>'+esc(w.question)+'</td><td>'+esc(w.idea||'')+'</td></tr>').join(''));
+  }
+  h+='<h2>출처</h2><table><tbody><tr><td>'+esc(RAW.meta.source||'')
+    +'</td><td>생성 '+esc(RAW.meta.generated_at||'')+'</td></tr></tbody></table>';
+  document.getElementById('appendix').innerHTML=h;
+}
+
+function render(){ refreshLinks(); chips(); appendix(); buildDom(); alignAtomic(); alignGroups(); requestAnimationFrame(()=>{ alignGroups(); drawWires(); }); }
+
+document.getElementById('b-panel').addEventListener('click',function(){
+  document.getElementById('app').classList.toggle('panel-off');
+  this.classList.toggle('on'); setTimeout(render,0);
+});
+document.getElementById('b-print').addEventListener('click',function(){
+  document.body.classList.toggle('print-preview'); this.classList.toggle('on'); setTimeout(render,0);
+});
+document.getElementById('b-theme').addEventListener('click',function(){
+  document.body.classList.toggle('theme-dark');
+  this.textContent=document.body.classList.contains('theme-dark')?'라이트':'다크'; setTimeout(render,0);
+});
+document.getElementById('b-sort').addEventListener('click',function(){
+  state.sort = state.sort==='cross' ? 'orig' : 'cross'; ORDER_CACHE=null;
+  this.textContent = state.sort==='cross' ? '정렬 · 교차 최소' : '정렬 · 원본순';
+  this.classList.toggle('on', state.sort==='cross');
+  render();
+});
+document.getElementById('b-reset').addEventListener('click',()=>{
+  state.sel=null; state.pin=null; state.pick={}; clearHl(true); render(); showIntro();
+});
+// 필터 전용 열의 연결선 — 기본은 끔. 켜면 그 열이 다시 줄기에 낀다
+(function(){
+  const b = document.getElementById('b-fowire');
+  if(!FILTERONLY.size) return;
+  const nm = stages.find(s=>FILTERONLY.has(s.id)).label.split('·').pop().trim();
+  b.hidden = false; b.textContent = nm + ' 연결선';
+  b.addEventListener('click', function(){
+    state.filterWires = !state.filterWires;
+    this.classList.toggle('on', state.filterWires);
+    render();
+  });
+})();
+document.getElementById('map').addEventListener('click',()=>{
+  state.sel=null; state.pin=null; clearHl(true); showIntro(); paint();
+});   // 배경 클릭은 선택만 푼다 — 필터는 '초기화' 버튼으로
+let rt; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(render,150); });
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+
+header(); appendix(); showIntro(); render();
+window.__cmap = {RAW, nodes, links, render, state};   // 검증용 훅
+})();
+</script>
+</body>
+</html>
