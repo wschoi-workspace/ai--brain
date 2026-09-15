@@ -261,7 +261,7 @@ Auth 낮음  │ P-05 탐색만    │ P-02 인스타    │
 #### 5-1. 필수 포함 요소
 
 **디자인:**
-- R디자인가이드 적용: #6666FF 퍼플, Pretendard 폰트
+- R디자인가이드 적용: #6666FF 퍼플, SUIT 폰트
 - 다크 헤더 (gradient: dark→purple)
 - Chart.js CDN, html2pdf.js CDN 포함
 - PDF 저장 버튼 (sticky toolbar)

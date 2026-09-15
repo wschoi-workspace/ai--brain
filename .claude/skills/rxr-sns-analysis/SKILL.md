@@ -365,7 +365,7 @@ Content Class **A + B + C**에 해당하는 포스트 대상:
 
 **저장 경로:** `./30-knowledge/{이벤트명}-rxr-sns-report.html`
 
-**R디자인가이드 적용:** #6666FF, Pretendard Variable, 반응형
+**R디자인가이드 적용:** #6666FF, SUIT Variable, 반응형
 **PDF 출력 패널** 포함 (가로/세로 선택 + 출력 버튼)
 
 #### 필수 섹션 (순서 고정 — 모든 리포트에서 동일 구조 유지):

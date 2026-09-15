@@ -425,7 +425,7 @@ CPBP:        ₩{금액} (BEI 1점당 비용)
 
 **저장 경로:** `./30-knowledge/{이벤트명}-emv-report.html`
 
-**R디자인가이드 적용:** #6666FF, Pretendard Variable, 반응형
+**R디자인가이드 적용:** #6666FF, SUIT Variable, 반응형
 **Chart.js CDN** 사용 (도넛차트, 바차트, Decay 라인차트)
 **PDF 출력 패널** 포함 (가로/세로 선택)
 

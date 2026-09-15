@@ -202,7 +202,7 @@ Raw Data → 패턴 발견 → 비교 격차 → 구조적 원인 → ★ 선택
 | 03 | `03-rxr-recognition-survey.html` | RXR 인지도 조사 (KPI, 감성, 토픽, 키워드 매핑, 포지셔닝 맵) |
 | 04 | `04-brand-diagnosis-report.html` | 종합 전략 제언 (문제점, 방향성, 로드맵) |
 
-**디자인:** RXR 리포트 스타일 (밝은 테마, Pretendard, #6666FF 포인트)
+**디자인:** RXR 리포트 스타일 (밝은 테마, SUIT, #6666FF 포인트)
 **헤더/푸터:** `rxr-report-header-footer-guide.md` 준수
 
 **5-2. 종합 제안서 30p (content-worker)**
@@ -213,7 +213,7 @@ Raw Data → 패턴 발견 → 비교 격차 → 구조적 원인 → ★ 선택
 
 **디자인:** R스타일 다크 테마
 - 컬러: BG #1A1A1A, FG #F5F0EB, Accent #6C5CE7
-- 타이포: Pretendard Variable (H1 108px W200, H2 44px W500, Body 14px W300)
+- 타이포: SUIT Variable (Display 96px W200, H2 40px W500, Body 15px W300)
 - 그리드: 12-column, max-width 1440px
 - 매거진 위계: 영문 라벨 + 한글 타이틀 + 본문 3단
 - 슬라이드 구조: `slide-head`(상단 고정) + `slide-body`(아래 정렬)

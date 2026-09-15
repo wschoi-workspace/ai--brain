@@ -54,7 +54,7 @@ allowed-tools:
 src/
 ├── app/
 │   ├── page.tsx                    # 랜딩 (유효한 링크로 접속 안내)
-│   ├── layout.tsx                  # Pretendard 폰트, 메타데이터
+│   ├── layout.tsx                  # SUIT 폰트, 메타데이터
 │   ├── globals.css                 # Tailwind
 │   ├── join/[code]/page.tsx        # 공용 입장 (자동 세션 생성 → 리다이렉트)
 │   ├── admin/page.tsx              # 관리자 대시보드
@@ -76,7 +76,7 @@ src/
 ### 1-3. 기술 스택 (고정)
 
 - **프레임워크**: Next.js (App Router)
-- **스타일**: Tailwind CSS + Pretendard
+- **스타일**: Tailwind CSS + SUIT
 - **AI**: OpenAI GPT-4o-mini (대화) + GPT-4o-mini (분석)
 - **DB**: Supabase (PostgreSQL + RLS)
 - **배포**: Vercel

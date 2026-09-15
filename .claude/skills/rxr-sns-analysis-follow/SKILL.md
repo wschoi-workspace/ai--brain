@@ -410,7 +410,7 @@ BEI종합    __._   __._   __._   __._   __._
 
 **저장 경로:** `./30-knowledge/{이벤트명}-bei-follow-report.html`
 
-**R디자인가이드 적용:** #6666FF, Pretendard Variable, 반응형
+**R디자인가이드 적용:** #6666FF, SUIT Variable, 반응형
 **Chart.js CDN** 사용 (Decay Curve 라인차트)
 **PDF 출력 패널** 포함 (가로/세로 선택)
 

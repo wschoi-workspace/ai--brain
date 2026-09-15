@@ -488,7 +488,7 @@ Strategic Narrative → "이것을 어떤 이야기로 만들 것인가?"
 
 ### Mode B: 클라이언트 전략 제안서 (HTML)
 
-디자인: `project-rent-design-guide.md` 적용 (청보라 #6C5CE7, Pretendard)
+디자인: `project-rent-design-guide.md` 적용 (청보라 #6C5CE7, SUIT)
 
 ```
 1. Executive Summary — 핵심 발견 3줄 + 추천 방향

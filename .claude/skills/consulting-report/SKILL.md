@@ -55,7 +55,7 @@ project-rent 다크테마 HTML 덱으로 완성한다. **분석을 새로 하지
 | `00-system/01-templates/executive-report-framework.md` | **마이크로 구조** — 피라미드/SCQA/So What·Now What/액션타이틀/1p Exec Summary |
 | `00-system/01-templates/consulting-report-hybrid-deck.html` | **HTML 패턴** — 8장 덱(Cover/ExecSum/Cheat Sheet/Doblin/Exhibit/A·A·I/Roadmap)의 마크업·CSS |
 | `00-system/01-templates/doblin-diagnostic-slides.html` | **옵션 모듈** — Doblin Ten Types 진단 매트릭스 + 포지션 매핑 |
-| `00-system/04-design/project-rent-design-guide.md` | **디자인 토큰** — 색(#6C5CE7 극소량)·Pretendard·12컬럼·8px |
+| `00-system/04-design/project-rent-design-guide.md` | **디자인 토큰** — 색(#6C5CE7 극소량)·SUIT·12컬럼·8px |
 | `00-system/04-design/presentation-narrative-guide.md` | (옵션) B2C 감성 서사가 필요할 때 |
 
 ---
@@ -110,7 +110,7 @@ executive-report-framework.md 규칙 적용:
 
 ### Phase 4 — HTML 덱 제작
 - consulting-report-hybrid-deck.html의 마크업·CSS를 토대로, project-rent 다크테마 적용
-  (#1A1A1A 배경 / 크림 텍스트 / #6C5CE7 극소량 / Pretendard / 12컬럼·8px)
+  (#1A1A1A 배경 / 크림 텍스트 / #6C5CE7 극소량 / SUIT / 12컬럼·8px)
 - 전 슬라이드 **러닝헤더**(`보고서명 | 섹션`), 슬라이드당 1메시지, 푸터에 by Project Rent
 - **공유/캡처용이므로 화면 네비바(prev/next/edit)·progress bar 제거** (워크스페이스 컨벤션)
 - 저장: `{프로젝트}/consulting-report-{주제}.html`
